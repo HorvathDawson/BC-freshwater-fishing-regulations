@@ -9,12 +9,13 @@
    "_entry_id": "ce41432a",
    "splits": [
     {
-     "id": "eve_river_confluence",
-     "label": "Eve River",
+     "id": "eve_river_into_adam_river",
+     "label": "Eve River \u2192 Adam River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-757566-086842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-757566-086842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Eve River"
      },
      "note": "",
      "_note": "[auto-proposal L] Hwy 19 bridge over Adam River on Adam River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Confirm the Hwy 19 bridge over Adam River (Sayward area) on a map; single obvious crossing -> review.. Reach is 'upstream of Eve River (confluence) to the Hwy 19 bridge'. Adam River drains to Johnstone Strait near Sayward; Hwy 19 crosses it in the lower river. Public-highway bridge, not in FWA/FSR data -> map/OSM-confirmable. The Eve River endpoint is a separate confluence locator. \u2014 [review: two-boundary] 'upstream of Eve River, to Hwy 19 bridge' = TWO boundaries (Eve River confluence + Hwy 19 bridge); may need -a/-b rows per the two-boundary writing rule. [structural-split 2026-08-05 from \u201cupstream of Eve River, to Hwy 19 bridge\u201d] boundary=upstream of Eve River [human-review 2026-08-05 FWA-confluence] mouth of Eve River on mainstem (0 m validated); target blk/wsc set.",
@@ -74,8 +75,8 @@
      ]
     },
     {
-     "id": "logging_road_bridge",
-     "label": "logging road bridge",
+     "id": "amor_de_cosmos_creek__upper_falls",
+     "label": "upper falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -121,8 +122,8 @@
    "_entry_id": "0505ec23",
    "splits": [
     {
-     "id": "la1000_fsr_bridge",
-     "label": "LA1000 FSR bridge",
+     "id": "the_boundary_signs_at_the_bridge_crossing",
+     "label": "the boundary signs at the bridge crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -149,8 +150,8 @@
    "_entry_id": "43c59654",
    "splits": [
     {
-     "id": "signs",
-     "label": "signs",
+     "id": "dickson_lake_to_signs",
+     "label": "Dickson Lake to signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -190,8 +191,8 @@
      ]
     },
     {
-     "id": "ash_river__signs",
-     "label": "signs",
+     "id": "ash_river__dickson_falls",
+     "label": "Dickson Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -221,8 +222,8 @@
    "_entry_id": "2d6a28ef",
    "splits": [
     {
-     "id": "strathcona_dam",
-     "label": "Strathcona Dam",
+     "id": "including_campbell_river_between_strathcona_dam_and",
+     "label": "including Campbell River between Strathcona Dam and",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -240,8 +241,8 @@
      ]
     },
     {
-     "id": "elk_falls",
-     "label": "Elk Falls",
+     "id": "elk_falls_and_john_hart_dam_power_station",
+     "label": "Elk Falls and John Hart Dam Power Station",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -259,8 +260,8 @@
      ]
     },
     {
-     "id": "john_hart_dam_power_station",
-     "label": "John Hart Dam power station",
+     "id": "campbell_river__elk_falls_and_john_hart_dam_power_station",
+     "label": "Elk Falls and John Hart Dam Power Station",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -278,8 +279,8 @@
      ]
     },
     {
-     "id": "john_hart_dam",
-     "label": "John Hart Dam",
+     "id": "john_hart_dam_power_station",
+     "label": "John Hart Dam Power Station",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -297,8 +298,8 @@
      ]
     },
     {
-     "id": "strathcona_dam_100m_d_s",
-     "label": "Strathcona Dam +100m d/s",
+     "id": "strathcona_dam",
+     "label": "Strathcona Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -319,8 +320,8 @@
      "_offset_m": 100
     },
     {
-     "id": "maple_street_boundary_sign",
-     "label": "Maple Street boundary sign",
+     "id": "boundary_sign_at_the_end_of_maple_street",
+     "label": "boundary sign at the end of Maple Street",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -338,8 +339,8 @@
      ]
     },
     {
-     "id": "cement_block_boundary_sign",
-     "label": "cement block boundary sign",
+     "id": "boundary_sign_at_the_cement_block",
+     "label": "boundary sign at the cement block",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -357,8 +358,8 @@
      ]
     },
     {
-     "id": "power_line_200m_up_of_quinsam",
-     "label": "power line ~200m up of Quinsam",
+     "id": "power_line_crossing",
+     "label": "power line crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -377,7 +378,7 @@
     },
     {
      "id": "ladore_dam",
-     "label": "Ladore Dam",
+     "label": "channel",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -407,12 +408,13 @@
    "_entry_id": "3a50b4c9",
    "splits": [
     {
-     "id": "hatton_creek_confluence",
-     "label": "Hatton Creek",
+     "id": "hatton_creek_into_caycuse_river",
+     "label": "Hatton Creek \u2192 Caycuse River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-073434-258445-414898-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-073434-258445-414898-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Hatton Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Hatton Creek (blk 354152256). Auto-resolved from FWA; parent stream at the mouth = Caycuse River. OSM: https://www.openstreetmap.org/?mlat=48.79975&mlon=-124.55703#map=15/48.79975/-124.55703 \u2014 'and including Hatton Creek' = the reg zone also covers Hatton Creek itself (tributary inherits the reg); does not move the cut point.",
@@ -434,12 +436,13 @@
    "_entry_id": "d6bb14f9",
    "splits": [
     {
-     "id": "bannon_creek_confluence",
-     "label": "Bannon Creek",
+     "id": "banon_creek_into_chemainus_river",
+     "label": "Banon Creek \u2192 Chemainus River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-302830-171638-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-302830-171638-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Banon Creek"
      },
      "note": "",
      "_note": "[deferred] unresolved_trib \u2014 [review \u00b7 was:deferred] assume nothing \u2014 re-decide. \u2014 [human-review 2026-08-04 curated] Confluence = mouth of Bannon Creek (FWA 'Banon Creek', blk 354135507); parent = Chemainus River. Downstream reach. authored split: chemainus_bannon_creek (shared with chemainus-river-688d54).",
@@ -452,8 +455,8 @@
      }
     },
     {
-     "id": "copper_canyon_falls_signs",
-     "label": "Copper Canyon Falls signs",
+     "id": "copper_canyon_falls",
+     "label": "Copper Canyon Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -480,8 +483,8 @@
    "_entry_id": "ed6790c7",
    "splits": [
     {
-     "id": "west_mainline_logging_road_bridge",
-     "label": "West Mainline logging road bridge",
+     "id": "the_west_main_logging_road_bridge",
+     "label": "the West Main logging road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -508,8 +511,8 @@
    "_entry_id": "5fde172a",
    "splits": [
     {
-     "id": "south_bay_main_bridge",
-     "label": "South Bay Main bridge",
+     "id": "signs_at_second_bridge",
+     "label": "signs at second bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -536,8 +539,8 @@
    "_entry_id": "ce689454",
    "splits": [
     {
-     "id": "weir_at_cowichan_lake_outlet",
-     "label": "weir at Cowichan Lake outlet",
+     "id": "weir",
+     "label": "weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -574,12 +577,13 @@
      ]
     },
     {
-     "id": "holt_creek_confluence",
-     "label": "Holt Creek",
+     "id": "holt_creek_into_cowichan_river",
+     "label": "Holt Creek \u2192 Cowichan River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-252823-203808-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-252823-203808-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Holt Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Holt Creek (blk 354153534); parent = Cowichan River. Author as confluence anchor tributary_wsc=920-252823-203808-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.76151&mlon=-123.80185#map=15/48.76151/-123.80185",
@@ -639,8 +643,8 @@
    "_entry_id": "fbf29fb0",
    "splits": [
     {
-     "id": "lower_falls_englishman_river_park",
-     "label": "lower falls, Englishman River Park",
+     "id": "lower_falls_in_englishman_river_park",
+     "label": "lower falls in Englishman River Park",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -658,8 +662,8 @@
      ]
     },
     {
-     "id": "signs_100m_d_s_of_lower_falls",
-     "label": "signs ~100m d/s of lower falls",
+     "id": "signs_100_m_downstream_of_lower_falls_englishman_river_park",
+     "label": "signs 100 m downstream of lower falls, Englishman River Park",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -680,8 +684,8 @@
      "_offset_m": 100
     },
     {
-     "id": "top_bridge",
-     "label": "Top Bridge",
+     "id": "top_bridge_crossing_at_the_end_of_allsbro",
+     "label": "Top Bridge crossing at the end of Allsbro",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -708,8 +712,8 @@
    "_entry_id": "167048d4",
    "splits": [
     {
-     "id": "signs_near_south_main_bridge",
-     "label": "signs near South Main Bridge",
+     "id": "the_fishing_boundary_signs",
+     "label": "the fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -736,12 +740,13 @@
    "_entry_id": "60f3c8c1",
    "splits": [
     {
-     "id": "muchalat_confluence",
-     "label": "Muchalat",
+     "id": "muchalat_river_into_gold_river",
+     "label": "Muchalat River \u2192 Gold River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Muchalat River"
      },
      "note": "",
      "_note": "Confluence = mouth of Muchalat River (blk 354154901); parent = Gold River. Author as confluence anchor tributary_wsc=930-508366-413291-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.84250&mlon=-126.09319#map=15/49.84250/-126.09319",
@@ -754,8 +759,8 @@
      }
     },
     {
-     "id": "cascade_falls",
-     "label": "cascade falls",
+     "id": "the_cascade_falls",
+     "label": "the cascade falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -773,8 +778,8 @@
      ]
     },
     {
-     "id": "fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "gold_river__the_cascade_falls",
+     "label": "the cascade falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -804,12 +809,13 @@
    "_entry_id": "fd0d2caa",
    "splits": [
     {
-     "id": "bugaboo_confluence",
-     "label": "Bugaboo",
+     "id": "bugaboo_creek_into_gordon_river",
+     "label": "Bugaboo Creek \u2192 Gordon River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-056675-244796-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-056675-244796-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Bugaboo Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Bugaboo Creek (blk 354137176); parent = Gordon River. Author as confluence anchor tributary_wsc=930-056675-244796-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.65342&mlon=-124.46144#map=15/48.65342/-124.46144",
@@ -831,12 +837,13 @@
    "_entry_id": "f1dac566",
    "splits": [
     {
-     "id": "hemmingsen_creek_confluence",
-     "label": "Hemmingsen Creek",
+     "id": "hemmingsen_creek_into_harris_creek",
+     "label": "Hemmingsen Creek \u2192 Harris Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-055749-213082-332450-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-055749-213082-332450-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Hemmingsen Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Hemmingsen Creek (blk 354153116); parent = Harris Creek. Author as confluence anchor tributary_wsc=930-055749-213082-332450-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.63145&mlon=-124.25417#map=15/48.63145/-124.25417",
@@ -859,7 +866,7 @@
    "splits": [
     {
      "id": "top_of_lower_canyon",
-     "label": "top of lower canyon",
+     "label": "top of lower canyon,",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -883,12 +890,13 @@
      }
     },
     {
-     "id": "saunders_creek_confluence",
-     "label": "Saunders Creek",
+     "id": "saunders_creek_into_heber_river",
+     "label": "Saunders Creek \u2192 Heber River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-508366-243451-240268"
+      "tributary_wsc": "930-508366-243451-240268",
+      "_name": "Saunders Creek"
      },
      "note": "",
      "_note": "[curated 2026-08-08 manual-review batch=heber-1-9] [FWA confluence gap 0m; fly-reach upper bound; canyon end reuses 53fedd/731cca point]",
@@ -910,8 +918,8 @@
    "_entry_id": "f02f2954",
    "splits": [
     {
-     "id": "lower_fish_counting_fence",
-     "label": "lower fish counting fence",
+     "id": "lower_fish_counting_fence_near_tidewater",
+     "label": "lower fish counting fence near tidewater",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1020,8 +1028,8 @@
      ]
     },
     {
-     "id": "kokish_river__signs",
-     "label": "signs",
+     "id": "signs_500_m_downstream_of_ipp_tail_race",
+     "label": "signs 500 m downstream of IPP tail race",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1051,8 +1059,8 @@
    "_entry_id": "9e77f8d9",
    "splits": [
     {
-     "id": "upper_waterfall",
-     "label": "Upper Waterfall",
+     "id": "falls_in_little_qualicum_falls_provincial_park",
+     "label": "falls in Little Qualicum Falls Provincial Park",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1089,8 +1097,8 @@
      ]
     },
     {
-     "id": "little_qualicum_river__signs",
-     "label": "signs",
+     "id": "signs_35_m_downstream_of_hatchery_fence",
+     "label": "signs 35 m downstream of hatchery fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1120,8 +1128,8 @@
    "_entry_id": "5e563b26",
    "splits": [
     {
-     "id": "menzies_bay_logging_mainline_bridge",
-     "label": "Menzies Bay logging mainline bridge",
+     "id": "menzies_bay_logging_mainline_bridge_crossing",
+     "label": "Menzies Bay logging mainline bridge crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1148,8 +1156,8 @@
    "_entry_id": "046b8cc3",
    "splits": [
     {
-     "id": "power_line_at_bore_hole",
-     "label": "power line at Bore Hole",
+     "id": "power_line_crossing_at_bore_hole",
+     "label": "power line crossing at \"Bore Hole\"",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1167,12 +1175,13 @@
      ]
     },
     {
-     "id": "signs_at_mouth_of_boulder_creek_confluence",
-     "label": "signs at mouth of Boulder Creek",
+     "id": "boulder_creek_into_nanaimo_river",
+     "label": "Boulder Creek \u2192 Nanaimo River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-388982-325920-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-388982-325920-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Boulder Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] power line at 'Bore Hole' & Boulder Creek mouth signs on Nanaimo River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Locate the 'Bore Hole' power-line crossing and the Boulder Creek confluence signs on the Nanaimo River; map.. Reach between a power-line landmark ('Bore Hole') and boundary signs at the Boulder Creek mouth. Not in FWA. Map/OSM-confirmable. [structural-split 2026-08-05 from \u201cfrom power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\u201d] boundary=fishing boundary signs at the mouth of Boulder Creek [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 verify-batch] [Boulder Ck confl] [audit-fix 2026-08-11 (2-reviewer agreement)] [target Boulder Ck confl via FWA]",
@@ -1186,7 +1195,7 @@
     },
     {
      "id": "cedar_road_bridge",
-     "label": "Cedar Road bridge",
+     "label": "Cedar Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1223,8 +1232,8 @@
      ]
     },
     {
-     "id": "hwy_1_bridge",
-     "label": "Hwy 1 bridge",
+     "id": "the_hwy_1_bridge",
+     "label": "the Hwy 1 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1251,12 +1260,13 @@
    "_entry_id": "757ea107",
    "splits": [
     {
-     "id": "davie_river_confluence",
-     "label": "Davie River",
+     "id": "davie_river_into_nimpkish_river",
+     "label": "Davie River \u2192 Nimpkish River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-824808-592898-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-824808-592898-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Davie River"
      },
      "note": "",
      "_note": "Confluence = mouth of Davie River (blk 354151959). Auto-resolved from FWA; parent stream at the mouth = Nimpkish River. OSM: https://www.openstreetmap.org/?mlat=50.19599&mlon=-126.57113#map=15/50.19599/-126.57113",
@@ -1278,12 +1288,13 @@
    "_entry_id": "6e49648b",
    "splits": [
     {
-     "id": "parker_creek_confluence",
-     "label": "Parker Creek",
+     "id": "parker_creek_into_nitinat_river",
+     "label": "Parker Creek \u2192 Nitinat River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-073434-514461-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-073434-514461-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Parker Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Parker Creek (blk 354150422); parent = Nitinat River. Author as confluence anchor tributary_wsc=930-073434-514461-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=48.89839&mlon=-124.57054#map=15/48.89839/-124.57054",
@@ -1296,8 +1307,8 @@
      }
     },
     {
-     "id": "nitinat_river__fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "fishing_boundary_signs_100_m_upstream_of_red_rock_pool",
+     "label": "fishing boundary signs 100 m upstream of Red Rock Pool",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1340,8 +1351,8 @@
      "_offset_m": 100
     },
     {
-     "id": "boundary_signs",
-     "label": "boundary signs",
+     "id": "boundary_signs_50_m_upstream_of_nitinat_river_bridge",
+     "label": "boundary signs 50 m upstream of Nitinat River Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1393,12 +1404,13 @@
    "_entry_id": "06f55b14",
    "splits": [
     {
-     "id": "little_oyster_confluence",
-     "label": "Little Oyster",
+     "id": "little_oyster_river_into_oyster_river",
+     "label": "Little Oyster River \u2192 Oyster River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-602544-127942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-602544-127942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Little Oyster River"
      },
      "note": "",
      "_note": "Confluence = mouth of Little Oyster River (blk 354152367); parent = Oyster River. Author as confluence anchor tributary_wsc=920-602544-127942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.88280&mlon=-125.18767#map=15/49.88280/-125.18767",
@@ -1420,8 +1432,8 @@
    "_entry_id": "3952f2fb",
    "splits": [
     {
-     "id": "bc_hydro_diversion_dam",
-     "label": "BC Hydro diversion dam",
+     "id": "the_bc_hydro_diversion_dam",
+     "label": "the BC Hydro diversion dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1458,14 +1470,15 @@
      ]
     },
     {
-     "id": "morrison_creek_confluence",
-     "label": "Morrison Creek",
+     "id": "morrison_creek_into_puntledge_river_u100m",
+     "label": "Morrison Creek \u2192 Puntledge River (100 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 100,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Morrison Creek"
      },
      "note": "",
      "_note": "100 m upstream of the Morrison Creek confluence. Author as confluence anchor tributary_wsc=920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 100, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=49.68943&mlon=-125.01502#map=15/49.68943/-125.01502",
@@ -1479,14 +1492,15 @@
      }
     },
     {
-     "id": "puntledge_river__morrison_creek_confluence",
-     "label": "Morrison Creek",
+     "id": "morrison_creek_into_puntledge_river_d100m",
+     "label": "Morrison Creek \u2192 Puntledge River (100 m downstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 100,
-      "offset_dir": "downstream"
+      "offset_dir": "downstream",
+      "_name": "Morrison Creek"
      },
      "note": "",
      "_note": "100 m downstream of the Morrison Creek confluence. Author as confluence anchor tributary_wsc=920-559826-984406-044942-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 100, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=49.68965&mlon=-125.01262#map=15/49.68965/-125.01262",
@@ -1500,8 +1514,8 @@
      }
     },
     {
-     "id": "puntledge_river__signs",
-     "label": "signs",
+     "id": "fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
+     "label": "fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1522,8 +1536,8 @@
      "_offset_m": 50
     },
     {
-     "id": "signs_2",
-     "label": "signs",
+     "id": "signs_75_m_downstream_of_puntledge_river_hatchery_fence",
+     "label": "signs 75 m downstream of Puntledge River hatchery fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1553,8 +1567,8 @@
    "_entry_id": "107e2e8b",
    "splits": [
     {
-     "id": "boundary_signs_qfn",
-     "label": "boundary signs = QFN",
+     "id": "boundary_signs",
+     "label": "boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1594,8 +1608,8 @@
      "_offset_m": 125
     },
     {
-     "id": "hwy_19a_bridge",
-     "label": "Hwy 19A bridge",
+     "id": "highway_19a_bridge",
+     "label": "Highway 19A bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1622,8 +1636,8 @@
    "_entry_id": "6e6acefb",
    "splits": [
     {
-     "id": "quatse_river_fishway",
-     "label": "Quatse River fishway",
+     "id": "the_quatse_river_fishway",
+     "label": "the Quatse River fishway",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1650,8 +1664,8 @@
    "_entry_id": "04a9a77c",
    "splits": [
     {
-     "id": "signs_at_power_line_crossing",
-     "label": "signs at power line crossing",
+     "id": "fishing_boundary_signs_at_power_line_crossing",
+     "label": "fishing boundary signs at power line crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1669,8 +1683,8 @@
      ]
     },
     {
-     "id": "signs_300m_d_s_of_quinsam_hatchery_weir",
-     "label": "signs ~300m d/s of Quinsam Hatchery weir",
+     "id": "fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir",
+     "label": "fishing boundary signs 300 m downstream of Quinsam Hatchery weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1691,8 +1705,8 @@
      "_offset_m": 300
     },
     {
-     "id": "falls_d_s_of_middle_quinsam_lake",
-     "label": "Falls d/s of Middle Quinsam Lake",
+     "id": "falls_situated",
+     "label": "falls situated",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1719,12 +1733,13 @@
    "_entry_id": "4a53497f",
    "splits": [
     {
-     "id": "kay_creek_confluence",
-     "label": "Kay Creek",
+     "id": "kay_creek_into_salmon_river",
+     "label": "Kay Creek \u2192 Salmon River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-722273-416851-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-722273-416851-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Kay Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Kay Creek (blk 354148454); parent = Salmon River. Auto-resolved from FWA. OSM: https://www.openstreetmap.org/?mlat=50.19736&mlon=-125.74354#map=15/50.19736/-125.74354",
@@ -1737,12 +1752,13 @@
      }
     },
     {
-     "id": "white_river_confluence",
-     "label": "White River",
+     "id": "white_river_into_salmon_river",
+     "label": "White River \u2192 Salmon River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "White River"
      },
      "note": "",
      "_note": "Confluence = mouth of White River (blk 354154853); parent = Salmon River. Author as confluence anchor tributary_wsc=920-722273-132687-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.30742&mlon=-125.90192#map=15/50.30742/-125.90192",
@@ -1764,12 +1780,13 @@
    "_entry_id": "202ffb5c",
    "splits": [
     {
-     "id": "fleet_river_confluence",
-     "label": "Fleet River",
+     "id": "fleet_river_into_san_juan_river",
+     "label": "Fleet River \u2192 San Juan River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-055749-532666-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-055749-532666-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Fleet River"
      },
      "note": "",
      "_note": "Confluence = mouth of Fleet River (blk 354154509). Auto-resolved from FWA; parent stream at the mouth = San Juan River. OSM: https://www.openstreetmap.org/?mlat=48.58544&mlon=-124.06048#map=15/48.58544/-124.06048",
@@ -1791,8 +1808,8 @@
    "_entry_id": "9a3806bd",
    "splits": [
     {
-     "id": "tidal_boundary_at_papermill_dam",
-     "label": "tidal boundary at Papermill Dam",
+     "id": "the_tidal_boundary_at_papermill_dam_to_boundary_signs",
+     "label": "the tidal boundary at Papermill Dam to boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1810,8 +1827,8 @@
      ]
     },
     {
-     "id": "boundary_signs_1km_u_s",
-     "label": "boundary signs ~1km u/s",
+     "id": "somass_river__boundary_signs",
+     "label": "boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1857,8 +1874,8 @@
      ]
     },
     {
-     "id": "lower_potholes_falls",
-     "label": "lower potholes falls",
+     "id": "base_of_the_lower_potholes_falls",
+     "label": "base of the lower \"potholes\" falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1876,8 +1893,8 @@
      ]
     },
     {
-     "id": "sooke_river__signs",
-     "label": "signs",
+     "id": "signs_100_m_downstream_of_potholes_falls",
+     "label": "signs 100 m downstream of Potholes Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1907,8 +1924,8 @@
    "_entry_id": "29465d04",
    "splits": [
     {
-     "id": "signs_300m_d_s_of_hwy_4",
-     "label": "signs ~300m d/s of Hwy 4",
+     "id": "fishing_boundary_signs_300_m_downstream_of_hwy_4",
+     "label": "fishing boundary signs 300 m downstream of Hwy 4",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1938,8 +1955,8 @@
    "_entry_id": "703b9db3",
    "splits": [
     {
-     "id": "200_m",
-     "label": "200 m",
+     "id": "fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+     "label": "fishing boundary signs 200 m upstream of Stamp Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1960,8 +1977,8 @@
      "_offset_m": 200
     },
     {
-     "id": "500_m",
-     "label": "500 m",
+     "id": "signs_500_m_downstream_of_stamp_falls",
+     "label": "signs 500 m downstream of Stamp Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1982,12 +1999,13 @@
      "_offset_m": 500
     },
     {
-     "id": "ash_river_confluence",
-     "label": "Ash River",
+     "id": "ash_river_into_stamp_river",
+     "label": "Ash River \u2192 Stamp River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "930-139262-993282-254537-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "930-139262-993282-254537-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Ash River"
      },
      "note": "",
      "_note": "[auto-proposal H] Great Central Lake dam (Stamp River head) on Stamp River (Ash R confluence -> Great Central Lake dam). Candidate coord [-124.99219, 49.32835]. OSM: https://www.openstreetmap.org/?mlat=49.32835&mlon=-124.99219#map=15/49.32835/-124.99219. Verify: Confirm the Great Central Lake dam (upstream bound); downstream end = Ash River confluence (~[-124.978,49.362]).. Same dam as great-central-lake-4ff0ab: the Great Central Lake outlet dam is the head of the Stamp River. Coord = FWA stream exit from Great Central Lake polygon. Reach runs from the Ash River confluence up to this dam. [structural-split 2026-08-05 from \"from the confluence with Ash River upstream to the Great Cen\"] boundary=confluence with Ash River [human-review 2026-08-05 FWA-confluence] mouth of Ash River (0 m validated); target blk/wsc set.",
@@ -2019,8 +2037,8 @@
      ]
     },
     {
-     "id": "girl_guide_falls_signs",
-     "label": "Girl Guide Falls signs",
+     "id": "signs_at_girl_guide_falls",
+     "label": "signs at \"Girl Guide Falls\"",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2078,8 +2096,8 @@
    "_entry_id": "492dbcc9",
    "splits": [
     {
-     "id": "toquart_mainline",
-     "label": "Toquart mainline",
+     "id": "the_toquart_mainline_logging_bridge_when_open",
+     "label": "the Toquart mainline logging bridge when open",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2097,8 +2115,8 @@
      ]
     },
     {
-     "id": "boundary_sign_near_falls",
-     "label": "boundary sign near falls",
+     "id": "the_boundary_sign",
+     "label": "the boundary sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2125,12 +2143,13 @@
    "_entry_id": "abf3bba4",
    "splits": [
     {
-     "id": "catherine_creek_confluence",
-     "label": "Catherine Creek",
+     "id": "catherine_creek_into_tsitika_river",
+     "label": "Catherine Creek \u2192 Tsitika River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "920-782999-158212-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "920-782999-158212-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Catherine Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Catherine Creek (blk 354153013); parent = Tsitika River. Same confluence as tsitika-river-550759 (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=50.42741&mlon=-126.57573#map=15/50.42741/-126.57573",
@@ -2152,8 +2171,8 @@
    "_entry_id": "2f8e871c",
    "splits": [
     {
-     "id": "wahpeeto_falls",
-     "label": "Wahpeeto falls",
+     "id": "within",
+     "label": "within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2183,8 +2202,8 @@
    "_entry_id": "4cf440b0",
    "splits": [
     {
-     "id": "sayward_road_bridge",
-     "label": "Sayward Road bridge",
+     "id": "the_sayward_road_bridge_crossing",
+     "label": "the Sayward Road Bridge crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2211,8 +2230,8 @@
    "_entry_id": "d4b466ec",
    "splits": [
     {
-     "id": "yakoun_lake_outlet",
-     "label": "Yakoun Lake outlet",
+     "id": "yakoun_lake",
+     "label": "Yakoun Lake",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -2242,8 +2261,8 @@
    "_entry_id": "dadcd21c",
    "splits": [
     {
-     "id": "alouette_boundary_signs",
-     "label": "Alouette boundary signs",
+     "id": "alouette_river__the_fishing_boundary_signs",
+     "label": "the fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2261,8 +2280,8 @@
      ]
     },
     {
-     "id": "216_street_bridge",
-     "label": "216 Street bridge",
+     "id": "216th_street",
+     "label": "216th Street",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2280,7 +2299,7 @@
      ]
     },
     {
-     "id": "216th_street",
+     "id": "alouette_river__216th_street",
      "label": "216th Street",
      "kind": "point",
      "anchor": {
@@ -2345,8 +2364,8 @@
    "_entry_id": "465aae17",
    "splits": [
     {
-     "id": "1st_falls",
-     "label": "1st falls",
+     "id": "the_upstream_edge_of_1st_falls",
+     "label": "the upstream edge of 1st falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2364,8 +2383,8 @@
      ]
     },
     {
-     "id": "point",
-     "label": "point",
+     "id": "brem_river__the_upstream_edge_of_1st_falls",
+     "label": "the upstream edge of 1st falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2414,8 +2433,8 @@
    "_entry_id": "e7274b4e",
    "splits": [
     {
-     "id": "cariboo_dam",
-     "label": "Cariboo Dam",
+     "id": "burnaby_lake_or_from_cariboo_dam_to_salamander_creek",
+     "label": "Burnaby Lake or from Cariboo Dam to Salamander Creek",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2511,8 +2530,8 @@
    "_entry_id": "b2441cc9",
    "splits": [
     {
-     "id": "cable_pool_bridge_footbridge",
-     "label": "Cable Pool Bridge footbridge",
+     "id": "fishing_boundary_signs_at_footbridge_situated",
+     "label": "fishing boundary signs at footbridge situated",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2539,8 +2558,8 @@
    "_entry_id": "bb6d5fe5",
    "splits": [
     {
-     "id": "main_logging_road_bridge_2_4km_d_s_chehalis_lk",
-     "label": "main logging road bridge ~2.4km d/s Chehalis Lk",
+     "id": "main_logging_road_bridge",
+     "label": "main logging road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2770,8 +2789,8 @@
      ]
     },
     {
-     "id": "landstrom_bar",
-     "label": "Landstrom Bar",
+     "id": "eastern_end_of_landstrom_bar",
+     "label": "eastern end of Landstrom Bar",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2807,8 +2826,8 @@
      ]
     },
     {
-     "id": "croft_island_southern_end",
-     "label": "Croft Island southern end",
+     "id": "southern_end_of_croft_island",
+     "label": "southern end of Croft Island",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2900,8 +2919,8 @@
      ]
     },
     {
-     "id": "112_avenue_bridge",
-     "label": "112 Avenue bridge",
+     "id": "112th_avenue",
+     "label": "112th Avenue",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2928,8 +2947,8 @@
    "_entry_id": "63f561e1",
    "splits": [
     {
-     "id": "lower_falls",
-     "label": "lower falls",
+     "id": "the_lower_falls",
+     "label": "the lower falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2956,8 +2975,8 @@
    "_entry_id": "8bba2d84",
    "splits": [
     {
-     "id": "272_street",
-     "label": "272 Street",
+     "id": "272nd_street",
+     "label": "272nd Street",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3076,8 +3095,8 @@
      }
     },
     {
-     "id": "cpr_bridge",
-     "label": "CPR Bridge",
+     "id": "in_the_lower_pitt_river",
+     "label": "in the Lower Pitt River",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3104,8 +3123,8 @@
    "_entry_id": "bfb759b1",
    "splits": [
     {
-     "id": "ruby_creek__fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "ruby_lake_to_fishing_boundary_signs",
+     "label": "Ruby Lake to fishing boundary signs",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -3135,8 +3154,8 @@
    "_entry_id": "98c1c934",
    "splits": [
     {
-     "id": "232_street",
-     "label": "232 Street",
+     "id": "232nd_street",
+     "label": "232nd Street",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3210,8 +3229,8 @@
    "_entry_id": "2b2d5a92",
    "splits": [
     {
-     "id": "bailey_bridge",
-     "label": "Bailey Bridge",
+     "id": "bailey_bridge_situated",
+     "label": "Bailey Bridge situated",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3238,12 +3257,13 @@
    "_entry_id": "25531ceb",
    "splits": [
     {
-     "id": "ashlu_creek_confluence",
-     "label": "Ashlu Creek",
+     "id": "ashlu_creek_into_squamish_river",
+     "label": "Ashlu Creek \u2192 Squamish River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "900-105574-372968-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "900-105574-372968-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Ashlu Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Ashlu Creek (blk 360854359). Auto-resolved from FWA; parent stream at the mouth = Squamish River. OSM: https://www.openstreetmap.org/?mlat=49.89564&mlon=-123.30285#map=15/49.89564/-123.30285",
@@ -3265,8 +3285,8 @@
    "_entry_id": "054085f5",
    "splits": [
     {
-     "id": "tamihi_creek_falls",
-     "label": "Tamihi Creek Falls",
+     "id": "the_falls_situated",
+     "label": "the falls situated",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3296,12 +3316,13 @@
    "_entry_id": "c6b28d59",
    "splits": [
     {
-     "id": "sakwi_creek_enters_weaver_creek_confluence",
-     "label": "Sakwi Creek enters Weaver Creek",
+     "id": "sakwi_creek_into_weaver_creek",
+     "label": "Sakwi Creek \u2192 Weaver Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-077501-154487-942852-376971-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-077501-154487-942852-376971-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Sakwi Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Sakwi Creek (blk 356357734); parent = Weaver Creek. Author as confluence anchor tributary_wsc=100-077501-154487-942852-376971-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.32952&mlon=-121.87778#map=15/49.32952/-121.87778",
@@ -3354,8 +3375,8 @@
      "_note": "Split authored in splits.json: 'adams_lake' (lake). \u2014 authored split: adams_lake"
     },
     {
-     "id": "signs_near_salmon_viewing_platforms",
-     "label": "signs near salmon-viewing platforms",
+     "id": "fishing_boundary_signs_in_the_vicinity_of_the_public_salmon_viewing_platforms_in_tsutswecew_provincial_park",
+     "label": "fishing boundary signs in the vicinity of the public salmon viewing platforms in Tsutswecew Provincial Park",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3429,12 +3450,13 @@
      ]
     },
     {
-     "id": "yalakom_river_confluence",
-     "label": "Yalakom River",
+     "id": "yalakom_river_into_bridge_river",
+     "label": "Yalakom River \u2192 Bridge River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-239855-151124-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-239855-151124-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Yalakom River"
      },
      "note": "",
      "_note": "[auto-proposal H] Terzaghi Dam (Carpenter Lake outlet) on Bridge River (Terzaghi Dam -> Yalakom River). Candidate coord [-122.22175, 50.78765]. OSM: https://www.openstreetmap.org/?mlat=50.78765&mlon=-122.22175#map=15/50.78765/-122.22175. Verify: Confirm cut at Carpenter Lake outlet (Terzaghi Dam); downstream end = Yalakom R mouth ~[-122.173,50.863].. Terzaghi Dam impounds Carpenter Lake on the Bridge River. Coord = FWA-computed Bridge River blue-line exit from the Carpenter Lake polygon; matches the known Terzaghi Dam location. Reach ends at the Yalakom River confluence. [structural-split 2026-08-05 from \"from Terzaghi Dam to Yalakom River\"] boundary=Yalakom River [human-review 2026-08-05 FWA-confluence] mouth of Yalakom River (0 m validated); target blk/wsc set.",
@@ -3475,8 +3497,8 @@
    "_entry_id": "c05e08cf",
    "splits": [
     {
-     "id": "cayoosh_falls",
-     "label": "Cayoosh falls",
+     "id": "falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3503,8 +3525,8 @@
    "_entry_id": "9c65ee1c",
    "splits": [
     {
-     "id": "albas_falls",
-     "label": "Albas falls",
+     "id": "the_falls",
+     "label": "the falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3531,8 +3553,8 @@
    "_entry_id": "2e5c3843",
    "splits": [
     {
-     "id": "old_north_thompson_highway_bridge",
-     "label": "old North Thompson Highway bridge",
+     "id": "old_clearwater_bridge",
+     "label": "old Clearwater Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3550,12 +3572,13 @@
      ]
     },
     {
-     "id": "falls_creek_confluence",
-     "label": "Falls Creek",
+     "id": "falls_creek_into_clearwater_river",
+     "label": "Falls Creek \u2192 Clearwater River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Falls Creek"
      },
      "note": "",
      "_note": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Falls Creek [human-review 2026-08-06] Falls Creek (a CREEK) confluence on Clearwater (0 m); re-typed falls->confluence.",
@@ -3568,12 +3591,13 @@
      }
     },
     {
-     "id": "mahood_river_confluence",
-     "label": "Mahood River",
+     "id": "mahood_river_into_clearwater_river",
+     "label": "Mahood River \u2192 Clearwater River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Mahood River"
      },
      "note": "",
      "_note": "Mahood River blk: 356347721, watershed code: 100-190442-998192-349877-237590-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000, Falls creek blk: 356353929 and wsc: 100-190442-998192-349877-427140-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 [structural-split 2026-08-05 from \"from Falls Creek to Mahood River\"] boundary=Mahood River [human-review 2026-08-05 FWA-confluence] mouth of Mahood River (0 m validated); target blk/wsc set.",
@@ -3586,12 +3610,13 @@
      }
     },
     {
-     "id": "clearwater_n_thompson_confluence",
-     "label": "Clearwater/N.Thompson",
+     "id": "clearwater_river_into_north_thompson_river",
+     "label": "Clearwater River \u2192 North Thompson River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-190442-998192-349877-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-190442-998192-349877-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Clearwater River"
      },
      "note": "",
      "_note": "Confluence = mouth of Clearwater River (blk 356364464); parent = North Thompson River. Author as confluence anchor tributary_wsc=100-190442-998192-349877-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=51.63264&mlon=-120.08013#map=15/51.63264/-120.08013",
@@ -3613,7 +3638,7 @@
    "_entry_id": "f5eeaeef",
    "splits": [
     {
-     "id": "the_falls",
+     "id": "crazy_creek__the_falls",
      "label": "the falls",
      "kind": "point",
      "anchor": {
@@ -3641,12 +3666,13 @@
    "_entry_id": "d32909fa",
    "splits": [
     {
-     "id": "thompson_river_confluence",
-     "label": "Thompson River",
+     "id": "thompson_river_into_fraser_river",
+     "label": "Thompson River \u2192 Fraser River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Thompson River"
      },
      "note": "",
      "_note": "Confluence = mouth of Thompson River (blk 356364690). Auto-resolved from FWA; parent stream at the mouth = Fraser River. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488",
@@ -3678,8 +3704,8 @@
      ]
     },
     {
-     "id": "fraser_river__signs",
-     "label": "signs",
+     "id": "signs_2800_m_downstream_of_hell_s_gate",
+     "label": "signs 2800 m downstream of Hell's Gate",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3700,8 +3726,8 @@
      "_offset_m": 2800
     },
     {
-     "id": "fraser_river__fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "fishing_boundary_signs_6500_m_downstream_of_boston_bar",
+     "label": "fishing boundary signs 6500 m downstream of Boston Bar",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3741,8 +3767,8 @@
      ]
     },
     {
-     "id": "bc_railway",
-     "label": "BC Railway",
+     "id": "bc_railway_bridge",
+     "label": "BC Railway Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3798,8 +3824,8 @@
      ]
     },
     {
-     "id": "cnr_bridge_1km_below_thompson",
-     "label": "CNR bridge ~1km below Thompson",
+     "id": "fraser_river__cnr_bridge",
+     "label": "CNR Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3817,12 +3843,13 @@
      ]
     },
     {
-     "id": "spuzzum_creek_confluence",
-     "label": "Spuzzum Creek",
+     "id": "spuzzum_creek_into_fraser_river",
+     "label": "Spuzzum Creek \u2192 Fraser River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-139969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-139969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Spuzzum Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Spuzzum Creek (blk 356359494). Auto-resolved from FWA; parent stream at the mouth = Fraser River. OSM: https://www.openstreetmap.org/?mlat=49.66513&mlon=-121.40912#map=15/49.66513/-121.40912",
@@ -3872,8 +3899,8 @@
    "_entry_id": "921224bf",
    "splits": [
     {
-     "id": "logging_bridge",
-     "label": "logging bridge",
+     "id": "frances_lake",
+     "label": "Frances Lake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3894,8 +3921,8 @@
      "_offset_m": 400
     },
     {
-     "id": "signs_at_logging_bridge",
-     "label": "signs at logging bridge",
+     "id": "fishing_boundary_signs_at_the_logging_bridge",
+     "label": "fishing boundary signs at the logging bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3950,8 +3977,8 @@
    "_entry_id": "344ca048",
    "splits": [
     {
-     "id": "falls",
-     "label": "falls",
+     "id": "seymour_river__the_falls",
+     "label": "the falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3978,12 +4005,13 @@
    "_entry_id": "bea6153a",
    "splits": [
     {
-     "id": "thompson_fraser_confluence",
-     "label": "Thompson/Fraser",
+     "id": "thompson_river__thompson_river_into_fraser_river",
+     "label": "Thompson River \u2192 Fraser River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Thompson River"
      },
      "note": "",
      "_note": "Confluence = mouth of Thompson River (blk 356364690); parent = Fraser River. Author as confluence anchor tributary_wsc=100-190442-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.23551&mlon=-121.58488#map=15/50.23551/-121.58488 \u2014 Shares the Thompson/Fraser confluence split with fraser-river-65211d et al. (one split).",
@@ -3997,7 +4025,7 @@
     },
     {
      "id": "thompson_river__cnr_bridge",
-     "label": "CNR bridge",
+     "label": "CNR Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4016,7 +4044,7 @@
     },
     {
      "id": "cnr_bridge_2",
-     "label": "CNR bridge",
+     "label": "CNR Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4034,8 +4062,8 @@
      ]
     },
     {
-     "id": "thompson_river__signs",
-     "label": "signs",
+     "id": "thompson_river__boundary_signs",
+     "label": "boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4062,8 +4090,8 @@
    "_entry_id": "e9670588",
    "splits": [
     {
-     "id": "easternmost_hwy_3",
-     "label": "easternmost Hwy 3",
+     "id": "the_easternmost_hwy_3_bridge",
+     "label": "the easternmost Hwy 3 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4090,8 +4118,8 @@
    "_entry_id": "a2098ab8",
    "splits": [
     {
-     "id": "alexander_creek__easternmost_hwy_3",
-     "label": "easternmost Hwy 3",
+     "id": "alexander_creek__the_easternmost_hwy_3_bridge",
+     "label": "the easternmost Hwy 3 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4146,12 +4174,13 @@
    "_entry_id": "72f67e46",
    "splits": [
     {
-     "id": "woden_creek_confluence",
-     "label": "Woden Creek",
+     "id": "woden_creek_into_burton_trout_creek",
+     "label": "Woden Creek \u2192 Burton (Trout) Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-680822-030247-333167-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-680822-030247-333167-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Woden Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] Hwy 6 bridge over Burton Creek on Burton Creek. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Burton Creek; VERIFY correct Burton Creek (FWA name collision).. Reach = 'from Woden Creek to Hwy 6 bridge'. The FWA 'Burton Creek' match (51.48N,-119.46, Adams Lake area) is likely the wrong creek; the reg creek is on Hwy 6 (Arrow Lakes / Nakusp corridor). Public highway -> map-only. [structural-split 2026-08-05 from \u201cfrom Woden Creek to Hwy 6 bridge\u201d] boundary=Woden Creek [human-review 2026-08-05 FWA-confluence] mouth of Woden Creek on mainstem (0 m validated); target blk/wsc set.",
@@ -4192,12 +4221,13 @@
    "_entry_id": "00d8df6e",
    "splits": [
     {
-     "id": "rodd_creek_confluence",
-     "label": "Rodd Creek",
+     "id": "rodd_creek_into_caribou_creek",
+     "label": "Rodd Creek \u2192 Caribou Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-680822-286243-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-680822-286243-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Rodd Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] Hwy 6 bridge over Caribou Creek on Caribou Creek. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Confirm Hwy 6 bridge over Caribou Creek (Arrow Lakes, near Burton); map.. Reach = 'from Rodd Creek to Hwy 6 bridge'. Caribou Creek enters Lower Arrow Lake near Burton where Hwy 6 crosses it. Public highway -> not in FWA; map/OSM-confirmable. [structural-split 2026-08-05 from \u201cfrom Rodd Creek to Hwy 6 bridge\u201d] boundary=Rodd Creek [human-review 2026-08-05 FWA-confluence] mouth of Rodd Creek on mainstem (0 m validated); target blk/wsc set.",
@@ -4269,8 +4299,8 @@
    "_entry_id": "55a54cfd",
    "splits": [
     {
-     "id": "coffee_creek__falls",
-     "label": "falls",
+     "id": "fishing_boundary_signs_at_falls",
+     "label": "fishing boundary signs at falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4340,8 +4370,8 @@
      ]
     },
     {
-     "id": "cpr_bridge_robson",
-     "label": "CPR Bridge, Robson",
+     "id": "a_line_between_the_old_robson_ferry_landing_and_a_sign_on_the_south_river_bank",
+     "label": "a line between the old Robson Ferry landing and a sign on the south river bank,",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4359,8 +4389,8 @@
      ]
     },
     {
-     "id": "old_robson_ferry_landing_south_bank_sign",
-     "label": "old Robson Ferry landing \u2194 south-bank sign",
+     "id": "old_robson_ferry_landing",
+     "label": "old Robson Ferry landing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4416,12 +4446,13 @@
      ]
     },
     {
-     "id": "kootenay_river_confluence",
-     "label": "Kootenay River",
+     "id": "kootenay_river_into_columbia_river",
+     "label": "Kootenay River \u2192 Columbia River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Kootenay River"
      },
      "note": "",
      "_note": "[auto-proposal H] Hugh Keenleyside Dam (Lower Arrow Lake outlet) on Columbia River (Keenleyside Dam -> WA border, + Kootenay reach). Candidate coord [-117.77394, 49.34194]. OSM: https://www.openstreetmap.org/?mlat=49.34194&mlon=-117.77394#map=15/49.34194/-117.77394. Verify: Same dam as columbia-river-f4c5a3; entry also bundles a connected Kootenay River reach - handle separately.. Duplicate Keenleyside Dam structure; this entry additionally names a connected Kootenay River reach (see the Kootenay dam items 21-23). Coord = Keenleyside Dam at Lower Arrow Lake outlet. [structural-split 2026-08-05 from \"From Keenleyside Dam downstream to the Washington state bord\"] boundary=Washington state border and connected reaches: the Kootenay River (Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Kootenay River (0 m validated); target blk/wsc set.",
@@ -4472,12 +4503,13 @@
      ]
     },
     {
-     "id": "pend_d_oreille_river_confluence",
-     "label": "Pend d'Oreille River",
+     "id": "pend_d_oreille_river_into_columbia_river",
+     "label": "Pend-d'Oreille River \u2192 Columbia River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-602565-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-602565-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Pend-d'Oreille River"
      },
      "note": "",
      "_note": "[manual anchor 2026-08-08 audit-fix] Pend d'Oreille R mouth on Columbia (FWA); Columbia-confluence endpoint of connected reach \"Pend d'Oreille R (Columbia confl -> Waneta Dam)\"",
@@ -4499,12 +4531,13 @@
    "_entry_id": "c8e8536d",
    "splits": [
     {
-     "id": "laib_creek_confluence",
-     "label": "Laib Creek",
+     "id": "laib_creek_into_cultus_creek",
+     "label": "Laib Creek \u2192 Cultus Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-145018-284688-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-145018-284688-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Laib Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Laib Creek (blk 356558594). Auto-resolved from FWA; parent stream at the mouth = Cultus Creek. OSM: https://www.openstreetmap.org/?mlat=49.32249&mlon=-116.85479#map=15/49.32249/-116.85479",
@@ -4545,12 +4578,13 @@
      ]
     },
     {
-     "id": "lardeau_river_confluence",
-     "label": "Lardeau River",
+     "id": "lardeau_river_into_duncan_river",
+     "label": "Lardeau River \u2192 Duncan River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-096683-076865-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Lardeau River"
      },
      "note": "",
      "_note": "[auto-proposal H] Duncan Dam (Duncan Lake outlet) on Duncan River (Duncan Dam -> Lardeau R confluence). Candidate coord [-116.94343, 50.2491]. OSM: https://www.openstreetmap.org/?mlat=50.24910&mlon=-116.94343#map=15/50.24910/-116.94343. Verify: Confirm cut at Duncan Dam (south end of Duncan Lake); downstream end = Duncan-Lardeau confluence.. Duncan Dam impounds Duncan Lake (Kootenay, MU 4-19); coord = FWA Duncan River exit from the large Duncan Lake polygon (wbk 329120714), matching the known dam. Reach runs to the Lardeau River confluence. [structural-split 2026-08-05 from \"downstream of Duncan Dam to the confluence of the Duncan Riv\"] boundary=confluence of the Duncan River and the Lardeau River [human-review 2026-08-05 FWA-confluence] mouth of Lardeau River (0 m validated); target blk/wsc set.",
@@ -4572,12 +4606,13 @@
    "_entry_id": "dfe2665a",
    "splits": [
     {
-     "id": "ben_abel_creek_confluence",
-     "label": "Ben Abel Creek",
+     "id": "ben_abel_creek_into_dutch_creek",
+     "label": "Ben Abel Creek \u2192 Dutch Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-992449-498711-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-992449-498711-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Ben Abel Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Ben Abel Creek (blk 356569048); parent = Dutch Creek. Author as confluence anchor tributary_wsc=300-992449-498711-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.27126&mlon=-116.15556#map=15/50.27126/-116.15556",
@@ -4590,12 +4625,13 @@
      }
     },
     {
-     "id": "columbia_lake_boundary_confluence",
-     "label": "Columbia Lake boundary",
+     "id": "dutch_creek_into_columbia_river",
+     "label": "Dutch Creek \u2192 Columbia River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-992449-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-992449-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Dutch Creek"
      },
      "note": "",
      "_note": "LAKE split: Dutch Creek reaches Columbia Lake/River here [-115.86053,50.29318]. Author as a LAKE anchor (Columbia Lake wbk), NOT a stream confluence \u2014 lake splitting not yet implemented (docs/15). Coord recorded for when it is.",
@@ -4731,12 +4767,13 @@
      ]
     },
     {
-     "id": "forsyth_creek_confluence",
-     "label": "Forsyth Creek",
+     "id": "forsyth_creek_into_elk_river",
+     "label": "Forsyth Creek \u2192 Elk River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-584724-745570-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-584724-745570-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Forsyth Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] Multiple bridge/lake segments (NOT a single dam) on Elk River (Lower Elk Lake, Line Creek Bridge, CPR Bridge Sparwood, Hwy 3 Hosmer...). No FWA coord (needs map / external source). Verify: This rule is a chain of bridge/lake landmarks, not the Elko Dam - needs manual map work per landmark.. Mis-bucketed under dam_weir_fence: the locator lists several bridge and lake segments (Lower Elk Lake -> Forsyth Cr [outlet ref ~[-115.084,50.550]], Line Creek Bridge -> CPR Bridge at Sparwood, Hwy 3 bridge at Hosmer...). Recommend manual: resolve each bridge/lake landmark individually. [structural-split 2026-08-06 8-way] confluence (to resolve). [curated 2026-08-07 manual-review batch=elk] [Forsyth Ck confluence, FWA blk/wsc]",
@@ -4786,8 +4823,8 @@
    "_entry_id": "e4b7a409",
    "splits": [
     {
-     "id": "old_mf_m_railway_bridge_coal_ck",
-     "label": "old MF&M Railway bridge, Coal Ck",
+     "id": "except_coal_creek",
+     "label": "EXCEPT Coal Creek",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4817,8 +4854,8 @@
    "_entry_id": "10cce399",
    "splits": [
     {
-     "id": "doctor_creek_fsr_bridge",
-     "label": "Doctor Creek FSR bridge",
+     "id": "doctor_creek_bridge",
+     "label": "Doctor Creek Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4979,12 +5016,13 @@
    "_entry_id": "2ace2dc1",
    "splits": [
     {
-     "id": "angus_creek_confluence",
-     "label": "Angus Creek",
+     "id": "angus_creek_into_hellroaring_creek",
+     "label": "Angus Creek \u2192 Hellroaring Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-674798-404304-164842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-674798-404304-164842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Angus Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Angus Creek (blk 356514348). Auto-resolved from FWA; parent stream at the mouth = Hellroaring Creek. OSM: https://www.openstreetmap.org/?mlat=49.57852&mlon=-116.16247#map=15/49.57852/-116.16247",
@@ -5034,12 +5072,13 @@
    "_entry_id": "13b0444c",
    "splits": [
     {
-     "id": "kirkup_creek_confluence",
-     "label": "Kirkup Creek",
+     "id": "kirkup_creek_into_jordan_river",
+     "label": "Kirkup Creek \u2192 Jordan River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-748782-101704-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-748782-101704-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Kirkup Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Kirkup Creek (blk 356567290); parent = Jordan River. Auto-resolved from FWA. OSM: https://www.openstreetmap.org/?mlat=51.03333&mlon=-118.25994#map=15/51.03333/-118.25994",
@@ -5084,8 +5123,8 @@
      ]
     },
     {
-     "id": "cpr",
-     "label": "CPR",
+     "id": "cpr_bridge_near_creston",
+     "label": "CPR Bridge near Creston",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5163,12 +5202,13 @@
      ]
     },
     {
-     "id": "columbia_river_confluence",
-     "label": "Columbia River",
+     "id": "kootenay_river__kootenay_river_into_columbia_river",
+     "label": "Kootenay River \u2192 Columbia River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474"
+      "tributary_wsc": "300-625474",
+      "_name": "Kootenay River"
      },
      "note": "",
      "_note": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Columbia River (0 m validated); target blk/wsc set.",
@@ -5191,7 +5231,7 @@
    "splits": [
     {
      "id": "kootenay_koocanusa",
-     "label": "Koocanusa Reservoir u/s end",
+     "label": "Koocanusa Reservoir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5209,8 +5249,8 @@
      ]
     },
     {
-     "id": "montana_border",
-     "label": "Montana border",
+     "id": "the_montana_border",
+     "label": "the Montana border",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5228,12 +5268,13 @@
      ]
     },
     {
-     "id": "kootenay_river__white_river_confluence",
-     "label": "White River",
+     "id": "white_river_into_kootenay_river",
+     "label": "White River \u2192 Kootenay River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "White River"
      },
      "note": "",
      "_note": "Confluence = mouth of White River (blk 356570381); parent = Kootenay River. Author as confluence anchor tributary_wsc=300-625474-814939-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=50.35270&mlon=-115.62503#map=15/50.35270/-115.62503 \u2014 Downstream boundary = Koocanusa Reservoir (splits.json 'kootenay_koocanusa').",
@@ -5255,8 +5296,8 @@
    "_entry_id": "1469690a",
    "splits": [
     {
-     "id": "kuskanax_creek_falls",
-     "label": "Kuskanax Creek Falls",
+     "id": "kuskanax_creek__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5283,8 +5324,8 @@
    "_entry_id": "57a2bb4f",
    "splits": [
     {
-     "id": "signs_600_m_below_trout_lake_outlet",
-     "label": "signs ~600 m below Trout Lake outlet",
+     "id": "fishing_boundary_signs_at_trout_lake_outlet_to_fishing_boundary_signs",
+     "label": "fishing boundary signs at Trout Lake outlet, to fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5314,8 +5355,8 @@
    "_entry_id": "4050199b",
    "splits": [
     {
-     "id": "lodgepole_creek__falls",
-     "label": "Falls",
+     "id": "falls_near_the_km_26_post_on_lodgepole_road",
+     "label": "falls near the km 26 post on Lodgepole Road",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5342,8 +5383,8 @@
    "_entry_id": "4dbdd58a",
    "splits": [
     {
-     "id": "falls_near_km_26_post_lodgepole_road",
-     "label": "falls near km 26 post, Lodgepole Road",
+     "id": "lodgepole_creek__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5370,8 +5411,8 @@
    "_entry_id": "6cee42e9",
    "splits": [
     {
-     "id": "premier_lake_road_bridge",
-     "label": "Premier Lake road bridge",
+     "id": "premier_lake_bridge_crossing",
+     "label": "Premier Lake Bridge crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5389,12 +5430,13 @@
      ]
     },
     {
-     "id": "mutton_creek_confluence",
-     "label": "Mutton Creek",
+     "id": "mutton_creek_into_lussier_river",
+     "label": "Mutton Creek \u2192 Lussier River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-731003-529325-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-731003-529325-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Mutton Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] Premier Lake Bridge crossing & Mutton Creek on Lussier River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Locate the Premier Lake Bridge and the Mutton Creek confluence on the Lussier; map.. Reach = 'Premier Lake Bridge crossing to Mutton Creek'. Road bridge + tributary confluence; the bridge is not name-matched in FSR. Map/OSM-confirmable. [structural-split 2026-08-05 from \u201cbetween Premier Lake Bridge crossing and Mutton Creek\u201d] boundary=Mutton Creek [human-review 2026-08-05 FWA-confluence] mouth of Mutton Creek on mainstem (0 m validated); target blk/wsc set.",
@@ -5416,8 +5458,8 @@
    "_entry_id": "cb7374a9",
    "splits": [
     {
-     "id": "michel_creek__easternmost_hwy_3",
-     "label": "easternmost Hwy 3",
+     "id": "michel_creek__the_easternmost_hwy_3_bridge",
+     "label": "the easternmost Hwy 3 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5444,8 +5486,8 @@
    "_entry_id": "8328cecb",
    "splits": [
     {
-     "id": "easternmost_hwy_3_2",
-     "label": "easternmost Hwy 3",
+     "id": "the_easternmost_hwy_3_bridge_2",
+     "label": "the easternmost Hwy 3 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5519,8 +5561,8 @@
    "_entry_id": "51aea709",
    "splits": [
     {
-     "id": "norns_creek_falls",
-     "label": "Norns Creek falls",
+     "id": "norns__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5575,8 +5617,8 @@
    "_entry_id": "15f8ea45",
    "splits": [
     {
-     "id": "st_leon_falls",
-     "label": "St. Leon Falls",
+     "id": "barrier",
+     "label": "barrier",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5603,12 +5645,13 @@
    "_entry_id": "d7d845f7",
    "splits": [
     {
-     "id": "sheep_creek_confluence",
-     "label": "Sheep Creek",
+     "id": "sheep_creek_into_salmo_river",
+     "label": "Sheep Creek \u2192 Salmo River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-602565-081811-357413-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-602565-081811-357413-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Sheep Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Sheep Creek (blk 356567397); parent = Salmo River. Author as confluence anchor tributary_wsc=300-602565-081811-357413-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.14172&mlon=-117.26338#map=15/49.14172/-117.26338",
@@ -5621,12 +5664,13 @@
      }
     },
     {
-     "id": "south_salmo_confluence",
-     "label": "South Salmo",
+     "id": "south_salmo_river_into_salmo_river",
+     "label": "South Salmo River \u2192 Salmo River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-602565-081811-196969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-602565-081811-196969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "South Salmo River"
      },
      "note": "",
      "_note": "Confluence = mouth of South Salmo River (blk 356564001); parent = Salmo River. Author as confluence anchor tributary_wsc=300-602565-081811-196969-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=49.07006&mlon=-117.27919#map=15/49.07006/-117.27919",
@@ -5676,8 +5720,8 @@
    "_entry_id": "6dad8cc8",
    "splits": [
     {
-     "id": "point_on_skookumchuck_ck_closest_to_km38_fsr",
-     "label": "point on Skookumchuck Ck closest to km38 FSR",
+     "id": "point_on_the_creek_closest",
+     "label": "point on the creek closest",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5695,12 +5739,13 @@
      ]
     },
     {
-     "id": "buhl_creek_confluence",
-     "label": "Buhl Creek",
+     "id": "buhl_creek_into_skookumchuck_creek",
+     "label": "Buhl Creek \u2192 Skookumchuck Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-736706-559186-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-736706-559186-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Buhl Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] point closest to km 38 on Skookumchuck FSR (to Buhl Creek) on Skookumchuck Creek. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: km-38 chainage on the Skookumchuck FSR is not in FWA; two FSR/creek crossings bracket it (MAIN ROAD 26.4 km, Skookumchuck-Buhl 36.6 km). Needs map for exact km.. Reach = 'point on the creek closest to km 38 on the Skookumchuck FSR to Buhl Creek'. FSR chainage isn't stored, but two crossings exist: MAIN ROAD (R03141) at m=26.4k [-115.92281,49.97387] and SKOOKUMCHUCK-BUHL (0268 03) at m=36.6k [-116.02831,49.96387] (near the Buhl Creek endpoint). Map-confirm the km-38 point. [structural-split 2026-08-05 from \u201cfrom a point on the creek closest to km 38 on the Skookumchuck Forest Service Road to Buhl Creek\u201d] boundary=km 38 on the Skookumchuck Forest Service Road to Buhl Creek [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Buhl Creek confluence on Skookumchuck Ck (FWA, gap 0)] [audit-fix 2026-08-11 (2-reviewer agreement)] [target Buhl Ck confl via FWA (added wsc)]",
@@ -5722,8 +5767,8 @@
    "_entry_id": "d409b6f7",
    "splits": [
     {
-     "id": "koch_creek_falls",
-     "label": "Koch Creek falls",
+     "id": "except_koch_creek_includes_tributaries",
+     "label": "EXCEPT Koch Creek[Includes Tributaries]",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5753,12 +5798,13 @@
    "_entry_id": "46dbf481",
    "splits": [
     {
-     "id": "hail_creek_confluence",
-     "label": "Hail Creek",
+     "id": "hail_creek_into_snow_creek",
+     "label": "Hail Creek \u2192 Snow Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-680822-030247-095389-304430-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-680822-030247-095389-304430-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Hail Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Hail Creek (blk 356560628). Auto-resolved from FWA; parent stream at the mouth = Snow Creek. OSM: https://www.openstreetmap.org/?mlat=49.93680&mlon=-117.81438#map=15/49.93680/-117.81438",
@@ -5780,12 +5826,13 @@
    "_entry_id": "119ed5c6",
    "splits": [
     {
-     "id": "north_white_river_confluence",
-     "label": "North White River",
+     "id": "north_white_river_into_white_river",
+     "label": "North White River \u2192 White River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-814939-505378-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-814939-505378-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "North White River"
      },
      "note": "",
      "_note": "Confluence = mouth of North White River (blk 356568095); parent = White River. Same confluence as white-river-see-also-east-white-north-white-r-54f271 (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=50.20135&mlon=-115.26162#map=15/50.20135/-115.26162",
@@ -5892,12 +5939,13 @@
    "_entry_id": "9e753b9b",
    "splits": [
     {
-     "id": "burkitt_creek_confluence",
-     "label": "Burkitt Creek",
+     "id": "burkitt_creek_into_wilson_creek",
+     "label": "Burkitt Creek \u2192 Wilson Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-625474-020842-916863-428007-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-625474-020842-916863-428007-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Burkitt Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Burkitt Creek (blk 356569097). Auto-resolved from FWA; parent stream at the mouth = Wilson Creek. OSM: https://www.openstreetmap.org/?mlat=50.14153&mlon=-117.35736#map=15/50.14153/-117.35736",
@@ -5919,8 +5967,8 @@
    "_entry_id": "934182b3",
    "splits": [
     {
-     "id": "hamber_prov_park_boundary",
-     "label": "Hamber Prov. Park boundary",
+     "id": "within_hamber_provincial_park",
+     "label": "within Hamber Provincial Park",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -5949,8 +5997,8 @@
    "_entry_id": "b4222b6f",
    "splits": [
     {
-     "id": "falls_at_small_hydro",
-     "label": "falls at small hydro",
+     "id": "falls_at_small_hydro_structure",
+     "label": "falls at small hydro structure",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5978,8 +6026,8 @@
    "_entry_id": "72172723",
    "splits": [
     {
-     "id": "tweedsmuir_park_upstream_boundary",
-     "label": "Tweedsmuir Park upstream boundary",
+     "id": "tweedsmuir_provincial_park_plus_tenas_lake",
+     "label": "Tweedsmuir Provincial Park plus Tenas Lake",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -5999,8 +6047,8 @@
      }
     },
     {
-     "id": "atnarko_park_campsite_boundary_signs",
-     "label": "Atnarko Park campsite boundary signs",
+     "id": "tenas_lake_to_fishing_boundary_signs_near_atnarko_park_campsite",
+     "label": "Tenas Lake to fishing boundary signs near Atnarko Park campsite",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6021,12 +6069,13 @@
      }
     },
     {
-     "id": "goat_creek_confluence",
-     "label": "Goat Creek",
+     "id": "goat_creek_into_atnarko_river",
+     "label": "Goat Creek \u2192 Atnarko River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "910-275583-999439-337822-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "910-275583-999439-337822-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Goat Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Goat Creek (blk 360869566); parent = Atnarko River. Author as confluence anchor tributary_wsc=910-275583-999439-337822-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.34176&mlon=-125.77161#map=15/52.34176/-125.77161",
@@ -6039,12 +6088,13 @@
      }
     },
     {
-     "id": "talchako_confluence",
-     "label": "Talchako",
+     "id": "talchako_river_into_bella_coola_river",
+     "label": "Talchako River \u2192 Bella Coola River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "910-275583-999074-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "910-275583-999074-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Talchako River"
      },
      "note": "",
      "_note": "Confluence = mouth of Talchako River (blk 360887426); parent = Bella Coola River, Atnarko River. Author as confluence anchor tributary_wsc=910-275583-999074-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.37676&mlon=-126.09508#map=15/52.37676/-126.09508",
@@ -6057,12 +6107,13 @@
      }
     },
     {
-     "id": "young_creek_confluence",
-     "label": "Young Creek",
+     "id": "young_creek_into_atnarko_river",
+     "label": "Young Creek \u2192 Atnarko River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "910-275583-999439-210038-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "910-275583-999439-210038-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Young Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Young Creek (blk 360862631). Auto-resolved from FWA; parent stream at the mouth = Atnarko River. OSM: https://www.openstreetmap.org/?mlat=52.40871&mlon=-125.87929#map=15/52.40871/-125.87929",
@@ -6084,8 +6135,8 @@
    "_entry_id": "bb0964e3",
    "splits": [
     {
-     "id": "pinnacles_park_upstream_boundary",
-     "label": "Pinnacles Park upstream boundary",
+     "id": "pinnacles_provincial_park",
+     "label": "Pinnacles Provincial Park",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -6114,8 +6165,8 @@
    "_entry_id": "b3a70962",
    "splits": [
     {
-     "id": "falls_near_quesnel_lake",
-     "label": "falls near Quesnel Lake",
+     "id": "blue_lead_creek__falls_situated",
+     "label": "falls situated",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6169,12 +6220,13 @@
    "_entry_id": "98236bbf",
    "splits": [
     {
-     "id": "chilko_river_confluence",
-     "label": "Chilko River",
+     "id": "chilko_river_into_chilcotin_river",
+     "label": "Chilko River \u2192 Chilcotin River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-342455-328500-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-342455-328500-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Chilko River"
      },
      "note": "",
      "_note": "Confluence = mouth of Chilko River (blk 356364103). Auto-resolved from FWA; parent stream at the mouth = Chilcotin River. OSM: https://www.openstreetmap.org/?mlat=52.09646&mlon=-123.46036#map=15/52.09646/-123.46036",
@@ -6196,12 +6248,13 @@
    "_entry_id": "a42e90ca",
    "splits": [
     {
-     "id": "brittany_creek_confluence",
-     "label": "Brittany Creek",
+     "id": "brittany_creek_into_chilko_river",
+     "label": "Brittany Creek \u2192 Chilko River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-342455-328500-401051-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-342455-328500-401051-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Brittany Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Brittany Creek (blk 356356416). Auto-resolved from FWA; parent stream at the mouth = Chilko River. OSM: https://www.openstreetmap.org/?mlat=51.78953&mlon=-124.03944#map=15/51.78953/-124.03944",
@@ -6214,8 +6267,8 @@
      }
     },
     {
-     "id": "henry_crossing_bridge",
-     "label": "Henry Crossing bridge",
+     "id": "bridge_at_henry_s_crossing",
+     "label": "bridge at Henry's Crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6242,8 +6295,8 @@
    "_entry_id": "38c3c0c0",
    "splits": [
     {
-     "id": "ten_mile_pool_d_s_sign",
-     "label": "Ten Mile Pool \u2014 d/s sign",
+     "id": "fishing_boundary_signs_at_ten_mile_pool",
+     "label": "fishing boundary signs at Ten Mile Pool",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6264,8 +6317,8 @@
      "_offset_m": 200
     },
     {
-     "id": "ten_mile_pool_u_s_sign",
-     "label": "Ten Mile Pool \u2014 u/s sign",
+     "id": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool",
+     "label": "fishing boundary signs at Ten Mile Pool",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6295,12 +6348,13 @@
    "_entry_id": "a4e08e9e",
    "splits": [
     {
-     "id": "iltasyuko_river_confluence",
-     "label": "Iltasyuko River",
+     "id": "iltasyuko_river_into_dean_river",
+     "label": "Iltasyuko River \u2192 Dean River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "910-302877-258333-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "910-302877-258333-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Iltasyuko River"
      },
      "note": "",
      "_note": "Confluence = mouth of Iltasyuko River (blk 360883245); parent = Dean River. Mainstem split for the '[Includes Tributaries]' reach (Iltasyuko->Crag Creek). OSM: https://www.openstreetmap.org/?mlat=52.85415&mlon=-126.20119#map=15/52.85415/-126.20119",
@@ -6313,12 +6367,13 @@
      }
     },
     {
-     "id": "crag_creek_confluence",
-     "label": "Crag Creek",
+     "id": "crag_creek_into_dean_river",
+     "label": "Crag Creek \u2192 Dean River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "910-302877-159355-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "910-302877-159355-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Crag Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Crag Creek (blk 360873557); parent = Dean River. OSM: https://www.openstreetmap.org/?mlat=52.74885&mlon=-126.45916#map=15/52.74885/-126.45916",
@@ -6425,12 +6480,13 @@
    "_entry_id": "13862f1c",
    "splits": [
     {
-     "id": "chilcotin_fraser_confluence",
-     "label": "Chilcotin/Fraser",
+     "id": "chilcotin_river_into_fraser_river",
+     "label": "Chilcotin River \u2192 Fraser River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-342455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-342455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Chilcotin River"
      },
      "note": "",
      "_note": "Confluence = mouth of Chilcotin River (blk 356363411); parent = Fraser River. Author as confluence anchor tributary_wsc=100-342455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=51.73999&mlon=-122.39931#map=15/51.73999/-122.39931",
@@ -6443,12 +6499,13 @@
      }
     },
     {
-     "id": "williams_lake_river_confluence",
-     "label": "Williams Lake River",
+     "id": "williams_lake_river_into_fraser_river",
+     "label": "Williams Lake River \u2192 Fraser River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-382626-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-382626-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Williams Lake River"
      },
      "note": "",
      "_note": "Confluence = mouth of Williams Lake River (blk 356331833). Auto-resolved from FWA; parent stream at the mouth = Fraser River. OSM: https://www.openstreetmap.org/?mlat=52.16378&mlon=-122.27338#map=15/52.16378/-122.27338",
@@ -6545,8 +6602,8 @@
    "_entry_id": "519e7133",
    "splits": [
     {
-     "id": "mitchell_lake_weir",
-     "label": "Mitchell Lake weir",
+     "id": "mitchell_river__within",
+     "label": "within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6567,8 +6624,8 @@
      "_offset_m": 100
     },
     {
-     "id": "mitchell_river__mitchell_lake_weir",
-     "label": "Mitchell Lake weir",
+     "id": "within_2",
+     "label": "within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6589,12 +6646,13 @@
      "_offset_m": 100
     },
     {
-     "id": "cameron_creek_confluence",
-     "label": "Cameron Creek",
+     "id": "cameron_creek_into_mitchell_river",
+     "label": "Cameron Creek \u2192 Mitchell River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-458399-740856-516642-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-458399-740856-516642-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Cameron Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Cameron Creek (blk 356347114). Auto-resolved from FWA; parent stream at the mouth = Mitchell River. OSM: https://www.openstreetmap.org/?mlat=52.82627&mlon=-120.80844#map=15/52.82627/-120.80844 \u2014 Other boundary of this reach = Mitchell Lake (author as a separate lake anchor).",
@@ -6616,8 +6674,8 @@
    "_entry_id": "ff6102cf",
    "splits": [
     {
-     "id": "falls_8_10_km_above_horsefly",
-     "label": "falls ~8-10 km above Horsefly",
+     "id": "moffat_creek__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6644,8 +6702,8 @@
    "_entry_id": "cae5d13e",
    "splits": [
     {
-     "id": "50_m",
-     "label": "50 m",
+     "id": "signs_50_m_upstream_of_likely_bridge",
+     "label": "signs 50 m upstream of Likely Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6666,8 +6724,8 @@
      "_offset_m": 50
     },
     {
-     "id": "quesnel_river__50_m",
-     "label": "50 m",
+     "id": "signs_50_m_downstream_of_likely_bridge",
+     "label": "signs 50 m downstream of Likely Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6688,12 +6746,13 @@
      "_offset_m": 50
     },
     {
-     "id": "cariboo_river_confluence",
-     "label": "Cariboo River",
+     "id": "cariboo_river_into_quesnel_river",
+     "label": "Cariboo River \u2192 Quesnel River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-458399-466616-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-458399-466616-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Cariboo River"
      },
      "note": "",
      "_note": "Confluence = mouth of Cariboo River (blk 356363010); parent = Quesnel River. Author as confluence anchor tributary_wsc=100-458399-466616-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=52.66224&mlon=-121.67562#map=15/52.66224/-121.67562",
@@ -6706,8 +6765,8 @@
      }
     },
     {
-     "id": "quesnel_river__signs",
-     "label": "signs",
+     "id": "boundary_signs_1800_m_upstream_of_likely_bridge",
+     "label": "boundary signs 1800 m upstream of Likely Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6728,12 +6787,13 @@
      "_offset_m": 1800
     },
     {
-     "id": "morehead_creek_confluence",
-     "label": "Morehead Creek",
+     "id": "morehead_creek_into_quesnel_river",
+     "label": "Morehead Creek \u2192 Quesnel River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-458399-413693-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-458399-413693-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Morehead Creek"
      },
      "note": "",
      "_note": "[auto-proposal L] boundary signs ~1.8 km E of Likely Bridge (to Morehead Creek) on Quesnel River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Locate the signs ~1.8 km east of the Likely Bridge and the Morehead Creek confluence; map.. Reach = signs ~1.8 km E of Likely Bridge down to Morehead Creek. Sign + confluence landmarks near Likely -> map/OSM-confirmable. [structural-split 2026-08-05 from \u201cfrom the boundary signs approximately 1.8 km east of the Likely Bridge downstream to Morehead Creek\u201d] boundary=Morehead Creek [human-review 2026-08-05 FWA-confluence] mouth of Morehead Creek on mainstem (0 m validated); target blk/wsc set.",
@@ -6783,8 +6843,8 @@
    "_entry_id": "4dd3daf7",
    "splits": [
     {
-     "id": "juvenile_counting_weir",
-     "label": "juvenile counting weir",
+     "id": "juvenile_fish_counting_weir",
+     "label": "juvenile fish counting weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6802,12 +6862,13 @@
      ]
     },
     {
-     "id": "nilkitkwa_river_confluence",
-     "label": "Nilkitkwa River",
+     "id": "nilkitkwa_river_into_babine_river",
+     "label": "Nilkitkwa River \u2192 Babine River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-536025-357066-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-536025-357066-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Nilkitkwa River"
      },
      "note": "",
      "_note": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa Lake outlet). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Confirm the juvenile weir sits exactly at the Nilkitkwa Lake outlet vs a few hundred m down the Babine River.. Reach starts at the DFO juvenile fish counting weir located at the outlet of Nilkitkwa Lake. Coord is the FWA-computed Babine River blue-line exit from the Nilkitkwa Lake polygon (blk 360886970). Reach runs down to the Nilkitkwa River confluence (~[-126.701,55.452]). [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Nilkitkwa River confluence [human-review 2026-08-05 FWA-confluence] mouth of Nilkitkwa River (0 m validated); target blk/wsc set.",
@@ -6820,8 +6881,8 @@
      }
     },
     {
-     "id": "signs_100m_u_s_of_adult_fish_counting_fence",
-     "label": "signs ~100m u/s of adult fish counting fence",
+     "id": "fishing_boundary_signs_100_m_upstream_of_adult_fish_counting_fence",
+     "label": "fishing boundary signs 100 m upstream of adult fish counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6842,8 +6903,8 @@
      "_offset_m": 100
     },
     {
-     "id": "80_m_below_adult_counting_fence",
-     "label": "80 m below adult counting fence",
+     "id": "signs_80_m_downstream_of_adult_fish_counting_fence",
+     "label": "signs 80 m downstream of adult fish counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6864,12 +6925,13 @@
      "_offset_m": 80
     },
     {
-     "id": "babine_skeena_confluence",
-     "label": "Babine-Skeena",
+     "id": "babine_river_into_skeena_river",
+     "label": "Babine River \u2192 Skeena River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-536025"
+      "tributary_wsc": "400-536025",
+      "_name": "Babine River"
      },
      "note": "",
      "_note": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence [curated 2026-08-08 manual-review batch=babine-6-8] [= Skeena confluence, same as fdcd21-b]",
@@ -6882,8 +6944,8 @@
      }
     },
     {
-     "id": "adult_counting_fence",
-     "label": "adult counting fence",
+     "id": "adult_fish_counting_fence",
+     "label": "adult fish counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6920,12 +6982,13 @@
      ]
     },
     {
-     "id": "nichyeskwa_creek_confluence",
-     "label": "Nichyeskwa Creek",
+     "id": "nichyeskwa_creek_into_babine_river",
+     "label": "Nichyeskwa Creek \u2192 Babine River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-536025-367117-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-536025-367117-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Nichyeskwa Creek"
      },
      "note": "",
      "_note": "[manual anchor 2026-08-08 audit-fix] Nichyeskwa Ck mouth on Babine R (FWA, m96825); d/s endpoint of fly-fishing reach (b) \"from signs 80m d/s of adult fence to Nichyeskwa Creek\"",
@@ -6947,12 +7010,13 @@
    "_entry_id": "d850b295",
    "splits": [
     {
-     "id": "morice_bulkley_confluence",
-     "label": "Morice/Bulkley",
+     "id": "morice_river_into_bulkley_river",
+     "label": "Morice River \u2192 Bulkley River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Morice River"
      },
      "note": "",
      "_note": "Confluence = mouth of Morice River (blk 360885316); parent = Bulkley River. Author as confluence anchor tributary_wsc=400-431358-585806-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.41127&mlon=-126.74602#map=15/54.41127/-126.74602",
@@ -6966,7 +7030,7 @@
     },
     {
      "id": "cnr_bridge_at_barrett",
-     "label": "CNR bridge at Barrett",
+     "label": "CNR Bridge at Barrett",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6984,8 +7048,8 @@
      ]
     },
     {
-     "id": "moricetown_witset_canyon_top",
-     "label": "Moricetown/Witset Canyon top",
+     "id": "in_moricetown_canyon_or_within",
+     "label": "in Moricetown Canyon or within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7003,8 +7067,8 @@
      ]
     },
     {
-     "id": "moricetown_witset_canyon_bottom",
-     "label": "Moricetown/Witset Canyon bottom",
+     "id": "bulkley_river__in_moricetown_canyon_or_within",
+     "label": "in Moricetown Canyon or within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7022,8 +7086,8 @@
      ]
     },
     {
-     "id": "100m_d_s_of_canyon_bottom",
-     "label": "100m d/s of canyon bottom",
+     "id": "in_moricetown_canyon_or_within_2",
+     "label": "in Moricetown Canyon or within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7053,8 +7117,8 @@
    "_entry_id": "4b68e157",
    "splits": [
     {
-     "id": "cheslatta_falls",
-     "label": "Cheslatta falls",
+     "id": "cheslatta_river__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7081,8 +7145,8 @@
    "_entry_id": "3f88988a",
    "splits": [
     {
-     "id": "lower_culvert_near_cannery",
-     "label": "lower culvert near cannery",
+     "id": "fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7109,8 +7173,8 @@
    "_entry_id": "8fb53ca7",
    "splits": [
     {
-     "id": "downstream_end_of_forrest_kerr_canyon",
-     "label": "downstream end of Forrest Kerr Canyon",
+     "id": "forest_kerr_canyon",
+     "label": "Forest Kerr Canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7137,8 +7201,8 @@
    "_entry_id": "c0718831",
    "splits": [
     {
-     "id": "kitimat_hatchery_outfall_d_s_sign",
-     "label": "Kitimat Hatchery outfall \u2014 d/s sign",
+     "id": "on_the_west_half_of_river_between_fishing_boundary_signs_near_kitimat_hatchery_outfall",
+     "label": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7156,8 +7220,8 @@
      ]
     },
     {
-     "id": "kitimat_hatchery_outfall_u_s_sign",
-     "label": "Kitimat Hatchery outfall \u2014 u/s sign",
+     "id": "kitimat_river__on_the_west_half_of_river_between_fishing_boundary_signs_near_kitimat_hatchery_outfall",
+     "label": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7175,8 +7239,8 @@
      ]
     },
     {
-     "id": "hwy_37_bridge",
-     "label": "Hwy 37 bridge",
+     "id": "in_tributaries_and",
+     "label": "in tributaries and",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7203,12 +7267,13 @@
    "_entry_id": "bef5f670",
    "splits": [
     {
-     "id": "glacier_creek_confluence",
-     "label": "Glacier Creek",
+     "id": "glacier_creek_into_kitsumkalum_river",
+     "label": "Glacier Creek \u2192 Kitsumkalum River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-195432-246433-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-195432-246433-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Glacier Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Glacier Creek (blk 360815671); parent = Kitsumkalum River. Author as confluence anchor tributary_wsc=400-195432-246433-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.66544&mlon=-128.72805#map=15/54.66544/-128.72805",
@@ -7258,8 +7323,8 @@
    "_entry_id": "ea7be38a",
    "splits": [
     {
-     "id": "lower_bridge_abutments",
-     "label": "lower bridge abutments",
+     "id": "upstream_from_the_lower_bridge_abutments",
+     "label": "upstream from the lower bridge abutments",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7286,8 +7351,8 @@
    "_entry_id": "dd7048cb",
    "splits": [
     {
-     "id": "power_line_crossing",
-     "label": "power line crossing",
+     "id": "lakelse_river__power_line_crossing",
+     "label": "power line crossing,",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7306,7 +7371,7 @@
     },
     {
      "id": "lakelse_river__cnr_bridge",
-     "label": "CNR bridge",
+     "label": "CNR Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7333,12 +7398,13 @@
    "_entry_id": "c66059ee",
    "splits": [
     {
-     "id": "meziadin_nass_confluence",
-     "label": "Meziadin/Nass",
+     "id": "meziadin_river_into_nass_river",
+     "label": "Meziadin River \u2192 Nass River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Meziadin River"
      },
      "note": "",
      "_note": "Confluence = mouth of Meziadin River (blk 360882420); parent = Nass River. Author as confluence anchor tributary_wsc=500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=56.02451&mlon=-129.14764#map=15/56.02451/-129.14764",
@@ -7360,8 +7426,8 @@
    "_entry_id": "9db3580a",
    "splits": [
     {
-     "id": "signs_at_morice_lake_outlet",
-     "label": "signs at Morice Lake outlet",
+     "id": "fishing_boundary_signs_near_outlet_of_morice_lake",
+     "label": "fishing boundary signs near outlet of Morice Lake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7379,8 +7445,8 @@
      ]
     },
     {
-     "id": "signs_at_the_dunes",
-     "label": "signs at the Dunes",
+     "id": "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake",
+     "label": "fishing boundary signs near outlet of Morice Lake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7401,12 +7467,13 @@
      "_offset_m": 2000
     },
     {
-     "id": "gosnell_creek_confluence",
-     "label": "Gosnell Creek",
+     "id": "thautil_river_into_morice_river",
+     "label": "Thautil River \u2192 Morice River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-431358-585806-558169-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-431358-585806-558169-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Thautil River"
      },
      "note": "",
      "_note": "Confluence = mouth of Gosnell Creek. Author as confluence anchor tributary_wsc=400-431358-585806-558169-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.20711&mlon=-127.34589#map=15/54.20711/-127.34589 \u2014 Gosnell's mouth \u2248 Thautil/Morice confluence; shares split with morice-river-b90f66-a.",
@@ -7419,12 +7486,13 @@
      }
     },
     {
-     "id": "morice_river__gosnell_creek_confluence",
-     "label": "Gosnell Creek",
+     "id": "gosnell_creek_into_thautil_river",
+     "label": "Gosnell Creek \u2192 Thautil River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-431358-585806-558169-005657-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-431358-585806-558169-005657-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Gosnell Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Gosnell Creek (blk 360885021); parent = Thautil River. Author as confluence anchor tributary_wsc=400-431358-585806-558169-005657-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.20711&mlon=-127.34589#map=15/54.20711/-127.34589 \u2014 Accepted: Gosnell's mouth \u2248 the Thautil/Morice confluence (very close, treated as equivalent).",
@@ -7437,12 +7505,13 @@
      }
     },
     {
-     "id": "lamprey_creek_confluence",
-     "label": "Lamprey Creek",
+     "id": "lamprey_creek_into_morice_river",
+     "label": "Lamprey Creek \u2192 Morice River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-431358-585806-405041-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-431358-585806-405041-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Lamprey Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Lamprey Creek (blk 360880441); parent = Morice River. Author as confluence anchor tributary_wsc=400-431358-585806-405041-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.18695&mlon=-127.08766#map=15/54.18695/-127.08766",
@@ -7464,12 +7533,13 @@
    "_entry_id": "68fa941e",
    "splits": [
     {
-     "id": "white_triangular_signs_confluence",
-     "label": "white triangular signs",
+     "id": "nass_river__meziadin_river_into_nass_river",
+     "label": "Meziadin River \u2192 Nass River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "500-462445-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Meziadin River"
      },
      "note": "",
      "_note": "[auto-proposal L] white signs below Meziadin confluence, up to a Hwy bridge on Nass River. No FWA coord (public road/rail bridge \u2014 map/OSM-confirmable). Verify: Locate the Meziadin River confluence on the Nass and the Hwy bridge (Hwy 37 / Nass) at the upstream end; map.. Reach = 'signs downstream of the Meziadin River confluence, up to the Hwy [37] bridge' (truncated). Confluence + highway bridge -> map/OSM-confirmable; anchor at the Meziadin confluence. [structural-split 2026-08-05 from \u201cfrom white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hw\u201d] boundary=white triangular fishing boundary signs located downstream of the Meziadin River confluence, and [hint-fix 2026-08-06 bridge_road_km->boundary_signs] [curated 2026-08-09 manual-review batch=tahltan-nass-skook] [Meziadin River confluence (FWA blk 360882420); signs located just downstream of it] [audit-fix 2026-08-11 (2-reviewer agreement)] [target wsc from meziadin-river-09af13-b (Meziadin confl)]",
@@ -7482,8 +7552,8 @@
      }
     },
     {
-     "id": "nass_river__hwy_37_bridge",
-     "label": "Hwy 37 bridge",
+     "id": "hw",
+     "label": "Hw",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7510,8 +7580,8 @@
    "_entry_id": "2fe40ed5",
    "splits": [
     {
-     "id": "fish_fence",
-     "label": "fish fence",
+     "id": "the_fish_fence",
+     "label": "the fish fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7536,12 +7606,13 @@
    "_entry_id": "e793b857",
    "splits": [
     {
-     "id": "skeena_kispiox_confluence",
-     "label": "Skeena/Kispiox",
+     "id": "kispiox_river_into_skeena_river",
+     "label": "Kispiox River \u2192 Skeena River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Kispiox River"
      },
      "note": "",
      "_note": "Confluence = mouth of Kispiox River (blk 360885864); parent = Skeena River. Author as confluence anchor tributary_wsc=400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129#map=15/55.34260/-127.69129 \u2014 Shares the Skeena/Kispiox confluence split with skeena-river-kispiox-river-confluence-94452c (one split; this rule is a signs-closure AT that confluence, not a separate split).",
@@ -7563,12 +7634,13 @@
    "_entry_id": "2fc0d1b9",
    "splits": [
     {
-     "id": "exchamsiks_confluence",
-     "label": "Exchamsiks",
+     "id": "exchamsiks_river_into_skeena_river",
+     "label": "Exchamsiks River \u2192 Skeena River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-107640-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-107640-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Exchamsiks River"
      },
      "note": "",
      "_note": "Confluence = mouth of Exchamsiks River (blk 360884603); parent = . Author as confluence anchor tributary_wsc=400-107640-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.33151&mlon=-129.29404#map=15/54.33151/-129.29404",
@@ -7581,14 +7653,15 @@
      }
     },
     {
-     "id": "kitsumkalum_confluence",
-     "label": "Kitsumkalum",
+     "id": "kitsumkalum_river_into_skeena_river_u1500m",
+     "label": "Kitsumkalum River \u2192 Skeena River (1500 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 1500,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Kitsumkalum River"
      },
      "note": "",
      "_note": "1500 m upstream of the Kitsumkalum River confluence. Author as confluence anchor tributary_wsc=400-195432-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.51296&mlon=-128.64193#map=15/54.51296/-128.64193",
@@ -7602,14 +7675,15 @@
      }
     },
     {
-     "id": "zymoetz_confluence",
-     "label": "Zymoetz",
+     "id": "zymoetz_river_into_skeena_river_u1500m",
+     "label": "Zymoetz River \u2192 Skeena River (1500 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 1500,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Zymoetz River"
      },
      "note": "",
      "_note": "1500 m upstream of the Zymoetz River confluence. Author as confluence anchor tributary_wsc=400-221484-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 1500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=54.55705&mlon=-128.47415#map=15/54.55705/-128.47415",
@@ -7623,12 +7697,13 @@
      }
     },
     {
-     "id": "shegunia_confluence",
-     "label": "Shegunia",
+     "id": "shegunia_river_into_skeena_river",
+     "label": "Shegunia River \u2192 Skeena River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-456504-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-456504-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Shegunia River"
      },
      "note": "",
      "_note": "Confluence = mouth of Shegunia River (blk 360875115); parent = Skeena River. Author as confluence anchor tributary_wsc=400-456504-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.34879&mlon=-127.67983#map=15/55.34879/-127.67983",
@@ -7641,12 +7716,13 @@
      }
     },
     {
-     "id": "sedan_creek_confluence",
-     "label": "Sedan Creek",
+     "id": "sedan_creek_into_skeena_river",
+     "label": "Sedan Creek \u2192 Skeena River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-351455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-351455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Sedan Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Sedan Creek (blk 360871236); parent = Skeena River. Author as confluence anchor tributary_wsc=400-351455-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=55.07807&mlon=-128.19713#map=15/55.07807/-128.19713",
@@ -7659,12 +7735,13 @@
      }
     },
     {
-     "id": "chimdemash_confluence",
-     "label": "Chimdemash",
+     "id": "chimdemash_creek_into_skeena_river",
+     "label": "Chimdemash Creek \u2192 Skeena River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-251326-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-251326-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Chimdemash Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Chimdemash Creek (blk 360856909); parent = Skeena River, Shannon Creek. Author as confluence anchor tributary_wsc=400-251326-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=54.66582&mlon=-128.37636#map=15/54.66582/-128.37636",
@@ -7686,8 +7763,8 @@
    "_entry_id": "aed39f94",
    "splits": [
     {
-     "id": "stellako_river__signs",
-     "label": "signs",
+     "id": "fishing_boundary_signs_250_m_downstream_of_francois_lake_road_bridge",
+     "label": "fishing boundary signs 250 m downstream of Francois Lake Road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7708,8 +7785,8 @@
      "_offset_m": 250
     },
     {
-     "id": "4_km_below_francois_lake_bridge",
-     "label": "4 km below Francois Lake bridge",
+     "id": "signs_4000_m_downstream_of_francois_lake_road_bridge",
+     "label": "signs 4000 m downstream of Francois Lake Road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7730,8 +7807,8 @@
      "_offset_m": 4000
     },
     {
-     "id": "stellako_falls",
-     "label": "Stellako falls",
+     "id": "stellako_river__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7786,8 +7863,8 @@
    "_entry_id": "037258e5",
    "splits": [
     {
-     "id": "signs_400m_u_s_of_tahltan_river_bridge",
-     "label": "signs ~400m u/s of Tahltan River Bridge",
+     "id": "boundary_signs_400_m_upstream_of_tahltan_river_bridge",
+     "label": "boundary signs 400 m upstream of Tahltan River Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7808,8 +7885,8 @@
      "_offset_m": 400
     },
     {
-     "id": "landslide_750m_u_s_of_tahltan_river_bridge",
-     "label": "landslide ~750m u/s of Tahltan River Bridge",
+     "id": "th",
+     "label": "th",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7839,8 +7916,8 @@
    "_entry_id": "883f7f02",
    "splits": [
     {
-     "id": "zymoetz__fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "mcdonell_lake",
+     "label": "McDonell Lake",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -7861,8 +7938,8 @@
      "_offset_m": 3000
     },
     {
-     "id": "zymoetz_canyon_lower_entrance_transmission_line_sign",
-     "label": "Zymoetz Canyon lower entrance = transmission-line sign",
+     "id": "fishing_boundary_signs_in_zymoetz_canyon",
+     "label": "fishing boundary signs in Zymoetz Canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7880,8 +7957,8 @@
      ]
     },
     {
-     "id": "zymoetz_canyon_upper_entrance",
-     "label": "Zymoetz Canyon upper entrance",
+     "id": "zymoetz__fishing_boundary_signs_in_zymoetz_canyon",
+     "label": "fishing boundary signs in Zymoetz Canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7899,12 +7976,13 @@
      ]
     },
     {
-     "id": "limonite_creek_confluence",
-     "label": "Limonite Creek",
+     "id": "limonite_creek_into_zymoetz_river",
+     "label": "Limonite Creek \u2192 Zymoetz River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "400-221484-327081-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "400-221484-327081-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Limonite Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Limonite Creek (blk 360886895); parent = Zymoetz River. Auto-resolved from FWA. OSM: https://www.openstreetmap.org/?mlat=54.49942&mlon=-127.94278#map=15/54.49942/-127.94278",
@@ -7926,8 +8004,8 @@
    "_entry_id": "669f5ba9",
    "splits": [
     {
-     "id": "upper_anzac_bridge",
-     "label": "Upper Anzac bridge \u2014",
+     "id": "anzac_river__within",
+     "label": "within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7948,8 +8026,8 @@
      "_offset_m": 500
     },
     {
-     "id": "anzac_river__upper_anzac_bridge",
-     "label": "Upper Anzac bridge \u2014",
+     "id": "within_3",
+     "label": "within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7970,12 +8048,13 @@
      "_offset_m": 500
     },
     {
-     "id": "north_anzac_river_confluence",
-     "label": "North Anzac River",
+     "id": "north_anzac_river_into_anzac_river",
+     "label": "North Anzac River \u2192 Anzac River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "200-948755-936902-309461-556293-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "200-948755-936902-309461-556293-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "North Anzac River"
      },
      "note": "",
      "_note": "Confluence = mouth of North Anzac River (blk 359569747). Auto-resolved from FWA; parent stream at the mouth = Anzac River. OSM: https://www.openstreetmap.org/?mlat=54.95517&mlon=-122.20825#map=15/54.95517/-122.20825",
@@ -7997,14 +8076,15 @@
    "_entry_id": "1200c05b",
    "splits": [
     {
-     "id": "thorn_confluence",
-     "label": "Thorn",
+     "id": "thorne_creek_into_attichika_creek_u500m",
+     "label": "Thorne Creek \u2192 Attichika Creek (500 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 500,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Thorne Creek"
      },
      "note": "",
      "_note": "500 m upstream of the Thorne Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.92522&mlon=-126.67873#map=15/56.92522/-126.67873",
@@ -8018,14 +8098,15 @@
      }
     },
     {
-     "id": "attichika_creek__thorn_confluence",
-     "label": "Thorn",
+     "id": "thorne_creek_into_attichika_creek_d500m",
+     "label": "Thorne Creek \u2192 Attichika Creek (500 m downstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 500,
-      "offset_dir": "downstream"
+      "offset_dir": "downstream",
+      "_name": "Thorne Creek"
      },
      "note": "",
      "_note": "500 m downstream of the Thorne Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-445636-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.92831&mlon=-126.68707#map=15/56.92831/-126.68707",
@@ -8039,14 +8120,15 @@
      }
     },
     {
-     "id": "kemess_creek_confluence",
-     "label": "Kemess Creek",
+     "id": "kemess_creek_into_attichika_creek_u500m",
+     "label": "Kemess Creek \u2192 Attichika Creek (500 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 500,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Kemess Creek"
      },
      "note": "",
      "_note": "500 m upstream of the Kemess Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.97490&mlon=-126.77549#map=15/56.97490/-126.77549",
@@ -8060,14 +8142,15 @@
      }
     },
     {
-     "id": "attichika_creek__kemess_creek_confluence",
-     "label": "Kemess Creek",
+     "id": "kemess_creek_into_attichika_creek_d500m",
+     "label": "Kemess Creek \u2192 Attichika Creek (500 m downstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 500,
-      "offset_dir": "downstream"
+      "offset_dir": "downstream",
+      "_name": "Kemess Creek"
      },
      "note": "",
      "_note": "500 m downstream of the Kemess Creek confluence. Author as confluence anchor tributary_wsc=200-948755-999851-889551-178842-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 500, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.97879&mlon=-126.78904#map=15/56.97879/-126.78904",
@@ -8090,8 +8173,8 @@
    "_entry_id": "9fd933ca",
    "splits": [
     {
-     "id": "signs_400m_u_s_of_mouth",
-     "label": "signs ~400m u/s of mouth",
+     "id": "fishing_boundary_signs_near_its_mouth",
+     "label": "fishing boundary signs near its mouth",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8121,8 +8204,8 @@
    "_entry_id": "823d2b21",
    "splits": [
     {
-     "id": "200_road_bridge",
-     "label": "200 Road Bridge",
+     "id": "downstream",
+     "label": "downstream",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8149,12 +8232,13 @@
    "_entry_id": "90a35dad",
    "splits": [
     {
-     "id": "cottonwood_confluence",
-     "label": "Cottonwood",
+     "id": "cottonwood_river_into_fraser_river",
+     "label": "Cottonwood River \u2192 Fraser River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-478686-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-478686-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Cottonwood River"
      },
      "note": "",
      "_note": "Confluence = mouth of Cottonwood River (blk 356359574); parent = Fraser River. Author as confluence anchor tributary_wsc=100-478686-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=53.11651&mlon=-122.61307#map=15/53.11651/-122.61307",
@@ -8176,8 +8260,8 @@
    "_entry_id": "3cf96e99",
    "splits": [
     {
-     "id": "gagnon_creek__signs_400m_u_s_of_mouth",
-     "label": "signs ~400m u/s of mouth",
+     "id": "gagnon_creek__fishing_boundary_signs_near_its_mouth",
+     "label": "fishing boundary signs near its mouth",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8207,12 +8291,13 @@
    "_entry_id": "9c953e5d",
    "splits": [
     {
-     "id": "macleod_creek_confluence",
-     "label": "Macleod Creek",
+     "id": "macleod_creek_into_goat_river",
+     "label": "Macleod Creek \u2192 Goat River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-790283-581209-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-790283-581209-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Macleod Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Macleod Creek (blk 356291750); parent = Goat River. Author as confluence anchor tributary_wsc=100-790283-581209-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=53.40549&mlon=-120.87889#map=15/53.40549/-120.87889",
@@ -8234,12 +8319,13 @@
    "_entry_id": "d128b1fb",
    "splits": [
     {
-     "id": "attichika_creek_confluence",
-     "label": "Attichika Creek",
+     "id": "kemess_creek_into_attichika_creek",
+     "label": "Kemess Creek \u2192 Attichika Creek",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "200-948755-999851-889551-178842"
+      "tributary_wsc": "200-948755-999851-889551-178842",
+      "_name": "Kemess Creek"
      },
      "note": "",
      "_note": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=Attichka Creek [human-review 2026-08-05 FWA-confluence] mouth of Attichika Creek (0 m validated); target blk/wsc set.",
@@ -8252,8 +8338,8 @@
      }
     },
     {
-     "id": "kemess_creek__point",
-     "label": "point",
+     "id": "point_500_m_upstream_of_attichka_creek",
+     "label": "point 500 m upstream of Attichka Creek",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8311,12 +8397,13 @@
    "_entry_id": "eee9bebb",
    "splits": [
     {
-     "id": "cheslatta_river_confluence",
-     "label": "Cheslatta River",
+     "id": "cheslatta_river_into_nechako_river",
+     "label": "Cheslatta River \u2192 Nechako River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "100-567134-547905-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "100-567134-547905-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Cheslatta River"
      },
      "note": "",
      "_note": "[structural-split 2026-08-05 from \"from Cheslatta River to a boundary sign 5 km downstream\"] boundary=Cheslatta River [human-review 2026-08-05 FWA-confluence] mouth of Cheslatta River (0 m validated); target blk/wsc set.",
@@ -8445,8 +8532,8 @@
    "_entry_id": "07d64663",
    "splits": [
     {
-     "id": "weir",
-     "label": "weir",
+     "id": "upstream_side_of_weir",
+     "label": "upstream side of weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8464,8 +8551,8 @@
      ]
     },
     {
-     "id": "cnr_bridge_valemount",
-     "label": "CNR bridge, Valemount",
+     "id": "cnr_bridge_in_valemount",
+     "label": "CNR Bridge in Valemount",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8514,7 +8601,7 @@
      }
     },
     {
-     "id": "thorn_creek__point",
+     "id": "point",
      "label": "point",
      "kind": "point",
      "anchor": {
@@ -8542,8 +8629,8 @@
    "_entry_id": "b34e2ffb",
    "splits": [
     {
-     "id": "weston_creek__signs_400m_u_s_of_mouth",
-     "label": "signs ~400m u/s of mouth",
+     "id": "signs_near_its_mouth",
+     "label": "signs near its mouth",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8573,8 +8660,8 @@
    "_entry_id": "5887eab0",
    "splits": [
     {
-     "id": "horseshoe_road_bridge",
-     "label": "Horseshoe Road Bridge",
+     "id": "the_horseshoe_road_bridge",
+     "label": "the Horseshoe Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8601,12 +8688,13 @@
    "_entry_id": "d0a5bca7",
    "splits": [
     {
-     "id": "halfway_peace_confluence",
-     "label": "Halfway/Peace",
+     "id": "halfway_river_into_peace_river",
+     "label": "Halfway River \u2192 Peace River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Halfway River"
      },
      "note": "",
      "_note": "Confluence = mouth of Halfway River. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000. OSM: https://www.openstreetmap.org/?mlat=56.21055&mlon=-121.44457#map=15/56.21055/-121.44457",
@@ -8619,14 +8707,15 @@
      }
     },
     {
-     "id": "signs_5_km_up_halfway_confluence",
-     "label": "signs ~5 km up Halfway",
+     "id": "halfway_river_into_peace_river_u5000m",
+     "label": "Halfway River \u2192 Peace River (5000 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 5000,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Halfway River"
      },
      "note": "",
      "_note": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.22651&mlon=-121.48495#map=15/56.22651/-121.48495",
@@ -8668,8 +8757,8 @@
      ]
     },
     {
-     "id": "signs_2_km_below_kinuseo_falls",
-     "label": "signs ~2 km below Kinuseo Falls",
+     "id": "signs_about",
+     "label": "signs about",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8737,14 +8826,15 @@
      ]
     },
     {
-     "id": "5_km_confluence",
-     "label": "5 km",
+     "id": "peace_river__halfway_river_into_peace_river_u5000m",
+     "label": "Halfway River \u2192 Peace River (5000 m upstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 5000,
-      "offset_dir": "upstream"
+      "offset_dir": "upstream",
+      "_name": "Halfway River"
      },
      "note": "",
      "_note": "5000 m upstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir upstream. OSM: https://www.openstreetmap.org/?mlat=56.18908&mlon=-121.50767#map=15/56.18908/-121.50767 (offset along the Peace mainstem)",
@@ -8758,14 +8848,15 @@
      }
     },
     {
-     "id": "peace_river__5_km_confluence",
-     "label": "5 km",
+     "id": "halfway_river_into_peace_river_d5000m",
+     "label": "Halfway River \u2192 Peace River (5000 m downstream)",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
       "tributary_wsc": "200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
       "offset_m": 5000,
-      "offset_dir": "downstream"
+      "offset_dir": "downstream",
+      "_name": "Halfway River"
      },
      "note": "",
      "_note": "5000 m downstream of the Halfway River confluence. Author as confluence anchor tributary_wsc=200-948755-837217-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000 + offset_m 5000, offset_dir downstream. OSM: https://www.openstreetmap.org/?mlat=56.22989&mlon=-121.38217#map=15/56.22989/-121.38217 (offset along the Peace mainstem)",
@@ -8826,8 +8917,8 @@
      ]
     },
     {
-     "id": "peace_river__signs",
-     "label": "signs",
+     "id": "boundary_signs_1200_m_downstream_of_site_c_dam",
+     "label": "boundary signs 1200 m downstream of Site C dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8857,8 +8948,8 @@
    "_entry_id": "4068efd2",
    "splits": [
     {
-     "id": "signs_3",
-     "label": "signs",
+     "id": "boundary_signs_1",
+     "label": "boundary signs 1",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8888,8 +8979,8 @@
    "_entry_id": "e2986e43",
    "splits": [
     {
-     "id": "hasler_road_bridge",
-     "label": "Hasler Road Bridge",
+     "id": "the_hasler_road_bridge",
+     "label": "the Hasler Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8916,8 +9007,8 @@
    "_entry_id": "9b995db1",
    "splits": [
     {
-     "id": "100_m_below_swan_lake_outlet_weir",
-     "label": "100 m below Swan Lake outlet weir",
+     "id": "tupper_river__within",
+     "label": "within",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8947,12 +9038,13 @@
    "_entry_id": "286427f8",
    "splits": [
     {
-     "id": "burrell_creek_confluence",
-     "label": "Burrell Creek",
+     "id": "burrell_creek_into_granby_river",
+     "label": "Burrell Creek \u2192 Granby River",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
-      "tributary_wsc": "300-571168-245886-404370-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000"
+      "tributary_wsc": "300-571168-245886-404370-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Burrell Creek"
      },
      "note": "",
      "_note": "Confluence = mouth of Burrell Creek (blk 356562739); parent = Granby River. Same confluence as granby-river-328008 (already confirmed); different reg rule. OSM: https://www.openstreetmap.org/?mlat=49.36584&mlon=-118.46289#map=15/49.36584/-118.46289",
@@ -8974,8 +9066,8 @@
    "_entry_id": "5c070236",
    "splits": [
     {
-     "id": "jewel_creek__fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "jewel_lake",
+     "label": "Jewel Lake",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -9005,8 +9097,8 @@
    "_entry_id": "ead85d0e",
    "splits": [
     {
-     "id": "falls_potholes",
-     "label": "falls/potholes",
+     "id": "mcrae_creek__falls_situated",
+     "label": "falls situated",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9080,8 +9172,8 @@
      ]
     },
     {
-     "id": "mcintyre_dam",
-     "label": "McIntyre Dam",
+     "id": "mcintyre_dam_and",
+     "label": "McIntyre Dam and",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9184,7 +9276,7 @@
    "splits": [
     {
      "id": "westside_road_bridge",
-     "label": "Westside Road bridge",
+     "label": "Westside Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9230,8 +9322,8 @@
      ]
     },
     {
-     "id": "trinity_bridge",
-     "label": "Trinity Bridge \u2014",
+     "id": "signs_50_m_downstream_of_trinity_bridge",
+     "label": "signs 50 m downstream of Trinity Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9252,8 +9344,8 @@
      "_offset_m": 50
     },
     {
-     "id": "shuswap_river__trinity_bridge",
-     "label": "Trinity Bridge \u2014",
+     "id": "signs_50_m_upstream_of_trinity_bridge",
+     "label": "signs 50 m upstream of Trinity Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9283,8 +9375,8 @@
    "_entry_id": "426962cd",
    "splits": [
     {
-     "id": "hwy_97c_bridge",
-     "label": "Hwy 97C bridge",
+     "id": "hwy_97c",
+     "label": "Hwy 97C",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9311,8 +9403,8 @@
    "_entry_id": "f24bd72f",
    "splits": [
     {
-     "id": "rail_trestle_trout_creek_canyon",
-     "label": "rail trestle, Trout Creek Canyon",
+     "id": "the_trestle_in_trout_creek_canyon_to_okanagan_lake",
+     "label": "the trestle in Trout Creek Canyon to Okanagan Lake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9450,8 +9542,8 @@
    "_entry_id": "362df0a9",
    "splits": [
     {
-     "id": "lynn_creek__200_m",
-     "label": "200 m",
+     "id": "sign_200_m_upstream_of_twin_falls_bridge",
+     "label": "sign 200 m upstream of Twin Falls Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9475,8 +9567,8 @@
      }
     },
     {
-     "id": "150_m",
-     "label": "150 m",
+     "id": "sign_150_m_downstream_of_twin_falls_bridge",
+     "label": "sign 150 m downstream of Twin Falls Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",

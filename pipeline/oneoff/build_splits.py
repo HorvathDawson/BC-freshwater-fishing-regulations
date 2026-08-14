@@ -30,6 +30,55 @@ ROOT = get_config().project_root
 
 KEEP_STATUSES = {"curated", "manual"}   # rows converted into splits; all other statuses are dropped
 
+# --- FWA name lookup (attribute-only sqlite; used to auto-name confluences from trib + parent) ---
+import functools
+import sqlite3
+
+_GPKG = str(ROOT / "data/bc_fisheries_data.gpkg")
+
+
+@functools.lru_cache(maxsize=1)
+def _con() -> sqlite3.Connection:
+    return sqlite3.connect(_GPKG)
+
+
+def _pad_wsc(w: str) -> str:
+    """A trimmed WSC back to the full 21-group FWA form (region + 20 six-digit groups)."""
+    groups = w.split("-")
+    return "-".join(groups + ["000000"] * (21 - len(groups)))
+
+
+@functools.lru_cache(maxsize=4096)
+def _wsc_name(full_wsc: str) -> str:
+    """GNIS_NAME of the stream with this exact FWA_WATERSHED_CODE (''=unnamed/unknown)."""
+    if not full_wsc:
+        return ""
+    r = _con().execute(
+        "SELECT GNIS_NAME FROM streams WHERE FWA_WATERSHED_CODE=? AND GNIS_NAME IS NOT NULL "
+        "AND GNIS_NAME<>'' LIMIT 1", (full_wsc,)).fetchone()
+    return r[0] if r else ""
+
+
+def _confluence_naming(anchor: dict):
+    """Auto-generate (label, id_base) for a confluence from the tributary + parent FWA names —
+    'Goat Creek → Atnarko River' / goat_creek_into_atnarko_river. Handles self-mouth naturally
+    (Babine → Skeena). Returns None if the tributary is unnamed (caller keeps the curated label)."""
+    tw = anchor.get("tributary_wsc")
+    if not tw:
+        return None
+    trimmed = trim_wsc(tw)
+    trib = _wsc_name(_pad_wsc(trimmed))            # normalize (overrides store trimmed WSCs)
+    if not trib:
+        return None
+    parent = _wsc_name(_pad_wsc(trimmed.rsplit("-", 1)[0])) if "-" in trimmed else ""
+    label = f"{trib} → {parent}" if parent else f"{trib} confluence"
+    idb = f"{_slug(trib)}_into_{_slug(parent)}" if parent else f"{_slug(trib)}_confluence"
+    if anchor.get("offset_m"):
+        d = anchor.get("offset_dir", "downstream"); n = int(anchor["offset_m"])
+        label = f"{label} ({n} m {d})"
+        idb = f"{idb}_{d[0]}{n}m"
+    return label, idb, trib
+
 
 # --- FWA-resolved tail (resolver subagent 2026-08-13) --------------------------------------------
 MANUAL_TARGET = {
@@ -124,21 +173,42 @@ def _slug(s: str) -> str:
     return re.sub(r"_+", "_", s) or "split"
 
 
-def _landmark(row: dict) -> str:
-    """The boundary the reg names (from locator_text), NOT the reference landmark. For an offset row
-    the offset carries the distance, so we name the boundary ('log boom', 'canyon-pool signs') and
-    strip the '~N m up/downstream of X' clause. anchor_label is only a last-resort fallback."""
-    off = row.get("offset") or {}
-    base = row.get("label") or row.get("locator_text") or off.get("anchor_label") or ""
-    base = re.sub(r"(?i)^\s*(between|from|to)\s+", "", base)                       # leading connectors
+_GENERIC_NOUN = {"point", "a point", "signs", "boundary signs", "fishing boundary signs",
+                 "the signs", "marker", "markers", "sign"}
+
+
+def _clean_noun(text: str) -> str:
+    """Reduce a locator/label phrase to the boundary noun, stripping connectors + distance clauses
+    (the offset carries the distance)."""
+    base = text or ""
+    base = re.sub(r"(?i)^\s*(between|from|to)\s+", "", base)
     base = re.sub(r"(?i)^\s*(up|down)stream\s+approximately\s+[\d.]+\s*(m|km)\s+to\s+", "", base)  # "downstream ~500 m to signs" -> "signs"
     base = re.sub(r"(?i)^\s*(upstream|downstream)( edge)? of\s+", "", base)
-    base = re.sub(r"(?i)\s+located\b.*$", "", base)                                # "... located approximately ..."
-    base = re.sub(r"(?i)[,\s]+(approximately\s+)?\d[\d.]*\s*(m|km|metres?|meters?)\b.*$", "", base)  # "... 500 m ..."
+    base = re.sub(r"(?i)\s+located\b.*$", "", base)
+    base = re.sub(r"(?i)[,\s]+(approximately\s+)?\d[\d.]*\s*(m|km|metres?|meters?)\b.*$", "", base)
     base = re.sub(r"(?i)\s+(up|down)stream\s+(of\s+|approximately\b).*$", "", base)
-    base = re.sub(r"\s*\(.*$", "", base).strip()                                   # trailing parenthetical
-    base = re.sub(r"(?i)\s+(up|down)stream$", "", base).strip()                    # orphan trailing direction
-    base = re.sub(r"(?i)\s+confluence$", "", base).strip()                         # "Bannon Creek confluence" -> "Bannon Creek"
+    base = re.sub(r"\s*\(.*$", "", base).strip()
+    base = re.sub(r"(?i)\s+(up|down)stream$", "", base).strip()
+    base = re.sub(r"(?i)\s+confluence$", "", base).strip()
+    return base
+
+
+def _landmark(row: dict) -> str:
+    """The boundary the reg names. For a CONFLUENCE that's the tributary — the curated `label`
+    ('Goat Creek confluence') is clean, the locator is a verbose reach — so label-first. For a POINT
+    the boundary is in `locator_text` (the reg's own phrasing); `anchor_label` is only the *reference*
+    for an offset, so for a GENERIC/degenerate noun ('signs', 'point', '500 m …') we compose
+    'signs 500 m downstream of {reference}' to stay unambiguous."""
+    off = row.get("offset") or {}
+    if row.get("anchor_kind") == "confluence":
+        return _clean_noun(row.get("label") or row.get("locator_text") or "") or row["id"]
+    base = _clean_noun(row.get("locator_text") or row.get("label") or off.get("anchor_label") or "")
+    ref = _clean_noun(off.get("anchor_label") or "")
+    is_generic = (not base) or (base.lower() in _GENERIC_NOUN) \
+        or bool(re.match(r"^[\d.]+\s*(m|km)\b", base))   # starts with a distance -> degenerate
+    if off.get("m") and ref and is_generic:
+        noun = base if (base and base.lower() in _GENERIC_NOUN) else "signs"
+        return f"{noun} {int(off['m'])} m {off.get('dir', 'downstream')} of {ref}"
     return base or (row.get("locator_text") or row["id"])
 
 
@@ -248,12 +318,17 @@ def build_waterbodies(rows: list[dict]) -> tuple[list[dict], dict]:
             k = _dedup_key(a)
             if k in seen:                      # same physical cut -> merge
                 merged += 1; prov.setdefault(seen[k], []).append(r.get("id")); continue
-            lm = _landmark(r)
             if a["type"] == "confluence":
-                base = _slug(lm)                              # consistent id format for ALL confluences
-                if not base.endswith("_confluence"):
-                    base += "_confluence"
+                cn = _confluence_naming(a)                    # 'Goat Creek → Atnarko River' / goat_creek_into_atnarko_river
+                if cn:
+                    lm, base, a["_name"] = cn                 # a["_name"] = tributary name, next to its wsc, for readability
+                else:
+                    lm = _landmark(r)
+                    base = _slug(lm)
+                    if not base.endswith("_confluence"):
+                        base += "_confluence"
             else:
+                lm = _landmark(r)
                 m = re.search(r"authored split: ([a-z0-9_]+)", r.get("notes", "") or "")
                 base = m.group(1) if m else _slug(lm)
             sid = base
