@@ -87,7 +87,8 @@ def resolve_names(chains: list[BlkChain], overrides: Optional[dict] = None,
         if siblings:
             main = max(siblings, key=_mag)
             if main.gnis_name and main.gnis_name != c.gnis_name:
-                tuples.append(NameTuple(main.gnis_name, NameSource.side_channel))
+                # carry the main channel's gnis so the registry can group the whole river by it
+                tuples.append(NameTuple(main.gnis_name, NameSource.side_channel, gnis_id=main.gnis_id))
 
         # TODO upstream-inherited: for still-unnamed chains, walk topology.up_adj to the nearest
         # named segment (needs the graph; run after topology in build.py).
@@ -159,6 +160,9 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
     applied = 0
     for entry in entries:
         target, reach = entry.get("target", {}), entry.get("reach")
+        # if the variant is scoped to a gnis, carry it so nodes it names group under that gnis
+        _gids = _as_list(target, "gnis_id", "gnis_ids")
+        gid = str(_gids[0]) if _gids else ""
         tuples, disp = [], ""
         for n in entry.get("names", []):
             nm = n.get("name")
@@ -168,7 +172,7 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
                 src = NameSource(n.get("source", "regulation"))
             except ValueError:
                 src = NameSource.alias                # unknown source -> searchable alias
-            tuples.append(NameTuple(nm, src, n.get("note", "")))
+            tuples.append(NameTuple(nm, src, n.get("note", ""), gnis_id=gid))
             if n.get("display"):
                 disp = nm
         if not tuples:

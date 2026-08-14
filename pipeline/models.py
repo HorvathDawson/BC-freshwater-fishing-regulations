@@ -66,10 +66,14 @@ class AnchorType(str, Enum):
 @dataclass(frozen=True)
 class NameTuple:
     """One provenance-tagged name. Display = first by NameSource priority; search = all.
-    ``note`` carries free-text provenance/context (why the variant was added, from the source)."""
+    ``note`` carries free-text provenance/context (why the variant was added, from the source).
+    ``gnis_id`` = the GNIS this name belongs to when known (e.g. a side-channel inherits the main
+    channel's name AND its gnis) — the node's own ``gnis_id`` field stays empty so the channels stay
+    distinguishable, but consumers (the registry) can still group the whole river by this gnis."""
     name: str
     source: NameSource
     note: str = ""
+    gnis_id: str = ""
 
 
 # --------------------------------------------------------------- blk-chain building blocks
@@ -388,9 +392,11 @@ class SectionRegs:
 class RegistryBoundary:
     """One bindable cut-point on a registry item — what a rule's Extent selects against. Derived
     from the graph nodes' section bounds (curated splits + auto lake/outlet/headwaters)."""
-    ref: str                     # the stable id a rule references: split id | "lake:{wbk}" | "outlet" | "headwaters"
+    id: str                      # READABLE token a rule's Extent.splits references (split id | "tenas_lake")
     label: str                   # human-readable ("Goat Creek → Atnarko River", "Tenas Lake")
     kind: str                    # BoundaryKind value: split | confluence | lake | outlet | headwaters | mu | border
+    ref: str = ""                # the graph boundary_id (stable): "split:{id}" | "lake:{wbk}" | "outlet" | "headwaters"
+    wbk: str = ""                # robust key for lake boundaries
 
 
 @dataclass(frozen=True)
