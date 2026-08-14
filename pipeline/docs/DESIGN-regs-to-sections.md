@@ -522,3 +522,26 @@ carry its own `applies_to`, else load fails loud.
   `applies_to` — so `item` is omitted (a selected split already knows which waterbody it's on).
 - All **confluence** split ids use one format: `{landmark}_confluence` (e.g. `goat_creek_confluence`,
   `sitkatapa_confluence`) — uniform, so the parser/curator recognises a confluence boundary on sight.
+
+## DECISION 2026-08-14b — confluences stay CURATED (no auto-catalog); confluence-split shape
+
+Rejected the "catalog all ~11.6k named-stream confluences" idea: it inverts the data flow (regs would
+*drive* geometry instead of being applied to geometry), and auto-*cutting* explodes big rivers
+(Fraser = 3,437 named descendants). **Confluence boundaries remain curated splits**, exactly as today.
+(The registry still carries the AUTO boundaries the graph already makes — lake edges, outlet,
+headwaters — those are cheap and finite. Only *confluences* are curated, because a confluence *cut* is
+only ever needed where a reg draws a reach boundary there.)
+
+**Confluence split shape (planned graph-side simplification):** a curated confluence carries only its
+`tributary_wsc` (+ `_coord`/offset/`_note`). It needs **no `applies_to`** (the parent = the stream the
+tributary flows into = `trim(tributary_wsc, 1)`, derivable at graph build / from topology) and **no
+`id`/`label`** (both generated on the graph side from the *tributary + parent* display-names, e.g.
+`eve_river__adam_river`, "Eve River → Adam River" — which also answers "confluence of what into what"
+using post-name_variants names). Only a *non-tributary* point that happens to sit at a confluence keeps
+an explicit id. Self-mouth confluences (a river's own mouth into a larger one) keep an explicit parent.
+*Status: designed here; to implement when building the registry/graph confluence handling.*
+
+**Label rule (implemented in build_splits):** a split's `label` is the BOUNDARY the reg names (from
+`locator_text`) — "log boom", "signs at the tail of the canyon pool" — NOT the reference landmark in
+`offset.anchor_label` ("IPP dam"). The offset carries the distance, so the "~N m up/downstream of X"
+clause is stripped from the label. (Fixes the Kokish IPP mislabels + the apparent offset/id swap.)

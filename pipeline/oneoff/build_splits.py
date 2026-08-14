@@ -125,11 +125,20 @@ def _slug(s: str) -> str:
 
 
 def _landmark(row: dict) -> str:
+    """The boundary the reg names (from locator_text), NOT the reference landmark. For an offset row
+    the offset carries the distance, so we name the boundary ('log boom', 'canyon-pool signs') and
+    strip the '~N m up/downstream of X' clause. anchor_label is only a last-resort fallback."""
     off = row.get("offset") or {}
-    base = off.get("anchor_label") or row.get("label") or row.get("locator_text") or ""
-    base = re.sub(r"(?i)^\s*(upstream of|downstream of|upstream edge of|downstream edge of|from|between)\s+", "", base)
-    base = re.sub(r"\s*\(.*$", "", base).strip()            # drop trailing parenthetical
-    base = re.sub(r"(?i)\s+confluence$", "", base).strip()  # "Bannon Creek confluence" -> "Bannon Creek"
+    base = row.get("label") or row.get("locator_text") or off.get("anchor_label") or ""
+    base = re.sub(r"(?i)^\s*(between|from|to)\s+", "", base)                       # leading connectors
+    base = re.sub(r"(?i)^\s*(up|down)stream\s+approximately\s+[\d.]+\s*(m|km)\s+to\s+", "", base)  # "downstream ~500 m to signs" -> "signs"
+    base = re.sub(r"(?i)^\s*(upstream|downstream)( edge)? of\s+", "", base)
+    base = re.sub(r"(?i)\s+located\b.*$", "", base)                                # "... located approximately ..."
+    base = re.sub(r"(?i)[,\s]+(approximately\s+)?\d[\d.]*\s*(m|km|metres?|meters?)\b.*$", "", base)  # "... 500 m ..."
+    base = re.sub(r"(?i)\s+(up|down)stream\s+(of\s+|approximately\b).*$", "", base)
+    base = re.sub(r"\s*\(.*$", "", base).strip()                                   # trailing parenthetical
+    base = re.sub(r"(?i)\s+(up|down)stream$", "", base).strip()                    # orphan trailing direction
+    base = re.sub(r"(?i)\s+confluence$", "", base).strip()                         # "Bannon Creek confluence" -> "Bannon Creek"
     return base or (row.get("locator_text") or row["id"])
 
 

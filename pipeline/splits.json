@@ -149,8 +149,8 @@
    "_entry_id": "43c59654",
    "splits": [
     {
-     "id": "lanterman_falls",
-     "label": "Lanterman Falls",
+     "id": "signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -190,8 +190,8 @@
      ]
     },
     {
-     "id": "ash_river__dickson_falls",
-     "label": "Dickson Falls",
+     "id": "ash_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -297,8 +297,8 @@
      ]
     },
     {
-     "id": "campbell_river__strathcona_dam",
-     "label": "Strathcona Dam",
+     "id": "strathcona_dam_100m_d_s",
+     "label": "Strathcona Dam +100m d/s",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -658,8 +658,8 @@
      ]
     },
     {
-     "id": "englishman_river__lower_falls_englishman_river_park",
-     "label": "lower falls, Englishman River Park",
+     "id": "signs_100m_d_s_of_lower_falls",
+     "label": "signs ~100m d/s of lower falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -773,8 +773,8 @@
      ]
     },
     {
-     "id": "gold_river__cascade_falls",
-     "label": "cascade falls",
+     "id": "fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -858,8 +858,8 @@
    "_entry_id": "8b5f3143",
    "splits": [
     {
-     "id": "gold_river",
-     "label": "Gold River",
+     "id": "top_of_lower_canyon",
+     "label": "top of lower canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -957,8 +957,8 @@
      ]
     },
     {
-     "id": "ipp_dam",
-     "label": "IPP dam",
+     "id": "log_boom",
+     "label": "log boom",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -979,8 +979,8 @@
      "_offset_m": 90
     },
     {
-     "id": "kokish_river__ipp_dam",
-     "label": "IPP dam",
+     "id": "signs_at_the_tail_of_the_canyon_pool",
+     "label": "signs at the tail of the canyon pool",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1001,8 +1001,8 @@
      "_offset_m": 300
     },
     {
-     "id": "signs_at_the_ipp_tail_race_confluence_downstream_approximately_500_m",
-     "label": "signs at the IPP tail race confluence downstream approximately 500 m",
+     "id": "signs_at_the_ipp_tail_race",
+     "label": "signs at the IPP tail race",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1020,8 +1020,8 @@
      ]
     },
     {
-     "id": "ipp_tail_race",
-     "label": "IPP tail race",
+     "id": "kokish_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1089,8 +1089,8 @@
      ]
     },
     {
-     "id": "little_qualicum_river__hatchery_fence",
-     "label": "hatchery fence",
+     "id": "little_qualicum_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1296,8 +1296,8 @@
      }
     },
     {
-     "id": "red_rock_pool",
-     "label": "Red Rock Pool",
+     "id": "nitinat_river__fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1318,8 +1318,8 @@
      "_offset_m": 100
     },
     {
-     "id": "nitinat_river__red_rock_pool",
-     "label": "Red Rock Pool",
+     "id": "red_rock_pool",
+     "label": "\"Red Rock Pool,\"",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1340,8 +1340,8 @@
      "_offset_m": 100
     },
     {
-     "id": "nitinat_river_bridge",
-     "label": "Nitinat River Bridge",
+     "id": "boundary_signs",
+     "label": "boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1362,8 +1362,8 @@
      "_offset_m": 50
     },
     {
-     "id": "nitinat_river__nitinat_river_bridge",
-     "label": "Nitinat River Bridge",
+     "id": "the_nitinat_river_bridge",
+     "label": "the Nitinat River Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1500,8 +1500,8 @@
      }
     },
     {
-     "id": "bc_hydro_puntledge_generating_station_tailrace",
-     "label": "BC Hydro Puntledge generating-station tailrace",
+     "id": "puntledge_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1522,8 +1522,8 @@
      "_offset_m": 50
     },
     {
-     "id": "puntledge_river_hatchery_fence",
-     "label": "Puntledge River hatchery fence",
+     "id": "signs_2",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1572,8 +1572,8 @@
      ]
     },
     {
-     "id": "e_n_trestle",
-     "label": "E&N Trestle",
+     "id": "upper_hatchery_weir",
+     "label": "upper hatchery weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1669,8 +1669,8 @@
      ]
     },
     {
-     "id": "quinsam_hatchery_weir",
-     "label": "Quinsam Hatchery weir",
+     "id": "signs_300m_d_s_of_quinsam_hatchery_weir",
+     "label": "signs ~300m d/s of Quinsam Hatchery weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1876,8 +1876,8 @@
      ]
     },
     {
-     "id": "potholes_falls",
-     "label": "Potholes Falls",
+     "id": "sooke_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1907,8 +1907,8 @@
    "_entry_id": "29465d04",
    "splits": [
     {
-     "id": "hwy_4",
-     "label": "Hwy 4",
+     "id": "signs_300m_d_s_of_hwy_4",
+     "label": "signs ~300m d/s of Hwy 4",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1938,8 +1938,8 @@
    "_entry_id": "703b9db3",
    "splits": [
     {
-     "id": "stamp_falls",
-     "label": "Stamp Falls",
+     "id": "200_m",
+     "label": "200 m",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1960,8 +1960,8 @@
      "_offset_m": 200
     },
     {
-     "id": "stamp_river__stamp_falls",
-     "label": "Stamp Falls",
+     "id": "500_m",
+     "label": "500 m",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2047,8 +2047,8 @@
    "_entry_id": "951c4af2",
    "splits": [
     {
-     "id": "hwy_16_bridge",
-     "label": "Hwy 16 bridge",
+     "id": "tidal_boundary_sign",
+     "label": "tidal boundary sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2364,8 +2364,8 @@
      ]
     },
     {
-     "id": "brem_river__1st_falls",
-     "label": "1st falls",
+     "id": "point",
+     "label": "point",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2461,8 +2461,8 @@
      ]
     },
     {
-     "id": "stayte_rd_pedestrian_bridge",
-     "label": "Stayte Rd pedestrian bridge",
+     "id": "two_white_triangular_fishing_boundary_signs",
+     "label": "two white triangular fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2571,8 +2571,8 @@
    "_entry_id": "2f3fea39",
    "splits": [
     {
-     "id": "chilliwack_slesse_creek",
-     "label": "Chilliwack/Slesse Creek",
+     "id": "upstream_from_a_line_between_two_fishing_boundary_signs_on_either_side_of_the_chilliwack_river",
+     "label": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3104,8 +3104,8 @@
    "_entry_id": "bfb759b1",
    "splits": [
     {
-     "id": "ruby_lake_outlet",
-     "label": "Ruby Lake outlet",
+     "id": "ruby_creek__fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -3678,8 +3678,8 @@
      ]
     },
     {
-     "id": "fraser_river__hell_s_gate",
-     "label": "Hell's Gate",
+     "id": "fraser_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3700,8 +3700,8 @@
      "_offset_m": 2800
     },
     {
-     "id": "boston_bar",
-     "label": "Boston Bar",
+     "id": "fraser_river__fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3760,8 +3760,8 @@
      ]
     },
     {
-     "id": "hwy_99_bridge_at_lillooet_downstream_approximately_1_2_km",
-     "label": "Hwy 99 bridge at Lillooet downstream approximately 1.2 km",
+     "id": "hwy_99_bridge_at_lillooet",
+     "label": "Hwy 99 bridge at Lillooet",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3872,8 +3872,8 @@
    "_entry_id": "921224bf",
    "splits": [
     {
-     "id": "frances_lake_outlet",
-     "label": "Frances Lake outlet",
+     "id": "logging_bridge",
+     "label": "logging bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3996,8 +3996,8 @@
      }
     },
     {
-     "id": "cnr_bridge_downstream_of_deadman_r",
-     "label": "CNR bridge downstream of Deadman R",
+     "id": "thompson_river__cnr_bridge",
+     "label": "CNR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4015,8 +4015,8 @@
      ]
     },
     {
-     "id": "cnr_bridge_upstream_of_bonaparte_r",
-     "label": "CNR bridge upstream of Bonaparte R",
+     "id": "cnr_bridge_2",
+     "label": "CNR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4034,8 +4034,8 @@
      ]
     },
     {
-     "id": "signs_1_km_downstream_of_martel",
-     "label": "signs 1 km downstream of Martel",
+     "id": "thompson_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4920,8 +4920,8 @@
    "_entry_id": "15b5c995",
    "splits": [
     {
-     "id": "connor_lakes_outlet",
-     "label": "Connor Lakes outlet",
+     "id": "connor_lake",
+     "label": "Connor Lake",
      "kind": "lake_outlet",
      "anchor": {
       "type": "point",
@@ -5103,8 +5103,8 @@
      ]
     },
     {
-     "id": "cpr_bridge_near_creston",
-     "label": "CPR Bridge near Creston",
+     "id": "navigation_dolphin",
+     "label": "navigation dolphin",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5283,8 +5283,8 @@
    "_entry_id": "57a2bb4f",
    "splits": [
     {
-     "id": "trout_lake_outlet",
-     "label": "Trout Lake outlet",
+     "id": "signs_600_m_below_trout_lake_outlet",
+     "label": "signs ~600 m below Trout Lake outlet",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5806,7 +5806,7 @@
    "splits": [
     {
      "id": "whiteswan_outlet_falls",
-     "label": "EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
+     "label": "EXCEPT the outlet stream",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5949,8 +5949,8 @@
    "_entry_id": "b4222b6f",
    "splits": [
     {
-     "id": "hwy_31_bridge",
-     "label": "Hwy 31 bridge",
+     "id": "falls_at_small_hydro",
+     "label": "falls at small hydro",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6242,8 +6242,8 @@
    "_entry_id": "38c3c0c0",
    "splits": [
     {
-     "id": "ten_mile_pool",
-     "label": "Ten Mile Pool",
+     "id": "ten_mile_pool_d_s_sign",
+     "label": "Ten Mile Pool \u2014 d/s sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6264,8 +6264,8 @@
      "_offset_m": 200
     },
     {
-     "id": "chuckwalla_river__ten_mile_pool",
-     "label": "Ten Mile Pool",
+     "id": "ten_mile_pool_u_s_sign",
+     "label": "Ten Mile Pool \u2014 u/s sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6331,8 +6331,8 @@
      }
     },
     {
-     "id": "dean_river_lower_canyon",
-     "label": "Dean River lower canyon",
+     "id": "signs_0_5_km_above_the_canyon",
+     "label": "signs ~0.5 km above the canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6353,8 +6353,8 @@
      "_offset_m": 500
     },
     {
-     "id": "dean_river__dean_river_lower_canyon",
-     "label": "Dean River lower canyon",
+     "id": "signs_100_m_below_the_canyon",
+     "label": "signs ~100 m below the canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6394,8 +6394,8 @@
      ]
     },
     {
-     "id": "dean_river_lower_canyon_2",
-     "label": "Dean River lower canyon",
+     "id": "signs_3_5_km_above_the_canyon",
+     "label": "signs ~3.5 km above the canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6644,8 +6644,8 @@
    "_entry_id": "cae5d13e",
    "splits": [
     {
-     "id": "likely_bridge",
-     "label": "Likely Bridge",
+     "id": "50_m",
+     "label": "50 m",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6666,8 +6666,8 @@
      "_offset_m": 50
     },
     {
-     "id": "quesnel_river__likely_bridge",
-     "label": "Likely Bridge",
+     "id": "quesnel_river__50_m",
+     "label": "50 m",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6706,8 +6706,8 @@
      }
     },
     {
-     "id": "likely_bridge_2",
-     "label": "Likely Bridge",
+     "id": "quesnel_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6820,8 +6820,8 @@
      }
     },
     {
-     "id": "adult_fish_counting_fence",
-     "label": "adult fish counting fence",
+     "id": "signs_100m_u_s_of_adult_fish_counting_fence",
+     "label": "signs ~100m u/s of adult fish counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6842,8 +6842,8 @@
      "_offset_m": 100
     },
     {
-     "id": "babine_river__adult_fish_counting_fence",
-     "label": "adult fish counting fence",
+     "id": "80_m_below_adult_counting_fence",
+     "label": "80 m below adult counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7022,8 +7022,8 @@
      ]
     },
     {
-     "id": "moricetown_canyon_bottom",
-     "label": "Moricetown Canyon bottom",
+     "id": "100m_d_s_of_canyon_bottom",
+     "label": "100m d/s of canyon bottom",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7379,8 +7379,8 @@
      ]
     },
     {
-     "id": "morice_lake_outlet",
-     "label": "Morice Lake outlet",
+     "id": "signs_at_the_dunes",
+     "label": "signs at the Dunes",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7581,8 +7581,8 @@
      }
     },
     {
-     "id": "kitsumkalum_river_confluence",
-     "label": "Kitsumkalum River",
+     "id": "kitsumkalum_confluence",
+     "label": "Kitsumkalum",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -7602,8 +7602,8 @@
      }
     },
     {
-     "id": "zymoetz_river_confluence",
-     "label": "Zymoetz River",
+     "id": "zymoetz_confluence",
+     "label": "Zymoetz",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -7686,8 +7686,8 @@
    "_entry_id": "aed39f94",
    "splits": [
     {
-     "id": "francois_lake_road_bridge",
-     "label": "Francois Lake Road bridge",
+     "id": "stellako_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7708,8 +7708,8 @@
      "_offset_m": 250
     },
     {
-     "id": "stellako_river__francois_lake_road_bridge",
-     "label": "Francois Lake Road bridge",
+     "id": "4_km_below_francois_lake_bridge",
+     "label": "4 km below Francois Lake bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7786,8 +7786,8 @@
    "_entry_id": "037258e5",
    "splits": [
     {
-     "id": "tahltan_river_bridge",
-     "label": "Tahltan River Bridge",
+     "id": "signs_400m_u_s_of_tahltan_river_bridge",
+     "label": "signs ~400m u/s of Tahltan River Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7808,8 +7808,8 @@
      "_offset_m": 400
     },
     {
-     "id": "tahltan_river__tahltan_river_bridge",
-     "label": "Tahltan River Bridge",
+     "id": "landslide_750m_u_s_of_tahltan_river_bridge",
+     "label": "landslide ~750m u/s of Tahltan River Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7839,8 +7839,8 @@
    "_entry_id": "883f7f02",
    "splits": [
     {
-     "id": "mcdonell_lake_outlet",
-     "label": "McDonell Lake outlet",
+     "id": "zymoetz__fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -7927,7 +7927,7 @@
    "splits": [
     {
      "id": "upper_anzac_bridge",
-     "label": "Upper Anzac bridge",
+     "label": "Upper Anzac bridge \u2014",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7949,7 +7949,7 @@
     },
     {
      "id": "anzac_river__upper_anzac_bridge",
-     "label": "Upper Anzac bridge",
+     "label": "Upper Anzac bridge \u2014",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7997,8 +7997,8 @@
    "_entry_id": "1200c05b",
    "splits": [
     {
-     "id": "thorn_creek_confluence",
-     "label": "Thorn Creek",
+     "id": "thorn_confluence",
+     "label": "Thorn",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -8018,8 +8018,8 @@
      }
     },
     {
-     "id": "attichika_creek__thorn_creek_confluence",
-     "label": "Thorn Creek",
+     "id": "attichika_creek__thorn_confluence",
+     "label": "Thorn",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -8090,8 +8090,8 @@
    "_entry_id": "9fd933ca",
    "splits": [
     {
-     "id": "creek_mouth",
-     "label": "creek mouth",
+     "id": "signs_400m_u_s_of_mouth",
+     "label": "signs ~400m u/s of mouth",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8176,8 +8176,8 @@
    "_entry_id": "3cf96e99",
    "splits": [
     {
-     "id": "gagnon_creek__creek_mouth",
-     "label": "creek mouth",
+     "id": "gagnon_creek__signs_400m_u_s_of_mouth",
+     "label": "signs ~400m u/s of mouth",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8252,8 +8252,8 @@
      }
     },
     {
-     "id": "attichka_creek",
-     "label": "Attichka Creek",
+     "id": "kemess_creek__point",
+     "label": "point",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8329,8 +8329,8 @@
      }
     },
     {
-     "id": "cheslatta_river",
-     "label": "Cheslatta River",
+     "id": "boundary_sign",
+     "label": "boundary sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8514,8 +8514,8 @@
      }
     },
     {
-     "id": "point_500_m_upstream",
-     "label": "point 500 m upstream",
+     "id": "thorn_creek__point",
+     "label": "point",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8542,8 +8542,8 @@
    "_entry_id": "b34e2ffb",
    "splits": [
     {
-     "id": "weston_creek__creek_mouth",
-     "label": "creek mouth",
+     "id": "weston_creek__signs_400m_u_s_of_mouth",
+     "label": "signs ~400m u/s of mouth",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8619,8 +8619,8 @@
      }
     },
     {
-     "id": "peace_river_confluence",
-     "label": "Peace River",
+     "id": "signs_5_km_up_halfway_confluence",
+     "label": "signs ~5 km up Halfway",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -8668,8 +8668,8 @@
      ]
     },
     {
-     "id": "murray_river__kinuseo_falls",
-     "label": "Kinuseo Falls",
+     "id": "signs_2_km_below_kinuseo_falls",
+     "label": "signs ~2 km below Kinuseo Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8737,8 +8737,8 @@
      ]
     },
     {
-     "id": "halfway_river_mouth_confluence",
-     "label": "Halfway River mouth",
+     "id": "5_km_confluence",
+     "label": "5 km",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -8758,8 +8758,8 @@
      }
     },
     {
-     "id": "peace_river__halfway_river_mouth_confluence",
-     "label": "Halfway River mouth",
+     "id": "peace_river__5_km_confluence",
+     "label": "5 km",
      "kind": "confluence",
      "anchor": {
       "type": "confluence",
@@ -8826,8 +8826,8 @@
      ]
     },
     {
-     "id": "site_c_dam_2",
-     "label": "Site C dam",
+     "id": "peace_river__signs",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8857,8 +8857,8 @@
    "_entry_id": "4068efd2",
    "splits": [
     {
-     "id": "site_c_dam_3",
-     "label": "Site C dam",
+     "id": "signs_3",
+     "label": "signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8916,8 +8916,8 @@
    "_entry_id": "9b995db1",
    "splits": [
     {
-     "id": "swan_lake_outlet_weir",
-     "label": "Swan Lake outlet weir",
+     "id": "100_m_below_swan_lake_outlet_weir",
+     "label": "100 m below Swan Lake outlet weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8974,8 +8974,8 @@
    "_entry_id": "5c070236",
    "splits": [
     {
-     "id": "jewel_lake_outlet",
-     "label": "Jewel Lake outlet",
+     "id": "jewel_creek__fishing_boundary_signs",
+     "label": "fishing boundary signs",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -9231,7 +9231,7 @@
     },
     {
      "id": "trinity_bridge",
-     "label": "Trinity Bridge",
+     "label": "Trinity Bridge \u2014",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9253,7 +9253,7 @@
     },
     {
      "id": "shuswap_river__trinity_bridge",
-     "label": "Trinity Bridge",
+     "label": "Trinity Bridge \u2014",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9450,8 +9450,8 @@
    "_entry_id": "362df0a9",
    "splits": [
     {
-     "id": "twin_falls_bridge",
-     "label": "Twin Falls Bridge",
+     "id": "lynn_creek__200_m",
+     "label": "200 m",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9475,8 +9475,8 @@
      }
     },
     {
-     "id": "lynn_creek__twin_falls_bridge",
-     "label": "Twin Falls Bridge",
+     "id": "150_m",
+     "label": "150 m",
      "kind": "point",
      "anchor": {
       "type": "point",
