@@ -380,3 +380,28 @@ class SectionRegs:
     reg_set_index: int                      # single reg set per section (07)
     named_reg_ids: tuple[str, ...] = ()     # direct named/override matches (provenance)
     tributary_reg_ids: tuple[str, ...] = ()  # inherited via tributary_section_ids (provenance)
+
+
+# ------------------------------------------------------------------ registry (parser truth)
+
+@dataclass(frozen=True)
+class RegistryBoundary:
+    """One bindable cut-point on a registry item — what a rule's Extent selects against. Derived
+    from the graph nodes' section bounds (curated splits + auto lake/outlet/headwaters)."""
+    ref: str                     # the stable id a rule references: split id | "lake:{wbk}" | "outlet" | "headwaters"
+    label: str                   # human-readable ("Goat Creek → Atnarko River", "Tenas Lake")
+    kind: str                    # BoundaryKind value: split | confluence | lake | outlet | headwaters | mu | border
+
+
+@dataclass(frozen=True)
+class RegistryItem:
+    """A regulated waterbody the matcher points an Entry at. Identity + names come straight from the
+    graph node grouping (which already merged blk-chains + applied name_variants); `boundaries` is the
+    parser's catalog of bindable cut-points on this item."""
+    id: str                              # gnis:{} -> wsc:{} -> blk:{} (streams); wbk:{} (lakes); area:{} (areas)
+    name: str                            # display_name from the graph
+    kind: str                            # NodeKind value: stream | lake  (+ 'area' later)
+    variants: tuple[str, ...] = ()       # searchable name variants (name_tuples)
+    mus: tuple[str, ...] = ()            # management units this item spans (07 overlay; may be empty pre-overlay)
+    section_ids: tuple[str, ...] = ()    # its section node_ids
+    boundaries: tuple[RegistryBoundary, ...] = ()

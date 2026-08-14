@@ -213,6 +213,12 @@ class Entry(BaseModel):
     entry_id: str = Field(..., description="stable id (e.g. 'atnarko_main'); rule_ids namespace under it")
     identity: Identity
     regs_verbatim: str = Field(..., description="exact copy of the input raw_regs")
+    locked: bool = Field(
+        default=False,
+        description="human-curated lock. Starts False (fresh parse). A curator flips it True once the "
+        "entry is reviewed/confirmed/edited; a re-parse MUST NOT overwrite a locked entry (the merge "
+        "tool preserves it). This is how a hand-authored entry (e.g. the full Atnarko system) is frozen.",
+    )
     matched: List[str] = Field(default_factory=list, description="registry ids — written by the matcher, [] from the parser")
     tributaries: Tributaries = Field(default_factory=Tributaries, description="entry-wide tributary scope (included/only/excludes)")
     scope: List[Extent] = Field(default_factory=list, description="entry-wide extents; composes by ∩ with each rule's extents")

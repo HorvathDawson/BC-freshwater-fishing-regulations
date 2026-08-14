@@ -150,8 +150,8 @@
    "_entry_id": "43c59654",
    "splits": [
     {
-     "id": "dickson_lake_to_signs",
-     "label": "Dickson Lake to signs",
+     "id": "dickson_lake_to_signs_200_m_downstream",
+     "label": "Dickson Lake to signs (200 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -191,8 +191,8 @@
      ]
     },
     {
-     "id": "ash_river__dickson_falls",
-     "label": "Dickson Falls",
+     "id": "dickson_falls_30_m_downstream",
+     "label": "Dickson Falls (30 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -298,8 +298,8 @@
      ]
     },
     {
-     "id": "strathcona_dam",
-     "label": "Strathcona Dam",
+     "id": "strathcona_dam_100_m_downstream",
+     "label": "Strathcona Dam (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -778,8 +778,8 @@
      ]
     },
     {
-     "id": "gold_river__the_cascade_falls",
-     "label": "the cascade falls",
+     "id": "the_cascade_falls_80_m_downstream",
+     "label": "the cascade falls (80 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -865,8 +865,8 @@
    "_entry_id": "8b5f3143",
    "splits": [
     {
-     "id": "top_of_lower_canyon",
-     "label": "top of lower canyon,",
+     "id": "top_of_lower_canyon_1300_m_upstream",
+     "label": "top of lower canyon, (1300 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -965,8 +965,8 @@
      ]
     },
     {
-     "id": "log_boom",
-     "label": "log boom",
+     "id": "log_boom_90_m_upstream",
+     "label": "log boom (90 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -987,8 +987,8 @@
      "_offset_m": 90
     },
     {
-     "id": "signs_at_the_tail_of_the_canyon_pool",
-     "label": "signs at the tail of the canyon pool",
+     "id": "signs_at_the_tail_of_the_canyon_pool_300_m_downstream",
+     "label": "signs at the tail of the canyon pool (300 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1329,8 +1329,8 @@
      "_offset_m": 100
     },
     {
-     "id": "red_rock_pool",
-     "label": "\"Red Rock Pool,\"",
+     "id": "red_rock_pool_100_m_downstream",
+     "label": "\"Red Rock Pool,\" (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1373,8 +1373,8 @@
      "_offset_m": 50
     },
     {
-     "id": "the_nitinat_river_bridge",
-     "label": "the Nitinat River Bridge",
+     "id": "the_nitinat_river_bridge_50_m_downstream",
+     "label": "the Nitinat River Bridge (50 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1586,8 +1586,8 @@
      ]
     },
     {
-     "id": "upper_hatchery_weir",
-     "label": "upper hatchery weir",
+     "id": "upper_hatchery_weir_125_m_downstream",
+     "label": "upper hatchery weir (125 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2065,8 +2065,8 @@
    "_entry_id": "951c4af2",
    "splits": [
     {
-     "id": "tidal_boundary_sign",
-     "label": "tidal boundary sign",
+     "id": "tidal_boundary_sign_1500_m_upstream",
+     "label": "tidal boundary sign (1500 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2171,8 +2171,8 @@
    "_entry_id": "2f8e871c",
    "splits": [
     {
-     "id": "within",
-     "label": "within",
+     "id": "within_100_m_downstream",
+     "label": "within (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2230,8 +2230,8 @@
    "_entry_id": "d4b466ec",
    "splits": [
     {
-     "id": "yakoun_lake",
-     "label": "Yakoun Lake",
+     "id": "yakoun_lake_14533_m_downstream",
+     "label": "Yakoun Lake (14533 m downstream)",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -2383,8 +2383,8 @@
      ]
     },
     {
-     "id": "brem_river__the_upstream_edge_of_1st_falls",
-     "label": "the upstream edge of 1st falls",
+     "id": "the_upstream_edge_of_1st_falls_100_m_downstream",
+     "label": "the upstream edge of 1st falls (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2480,8 +2480,8 @@
      ]
     },
     {
-     "id": "two_white_triangular_fishing_boundary_signs",
-     "label": "two white triangular fishing boundary signs",
+     "id": "two_white_triangular_fishing_boundary_signs_200_m_upstream",
+     "label": "two white triangular fishing boundary signs (200 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2590,8 +2590,8 @@
    "_entry_id": "2f3fea39",
    "splits": [
     {
-     "id": "upstream_from_a_line_between_two_fishing_boundary_signs_on_either_side_of_the_chilliwack_river",
-     "label": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River",
+     "id": "upstream_from_a_line_between_two_fishing_boundary_signs_on_either_side_of_the_chilliwack_river_100_m_downstream",
+     "label": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3123,8 +3123,8 @@
    "_entry_id": "bfb759b1",
    "splits": [
     {
-     "id": "ruby_lake_to_fishing_boundary_signs",
-     "label": "Ruby Lake to fishing boundary signs",
+     "id": "ruby_lake_to_fishing_boundary_signs_100_m_downstream",
+     "label": "Ruby Lake to fishing boundary signs (100 m downstream)",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -3899,8 +3899,8 @@
    "_entry_id": "921224bf",
    "splits": [
     {
-     "id": "frances_lake",
-     "label": "Frances Lake",
+     "id": "frances_lake_400_m_downstream",
+     "label": "Frances Lake (400 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4957,8 +4957,8 @@
    "_entry_id": "15b5c995",
    "splits": [
     {
-     "id": "connor_lake",
-     "label": "Connor Lake",
+     "id": "connor_lake_3000_m_downstream",
+     "label": "Connor Lake (3000 m downstream)",
      "kind": "lake_outlet",
      "anchor": {
       "type": "point",
@@ -5142,8 +5142,8 @@
      ]
     },
     {
-     "id": "navigation_dolphin",
-     "label": "navigation dolphin",
+     "id": "navigation_dolphin_2000_m_downstream",
+     "label": "navigation dolphin (2000 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5324,8 +5324,8 @@
    "_entry_id": "57a2bb4f",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_trout_lake_outlet_to_fishing_boundary_signs",
-     "label": "fishing boundary signs at Trout Lake outlet, to fishing boundary signs",
+     "id": "fishing_boundary_signs_at_trout_lake_outlet_to_fishing_boundary_signs_600_m_downstream",
+     "label": "fishing boundary signs at Trout Lake outlet, to fishing boundary signs (600 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5997,8 +5997,8 @@
    "_entry_id": "b4222b6f",
    "splits": [
     {
-     "id": "falls_at_small_hydro_structure",
-     "label": "falls at small hydro structure",
+     "id": "falls_at_small_hydro_structure_800_m_upstream",
+     "label": "falls at small hydro structure (800 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6295,8 +6295,8 @@
    "_entry_id": "38c3c0c0",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_ten_mile_pool",
-     "label": "fishing boundary signs at Ten Mile Pool",
+     "id": "fishing_boundary_signs_at_ten_mile_pool_200_m_downstream",
+     "label": "fishing boundary signs at Ten Mile Pool (200 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6317,8 +6317,8 @@
      "_offset_m": 200
     },
     {
-     "id": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool",
-     "label": "fishing boundary signs at Ten Mile Pool",
+     "id": "fishing_boundary_signs_at_ten_mile_pool_100_m_upstream",
+     "label": "fishing boundary signs at Ten Mile Pool (100 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6386,8 +6386,8 @@
      }
     },
     {
-     "id": "signs_0_5_km_above_the_canyon",
-     "label": "signs ~0.5 km above the canyon",
+     "id": "signs_0_5_km_above_the_canyon_500_m_upstream",
+     "label": "signs ~0.5 km above the canyon (500 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6408,8 +6408,8 @@
      "_offset_m": 500
     },
     {
-     "id": "signs_100_m_below_the_canyon",
-     "label": "signs ~100 m below the canyon",
+     "id": "signs_100_m_below_the_canyon_100_m_downstream",
+     "label": "signs ~100 m below the canyon (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6449,8 +6449,8 @@
      ]
     },
     {
-     "id": "signs_3_5_km_above_the_canyon",
-     "label": "signs ~3.5 km above the canyon",
+     "id": "signs_3_5_km_above_the_canyon_3500_m_upstream",
+     "label": "signs ~3.5 km above the canyon (3500 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6602,8 +6602,8 @@
    "_entry_id": "519e7133",
    "splits": [
     {
-     "id": "mitchell_river__within",
-     "label": "within",
+     "id": "mitchell_river__within_100_m_downstream",
+     "label": "within (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6624,8 +6624,8 @@
      "_offset_m": 100
     },
     {
-     "id": "within_2",
-     "label": "within",
+     "id": "within_100_m_upstream",
+     "label": "within (100 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7086,8 +7086,8 @@
      ]
     },
     {
-     "id": "in_moricetown_canyon_or_within_2",
-     "label": "in Moricetown Canyon or within",
+     "id": "in_moricetown_canyon_or_within_100_m_downstream",
+     "label": "in Moricetown Canyon or within (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7445,8 +7445,8 @@
      ]
     },
     {
-     "id": "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake",
-     "label": "fishing boundary signs near outlet of Morice Lake",
+     "id": "fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
+     "label": "fishing boundary signs near outlet of Morice Lake (2000 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7885,8 +7885,8 @@
      "_offset_m": 400
     },
     {
-     "id": "th",
-     "label": "th",
+     "id": "th_750_m_upstream",
+     "label": "th (750 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7916,8 +7916,8 @@
    "_entry_id": "883f7f02",
    "splits": [
     {
-     "id": "mcdonell_lake",
-     "label": "McDonell Lake",
+     "id": "mcdonell_lake_3000_m_downstream",
+     "label": "McDonell Lake (3000 m downstream)",
      "kind": "lake",
      "anchor": {
       "type": "point",
@@ -8004,8 +8004,8 @@
    "_entry_id": "669f5ba9",
    "splits": [
     {
-     "id": "anzac_river__within",
-     "label": "within",
+     "id": "within_500_m_downstream",
+     "label": "within (500 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8026,8 +8026,8 @@
      "_offset_m": 500
     },
     {
-     "id": "within_3",
-     "label": "within",
+     "id": "within_500_m_upstream",
+     "label": "within (500 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8173,8 +8173,8 @@
    "_entry_id": "9fd933ca",
    "splits": [
     {
-     "id": "fishing_boundary_signs_near_its_mouth",
-     "label": "fishing boundary signs near its mouth",
+     "id": "fishing_boundary_signs_near_its_mouth_400_m_upstream",
+     "label": "fishing boundary signs near its mouth (400 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8260,8 +8260,8 @@
    "_entry_id": "3cf96e99",
    "splits": [
     {
-     "id": "gagnon_creek__fishing_boundary_signs_near_its_mouth",
-     "label": "fishing boundary signs near its mouth",
+     "id": "gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream",
+     "label": "fishing boundary signs near its mouth (400 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8416,8 +8416,8 @@
      }
     },
     {
-     "id": "boundary_sign",
-     "label": "boundary sign",
+     "id": "boundary_sign_5000_m_downstream",
+     "label": "boundary sign (5000 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8629,8 +8629,8 @@
    "_entry_id": "b34e2ffb",
    "splits": [
     {
-     "id": "signs_near_its_mouth",
-     "label": "signs near its mouth",
+     "id": "signs_near_its_mouth_400_m_upstream",
+     "label": "signs near its mouth (400 m upstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8757,8 +8757,8 @@
      ]
     },
     {
-     "id": "signs_about",
-     "label": "signs about",
+     "id": "signs_about_2000_m_downstream",
+     "label": "signs about (2000 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8948,8 +8948,8 @@
    "_entry_id": "4068efd2",
    "splits": [
     {
-     "id": "boundary_signs_1",
-     "label": "boundary signs 1",
+     "id": "boundary_signs_1_1200_m_downstream",
+     "label": "boundary signs 1 (1200 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9007,8 +9007,8 @@
    "_entry_id": "9b995db1",
    "splits": [
     {
-     "id": "tupper_river__within",
-     "label": "within",
+     "id": "tupper_river__within_100_m_downstream",
+     "label": "within (100 m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9066,8 +9066,8 @@
    "_entry_id": "5c070236",
    "splits": [
     {
-     "id": "jewel_lake",
-     "label": "Jewel Lake",
+     "id": "jewel_lake_1500_m_downstream",
+     "label": "Jewel Lake (1500 m downstream)",
      "kind": "lake",
      "anchor": {
       "type": "point",

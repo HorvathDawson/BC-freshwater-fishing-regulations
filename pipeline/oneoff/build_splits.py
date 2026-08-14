@@ -206,9 +206,13 @@ def _landmark(row: dict) -> str:
     ref = _clean_noun(off.get("anchor_label") or "")
     is_generic = (not base) or (base.lower() in _GENERIC_NOUN) \
         or bool(re.match(r"^[\d.]+\s*(m|km)\b", base))   # starts with a distance -> degenerate
-    if off.get("m") and ref and is_generic:
-        noun = base if (base and base.lower() in _GENERIC_NOUN) else "signs"
-        return f"{noun} {int(off['m'])} m {off.get('dir', 'downstream')} of {ref}"
+    if off.get("m"):
+        n = int(off["m"]); d = off.get("dir", "downstream")
+        if ref and is_generic:                            # generic noun -> 'signs 500 m downstream of {ref}'
+            noun = base if (base and base.lower() in _GENERIC_NOUN) else "signs"
+            return f"{noun} {n} m {d} of {ref}"
+        if base:                                          # specific noun -> append offset so bracket ends stay distinct
+            return f"{base} ({n} m {d})"
     return base or (row.get("locator_text") or row["id"])
 
 

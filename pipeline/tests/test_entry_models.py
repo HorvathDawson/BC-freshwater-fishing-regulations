@@ -91,6 +91,8 @@ def test_entry_valid():
     e = _entry()
     assert e.entry_id == "atnarko_main" and len(e.rules) == 2 and e.matched == []
     assert e.tributaries.included is True
+    assert e.locked is False                      # fresh parse; a curator flips this True to freeze the entry
+    assert _entry(locked=True).locked is True
 
 def test_entry_rule_text_must_be_in_regs():
     with pytest.raises(ValidationError):
