@@ -23,7 +23,6 @@ class NameSource(str, Enum):
     override = "override"                 # manual name_variants.json / feature_display_names.json
     gazette = "gazette"                   # direct GNIS (stream GNIS_NAME; lake GNIS_NAME_1/2/3)
     side_channel = "side-channel"         # inherited from same-WSC main-channel BLK
-    upstream_inherited = "upstream-inherited"  # nearest upstream named edge
     gauge = "gauge"                       # hydrometric gauge (WSC) name
     regulation = "regulation"             # name a regulation entry / synopsis uses (by id)
     stocking = "stocking"                 # stocking DB common name (by wbk)

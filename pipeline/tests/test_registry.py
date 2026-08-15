@@ -42,8 +42,11 @@ def test_river_is_one_item_via_tuple_gnis():
 def test_readable_boundaries():
     reg = _reg()
     bids = {b.id: b for b in reg["gnis:1"].boundaries}
+    # curated split keeps its (already-unique) id; auto lake is item-prefixed for global uniqueness
     assert "foo_falls" in bids and bids["foo_falls"].ref == "split:foo_falls"
-    assert "bar_lake" in bids and bids["bar_lake"].kind == "lake" and bids["bar_lake"].wbk == "W1"
+    assert "river_x__bar_lake" in bids
+    lk = bids["river_x__bar_lake"]
+    assert lk.kind == "lake" and lk.wbk == "W1" and lk.label == "Bar Lake"
 
 
 def test_lake_and_area_items():

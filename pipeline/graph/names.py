@@ -1,11 +1,10 @@
 """Step 2 (03 S2): resolve (name, source) tuples per BLK.
 
 Emits TAGGED NameTuples (never a scalar). Sources, priority high->low: override, gazette,
-side-channel, upstream-inherited. Side-channel uses the shared-WSC main-channel BLK (the
-Seabird channel gets (Fraser River, side-channel) alongside its own override name).
+side-channel. Side-channel uses the shared-WSC main-channel BLK (the Seabird channel gets
+(Fraser River, side-channel) alongside its own override name), carrying the main channel's gnis.
 
 Reuses the curated pipeline/matching/feature_display_names.json override table.
-upstream-inherited is deferred (needs the topology graph) — see TODO.
 """
 
 from __future__ import annotations
@@ -89,9 +88,6 @@ def resolve_names(chains: list[BlkChain], overrides: Optional[dict] = None,
             if main.gnis_name and main.gnis_name != c.gnis_name:
                 # carry the main channel's gnis so the registry can group the whole river by it
                 tuples.append(NameTuple(main.gnis_name, NameSource.side_channel, gnis_id=main.gnis_id))
-
-        # TODO upstream-inherited: for still-unnamed chains, walk topology.up_adj to the nearest
-        # named segment (needs the graph; run after topology in build.py).
 
         out.append(replace(c, name_tuples=_sorted_unique(tuples)))
     return out

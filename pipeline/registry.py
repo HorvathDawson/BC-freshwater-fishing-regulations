@@ -86,19 +86,24 @@ def build_registry(graph: StreamGraph) -> dict[str, RegistryItem]:
         kind = "lake" if nodes[0].kind == NodeKind.lake else "stream"
         names = [n.display_name for n in nodes if n.display_name]
         name = max(names, key=len) if names else ""          # display_names agree within an item; longest wins ties
+        item_slug = _slug(name) or iid.replace(":", "_")
         variants = tuple(sorted({t.name for n in nodes for t in n.name_tuples if t.name}))
         bmap: dict[str, RegistryBoundary] = {}                # keyed by readable id; disambiguate collisions
+        seen_refs: set[str] = set()
         for n in nodes:
             for end in (n.lower_bound, n.upper_bound):
                 rb = _boundary(end)
-                if rb is None:
+                if rb is None or rb.ref in seen_refs:
                     continue
-                if rb.ref not in {b.ref for b in bmap.values()}:
-                    rid = rb.id
-                    i = 2
-                    while rid in bmap:
-                        rid = f"{rb.id}_{i}"; i += 1
-                    bmap[rid] = RegistryBoundary(id=rid, label=rb.label, kind=rb.kind, ref=rb.ref, wbk=rb.wbk)
+                seen_refs.add(rb.ref)
+                # curated split ids are already globally unique + encode context; auto boundaries
+                # (lake/outlet/headwaters) are item-prefixed so a shared lake stays unique per river.
+                base = rb.id if rb.ref.startswith("split:") else f"{item_slug}__{rb.id}"
+                rid = base
+                i = 2
+                while rid in bmap:
+                    rid = f"{base}_{i}"; i += 1
+                bmap[rid] = RegistryBoundary(id=rid, label=rb.label, kind=rb.kind, ref=rb.ref, wbk=rb.wbk)
         registry[iid] = RegistryItem(
             id=iid, name=name, kind=kind, variants=variants,
             section_ids=tuple(n.node_id for n in nodes),

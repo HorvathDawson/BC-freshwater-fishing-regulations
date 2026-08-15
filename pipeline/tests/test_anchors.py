@@ -203,6 +203,18 @@ def test_area_boundary_weaving_stream_still_two_cuts():
     assert len(pts) == 2                                           # first enter + last exit, oscillation absorbed
 
 
+def test_area_boundary_source_inside_one_cut():
+    """A stream that enters the park and runs to its headwater INSIDE gets only the ENTER cut
+    (no last-exit, because it never leaves) — the case that breaks a naive 'always two cuts'."""
+    coords = [(0, 0), (100, 0), (150, 0), (180, 0)]               # park x100..200; source x180 is inside
+    chains = build_blk_chains([_fid("X1", "X", "100", coords, 0, 200, gnis_name="X River")], {})
+    park = box(100, -50, 200, 50)
+    sd = SplitDef(id="pk", blk="X",
+                  anchor=SplitAnchor(type=AnchorType.area_boundary, area_layer="parks_bc", area_name="PARK"))
+    pts = resolve_split_defs([sd], chains, area_polys={"PARK": park})
+    assert sorted(round(p.route_measure) for p in pts) == [100]   # enter only; headwater stays inside
+
+
 @_needs_data
 def test_real_splits_json_resolves_on_bella_coola_extract():
     """The authored splits.json resolves on real Bella Coola-system data:
