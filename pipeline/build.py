@@ -266,6 +266,29 @@ def main() -> None:
               f"boundaries) -> {len(graph.nodes)} nodes")
         _tick("curated splits")
 
+    # Blanket area closures (area_splits.json) — cut ALL streams crossing each admin polygon
+    # (national parks, ecological reserves, the Chilkoot trail) at first-enter/last-exit + flag
+    # inside reaches. Runs BEFORE name variants (so cut pieces get named); a no-op where the bbox
+    # hits no such area.
+    from pipeline.splits.area_splits import load_area_split_defs, load_area_polys, resolve_area_splits
+    area_defs = load_area_split_defs()
+    if area_defs:
+        from pipeline.splits.border import mark_inside_area
+        from pipeline.splits.sectionizer import split_graph_at
+        n_area_cuts = 0
+        for ad in area_defs:
+            polys = load_area_polys(fwa, ad, bbox=bbox)
+            if not polys:
+                continue
+            apts = resolve_area_splits(polys, chains)
+            split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
+            for name, poly in polys.items():
+                mark_inside_area(graph, geoms, poly, name)
+            n_area_cuts += len(apts)
+            print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
+        if n_area_cuts:
+            _tick("blanket area splits")
+
     # Attach compiled name variations (docs/13) to nodes — AFTER splits so reach targets hit pieces.
     from pipeline.graph.names import apply_name_variants, load_name_variants
     nv_path = args.name_variants or (Path(__file__).resolve().parent / "name_variants.json")

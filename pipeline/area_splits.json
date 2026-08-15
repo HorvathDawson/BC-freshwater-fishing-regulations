@@ -1,0 +1,26 @@
+{
+  "_about": "Blanket area closures — cut ALL streams that cross the polygon (first-enter/last-exit) and flag the inside reaches (in_areas). Unlike splits.json area_boundary anchors (scoped to one system), these apply to every stream. Consumed by the graph build; a `within(area)` reg binds to the inside sections at match time. Selector: layer + name_field + either which:'all' or a SQL `where`.",
+  "areas": [
+    {
+      "id": "national_parks",
+      "layer": "parks_nat",
+      "name_field": "ENGLISH_NAME",
+      "which": "all",
+      "note": "All national parks (102) — closures apply to all waters within."
+    },
+    {
+      "id": "ecological_reserves",
+      "layer": "parks_bc",
+      "name_field": "PROTECTED_LANDS_NAME",
+      "where": "PROTECTED_LANDS_DESIGNATION = 'ECOLOGICAL RESERVE'",
+      "note": "All ecological reserves (a designation within parks_bc)."
+    },
+    {
+      "id": "chilkoot_trail",
+      "layer": "historic_sites",
+      "name_field": "COMMON_SITE_NAME",
+      "where": "SITE_ID = '4af28ce2-bda0-47bf-8e64-664b1be54922'",
+      "note": "Chilkoot Trail National Historic Site (Region 6, MU 6-28). Single feature."
+    }
+  ]
+}
