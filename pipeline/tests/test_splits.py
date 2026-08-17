@@ -1,5 +1,6 @@
 """Split loading/validation tests (04). Anchor resolution is a later (sections-step) test."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -7,12 +8,29 @@ import pytest
 from pipeline.models import SplitDef
 from pipeline.splits.splits import load_split_defs
 
-_EXAMPLE = Path(__file__).resolve().parents[1] / "splits.example.json"
+# The anchor/target forms the loader must accept, inline (was splits.example.json — removed).
+_SAMPLE_SPLITS = {
+    "splits": [
+        {"id": "adams_lake", "blk": "356362743",
+         "anchor": {"type": "lake", "wbk": "329480864"}},
+        {"id": "fraser_section_boundary_example", "wsc": "100-190442", "proximity_m": 1200,
+         "anchor": {"type": "point", "coord": [-121.5, 49.1], "is_lonlat": True}},
+        {"id": "example_point_on_blk", "blk": "356362743",
+         "anchor": {"type": "point", "coord": [-119.615, 51.010], "is_lonlat": True},
+         "label": "Squilax bridge"},
+        {"id": "fraser_mu_2_3", "blk": "356362743",
+         "anchor": {"type": "mu_boundary", "mu_a": "2-3", "mu_b": "3-12"}},
+        {"id": "example_confluence", "blk": "356362743",
+         "anchor": {"type": "confluence", "tributary_blk": "356358584"}},
+    ]
+}
 
 
-def test_example_file_loads():
-    defs = load_split_defs(str(_EXAMPLE))
-    assert len(defs) == 6
+def test_sample_splits_load(tmp_path):
+    p = tmp_path / "splits.json"
+    p.write_text(json.dumps(_SAMPLE_SPLITS))
+    defs = load_split_defs(str(p))
+    assert len(defs) == 5
     by_id = {d.id: d for d in defs}
     assert by_id["adams_lake"].anchor.type.value == "lake"
     # wsc-target (braided, proximity-limited) form present

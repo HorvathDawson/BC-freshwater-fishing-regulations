@@ -4,7 +4,9 @@ Emits TAGGED NameTuples (never a scalar). Sources, priority high->low: override,
 side-channel. Side-channel uses the shared-WSC main-channel BLK (the Seabird channel gets
 (Fraser River, side-channel) alongside its own override name), carrying the main channel's gnis.
 
-Reuses the curated pipeline/matching/feature_display_names.json override table.
+Manual display-name / variant overrides are NOT applied here — they live in the compiled
+``name_variants.json`` and are applied to the GRAPH (reach-aware) by ``apply_name_variants`` below.
+``resolve_names`` sets only the gazette + side-channel tuples.
 """
 
 from __future__ import annotations
@@ -21,30 +23,6 @@ from pipeline.models import BlkChain, NameSource, NameTuple, NodeKind, StreamGra
 # never drift out of sync with the enum (a missing source used to KeyError in _sorted_unique).
 _PRIORITY = {s: i for i, s in enumerate(NameSource)}
 
-_DEFAULT_OVERRIDES = Path(__file__).resolve().parents[1] / "feature_display_names.json"
-
-
-def load_display_name_overrides(path: Optional[Path] = None) -> dict[str, dict[str, tuple]]:
-    """Load feature_display_names.json into {'blk'|'fid': {key: (display_name, (variants...))}}."""
-    path = Path(path) if path else _DEFAULT_OVERRIDES
-    out: dict[str, dict[str, tuple]] = {"blk": {}, "fid": {}}
-    if not path.exists():
-        return out
-    entries = json.loads(path.read_text())
-    if isinstance(entries, dict):
-        entries = entries.get("entries", []) or list(entries.values())
-    for e in entries:
-        if not isinstance(e, dict):
-            continue
-        name = e.get("display_name", "") or ""
-        variants = tuple(e.get("name_variants", []) or [])
-        payload = (name, variants)
-        for blk in e.get("blue_line_keys", []) or []:
-            out["blk"][str(blk)] = payload
-        for fid in e.get("linear_feature_ids", []) or []:
-            out["fid"][str(fid)] = payload
-    return out
-
 
 def _sorted_unique(tuples: list[NameTuple]) -> tuple[NameTuple, ...]:
     seen: set[tuple[str, str]] = set()
@@ -57,12 +35,9 @@ def _sorted_unique(tuples: list[NameTuple]) -> tuple[NameTuple, ...]:
     return tuple(ordered)
 
 
-def resolve_names(chains: list[BlkChain], overrides: Optional[dict] = None,
-                  overrides_path: Optional[Path] = None) -> list[BlkChain]:
-    """Return chains with ``name_tuples`` populated + priority-ordered."""
-    if overrides is None:
-        overrides = load_display_name_overrides(overrides_path)
-
+def resolve_names(chains: list[BlkChain]) -> list[BlkChain]:
+    """Return chains with ``name_tuples`` populated + priority-ordered (gazette + side-channel;
+    manual overrides are applied later on the graph by ``apply_name_variants``)."""
     # Index named chains by WSC to find same-WSC main channels for side-channel inheritance.
     by_wsc: dict[str, list[BlkChain]] = {}
     for c in chains:
@@ -80,12 +55,15 @@ def resolve_names(chains: list[BlkChain], overrides: Optional[dict] = None,
         # which runs on the GRAPH (reach-aware, so 'Two Forty-One Creek above Greyback Lake' hits
         # only the upper piece, not the whole shared BLK). resolve_names sets gazette + side-channel.
 
-        # side-channel — the highest-magnitude DIFFERENT named BLK sharing this WSC
+        # side-channel — the highest-magnitude DIFFERENT named BLK sharing this WSC. A side channel
+        # is by definition SMALLER than its mainstem, so only inherit when that main is genuinely
+        # bigger than c (`_mag(main) > _mag(c)`). Without this the mainstem grabbed its biggest
+        # sibling's name too (Stave River wrongly got 'Blind Slough'), making both names ambiguous.
         siblings = [s for s in by_wsc.get(c.fwa_watershed_code, [])
                     if s.blk != c.blk and s.gnis_name]
         if siblings:
             main = max(siblings, key=_mag)
-            if main.gnis_name and main.gnis_name != c.gnis_name:
+            if main.gnis_name and main.gnis_name != c.gnis_name and _mag(main) > _mag(c):
                 # carry the main channel's gnis so the registry can group the whole river by it
                 tuples.append(NameTuple(main.gnis_name, NameSource.side_channel, gnis_id=main.gnis_id))
 
@@ -137,11 +115,45 @@ def _node_matches(node, target: dict, reach: Optional[dict]) -> bool:
             return True
         if node.kind == NodeKind.stream and any(w in node.member_wbks for w in wbks):
             return True
-    if gnis and node.gnis_id and node.gnis_id in gnis:
-        return True
+    if gnis and ((node.gnis_id and node.gnis_id in gnis)
+                 or any(t.gnis_id and t.gnis_id in gnis for t in node.name_tuples)):
+        return True  # lakes carry several gnis (GNIS_ID_1/2/3) on their tuples, not just the scalar
     if wscs and node.wsc and node.wsc in wscs:
         return True
     return False
+
+
+def _build_target_index(graph: StreamGraph) -> dict[str, dict]:
+    """One pass over the graph -> id -> [node_id] indexes (blk / wbk incl. member_wbks / gnis incl.
+    name-tuple gnis / wsc), so an entry hits only the handful of nodes its target names instead of a
+    full 2.1M-node scan per entry (the old O(entries x nodes) = the ~58-min registry-stage cost)."""
+    from collections import defaultdict
+    idx = {"blk": defaultdict(list), "wbk": defaultdict(list),
+           "gnis": defaultdict(list), "wsc": defaultdict(list)}
+    for nid, node in graph.nodes.items():
+        if node.kind == NodeKind.stream:
+            if node.blk:
+                idx["blk"][node.blk].append(nid)
+            for w in node.member_wbks:                # wetland/river overlay rides on the stream piece
+                idx["wbk"][w].append(nid)
+        elif node.kind == NodeKind.lake and node.wbk:
+            idx["wbk"][node.wbk].append(nid)
+        for g in {node.gnis_id, *(t.gnis_id for t in node.name_tuples)}:
+            if g:
+                idx["gnis"][g].append(nid)
+        if node.wsc:
+            idx["wsc"][node.wsc].append(nid)
+    return idx
+
+
+def _candidate_nids(idx: dict, target: dict) -> set[str]:
+    """Superset of node ids a target could name, from the index (then confirmed by _node_matches)."""
+    out: set[str] = set()
+    for key, (sing, plur) in (("blk", ("blk", "blks")), ("wbk", ("wbk", "wbks")),
+                              ("gnis", ("gnis_id", "gnis_ids")), ("wsc", ("wsc", "wscs"))):
+        for v in _as_list(target, sing, plur):
+            out.update(idx[key].get(str(v), ()))
+    return out
 
 
 def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
@@ -150,10 +162,15 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
     even if its source ranks below gazette (e.g. the gauge-sourced 'Two Forty-One Creek' beats the
     inherited 'Penticton Creek'); otherwise the highest-priority tuple displays. Shouty
     stocking/gauge names are title-cased. Runs AFTER splits so reach targets hit pieces. Returns
-    the number of (entry, node) applications."""
+    the number of (entry, node) applications.
+
+    Uses a one-time target index (`_build_target_index`) so each entry visits only its candidate
+    nodes — O(entries + hits) instead of O(entries x nodes)."""
+    idx = _build_target_index(graph)
     authored: dict[str, str] = {}     # node_id -> explicit display name (display: true)
     touched: set[str] = set()
     applied = 0
+    unaligned: list[str] = []         # reach variants painting a piece not cut at the reach bounds
     for entry in entries:
         target, reach = entry.get("target", {}), entry.get("reach")
         # if the variant is scoped to a gnis, carry it so nodes it names group under that gnis
@@ -173,9 +190,15 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
                 disp = nm
         if not tuples:
             continue
-        for nid, node in graph.nodes.items():
-            if not _node_matches(node, target, reach):
+        for nid in _candidate_nids(idx, target):
+            node = graph.nodes[nid]
+            if not _node_matches(node, target, reach):   # confirm (reach window / member_wbks nuance)
                 continue
+            if reach and node.kind == NodeKind.stream:
+                lo, hi = reach.get("from_m", node.down_m), reach.get("to_m", node.up_m)
+                if node.down_m < lo - 1.0 or node.up_m > hi + 1.0:   # piece spills past the reach
+                    unaligned.append(f"'{tuples[0].name}' blk {node.blk} reach [{lo:.0f},{hi:.0f}] "
+                                     f"paints piece [{node.down_m:.0f},{node.up_m:.0f}] — add a split at the reach bound")
             graph.nodes[nid] = replace(node, name_tuples=_sorted_unique(list(node.name_tuples) + tuples))
             touched.add(nid)
             if disp:
@@ -190,4 +213,8 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
             top = node.name_tuples[0] if node.name_tuples else None
             display = _display_case(top.name) if top else node.display_name
         graph.nodes[nid] = replace(node, display_name=display)
+    if unaligned:
+        print(f"  [name_variants] WARNING: {len(unaligned)} reach variant(s) not aligned to a split:")
+        for w in unaligned[:15]:
+            print(f"    - {w}")
     return applied

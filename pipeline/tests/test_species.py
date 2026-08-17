@@ -1,0 +1,51 @@
+"""BC species reference table (pipeline/parsing/species.py), loaded from the authoritative CSV."""
+
+from pipeline.parsing.species import (
+    COMMON_NAME, GROUPS, KNOWN_SPECIES_CODES, SPECIES, expand_group,
+    normalize_species, resolve_species_phrase,
+)
+
+
+def test_authoritative_codes_loaded():
+    # straight from bc_species.csv — these are stable, official codes
+    assert SPECIES["RB"].common_name == "Rainbow Trout"
+    assert SPECIES["BT"].common_name == "Bull Trout"
+    assert SPECIES["ST"].common_name == "Steelhead"
+    assert len(KNOWN_SPECIES_CODES) > 150
+
+
+def test_group_membership_derived_from_genus():
+    # 'Char, General' (SLV) = genus Salvelinus -> the chars + bull/brook/lake trout + splake
+    chars = expand_group("SLV")
+    for c in ("AC", "BT", "DV", "EB", "LT", "SPK"):   # arctic char, bull, dolly, brook, lake, splake
+        assert c in chars
+    # a plain species expands to itself
+    assert expand_group("RB") == frozenset({"RB"})
+
+
+def test_salmon_override_excludes_trout():
+    # genus Oncorhynchus also covers RB/CT, so the salmon group is pinned to the 5 Pacific salmon
+    sa = expand_group("SA")
+    assert sa == {"CH", "CM", "CO", "PK", "SK"}
+    assert "RB" not in sa and "CT" not in sa
+
+
+def test_resolve_specific_and_group_and_collective():
+    assert resolve_species_phrase("Bull Trout") == ["BT"]
+    assert resolve_species_phrase("steelhead") == ["ST"]
+    assert resolve_species_phrase("char") == ["SLV"]                # a group code
+    assert resolve_species_phrase("trout") == ["RB", "CT", "WCT", "CCT", "GB", "GT"]  # collective
+    assert resolve_species_phrase("spacefish") == []               # unknown -> empty, no guess
+
+
+def test_normalize_unknown_returns_none():
+    assert normalize_species("dragonfish") is None
+    assert normalize_species("") is None
+    assert normalize_species("RB") == "RB"                          # already a code
+
+
+def test_groups_and_names_are_consistent():
+    # every group member is a real code (Rule.species validation would reject otherwise)
+    for members in GROUPS.values():
+        assert members <= KNOWN_SPECIES_CODES
+    assert set(COMMON_NAME) == set(KNOWN_SPECIES_CODES)

@@ -1,1 +1,1 @@
-"""pipeline.graph subpackage. See docs/DESIGN-regs-to-sections.md."""
+"""graph — stream-graph construction: blk-chains, nodes/edges, names, tributaries, cutting."""

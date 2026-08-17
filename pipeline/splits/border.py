@@ -29,34 +29,65 @@ from pipeline.models import AnchorType, BlkChain, NodeKind, SplitPoint, StreamGr
 
 
 def bc_outline(fwa):
-    """Union of ALL WMU polygons = an in-data BC land outline. Loaded whole (≈225 rows) on
-    purpose: a bbox-clipped union would expose the loaded set's cut edge as a fake "border",
-    so the outline must always be the true province-wide boundary. Returns a shapely
-    (Multi)Polygon, or None if no WMUs. (A dedicated provincial-boundary layer is a cleaner
-    future swap — replace this body without touching the split/flag logic.)"""
-    if "wmu" not in getattr(fwa, "layer_names", []):
-        return None
-    gdf = fwa.get_layer("wmu", columns=["WILDLIFE_MGMT_UNIT_ID"])
-    polys = [g for g in gdf.geometry if g is not None and not g.is_empty]
-    return unary_union(polys) if polys else None
+    """The BC land outline as a shapely (Multi)Polygon, or None if unavailable.
+
+    FAST PATH: the province never changes, so the outline is precomputed once and cached at
+    ``data/bc_boundary.geojson`` (see ``pipeline.splits.bc_boundary``). A cheap file read replaces
+    the ~225-WMU ``union_all`` that used to dominate the border stage.
+
+    FALLBACK (cache missing): union the WMU polygons on the fly via ``fast_wmu_union`` — this
+    simplifies each poly + micro-buffers BEFORE the union, so it's also fast (~seconds) and could run
+    every build; the cache is just an even-cheaper file read. Loaded whole (≈225 rows) on purpose: a
+    bbox-clipped union would expose the loaded set's cut edge as a fake "border" (``fast_wmu_union``
+    simplifies internally)."""
+    from pipeline.splits.bc_boundary import fast_wmu_union, load_cached_boundary
+
+    cached = load_cached_boundary(fwa.gpkg_path)
+    if cached is not None:
+        return cached
+    outline, _ = fast_wmu_union(fwa)
+    return outline
 
 
-def border_split_points(chains: list[BlkChain], outline) -> list[SplitPoint]:
-    """One `border` SplitPoint per crossing of each BLK with the outline boundary."""
+def border_split_points(chains: list[BlkChain], outline, prof=None) -> list[SplitPoint]:
+    """One `border` SplitPoint per crossing of each BLK with the outline boundary.
+
+    Province-scale fast path: only a chain that is NOT fully inside BC can cross the boundary, so a
+    single **vectorized, prepared** ``covered_by`` (shapely 2.x auto-prepares the scalar outline)
+    prunes the hundreds of thousands of fully-inland chains in one C-level call. Only the handful of
+    near-border candidates then pay the expensive per-geometry boundary intersection — turning a
+    province-wide O(N·boundary) sweep (the old ~27 min bottleneck) into O(candidates)."""
     if outline is None:
         return []
+    import numpy as np
+    import shapely
+    from pipeline.utils.profiling import Profiler
+    prof = prof or Profiler()
+
+    with prof.phase("  gather chain geometries"):
+        valid = [c for c in chains
+                 if getattr(c, "geometry", None) is not None and not c.geometry.is_empty]
+    if not valid:
+        return []
+    with prof.phase("  covered_by prefilter (vectorized)"):
+        arr = np.fromiter((c.geometry for c in valid), dtype=object, count=len(valid))
+        covered = shapely.covered_by(arr, outline)  # True = fully inside BC -> cannot cross the border
+
+    import time
     boundary = outline.boundary
     out: list[SplitPoint] = []
-    for c in chains:
-        g = getattr(c, "geometry", None)
-        if g is None or g.is_empty:
-            continue
+    _t = time.perf_counter()
+    for c, cov in zip(valid, covered):
+        if cov:
+            continue                               # fully inland: skip the intersection entirely
+        g = c.geometry
         crossings = _points(g.intersection(boundary))
         for i, p in enumerate(sorted(crossings, key=lambda p: g.project(p))):
             out.append(SplitPoint(
                 split_id=f"border:{c.blk}:{i}", blk=c.blk,
                 route_measure=c.mouth_measure + g.project(p), fid="",
                 label="BC boundary", anchor_type=AnchorType.border))
+    prof.add("  crossing intersection loop", time.perf_counter() - _t)
     return out
 
 
@@ -113,18 +144,62 @@ def mark_inside_area(graph: StreamGraph, geoms: dict, poly, area_label: str, blk
     return n
 
 
+def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict) -> int:
+    """Batch membership: flag ``in_areas`` for every stream piece whose midpoint falls inside each
+    polygon, using ONE STRtree over all node midpoints. For each polygon the tree bbox-prefilters to
+    the few midpoints near it, then a precise ``contains`` confirms — turning the old
+    O(polygons·nodes) province-wide sweep into O(polygons·log nodes + hits). Same midpoint-containment
+    semantics as ``mark_inside_area``, just vectorized. Returns the number of flags added."""
+    from shapely.strtree import STRtree
+
+    nids: list = []
+    mids: list = []
+    for nid, node in graph.nodes.items():
+        if node.kind != NodeKind.stream:
+            continue
+        mp = _midpoint(geoms.get(nid))
+        if mp is not None:
+            nids.append(nid)
+            mids.append(mp)
+    if not mids or not polys_by_name:
+        return 0
+    tree = STRtree(mids)
+    n = 0
+    for name, poly in polys_by_name.items():
+        if poly is None or poly.is_empty:
+            continue
+        for i in tree.query(poly, predicate="contains"):   # midpoints poly.contains() — bbox-prefiltered
+            nid = nids[i]
+            node = graph.nodes[nid]
+            if name not in node.in_areas:
+                graph.nodes[nid] = replace(node, in_areas=node.in_areas + (name,))
+                n += 1
+    return n
+
+
 def apply_border(fwa, graph: StreamGraph, geoms: dict, chains: list[BlkChain],
-                 fid_index: Optional[dict] = None) -> tuple[int, int]:
+                 fid_index: Optional[dict] = None, prof=None) -> tuple[int, int]:
     """Full border pass: outline -> split cross-border BLKs -> flag out-of-BC pieces.
     Returns (n_border_splits, n_pieces_flagged). Call BEFORE curated splits so their points can
     pick up the border boundaries. Meaningful on province-scale builds; on a small inland bbox
-    no BLK reaches the border so it is a no-op."""
+    no BLK reaches the border so it is a no-op.
+
+    ``prof`` (optional Profiler) attributes the ~28-min stage to outline load / split-point search /
+    graph cut / out-of-BC flag; pass one or set env ``PIPELINE_PROFILE=1``."""
     from pipeline.splits.sectionizer import split_graph_at
-    outline = bc_outline(fwa)
+    from pipeline.utils.profiling import Profiler
+    prof = prof or Profiler()
+
+    with prof.phase("bc_outline (load/union)"):
+        outline = bc_outline(fwa)
     if outline is None:
         return 0, 0
-    pts = border_split_points(chains, outline)
-    if pts:
-        split_graph_at(graph, geoms, pts, fid_index)
-    flagged = mark_out_of_bc(graph, geoms, outline, blks={p.blk for p in pts})
+    with prof.phase("border_split_points"):
+        pts = border_split_points(chains, outline, prof=prof)
+    with prof.phase("split_graph_at"):
+        if pts:
+            split_graph_at(graph, geoms, pts, fid_index)
+    with prof.phase("mark_out_of_bc"):
+        flagged = mark_out_of_bc(graph, geoms, outline, blks={p.blk for p in pts})
+    prof.report("border")
     return len(pts), flagged

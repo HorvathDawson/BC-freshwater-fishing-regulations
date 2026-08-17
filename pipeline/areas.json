@@ -21,6 +21,16 @@
       "name_field": "COMMON_SITE_NAME",
       "where": "SITE_ID = '4af28ce2-bda0-47bf-8e64-664b1be54922'",
       "note": "Chilkoot Trail National Historic Site (Region 6, MU 6-28). Single feature."
+    },
+    {
+      "id": "restricted_land_access",
+      "layer": "land_access",
+      "name_field": "name",
+      "id_field": "osm_id",
+      "per_feature": true,
+      "label_default": "Restricted-access land",
+      "where": "restriction_level = 'closed'",
+      "note": "OSM land the public cannot enter — access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers)."
     }
   ]
 }

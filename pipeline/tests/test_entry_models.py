@@ -4,7 +4,8 @@ import pytest
 from pydantic import ValidationError
 
 from pipeline.parsing.entry_models import (
-    Entry, EntryFile, Extent, Identity, Op, Rule, Tributaries, validate_entry_splits,
+    Entry, EntryFile, Extent, Identity, Op, Rule, Tributaries,
+    unused_splits, validate_entry_splits,
 )
 
 
@@ -15,6 +16,11 @@ def test_extent_arity():
     assert len(Extent(op=Op.UPSTREAM_OF, splits=["falls"]).splits) == 1
     assert len(Extent(op=Op.BETWEEN, splits=["a", "b"]).splits) == 2
     assert Extent(op=Op.WITHIN, area="GARIBALDI PARK").area == "GARIBALDI PARK"
+    assert Extent(op=Op.WITHIN, area="area:park:wells_gray", feature_types=["lake", "wetland"]).feature_types == ["lake", "wetland"]
+    with pytest.raises(ValidationError):
+        Extent(op=Op.WITHIN, area="x", feature_types=["fish"])       # invalid feature kind
+    with pytest.raises(ValidationError):
+        Extent(op=Op.WHOLE, feature_types=["lake"])                  # feature_types only for within
     for bad in (
         dict(op=Op.UPSTREAM_OF, splits=[]),          # needs 1
         dict(op=Op.UPSTREAM_OF, splits=["a", "b"]),  # too many
@@ -123,6 +129,55 @@ def test_validate_entry_splits():
     assert validate_entry_splits(e, {"hunlen_falls"}) == []
     errs = validate_entry_splits(e, {"some_other_split"})
     assert errs and "hunlen_falls" in errs[0]
+
+
+# --- display_location / unresolved_locators / species (parser failure surface) ---
+
+def test_display_location_not_verbatim_constrained():
+    # display_location is user-facing + curator-editable — free text, unlike location_text
+    r = _rule(display_location="Above the Talchako confluence", location_text="")
+    assert r.display_location == "Above the Talchako confluence"
+
+def test_display_location_kept_while_whole_reach():
+    # the curation escape hatch: readable label preserved, rule falls back to the whole stream
+    r = _rule(extents=[Extent(op=Op.WHOLE)], location_text="",
+              display_location="500 m below the falls (locator not found)")
+    assert r.extents[0].op == Op.WHOLE and r.display_location.startswith("500 m")
+
+def test_unresolved_locators_force_review():
+    # an unbound locator with needs_review=False is rejected — cannot hide as a confident parse
+    with pytest.raises(ValidationError):
+        _rule(extents=[Extent(op=Op.WHOLE)], location_text="",
+              unresolved_locators=["signs 500 m below the outlet"])
+    # allowed when routed to review
+    r = Rule(rule_id="e.r1", restriction_type="closure", details="No fishing",
+             rule_text="No fishing above the outlet.", extents=[], needs_review=True,
+             review_reason="outlet locator has no curated split",
+             unresolved_locators=["above the outlet"])
+    assert r.unresolved_locators == ["above the outlet"]
+
+def test_species_codes_validated():
+    r = _rule(species=["ST", "BT"])
+    assert r.species == ["ST", "BT"]
+    with pytest.raises(ValidationError):
+        _rule(species=["NOTAFISH"])
+
+def test_rule_dates_parse_to_windows():
+    from pipeline.parsing.dates import DateWindow
+    r = _rule(location_text="upstream of Hunlen Falls", dates=["Apr 1 - Jun 30"])
+    assert r.date_windows() == [DateWindow(4, 1, 6, 30)]
+
+def test_rule_rejects_hallucinated_date():
+    # date is a verbatim substring of rule_text but not a real calendar date -> rejected
+    with pytest.raises(ValidationError):
+        _rule(rule_text="No fishing from Jun 31 onward.", location_text="", dates=["Jun 31"],
+              extents=[Extent(op=Op.WHOLE)])
+
+
+def test_unused_splits_coverage_advisory():
+    e = _entry()   # rules reference only 'hunlen_falls'
+    assert unused_splits(e, {"hunlen_falls"}) == []
+    assert unused_splits(e, {"hunlen_falls", "goat_confluence"}) == ["goat_confluence"]
 
 
 def test_excludes_hand_curated_trib_carveout():

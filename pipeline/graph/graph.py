@@ -99,11 +99,21 @@ def _edge_types(frs: list[FidRow]) -> tuple[str, ...]:
     return tuple(sorted({r.edge_type for r in frs if r.edge_type}))
 
 
-def _name_variants(v) -> tuple[str, ...]:
-    """Normalize a lake_names value (a single name or a tuple of GNIS_NAME_1/2/3) to a tuple."""
+def _lake_name_pairs(v) -> tuple[tuple[str, str], ...]:
+    """Normalize a lake_names value to ``(name, gnis_id)`` pairs. Accepts a bare name (str), a tuple
+    of names (str), or a tuple of ``(name, gnis_id)`` pairs — so both the prod loader (pairs) and the
+    plain-string test fixtures work. A name with no id yields ``(name, "")``."""
     if not v:
         return ()
-    return (v,) if isinstance(v, str) else tuple(x for x in v if x)
+    if isinstance(v, str):
+        return ((v, ""),)
+    out: list[tuple[str, str]] = []
+    for x in v:
+        if isinstance(x, (tuple, list)) and len(x) == 2:
+            out.append((str(x[0]), str(x[1] or "")))
+        elif x:
+            out.append((str(x), ""))
+    return tuple(out)
 
 
 def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
@@ -150,9 +160,11 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
         nts: list[NameTuple] = []
         if lake_overrides.get(wbk):
             nts.append(NameTuple(lake_overrides[wbk], NameSource.override))
-        for nm in _name_variants(lake_names.get(wbk)):
-            nts.append(NameTuple(nm, NameSource.gazette))
+        pairs = _lake_name_pairs(lake_names.get(wbk))
+        for nm, gid in pairs:
+            nts.append(NameTuple(nm, NameSource.gazette, gnis_id=gid))
         name_tuples = tuple(nts)
+        lake_gnis = next((gid for _, gid in pairs if gid), "")   # primary gnis (like a stream node)
         # display = the lake's own top name; unnamed widenings stay "" (a threading river is not
         # a lake name — it lives in through_names). Boundary labels then fall back to "lake {wbk}"
         # (see _finalize_lake_bounds) so identifiers stay distinct + stable.
@@ -162,7 +174,7 @@ def build_stream_graph(chains: list[BlkChain], fid_rows: list[FidRow],
             order = _max_opt(order, r.stream_order)
             mag = _max_opt(mag, r.stream_magnitude)
         nodes[owner] = StreamNode(
-            node_id=owner, kind=NodeKind.lake, wbk=wbk, wsc=frs[0].wsc,
+            node_id=owner, kind=NodeKind.lake, wbk=wbk, wsc=frs[0].wsc, gnis_id=lake_gnis,
             display_name=display, name_tuples=name_tuples, through_names=through,
             stream_order=order, stream_magnitude=mag,
             member_fids=tuple(r.fid for r in frs), edge_types=_edge_types(frs),

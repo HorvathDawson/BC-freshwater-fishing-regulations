@@ -1,4 +1,4 @@
-"""Blanket area closures (pipeline/area_splits.json) — cut ALL streams that cross an admin polygon
+"""Blanket area closures (pipeline/areas.json) — cut ALL streams that cross an admin polygon
 at first-enter/last-exit, then flag the inside reaches (in_areas). Unlike splits.json area_boundary
 anchors (scoped to ONE system via applies_to), these apply to every stream in the polygon.
 
@@ -20,15 +20,24 @@ _GPKG = str(ROOT / "data/bc_fisheries_data.gpkg")
 
 
 def load_area_split_defs(path: str | None = None) -> list[dict]:
-    p = Path(path) if path else ROOT / "pipeline/area_splits.json"
+    p = Path(path) if path else ROOT / "pipeline/areas.json"
     if not p.exists():
         return []
     return json.loads(p.read_text()).get("areas", [])
 
 
 def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
-    """{name -> (Multi)Polygon} for one area def, keyed by its name_field. `where` filters the layer
-    (e.g. ecological reserves within parks_bc); absent `where` = the whole layer (which:'all')."""
+    """{key -> (Multi)Polygon} for one area def. `where` filters the layer (e.g. ecological reserves
+    within parks_bc); absent `where` = the whole layer.
+
+    Two modes:
+      * Named-area (default): union every row sharing a ``name_field`` value into one polygon, keyed
+        by that name — one logical area, possibly multipart (parks, ecological reserves, historic sites).
+      * Per-feature (``per_feature: true``): every row is its OWN polygon, keyed by a unique readable
+        key ``"{name or label_default} [{id_field}]"``. Used for land_access, where each parcel is an
+        independent closure — unioning the (mostly nameless) parcels by name would collapse thousands
+        of unrelated province-wide slivers into one polygon and wreck the first-enter/last-exit cutter.
+    """
     import geopandas as gpd
 
     kw: dict = {"engine": "pyogrio"}
@@ -41,6 +50,19 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     out: dict = {}
     if g.empty:
         return out
+
+    if area_def.get("per_feature"):
+        idf = area_def.get("id_field", "")
+        default = area_def.get("label_default", "Restricted area")
+        for i, row in g.reset_index(drop=True).iterrows():
+            geom = row.geometry
+            if geom is None or geom.is_empty:
+                continue
+            name = str(row.get(nf) or "").strip() or default
+            fid = str(row.get(idf) or i) if idf else str(i)
+            out[f"{name} [{fid}]"] = geom     # id suffix keeps nameless parcels distinct
+        return out
+
     for name, sub in g.groupby(nf):
         geom = sub.geometry.union_all()
         if geom is not None and not geom.is_empty:

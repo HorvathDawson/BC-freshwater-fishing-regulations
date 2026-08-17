@@ -38,8 +38,10 @@ def _rebuild_adj(edges):
     return dict(up), dict(down)
 
 
-def _find_piece(graph: StreamGraph, blk: str, m: float) -> Optional[str]:
-    for nid, n in graph.nodes.items():
+def _find_piece(graph: StreamGraph, blk: str, m: float, by_blk: Optional[dict] = None) -> Optional[str]:
+    nids = by_blk.get(blk, ()) if by_blk is not None else graph.nodes
+    for nid in nids:
+        n = graph.nodes[nid]
         if n.kind == NodeKind.stream and n.blk == blk and n.down_m < m < n.up_m:
             return nid
     return None
@@ -64,24 +66,29 @@ def _repartition(member_fids, fid_index, lo, hi):
     return order, mag, tuple(kept)
 
 
-def _blk_extent(graph, blk):
-    ds = [n.down_m for n in graph.nodes.values() if n.kind == NodeKind.stream and n.blk == blk]
-    us = [n.up_m for n in graph.nodes.values() if n.kind == NodeKind.stream and n.blk == blk]
+def _blk_extent(graph, blk, by_blk=None):
+    nids = by_blk.get(blk, ()) if by_blk is not None else graph.nodes
+    ds = [graph.nodes[nid].down_m for nid in nids
+          if graph.nodes[nid].kind == NodeKind.stream and graph.nodes[nid].blk == blk]
+    us = [graph.nodes[nid].up_m for nid in nids
+          if graph.nodes[nid].kind == NodeKind.stream and graph.nodes[nid].blk == blk]
     return (min(ds), max(us)) if ds else (None, None)
 
 
-def _pickup(graph, blk, sp) -> bool:
+def _pickup(graph, blk, sp, by_blk=None) -> bool:
     """Proximity pickup (docs/04): if an existing INTERIOR boundary on ``blk`` (a lake edge, a
     border split, or an earlier curated cut) sits within ``sp.proximity_m`` of this split's
     measure, RELABEL it with this split instead of cutting a near-duplicate. Returns True if it
     picked up an existing boundary (so the caller skips the cut). Natural mouth/source ends are
     excluded — a pickup only ever reuses a real interior boundary."""
-    lo_ext, hi_ext = _blk_extent(graph, blk)
+    lo_ext, hi_ext = _blk_extent(graph, blk, by_blk)
     if lo_ext is None:
         return False
     M = sp.route_measure
+    blk_nids = list(by_blk.get(blk, ())) if by_blk is not None else list(graph.nodes)
     best_m, best_d = None, (sp.proximity_m or 100.0)
-    for n in graph.nodes.values():
+    for nid in blk_nids:
+        n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
             continue
         for m in (n.down_m, n.up_m):
@@ -95,7 +102,8 @@ def _pickup(graph, blk, sp) -> bool:
     bnd = SectionBoundary(boundary_id=f"split:{sp.split_id}",
                           kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
                           route_measure=best_m, label=(sp.label or sp.split_id))
-    for nid, n in list(graph.nodes.items()):
+    for nid in blk_nids:
+        n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
             continue
         if abs(n.up_m - best_m) < 1e-6:
@@ -105,9 +113,9 @@ def _pickup(graph, blk, sp) -> bool:
     return True
 
 
-def _split_one(graph, geoms, blk, sp, fid_index) -> bool:
+def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None) -> bool:
     M = sp.route_measure
-    pid = _find_piece(graph, blk, M)
+    pid = _find_piece(graph, blk, M, by_blk)
     if pid is None:
         return False                          # measure at a boundary / in a lake / off-blk
     hi_id = f"{blk}:{int(M)}"
@@ -139,10 +147,25 @@ def _split_one(graph, geoms, blk, sp, fid_index) -> bool:
                                  stream_order=hi_ord if fid_index else P.stream_order,
                                  stream_magnitude=hi_mag if fid_index else P.stream_magnitude,
                                  member_fids=hi_fids)
+    if by_blk is not None:
+        by_blk.setdefault(blk, []).append(hi_id)          # keep the blk index current for later cuts
 
-    for i, e in enumerate(graph.edges):
-        if e.to_node == pid and e.at_measure >= M:
-            graph.edges[i] = replace(e, to_node=hi_id)   # tributary above the cut moves up
+    # Tributaries joining ABOVE the cut move to the upper piece. With an edge index we touch only the
+    # edges INTO pid, not all ~2.15M edges (the border stage's O(splits x edges) killer).
+    if edges_by_to is not None:
+        into_pid = edges_by_to.get(pid, [])
+        moved = [i for i in into_pid if graph.edges[i].at_measure >= M]
+        for i in moved:
+            graph.edges[i] = replace(graph.edges[i], to_node=hi_id)
+        if moved:
+            ms = set(moved)
+            edges_by_to[pid] = [i for i in into_pid if i not in ms]
+            edges_by_to.setdefault(hi_id, []).extend(moved)
+        edges_by_to.setdefault(pid, []).append(len(graph.edges))   # the continuation edge (to_node=pid)
+    else:
+        for i, e in enumerate(graph.edges):
+            if e.to_node == pid and e.at_measure >= M:
+                graph.edges[i] = replace(e, to_node=hi_id)   # tributary above the cut moves up
     graph.edges.append(FlowEdge(from_node=hi_id, to_node=pid, at_measure=M,
                                 x=cx, y=cy, kind="continuation"))
     return True
@@ -163,14 +186,25 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
     record the gpkg ``split_points`` layer + ``splits.resolved.json`` consume.
     """
     from dataclasses import replace as _replace
-    by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
+    # Indexes built ONCE (maintained incrementally by _split_one): node ids per blk, and edge ids per
+    # to_node. They turn each split's piece-find + tributary-reattach from O(all nodes)+O(all edges)
+    # into O(local) — the fix for the border stage's ~1600s split cost.
+    node_by_blk: dict[str, list[str]] = defaultdict(list)
+    for nid, n in graph.nodes.items():
+        if n.kind == NodeKind.stream and n.blk:
+            node_by_blk[n.blk].append(nid)
+    edges_by_to: dict[str, list[int]] = defaultdict(list)
+    for i, e in enumerate(graph.edges):
+        edges_by_to[e.to_node].append(i)
+
+    sp_by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
     for sp in split_points:
-        by_blk[sp.blk].append(sp)
-    for blk, sps in by_blk.items():
+        sp_by_blk[sp.blk].append(sp)
+    for blk, sps in sp_by_blk.items():
         for sp in sorted(sps, key=lambda s: s.route_measure):
-            picked = _pickup(graph, blk, sp) if proximity_pickup else False
+            picked = _pickup(graph, blk, sp, node_by_blk) if proximity_pickup else False
             if not picked:
-                _split_one(graph, geoms, blk, sp, fid_index)
+                _split_one(graph, geoms, blk, sp, fid_index, node_by_blk, edges_by_to)
             if applied is not None:
                 applied.append(_replace(sp, picked_up=picked))
     graph.up_adj, graph.down_adj = _rebuild_adj(graph.edges)

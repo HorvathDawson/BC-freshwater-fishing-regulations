@@ -1,0 +1,3107 @@
+[
+ {
+  "target": {
+   "wbks": [
+    "329101355"
+   ]
+  },
+  "item": "wbk:329101355",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "PROVOST DAM",
+    "source": "override",
+    "note": "Unnamed lake/reservoir in FWA. Federal Fisheries Act Schedule: https://laws-lois.justice.gc.ca/eng/regulations/SOR-2008-120/section-sched743254-20220221.html",
+    "already_variant": true,
+    "verbatim": "PROVOST DAM"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329504349"
+   ]
+  },
+  "item": "wbk:329504349",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "PETE'S POND Unnamed lake at the head of San Juan River",
+    "source": "override",
+    "note": "Unnamed lake at the head of San Juan River. BC Lakes Database survey_id 1155: 'A RECONNAISSANCE SURVEY OF PETE'S POND'. Regulation MU 1-3.",
+    "already_variant": true,
+    "verbatim": "\"PETE'S POND\" Unnamed lake at the head of San Juan River"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500453"
+   ]
+  },
+  "item": "wbk:329500453",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE A - MAP A",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"A\" - MAP A (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500505"
+   ]
+  },
+  "item": "wbk:329500505",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE B - MAP A",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"B\" - MAP A (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500435"
+   ]
+  },
+  "item": "wbk:329500435",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE C - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"C\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500416"
+   ]
+  },
+  "item": "wbk:329500416",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE D - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"D\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500498"
+   ]
+  },
+  "item": "wbk:329500498",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE E - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"E\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500447"
+   ]
+  },
+  "item": "wbk:329500447",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE F - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"F\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500561"
+   ]
+  },
+  "item": "wbk:329500561",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE G - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"G\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328988117"
+   ]
+  },
+  "item": "wbk:328988117",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE H - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10. Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"H\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500475"
+   ]
+  },
+  "item": "wbk:329500475",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE I - MAP B",
+    "source": "override",
+    "note": "Unnamed lake in MU 1-10 (\"Elmer Lake\" on Google Maps). Location found from map in regulations.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE \"I\" - MAP B (below)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329095512"
+   ]
+  },
+  "item": "wbk:329095512",
+  "fwa_name": [
+   "Main Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "MINE LAKE",
+    "source": "override",
+    "note": "Lake in MU 1-15. Also labelled as 'Main Lake' in gazette (https://www.canoevancouverisland.com/canoe-kayak-vancouver-island-directory/main-lake-canoe-chain-quadra-island/). Location found from map.",
+    "already_variant": true,
+    "verbatim": "MINE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "26752"
+   ]
+  },
+  "item": "wbk:329016206",
+  "fwa_name": [
+   "Toquaht Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "TOQUART LAKE",
+    "source": "override",
+    "note": "GNIS name: Toquaht Lake. Spelling mismatch in synopsis.",
+    "already_variant": true,
+    "verbatim": "TOQUART LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "2915"
+   ]
+  },
+  "item": "gnis:2915",
+  "fwa_name": [
+   "Toquaht River"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "TOQUART RIVER",
+    "source": "override",
+    "note": "GNIS name: Toquaht River. Spelling mismatch in synopsis.",
+    "already_variant": true,
+    "verbatim": "TOQUART RIVER"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "12098"
+   ]
+  },
+  "item": "wbk:329016202",
+  "fwa_name": [
+   "Makii Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "MAGGIE LAKE",
+    "source": "override",
+    "note": "GNIS name: Makii Lake. Renamed in gazette (https://apps.gov.bc.ca/pub/bcgnws/names/62541.html).",
+    "already_variant": true,
+    "verbatim": "MAGGIE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "30809"
+   ]
+  },
+  "item": "gnis:30809",
+  "fwa_name": [
+   "Mahatta Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "MAHATTA RIVER",
+    "source": "override",
+    "note": "GNIS name: Mahatta Creek. Gazetteer lists as creek.",
+    "already_variant": true,
+    "verbatim": "MAHATTA RIVER"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "27804"
+   ]
+  },
+  "item": "gnis:27804",
+  "fwa_name": [
+   "Qualicum River"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "BIG QUALICUM RIVER",
+    "source": "override",
+    "note": "GNIS name: Qualicum River. Duplicate entry with 'QUALICUM RIVER' in same region.",
+    "already_variant": true,
+    "verbatim": "\"BIG QUALICUM\" RIVER"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "15120"
+   ]
+  },
+  "item": "wbk:328996527",
+  "fwa_name": [
+   "Lake Maxwell"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "MAXWELL LAKE",
+    "source": "override",
+    "note": "GNIS name: Lake Maxwell. Name order differs in gazetteer.",
+    "already_variant": true,
+    "verbatim": "\"MAXWELL LAKE\" (Lake Maxwell)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "15506"
+   ]
+  },
+  "item": "wbk:329676342",
+  "fwa_name": [
+   "Lake Stowell"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "STOWELL LAKE",
+    "source": "override",
+    "note": "GNIS name: Lake Stowell. Name order differs in gazetteer.",
+    "already_variant": true,
+    "verbatim": "\"STOWELL LAKE\" (Lake Stowell)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "26096"
+   ]
+  },
+  "item": "wbk:328996530",
+  "fwa_name": [
+   "Lake Weston"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "WESTON LAKE",
+    "source": "override",
+    "note": "GNIS name: Lake Weston. Name order differs in gazetteer.",
+    "already_variant": true,
+    "verbatim": "\"WESTON LAKE\""
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "37388"
+   ]
+  },
+  "item": "wbk:329532512",
+  "fwa_name": [
+   "Lake Lucille"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "LUCILLE LAKE",
+    "source": "override",
+    "note": "FWA has MU 2-6, regulation has MU 2-9 (boundary issue); name order: 'lake lucille' in gazetteer",
+    "already_variant": true,
+    "verbatim": "LUCILLE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "1860"
+   ]
+  },
+  "item": "gnis:1860",
+  "fwa_name": [
+   "Marshall Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "LONZO CREEK",
+    "source": "override",
+    "note": "FWA name is Marshall Creek (GNIS 1860) in Region 2 MU 2-4. Lonzo is alternate name.",
+    "already_variant": true,
+    "verbatim": "LONZO (\"Marshall\") CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "100-025956-057184"
+   ]
+  },
+  "item": "gnis:9630",
+  "fwa_name": [
+   "Alouette River"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SOUTH ALOUETTE RIVER",
+    "source": "override",
+    "note": "South Alouette River. Regulation MU 2-8.",
+    "already_variant": true,
+    "verbatim": "SOUTH ALOUETTE RIVER"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329291857"
+   ]
+  },
+  "item": null,
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MINNEKHADA MARSH",
+    "source": "override",
+    "note": "Wetland in Minnekhada Regional Park. BC Lakes Database surveys: 'Minnekhada Regional Park Inventory - 2017; SU17-270318' and 'Minnekhada Regional Park Invasives - 2016; SU16-235849'. Regulation MU 2-8.",
+    "already_variant": false,
+    "verbatim": "MINNEKHADA MARSH"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329522925"
+   ]
+  },
+  "item": "wbk:329522925",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CEDAR LAKE",
+    "source": "override",
+    "note": "Lake on boundary with MU 2-2. FWA has MU 2-17, regulation has MU 2-2 (boundary issue). Location found from map.",
+    "already_variant": true,
+    "verbatim": "CEDAR LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329197919"
+   ]
+  },
+  "item": "wbk:329197919",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CAP SHEAF LAKES",
+    "source": "override",
+    "note": "Lake in MU 2-16. Location found from map (https://www.alltrails.com/explore/recording/afternoon-hike-at-placer-mountain-0d770c4?p=-1&sh=li9ufv).",
+    "already_variant": true,
+    "verbatim": "CAP SHEAF LAKES"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329177896"
+   ]
+  },
+  "item": null,
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CHEAM LAKE",
+    "source": "override",
+    "note": "Wetland in MU 2-3. Polygon found in FWA wetlands layer. Location found from map.",
+    "already_variant": false,
+    "verbatim": "CHEAM LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "360887617"
+   ]
+  },
+  "item": "wbk:360887617",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "GREEN TIMBERS LAKE",
+    "source": "override",
+    "note": "Lake in MU 2-4. Polygon found in FWA manmade waterbodies layer. Location found from map.",
+    "already_variant": true,
+    "verbatim": "GREEN TIMBERS LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329292590"
+   ]
+  },
+  "item": null,
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "JERRY SULINA PARK POND",
+    "source": "override",
+    "note": "Unnamed pond in MU 2-8. Location found from map.",
+    "already_variant": false,
+    "verbatim": "JERRY SULINA PARK POND"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329292212"
+   ]
+  },
+  "item": "wbk:329292212",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MACLEAN PONDS",
+    "source": "override",
+    "note": "Unnamed in FWA lakes layer. ID 070111626. Location found from map.",
+    "already_variant": true,
+    "verbatim": "MACLEAN PONDS"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "1757"
+   ]
+  },
+  "item": "wbk:329177898",
+  "fwa_name": [
+   "Lake Errock"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ERROCK LAKE",
+    "source": "override",
+    "note": "GNIS name: Lake Errock. Name order differs in gazetteer.",
+    "already_variant": true,
+    "verbatim": "\"ERROCK\" (\"Squakum\") LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "32057"
+   ]
+  },
+  "item": "gnis:32057",
+  "fwa_name": [
+   "Mackay Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "MCKAY CREEK",
+    "source": "override",
+    "note": "GNIS name: Mackay Creek. Spelling correction.",
+    "already_variant": true,
+    "verbatim": "MCKAY CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "37696"
+   ]
+  },
+  "item": "wbk:329083384",
+  "fwa_name": [
+   "Sardis Pond"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SARDIS PARK POND",
+    "source": "override",
+    "note": "GNIS name: Sardis Pond. Name simplification.",
+    "already_variant": true,
+    "verbatim": "SARDIS PARK POND"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "22474"
+   ]
+  },
+  "item": "wbk:329177886",
+  "fwa_name": [
+   "Wahleach Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "JONES LAKE",
+    "source": "override",
+    "note": "GNIS name: Wahleach Lake. Labelled as Wahleach Lake in GIS (https://www.bchydro.com/community/recreation_areas/jones_lake.html).",
+    "already_variant": true,
+    "verbatim": "\"JONES\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "2159"
+   ]
+  },
+  "item": "wbk:329197172",
+  "fwa_name": [
+   "Lily Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "PAQ LAKE",
+    "source": "override",
+    "note": "GNIS name: Lily Lake. Known locally as Lily Lake.",
+    "already_variant": true,
+    "verbatim": "\"PAQ\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "23072"
+   ]
+  },
+  "item": "gnis:23072",
+  "fwa_name": [
+   "Sweltzer River"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SWELTZER CREEK",
+    "source": "override",
+    "note": "GNIS name: Sweltzer River. Labelled as Sweltzer River in GIS.",
+    "already_variant": true,
+    "verbatim": "SWELTZER CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329452040"
+   ]
+  },
+  "item": "wbk:329452040",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "RAINBOW LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 3 MU 3-12; found via BC Lakes Database (survey_id 4782: 'A RECONNAISSANCE SURVEY OF RAINBOW LAKE'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "RAINBOW LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "355994157"
+   ]
+  },
+  "item": "gnis:39492",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MCARTHUR ISLAND SLOUGH",
+    "source": "override",
+    "note": "Slough polygon + tributary stream segments",
+    "already_variant": true,
+    "verbatim": "MCARTHUR ISLAND SLOUGH"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329321237"
+   ]
+  },
+  "item": "wbk:329321237",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "DEEP LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 3-28. Location found from stocked lake map.",
+    "already_variant": true,
+    "verbatim": "DEEP LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329320955"
+   ]
+  },
+  "item": "wbk:329320955",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "JACKPINE LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 3-28. Location found from map. Other Jackpine Lakes exist in Region 5 (GNIS 16938, MU 5-2) and Region 8 (GNIS 16941, MU 8-11).",
+    "already_variant": true,
+    "verbatim": "JACKPINE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329563878"
+   ]
+  },
+  "item": "wbk:329563878",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "NORMAN LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 3-19, approximately 600 m southeast of Durand Lake. BC Lakes Database: WBID 00719THOM. ACAT 15541. Other Norman Lakes exist in Region 7 and Region 8. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"NORMAN\" LAKE (unnamed lake approximately 600 m southeast of Durand Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329534365"
+   ]
+  },
+  "item": "wbk:329534365",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "ROSE LAKE",
+    "source": "override",
+    "note": "Lake in MU 3-20. BC Lakes Database: WBID 00776STHM. ACAT 15585. Other Rose Lakes exist in Region 2, 5, and 6. Location found from map.",
+    "already_variant": true,
+    "verbatim": "ROSE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329518210"
+   ]
+  },
+  "item": "wbk:329518210",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CLANWILLIAM LAKE",
+    "source": "override",
+    "note": "Unnamed in FWA lakes layer. MU 3-34. BC Lakes Database: WBID 523394. ACAT ObjectID 1122331271. Gazetted name: CLANWILLIAM LAKE. Location found from map.",
+    "already_variant": true,
+    "verbatim": "CLANWILLIAM LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329321212"
+   ]
+  },
+  "item": "wbk:329321212",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE DUM LAKE",
+    "source": "override",
+    "note": "Lake in MU 3-28. BC Lakes Database: WBID 00618LNTH. ACAT ObjectID 15306 ('A Reconnaissance Survey Of Dum 2'). Found in stocked lakes map. Part of Dum Lake group (gazette: https://apps.gov.bc.ca/pub/bcgnws/names/27972.html).",
+    "already_variant": true,
+    "verbatim": "LITTLE DUM LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329320894"
+   ]
+  },
+  "item": "wbk:329320894",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE LAC DES ROCHES",
+    "source": "override",
+    "note": "Lake in MU 3-30, at west end of Lac Des Roches. Location found from map.",
+    "already_variant": true,
+    "verbatim": "LITTLE LAC DES ROCHES (at west end of Lac Des Roches)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329316229"
+   ]
+  },
+  "item": "wbk:329316229",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE PETER HOPE LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 3-20, approximately 200 m southwest of Peter Hope Lake. BC Lakes Database: WBID 00497LNIC. ACAT ObjectID 10044. FWA Watershed Code: 120-246600-53700-23700-5090-0000-000-000-000-000-000-000. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"LITTLE PETER HOPE\" LAKE (unnamed lake approximately 200 m southwest of Peter Hope Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329354793"
+   ]
+  },
+  "item": "wbk:329354793",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LORENZO LAKE",
+    "source": "override",
+    "note": "Lake in MU 3-39. BC Lakes Database: WBID 02102MAHD. ACAT ObjectID 7147. FWA Watershed Code: 129-360400-23900-98400-4800-9150-000-000-000-000-000-000. Location found from map.",
+    "already_variant": true,
+    "verbatim": "LORENZO LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329316143"
+   ]
+  },
+  "item": "wbk:329316143",
+  "fwa_name": [
+   "Kane Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "LOWER KANE LAKE",
+    "source": "override",
+    "note": "Lake in MU 3-13. BC Lakes Database: WBID 01088LNIC. ACAT ObjectID 31446. FWA Watershed Code: 120-246600-33700-41300-7100-0000-000-000-000-000-000-000. Same regulations as Upper Kane Lake. Location found from map.",
+    "already_variant": true,
+    "verbatim": "LOWER KANE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329316130"
+   ]
+  },
+  "item": "wbk:329316130",
+  "fwa_name": [
+   "Kane Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "UPPER KANE LAKE",
+    "source": "override",
+    "note": "Lake in MU 3-13. BC Lakes Database: WBID 01083LNIC. ACAT ObjectID 4123. FWA Watershed Code: 120-246600-33700-41300-7100-0000-000-000-000-000-000-000. Same regulations as Lower Kane Lake. Location found from map.",
+    "already_variant": true,
+    "verbatim": "UPPER KANE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329534212"
+   ]
+  },
+  "item": "wbk:329534212",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "TULIP LAKE",
+    "source": "override",
+    "note": "Lake in MU 3-20. BC Lakes Database: WBID 00762STHM. ACAT ObjectID 49860. FWA Watershed Code: 128-123700-73700-41000-0000-0000-000-000-000-000-000-000. Location found from map.",
+    "already_variant": true,
+    "verbatim": "TULIP LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328965040"
+   ]
+  },
+  "item": "wbk:328965040",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "ALTA LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 4-3. Location found from map. Low confidence - Alta Lake GNIS 7915 is in Region 2 MUs 2-11, 2-9.",
+    "already_variant": true,
+    "verbatim": "\"ALTA\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329247797"
+   ]
+  },
+  "item": "wbk:329247797",
+  "fwa_name": [
+   "Moose Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ALCES LAKE",
+    "source": "override",
+    "note": "Lake in MU 4-24. BC Lakes Database: WBID 00374KOTR, ACAT 280743. Gazetted name: MOOSE LAKE. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"ALCES\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "26621"
+   ]
+  },
+  "item": "wbk:328974366",
+  "fwa_name": [
+   "Rock Isle Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ROCK ISLAND LAKE",
+    "source": "override",
+    "note": "Named 'Rock Isle Lake' in FWA; has both polygon and KML point with same name/MU",
+    "already_variant": true,
+    "verbatim": "ROCK ISLAND LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "19304"
+   ]
+  },
+  "item": "wbk:329123411",
+  "fwa_name": [
+   "Connor Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "CONNOR LAKE",
+    "source": "override",
+    "note": "3 polygons with GNIS 19304 - Connor Lakes (plural in FWA)",
+    "already_variant": true,
+    "verbatim": "CONNOR LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "39145"
+   ]
+  },
+  "item": "wbk:329484653",
+  "fwa_name": [
+   "Revelstoke Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "LAKE REVELSTOKE",
+    "source": "override",
+    "note": "GNIS 39145 - Revelstoke Lake. Regulation uses 'Lake Revelstoke' name order.",
+    "already_variant": true,
+    "verbatim": "LAKE REVELSTOKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329262654"
+   ]
+  },
+  "item": "wbk:329262654",
+  "fwa_name": [
+   "Champion Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "CHAMPION LAKE NO. 3",
+    "source": "override",
+    "note": "Lake in MU 4-8. BC Lakes Database: WBID 00352LARL, ACAT 4926. Location found from map.",
+    "already_variant": true,
+    "verbatim": "CHAMPION LAKE NO. 3"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329524502"
+   ]
+  },
+  "item": "wbk:329524502",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "IDLEWILD LAKE",
+    "source": "override",
+    "note": "Lake in MU 4-3. BC Lakes Database: WBID 01249SMAR, ACAT 52677. Alternate name: old Cranbrook Reservoir. Location found from map.",
+    "already_variant": true,
+    "verbatim": "IDLEWILD LAKE (old Cranbrook Reservoir)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329220417"
+   ]
+  },
+  "item": "wbk:329220417",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MCCLAIN LAKE",
+    "source": "override",
+    "note": "Lake in MU 4-34, approximately 750 m south of Mitten Lake. BC Lakes Database: WBID 00799KHOR, ACAT 22239. Spelling variations: McClain/McLain/McLean. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"MCCLAIN\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "6159"
+   ]
+  },
+  "item": "gnis:6159",
+  "fwa_name": [
+   "McDonald Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SLEWISKIN CREEK",
+    "source": "override",
+    "note": "FWA name is McDonald Creek (GNIS 6159). Regulation uses 'SLEWISKIN (Macdonald) CREEK' with alternate name 'Macdonald'. Note spelling variation: Macdonald vs McDonald. Left tributary. MU 4-15.",
+    "already_variant": true,
+    "verbatim": "SLEWISKIN (Macdonald) CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "7369"
+   ]
+  },
+  "item": "wbk:329524034",
+  "fwa_name": [
+   "Echoes Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ECHOES LAKE",
+    "source": "override",
+    "note": "2 polygons with GNIS 7369 - Echoes Lakes (plural in FWA)",
+    "already_variant": true,
+    "verbatim": "ECHOES LAKE (near Kimberley)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "300-751058"
+   ]
+  },
+  "item": "wsc:300-751058",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MOSES CREEK",
+    "source": "override",
+    "note": "Moses Creek in MU 4-39. No GNIS name in FWA. Reference: Fish Collection Permit CB12-80431 Moses Creek Hydro Project Fisheries Impact Assessment (ACAT Report ID 37080) - proposed hydroelectric project utilizing flows of Moses and Beattie Creeks near Revelstoke.",
+    "already_variant": true,
+    "verbatim": "MOSES CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329524002"
+   ]
+  },
+  "item": "wbk:329524002",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LEWIS SLOUGH",
+    "source": "override",
+    "note": "Found in EAUBC Lakes dataset",
+    "already_variant": true,
+    "verbatim": "LEWIS (\"Cameron\") SLOUGH"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329123527"
+   ]
+  },
+  "item": "wbk:329123527",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LOST LAKE",
+    "source": "override",
+    "note": "Near Elkford; found on AllTrails: https://www.alltrails.com/poi/canada/british-columbia/elkford/lost-lake; Using specific waterbody_key (GNIS 18009 is a different Lost Lake)",
+    "already_variant": true,
+    "verbatim": "\"LOST\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329069329"
+   ]
+  },
+  "item": "wbk:329069329",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SPRING LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 1.5 km west/northwest of the west end of Tie Lake in MU 4-22. Medium confidence.",
+    "already_variant": true,
+    "verbatim": "\"SPRING\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329220422"
+   ]
+  },
+  "item": "wbk:329220422",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE MITTEN LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 400m west of Mitten Lake in MU 4-34; found via BC Lakes Database ('Kootenay Fisheries Field Report Little Mitten Lake 00753KHOR', located approx. 13 km SW of Parsons). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"LITTLE MITTEN\" LAKE (approx. 400 m west of Mitten Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329524272"
+   ]
+  },
+  "item": "wbk:329524272",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "FISHER MAIDEN LAKE",
+    "source": "override",
+    "note": "Found via fish stocking records and ACAT reports (https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=51502). FWA has MU 4-17, regulation has MU 4-26 (boundary issue).",
+    "already_variant": true,
+    "verbatim": "FISHER MAIDEN LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328966176"
+   ]
+  },
+  "item": "wbk:328966176",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SAM'S FOLLY LAKE",
+    "source": "override",
+    "note": "Lake in MU 4-34. BC Lakes Database: WBID 00398COLR, ACAT 2716. Location found from map.",
+    "already_variant": true,
+    "verbatim": "SAM'S FOLLY LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "14970"
+   ]
+  },
+  "item": "gnis:14970",
+  "fwa_name": [
+   "Mosquito Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ARROW PARK CREEK",
+    "source": "override",
+    "note": "GNIS name: Mosquito Creek. MU 4-18 near Arrow Park community. GNIS 7335 (also Mosquito Creek) is in MU 4-32.",
+    "already_variant": true,
+    "verbatim": "ARROW PARK (Mosquito) CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "10669"
+   ]
+  },
+  "item": "wbk:329069252",
+  "fwa_name": [
+   "Edwards Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "EDWARDS LAKE",
+    "source": "override",
+    "note": "GNIS name: Edwards Lakes (plural). Plural variation.",
+    "already_variant": true,
+    "verbatim": "EDWARDS LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "23378"
+   ]
+  },
+  "item": "wbk:329524023",
+  "fwa_name": [
+   "Norbury Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "GARBUTT LAKE",
+    "source": "override",
+    "note": "GNIS name: Norbury Lake. Official name is Norbury (Garbutt) Lake.",
+    "already_variant": true,
+    "verbatim": "GARBUTT LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "14083"
+   ]
+  },
+  "item": "wbk:328961702",
+  "fwa_name": [
+   "Lake Koocanusa"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "KOOCANUSA RESERVOIR",
+    "source": "override",
+    "note": "GNIS name: Lake Koocanusa. Name variation.",
+    "already_variant": true,
+    "verbatim": "KOOCANUSA RESERVOIR"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329021828"
+   ]
+  },
+  "item": "wbk:329021828",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "BABY CHARLOTTE LAKE",
+    "source": "override",
+    "note": "Lake in MU 5-6. Location found from map.",
+    "already_variant": true,
+    "verbatim": "BABY CHARLOTTE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329021826"
+   ]
+  },
+  "item": "wbk:329021826",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CRUISE LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 5-6, approximately 500 m south of Stewart Lake. BC Lakes Database: WBID 01304ATNA, ACAT 32593. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"CRUISE\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329126819"
+   ]
+  },
+  "item": "wbk:329126819",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "GEESE LAKE",
+    "source": "override",
+    "note": "Lake in MU 5-12, 2 km northeast of Eliguk Lake. Medium confidence. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"GEESE\" LAKE (2 km northeast of Eliguk Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329586239"
+   ]
+  },
+  "item": "wbk:329586239",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "KESTREL LAKE",
+    "source": "override",
+    "note": "Lake in MU 5-2. BC Lakes Database: WBID 00238TWAC. Gazetted name: KESTREL LAKE. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"KESTREL\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "33890"
+   ]
+  },
+  "item": "wbk:329079684",
+  "fwa_name": [
+   "Tŝilhqox Biny"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "CHILKO LAKE",
+    "source": "override",
+    "note": "GNIS 33890 - Tŝilhqox Biny (current name) / Chilko Lake (former name). FWA has MU 5-4, regulation has MU 5-4 (correct MU).",
+    "already_variant": true,
+    "verbatim": "CHILKO LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "9356"
+   ]
+  },
+  "item": "wbk:329276293",
+  "fwa_name": [
+   "Tigulhdzin"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ALEXIS LAKE",
+    "source": "override",
+    "note": "GNIS 9356 - Tigulhdzin (current name) / Alexis Lake (former name). Name was officially changed.",
+    "already_variant": true,
+    "verbatim": "ALEXIS LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "16247"
+   ]
+  },
+  "item": "wbk:329276269",
+  "fwa_name": [
+   "Tegunlin"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "STUM LAKE",
+    "source": "override",
+    "note": "GNIS 16247 - Tegunlin (current name) / Stum Lake (former name). Name was officially changed.",
+    "already_variant": true,
+    "verbatim": "STUM LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329481525"
+   ]
+  },
+  "item": "wbk:329481525",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SANDY LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 3.2 km south of Le Bourdais Lake in MU 5-2. Confirmed via FDIS fish observation (Waterbody ID 48340, Project: Inventory, Rudy, Maud Creek, Sandy Lake; 2019). Reference: http://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=58961. Note: There is a different Sandy Lake (GNIS 21196) in MU 5-16 which is NOT this one.",
+    "already_variant": true,
+    "verbatim": "\"SANDY\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329354763"
+   ]
+  },
+  "item": "wbk:329354763",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "BLUFF LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 25 km NE of Lac La Hache in Region 5; found via BC Lakes Database (survey_id 20677: 'A Reconnaissance Survey of Bluff Lake'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"BLUFF\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329238149"
+   ]
+  },
+  "item": "wbk:329238149",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "FISH LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 5; found via BC Lakes Database (survey_id 315: 'UNTITLED REPORT: WINTER LIMNOLOGY DATA FOR FISH LAKE'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329554444"
+   ]
+  },
+  "item": "wbk:329554444",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SLIM LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Taseko River drainage approximately 4 km north of Cone Hill in MU 5-4; found via BC Lakes Database (survey_id 5210: 'Lake Survey: Slim Lake 00811TASR', associated with Taseko Mines Limited Fish Lake Project). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"SLIM\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329116791"
+   ]
+  },
+  "item": "wbk:329116791",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "WHALE LAKE",
+    "source": "override",
+    "note": "Whale Lake in Gustafsen Lake area; found via BC Lakes Database (survey_id from 1981: 'A Reconnaissance Survey of Whale Lake 00389DOGC, 1981'). FWA has MU 5-15, regulation has MU 5-2 (boundary issue).",
+    "already_variant": true,
+    "verbatim": "\"WHALE\" LAKE (Gustafsen Lake area)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329480817"
+   ]
+  },
+  "item": "wbk:329480817",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "RYE LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 1.6 km downstream of Joan Lake in MU 5-2; found via ACAT report (https://a100.gov.bc.ca/pub/acat/public/viewReport.do?reportId=23024). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"RYE\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329116844"
+   ]
+  },
+  "item": "wbk:329116844",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "PIGEON LAKE #1",
+    "source": "override",
+    "note": "Unnamed lake adjacent to Dog Creek Road, approximately 9 km west of Gustafsen Lake and 19 km north of Meadow Lake Road in MU 5-2; found via BC Lakes Database ('A Reconnaissance Survey of Pigeon #1 (alias) Lake, WBID: 00525DOGC'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"PIGEON LAKE #1\""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329495189"
+   ]
+  },
+  "item": "wbk:329495189",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SINKHOLE LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 100 m east of Sneezie Lake in MU 5-2; found via BC Lakes Database ('A Reconnaissance Survey of Unnamed Lake 5964', WSC 100-385000-98600-98900-5160-5530, located approx. 19.5 km east of Lac La Hache). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"SINKHOLE\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329480905"
+   ]
+  },
+  "item": "wbk:329480905",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SARDINE LAKE",
+    "source": "override",
+    "note": "Found via BC Lakes Database ('Fish Tissue Sample for Sardine lake', WBID: 00444QUES, December 1992). Regulation MU 5-2.",
+    "already_variant": true,
+    "verbatim": "SARDINE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "10522"
+   ]
+  },
+  "item": "wbk:329021811",
+  "fwa_name": [
+   "Ant Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SUNSHINE LAKE",
+    "source": "override",
+    "note": "GNIS 10522 - Ant Lake. Regulation uses alternate name 'Sunshine' with 'Ant' in parentheses. Regulation MU 5-11.",
+    "already_variant": true,
+    "verbatim": "SUNSHINE (\"Ant\") LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329060886"
+   ]
+  },
+  "item": "wbk:329060886",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SNAG LAKE",
+    "source": "override",
+    "note": "Unnamed lake approximately 60 km ESE of 100 Mile House (West King Area) in MU 5-1; found via BC Lakes Database (survey_id 20655: 'A Reconnaissance Survey of Snag Lake'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "\"SNAG\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329116771"
+   ]
+  },
+  "item": "wbk:329116771",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "DOG LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 5-2, approximately 6 km south/southwest of the confluence of Dog and Pigeon Creeks. BC Lakes Database: WBID 00289DOGC. ACAT 6700. Other Dog Lakes exist in Region 4 (GNIS 24393, MU 4-25) and Region 6 (GNIS 24396, MU 6-16). Location found from map. Medium confidence.",
+    "already_variant": true,
+    "verbatim": "\"DOG\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329354753"
+   ]
+  },
+  "item": "wbk:329354753",
+  "fwa_name": [
+   "Squirrel Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "PADDY LAKE",
+    "source": "override",
+    "note": "Lake in MU 5-1, also known as Squirrel Lake. Paddy Lake Recreation Site located here (REC5960). Referred to as 'Paddy Squirrel Lake' in BC Lakes bathymetric maps. Another Paddy Lake (GNIS 21895) exists in Region 6 MU 6-26. Another Squirrel Lake listed in Region 6 MU 6-1. Location found from map.",
+    "already_variant": true,
+    "verbatim": "PADDY LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329061097"
+   ]
+  },
+  "item": "wbk:329061097",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "GRASSY LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 5-1, approximately 1 km southwest of West King Lake. BC Lakes Database: WBID 00707BRID, watershed code 129-360400-23900-98400-9950-9850-283. ACAT 54219. Other Grassy Lakes exist in Region 4 (GNIS 19444, MU 4-16) and Region 8 (GNIS 19443, MU 8-25). Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"GRASSY\" LAKE (unnamed lake approx. 1 km southwest of West King Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329060853"
+   ]
+  },
+  "item": "wbk:329060853",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "HIGH LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 5-1, approximately 4 km north of Bridge Lake. BC Lakes Database: WBID 00697BRID. ACAT 24310. Other High Lakes exist in Region 4 (GNIS 21399, MU 4-35) and Region 8 (GNIS 21400, MU 8-22). Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"HIGH\" LAKE (unnamed lake approx. 4 km north of Bridge Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329430970"
+   ]
+  },
+  "item": "wbk:329430970",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE BISHOP LAKE",
+    "source": "override",
+    "note": "Lake in MU 5-13, approximately 1.7 km northeast of Bishop Lake. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"LITTLE BISHOP\" LAKE (approx. 1.7 km northeast of Bishop Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328987837"
+   ]
+  },
+  "item": "wbk:328987837",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE JONES LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 5-2, approximately 13 km east/southeast of 150 Mile House on the north side of Jones Creek. Confirmed via stocked lakes map. Location found from map.",
+    "already_variant": true,
+    "verbatim": "\"LITTLE JONES\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329354797"
+   ]
+  },
+  "item": "wbk:329354797",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MERIDIAN LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 5-1, in Jim Creek system (North Thompson River watershed), approximately 55 km east of 100 Mile House. BC Lakes Database: ACAT 54214. FWA watershed code: 129-360400-23900-98400-4800. Location found from map.",
+    "already_variant": true,
+    "verbatim": "MERIDIAN LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "18257"
+   ]
+  },
+  "item": "wbk:329480864",
+  "fwa_name": [
+   "Baillon Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "BALLON LAKE",
+    "source": "override",
+    "note": "GNIS name: Baillon Lake. Spelling correction.",
+    "already_variant": true,
+    "verbatim": "BALLON LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329318485"
+   ]
+  },
+  "item": "wbk:329318485",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE",
+    "source": "override",
+    "note": "Unnamed lake in MU 6-1, approximately 500 m south of Natalkuz Lake. Location found from map.",
+    "already_variant": true,
+    "verbatim": "UNNAMED LAKE (approx. 500 m south of Natalkuz Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329242402"
+   ]
+  },
+  "item": null,
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LOST LAKE",
+    "source": "override",
+    "note": "FWA has MU 6-21, regulation has MU 6-15 (boundary issue). Lake near Terrace; incorrect GNIS_ID 39158 candidate found in MU 6-21. Using specific waterbody_key for correct lake. Location: https://www.google.com/maps/place/Lost+Lake/@54.6002328,-128.6552761,4390m | Reference: https://www.cbc.ca/news/canada/british-columbia/goldfish-invasion-closes-b-c-fishing-lake-1.5184045",
+    "already_variant": false,
+    "verbatim": "LOST LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329126712"
+   ]
+  },
+  "item": "wbk:329126712",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "TOMS LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 6 MU 6-1; found via BC Lakes Database (survey_id 73: 'UNTITLED REPORT: LIMNOLOGY DATA FOR TOMS LAKE'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "TOMS LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329126718"
+   ]
+  },
+  "item": "wbk:329126718",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CHIPMUNK LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 6; found via BC Lakes Database (survey_id 65: 'UNTITLED REPORT: LIMNOLOGY DATA FOR CHIPMUNK LAKE'). FWA has no GNIS ID.",
+    "already_variant": true,
+    "verbatim": "CHIPMUNK LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "915-679587-924307"
+   ]
+  },
+  "item": "wsc:915-679587-924307",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "EAST GRIBBELL CREEK",
+    "source": "override",
+    "note": "East Gribbell Creek in MU 6-3, on Ursula Channel. Ungazetted stream. Waterbody ID 00000KHTZ. Cutthroat Trout observed 1994-01-01. Source: FISS Database survey_id 77237 '01-JAN-94 Fisheries Assessment of East Gribbell Creek on Ursula Channel'.",
+    "already_variant": true,
+    "verbatim": "\"EAST GRIBBELL\" CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "915-755598-329884-406409"
+   ]
+  },
+  "item": "wsc:915-755598-329884-406409",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "OLDFIELD CREEK",
+    "source": "override",
+    "note": "Oldfield Creek in MU 6-14, tributary of Hays Creek. Oldfield Creek Fish Hatchery located here.",
+    "already_variant": true,
+    "verbatim": "\"OLDFIELD\" CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "25384"
+   ]
+  },
+  "item": "wbk:329542437",
+  "fwa_name": [
+   "Sustut Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SUSTUT LAKES",
+    "source": "override",
+    "note": "GNIS name: Sustut Lake (singular). Plural/singular variation.",
+    "already_variant": true,
+    "verbatim": "SUSTUT LAKES"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "4069"
+   ]
+  },
+  "item": "gnis:4069",
+  "fwa_name": [
+   "Ksi Hlginx"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "KSI HLGINX RIVER",
+    "source": "override",
+    "note": "GNIS name: Ksi Hlginx. GNIS drops 'River' suffix.",
+    "already_variant": true,
+    "verbatim": "KSI HLGINX RIVER (formerly Ishkheenickh River)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "4791"
+   ]
+  },
+  "item": "gnis:4791",
+  "fwa_name": [
+   "Ksi Sgasginist"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "KSI SGASGINIST CREEK",
+    "source": "override",
+    "note": "GNIS name: Ksi Sgasginist. GNIS drops 'Creek' suffix.",
+    "already_variant": true,
+    "verbatim": "KSI SGASGINIST CREEK (formerly Seaskinnish Creek)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "3828"
+   ]
+  },
+  "item": "gnis:3828",
+  "fwa_name": [
+   "Ksi Sii Aks"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "KSI SII AKS RIVER",
+    "source": "override",
+    "note": "GNIS name: Ksi Sii Aks. GNIS drops 'River' suffix.",
+    "already_variant": true,
+    "verbatim": "KSI SII AKS RIVER (formerly Tseax River)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "3815"
+   ]
+  },
+  "item": "gnis:3815",
+  "fwa_name": [
+   "Ksi X'anmas"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "KSI X'ANMAS RIVER",
+    "source": "override",
+    "note": "GNIS name: Ksi X'anmas. GNIS drops 'River' suffix.",
+    "already_variant": true,
+    "verbatim": "KSI X'ANMAS RIVER (formerly Kwinamass River)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329376649"
+   ]
+  },
+  "item": "wbk:329376649",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "EYE LAKE",
+    "source": "override",
+    "note": "Lake in MU 7-26. BC Lakes Database: WBID 00041MIDR, ACAT 3257. Location found from map.",
+    "already_variant": true,
+    "verbatim": "EYE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329102648"
+   ]
+  },
+  "item": "wbk:329102648",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SQUARE LAKE",
+    "source": "override",
+    "note": "FWA has MU 7-12, regulation has MU 7-16 (boundary issue). Crooked River Provincial Park is partly in both 7-24 and 7-16; the lake is in 7-24 which is very close to 7-16.",
+    "already_variant": true,
+    "verbatim": "SQUARE LAKE (located in Crooked River Provincial Park)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "100-567134-374775"
+   ]
+  },
+  "item": "wsc:100-567134-374775",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "NAUTLEY RIVER",
+    "source": "override",
+    "note": "Nautley River in MU 7-13.",
+    "already_variant": true,
+    "verbatim": "NAUTLEY RIVER"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328993555"
+   ]
+  },
+  "item": "wbk:328993555",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE LOST LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 7 MU 7-3; found via BC Lakes Database (survey_id 6447: 'A RECONNAISSANCE SURVEY OF UNNAMED (LITTLE LOST) LAKE'). FWA has no GNIS ID. Note: GNIS 10869 exists for 'Little Lost Lake' but is in Region 1 MU 1-6 (different lake).",
+    "already_variant": true,
+    "verbatim": "LITTLE LOST LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329537273"
+   ]
+  },
+  "item": "wbk:329537273",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LITTLE TOMAS LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 7 MU 7-25; found via BC Lakes Database (Report ID 3676: 'FORT ST. JAMES LAKE INVENTORY 1996 RECONNAISSANCE SURVEY OF UNNAMED LAKE 73 K113 (Little Tomas)', WBID: 01199STUL).",
+    "already_variant": true,
+    "verbatim": "\"LITTLE TOMAS\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329654564"
+   ]
+  },
+  "item": "wbk:329654564",
+  "fwa_name": [
+   "Beaverpond Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "LOWER BEAVERPOND LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 7 MU 7-38 (lowermost of the two Beaverpond lakes); found via BC Lakes Database (Report ID 6399: 'A Reconnaissance Survey of Lower Beaver Pond Lake 00849UOMI'). Survey date: Mar 1, 1995.",
+    "already_variant": true,
+    "verbatim": "\"LOWER BEAVERPOND\" LAKE (lowermost of the two Beaverpond lakes)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "200-948755-936810-110196"
+   ]
+  },
+  "item": "wsc:200-948755-936810-110196",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "DINA CREEK",
+    "source": "override",
+    "note": "Dina Creek in MU 7-30. Unnamed creek that flows to Dina Lakes. Medium confidence.",
+    "already_variant": true,
+    "verbatim": "DINA CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329424582"
+   ]
+  },
+  "item": "wbk:329424582",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "MT. MILLIGAN LAKE",
+    "source": "override",
+    "note": "Unnamed lake in Region 7 MU 7-28 (located approximately 7.5 km south/southeast of Mt. Milligan); found via BC Lakes Database (Report ID 4121: 'Mount Milligan Lake 2004 Fish Stocking Assessment 01479NATR', WBID: 01479NATR).",
+    "already_variant": true,
+    "verbatim": "\"MT. MILLIGAN\" LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329382061"
+   ]
+  },
+  "item": "wbk:329382061",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "SHANDY LAKE",
+    "source": "override",
+    "note": "Lake in Region 7 MU 7-5; found via BC Lakes Database (survey_id 6484: 'BATHYMETRIC OF SHANDY LAKES', WBID 18411). Survey date: Aug 1, 1974.",
+    "already_variant": true,
+    "verbatim": "SHANDY LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329353216"
+   ]
+  },
+  "item": "wbk:329353216",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "HART LAKE",
+    "source": "override",
+    "note": "Unnamed lake near Fort St. James; found via BC Lakes Database (survey_id 5255: 'A RECONNAISSANCE SURVEY OF UNNAMED \"HART\" LAKE'). FWA has no GNIS ID, regulation has MU 7-25.",
+    "already_variant": true,
+    "verbatim": "HART LAKE (Fort St. James)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329537362"
+   ]
+  },
+  "item": "wbk:329537362",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "TEBBUTT LAKE",
+    "source": "override",
+    "note": "Lake in Region 7 MU 7-13; found via BC Lakes Database (Report ID 9703: 'Tebbutt Lake - Reconnaissance Survey 1987 02283STUL', WBID: 02283STUL). Survey date: Jul 1, 1987.",
+    "already_variant": true,
+    "verbatim": "TEBBUTT LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329343551"
+   ]
+  },
+  "item": null,
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "UNNAMED LAKE located 100 m west of Butterfly Lake",
+    "source": "override",
+    "note": "Unnamed lake locally known as \"Kinglet Lake\", 100m west of Butterfly Lake in MU 7-15. Identified via BC stocking records. Reference: https://www.env.gov.bc.ca/omineca/esd/faw/stocking/kinglet/kinglet_redstart_lakes2003.pdf",
+    "already_variant": false,
+    "verbatim": "UNNAMED LAKE (\"Kinglet Lake\") located 100 m west of Butterfly Lake"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329424460"
+   ]
+  },
+  "item": "wbk:329424460",
+  "fwa_name": [
+   "Onjo Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "WITCH LAKE",
+    "source": "override",
+    "note": "Lake in Region 7 MU 7-28; FWA name is 'Onjo Lake' (gazette name). Found via BC Lakes Database (Report ID 34828: 'A Reconnaissance Survey of Witch Lake, 1977 01386NATR', WBID: 01386NATR). Survey date: Jul 1, 1977.",
+    "already_variant": true,
+    "verbatim": "WITCH LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329465434"
+   ]
+  },
+  "item": "wbk:329465434",
+  "fwa_name": [
+   "Dina Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "DINA LAKE #1",
+    "source": "override",
+    "note": "Found via BC Lakes Database ('Dina Lake #1 Pygmy Whitefish Study', WBID: 00357PARA, located north of Mackenzie). Regulation MU 7-30.",
+    "already_variant": true,
+    "verbatim": "DINA LAKE #1"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329465455"
+   ]
+  },
+  "item": "wbk:329465455",
+  "fwa_name": [
+   "Dina Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "DINA LAKE #2",
+    "source": "override",
+    "note": "Found via BC Lakes Database ('A Fisheries Evaluation of Dina Lake #2', WBID: 00346PARA). Regulation MU 7-30.",
+    "already_variant": true,
+    "verbatim": "DINA LAKE #2"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "14906"
+   ]
+  },
+  "item": "wbk:329465433",
+  "fwa_name": [
+   "Morfee Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "MORFEE LAKE",
+    "source": "override",
+    "note": "GNIS name: Morfee Lakes (plural). Plural variation.",
+    "already_variant": true,
+    "verbatim": "MORFEE LAKE (south)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "13370"
+   ]
+  },
+  "item": "wbk:329424462",
+  "fwa_name": [
+   "Klawli Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "KLWALI LAKE",
+    "source": "override",
+    "note": "GNIS name: Klawli Lake. Spelling correction.",
+    "already_variant": true,
+    "verbatim": "KLWALI LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "32114"
+   ]
+  },
+  "item": "gnis:32114",
+  "fwa_name": [
+   "Thorne Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "THORN CREEK",
+    "source": "override",
+    "note": "GNIS name: Thorne Creek. Spelling correction.",
+    "already_variant": true,
+    "verbatim": "THORN CREEK"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "16498"
+   ]
+  },
+  "item": "wbk:329272362",
+  "fwa_name": [
+   "Naltesby Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "BOBTAIL LAKE",
+    "source": "override",
+    "note": "GNIS name: Naltesby Lake. Alternate name in gazetteer.",
+    "already_variant": true,
+    "verbatim": "BOBTAIL (Naltesby) LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "28522"
+   ]
+  },
+  "item": "wbk:328961697",
+  "fwa_name": [
+   "Williston Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "NATION ARM",
+    "source": "override",
+    "note": "Nation Arm of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at arm location. Nation River (GNIS 16593) flows into this arm. MU 7-58. TODO: Needs custom polygon subdivision.",
+    "already_variant": true,
+    "verbatim": "NATION ARM (Williston Lake)"
+   },
+   {
+    "name": "DAVIS BAY",
+    "source": "override",
+    "note": "Davis Bay in Finlay Reach of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at bay location. Finlay Reach is the northern arm where Finlay River (GNIS 12355) enters. MU 7-58. TODO: Needs custom polygon subdivision.",
+    "already_variant": true,
+    "verbatim": "DAVIS BAY (in Finlay Reach of Williston Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328995585"
+   ]
+  },
+  "item": "wbk:328995585",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CHUNAMUN LAKE",
+    "source": "override",
+    "note": "Lake in Region 7B MU 7-35 (same waterbody as 'CHINAMAN' LAKE - alternate name); found via BC Lakes Database (Report ID 52574: 'Chunamun Lake Gillnet Survey - 1989', WBID: 00552UPCE). Survey date: Oct 1, 1989.",
+    "already_variant": true,
+    "verbatim": "CHUNAMUN LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "20296"
+   ]
+  },
+  "item": "wbk:329473810",
+  "fwa_name": [
+   "Sundance Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "SUNDANCE LAKE",
+    "source": "override",
+    "note": "2 polygons with GNIS 20296 - Sundance Lakes (plural in FWA)",
+    "already_variant": true,
+    "verbatim": "SUNDANCE LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329328645"
+   ]
+  },
+  "item": "wbk:329328645",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "RADAR LAKE",
+    "source": "override",
+    "note": "Lake in Region 7B MU 7-20; found via BC Lakes Database (Report ID 6880: 'Peace Fisheries Field Report: Radar Lake (230-690000-56100-63800-6807, 00680LPCE), 2004', WBID: 00680LPCE). Survey date: Jul 1, 2005.",
+    "already_variant": true,
+    "verbatim": "RADAR LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329216683"
+   ]
+  },
+  "item": "wbk:329216683",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "FIVE O'CLOCK LAKE",
+    "source": "override",
+    "note": "Lake in Region 8 MU 8-14 (approx. 800 m southeast of Cup Lake); found via BC Lakes Database (Report ID 20691: 'Memo to File - Five O'Clock Lake Fish 00796KETL', WBID: 00796KETL). Survey date: May 1, 1992.",
+    "already_variant": true,
+    "verbatim": "FIVE O'CLOCK LAKE (approx. 800 m southeast of Cup Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329460964"
+   ]
+  },
+  "item": null,
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "HALL ROAD POND",
+    "source": "override",
+    "note": "Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond ungazetted waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area.",
+    "already_variant": false,
+    "verbatim": "HALL ROAD (Mission) POND"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329459136"
+   ]
+  },
+  "item": "wbk:329459136",
+  "fwa_name": [
+   "Headwater Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "HEADWATER LAKE #1",
+    "source": "override",
+    "note": "Lake in Region 8 MU 8-8; found via BC Lakes Database (survey_id 5824: 'LAKE OVERVIEW DATA - HEADWATER LAKES;LAKE #1', WBID 175465). Survey date: Sep 1, 1972.",
+    "already_variant": true,
+    "verbatim": "HEADWATER LAKE #1"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329520059"
+   ]
+  },
+  "item": "wbk:329520059",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "CLIFFORD LAKE",
+    "source": "override",
+    "note": "FWA incorrectly has GNIS_ID 31706 in Region 1 MU 1-14; correct lake is in Region 8 MU 8-5. BC Lakes Database: survey_id 3834 ('CLIFF AND RICK LAKES INVESTIGATION, JULY 24 & 25 1989', WBID 174079), survey date Jul 25, 1989. References: https://www.brmbmaps.com/explore/canada/british-columbia/thompson-nicola/clifford-lake-recreation-site/84451 | https://web.archive.org/web/20200529103953/https://www.sitesandtrailsbc.ca/search/search-result.aspx?site=REC1636&type=Site",
+    "already_variant": true,
+    "verbatim": "CLIFFORD (Cliff ) LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329520255"
+   ]
+  },
+  "item": "wbk:329520255",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "LARRY LAKE",
+    "source": "override",
+    "note": "Unnamed lake west of Thalia Lake in Region 8 MU 8-5. BC Lakes Database: Report ID 13491 ('Memo to File: Larry Lake Investigation - June 11 & 12 1984 00470SIML', WBID 00470SIML), survey date Apr 1, 1986. Reference: https://www.brmbmaps.com/explore/canada/british-columbia/thompson-nicola/clifford-lake-recreation-site/84451",
+    "already_variant": true,
+    "verbatim": "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "21766"
+   ]
+  },
+  "item": "wbk:329520017",
+  "fwa_name": [
+   "Tepee Lakes"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "TEE PEE LAKES",
+    "source": "override",
+    "note": "3 polygons with GNIS 21766 - Tepee Lakes (spelling variation in FWA)",
+    "already_variant": true,
+    "verbatim": "TEE PEE LAKES"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329520185"
+   ]
+  },
+  "item": "wbk:329520185",
+  "fwa_name": [],
+  "status": [
+   "NAMELESS"
+  ],
+  "names": [
+   {
+    "name": "RICKEY LAKE",
+    "source": "override",
+    "note": "Lake in Region 8 MU 8-5 (WBID: 00472SIML). Shares BC Lakes Database survey with CLIFFORD (Cliff) LAKE: survey_id 3834 ('CLIFF AND RICK LAKES INVESTIGATION, JULY 24 & 25 1989'), survey date Jul 25, 1989. References: https://adventuregenie.com/rv-campgrounds/british-columbia/merritt/rickey-lake | https://web.archive.org/web/20200529102211/https://www.sitesandtrailsbc.ca/search/search-result.aspx?site=REC1637&type=Site",
+    "already_variant": true,
+    "verbatim": "RICKEY LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329459139"
+   ]
+  },
+  "item": "wbk:329459139",
+  "fwa_name": [
+   "Rose Valley Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "ROSE VALLEY RESERVOIR",
+    "source": "override",
+    "note": "Lake in Region 8 MU 8-11 (Lakeview Irrigation District); found via BC Lakes Database (Report ID 43772: 'Survey of Rose Valley (Lake) Reservoir 1977', WBID: 00867OKAN). Survey date: May 1, 1977.",
+    "already_variant": true,
+    "verbatim": "ROSE VALLEY RESERVOIR (Lakeview Irrigation District)"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "27648"
+   ]
+  },
+  "item": "gnis:27648",
+  "fwa_name": [
+   "Trépanier Creek"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "TREPANIER RIVER",
+    "source": "override",
+    "note": "Trepanier River in MU 8-8. FWA has name 'Trépanier Creek' (GNIS 27648).",
+    "already_variant": true,
+    "verbatim": "TREPANIER RIVER"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "3035"
+   ]
+  },
+  "item": "wbk:329459143",
+  "fwa_name": [
+   "Tugulnuit Lake"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "TUC-EL-NUIT LAKE",
+    "source": "override",
+    "note": "GNIS name: Tugulnuit Lake. Spelling mismatch.",
+    "already_variant": true,
+    "verbatim": "TUC-EL-NUIT LAKE"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "39570"
+   ]
+  },
+  "item": "wbk:708021450",
+  "fwa_name": [
+   "Big Horn Reservoir"
+  ],
+  "status": [
+   "MISMATCH"
+  ],
+  "names": [
+   {
+    "name": "BIGHORN RESERVOIR",
+    "source": "override",
+    "note": "GNIS name: Big Horn Reservoir. Spacing correction.",
+    "already_variant": false,
+    "verbatim": "BIGHORN RESERVOIR (Lakeview Irrigation District)"
+   }
+  ]
+ }
+]

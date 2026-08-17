@@ -1,1 +1,1 @@
-"""pipeline.io subpackage. See docs/DESIGN-regs-to-sections.md."""
+"""io — build-artifact serialization and GeoPackage export."""

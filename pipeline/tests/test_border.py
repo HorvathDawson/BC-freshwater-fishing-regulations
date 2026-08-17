@@ -10,7 +10,7 @@ from shapely.geometry import LineString, box
 
 from pipeline.graph import cutting
 from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.splits.border import border_split_points, mark_out_of_bc
+from pipeline.splits.border import border_split_points, mark_inside_area, mark_inside_areas, mark_out_of_bc
 from pipeline.graph.graph import build_section_geometries, build_stream_graph
 from pipeline.splits.sectionizer import split_graph_at
 
@@ -40,6 +40,40 @@ def test_border_split_points_finds_both_crossings():
     ms = sorted(round(p.route_measure) for p in pts)
     assert ms == [50, 190]                       # exit at m=50, re-entry at m=190
     assert all(p.label == "BC boundary" for p in pts)
+
+
+def test_border_prefilter_skips_inland_chain():
+    # a chain fully inside BC must be pruned by the covered_by prefilter (no crossings, no work)
+    coords = [(10, 10), (90, 10), (90, 90)]
+    inland = build_blk_chains([_fid("I1", "I", "200", coords, 0, LineString(coords).length)], {})
+    outline = box(0, 0, 100, 100)
+    assert border_split_points(inland, outline) == []
+    # and a cross-border chain in the SAME call still yields its crossings
+    chains, _, _, _ = _setup()
+    pts = border_split_points(chains + inland, outline)
+    assert sorted(round(p.route_measure) for p in pts) == [50, 190]      # inland contributes nothing
+    assert {p.blk for p in pts} == {"X"}
+
+
+def test_mark_inside_areas_matches_per_poly_and_batches():
+    # two inland streams: A inside the park box, B outside
+    a = _fid("A1", "A", "300", [(10, 10), (20, 10)], 0, 10)
+    b = _fid("B1", "B", "400", [(100, 100), (110, 100)], 0, 10)
+    fids = [a, b]
+    chains = build_blk_chains(fids, {})
+    graph = build_stream_graph(chains, fids, {}, {})
+    geoms = build_section_geometries(chains, fids, {})
+    park = box(0, 0, 50, 50)
+
+    n = mark_inside_areas(graph, geoms, {"PARK": park})
+    inside = [nid for nid, node in graph.nodes.items() if "PARK" in node.in_areas]
+    assert n == 1 and len(inside) == 1 and inside[0].startswith("A:")
+    # idempotent — re-marking adds nothing
+    assert mark_inside_areas(graph, geoms, {"PARK": park}) == 0
+    # equivalence with the per-polygon helper on a fresh graph
+    graph2 = build_stream_graph(chains, fids, {}, {})
+    m = mark_inside_area(graph2, geoms, park, "PARK")
+    assert m == 1
 
 
 def test_out_of_bc_piece_flagged_kept_and_not_barrier():

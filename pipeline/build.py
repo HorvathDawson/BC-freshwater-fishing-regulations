@@ -37,12 +37,14 @@ def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
     return kind
 
 
-def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
-    """wbk -> tuple of the lake's gazette names (GNIS_NAME_1/2/3, non-null). Usually empty
-    (~96.7% of lakes are unnamed -> display falls back to a threading river name). GNIS_NAME_1/2
-    are accessor-normalized (null -> ""); GNIS_NAME_3 is NOT in the prod STRING_COLUMNS (only 4
-    non-null province-wide), so it may arrive as float NaN in a bbox subset -> cleaned locally."""
-    cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2", "GNIS_NAME_3"]
+def _gnis_name_pairs(fwa: FWADataAccessor, layers, bbox=None) -> dict[str, tuple]:
+    """wbk -> tuple of a waterbody's gazette ``(name, gnis_id)`` pairs across ``layers`` (GNIS_NAME/
+    ID_1/2/3, non-null, positionally paired so NAME_i keeps its ID_i). GNIS_NAME_1/2 are accessor-
+    normalized (null -> ""); GNIS_NAME_3/ID_3 are NOT in the prod STRING_COLUMNS (only 4 non-null
+    province-wide) so may arrive as float NaN in a bbox subset -> cleaned locally. Only named
+    waterbodies are returned. Shared by lakes/manmade (node names) and wetlands (registry names)."""
+    cols = ["WATERBODY_KEY", "GNIS_NAME_1", "GNIS_NAME_2", "GNIS_NAME_3",
+            "GNIS_ID_1", "GNIS_ID_2", "GNIS_ID_3"]
 
     def _clean(n) -> str:
         if n is None:
@@ -50,10 +52,14 @@ def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
         s = str(n).strip()
         return "" if s.lower() in ("", "nan", "none") else s
 
+    def _cid(n) -> str:
+        s = _clean(n)
+        return str(int(float(s))) if s and s.replace(".", "").isdigit() else s
+
     # A wbk can span several polygon rows (e.g. Nechako Reservoir's reaches), each with
     # different GNIS names — UNION them so every gazette name of the waterbody is captured.
     acc: dict[str, list] = {}
-    for layer in ("lakes", "manmade"):
+    for layer in layers:
         if layer in fwa.layer_names:
             gdf = fwa.get_layer(layer, columns=cols, bbox=bbox)
             for row in gdf.itertuples():
@@ -61,10 +67,28 @@ def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
                 if not wbk:
                     continue
                 seen = acc.setdefault(wbk, [])
-                for v in (_clean(row.GNIS_NAME_1), _clean(row.GNIS_NAME_2), _clean(row.GNIS_NAME_3)):
-                    if v and v not in seen:
-                        seen.append(v)
+                for nm, gid in ((_clean(row.GNIS_NAME_1), _cid(row.GNIS_ID_1)),
+                                (_clean(row.GNIS_NAME_2), _cid(row.GNIS_ID_2)),
+                                (_clean(row.GNIS_NAME_3), _cid(row.GNIS_ID_3))):
+                    if nm and (nm, gid) not in seen:
+                        seen.append((nm, gid))
     return {w: tuple(v) for w, v in acc.items() if v}
+
+
+def get_lake_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
+    """wbk -> gazette ``(name, gnis_id)`` pairs for lakes/manmade (usually empty; ~96.7% of lakes are
+    unnamed -> display falls back to a threading river name). The paired gnis id lets a lake node
+    carry its gnis (like a stream) so gnis-keyed name variants / overrides resolve onto it."""
+    return _gnis_name_pairs(fwa, ("lakes", "manmade"), bbox)
+
+
+def get_wetland_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
+    """wbk -> gazette ``(name, gnis_id)`` pairs for NAMED wetlands (marshes/ponds/sloughs). Wetlands
+    are NOT graph nodes (streams overlay them), but named ones are regulated waterbodies a reg can
+    target (e.g. Minnekhada Marsh, Jerry Sulina Park Pond) — so they enter the registry as
+    ``kind='wetland'`` items keyed by wbk. The vast majority of the ~375k wetlands are unnamed and
+    excluded here."""
+    return _gnis_name_pairs(fwa, ("wetlands",), bbox)
 
 
 def get_mu_polys(fwa: FWADataAccessor) -> dict:
@@ -170,6 +194,9 @@ def main() -> None:
     ap.add_argument("--border", action="store_true",
                     help="split cross-border BLKs at the BC outline + flag out-of-BC pieces "
                          "(auto-on with --full; off for small inland bboxes to stay fast)")
+    ap.add_argument("--no-border", action="store_true",
+                    help="force-skip the border stage even under --full (the bc_outline WMU union + "
+                         "cross-border split is slow; irrelevant to registry item names/MUs)")
     ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
     ap.add_argument("--tributaries-of", metavar="NAME|BLK",
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
@@ -223,7 +250,7 @@ def main() -> None:
     fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
 
     # Border pass FIRST (like lakes, but via splits) so curated points can pick up border splits.
-    if args.border or args.full:
+    if (args.border or args.full) and not args.no_border:
         from pipeline.splits.border import apply_border
         print("applying BC border splits (cross-border BLKs) ...")
         n_bsplits, n_flagged = apply_border(fwa, graph, geoms, chains, fid_index)
@@ -266,28 +293,30 @@ def main() -> None:
               f"boundaries) -> {len(graph.nodes)} nodes")
         _tick("curated splits")
 
-    # Blanket area closures (area_splits.json) — cut ALL streams crossing each admin polygon
+    # Blanket area closures (areas.json) — cut ALL streams crossing each admin polygon
     # (national parks, ecological reserves, the Chilkoot trail) at first-enter/last-exit + flag
     # inside reaches. Runs BEFORE name variants (so cut pieces get named); a no-op where the bbox
     # hits no such area.
     from pipeline.splits.area_splits import load_area_split_defs, load_area_polys, resolve_area_splits
     area_defs = load_area_split_defs()
+    catalog_polys: dict[str, dict] = {}                # {area_def id: {name: polygon}} for the lazy catalog
     if area_defs:
-        from pipeline.splits.border import mark_inside_area
         from pipeline.splits.sectionizer import split_graph_at
-        n_area_cuts = 0
         for ad in area_defs:
             polys = load_area_polys(fwa, ad, bbox=bbox)
             if not polys:
                 continue
-            apts = resolve_area_splits(polys, chains)
-            split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
-            for name, poly in polys.items():
-                mark_inside_area(graph, geoms, poly, name)
-            n_area_cuts += len(apts)
-            print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
-        if n_area_cuts:
-            _tick("blanket area splits")
+            catalog_polys[ad["id"]] = polys
+            if ad.get("cut", True):                    # `cut` flag is the SOLE cut trigger (default on)
+                apts = resolve_area_splits(polys, chains)
+                split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
+                print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
+            else:
+                print(f"  area '{ad['id']}': {len(polys)} polygon(s), membership-only (no cut)")
+        # LAZY membership (DECISION 2026-08-16): NO eager `mark_inside_areas` pass. Membership
+        # (intersects + feature_types) is computed at RESOLVE time for the few areas a reg references.
+        # Cutting above stays at build (geometry). The catalog (polygons only) is written below.
+        _tick("blanket area splits (cut only)")
 
     # Attach compiled name variations (docs/13) to nodes — AFTER splits so reach targets hit pieces.
     from pipeline.graph.names import apply_name_variants, load_name_variants
@@ -302,6 +331,32 @@ def main() -> None:
     write_artifact(chains, str(out / "blk_chains.pkl"))
     write_artifact(graph, str(out / "graph.pkl"))
     write_artifact(geoms, str(out / "geometries.pkl"))
+
+    # Registry (parser truth) — build from the finalized graph + persist, so the parser tools
+    # (matcher / batch_exporter / ingest) never need to rebuild the graph from the ~10GB FWA data.
+    from pipeline.registry import add_mu_sets, add_waterbody_items, build_registry
+    from pipeline.registry import write_registry
+    registry = build_registry(graph)
+    print(f"  registry: {len(registry)} named items")
+    # Named waterbodies the graph alone misses: isolated named lakes/reservoirs with no through-stream
+    # (never noded, e.g. Frazer Lake) and wetlands (never noded). Add them from the FWA layers so a reg
+    # can target them by name or a curated wbk/gnis pin.
+    n0 = len(registry)
+    registry = add_waterbody_items(registry, lake_names, "lake")
+    n_lakes = len(registry) - n0
+    registry = add_waterbody_items(registry, get_wetland_names(fwa, bbox), "wetland")
+    print(f"  + {n_lakes} isolated named lake item(s) + {len(registry) - n0 - n_lakes} named wetland item(s)")
+    _tick("build_registry")
+    registry = add_mu_sets(registry, geoms, get_mu_polys(fwa))
+    _tick("add_mu_sets")
+    write_registry(registry, out / "registry.json")
+    print(f"  registry -> {out / 'registry.json'}")
+    # Lazy area catalog (polygons only; membership computed at resolve time) — see DECISION 2026-08-16.
+    if catalog_polys:
+        from pipeline.splits.area_catalog import catalog_entries, write_area_catalog
+        cat = catalog_entries(area_defs, catalog_polys)
+        write_area_catalog(cat, out / "area_catalog.gpkg")
+        print(f"  area catalog: {len(cat)} referenceable area(s) -> {out / 'area_catalog.gpkg'}")
     if applied_splits:
         from pipeline.splits.splits import write_resolved
         write_resolved(applied_splits, str(out / "splits.resolved.json"))

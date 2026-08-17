@@ -1,6 +1,6 @@
 """Load splits.json, resolve anchors, and write back splits.resolved.json (04).
 
-Authored splits live in a curated splits.json (see splits.example.json / splits.schema.md).
+Authored splits live in a curated splits.json (schema: the SplitDef fields consumed by `_from_dict`).
 Resolution (anchor -> route measure per targeted BLK) happens in the `sections` step, after
 the topology graph exists; `resolve_splits` uses anchors.py and is a stub until then.
 `load_split_defs` is implemented so the schema is validated at authoring time.

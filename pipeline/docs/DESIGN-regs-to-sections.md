@@ -545,3 +545,307 @@ an explicit id. Self-mouth confluences (a river's own mouth into a larger one) k
 `locator_text`) — "log boom", "signs at the tail of the canyon pool" — NOT the reference landmark in
 `offset.anchor_label` ("IPP dam"). The offset carries the distance, so the "~N m up/downstream of X"
 clause is stripped from the label. (Fixes the Kokish IPP mislabels + the apparent offset/id swap.)
+
+## DECISION 2026-08-15 — areas: membership DECOUPLED from cutting (lazy catalog)
+
+**Supersedes** the doc's earlier "areas are eager registry items" model. Two roles, and the **`cut` flag
+in `areas.json` (renamed from `area_splits.json`) is the SOLE cut trigger** — not any "is it a full
+closure" semantics:
+
+- **`cut: true`** — split streams at the boundary (inside-only) *and* stay eager (`in_areas` → registry
+  area items). Today: national parks, ecological reserves, Chilkoot, `land_access` where `restriction_level='closed'`.
+- **`cut: false` (membership-only)** — a reg targets the area via override → the rule attaches to **every
+  feature intersecting** the polygon (any part inside counts; no cut). New layers: all `parks_bc`, `wma`,
+  all `land_access` levels (Malcolm Knapp incl.), named `watersheds` (Liard incl.), `historic_sites`.
+
+**Lazy catalog (not eager membership).** The build writes a lightweight **area catalog** —
+`{area_id, name, kind, polygon}` only, NOT per-area section lists (`pipeline/splits/area_catalog.py` →
+a gpkg layer). Membership (intersects + `feature_types` filter) is computed at **resolve time**, only
+for the few areas a reg references — so the registry stays lean and the build fast, yet any area (Liard
+included) is referenceable. `area_id = area:{kind}:{slug}` (collision-safe).
+
+**Areas are override-only** — never auto-matched (the matcher skips `area:` items). An override points a
+row at an `area_id`; a rule binds `within(area, feature_types=[stream|lake|…])`. Wetlands are deferred
+(not graph nodes).
+
+## Datatype drift since the "Data types" section (2026-08-14/15)
+
+The Entry/Rule/Extent shapes now carry more than the doc's §"Data types" lists — reconcile there later:
+- **`Rule`** adds `display_location` (user-facing, curator-editable, non-verbatim), `unresolved_locators`
+  (unbound locator phrases → forces `needs_review`), `species` (codes; validated vs `pipeline/parsing/species.py`),
+  and `date_windows()` (structured, validated from verbatim `dates` — hallucination guard).
+- **`Extent`** adds `feature_types` (op=within only).
+- **`Entry`** adds `locked` (human-freeze; re-parse must not overwrite).
+- **Matcher/overrides** live in **`pipeline/matching/`** (`matcher.py` + `overrides.json`, migrated from
+  the archive, `name_variants` dropped). Overrides are region/MU-scoped: `{norm_name: [{region, mus,
+  item_ids|skip|alias_of}]}`.
+
+## Session structural cleanup (2026-08-15, no logic changes)
+
+- `pipeline/models.py` → **`pipeline/models/` package** (enums · names · chains · graph · splits ·
+  sections · regs · registry), re-exported from `__init__` so all imports are unchanged.
+- `pipeline/parsing/` prompts/docs → `pipeline/parsing/prompts/`.
+- **Perf:** border uses a vectorized `covered_by` prefilter; area membership uses one STRtree batch
+  (`mark_inside_areas`); build cuts-then-marks-once. (Border stage still gated on the `bc_outline`
+  WMU-union cost — flagged for a follow-up: STRtree tiling or a simplified/cached province outline.)
+
+---
+
+## PLAN 2026-08-16 — the MATCHER + RESOLVER flow (nailed down)
+
+This section is the authoritative flow for **Goal 1** (parser gets, per entry, its registry item(s) +
+their splits menu) and **Goal 2** (every entry resolves to the exact sections/polygons it governs). It
+supersedes the scattered "layer 5 / match" notes above where they conflict.
+
+### The one principle (removes the "double matching" confusion)
+
+There is **ONE match**: `reg identity (name, region, mus) → registry item(s)`. It runs once, its result
+is frozen on the entry as `matched: [registry_id]`, and it is used at two TIMES:
+- **pre-parse** — to hand the parser the matched item(s) + their **boundary menu** (splits) so it can
+  bind rule `extents`;
+- **resolve** — the frozen `matched` + the parsed rules → sections.
+
+The matcher only ever picks the **item(s)**. *How much* of an item a rule covers (whole / a reach /
+tributaries / inlet-outlet / within an area) is **SCOPE**, applied by the **resolver** via `Op`s —
+never by the matcher. This is what keeps the matcher simple.
+
+### Layer A — Registry gains `ref_ids` (the id bridge) — ✅ IMPLEMENTED 2026-08-16
+
+Each `RegistryItem` records **every FWA id it answers to** (`registry/build.py:_ref_ids`). **Streams**
+answer to `gnis` (own + name-tuple) + trimmed `wsc` + `blk`. **Lakes/wetlands answer to `gnis` + `wbk`
+ONLY** — a lake node also carries the through-river's `wsc`/`blk`, and emitting those would let a
+*stream* override's `wsc`/`blk` pin false-match the lake (the 2026-08-16 fix). E.g. the Ballon lake item
+answers to `{wbk:329480864, gnis:18257}` (gnis present because lake nodes carry it — the 2026-08-15
+lake-gnis fix), **not** its through-river wsc. The matcher builds `id_index: ref_id → item_id` once
+(`build_id_index`). **This is the whole "override re-resolution" story** — a curated `gnis:18257` pin
+resolves to the lake item by index lookup; no data rewrite, no fuzzy matching. Validation: 417/431
+typed-id overrides fully resolve; the dead tail is nameless features + version-drift (below).
+
+### Layer B — Override format = the archive schema — ✅ IMPLEMENTED 2026-08-16
+
+`pipeline/matching/overrides.json` is the **archive file verbatim** (a LIST of 480 override objects):
+`{type, criteria: {name_verbatim, region, mus}, note, skip, skip_reason, variant_of, gnis_ids,
+waterbody_keys, fwa_watershed_codes, blue_line_keys, linear_feature_ids, waterbody_poly_ids,
+admin_targets, admin_feature_types, only_within_zones, ungazetted_waterbody_id/location}`. The archive is
+the **origin** of the old flattened dict file — every one of that file's 65 "extra" names traced back to
+an archive entry (base-name re-keys + gnis-shared duplicates the migration generated), so nothing was
+hand-curated after migration and there is nothing to merge. The lossy flattened dict file is retired.
+`name_variants` is NOT here (it names features in the graph — see below).
+
+**Overrides vs name_variants (division of labour).** An override pins an *identity→ids* decision
+(region/MU disambiguation, skip, a curated id). Getting a *nameless* FWA feature to carry a name is
+`name_variants`' job (it attaches names to graph nodes at build). So a reg's water gets a registry item
+three ways, in order: (1) FWA already names it → node/layer item; (2) it's a named FWA lake/wetland with
+no through-stream → added from the layer (`add_waterbody_items`, e.g. Frazer Lake); (3) it's an in-graph
+nameless feature (oxbow side-channels) → a `name_variants` entry names it → it becomes an item. Overrides
+then only carry disambiguation/skip/curation, not basic resolution.
+
+### Layer C — the matcher: override → name, never guesses — ✅ IMPLEMENTED 2026-08-16
+
+`match_row(...) -> MatchResult{ item_id, status, via, also, unresolved_ids, admin_targets, … }`
+
+1. **Override** (keyed by `norm(name_verbatim)`, scoped by region + `mus`):
+   - `skip` → status `skip` (carry `skip_reason`; note `variant_of` if present).
+   - `variant_of` without skip → resolve the curator's **corrected** name by name lookup (`override_alias`).
+   - typed ids (`gnis_ids`/`waterbody_keys`/`fwa_watershed_codes`/`blue_line_keys`) → each through
+     `id_index`. Any that hit a NAMED item → status `override` (multi = combined via `also`). Ids that
+     hit nothing are carried in `unresolved_ids`.
+   - If **none** of the typed ids / `admin_targets` land a named item → status **`feature_pin`**
+     (`via=override_feature`): the curated ids describe **nameless features** (oxbow channels by wsc,
+     unnamed lakes by wbk), admin/area zones, or poly/fid pins → **deferred to the resolver** (Goal 2),
+     which has the full graph and binds them to sections directly. This is *not* a name fallback — the
+     matcher never guesses by name when an override pinned specific ids. The resolver fails loud if a
+     pinned id is truly absent (version-drift), distinguishing that from nameless-by-design.
+2. **Name auto-match** (no override): `norm(name)` → `name_index` → disambiguate by `item.mus ∩ row.mus`
+   (region fallback) → **unique → matched**. Multi-hit → `ambiguous` (curate). None → `unmatched`.
+
+> **Why `feature_pin` replaced `override_dead`:** the old rule failed loud on *any* unresolved pin, but
+> the biggest "dead" cluster (Okanagan-oxbows: 26 wsc for nameless side-channels) is **correct curation**
+> of features that by design have no named registry item. Those belong to the resolver, not a matcher
+> error. The safety property is unchanged: **an override never silently falls back to name matching.**
+
+**Areas are override-only** (the matcher never name-auto-matches an `area:` item). **Named wetlands**
+(marshes/ponds/sloughs) are now `kind="wetland"` registry items (wbk-keyed) so a reg can target them by
+name or a curated `wbk`/`gnis` pin — they are NOT graph nodes (a stream overlays them), added at build
+via `add_wetland_items`.
+
+### Layer D — how AREA / LAKE / TRIBUTARY / INLET-OUTLET regs are treated
+
+The matcher picks the item; the **resolver** applies scope. Table of the tricky kinds:
+
+| reg says | matcher picks | scope (entry/rule) | resolver yields |
+|---|---|---|---|
+| "Ballon Lake" | `wbk:` lake item | `whole` | the lake section(s) |
+| "X Lake's tributaries" | the lake item | `tributaries.only=true` | `lake_tributaries(lake)` (drops through-mainstem) |
+| "X Lake inlet & outlet streams" | the lake item | rule `op=inlet_outlet` *(NEW op)* | `lake_inlets ∪ lake_outlets` |
+| "River, incl. tributaries" | the stream item | `tributaries.included=true` | item sections + ancestor closure |
+| "River between A and B" | the stream item | `between(a,b)` | that reach |
+| "all waters in Creston Valley WMA" | `area:` item (override `admin_targets`) | `within(area, feature_types)` | every section INTERSECTING the polygon, filtered by `feature_types` (stream/lake). "inside at all" = intersects |
+| "all lakes in Kikomun Park" | `area:` item | `within(area, feature_types=[lake])` | intersecting sections where `is_lake` |
+
+The parser sets `tributaries.only` / `.included` from the "tributaries"/"watershed" wording; `within`
+comes from an override's `admin_targets`. So **"X Lake's tributaries" is NOT an unmatched row** — it
+matches the LAKE, with a trib scope. (`inlet_outlet` is the one new `Op` to add; the tributary and
+lake-inlet/outlet mechanisms already exist and are tested in `pipeline/graph/tributaries.py`.)
+
+### Layer E — the parser context (Goal 1): the splits menu per entry
+
+Pre-parse, for each row: matcher → item(s); then emit the parse unit:
+```jsonc
+{ "identity": {name, region, mus}, "regs_verbatim": "…",
+  "matched": [ { "id": "gnis:chemainus", "name": "Chemainus River", "kind": "stream",
+                 "boundaries": [ {id, label, kind}, … ],   // curated splits + lake edges + outlet/headwaters
+                 "is_lake": false } ],
+  "ops": ["whole","upstream_of","downstream_of","between","within","inlet_outlet"] }
+```
+- **stream** → its boundary list is the menu the parser binds `extents` against.
+- **lake** → the lake + its inlet/outlet boundary refs (for "inlet streams") + through-river.
+- **area** → the area item; rules use `within(area, feature_types)` (no boundary menu).
+
+Binding a rule is a **constrained selection** among provided boundary ids / ops — robust and cheap.
+
+### Layer F — locking the frozen parse (re-parse must never clobber curation)
+
+Two guards, belt-and-suspenders:
+- **Per-entry** `Entry.locked: bool` (already in the model) — the merge tool applies a re-parse only to
+  **unlocked** entries; a locked entry's changes are reported for manual review, never auto-written.
+- **Per-file lock** — a sidecar `pipeline/parsing/entries/region-N.json.lock` (presence = locked). The
+  ingest/writer **refuses to overwrite** a locked region file at all; only the explicit merge tool may,
+  and only into unlocked entries. This makes "the parse is a one-time frozen artifact" enforceable, not
+  just conventional. (A `parsing/entries/LOCKED` manifest listing locked regions is the equivalent.)
+
+### Updated data flow
+
+```
+FWA + splits.json + name_variants ─► GRAPH BUILD ─► sections + REGISTRY
+                                                     items{ id, name, variants, kind,
+                                                            ref_ids{gnis,wbk,wsc,blk}, boundaries, mus }
+raw regs (rows) ──► MATCHER ────────────────────────► row.matched:[registry_id] (+area/scope)
+   (id_index + name_index over registry; overrides = archive schema; areas override-only)
+                          │
+              pre-parse:  └─► per-entry SPLITS MENU (matched item(s)'s boundaries) ─► PARSER (Claude Code)
+                                                                                         │
+                                                          FROZEN entries (rules: op+split refs, scope,
+                                                          species, dates)  ◄── LOCK (Entry.locked + region .lock)
+                                                                                         │
+entries + registry + sections ──► RESOLVER ──► SectionRegs (+ CoverageReport)
+   per entry: matched items → their sections (+ derived tribs / within-area membership / inlet-outlet),
+   each rule's extents select sections by Op. matched is FROZEN; matcher re-runs only for new/unlocked rows.
+```
+
+### Build order (dependency-sorted)
+
+1. **Registry `ref_ids`** (Layer A) — small addition to `RegistryItem` + `build_registry`.
+2. **Override schema swap** (Layer B) — adopt archive shape; matcher reads typed ids via `id_index`.
+3. **Matcher rewrite** (Layer C/D) — three tiers, id+name index, scope-agnostic; coverage over it.
+4. **Parser context** (Layer E) — batch_exporter emits the per-entry boundary menu (already close).
+5. **Lock** (Layer F) — `.lock` file honoured by ingest + the merge tool.
+6. **Resolver** (Goal 2) — `Entry × registry × sections → SectionRegs`; area membership at resolve time
+   (folds in the **lazy area-catalog** — the area catalog is *part of the resolver*, not a separate step).
+7. **`inlet_outlet` Op** + precedence rule + merge tool.
+
+### Area kinds — one `within(area)` op, composed three ways (2026-08-16)
+
+The key realization: there is **one** area op, `within(area, feature_types)`; the "different area types"
+are just **what the entry matched**, and the resolver **composes** by intersection. No separate
+mechanisms, no manual tributary enumeration.
+
+| kind | example | entry.matched | scope | resolver yields |
+|---|---|---|---|---|
+| **blanket** | "no fishing, any stream in X Ecological Reserve" | `[area:reserve:x]` (override `admin_targets`) | `within(area)` | **all** sections intersecting the polygon (`feature_types` filter) |
+| **system-scoped** | "no fishing in Garibaldi Park" *for this river + tribs* | `[gnis:river]` + `tributaries.included` | rule `within(area:park:garibaldi)` | (river sections + **tributary ancestor closure**) **∩** the park polygon |
+| **watershed** | "Liard River watershed" | `[gnis:liard]` + `tributaries.included` | `whole` | the river + its full tributary closure — **NO area polygon needed** |
+
+Why this works:
+- **The resolver's base set for an entry = its matched items' sections (+ tributary ancestor closure if
+  `tributaries.included`).** Each rule extent then *filters* that base. `within(area)` filters the base
+  to sections intersecting the area polygon.
+  - blanket: matched IS the area → base = the area's members → `within` is the identity.
+  - **Garibaldi: matched is the WATER → base = river+tribs → `within(park)` = river+tribs ∩ park.** The
+    tributary sections inside the park fall out of `ancestor-closure ∩ polygon` — **never enumerated by
+    hand.** A curator only sets `tributaries.included` + the `within(area)` extent.
+- **Cutting makes "inside the park" clean.** Garibaldi and reserves are `cut:true` areas: streams are cut
+  at the boundary at BUILD (geometry), so an inside section is a first-class node and the intersection is
+  exact (no half-in straddling section closed wholesale). Cutting stays at build; membership stays lazy.
+- **Watersheds are NOT areas.** "Liard watershed" = the drainage = the river's tributary ancestor closure
+  — expressed as `matched:[gnis:liard] + tributaries.included + whole`. No polygon, no lazy-membership
+  over a giant polygon. (A topographic-watershed *polygon* is only needed if a reg ever scopes by the
+  drainage boundary rather than the network — none seen; revisit if one appears.)
+
+**So lazy membership is viable everywhere:** the only areas that need a polygon are blanket + system-scoped
+closures (parks/reserves/WMAs), all `cut:true`, all in the catalog; membership is computed at resolve only
+for the few an entry references. Watersheds sidestep areas entirely. This resolves D2 (see below).
+
+### Matcher rewrite — detailed plan (2026-08-16)
+
+The current matcher hits only ~81%. That is **not** a matching-logic failure — the archive matched ~all
+rows because its curated overrides pinned ids that existed then. Our lossy migration broke those ids, so
+the fix is to restore them, not to invent new matching.
+
+**Four concrete flaws → fixes:**
+1. **Reads the flat/lossy overrides.** → Adopt the **archive schema** natively (`criteria`, typed id
+   fields, `skip_reason`, `variant_of`, notes). Retire the flattened file.
+2. **No id resolution.** → `RegistryItem` exposes **`ref_ids`** = every `gnis`/`wbk`/`wsc`/`blk` id its
+   member nodes carry (lakes now carry gnis). The matcher builds `id_index: ref_id → item_id` once.
+3. **Format drift** kills valid pins. → Normalize at override-load: `wsc` trailing-zero trim
+   (`930-…-000000…` → `wsc:930-…`), `waterbody_poly_id → wbk`, `linear_feature_id → blk`.
+4. **Silent drops.** → Pre-resolve every override id at LOAD; anything still unresolved is surfaced as a
+   loud curation signal (never a name fallback, never dropped).
+
+**Algorithm (one function, three tiers):**
+`match(identity{name_verbatim, region, mus}) → {items:[registry_id], status, via, note}`
+1. **Override** (by `norm(name_verbatim)` + region∩mu): `skip`→skip(+reason); `variant_of`→canonical's
+   ids; typed ids→`id_index` (pre-resolved); `admin_targets`→area id(s). Dead id → loud.
+2. **Name auto** (no override): `norm(name)`→`name_index`→candidates→MU-disambiguate→**unique**→matched;
+   multi→ambiguous (curate).
+3. **Unmatched** → coverage.
+Areas are override-only (never name-auto-matched). Scope (whole/tribs/within/…) is the resolver's, never
+the matcher's.
+
+**Validation FIRST (before the full rewrite).** Build `ref_ids` + `id_index` (Layer A), load the
+**archive** overrides through it, run `coverage`. This shows the *real* number empirically. Expectation:
+~archive coverage (~98–100%). If it lands there → proceed to the full rewrite; if not → the coverage
+table names exactly which typed ids still don't resolve, and we plan from data. Order: **A (ref_ids) →
+validate → B (archive overrides) → C (matcher) → coverage**.
+
+### Reach-variant as a split-source — worked example (Rainbow Alley)
+
+A reach-scoped name-variant needs its reach to be a real section. Data flow, using the real case:
+`{target:{blks:["360886970"]}, reach:{from_m:108816, to_m:111116}, names:[{name:"Rainbow Alley"}]}`
+(the Babine River reach between Babine Lake and Nilkitkwa Lake).
+
+- **Aligned case (today):** Babine Lake (upstream) and Nilkitkwa Lake (downstream) are lake nodes, so
+  their edges already cut BLK 360886970 at ≈108816 and ≈111116. The piece `[108816,111116]` already
+  exists → the name attaches to exactly that reach. No cut, no warning.
+- **Unaligned case (the concern):** suppose "Foo Reach" is `blk X reach [5000,8000]` but BLK X is one
+  piece `[0,20000]` (no split there). Today the name would paint the whole `[0,20000]` piece → **warning**.
+- **The clean fix (snap-or-cut in the SPLIT stage, not the name pass):**
+  1. The reach bounds `5000, 8000` are emitted as **SplitPoints into the split stage** (alongside
+     `splits.json`), *before* border/area/name.
+  2. `split_graph_at` applies them with **proximity-pickup**: `5000` — if an existing boundary (lake
+     edge / curated split) sits within tolerance, **snap** (relabel it, no duplicate cut); else **cut**
+     a new section. Same for `8000`.
+  3. BLK X becomes `[0,5000],[5000,8000],[8000,20000]`; the middle is a discrete piece.
+  4. The **name pass** then attaches "Foo Reach" to that exact piece.
+
+Why this is safe: **cutting stays in the split stage** (where border/area also run, so a newly-cut piece
+is still flagged), and **names stay in the name pass** — no "names create geometry after the geometry
+passes" coupling. Snap-or-cut ("try existing splits first, else add one within a tolerance") falls out of
+the split stage's existing `_pickup` logic. *Status: designed; today we WARN (reach-variants are rare, 0
+misaligned). Implement the split-source path when a real misalignment appears.*
+
+### Decisions (2026-08-16)
+
+- **D1 — reach-scoped names sharing a parent gnis (Sicamous Narrows) → RESOLVED: parent item + reach
+  scope.** Keep gnis-first grouping; a reach-named variant stays a named boundary within the parent
+  item; matching its name resolves to the parent, scoped to that reach. (McArthur Slough has no gnis →
+  already its own `blk:` item.)
+- **D2 — area membership: lazy vs eager → LAZY (pending user confirm).** The Garibaldi concern is handled
+  by *composition* (`within(park)` ∩ matched water+tribs) + *cut-at-build*, and watersheds sidestep areas
+  (matched river + tribs). So lazy membership (catalog of polygons; membership computed at resolve for the
+  few referenced areas) works for every case without manual tributary enumeration. Retire the eager
+  `in_areas` pass; fold membership into the resolver.
+- **D3 — override format → RESOLVED: adopt the archive schema wholesale** (Layer B); retire the flat
+  migrated file.
+- **D4 — lock mechanism → RESOLVED: per-entry `Entry.locked` only** (no per-region `.lock` file). The
+  merge tool honours `locked` and never overwrites a locked entry; discipline over a file-level guard.

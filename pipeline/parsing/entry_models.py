@@ -23,6 +23,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from pipeline.parsing.dates import DateWindow, date_parse_errors, parse_date_windows
+from pipeline.parsing.species import KNOWN_SPECIES_CODES
+
 
 # ---------------------------------------------------------------------------
 # Shared enum + verbatim-validation normalizers (self-contained; the Gemini
@@ -59,6 +62,9 @@ def _normalize_date(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+_FEATURE_TYPES = frozenset({"stream", "lake", "wetland"})
+
+
 class Op(str, Enum):
     """How a rule/scope selects sections from the matched item's reach."""
 
@@ -81,8 +87,13 @@ class Extent(BaseModel):
     op: Op
     splits: List[str] = Field(default_factory=list, description="curated split ids this extent binds to")
     item: Optional[str] = Field(default=None, description="registry id, if this extent scopes a different item")
-    area: Optional[str] = Field(default=None, description="area/park name or registry id (op=within)")
+    area: Optional[str] = Field(default=None, description="area id (op=within), e.g. 'area:watershed:liard_river'")
     kind: Optional[str] = Field(default=None, description="admin feature kind (op=within), e.g. 'park'")
+    feature_types: List[str] = Field(
+        default_factory=list,
+        description="op=within only: restrict the area's members to these feature kinds "
+        "(subset of stream/lake/wetland); empty = all features inside the area",
+    )
 
     @model_validator(mode="after")
     def _check_arity(self) -> "Extent":
@@ -95,6 +106,12 @@ class Extent(BaseModel):
             raise ValueError(f"op whole takes no split ids, got {n}")
         if self.op == Op.WITHIN and not (self.area or self.splits):
             raise ValueError("op within needs an area (or bounding split ids)")
+        if self.feature_types:
+            if self.op != Op.WITHIN:
+                raise ValueError("feature_types is only valid for op=within")
+            bad = [t for t in self.feature_types if t not in _FEATURE_TYPES]
+            if bad:
+                raise ValueError(f"invalid feature_types {bad}; allowed: {sorted(_FEATURE_TYPES)}")
         return self
 
 
@@ -134,6 +151,26 @@ class Rule(BaseModel):
     rule_text: str = Field(..., description="exact contiguous substring of regs_verbatim for this rule")
     location_text: str = Field(default="", description="verbatim phrase the extents came from ('upstream of X')")
     exception: str = Field(default="", description="verbatim carve-out qualifying THIS rule (⊆ rule_text)")
+    display_location: str = Field(
+        default="",
+        description="human-readable, USER-FACING reach label (e.g. 'Above Talchako River confluence'). "
+        "NOT verbatim-constrained and curator-editable — unlike location_text (verbatim provenance). Lets "
+        "a rule keep a readable location for the app even when its extents fall back to whole-stream "
+        "(locator unresolved). The output layer shows this, falling back to location_text when empty.",
+    )
+    unresolved_locators: List[str] = Field(
+        default_factory=list,
+        description="verbatim locator phrases the parser could NOT bind to a split/boundary (e.g. "
+        "'the outlet', 'signs 500 m below the falls'). Non-empty forces needs_review — the hand-curation "
+        "queue maps each to a curated split id. A rule still parses (restriction + display_location); the "
+        "unbound locator is recorded here, never silently dropped.",
+    )
+    species: List[str] = Field(
+        default_factory=list,
+        description="species codes this rule applies to (pipeline/parsing/species.py); empty = ALL "
+        "species. Validated against the known BC species table so an unrecognized code surfaces as an "
+        "error rather than being stored silently wrong.",
+    )
 
     @model_validator(mode="after")
     def _validate_chain(self) -> "Rule":
@@ -158,6 +195,8 @@ class Rule(BaseModel):
                 errors.append(f"Date '{date}' contains newlines/asterisks")
             elif _normalize_date(date) not in _normalize_date(self.rule_text):
                 errors.append(f"Date '{date}' not found in rule_text. Rule: '{self.rule_text[:100]}'")
+        # every verbatim date must resolve to a real calendar window (hallucination guard)
+        errors.extend(date_parse_errors(self.dates))
 
         # binding completeness: a confidently-parsed rule must express its reach somehow
         if not self.needs_review and not self.extents and not self.sections_override:
@@ -166,9 +205,23 @@ class Rule(BaseModel):
         if self.needs_review and not self.review_reason.strip():
             errors.append("needs_review is True but review_reason is empty")
 
+        # an unbound locator must go to review, never masquerade as a confident parse
+        if self.unresolved_locators and not self.needs_review:
+            errors.append("unresolved_locators is set but needs_review is False — an unbound locator "
+                          "must be flagged for review, not stored as a confident binding")
+
+        bad_species = [s for s in self.species if s not in KNOWN_SPECIES_CODES]
+        if bad_species:
+            errors.append(f"unknown species code(s) {sorted(bad_species)} — not in pipeline/parsing/species.py")
+
         if errors:
             raise ValueError("; ".join(errors))
         return self
+
+    def date_windows(self) -> List[DateWindow]:
+        """The structured form of `dates`, derived deterministically from the verbatim strings
+        (validated to parse at construction time). Empty = the rule has no seasonal window."""
+        return parse_date_windows(self.dates)
 
 
 # ---------------------------------------------------------------------------
@@ -298,3 +351,21 @@ def validate_entry_splits(entry: Entry, allowed_split_ids: set[str]) -> List[str
     for rule in entry.rules:
         _check(rule.extents, f"entry {entry.entry_id} rule {rule.rule_id}")
     return errors
+
+
+def unused_splits(entry: Entry, allowed_split_ids: set[str]) -> List[str]:
+    """ADVISORY coverage check (not an error): curated split ids for the matched item that no extent
+    references. A parse that leaves splits unused may have missed a reach — surfacing them guards the
+    worst failure mode, a wrong parse stored as confident. Some unused splits are legitimate (consumed
+    by a tributary rule or a different entry), so the caller warns rather than rejecting."""
+    used: set[str] = set()
+
+    def _collect(extents: List[Extent]) -> None:
+        for ex in extents:
+            used.update(ex.splits)
+
+    _collect(entry.scope)
+    _collect(entry.tributaries.excludes)
+    for rule in entry.rules:
+        _collect(rule.extents)
+    return sorted(allowed_split_ids - used)
