@@ -218,6 +218,33 @@ def add_waterbody_items(registry: dict[str, RegistryItem], names: dict[str, tupl
     return registry
 
 
+def add_curated_wbk_items(registry: dict[str, RegistryItem], name_variants: list[dict]) -> dict[str, RegistryItem]:
+    """Mint registry items for waterbodies named ONLY by curation. A `name_variants` entry can target a
+    wbk that is an ISOLATED, FWA-UNNAMED lake — no through-stream (so no graph node) and not picked up by
+    `add_waterbody_items` (which only adds FWA-NAMED lakes). Such a wbk has no object for its curated name
+    to attach to (e.g. Redstart Lake's 2nd polygon). Treat a name_variants name as making the wbk 'named':
+    add an item keyed by wbk with the curated name so a `waterbody_keys` override resolves to it and it is
+    searchable. Runs AFTER `add_waterbody_items` so richer FWA/graph items always win. ref_ids = the wbk
+    (enough for a wbk pin); kind defaults to lake. Mutates + returns."""
+    for e in name_variants:
+        t = e.get("target", {})
+        wbks = list(t.get("wbks", [])) + ([t["wbk"]] if t.get("wbk") else [])
+        names = [n["name"] for n in e.get("names", []) if n.get("name")]
+        if not wbks or not names:
+            continue
+        disp = next((n["name"] for n in e["names"] if n.get("name") and n.get("display")), names[0])
+        for w in wbks:
+            iid = f"wbk:{w}"
+            if iid in registry:                          # a graph node / FWA-named item already owns it
+                continue
+            registry[iid] = RegistryItem(
+                id=iid, name=disp, kind="lake",
+                variants=tuple(sorted(set(names))),
+                ref_ids=(f"wbk:{w}",),
+            )
+    return registry
+
+
 def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
                 mu_polys: dict) -> dict[str, RegistryItem]:
     """Enrich NAMED stream/lake items with the SET of MUs their geometry passes through (line/area ×

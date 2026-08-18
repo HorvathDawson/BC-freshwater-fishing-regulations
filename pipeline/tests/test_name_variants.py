@@ -80,3 +80,13 @@ def test_display_case_rules():
     assert _display_case("McArthur Island Slough") == "McArthur Island Slough"
     assert _display_case("LONG LAKE") == "Long Lake"
     assert _display_case("UPPER ARROW L.") == "Upper Arrow Lake"
+
+
+def test_reach_proximity_ignores_sub_metre_boundary_touch():
+    # A reach ending 0.5 m into the upper piece [200,300] must NOT name it (rounded-measure bleed);
+    # the lower piece [0,100] with full overlap IS named. Guards the reservoir-reach 0.01 m leak.
+    g = _graph()
+    apply_name_variants(g, [{"target": {"blks": ["X"]}, "reach": {"from_m": 0, "to_m": 200.5},
+                             "names": [{"name": "Lower Reach", "source": "regulation", "display": True}]}])
+    assert g.nodes["X:0"].display_name == "Lower Reach"        # full overlap -> named
+    assert g.nodes["X:200"].display_name != "Lower Reach"      # 0.5 m touch -> NOT named

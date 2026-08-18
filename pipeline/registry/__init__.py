@@ -7,7 +7,9 @@ Two concerns, one package:
 Import from the package root: `from pipeline.registry import build_registry, load_registry`.
 """
 
-from pipeline.registry.build import add_mu_sets, add_waterbody_items, build_registry, item_id
+from pipeline.registry.build import (
+    add_curated_wbk_items, add_mu_sets, add_waterbody_items, build_registry, item_id,
+)
 from pipeline.registry.io import (
     default_registry_path,
     load_registry,
@@ -15,6 +17,7 @@ from pipeline.registry.io import (
 )
 
 __all__ = [
+    "add_curated_wbk_items",
     "add_mu_sets",
     "add_waterbody_items",
     "build_registry",

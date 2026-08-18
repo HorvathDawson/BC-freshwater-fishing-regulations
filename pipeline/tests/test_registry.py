@@ -116,6 +116,27 @@ def test_add_waterbody_items_wetland():
     assert set(item.ref_ids) == {"wbk:329291857", "gnis:5001"}
 
 
+def test_add_curated_wbk_items_names_isolated_unnamed_lake():
+    # A name_variants entry targets an isolated, FWA-unnamed wbk (no node, not added by
+    # add_waterbody_items). add_curated_wbk_items mints an item so the curated name is matchable.
+    reg = _reg()
+    nv = [{"target": {"wbks": ["329343983", "329343806"]},
+           "names": [{"name": "Redstart Lake", "source": "regulation", "display": True}]}]
+    from pipeline.registry import add_curated_wbk_items
+    add_curated_wbk_items(reg, nv)
+    it = reg["wbk:329343983"]
+    assert it.kind == "lake" and it.name == "Redstart Lake"
+    assert set(it.ref_ids) == {"wbk:329343983"}          # wbk pin resolves a waterbody_keys override
+
+
+def test_add_curated_wbk_items_skips_existing():
+    reg = _reg()                                          # has wbk:W1 (Bar Lake)
+    from pipeline.registry import add_curated_wbk_items
+    add_curated_wbk_items(reg, [{"target": {"wbks": ["W1"]},
+                                 "names": [{"name": "Renamed", "source": "regulation"}]}])
+    assert reg["wbk:W1"].name == "Bar Lake"              # existing item not overwritten
+
+
 def test_add_waterbody_items_isolated_lake():
     # An isolated named lake (no through-stream -> no graph node) is added from the layer as kind=lake,
     # carrying its gnis in ref_ids so a curated gnis override resolves to it (Frazer Lake case).

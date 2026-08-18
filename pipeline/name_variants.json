@@ -1134,7 +1134,8 @@
    {
     "name": "MINE LAKE",
     "source": "regulation",
-    "note": "Lake in MU 1-15. Also labelled as 'Main Lake' in gazette (https://www.canoevancouverisland.com/canoe-kayak-vancouver-island-directory/main-lake-canoe-chain-quadra-island/). Location found from map.; REGION 1 - Vancouver Island; MU 1-15"
+    "note": "Lake in MU 1-15. Also labelled as 'Main Lake' in gazette (https://www.canoevancouverisland.com/canoe-kayak-vancouver-island-directory/main-lake-canoe-chain-quadra-island/). Location found from map.; REGION 1 - Vancouver Island; MU 1-15 Local name; set as display over gazette 'Main Lake' (same waterbody, Main Lake group). 2026-08-17",
+    "display": true
    }
   ]
  },
@@ -4997,17 +4998,7 @@
   },
   "names": [
    {
-    "name": "UNNAMED LAKE (\"Kinglet Lake\") located 100 m west of Butterfly Lake",
-    "source": "regulation",
-    "note": "Unnamed lake locally known as \"Kinglet Lake\", 100m west of Butterfly Lake in MU 7-15. Identified via BC stocking records. Reference: https://www.env.gov.bc.ca/omineca/esd/faw/stocking/kinglet/kinglet_redstart_lakes2003.pdf; REGION 7A - Omineca; MU 7-15"
-   },
-   {
     "name": "KINGLET LAKE",
-    "source": "regulation",
-    "note": "Unnamed lake locally known as \"Kinglet Lake\", 100m west of Butterfly Lake in MU 7-15. Identified via BC stocking records. Reference: https://www.env.gov.bc.ca/omineca/esd/faw/stocking/kinglet/kinglet_redstart_lakes2003.pdf; REGION 7A - Omineca; MU 7-15"
-   },
-   {
-    "name": "KINGLET LAKE LAKE",
     "source": "regulation",
     "note": "Unnamed lake locally known as \"Kinglet Lake\", 100m west of Butterfly Lake in MU 7-15. Identified via BC stocking records. Reference: https://www.env.gov.bc.ca/omineca/esd/faw/stocking/kinglet/kinglet_redstart_lakes2003.pdf; REGION 7A - Omineca; MU 7-15"
    },
@@ -71367,90 +71358,6 @@
  {
   "target": {
    "wbks": [
-    "329291857"
-   ]
-  },
-  "names": [
-   {
-    "name": "MINNEKHADA MARSH",
-    "source": "regulation",
-    "note": "Wetland in Minnekhada Regional Park. BC Lakes Database surveys: 'Minnekhada Regional Park Inventory - 2017; SU17-270318' and 'Minnekhada Regional Park Invasives - 2016; SU16-235849'. Regulation MU 2-8."
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329177896"
-   ]
-  },
-  "names": [
-   {
-    "name": "CHEAM LAKE",
-    "source": "regulation",
-    "note": "Wetland in MU 2-3. Polygon found in FWA wetlands layer. Location found from map."
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329292590"
-   ]
-  },
-  "names": [
-   {
-    "name": "JERRY SULINA PARK POND",
-    "source": "regulation",
-    "note": "Unnamed pond in MU 2-8. Location found from map."
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329242402"
-   ]
-  },
-  "names": [
-   {
-    "name": "LOST LAKE",
-    "source": "regulation",
-    "note": "FWA has MU 6-21, regulation has MU 6-15 (boundary issue). Lake near Terrace; incorrect GNIS_ID 39158 candidate found in MU 6-21. Using specific waterbody_key for correct lake. Location: https://www.google.com/maps/place/Lost+Lake/@54.6002328,-128.6552761,4390m | Reference: https://www.cbc.ca/news/canada/british-columbia/goldfish-invasion-closes-b-c-fishing-lake-1.5184045"
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329343551"
-   ]
-  },
-  "names": [
-   {
-    "name": "UNNAMED LAKE located 100 m west of Butterfly Lake",
-    "source": "regulation",
-    "note": "Unnamed lake locally known as \"Kinglet Lake\", 100m west of Butterfly Lake in MU 7-15. Identified via BC stocking records. Reference: https://www.env.gov.bc.ca/omineca/esd/faw/stocking/kinglet/kinglet_redstart_lakes2003.pdf"
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329460964"
-   ]
-  },
-  "names": [
-   {
-    "name": "HALL ROAD POND",
-    "source": "regulation",
-    "note": "Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond ungazetted waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area."
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
     "329069402"
    ]
   },
@@ -71540,14 +71447,6 @@
  {
   "target": {
    "wbks": [
-    "329071811"
-   ]
-  },
-  "names": []
- },
- {
-  "target": {
-   "wbks": [
     "329079709"
    ]
   },
@@ -71576,14 +71475,6 @@
  {
   "target": {
    "wbks": [
-    "329657984"
-   ]
-  },
-  "names": []
- },
- {
-  "target": {
-   "wbks": [
     "329079706"
    ]
   },
@@ -71606,6 +71497,122 @@
     "name": "CHILCOTIN LAKE",
     "source": "lake_survey",
     "note": "BC lake survey; survey_id 2835"
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356570104"
+   ]
+  },
+  "reach": {
+   "from_m": 10128.194712797942,
+   "to_m": 20554.087482204424
+  },
+  "names": [
+   {
+    "name": "Seven Mile Reservoir",
+    "source": "override",
+    "note": "Dammed reach of Pend-d'Oreille River (gnis:4927). Display name only for users; the reg rows still reference the river and remain skip-ignored. Reach measures from split-cut section bounds, 2026-08-17. [Seven Mile Dam -> reservoir head]",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329262640"
+   ]
+  },
+  "names": [
+   {
+    "name": "Waneta Reservoir",
+    "source": "override",
+    "display": true,
+    "note": "Waneta Reservoir = the impounded widening (wbk:329262640) behind Waneta Dam on Pend-d'Oreille R. Display only; reg rows stay skip-ignored. 2026-08-17"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "12117",
+    "12114"
+   ]
+  },
+  "names": [
+   {
+    "name": "Bear Creek",
+    "source": "regulation",
+    "note": "Reg 'Bear (Mahood) Creek'; GNIS name Mahood Creek; two GNIS entries same waterbody (12117,12114)."
+   },
+   {
+    "name": "Mahood Creek",
+    "source": "regulation",
+    "note": "GNIS name for the reg's 'Bear (Mahood) Creek'."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329343983",
+    "329343806"
+   ]
+  },
+  "names": [
+   {
+    "name": "Redstart Lake",
+    "source": "regulation",
+    "display": true,
+    "note": "Unnamed lake locally 'Redstart Lake' (~200m SW of Butterfly Lake, MU 7-15); two polygons per BC stocking records. https://www.env.gov.bc.ca/omineca/esd/faw/stocking/kinglet/kinglet_redstart_lakes2003.pdf"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329071807",
+    "329071811"
+   ]
+  },
+  "names": [
+   {
+    "name": "Dace Lake",
+    "source": "lake_survey",
+    "note": "Dace Lake is a 2-polygon lake (Lho Lakes middle basin); both wbks are Dace Lake. Restored 2026-08-17."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329223897",
+    "329223898"
+   ]
+  },
+  "names": [
+   {
+    "name": "Nisga'a Lakes",
+    "source": "lake_survey",
+    "note": "Nisga'a (Niska) Lakes = West + East basins; both wbks are Nisga'a Lakes. Restored 2026-08-17."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329657333",
+    "329657984"
+   ]
+  },
+  "names": [
+   {
+    "name": "North Cameron Lake",
+    "source": "regulation",
+    "display": true,
+    "note": "North Cameron Lake = 2 polygons (329657333+329657984). 2026-08-17."
    }
   ]
  }

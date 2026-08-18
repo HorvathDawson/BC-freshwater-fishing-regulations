@@ -93,6 +93,39 @@ def load_name_variants(path) -> list[dict]:
     return json.loads(p.read_text()) if p.exists() else []
 
 
+_REACH_MIN_OVERLAP_M = 1.0   # a reach must overlap a section by more than this to name it (proximity)
+_REACH_SNAP_M = 50.0         # snap an authored reach bound to a section boundary within this many
+                             # route-metres (like split proximity pickup) so approximate/rounded
+                             # authored measures land exactly on the cut instead of bleeding over
+
+
+def _snap_reach(reach: dict, blks: list, idx: dict, graph: StreamGraph) -> dict:
+    """Snap reach from_m/to_m onto the nearest section boundary (any node down_m/up_m on the target
+    blks) within ``_REACH_SNAP_M``. Lets a reach be authored from an approximate coord/measure and
+    still align to the real split cut. No-op if there are no candidate boundaries or none are close."""
+    bounds: set[float] = set()
+    for b in blks:
+        for nid in idx["blk"].get(str(b), ()):
+            n = graph.nodes[nid]
+            bounds.add(n.down_m)
+            bounds.add(n.up_m)
+    if not bounds:
+        return reach
+
+    def snap(v):
+        if v is None:
+            return v
+        near = min(bounds, key=lambda x: abs(x - v))
+        return near if abs(near - v) <= _REACH_SNAP_M else v
+
+    r = dict(reach)
+    if r.get("from_m") is not None:
+        r["from_m"] = snap(r["from_m"])
+    if r.get("to_m") is not None:
+        r["to_m"] = snap(r["to_m"])
+    return r
+
+
 def _as_list(target: dict, singular: str, plural: str) -> list:
     """Accept either a singular key (blk) or a plural list (blks) in a target."""
     return list(target.get(plural, [])) + ([target[singular]] if target.get(singular) else [])
@@ -106,7 +139,11 @@ def _node_matches(node, target: dict, reach: Optional[dict]) -> bool:
     if blks and node.kind == NodeKind.stream and node.blk in blks:
         if reach:
             lo, hi = reach.get("from_m", node.down_m), reach.get("to_m", node.up_m)
-            return node.up_m > lo and node.down_m < hi   # piece overlaps the reach window
+            # proximity: require a REAL overlap, not a boundary touch. Authored measures are often
+            # rounded, so a bound landing ~a few cm past a split would otherwise bleed the name into
+            # the adjacent section. Ignore overlaps <= _REACH_MIN_OVERLAP_M.
+            overlap = min(node.up_m, hi) - max(node.down_m, lo)
+            return overlap > _REACH_MIN_OVERLAP_M
         return True
     if wbks:
         # a lake NODE by its wbk, OR a stream piece OVERLAID by a wetland/river wbk (member_wbks
@@ -173,6 +210,8 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
     unaligned: list[str] = []         # reach variants painting a piece not cut at the reach bounds
     for entry in entries:
         target, reach = entry.get("target", {}), entry.get("reach")
+        if reach:
+            reach = _snap_reach(reach, _as_list(target, "blk", "blks"), idx, graph)
         # if the variant is scoped to a gnis, carry it so nodes it names group under that gnis
         _gids = _as_list(target, "gnis_id", "gnis_ids")
         gid = str(_gids[0]) if _gids else ""

@@ -95,7 +95,20 @@ in `pipeline/parsing/entries/`.
   TEMPORARY — to be replaced by proper polygon subdivision later, then removed.
 - **Bluey Lake Potholes — FIXED.** Its override used dead `waterbody_poly_ids` (old-FWA
   WATERBODY_POLY_IDs, stored as float in the gpkg). Re-resolved all 10 → live `waterbody_keys`
-  (added to `pipeline/matching/overrides.json`); now a feature-pin like Okanagan Oxbows / Moss Pothole.
+  (added to `pipeline/matching/overrides.json`), then dropped the redundant poly_ids; now a feature-pin
+  like Okanagan Oxbows / Moss Pothole (`status=override`).
+- **Override `name_variants` field — fully removed.** The matcher/coverage/batch_exporter never read it
+  (vestigial migration data). Stripped from ALL overrides. Two carried names worth keeping were moved
+  into `name_variants.json` first: **Bear/Mahood Creek** (gnis 12117+12114 → "Bear Creek"+"Mahood Creek")
+  and **Redstart Lake** (wbks 329343983+329343806, unnamed lakes per stocking records). The rest
+  (feature-group/scope descriptors like Bluey/Moss Pothole/Kootenay-all-parts) were dropped — the reg
+  rows still match by `name_verbatim`, so nothing was lost for matching.
+- **Seven Mile / Waneta reservoirs — DONE.** 3 `point` splits authored directly in `splits.json` on
+  Pend-d'Oreille (gnis:4927, blk 356570104): `waneta_dam` (existed) + `seven_mile_dam` +
+  `seven_mile_reservoir_head`. Named via `name_variants` (`display:true`, source `override`):
+  **Waneta Reservoir** = the impounded widening **wbk:329262640 only** (a lake node; NOT the stream
+  reach above it); **Seven Mile Reservoir** = the stream section m[10128.2,20554.1] on blk 356570104.
+  Display only — the Waneta/Seven Mile skip-ignore overrides stay (regs reference the river).
 - **Inlet/outlet streams (Whiteswan/Whitetail) — resolver semantic to honour.** The graph already has
   `lake_inlets()` / outlet-via-adjacency / `lake_tributaries()`. When the resolver handles
   "X Lake's inlet & outlet streams": **inlet = only the FIRST-ORDER streams flowing directly into the
@@ -109,6 +122,27 @@ in `pipeline/parsing/entries/`.
   `pipeline/docs/waterbody-splits.json` → rebuild `splits.json` (`pipeline.oneoff.build_splits`) →
   name the two middle reaches via `name_variants` `reach {from_m,to_m}` (route measures projected from
   the coords). Needs a build+verify loop (watch for the "reach variant not aligned to a split" warning).
+
+## 2c. Multi-polygon lakes, reach proximity, Mine Lake, curated-unnamed gap (2026-08-17)
+
+- **Multi-polygon lakes restored/fixed.** The collision guard wrongly dropped genuine MULTI-polygon
+  lakes (both wbks share the name): **Dace** = 329071807 + 329071811 (Lho middle basin); **Nisga'a
+  Lakes** = 329223897 (West) + 329223898 (East) — re-added as group name_variants. **North Cameron** =
+  329657333 + **329657984** (both polygons) — added an override feature-pin (REGION 7B, 7-31 →
+  waterbody_keys both) so the reg row resolves to the group (not ambiguous) + a name_variants group;
+  South Cameron = 329657328. (Puntzi handled via Bendziny.)
+- **Reach proximity/snap.** Two guards in `pipeline/graph/names.py`: `_snap_reach` snaps an authored
+  reach bound onto the nearest section boundary within `_REACH_SNAP_M = 50` m (reuse of split-proximity
+  pickup, so approximate/rounded measures align to the real cut), and `_node_matches` still requires
+  `> _REACH_MIN_OVERLAP_M = 1` m real overlap. Together they killed the Seven Mile Reservoir 0.01 m leak.
+  Tests in `test_name_variants.py` / `test_names.py`.
+- **Mine Lake.** wbk:329095512 is in the gazette "Main Lake" group but locally "Mine Lake"; set
+  `display:true` on Mine Lake so it labels as Mine (Main stays searchable).
+- **Curated-as-named — FIXED.** New `add_curated_wbk_items` (registry/build.py, wired in build.py after
+  `add_waterbody_items`) mints an item for any wbk named ONLY by a name_variants entry — an isolated,
+  FWA-unnamed lake with no node (e.g. Redstart's 2nd polygon wbk:329343983). ref_ids = the wbk, so a
+  `waterbody_keys` override resolves to it and it is searchable/labelled. Generalises the Frazer fix.
+  Tests: `test_add_curated_wbk_items_*`.
 
 ## 3. The real remaining gap: the RESOLVER (downstream of parsing)
 

@@ -334,7 +334,7 @@ def main() -> None:
 
     # Registry (parser truth) — build from the finalized graph + persist, so the parser tools
     # (matcher / batch_exporter / ingest) never need to rebuild the graph from the ~10GB FWA data.
-    from pipeline.registry import add_mu_sets, add_waterbody_items, build_registry
+    from pipeline.registry import add_curated_wbk_items, add_mu_sets, add_waterbody_items, build_registry
     from pipeline.registry import write_registry
     registry = build_registry(graph)
     print(f"  registry: {len(registry)} named items")
@@ -346,6 +346,11 @@ def main() -> None:
     n_lakes = len(registry) - n0
     registry = add_waterbody_items(registry, get_wetland_names(fwa, bbox), "wetland")
     print(f"  + {n_lakes} isolated named lake item(s) + {len(registry) - n0 - n_lakes} named wetland item(s)")
+    # Waterbodies named ONLY by curation (name_variants wbk target on an isolated FWA-unnamed lake) —
+    # add them so the curated name is matchable (e.g. Redstart Lake's 2nd polygon).
+    n1 = len(registry)
+    registry = add_curated_wbk_items(registry, nv)
+    print(f"  + {len(registry) - n1} curated-only wbk item(s) (named via name_variants)")
     _tick("build_registry")
     registry = add_mu_sets(registry, geoms, get_mu_polys(fwa))
     _tick("add_mu_sets")
