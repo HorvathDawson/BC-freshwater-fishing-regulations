@@ -488,6 +488,16 @@
     "name": "Nechako Reservoir",
     "source": "gauge",
     "note": "\"Nechako Reservoir\" is a reservoir alias for FWA \"Intata Reach\" (wbk 328961766); gauged by an ECCC \"... RESERVOIR\" station. Alias only — keeps the lake name as the label. Source: live-data/hydro gauge match."
+   },
+   {
+    "name": "INTATA REACH",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "NECHAKO RESERVOIR",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -1136,6 +1146,11 @@
     "source": "regulation",
     "note": "Lake in MU 1-15. Also labelled as 'Main Lake' in gazette (https://www.canoevancouverisland.com/canoe-kayak-vancouver-island-directory/main-lake-canoe-chain-quadra-island/). Location found from map.; REGION 1 - Vancouver Island; MU 1-15 Local name; set as display over gazette 'Main Lake' (same waterbody, Main Lake group). 2026-08-17",
     "display": true
+   },
+   {
+    "name": "MAIN LAKE  VILLAGEBAY L.",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -2175,16 +2190,6 @@
     "note": "Lake in MU 3-13. BC Lakes Database: WBID 01088LNIC. ACAT ObjectID 31446. FWA Watershed Code: 120-246600-33700-41300-7100-0000-000-000-000-000-000-000. Same regulations as Upper Kane Lake. Location found from map.; REGION 3 - Thompson-Nicola; MU 3-13"
    },
    {
-    "name": "KANE LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "NO.1 KANE LAKES NO.2 KANE LAKES  KANE VALLEY CHAIN",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Kane #1 Left",
     "source": "marker",
     "note": ""
@@ -2212,6 +2217,16 @@
    {
     "name": "UPPER KANE LAKE #2178",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "KANE LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "NO.1 KANE LAKES  KANE VALLEY CHAIN",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -2261,6 +2276,16 @@
    {
     "name": "UPPER KANE LAKE",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "KANE LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "NO.2 KANE LAKES  KANE VALLEY CHAIN",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -3055,9 +3080,9 @@
   },
   "names": [
    {
-    "name": "LITTLE MITTEN LAKE",
-    "source": "regulation",
-    "note": "Unnamed lake approximately 400m west of Mitten Lake in MU 4-34; found via BC Lakes Database ('Kootenay Fisheries Field Report Little Mitten Lake 00753KHOR', located approx. 13 km SW of Parsons). FWA has no GNIS ID.; REGION 4 - Kootenay; MU 4-34"
+    "name": "UPPER MITTEN LAKE",
+    "source": "lake_survey",
+    "note": "FDIS Database: rchsrvy_id 155482"
    }
   ]
  },
@@ -10001,11 +10026,6 @@
   },
   "names": [
    {
-    "name": "PARROTT LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "PARROTT LAKES #4",
     "source": "bathymetry",
     "note": ""
@@ -10673,6 +10693,16 @@
    {
     "name": "Champion 1St",
     "source": "marker",
+    "note": ""
+   },
+   {
+    "name": "CHAMPION LAKE #1",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "CHAMPION LAKES",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -19788,7 +19818,7 @@
     "note": ""
    },
    {
-    "name": "LHO LAKES, MIDDLE",
+    "name": "LHO LAKES,  NORTH",
     "source": "bathymetry",
     "note": ""
    }
@@ -21826,6 +21856,11 @@
     "name": "ROAD FOUR LAKE",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "GRIZZLY LAKES",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -22852,6 +22887,11 @@
    {
     "name": "HALL LAKES",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "HALL LAKES",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -26916,7 +26956,7 @@
     "note": ""
    },
    {
-    "name": "WOLVERINE LAKES NO. 1, 2 & 3",
+    "name": "WOLVERINE LAKES NO. 1, 2, 3 & 4",
     "source": "bathymetry",
     "note": ""
    }
@@ -27092,20 +27132,6 @@
    },
    {
     "name": "THORNE LAKE",
-    "source": "bathymetry",
-    "note": ""
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329136015"
-   ]
-  },
-  "names": [
-   {
-    "name": "TATLATUI L.",
     "source": "bathymetry",
     "note": ""
    }
@@ -27397,7 +27423,7 @@
   },
   "names": [
    {
-    "name": "PARROTT LAKES",
+    "name": "PARROTT LAKES #1 and #2",
     "source": "bathymetry",
     "note": ""
    }
@@ -28449,11 +28475,6 @@
   "names": [
    {
     "name": "SOUTH GATAGA LAKE NO. 2 *",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "SOUTH GATAGA LAKE NO. #3 *",
     "source": "bathymetry",
     "note": ""
    },
@@ -31076,11 +31097,6 @@
   },
   "names": [
    {
-    "name": "HOOKER LAKE",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "MURDOCK LAKES",
     "source": "bathymetry",
     "note": ""
@@ -33507,6 +33523,11 @@
     "name": "LITTLE MITTEN",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "LITTLE MITTEN LAKE",
+    "source": "regulation",
+    "note": "Unnamed lake approximately 400m west of Mitten Lake in MU 4-34; found via BC Lakes Database ('Kootenay Fisheries Field Report Little Mitten Lake 00753KHOR', located approx. 13 km SW of Parsons). FWA has no GNIS ID.; REGION 4 - Kootenay; MU 4-34"
    }
   ]
  },
@@ -34491,6 +34512,16 @@
     "name": "UPPER MOYIE LAKE",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "MOYIE LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MOYIE LAKE UPPER",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -34501,11 +34532,6 @@
    ]
   },
   "names": [
-   {
-    "name": "MOYIE LAKE",
-    "source": "bathymetry",
-    "note": ""
-   },
    {
     "name": "Moyie",
     "source": "marker",
@@ -34519,6 +34545,16 @@
    {
     "name": "MOYIE LAKE",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "MOYIE LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MOYIE LAKE LOWER",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -35906,21 +35942,6 @@
   },
   "names": [
    {
-    "name": "CHAMPION LAKE #1",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "CHAMPION LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "CHAMPION L. #2",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Champion 2Nd",
     "source": "marker",
     "note": ""
@@ -35948,6 +35969,16 @@
    {
     "name": "CHAMPION LAKE #2 (MIDDLE)",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "CHAMPION L. #2",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "CHAMPION LAKES",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -38426,16 +38457,6 @@
   },
   "names": [
    {
-    "name": "SHOWH LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "SHOWH LAKES  1. SOUTH  2. NORTH",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "COUGAR LAKE",
     "source": "stocking",
     "note": ""
@@ -38453,6 +38474,16 @@
    {
     "name": "SHOWH NORTH",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "SHOWH LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "SHOWH LAKES  2. NORTH",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -38560,16 +38591,6 @@
   },
   "names": [
    {
-    "name": "SHOWH LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "SHOWH LAKES  1. SOUTH  2. NORTH",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "SHOWH LAKE SOUTH",
     "source": "stocking",
     "note": ""
@@ -38582,6 +38603,16 @@
    {
     "name": "SHOWH SOUTH",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "SHOWH LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "SHOWH LAKES  1. SOUTH",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -39046,6 +39077,16 @@
    {
     "name": "LAKE #535",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "FROGMOORE L.",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "FROGMOORE LAKES",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -48384,16 +48425,6 @@
   },
   "names": [
    {
-    "name": "KLAKLAKAMA L.",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "KLAKLAKAMA LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "BIG KLAKLAKAMA",
     "source": "stocking",
     "note": ""
@@ -48411,6 +48442,21 @@
    {
     "name": "KLAKLAKAMA LOWER",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "KLAKLAKAMA L.",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "KLAKLAKAMA LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "BIG KLAKAKAMA L.",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -48519,16 +48565,6 @@
   "names": [
    {
     "name": "KLAKLAKAMA LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "LITTLE KLAKAKAMA L.  BIG KLAKAKAMA L.",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "KLAKLAKAMA LAKES",
     "source": "stocking",
     "note": ""
    },
@@ -48545,6 +48581,16 @@
    {
     "name": "LITTLE KLAKLAKAMA",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "KLAKLAKAMA LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "LITTLE KLAKAKAMA L.",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -50117,6 +50163,11 @@
     "name": "ISLAND LAKE",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "ENEAS GROUP",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -50303,6 +50354,11 @@
    {
     "name": "ISLAND LAKE",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "ENEAS GROUP",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -51385,11 +51441,6 @@
   },
   "names": [
    {
-    "name": "DINA LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Dina #3",
     "source": "marker",
     "note": ""
@@ -51402,6 +51453,11 @@
    {
     "name": "DINA LAKES",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "DINA LAKES (#3)",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -51453,7 +51509,7 @@
   },
   "names": [
    {
-    "name": "DINA LAKE # 6 *",
+    "name": "DINA LAKE (#6*)",
     "source": "bathymetry",
     "note": ""
    },
@@ -51472,9 +51528,9 @@
   },
   "names": [
    {
-    "name": "DINA LAKES",
+    "name": "DINA LAKES (#5)",
     "source": "bathymetry",
-    "note": ""
+    "note": "Labeled #5 per curator; provenance unclear — legacy bathymetry data (no matching WSA map title #5)."
    }
   ]
  },
@@ -51543,11 +51599,6 @@
   },
   "names": [
    {
-    "name": "DINA LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Dina #7",
     "source": "marker",
     "note": ""
@@ -51560,6 +51611,11 @@
    {
     "name": "DINA LAKES",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "DINA LAKES (#7*)",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -52579,6 +52635,11 @@
    ]
   },
   "names": [
+   {
+    "name": "EMERSLUND LAKES (UPPER)",
+    "source": "bathymetry",
+    "note": ""
+   },
    {
     "name": "EMERSLUND LAKES",
     "source": "bathymetry",
@@ -58379,6 +58440,11 @@
     "name": "MURPHY LAKES",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "MURPHY LAKES",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -60207,16 +60273,6 @@
   },
   "names": [
    {
-    "name": "NORBURY LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "PECKHAMS LAKE",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Peckhams",
     "source": "marker",
     "note": ""
@@ -60235,6 +60291,21 @@
     "name": "GARBUTT LAKE",
     "source": "regulation",
     "note": "GNIS name: Norbury Lake. Official name is Norbury (Garbutt) Lake."
+   },
+   {
+    "name": "NORBURY LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "PECKHAMS LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "1. PECKHAMS L.  2. GARBUTTS L.",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -60313,16 +60384,6 @@
   },
   "names": [
    {
-    "name": "1. ECHO LAKE 1  2. ECHO LAKE 2",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "ECHOES LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Echo South",
     "source": "marker",
     "note": ""
@@ -60356,6 +60417,16 @@
     "name": "ECHOES LAKE",
     "source": "regulation",
     "note": "2 polygons with GNIS 7369 - Echoes Lakes (plural in FWA)"
+   },
+   {
+    "name": "ECHO LAKE 2",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "ECHOES LAKES",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -60547,6 +60618,11 @@
     "name": "NORTH ECHO LAKE",
     "source": "stocking",
     "note": ""
+   },
+   {
+    "name": "ECHO LAKE 1",
+    "source": "bathymetry",
+    "note": ""
    }
   ]
  },
@@ -60723,16 +60799,6 @@
   },
   "names": [
    {
-    "name": "MCNAIR LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "MCNAIR LKS",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "Mcnair South",
     "source": "marker",
     "note": ""
@@ -60750,6 +60816,21 @@
    {
     "name": "SOUTH MCNAIR LAKE",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LKS",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKE #3",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -60783,6 +60864,21 @@
    {
     "name": "Mcnair North",
     "source": "marker",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LKS",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKE #1",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -60848,16 +60944,6 @@
   "names": [
    {
     "name": "MCNAIR LAKES",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "MCNAIR LKS",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
-    "name": "MCNAIR LAKES",
     "source": "stocking",
     "note": ""
    },
@@ -60879,6 +60965,21 @@
    {
     "name": "MIDDLE MCNAIR LAKE",
     "source": "stocking",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LKS",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKE #2",
+    "source": "bathymetry",
     "note": ""
    }
   ]
@@ -71537,7 +71638,6 @@
  {
   "target": {
    "gnis_ids": [
-    "12117",
     "12114"
    ]
   },
@@ -71545,12 +71645,12 @@
    {
     "name": "Bear Creek",
     "source": "regulation",
-    "note": "Reg 'Bear (Mahood) Creek'; GNIS name Mahood Creek; two GNIS entries same waterbody (12117,12114)."
+    "note": "Reg 'Bear (Mahood) Creek' (MU 2-4, 'upstream of 152nd St'); alias for Mahood Creek gnis:12114 (LFRA/Surrey). NOT gnis:12117 (a different Mahood Creek in HARR/2-18) nor the genuine Bear Creek gnis:19570 (BLK 356358774, HARR/2-18)."
    },
    {
     "name": "Mahood Creek",
     "source": "regulation",
-    "note": "GNIS name for the reg's 'Bear (Mahood) Creek'."
+    "note": "GNIS name for the reg's 'Bear (Mahood) Creek' (gnis:12114, LFRA/Surrey, MU 2-4)."
    }
   ]
  },
@@ -71613,6 +71713,426 @@
     "source": "regulation",
     "display": true,
     "note": "North Cameron Lake = 2 polygons (329657333+329657984). 2026-08-17."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329216639"
+   ]
+  },
+  "names": [
+   {
+    "name": "ARLINGTON LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "ARLINGTON LKS",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329126692"
+   ]
+  },
+  "names": [
+   {
+    "name": "EUCHINIKO LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "EUCHINIKO LAKES",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329469001"
+   ]
+  },
+  "names": [
+   {
+    "name": "FERN LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "FERN LAKES, SOUTH",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329156045"
+   ]
+  },
+  "names": [
+   {
+    "name": "FROG LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "UPPER FROG LAKE *",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329343264"
+   ]
+  },
+  "names": [
+   {
+    "name": "HOODOO LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "HOODOO LAKES",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329238136"
+   ]
+  },
+  "names": [
+   {
+    "name": "KNOT LAKES",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329071811"
+   ]
+  },
+  "names": [
+   {
+    "name": "DACE LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "LHO LAKES, MIDDLE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329524737"
+   ]
+  },
+  "names": [
+   {
+    "name": "MCNAIR LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LKS",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MCNAIR LAKE #2",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329184489"
+   ]
+  },
+  "names": [
+   {
+    "name": "MOFFAT LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "MOFFAT LKS.",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329184520"
+   ]
+  },
+  "names": [
+   {
+    "name": "HOOKER LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329154751"
+   ]
+  },
+  "names": [
+   {
+    "name": "NAHATLATCH L. (WEST)",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "NAHATLATCH LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329148321"
+   ]
+  },
+  "names": [
+   {
+    "name": "PARROTT LAKES #3",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329158478"
+   ]
+  },
+  "names": [
+   {
+    "name": "SOUTH GATAGA LAKE NO. #3 *",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "SOUTH GATAGA LAKES",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329468810"
+   ]
+  },
+  "names": [
+   {
+    "name": "TACHEEDA LAKES",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329283058"
+   ]
+  },
+  "names": [
+   {
+    "name": "TANYA LAKES",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329554394"
+   ]
+  },
+  "names": [
+   {
+    "name": "TASEKO LAKES",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "TASEKO LKS.",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329135993"
+   ]
+  },
+  "names": [
+   {
+    "name": "TATLATUI L.",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329070014"
+   ]
+  },
+  "names": [
+   {
+    "name": "THELWOOD LAKE",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "THELWOOD LAKE SOUNDING CONTOURS",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "328996531"
+   ]
+  },
+  "names": [
+   {
+    "name": "THETIS LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329500396"
+   ]
+  },
+  "names": [
+   {
+    "name": "TWIN LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329657974"
+   ]
+  },
+  "names": [
+   {
+    "name": "WRIGHT LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329619009"
+   ]
+  },
+  "names": [
+   {
+    "name": "YELLOWHEAD L.",
+    "source": "bathymetry",
+    "note": ""
+   },
+   {
+    "name": "YELLOWHEAD LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329554561"
+   ]
+  },
+  "names": [
+   {
+    "name": "ZERO LAKE",
+    "source": "bathymetry",
+    "note": ""
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329400604"
+   ]
+  },
+  "names": [
+   {
+    "name": "STEVENS #6 LAKE",
+    "source": "lake_survey",
+    "note": "BC Lakes Database: survey_id 1785"
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329400609"
+   ]
+  },
+  "names": [
+   {
+    "name": "STEVENS #5 LAKE",
+    "source": "lake_survey",
+    "note": "BC Lakes Database: survey_id 1784"
    }
   ]
  }

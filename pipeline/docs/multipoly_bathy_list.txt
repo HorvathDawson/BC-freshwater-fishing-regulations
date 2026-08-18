@@ -1,0 +1,558 @@
+MULTI-POLY LAKES WITH BATHY ON >=1 MEMBER  (deduped n=88)
+
+(good) Alkali Lakes  [gnis 32498.0]
+    328964392  2.5ha  fwa='Alkali Lakes' / name2=Kersey Lake ★BATHY: 5 MILE LAKE; ALKALI LAKES
+    328964404  1.9ha  fwa='Alkali Lakes' / name2=Stick Lake
+    329054843  10.8ha  fwa='Alkali Lakes' / name2=6 Mile Lake
+    329055090  3.9ha  fwa='Alkali Lakes' / name2=4 Mile Lake
+    329058547  0.1ha  fwa='Alkali Lakes'
+
+Arlington Lakes  [gnis 16647.0]
+    329216635  18.9ha  fwa='Arlington Lakes' ★BATHY: ARLINGTON LAKES; ARLINGTON LKS
+    329216639  16.9ha  fwa='Arlington Lakes' # add it here too 
+    329216719  5.8ha  fwa='Arlington Lakes' ★BATHY: ARLINGTON LAKES; ARLINGTON LKS
+    329218712  0.4ha  fwa='Arlington Lakes'
+    329219141  0.3ha  fwa='Arlington Lakes'
+    329219506  0.2ha  fwa='Arlington Lakes'
+
+(good) Bidwell Lakes  [gnis 8480.0]
+    328965577  10.8ha  fwa='Bidwell Lakes'
+    329079719  30.7ha  fwa='Bidwell Lakes' ★BATHY: BIDWELL L.; BIDWELL LAKES
+    329079725  26.3ha  fwa='Bidwell Lakes'
+    329079778  10.1ha  fwa='Bidwell Lakes'
+    329079979  2.9ha  fwa='Bidwell Lakes'
+
+(good) Cameron Lakes  [gnis 38712.0]
+    329657328  71.7ha  fwa='Cameron Lakes' / name2=South Cameron Lake ★BATHY: SOUTH CAMERON LAKE
+    329657333  61.5ha  fwa='Cameron Lakes' / name2=North Cameron Lake ★BATHY: NORTH CAMERON LAKE
+    329657984  2.3ha  fwa='Cameron Lakes'
+
+(good) Cathedral Lakes  [gnis 11677.0]
+    328988985  7.9ha  fwa='Cathedral Lakes' / name2=Glacier Lake ★BATHY: GLACIER LAKE
+    329520064  10.9ha  fwa='Cathedral Lakes' / name2=Quiniscoe Lake ★BATHY: QUINISCOE LAKE
+    329520209  4.6ha  fwa='Cathedral Lakes' / name2=Pyramid Lake
+    329520358  3.0ha  fwa='Cathedral Lakes' / name2=Woods, Lake of the
+    329522816  0.1ha  fwa='Cathedral Lakes'
+
+Champion Lakes  [gnis 12912.0]
+# CHAMPION LAKES has 1 2 and 3 
+# 1 - wbk:328974978, Map Title -- CHAMPION LAKE #1
+# 2 - wbk:329262641, Map Title -- CHAMPION L. #2
+# 3 - wbk:329262654, Map Title -- CHAMPION LAKE #3
+
+    329262641  17.0ha  fwa='Champion Lakes' ★BATHY: CHAMPION L. #2; CHAMPION LAKE #1; CHAMPION LAKES
+    329262654  14.5ha  fwa='Champion Lakes' ★BATHY: CHAMPION LAKE #3; CHAMPION LAKES
+
+(good) Coquihalla Lakes  [gnis 19982.0]
+    328969643  11.0ha  fwa='Coquihalla Lakes' ★BATHY: COQUIHALLA LAKES
+    329154840  5.7ha  fwa='Coquihalla Lakes' ★BATHY: COQUIHALLA LAKES
+    329155205  0.7ha  fwa='Coquihalla Lakes'
+
+(good now) Dina Lakes  [gnis 2132.0]
+    328986066  2.4ha  fwa='Dina Lakes'
+    good - 329465434  224.8ha  fwa='Dina Lakes' ★BATHY: DINA LAKE; DINA LAKES 
+    329465455  29.5ha  fwa='Dina Lakes' ★BATHY: DINA LAKES; LAKE 'A' (NORTH OF DINA LAKE)
+    329465469  20.9ha  fwa='Dina Lakes' ★BATHY: DINA LAKES --> DINA LAKES (#3)
+    329465481  15.0ha  fwa='Dina Lakes' ★BATHY: DINA LAKE (#6*); DINA LAKES 
+    329465485  13.5ha  fwa='Dina Lakes' ★BATHY: DINA LAKES --> this one is dina #5 not sure where it came from tho... it was in old data
+    329465501  10.5ha  fwa='Dina Lakes'
+    329465543  7.5ha  fwa='Dina Lakes' ★BATHY: DINA LAKES --> DINA LAKES (#7*)
+    329465649  4.4ha  fwa='Dina Lakes'
+    329465675  3.8ha  fwa='Dina Lakes'
+    329465691  3.6ha  fwa='Dina Lakes'
+    329465788  2.6ha  fwa='Dina Lakes'
+    329465995  1.6ha  fwa='Dina Lakes'
+    329466140  1.2ha  fwa='Dina Lakes'
+    329466352  0.8ha  fwa='Dina Lakes'
+    329466765  0.5ha  fwa='Dina Lakes'
+
+Echoes Lakes  [gnis 7369.0]
+    329524034  12.5ha  fwa='Echoes Lakes' ★BATHY: 1. ECHO LAKE 1  2. ECHO LAKE 2; ECHOES LAKES <-- this is echo lake 2
+    329524104  7.0ha  fwa='Echoes Lakes' <- this is echo lake 1 they should both have bathy match
+
+(good now) Emerslund Lakes  [gnis 17305.0]
+    329472482  23.2ha  fwa='Emerslund Lakes' ★BATHY: EMERSLUND LAKE (LOWER); EMERSLUND LAKES
+    329472483  19.2ha  fwa='Emerslund Lakes' ★BATHY: EMERSLUND LAKES (UPPER); EMERSLUND LAKES
+
+(good now) Eneas Lakes  [gnis 17343.0]
+    329459214  9.8ha  fwa='Eneas Lakes'  ★BATHY: ENEAS GROUP;
+    329459246  7.6ha  fwa='Eneas Lakes' / name2=Island Lake ★BATHY: ENEAS GROUP;
+    329459275  6.4ha  fwa='Eneas Lakes' / name2=Little Eneas Lake ★BATHY: ENEAS GROUP; LITTLE ENEAS LAKE
+
+(good now) Euchiniko Lakes  [gnis 17927.0]
+    329126692  578.8ha  fwa='Euchiniko Lakes' ★BATHY: EUCHINIKO LAKE; EUCHINIKO LAKES
+    329126696  344.6ha  fwa='Euchiniko Lakes' ★BATHY: EUCHINIKO LAKE; EUCHINIKO LAKES
+
+(good now) Fern Lakes  [gnis 19034.0]
+    329468822  80.8ha  fwa='Fern Lakes' ★BATHY: FERN LAKES; FERN LAKES, SOUTH
+    329468829  51.8ha  fwa='Fern Lakes' ★BATHY: FERN LAKES; FERN LAKES, NORTH
+    329469001  6.6ha  fwa='Fern Lakes' ★BATHY: FERN LAKES; FERN LAKES, SOUTH
+
+(good now) Foster Lakes  [gnis 11847.0]
+    329148375  51.3ha  fwa='Foster Lakes' ★BATHY: FOSTER LAKES
+    329148436  25.8ha  fwa='Foster Lakes'
+
+(good now) Frog Lakes  [gnis 39675.0]
+    329156045  149.8ha  fwa='Frog Lakes' ★BATHY: FROG LAKES; UPPER FROG LAKE *
+    329156052  48.5ha  fwa='Frog Lakes' ★BATHY: FROG LAKES; LOWER FROG LAKE*
+    329156377  2.5ha  fwa='Frog Lakes' ★BATHY: FROG LAKES; UPPER FROG LAKE *
+    329157095  0.6ha  fwa='Frog Lakes'
+    329157229  0.5ha  fwa='Frog Lakes'
+    329157314  0.4ha  fwa='Frog Lakes'
+    329157350  0.4ha  fwa='Frog Lakes'
+    329157708  0.2ha  fwa='Frog Lakes'
+
+(good now) Frogmoore Lakes  [gnis 12557.0]
+    329316074  49.8ha  fwa='Frogmoore Lakes' ★BATHY: FROGMOORE L.; FROGMOORE LAKES
+    329316082  33.5ha  fwa='Frogmoore Lakes' ★BATHY: FROGMOORE L.; FROGMOORE LAKES
+
+(good now) Gavia Lakes  [gnis 37027.0]
+    329220375  12.8ha  fwa='Gavia Lakes' ★BATHY: GAVIA #1; GAVIA LAKES
+    329220448  6.9ha  fwa='Gavia Lakes' ★BATHY: GAVIA #3
+    329220459  6.5ha  fwa='Gavia Lakes' ★BATHY: GAVIA LAKE #2; GAVIA LAKES
+
+(good) Genier Lakes  [gnis 33171.0]
+    328978283  0.2ha  fwa='Genier Lakes'
+    329320912  25.5ha  fwa='Genier Lakes' ★BATHY: GENIER LAKE; GENIER LAKES
+    329321017  9.0ha  fwa='Genier Lakes'
+    329322231  1.1ha  fwa='Genier Lakes'
+    329322506  0.9ha  fwa='Genier Lakes'
+
+(good) Graffunder Lakes  [gnis 18752.0]
+    329014414  19.5ha  fwa='Graffunder Lakes' ★BATHY: GRAFFUNDER LAKES; GRAFFUNDER LKS.
+    329014435  13.1ha  fwa='Graffunder Lakes' ★BATHY: GRAFFUNDER LAKES; GRAFFUNDER LKS.
+
+(good now) Grizzly Lakes  [gnis 33579.0]
+    329086727  31.1ha  fwa='Grizzly Lakes' ★BATHY: GRIZZLY LAKES
+    329086759  15.1ha  fwa='Grizzly Lakes' ★BATHY: GRIZZLY LAKES
+
+(good) Haggen Lakes  [gnis 38039.0]
+    329058718  39.0ha  fwa='Haggen Lakes' ★BATHY: HAGGEN LAKES
+    329058758  16.5ha  fwa='Haggen Lakes' ★BATHY: HAGGEN LAKES
+    329058776  11.8ha  fwa='Haggen Lakes' ★BATHY: HAGGEN LAKES
+    329058777  11.7ha  fwa='Haggen Lakes' ★BATHY: HAGGEN LAKES
+    329058815  7.2ha  fwa='Haggen Lakes' ★BATHY: HAGGEN LAKES
+    329058985  3.0ha  fwa='Haggen Lakes'
+    329059612  0.8ha  fwa='Haggen Lakes'
+    329059658  0.8ha  fwa='Haggen Lakes'
+
+(good now) Hall Lakes  [gnis 36138.0]
+    329094665  0.7ha  fwa='Hall Lakes' ★BATHY: HALL LAKES
+    329094669  0.6ha  fwa='Hall Lakes' ★BATHY: HALL LAKES
+
+(good) Hambler Lakes  [gnis 20344.0]
+    329397778  22.5ha  fwa='Hambler Lakes' ★BATHY: HAMBLER LAKES; HAMBLER LKS.
+    329397868  10.1ha  fwa='Hambler Lakes' ★BATHY: HAMBLER LAKES; HAMBLER LKS.
+
+(good) Headwater Lakes  [gnis 32382.0]
+    329459136  53.9ha  fwa='Headwater Lakes' ★BATHY: HEADWATER LAKES; HEADWATERS #1 L.
+    329459171  20.8ha  fwa='Headwater Lakes' ★BATHY: HEADWATER LAKES; HEADWATERS #2 LAKE
+    329459173  19.7ha  fwa='Headwater Lakes'
+    329459183  18.0ha  fwa='Headwater Lakes'
+
+(good) Hluey Lakes  [gnis 21451.0]
+    328982605  2.7ha  fwa='Hluey Lakes'
+    329393332  451.7ha  fwa='Hluey Lakes' ★BATHY: HLUEY LAKES
+    329393350  51.8ha  fwa='Hluey Lakes'
+    329393377  27.3ha  fwa='Hluey Lakes'
+    329393488  10.1ha  fwa='Hluey Lakes'
+    329394934  1.2ha  fwa='Hluey Lakes'
+
+(good now) Hoodoo Lakes  [gnis 6201.0]
+    329343252  57.1ha  fwa='Hoodoo Lakes' ★BATHY: HOODOO LAKE; HOODOO LAKES
+    329343264  44.7ha  fwa='Hoodoo Lakes' ★BATHY: HOODOO LAKE; HOODOO LAKES
+
+(good) Illusion Lakes  [gnis 9801.0]
+    328986114  12.1ha  fwa='Illusion Lakes' ★BATHY: ILLUSION LAKE; ILLUSION LAKES
+    329467797  1.2ha  fwa='Illusion Lakes'
+    329468101  0.4ha  fwa='Illusion Lakes'
+    329468297  0.2ha  fwa='Illusion Lakes'
+    329468311  0.2ha  fwa='Illusion Lakes'
+    329468402  0.1ha  fwa='Illusion Lakes'
+    329468543  0.1ha  fwa='Illusion Lakes'
+
+(good now) Intata Reach  [gnis 2824.0]
+    328961766  28941.4ha  fwa='Intata Reach' / name2=Ootsa Lake ★BATHY: INTATA REACH; NECHAKO RESERVOIR
+    328994947  9276.7ha  fwa='Ootsa Lake' / name2=Nechako Reservoir ★BATHY: INTATA REACH; NECHAKO RESERVOIR
+
+(good) Jarvis Lakes  [gnis 17393.0]
+    329361936  102.7ha  fwa='Jarvis Lakes' ★BATHY: JARVIS LAKES; JARVIS LKS.
+    329362006  10.6ha  fwa='Jarvis Lakes'
+    329362123  4.7ha  fwa='Jarvis Lakes'
+    329362209  3.0ha  fwa='Jarvis Lakes'
+    329363939  0.1ha  fwa='Jarvis Lakes'
+    329525896  29.1ha  fwa='Jarvis Lakes'
+    329525947  17.9ha  fwa='Jarvis Lakes'
+    329526046  9.3ha  fwa='Jarvis Lakes'
+    329526870  1.4ha  fwa='Jarvis Lakes'
+
+(good) Jennings Lakes  [gnis 11258.0]
+    328990313  1.4ha  fwa='Jennings Lakes'
+    329544317  896.8ha  fwa='Jennings Lakes' ★BATHY: JENNINGS LAKES
+    329544366  35.9ha  fwa='Jennings Lakes'
+    329544379  30.9ha  fwa='Jennings Lakes'
+    329544613  5.7ha  fwa='Jennings Lakes'
+    329544622  5.5ha  fwa='Jennings Lakes'
+    329544861  2.8ha  fwa='Jennings Lakes'
+    329544897  2.7ha  fwa='Jennings Lakes'
+    329544988  2.3ha  fwa='Jennings Lakes'
+    329545050  2.0ha  fwa='Jennings Lakes'
+    329545137  1.7ha  fwa='Jennings Lakes'
+    329545138  1.7ha  fwa='Jennings Lakes'
+    329545164  1.6ha  fwa='Jennings Lakes'
+    329545265  1.3ha  fwa='Jennings Lakes'
+    329545269  1.3ha  fwa='Jennings Lakes'
+    329545326  1.2ha  fwa='Jennings Lakes'
+    329545370  1.1ha  fwa='Jennings Lakes'
+    329545372  1.1ha  fwa='Jennings Lakes'
+    329545380  1.1ha  fwa='Jennings Lakes'
+    329545539  0.9ha  fwa='Jennings Lakes'
+    329545550  0.9ha  fwa='Jennings Lakes'
+    329545645  0.7ha  fwa='Jennings Lakes'
+    329545648  0.7ha  fwa='Jennings Lakes'
+    329545734  0.6ha  fwa='Jennings Lakes'
+    329545786  0.6ha  fwa='Jennings Lakes'
+    329545831  0.6ha  fwa='Jennings Lakes'
+    329545882  0.5ha  fwa='Jennings Lakes'
+    329545883  0.5ha  fwa='Jennings Lakes'
+    329545899  0.5ha  fwa='Jennings Lakes'
+    329545962  0.5ha  fwa='Jennings Lakes'
+    329545974  0.5ha  fwa='Jennings Lakes'
+    329545999  0.4ha  fwa='Jennings Lakes'
+    329546004  0.4ha  fwa='Jennings Lakes'
+    329546030  0.4ha  fwa='Jennings Lakes'
+    329546123  0.4ha  fwa='Jennings Lakes'
+    329546126  0.4ha  fwa='Jennings Lakes'
+    329546164  0.3ha  fwa='Jennings Lakes'
+    329546187  0.3ha  fwa='Jennings Lakes'
+    329546220  0.3ha  fwa='Jennings Lakes'
+    329546225  0.3ha  fwa='Jennings Lakes'
+    329546246  0.3ha  fwa='Jennings Lakes'
+    329546247  0.3ha  fwa='Jennings Lakes'
+    329546289  0.3ha  fwa='Jennings Lakes'
+    329546316  0.3ha  fwa='Jennings Lakes'
+    329546318  0.3ha  fwa='Jennings Lakes'
+    329546414  0.2ha  fwa='Jennings Lakes'
+    329546473  0.2ha  fwa='Jennings Lakes'
+    329546482  0.2ha  fwa='Jennings Lakes'
+    329546501  0.2ha  fwa='Jennings Lakes'
+    329546556  0.2ha  fwa='Jennings Lakes'
+    329546605  0.2ha  fwa='Jennings Lakes'
+    329546671  0.2ha  fwa='Jennings Lakes'
+    329546716  0.2ha  fwa='Jennings Lakes'
+    329546888  0.1ha  fwa='Jennings Lakes'
+    329546922  0.1ha  fwa='Jennings Lakes'
+    329547014  0.1ha  fwa='Jennings Lakes'
+    329547015  0.1ha  fwa='Jennings Lakes'
+    329547019  0.1ha  fwa='Jennings Lakes'
+    329547041  0.1ha  fwa='Jennings Lakes'
+    329547063  0.1ha  fwa='Jennings Lakes'
+    329547098  0.1ha  fwa='Jennings Lakes'
+    329547108  0.1ha  fwa='Jennings Lakes'
+    329547299  0.1ha  fwa='Jennings Lakes'
+    329547415  0.1ha  fwa='Jennings Lakes'
+    329547429  0.1ha  fwa='Jennings Lakes'
+    329547432  0.1ha  fwa='Jennings Lakes'
+    329547450  0.1ha  fwa='Jennings Lakes'
+    329547451  0.1ha  fwa='Jennings Lakes'
+    329547460  0.1ha  fwa='Jennings Lakes'
+    329547560  0.1ha  fwa='Jennings Lakes'
+    329547571  0.1ha  fwa='Jennings Lakes'
+    329547632  0.0ha  fwa='Jennings Lakes'
+
+(good now) Kane Lakes  [gnis 7378.0]
+    329316130  9.6ha  fwa='Kane Lakes' ★BATHY: KANE LAKES NO.2 KANE LAKES  KANE VALLEY CHAIN
+    329316143  6.9ha  fwa='Kane Lakes' ★BATHY: KANE LAKES; NO.1 KANE LAKES  KANE VALLEY CHAIN
+
+(good) Kettle Lakes  [gnis 38055.0]
+    329619693  0.9ha  fwa='Kettle Lakes' ★BATHY: KETTLE LAKE #2; KETTLE LAKES
+    329619946  0.6ha  fwa='Kettle Lakes' ★BATHY: KETTLE LAKE #1; KETTLE LAKES
+
+(good) Kiakho Lakes  [gnis 5610.0]
+    328974246  12.0ha  fwa='Kiakho Lakes' ★BATHY: KIAKHO LAKE; KIAKHO LAKES
+    329246592  1.9ha  fwa='Kiakho Lakes'
+    329246991  0.6ha  fwa='Kiakho Lakes'
+    329247300  0.3ha  fwa='Kiakho Lakes'
+    329247486  0.1ha  fwa='Kiakho Lakes'
+
+(good now) Klaklakama Lakes  [gnis 5128.0]
+    329457553  255.0ha  fwa='Klaklakama Lakes' ★BATHY: KLAKLAKAMA L.; KLAKLAKAMA LAKES;   BIG KLAKAKAMA L.
+    329457559  92.0ha  fwa='Klaklakama Lakes' ★BATHY: KLAKLAKAMA LAKES; LITTLE KLAKAKAMA L.
+
+(good) Klua Lakes  [gnis 13408.0]
+    329621071  888.4ha  fwa='Klua Lakes' ★BATHY: EAST KLUA LAKE; KLUA LAKES
+    329621072  541.8ha  fwa='Klua Lakes' ★BATHY: KLUA LAKES; WEST KLUA LAKE
+
+(good) Kluskus Lakes  [gnis 3134.0]
+    329126693  404.4ha  fwa='Kluskus Lakes' ★BATHY: KLUSKUS LAKES; UPPER KLUSKUS LAKE
+    329126699  164.7ha  fwa='Kluskus Lakes' ★BATHY: KLUSKUS LAKES; MIDDLE KLUSKUS
+    329126721  70.4ha  fwa='Kluskus Lakes'
+
+good now - Knot Lakes  [gnis 5681.0]
+    329238136  574.3ha  fwa='Knot Lakes' ★BATHY: KNOT LAKES
+    329238139  245.6ha  fwa='Knot Lakes' ★BATHY: KNOT LAKES
+
+good - La Salle Lakes  [gnis 2482.0]
+    328981666  13.0ha  fwa='La Salle Lakes' ★BATHY: LA SALLE LAKES
+    328981670  12.7ha  fwa='La Salle Lakes' ★BATHY: LA SALLE LAKES
+
+good now - Lho Lakes  [gnis 9889.0]
+    329071805  142.6ha  fwa='Lho Lakes' ★BATHY: LHO LAKES; LHO LAKES,  SOUTH
+    329071807  115.2ha  fwa='Lho Lakes' / name2=Dace Lake ★BATHY: DACE LAKE;  LHO LAKES,  NORTH
+    329071811  72.0ha  fwa='Lho Lakes' / name2=Sucker Lake ★BATHY: DACE LAKE; LHO LAKES, MIDDLE
+
+good now - Lho Lakes  [manual group]
+    329071807  115.2ha  fwa='Lho Lakes' / name2=Dace Lake ★BATHY: DACE LAKE;  LHO LAKES,  NORTH
+    329071811  72.0ha  fwa='Lho Lakes' / name2=Sucker Lake ★BATHY: DACE LAKE; LHO LAKES, MIDDLE
+
+good now - Main Lake  [gnis 12126.0]
+    329095502  309.0ha  fwa='Main Lake' ★BATHY: MAIN LAKE; MAIN LAKE  VILLAGEBAY L.
+    329095512  77.5ha  fwa='Main Lake' ★BATHY: MAIN LAKE  VILLAGEBAY L.
+
+good - Manson Lakes  [gnis 12778.0]
+    329131779  213.5ha  fwa='Manson Lakes' ★BATHY: MANSON LAKES; UPPER MANSON L.
+    329131781  179.8ha  fwa='Manson Lakes' ★BATHY: MANSON LAKES; MANSON LAKES LOWER
+    329132827  1.4ha  fwa='Manson Lakes'
+    329133067  1.0ha  fwa='Manson Lakes'
+    329133438  0.6ha  fwa='Manson Lakes'
+    329133702  0.4ha  fwa='Manson Lakes'
+    329134616  0.1ha  fwa='Manson Lakes'
+
+good - McIntosh Lakes  [gnis 25541.0]
+    329184478  428.0ha  fwa='McIntosh Lakes' ★BATHY: MCINTOSH L. (S.); MCINTOSH LAKES
+    329184480  249.7ha  fwa='McIntosh Lakes' ★BATHY: MCINTOSH L. (N.); MCINTOSH LAKES
+
+good now - McNair Lakes  [gnis 26427.0]
+    329524232  3.7ha  fwa='McNair Lakes' ★BATHY: MCNAIR LAKES; MCNAIR LKS; MCNAIR LAKE #3
+    329524474  1.8ha  fwa='McNair Lakes' ★BATHY: MCNAIR LAKES; MCNAIR LKS; MCNAIR LAKE #2
+    329524737  1.0ha  fwa='McNair Lakes' ★BATHY: MCNAIR LAKES; MCNAIR LKS; MCNAIR LAKE #2
+    --> 329524257 fwa='null' ★BATHY: MCNAIR LAKES; MCNAIR LKS; ; MCNAIR LAKE #1
+
+good - McTaggart Lakes  [gnis 34618.0]
+    329320922  21.9ha  fwa='McTaggart Lakes' ★BATHY: MCTAGGART LAKES
+    329320929  20.1ha  fwa='McTaggart Lakes' ★BATHY: MCTAGGART LAKES
+    329322482  0.9ha  fwa='McTaggart Lakes'
+
+good now - Moffat Lakes  [gnis 14051.0]
+    329184483  120.4ha  fwa='Moffat Lakes' ★BATHY: MOFFAT LAKES; MOFFAT LKS.
+    329184489  78.1ha  fwa='Moffat Lakes' ★BATHY: MOFFAT LAKES; MOFFAT LKS.
+
+good - Moodie Lakes  [gnis 37032.0]
+    329632828  93.0ha  fwa='Moodie Lakes' ★BATHY: MOODIE LAKE 2; MOODIE LAKES
+    329632847  37.4ha  fwa='Moodie Lakes'
+
+good now - Moyie Lake  [gnis 15779.0]
+    329246294  598.1ha  fwa='Moyie Lake' ★BATHY: MOYIE LAKE; MOYIE LAKE UPPER
+    329246297  318.6ha  fwa='Moyie Lake' ★BATHY: MOYIE LAKE; MOYIE LAKE LOWER
+
+Murdock Lakes  [gnis 15865.0]
+    328971212  29.9ha  fwa='Murdock Lakes' ★BATHY: MURDOCK LAKES; MURDOCK LKS.
+    328971213  29.3ha  fwa='Murdock Lakes'
+    329184640  6.8ha  fwa='Murdock Lakes' / name2=Hooker Lake ★BATHY: HOOKER LAKE; MURDOCK LAKES; MURDOCK LKS.
+    -- the real hooker lake bathy map listed here is actuyally for this hooker lake near by 329184520 (this ★BATHY: HOOKER LAKE) 
+
+good now - Murphy Lakes  [gnis 15875.0]
+    329520083  9.2ha  fwa='Murphy Lakes' ★BATHY: MURPHY LAKES
+    329520111  7.3ha  fwa='Murphy Lakes' ★BATHY: MURPHY LAKES
+
+good now - Nahatlatch Lake  [gnis 16470.0]
+    329154751  169.5ha  fwa='Nahatlatch Lake' ★BATHY: NAHATLATCH L. (WEST) NAHATLATCH LAKE
+    329154752  138.6ha  fwa='Nahatlatch Lake' ★BATHY: NAHATLATCH L. (EAST); NAHATLATCH LAKE
+
+good - Nanaimo Lakes  [gnis 16502.0]
+    329101304  214.7ha  fwa='Nanaimo Lakes' ★BATHY: NANAIMO LAKES
+    329101307  176.4ha  fwa='Nanaimo Lakes' ★BATHY: NANAIMO LAKES
+    329102108  0.3ha  fwa='Nanaimo Lakes'
+
+good - Nation Lakes  [gnis 16576.0]
+    329424457  6638.0ha  fwa='Nation Lakes' / name2=Tchentlo Lake
+    329424458  4561.4ha  fwa='Nation Lakes' / name2=Chuchi Lake ★BATHY: CHUCHI L.; NATION LAKES
+    329424459  1975.1ha  fwa='Nation Lakes' / name2=Tsayta Lake
+    329424461  669.1ha  fwa='Nation Lakes' / name2=Indata Lake
+
+good - Niska Lakes  [gnis 36800.0]
+    329223897  227.8ha  fwa='Niska Lakes' ★BATHY: NISGA'A LAKES; NISKA LAKES (WEST)
+    329223898  155.3ha  fwa='Niska Lakes'
+
+good now - Norbury Lakes  [gnis 23378.0]
+    329524023  14.0ha  fwa='Norbury Lakes' / name2=Peckhams Lake ★BATHY: 1. PECKHAMS L.  2. GARBUTTS L.; NORBURY LAKES; PECKHAMS LAKE
+    329524047  11.2ha  fwa='Norbury Lakes' / name2=Norbury Lake ★BATHY: 1. PECKHAMS L.  2. GARBUTTS L.; NORBURY LAKES
+
+ready - North Cameron Lake  [manual group]
+    329657333  61.5ha  fwa='Cameron Lakes' / name2=North Cameron Lake ★BATHY: NORTH CAMERON LAKE
+    329657984  2.3ha  fwa='Cameron Lakes'
+
+    look here from above
+    # 329657328  71.7ha  fwa='Cameron Lakes' / name2=South Cameron Lake ★BATHY: SOUTH CAMERON LAKE
+    # 329657333  61.5ha  fwa='Cameron Lakes' / name2=North Cameron Lake ★BATHY: NORTH CAMERON LAKE
+    # 329657984  2.3ha  fwa='Cameron Lakes' <- also north cameron
+
+good - Paddy Ryan Lakes  [gnis 21900.0]
+    328966175  7.0ha  fwa='Paddy Ryan Lakes'
+    328966187  5.2ha  fwa='Paddy Ryan Lakes' ★BATHY: PADDY RYAN L.; PADDY RYAN LAKES
+    329094411  1.2ha  fwa='Paddy Ryan Lakes'
+    329094919  0.4ha  fwa='Paddy Ryan Lakes'
+
+good - Parrott Lakes  [gnis 6137.0]
+    328969293  26.4ha  fwa='Parrott Lakes' ★BATHY: PARROTT LAKES #4
+    329148318  369.5ha  fwa='Parrott Lakes' ★BATHY: PARROTT LAKES #1 and #2
+    329148321  319.4ha  fwa='Parrott Lakes' ★BATHY: PARROTT LAKES #3
+
+good - Pendleton Lakes  [gnis 34803.0]
+    329354714  298.0ha  fwa='Pendleton Lakes' ★BATHY: PENDLETON LAKES
+    329354728  84.5ha  fwa='Pendleton Lakes' ★BATHY: PENDLETON LAKES
+    329354905  8.2ha  fwa='Pendleton Lakes'
+    329354916  7.6ha  fwa='Pendleton Lakes'
+    329355088  4.0ha  fwa='Pendleton Lakes'
+    329355203  3.1ha  fwa='Pendleton Lakes'
+    329355577  1.7ha  fwa='Pendleton Lakes'
+
+good - Philip Lakes  [gnis 38824.0]
+    329424468  200.5ha  fwa='Philip Lakes' ★BATHY: PHILIP L.; PHILIP LAKES
+    329424469  179.5ha  fwa='Philip Lakes'
+    329424473  123.0ha  fwa='Philip Lakes'
+
+good - Poison Lakes  [gnis 38156.0]
+    329601607  69.8ha  fwa='Poison Lakes' ★BATHY: POISON LAKES
+    329601609  52.1ha  fwa='Poison Lakes' ★BATHY: POISON LAKES
+
+good - Pothole Lakes  [gnis 39026.0]
+    329465470  19.5ha  fwa='Pothole Lakes' ★BATHY: POTHOLE LAKES
+    329465544  7.2ha  fwa='Pothole Lakes'
+    329465718  3.1ha  fwa='Pothole Lakes'
+    329466331  0.8ha  fwa='Pothole Lakes'
+    329466647  0.5ha  fwa='Pothole Lakes'
+    329466653  0.5ha  fwa='Pothole Lakes'
+    329467034  0.3ha  fwa='Pothole Lakes'
+    329467265  0.2ha  fwa='Pothole Lakes'
+    329467374  0.2ha  fwa='Pothole Lakes'
+
+good - Prouton Lakes  [gnis 27004.0]
+    329480825  40.8ha  fwa='Prouton Lakes' ★BATHY: PROUTON LAKES
+    329480897  16.4ha  fwa='Prouton Lakes' ★BATHY: PROUTON LAKES
+
+good - Rainbow Lakes  [gnis 30756.0]
+    329576619  295.7ha  fwa='Rainbow Lakes' ★BATHY: RAINBOW LAKES
+    329576620  290.4ha  fwa='Rainbow Lakes' ★BATHY: RAINBOW LAKES
+
+good - Saddle Lakes  [gnis 38920.0]
+    329071192  8.5ha  fwa='Saddle Lakes' ★BATHY: SADDLE LAKES
+    329071241  2.7ha  fwa='Saddle Lakes'
+    329071263  1.9ha  fwa='Saddle Lakes'
+
+good - Shoal Lakes  [gnis 7361.0]
+    328968195  31.2ha  fwa='Shoal Lakes' ★BATHY: SHOAL LAKES (#2*)
+    329131786  114.1ha  fwa='Shoal Lakes'
+    329131867  16.8ha  fwa='Shoal Lakes'
+    329131876  14.9ha  fwa='Shoal Lakes'
+
+good - Showh Lakes  [gnis 37613.0]
+    329303525  10.2ha  fwa='Showh Lakes' ★BATHY: SHOWH LAKES; SHOWH LAKES  2. NORTH
+    329303670  3.6ha  fwa='Showh Lakes' ★BATHY: SHOWH LAKES; SHOWH LAKES  1. SOUTH
+
+good - South Gataga Lakes  [gnis 39680.0]
+    329158478  253.2ha  fwa='South Gataga Lakes' ★BATHY: SOUTH GATAGA LAKE NO. #3 *;  SOUTH GATAGA LAKES
+    329158481  111.9ha  fwa='South Gataga Lakes'
+    329158484  77.0ha  fwa='South Gataga Lakes' ★BATHY: SOUTH GATAGA LAKE NO. 2 *; SOUTH GATAGA LAKES
+    329158493  52.5ha  fwa='South Gataga Lakes'
+    329158550  7.5ha  fwa='South Gataga Lakes'
+    329158784  1.5ha  fwa='South Gataga Lakes'
+    329158798  1.4ha  fwa='South Gataga Lakes'
+    329159019  0.6ha  fwa='South Gataga Lakes'
+
+good - Spectacle Lakes  [gnis 8146.0]
+    329058706  478.7ha  fwa='Spectacle Lakes' ★BATHY: SPECTACLE - SWAN LAKES
+    329060672  0.1ha  fwa='Spectacle Lakes'
+    329060734  0.1ha  fwa='Spectacle Lakes'
+
+good - Spruce Lakes  [gnis 39022.0]
+    329058719  37.8ha  fwa='Spruce Lakes' ★BATHY: SPRUCE LAKES
+    329058748  20.2ha  fwa='Spruce Lakes' ★BATHY: SPRUCE LAKES
+
+good now - Stevens Lakes  [gnis 15405.0]
+    329400594  165.3ha  fwa='Stevens Lakes' ★BATHY: STEVENS #1 LAKE
+    329400596  139.8ha  fwa='Stevens Lakes' ★BATHY: STEVENS #7 LAKE; STEVENS LAKES
+    329400599  95.9ha  fwa='Stevens Lakes' ★BATHY: STEVENS #3 LAKE; STEVENS #4 LAKE; STEVENS LAKES
+    329400604  49.7ha  fwa='Stevens Lakes' <-- this is STEVENS #6 from BC Lakes Database: survey_id 1785
+    329400609  36.0ha  fwa='Stevens Lakes' <-- this is STEVENS #5, not sure how to add it it is from surveys BC Lakes Database: survey_id 1784
+    329400612  33.6ha  fwa='Stevens Lakes' ★BATHY: STEVENS #2 LAKE
+    329400637  21.2ha  fwa='Stevens Lakes'
+
+good - Sundance Lakes  [gnis 20296.0]
+    329473810  5.3ha  fwa='Sundance Lakes' ★BATHY: SUNDANCE LAKES
+    329473885  4.0ha  fwa='Sundance Lakes'
+
+good now - Tacheeda Lakes  [gnis 3956.0]
+    329468810  376.9ha  fwa='Tacheeda Lakes' ★BATHY: TACHEEDA LAKES
+    329468815  196.6ha  fwa='Tacheeda Lakes' ★BATHY: TACHEEDA LAKES
+
+good - Tachilta Lakes  [gnis 23141.0]
+    329581789  953.3ha  fwa='Tachilta Lakes' ★BATHY: TACHILTA LAKES
+    329581793  226.5ha  fwa='Tachilta Lakes'
+    329581796  155.8ha  fwa='Tachilta Lakes'
+    329581797  127.5ha  fwa='Tachilta Lakes'
+
+good - Tanya Lakes  [gnis 23919.0]
+    329283053  91.0ha  fwa='Tanya Lakes' ★BATHY: TANYA LAKES
+    329283058  80.0ha  fwa='Tanya Lakes' ★BATHY: TANYA LAKES
+
+good - Taseko Lakes  [gnis 35169.0]
+    329554393  2141.6ha  fwa='Taseko Lakes' / name2=Lower Taseko Lake ★BATHY: TASEKO LAKES; TASEKO LKS.
+    329554394  964.8ha  fwa='Taseko Lakes' / name2=Upper Taseko Lake ★BATHY: TASEKO LAKES; TASEKO LKS.
+    329557609  0.1ha  fwa='Taseko Lakes'
+
+good - Tatlatui Lake  [gnis 25404.0]
+    329135993  2090.8ha  fwa='Tatlatui Lake' ★BATHY: TATLATUI L.
+    329136015  48.3ha  fwa='Tatlatui Lake'
+
+good - Tepee Lakes  [gnis 21766.0]
+    329520017  23.3ha  fwa='Tepee Lakes' / name2=Sunday Lake ★BATHY: SUNDAY LAKE
+    329520046  13.8ha  fwa='Tepee Lakes' / name2=Saturday Lake ★BATHY: SATURDAY LAKE
+    329520049  13.5ha  fwa='Tepee Lakes' / name2=Friday Lake ★BATHY: FRIDAY LAKE
+
+good - Thelwood Lake  [gnis 21684.0]
+    329070004  18.6ha  fwa='Thelwood Lake' ★BATHY: THELWOOD LAKE; THELWOOD LAKE SOUNDING CONTOURS
+    329070014  15.6ha  fwa='Thelwood Lake' ★BATHY: THELWOOD LAKE; THELWOOD LAKE SOUNDING CONTOURS
+
+good - Thetis Lake  [gnis 21695.0]
+    328996531  16.8ha  fwa='Thetis Lake' ★BATHY: THETIS LAKE
+    329676322  15.6ha  fwa='Thetis Lake' ★BATHY: THETIS LAKE
+
+good - Tuchodi Lakes  [gnis 29292.0]
+    329380428  727.9ha  fwa='Tuchodi Lakes'
+    329380429  438.4ha  fwa='Tuchodi Lakes' ★BATHY: LOWER TUCHODI L.; TUCHODI LAKES
+
+good - Twin Lake  [gnis 30211.0]
+    329500396  11.0ha  fwa='Twin Lake' ★BATHY: TWIN LAKE
+    329500401  10.2ha  fwa='Twin Lake' ★BATHY: TWIN LAKE
+
+good - Twin Lakes  [gnis 30212.0]
+    329291951  7.8ha  fwa='Twin Lakes' ★BATHY: TWIN LAKE WEST; TWIN LAKES
+    329291976  5.9ha  fwa='Twin Lakes' ★BATHY: TWIN LAKE EAST; TWIN LAKES
+
+good - Webb Lakes  [gnis 35525.0]
+    328964605  43.9ha  fwa='Webb Lakes'
+    329060784  93.7ha  fwa='Webb Lakes' ★BATHY: WEBB LAKE; WEBB LAKES
+    329061047  4.7ha  fwa='Webb Lakes'
+    329061116  3.8ha  fwa='Webb Lakes'
+
+good now - Wolverine Lakes  [gnis 29352.0]
+    329131782  143.1ha  fwa='Wolverine Lakes' ★BATHY: WOLVERINE LAKES; WOLVERINE LAKES NO. 1, 2, 3 & 4
+    329131803  52.2ha  fwa='Wolverine Lakes'
+    329132218  3.7ha  fwa='Wolverine Lakes'
+    329132643  1.8ha  fwa='Wolverine Lakes'
+    329133645  0.5ha  fwa='Wolverine Lakes'
+    329134349  0.2ha  fwa='Wolverine Lakes'
+    329134481  0.1ha  fwa='Wolverine Lakes'
+
+good now - Wright Lake  [gnis 29977.0]
+    329657421  18.4ha  fwa='Wright Lake' ★BATHY: WRIGHT LAKE
+    329657974  2.4ha  fwa='Wright Lake' ★BATHY: WRIGHT LAKE
+
+good now - Yellowhead Lake  [gnis 30397.0]
+    329619004  181.9ha  fwa='Yellowhead Lake' ★BATHY: YELLOWHEAD L.; YELLOWHEAD LAKE
+    329619009  58.4ha  fwa='Yellowhead Lake' ★BATHY: YELLOWHEAD L.; YELLOWHEAD LAKE
+
+good now - Zero Lake  [gnis 37071.0]
+    329554502  10.1ha  fwa='Zero Lake' ★BATHY: ZERO LAKE
+    329554561  6.5ha  fwa='Zero Lake' ★BATHY: ZERO LAKE
