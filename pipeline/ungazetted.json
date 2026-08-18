@@ -1,0 +1,103 @@
+{
+  "_schema": "ungazetted waterbodies with no (or partial) FWA feature; location is [lon,lat] EPSG:4326. `links` names the FWA feature a sub-area (arm/bay/pond) belongs to. The resolver binds a reg row here by name+MU, then to the point/linked feature.",
+  "ungazetted": [
+    {
+      "id": "ungaz:marsh_pond",
+      "name": "MARSH POND",
+      "name_variants": [],
+      "region": "2",
+      "mus": [
+        "2-4"
+      ],
+      "location": [
+        -122.45323,
+        49.00879
+      ],
+      "links": {},
+      "note": "No polygon in FWA. Using custom ungazetted waterbody with coordinates from KML point in Aldergrove Regional Park.",
+      "_archive_id": "UNGAZ_MARSH_POND_R2"
+    },
+    {
+      "id": "ungaz:skeena_kispiox_confluence",
+      "name": "SKEENA RIVER/KISPIOX RIVER CONFLUENCE",
+      "name_variants": [],
+      "region": "6",
+      "mus": [
+        "6-8"
+      ],
+      "location": [
+        -127.69132,
+        55.3426
+      ],
+      "links": {},
+      "note": "Confluence of Skeena River and Kispiox River in Region 6 MU 6-8. No FWA polygon or stream feature at the exact confluence point. Coordinates from BC Albers projection.",
+      "_archive_id": "UNGAZ_SKEENA_KISPIOX_CONFLUENCE_R6"
+    },
+    {
+      "id": "ungaz:nation_arm_williston",
+      "name": "NATION ARM (Williston Lake)",
+      "name_variants": [
+        "NATION ARM"
+      ],
+      "region": "7",
+      "mus": [
+        "7-30"
+      ],
+      "location": [
+        -123.44116,
+        55.51205
+      ],
+      "links": {
+        "gnis_ids": [
+          "28522"
+        ]
+      },
+      "note": "Nation Arm of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at arm location. Nation River (GNIS 16593) flows into this arm. MU 7-58. TODO: Needs custom polygon subdivision.",
+      "_archive_id": "UNGAZ_NATION_ARM_WILLISTON_R7"
+    },
+    {
+      "id": "ungaz:davis_bay_williston",
+      "name": "DAVIS BAY (in Finlay Reach of Williston Lake)",
+      "name_variants": [
+        "DAVIS BAY"
+      ],
+      "region": "7",
+      "mus": [
+        "7-37"
+      ],
+      "location": [
+        -124.47333,
+        56.54858
+      ],
+      "links": {
+        "gnis_ids": [
+          "28522"
+        ]
+      },
+      "note": "Davis Bay in Finlay Reach of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at bay location. Finlay Reach is the northern arm where Finlay River (GNIS 12355) enters. MU 7-58. TODO: Needs custom polygon subdivision.",
+      "_archive_id": "UNGAZ_DAVIS_BAY_WILLISTON_R7"
+    },
+    {
+      "id": "ungaz:hall_road_pond",
+      "name": "HALL ROAD (Mission) POND",
+      "name_variants": [
+        "HALL ROAD POND"
+      ],
+      "region": "8",
+      "mus": [
+        "8-10"
+      ],
+      "location": [
+        -119.42958,
+        49.87084
+      ],
+      "links": {
+        "wbks": [
+          "329460964"
+        ]
+      },
+      "note": "Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond ungazetted waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area.",
+      "_archive_id": "UNGAZ_HALL_ROAD_POND_R8"
+    }
+  ]
+}

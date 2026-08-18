@@ -87,6 +87,29 @@ The **matcher is the gate**: `batch_exporter` matches each row, batches the ~1,3
 the ~60 unmatched/ambiguous/feature_pin rows (hand-curate later — never guessed). Output is `EntryFiles`
 in `pipeline/parsing/entries/`.
 
+## 2b. Edge-case features (2026-08-17) — ungazetted, potholes, inlet/outlet, reservoirs
+
+- **Ungazetted waterbodies → `pipeline/ungazetted.json`** (5): Marsh Pond, Skeena/Kispiox
+  confluence (no FWA feature); Nation Arm + Davis Bay (link to Williston gnis:28522); Hall Road Pond
+  (links wbk:329460964). ids are `ungaz:{slug}` (old archive id kept as `_archive_id`). These are
+  TEMPORARY — to be replaced by proper polygon subdivision later, then removed.
+- **Bluey Lake Potholes — FIXED.** Its override used dead `waterbody_poly_ids` (old-FWA
+  WATERBODY_POLY_IDs, stored as float in the gpkg). Re-resolved all 10 → live `waterbody_keys`
+  (added to `pipeline/matching/overrides.json`); now a feature-pin like Okanagan Oxbows / Moss Pothole.
+- **Inlet/outlet streams (Whiteswan/Whitetail) — resolver semantic to honour.** The graph already has
+  `lake_inlets()` / outlet-via-adjacency / `lake_tributaries()`. When the resolver handles
+  "X Lake's inlet & outlet streams": **inlet = only the FIRST-ORDER streams flowing directly into the
+  lake, NOT the recursive upstream network**; outlet = the direct outflow. So "inlet & outlet streams"
+  is a small SUBSET of `lake_tributaries()` (the directly-adjacent ones), not the whole tributary tree.
+- **Seven Mile / Waneta reservoirs — PLANNED (not yet applied).** Dammed reaches of **Pend-d'Oreille
+  River = gnis:4927**; author as named reaches (they were `skip:ignored`). Contiguous, [lon,lat]:
+    - Waneta Reservoir:    (-117.61207, 49.00418) → (-117.50363, 49.02976)
+    - Seven Mile Reservoir:(-117.50363, 49.02976) → (-117.38365, 49.02561)
+  Plan: 3 `point` splits (`is_lonlat`) on gnis:4927 in the split source
+  `pipeline/docs/waterbody-splits.json` → rebuild `splits.json` (`pipeline.oneoff.build_splits`) →
+  name the two middle reaches via `name_variants` `reach {from_m,to_m}` (route measures projected from
+  the coords). Needs a build+verify loop (watch for the "reach variant not aligned to a split" warning).
+
 ## 3. The real remaining gap: the RESOLVER (downstream of parsing)
 
 The parser emits `EntryFile`s (species/dates/extent per registry item). The **resolver**

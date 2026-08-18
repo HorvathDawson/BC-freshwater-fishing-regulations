@@ -1322,7 +1322,9 @@
       "25152",
       "8341"
     ],
-    "only_within_zones": ["2"],
+    "only_within_zones": [
+      "2"
+    ],
     "name_variants": [
       "FRASER RIVER"
     ]
@@ -1655,7 +1657,9 @@
     "gnis_ids": [
       "39325"
     ],
-    "only_within_zones": ["3"]
+    "only_within_zones": [
+      "3"
+    ]
   },
   {
     "type": "override",
@@ -3272,7 +3276,9 @@
     "gnis_ids": [
       "39325"
     ],
-    "only_within_zones": ["5"]
+    "only_within_zones": [
+      "5"
+    ]
   },
   {
     "type": "override",
@@ -4223,7 +4229,9 @@
     "gnis_ids": [
       "39325"
     ],
-    "only_within_zones": ["7A"]
+    "only_within_zones": [
+      "7A"
+    ]
   },
   {
     "type": "override",
@@ -4773,7 +4781,7 @@
         "8-6"
       ]
     },
-    "note": "Bluey Lake Potholes in Region 8 MU 8-6. 10 specific waterbody polygons.",
+    "note": "Bluey Lake Potholes in Region 8 MU 8-6. 10 specific waterbody polygons. [poly_ids re-resolved to live WATERBODY_KEYs from FWA lakes, 2026-08-17]",
     "waterbody_poly_ids": [
       "700171140",
       "705026999",
@@ -4788,6 +4796,18 @@
     ],
     "name_variants": [
       "BLUEY LAKE POTHOLES"
+    ],
+    "waterbody_keys": [
+      "328985532",
+      "329520282",
+      "329520563",
+      "329520659",
+      "329520676",
+      "329520774",
+      "329521064",
+      "329521324",
+      "329522486",
+      "329522575"
     ]
   },
   {
