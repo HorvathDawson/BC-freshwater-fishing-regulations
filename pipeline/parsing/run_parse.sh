@@ -6,7 +6,7 @@
 #
 # Uses your Claude Pro/Max login (run `claude` once to log in). Env knobs:
 #   REGISTRY     path to registry.json         (default: output/v2/full/registry.json)
-#   BATCH_SIZE   rows per batch                 (default: 40)
+#   BATCH_SIZE   rows per batch                 (default: 15 — smaller = finer resume granularity)
 #   MODEL        CLI model alias               (default: opus)
 #   CONCURRENCY  parallel batch subagents       (default: 3)
 #   CLAUDE_BIN   path to the claude CLI         (default: claude)
@@ -17,7 +17,7 @@ export PYTHONPATH="$PWD"
 PY=".venv/bin/python"
 
 REGISTRY="${REGISTRY:-output/v2/full/registry.json}"
-BATCH_SIZE="${BATCH_SIZE:-40}"
+BATCH_SIZE="${BATCH_SIZE:-15}"
 MODEL="${MODEL:-opus}"
 CONCURRENCY="${CONCURRENCY:-3}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"

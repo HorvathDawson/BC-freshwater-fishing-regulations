@@ -18,10 +18,30 @@ import argparse
 import json
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline.parsing.ingest import _parse_response
+
+
+class CreditExhausted(RuntimeError):
+    """The CLI stopped because the account is out of credits / hit a usage limit — a clean, resumable
+    stop (the batch wrote no response, so a rerun picks it up), NOT a per-batch parse failure."""
+
+
+# Substrings (lowercased) that mark a usage-limit / billing stop in the CLI's stderr or JSON envelope.
+# Kept broad on purpose: a false positive only makes us stop early (rerun resumes), never corrupts data.
+_CREDIT_MARKERS = (
+    "usage limit", "rate limit", "rate_limit", "credit balance", "insufficient credit",
+    "quota", "out of credits", "billing", "payment required", "429", "overloaded",
+    "insufficient_quota", "too many requests",
+)
+
+
+def _is_credit_error(text: str) -> bool:
+    low = (text or "").lower()
+    return any(m in low for m in _CREDIT_MARKERS)
 
 
 def _extract_json_array(stdout: str) -> list[dict]:
@@ -58,6 +78,9 @@ def dispatch_prompt(prompt_path: Path, response_path: Path, *, claude_bin: str, 
     cmd = [claude_bin, *cli_flags]
     proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, cwd=str(cwd), timeout=timeout)
     if proc.returncode != 0:
+        detail = f"{proc.stderr}\n{proc.stdout}"[:1000]
+        if _is_credit_error(detail):
+            raise CreditExhausted(f"credit/usage limit hit on {prompt_path.name}: {proc.stderr[:300]}")
         raise RuntimeError(f"claude CLI failed ({proc.returncode}) for {prompt_path.name}: {proc.stderr[:500]}")
     result = _extract_json_array(proc.stdout)
     response_path.parent.mkdir(parents=True, exist_ok=True)
@@ -86,14 +109,47 @@ def _dispatch_reviews(batches_dir: Path, responses_dir: Path, reviews_dir: Path,
         cmd = [claude_bin, *cli_flags]
         proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, cwd=str(cwd), timeout=timeout)
         if proc.returncode != 0:
+            if _is_credit_error(f"{proc.stderr}\n{proc.stdout}"):
+                raise CreditExhausted(f"credit/usage limit hit reviewing batch {bid:03d}")
             return bid, f"CLI failed: {proc.stderr[:200]}"
         out_path.write_text(proc.stdout, encoding="utf-8")
         return bid, f"reviewed -> {out_path.name}"
 
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
-        for fut in as_completed([pool.submit(_one, b) for b in bids]):
-            bid, msg = fut.result()
-            print(f"  review batch {bid:03d}: {msg}")
+        futs = {pool.submit(_one, b): b for b in bids}
+        try:
+            for fut in as_completed(futs):
+                bid, msg = fut.result()
+                print(f"  review batch {bid:03d}: {msg}")
+        except CreditExhausted:
+            for f in futs:
+                f.cancel()
+            print("  ⚠ CREDIT/USAGE LIMIT during review — stopping. Re-run to resume "
+                  "(existing reviews are skipped).")
+
+
+def _write_run_state(path: Path, model: str, all_bids: list[int], responses_dir: Path,
+                     statuses: dict[int, dict], credit_stop: bool) -> None:
+    """Persist a resume-handoff: per-batch status so a rerun (or a human) sees exactly where a run
+    stopped. `done` is derived from the response file on disk (the real resume signal), so this file
+    is advisory — deleting it never loses work. Written after every batch for crash-safety."""
+    batches: dict[str, dict] = {}
+    for bid in all_bids:
+        if (responses_dir / f"batch_{bid:03d}.json").exists():
+            batches[str(bid)] = statuses.get(bid, {"status": "done"})
+        else:
+            batches[str(bid)] = statuses.get(bid, {"status": "pending"})
+    done = sum(1 for v in batches.values() if v["status"] == "done")
+    payload = {
+        "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "model": model,
+        "total_batches": len(all_bids),
+        "done": done,
+        "remaining": len(all_bids) - done,
+        "credit_stop": credit_stop,
+        "batches": batches,
+    }
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def main() -> None:
@@ -131,6 +187,10 @@ def main() -> None:
     if len(todo) < len(bids):
         print(f"  skipping {len(bids) - len(todo)} batch(es) with an existing response (use --force)")
 
+    run_state_path = work / "run_state.json"
+    statuses: dict[int, dict] = {b: {"status": "done"} for b in bids
+                                 if (responses_dir / f"batch_{b:03d}.json").exists()}
+
     def _parse_one(bid: int):
         result = dispatch_prompt(batches_dir / f"batch_{bid:03d}.prompt.txt",
                                  responses_dir / f"batch_{bid:03d}.json",
@@ -138,11 +198,46 @@ def main() -> None:
                                  timeout=args.timeout)
         return bid, len(result)
 
-    # fan out: each batch is an independent Claude subagent, run `--concurrency` at a time
+    # fan out: each batch is an independent Claude subagent, run `--concurrency` at a time. A per-batch
+    # failure is recorded (not fatal) so the rest of the run continues; a credit/usage-limit stop is a
+    # CLEAN halt — cancel not-yet-started batches, keep every completed response, and leave a resume note.
+    credit_stop = False
+    failed = 0
     with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
-        for fut in as_completed([pool.submit(_parse_one, b) for b in todo]):
-            bid, n = fut.result()
-            print(f"  batch {bid:03d}: {n} entr(ies) saved")
+        futs = {pool.submit(_parse_one, b): b for b in todo}
+        try:
+            for fut in as_completed(futs):
+                bid = futs[fut]
+                try:
+                    _, n = fut.result()
+                    statuses[bid] = {"status": "done", "entries": n}
+                    print(f"  batch {bid:03d}: {n} entr(ies) saved")
+                except CreditExhausted as e:
+                    credit_stop = True
+                    statuses[bid] = {"status": "credit_stopped", "error": str(e)[:300]}
+                    print(f"  batch {bid:03d}: ⚠ CREDIT/USAGE LIMIT — stopping cleanly")
+                    for f in futs:                       # don't start any batch that hasn't begun
+                        f.cancel()
+                    break
+                except Exception as e:                   # noqa: BLE001 — record and keep going
+                    failed += 1
+                    statuses[bid] = {"status": "failed", "error": str(e)[:300]}
+                    print(f"  batch {bid:03d}: ✗ FAILED — {str(e)[:160]}")
+                finally:
+                    _write_run_state(run_state_path, args.model, bids, responses_dir, statuses, credit_stop)
+        finally:
+            _write_run_state(run_state_path, args.model, bids, responses_dir, statuses, credit_stop)
+
+    done = sum(1 for b in bids if (responses_dir / f"batch_{b:03d}.json").exists())
+    remaining = len(bids) - done
+    print(f"\nParse: {done}/{len(bids)} batches done" + (f", {failed} failed this run" if failed else "")
+          + f". run_state: {run_state_path}")
+
+    if credit_stop or remaining:
+        reason = "credit/usage limit" if credit_stop else "incomplete batches"
+        print(f"  ⚠ stopped early ({reason}). {remaining} batch(es) remaining — RESUME by re-running the "
+              f"SAME command; completed responses are skipped automatically.")
+        return                                            # don't review/finish a partial run
 
     if args.review:
         _dispatch_reviews(batches_dir, responses_dir, reviews_dir, bids, claude_bin=args.claude_bin,
