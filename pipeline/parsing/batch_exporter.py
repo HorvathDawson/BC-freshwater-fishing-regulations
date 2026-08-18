@@ -17,13 +17,20 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from datetime import datetime
 from pathlib import Path
 
-from pipeline.matching.matcher import load_overrides, match_rows, region_num
-from pipeline.parsing.parse_context import build_parse_context, render_batch_prompt
+from pipeline.matching.matcher import load_overrides, match_rows, parse_reg_mus, region_num
+from pipeline.parsing.parse_context import (
+    build_no_registry_context, build_parse_context, render_batch_prompt,
+)
 from pipeline.registry import default_registry_path, load_registry
 from pipeline.parsing.rows import load_synopsis_rows
+
+
+def _slug(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "_", (text or "").lower()).strip("_") or "row"
 
 
 def compute_rows_digest(rows: list[dict]) -> str:
@@ -55,14 +62,20 @@ def load_existing_entry_ids(entries_dir: Path) -> set[str]:
     return ids
 
 
-def _item_payload(index: int, row: dict, item, ctx) -> dict:
+def _item_payload(index: int, row: dict, ctx) -> dict:
+    """Batch payload for one item. `entry_id`, `registry_status`, and `registry_note` are injected
+    into the Entry at ingest (authoritative — never trusted from the model), same as `raw_regs`."""
     return {
         "index": index,
-        "item_id": item.id,
-        "name": item.name,
+        "entry_id": ctx.entry_id,
+        "item_id": ctx.item_id or None,
+        "name": ctx.name,
         "region": region_num(row),
+        "mus": list(ctx.mus),
         "raw_regs": row.get("raw_regs", ""),
         "bindable_ids": sorted(ctx.bindable_ids),
+        "no_registry": ctx.no_registry,
+        "registry_note": ctx.registry_note,
     }
 
 
@@ -75,18 +88,31 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
     digest = compute_rows_digest(rows)
     matches = match_rows(rows, registry, overrides)
 
-    pending: list[tuple[int, object]] = []       # (index, ParseContext)
-    unmatched: list[dict] = []
+    pending: list[tuple[int, object, dict]] = []       # (index, ParseContext, row)
+    unmatched: list[dict] = []                          # held-back report (also parsed as no_registry)
+    no_registry_count = 0
     skipped_existing: list[int] = []
     excluded_empty: list[int] = []
 
     for m in matches:
         row = rows[m.index]
-        if m.item_id is None:
-            unmatched.append({"index": m.index, "water": m.water, "status": m.status, "reason": m.reason})
-            continue
         if not row.get("raw_regs", "").strip():
-            excluded_empty.append(m.index)
+            excluded_empty.append(m.index)             # nothing to split — a pointer/blank row
+            continue
+        if m.item_id is None:
+            # No registry match: still parse the reg text into rules, flagged no_registry (the reg
+            # content is captured for the curator even though no locators can be bound).
+            unmatched.append({"index": m.index, "water": m.water, "status": m.status, "reason": m.reason})
+            entry_id = f"noreg_{_slug(m.water)}_{m.index}"
+            if entry_id in existing_ids and not force:
+                skipped_existing.append(m.index)
+                continue
+            note = f"{m.status}: {m.reason}" if m.reason else m.status
+            ctx = build_no_registry_context(
+                entry_id=entry_id, name=m.water, raw_regs=row.get("raw_regs", ""), registry_note=note,
+                region=region_num(row), mus=tuple(sorted(parse_reg_mus(row))), row_index=m.index)
+            pending.append((m.index, ctx, row))
+            no_registry_count += 1
             continue
         item = registry[m.item_id]
         entry_id = m.item_id
@@ -95,19 +121,19 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             continue
         ctx = build_parse_context(item, raw_regs=row.get("raw_regs", ""),
                                   entry_id=entry_id, region=region_num(row), row_index=m.index)
-        pending.append((m.index, ctx, item, row))
+        pending.append((m.index, ctx, row))
 
     manifest_batches: list[dict] = []
     for b in range(0, len(pending), batch_size):
         chunk = pending[b:b + batch_size]
         bid = b // batch_size
-        items = [_item_payload(idx, row, item, ctx) for (idx, ctx, item, row) in chunk]
+        items = [_item_payload(idx, row, ctx) for (idx, ctx, row) in chunk]
         (batches_dir / f"batch_{bid:03d}.json").write_text(
             json.dumps({"batch": bid, "rows_digest": digest, "items": items}, ensure_ascii=False, indent=2),
             encoding="utf-8")
         (batches_dir / f"batch_{bid:03d}.prompt.txt").write_text(
-            render_batch_prompt([ctx for (_, ctx, _, _) in chunk]), encoding="utf-8")
-        manifest_batches.append({"id": bid, "count": len(chunk), "indices": [i for (i, _, _, _) in chunk]})
+            render_batch_prompt([ctx for (_, ctx, _) in chunk]), encoding="utf-8")
+        manifest_batches.append({"id": bid, "count": len(chunk), "indices": [i for (i, _, _) in chunk]})
 
     manifest = {
         "created_at": datetime.now().isoformat(),
@@ -115,6 +141,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
         "rows_digest": digest,
         "batch_size": batch_size,
         "pending_count": len(pending),
+        "no_registry_count": no_registry_count,
         "unmatched": unmatched,
         "skipped_existing": skipped_existing,
         "excluded_empty": excluded_empty,
@@ -145,7 +172,8 @@ def main() -> None:
 
     manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force)
     print(f"Exported {manifest['pending_count']} rows into {len(manifest['batches'])} batch(es) -> {out_dir/'batches'}")
-    print(f"  unmatched: {len(manifest['unmatched'])}  skipped-existing: {len(manifest['skipped_existing'])}  "
+    print(f"  of those, no-registry (content-only, flagged): {manifest['no_registry_count']}")
+    print(f"  held-back detail: {len(manifest['unmatched'])}  skipped-existing: {len(manifest['skipped_existing'])}  "
           f"empty-regs: {len(manifest['excluded_empty'])}")
     print(f"  manifest: {out_dir/'manifest.json'}")
 

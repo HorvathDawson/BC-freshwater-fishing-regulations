@@ -42,6 +42,20 @@ outlet/inlet with no listed boundary):
 
 A wrong-but-confident binding is the worst outcome. An unbound locator sent to review is correct behavior.
 
+### When an item is marked `[NO REGISTRY MATCH]`
+
+Some items carry a `⚠ NO REGISTRY MATCH` block instead of a boundary list — the row had no registry
+item, so there is nothing to bind against. Still do the real work, but bind nothing:
+
+- Split `regs_verbatim` into rules exactly as normal (restriction_type, details, dates, species,
+  display_location, rule_text — all the same chain-of-custody rules apply).
+- For **every** rule: `extents: []`, `needs_review: true`, and a `review_reason` such as
+  `"no registry match — attach an item and bind extents"`.
+- Do **not** invent split ids and do **not** use `op:whole` (there is no reach to apply it to).
+- Leave `registry_status` / `registry_note` **unset** — they are filled automatically on ingest.
+
+This captures the regulation's content for the curator even though its location can't be resolved yet.
+
 ## Other fields
 
 - **`restriction_type`**: one of `closure | harvest | gear_restriction | vessel_restriction | licensing | note`.
@@ -108,6 +122,27 @@ Regs: `No fishing from the outlet of Daisy Lake downstream to the powerlines.`
       "extents": [{ "op": "downstream_of", "splits": ["daisy_lake__outlet"] }],
       "unresolved_locators": ["to the powerlines"],
       "needs_review": true, "review_reason": "no boundary for 'the powerlines'; bound only the upstream end" }
+  ]
+}
+```
+
+## Example C — no registry match (content-only)
+
+Item header: `## Waterbody: FROG LAKE  [NO REGISTRY MATCH]` · Reason: `skip: not_found`
+Regs: `No fishing Apr 1 - Jun 15. Single barbless hook.`
+
+```json
+{
+  "entry_id": "noreg_frog_lake_812",
+  "identity": { "name": "FROG LAKE", "region": "5", "mus": ["5-6"] },
+  "regs_verbatim": "No fishing Apr 1 - Jun 15. Single barbless hook.",
+  "rules": [
+    { "rule_id": "noreg_frog_lake_812.r1", "restriction_type": "closure", "details": "No fishing",
+      "rule_text": "No fishing Apr 1 - Jun 15.", "dates": ["Apr 1 - Jun 15"],
+      "extents": [], "needs_review": true, "review_reason": "no registry match — attach an item and bind extents" },
+    { "rule_id": "noreg_frog_lake_812.r2", "restriction_type": "gear_restriction", "details": "Single barbless hook",
+      "rule_text": "Single barbless hook.",
+      "extents": [], "needs_review": true, "review_reason": "no registry match — attach an item and bind extents" }
   ]
 }
 ```

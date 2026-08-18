@@ -273,6 +273,19 @@ class Entry(BaseModel):
         "tool preserves it). This is how a hand-authored entry (e.g. the full Atnarko system) is frozen.",
     )
     matched: List[str] = Field(default_factory=list, description="registry ids — written by the matcher, [] from the parser")
+    registry_status: str = Field(
+        default="matched",
+        description="'matched' (a registry item + its boundaries were available) or 'no_registry' "
+        "(the row had no registry match, so the reg text is still split into rules but NO locators "
+        "could be bound — a curator attaches an item + extents later). Injected by ingest from the "
+        "batch item; never trusted from the model.",
+    )
+    registry_note: str = Field(
+        default="",
+        description="why there is no registry match (matcher status + reason), e.g. "
+        "'ambiguous: 2 candidates for MACKENZIE CREEK' or 'skip: variant_of ZYMOETZ (Copper) RIVER'. "
+        "Required when registry_status='no_registry'. Injected by ingest.",
+    )
     tributaries: Tributaries = Field(default_factory=Tributaries, description="entry-wide tributary scope (included/only/excludes)")
     scope: List[Extent] = Field(default_factory=list, description="entry-wide extents; composes by ∩ with each rule's extents")
     rules: List[Rule] = Field(..., min_length=1)
@@ -283,6 +296,20 @@ class Entry(BaseModel):
         errors: List[str] = []
         if not self.regs_verbatim or not self.regs_verbatim.strip():
             raise ValueError("regs_verbatim is empty")
+
+        if self.registry_status not in ("matched", "no_registry"):
+            errors.append(f"registry_status must be 'matched' or 'no_registry', got '{self.registry_status}'")
+        if self.registry_status == "no_registry":
+            if not self.registry_note.strip():
+                errors.append("registry_status is 'no_registry' but registry_note is empty (record why)")
+            # content-only: with no registry item there is no reach to bind — every rule stays unbound
+            # and flagged, so a curator attaches an item + extents later (never a silent whole-reach).
+            for rule in self.rules:
+                if rule.extents or rule.sections_override:
+                    errors.append(f"rule {rule.rule_id}: no_registry entry must not bind extents/"
+                                  "sections_override (there is no registry reach) — leave extents empty")
+                if not rule.needs_review:
+                    errors.append(f"rule {rule.rule_id}: no_registry entry must set needs_review on every rule")
 
         regs_norm = _normalize(self.regs_verbatim)
         for i, rule in enumerate(self.rules):

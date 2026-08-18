@@ -39,6 +39,14 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
     """Validate one entry against its batch item. Returns (Entry|None, errors, unused_split_ids)."""
     data = dict(entry_data)
     data["regs_verbatim"] = item.get("raw_regs", "")      # inject authoritative source; don't trust the copy
+    if item.get("entry_id"):                              # authoritative id/status — never trusted from the model
+        data["entry_id"] = item["entry_id"]
+    if item.get("no_registry"):
+        data["registry_status"] = "no_registry"
+        data["registry_note"] = item.get("registry_note", "")
+    else:
+        data["registry_status"] = "matched"
+        data["registry_note"] = ""
     try:
         entry = Entry(**data)
     except Exception as e:                                 # noqa: BLE001

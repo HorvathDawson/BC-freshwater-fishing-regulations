@@ -40,6 +40,8 @@ class ParseContext:
     variants: tuple[str, ...] = ()
     boundaries: tuple[tuple[str, str, str], ...] = ()    # (id, label, kind) — the bindable cut-points
     raw_regs: str = ""
+    no_registry: bool = False                            # True: no registry match — split rules, bind nothing
+    registry_note: str = ""                              # why (matcher status + reason), when no_registry
 
     @property
     def bindable_ids(self) -> set[str]:
@@ -66,6 +68,27 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
     )
 
 
+def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, registry_note: str,
+                              region: str = "", mus: tuple[str, ...] = (), row_index: int = -1) -> ParseContext:
+    """A parse menu for a row with NO registry match. The reg text is still split into rules, but there
+    are no boundaries to bind — every rule goes to review and no extents are invented. Identity comes
+    from the synopsis row (not a registry item)."""
+    return ParseContext(
+        entry_id=entry_id,
+        row_index=row_index,
+        name=name,
+        region=region,
+        mus=mus,
+        item_id="",
+        item_kind="",
+        variants=(),
+        boundaries=(),
+        raw_regs=raw_regs,
+        no_registry=True,
+        registry_note=registry_note,
+    )
+
+
 def load_system_prompt() -> str:
     """The stable parser instructions + worked examples (PARSE_PROMPT.md)."""
     return _PROMPT.read_text(encoding="utf-8")
@@ -75,20 +98,33 @@ def render_user_message(ctx: ParseContext) -> str:
     """The per-entry payload: identity, the closed boundary menu, `within` targets, species menu, and
     the verbatim regs. Deliberately terse — the parser selects from these, it does not invent ids."""
     lines: list[str] = []
-    lines.append(f"## Waterbody: {ctx.name or '(unnamed)'}  [{ctx.item_id}, kind={ctx.item_kind}]")
+    header = f"## Waterbody: {ctx.name or '(unnamed)'}"
+    header += f"  [NO REGISTRY MATCH]" if ctx.no_registry else f"  [{ctx.item_id}, kind={ctx.item_kind}]"
+    lines.append(header)
     if ctx.region or ctx.mus:
         lines.append(f"Region {ctx.region or '?'} · MUs: {', '.join(ctx.mus) or '?'}")
     if ctx.variants:
         lines.append(f"Also known as: {', '.join(ctx.variants)}")
     lines.append("")
 
-    lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")
-    if ctx.boundaries:
-        for bid, label, kind in ctx.boundaries:
-            lines.append(f"- `{bid}`  — {label}  [{kind}]")
+    if ctx.no_registry:
+        lines.append("### ⚠ NO REGISTRY MATCH — content-only parse")
+        lines.append(f"Reason: {ctx.registry_note or 'unmatched'}")
+        lines.append("This row has NO registry item, so there are NO boundaries to bind. Still do the "
+                     "real work: split `regs_verbatim` into rules with restriction_type / details / "
+                     "dates / species / display_location. For EVERY rule set `extents: []`, "
+                     "`needs_review: true`, and a `review_reason` (e.g. \"no registry match — attach an "
+                     "item and bind extents\"). Do NOT invent split ids or op:whole. Leave "
+                     "`registry_status`/`registry_note` unset (ingest fills them).")
+        lines.append("")
     else:
-        lines.append("- (none) — this item has no cut-points; only op:whole is bindable.")
-    lines.append("")
+        lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")
+        if ctx.boundaries:
+            for bid, label, kind in ctx.boundaries:
+                lines.append(f"- `{bid}`  — {label}  [{kind}]")
+        else:
+            lines.append("- (none) — this item has no cut-points; only op:whole is bindable.")
+        lines.append("")
 
     lines.append("### Species codes (leave rule.species empty = ALL species; else pick from these)")
     lines.append(prompt_menu())

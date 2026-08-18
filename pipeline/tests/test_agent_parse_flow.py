@@ -67,13 +67,19 @@ def test_export_validate_ingest_and_locked(tmp_path):
     reg = _registry()
     out_dir = tmp_path / "parse"
     manifest = export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
-    assert manifest["pending_count"] == 1                 # only the matched, non-empty row
-    assert len(manifest["unmatched"]) == 1
+    assert manifest["pending_count"] == 2                 # matched row + unmatched row (content-only)
+    assert manifest["no_registry_count"] == 1             # the unmatched row is parsed, flagged no_registry
+    assert len(manifest["unmatched"]) == 1                # still reported for visibility
 
     batch_file = out_dir / "batches" / "batch_000.json"
     assert batch_file.exists() and (out_dir / "batches" / "batch_000.prompt.txt").exists()
     items = json.loads(batch_file.read_text())["items"]
     assert items[0]["bindable_ids"] == ["hunlen_falls"] and items[0]["raw_regs"].startswith("No fishing")
+    assert items[0]["no_registry"] is False
+    # the unmatched row exported as a no-registry item: no boundaries, reason recorded
+    nr = items[1]
+    assert nr["no_registry"] is True and nr["bindable_ids"] == [] and nr["item_id"] is None
+    assert "unmatched" in nr["registry_note"] and nr["entry_id"].startswith("noreg_")
 
     # agent's candidate response -> self-check passes
     cand = tmp_path / "resp.json"
@@ -102,6 +108,32 @@ def test_export_validate_ingest_and_locked(tmp_path):
     assert written2["5"]["kept_locked"] == 1
     # locked original preserved on disk — the re-parse did NOT overwrite it
     assert json.loads(region_file.read_text())["entries"][0]["rules"][0]["details"] == "No fishing"
+
+
+def test_no_registry_row_parses_content_only(tmp_path):
+    # An unmatched row is exported as a no_registry item; its regs still split into rules (each flagged
+    # needs_review, no extents), and ingest injects registry_status/note authoritatively.
+    reg = _registry()
+    out_dir = tmp_path / "parse"
+    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
+    batch_file = out_dir / "batches" / "batch_000.json"
+    batch_items = validate_mod.load_batch_items(batch_file)
+    nr_index = next(i for i, it in batch_items.items() if it["no_registry"])
+
+    cand = {"index": nr_index, "entry": {
+        "entry_id": "IGNORED — ingest injects the real id",
+        "identity": {"name": "Nonexistent Creek", "region": "5", "mus": ["5-4"]},
+        "regs_verbatim": "WILL BE INJECTED",
+        "rules": [{"rule_id": "r1", "restriction_type": "closure", "details": "Closed",
+                   "rule_text": "Closed.", "extents": [], "needs_review": True,
+                   "review_reason": "no registry match — attach an item and bind extents"}],
+    }}
+    accepted, report = ingest_mod.ingest([json.dumps([cand])], batch_items)
+    assert report["accepted"] == [nr_index] and not report["failed"], report
+    entry = accepted[nr_index]
+    assert entry.registry_status == "no_registry" and "unmatched" in entry.registry_note
+    assert entry.entry_id.startswith("noreg_") and entry.matched == []
+    assert entry.rules[0].needs_review and entry.rules[0].extents == []
 
 
 def test_ingest_rejects_bad_split(tmp_path):
