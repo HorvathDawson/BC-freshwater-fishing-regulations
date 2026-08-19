@@ -42,8 +42,9 @@ def compute_rows_digest(rows: list[dict]) -> str:
 
 
 def default_work_dir() -> Path:
-    from project_config import get_config
-    return Path(get_config().fwa_output_dir) / "parse"
+    # Own top-level dir: the parse work (batches/responses/reviews) is unrelated to the FWA graph
+    # artifacts, so it no longer piggybacks under output/pipeline/graph. <project-root>/output/parse.
+    return Path(__file__).resolve().parents[2] / "output" / "parse"
 
 
 def load_existing_entry_ids(entries_dir: Path) -> set[str]:

@@ -18,7 +18,7 @@ import argparse
 import json
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -225,6 +225,10 @@ def main() -> None:
                     print(f"  batch {bid:03d}: ✗ FAILED — {str(e)[:160]}")
                 finally:
                     _write_run_state(run_state_path, args.model, bids, responses_dir, statuses, credit_stop)
+        except BaseException:                            # crash OR Ctrl-C: cancel queued batches so the
+            for f in futs:                               # pool's shutdown(wait=True) can't drain them and
+                f.cancel()                               # keep burning credits (the original run's bug)
+            raise
         finally:
             _write_run_state(run_state_path, args.model, bids, responses_dir, statuses, credit_stop)
 
