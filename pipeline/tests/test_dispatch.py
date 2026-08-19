@@ -39,6 +39,50 @@ def test_dispatch_happy_path_writes_run_state(tmp_path, monkeypatch):
     assert all(v["status"] == "done" for v in state["batches"].values())
 
 
+def test_extract_json_obj():
+    assert d._extract_json_obj(json.dumps({"result": '{"verdict":"pass","issues":[]}'})) == \
+        {"verdict": "pass", "issues": []}
+    assert d._extract_json_obj('```json\n{"a": 1}\n```') == {"a": 1}
+    assert d._extract_json_obj("not json") == {}
+
+
+def test_flagged_batch_ids_picks_high_medium(tmp_path):
+    manifest = {"batches": [{"id": 0, "indices": [0, 1]}, {"id": 1, "indices": [2, 3]}]}
+    reviews = tmp_path / "reviews"
+    reviews.mkdir()
+    # batch 0: high finding (envelope-wrapped) -> flagged; batch 1: only low (bare json) -> not flagged
+    (reviews / "batch_000.review.json").write_text(json.dumps(
+        {"result": json.dumps({"verdict": "changes_requested",
+                               "issues": [{"index": 1, "severity": "high", "problem": "wrong reach"}]})}))
+    (reviews / "batch_001.review.json").write_text(json.dumps(
+        {"verdict": "pass", "issues": [{"index": 2, "severity": "low", "problem": "nit"}]}))
+    assert d._flagged_batch_ids(manifest, reviews) == [0]
+
+
+def test_invalid_batch_ids_flags_bad_response(tmp_path):
+    manifest = {"batches": [{"id": 0, "indices": [0]}, {"id": 1, "indices": [1]}]}
+    batches = tmp_path / "batches"
+    responses = tmp_path / "responses"
+    batches.mkdir()
+    responses.mkdir()
+    (batches / "batch_000.json").write_text(json.dumps({"items": [
+        {"index": 0, "entry_id": "e0", "raw_regs": "No fishing.", "bindable_ids": [],
+         "no_registry": True, "registry_note": "unmatched: x"}]}))
+    (batches / "batch_001.json").write_text(json.dumps({"items": [
+        {"index": 1, "entry_id": "e1", "raw_regs": "No fishing.", "bindable_ids": []}]}))
+    # batch 0: valid content-only entry
+    (responses / "batch_000.json").write_text(json.dumps([{"index": 0, "entry": {
+        "identity": {"name": "A"}, "regs_verbatim": "x", "rules": [
+            {"rule_id": "r", "restriction_type": "closure", "details": "No fishing",
+             "rule_text": "No fishing.", "extents": [], "needs_review": True, "review_reason": "nr"}]}}]))
+    # batch 1: binds a split id that isn't in bindable_ids -> invalid
+    (responses / "batch_001.json").write_text(json.dumps([{"index": 1, "entry": {
+        "identity": {"name": "B"}, "regs_verbatim": "x", "rules": [
+            {"rule_id": "r", "restriction_type": "closure", "details": "c", "rule_text": "No fishing.",
+             "extents": [{"op": "upstream_of", "splits": ["nope"]}]}]}}]))
+    assert d._invalid_batch_ids(manifest, batches, responses) == [1]
+
+
 def test_dispatch_credit_stop_halts_and_records(tmp_path, monkeypatch):
     work = _work(tmp_path, 4)
 

@@ -152,6 +152,69 @@ def _write_run_state(path: Path, model: str, all_bids: list[int], responses_dir:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _extract_json_obj(stdout: str) -> dict:
+    """Like _extract_json_array but for the reviewer's single `{verdict, issues}` object."""
+    text = stdout.strip()
+    try:
+        env = json.loads(text)
+        if isinstance(env, dict) and "result" in env:
+            text = env["result"]
+    except json.JSONDecodeError:
+        pass
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    try:
+        obj = json.loads(text)
+        return obj if isinstance(obj, dict) else {}
+    except json.JSONDecodeError:
+        return {}
+
+
+def _flagged_batch_ids(manifest: dict, reviews_dir: Path,
+                       severities=("high", "medium")) -> list[int]:
+    """Batch ids the reviewer flagged at one of `severities` — the semantic net's escalation signal
+    (a confident-looking parse the reviewer believes is wrong). Low-severity nits are not escalated."""
+    sev = set(severities)
+    flagged_idx: set[int] = set()
+    for b in manifest["batches"]:
+        rp = reviews_dir / f"batch_{b['id']:03d}.review.json"
+        if not rp.exists():
+            continue
+        obj = _extract_json_obj(rp.read_text(encoding="utf-8"))
+        for iss in obj.get("issues", []):
+            if iss.get("severity") in sev and iss.get("index") is not None:
+                flagged_idx.add(iss["index"])
+    return sorted({b["id"] for b in manifest["batches"] if set(b["indices"]) & flagged_idx})
+
+
+def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -> list[int]:
+    """Batch ids whose EXISTING response fails ingest validation — a response was written but ≥1 of its
+    entries is invalid, unparseable, or missing. A normal resume skips these (the file exists), so they
+    must be targeted explicitly to re-parse (e.g. on a stronger model)."""
+    from pipeline.parsing.ingest import _load_all_batch_items, ingest
+    batch_items = _load_all_batch_items(batches_dir)
+    bad_indices: set[int] = set()
+    for b in manifest["batches"]:
+        rp = responses_dir / f"batch_{b['id']:03d}.json"
+        if not rp.exists():
+            continue
+        try:
+            _, report = ingest([rp.read_text(encoding="utf-8")], batch_items)
+        except Exception:                                 # noqa: BLE001 — garbage response: redo it
+            bad_indices.update(b["indices"])
+            continue
+        got = set(report["accepted"]) | {f["index"] for f in report["failed"]}
+        bad_indices.update(f["index"] for f in report["failed"])
+        bad_indices.update(set(b["indices"]) - got)       # entries the response never returned
+    return sorted({b["id"] for b in manifest["batches"] if set(b["indices"]) & bad_indices})
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Dispatch exported batches through the Claude CLI (parallel subagents).")
     ap.add_argument("--work-dir", help="parse working dir (default: <out>/parse)")
@@ -167,9 +230,16 @@ def main() -> None:
                     "(much more expensive — default is single-shot)")
     ap.add_argument("--concurrency", type=int, default=3, help="parallel batch subagents (default: 3)")
     ap.add_argument("--timeout", type=int, default=1800)
-    ap.add_argument("--only", type=int, help="dispatch a single batch id")
+    ap.add_argument("--only", help="dispatch only these batch id(s), comma-separated (e.g. '3' or '3,5,7')")
     ap.add_argument("--force", action="store_true", help="re-dispatch batches with an existing response")
     ap.add_argument("--review", action="store_true", help="also run an independent reviewer subagent per batch")
+    ap.add_argument("--review-model", default="", help="model for the review pass (default: same as --model)")
+    ap.add_argument("--redo-invalid", action="store_true",
+                    help="re-parse batches whose existing response fails validation (schema/split-id/"
+                    "incomplete) — escalation tier, e.g. with --model opus")
+    ap.add_argument("--redo-flagged", action="store_true",
+                    help="re-parse batches the reviewer flagged high/medium — escalation tier, "
+                    "e.g. with --model opus")
     args = ap.parse_args()
 
     if args.work_dir:
@@ -184,10 +254,30 @@ def main() -> None:
     cli_flags = _cli_flags(args.model, args.permission_mode, args.allowed_tools,
                            args.dangerously_skip_permissions)
 
-    bids = [b["id"] for b in manifest["batches"] if args.only is None or b["id"] == args.only]
-    todo = [b for b in bids if args.force or not (responses_dir / f"batch_{b:03d}.json").exists()]
-    if len(todo) < len(bids):
-        print(f"  skipping {len(bids) - len(todo)} batch(es) with an existing response (use --force)")
+    only = None if not args.only else {int(x) for x in str(args.only).split(",") if x.strip()}
+    bids = [b["id"] for b in manifest["batches"] if only is None or b["id"] in only]
+
+    if args.redo_invalid or args.redo_flagged:
+        # Escalation tier: target only the hard cases (+ any still-missing responses), re-parse them
+        # on this run's (stronger) model, overwriting their old responses.
+        target: set[int] = {b for b in bids if not (responses_dir / f"batch_{b:03d}.json").exists()}
+        if args.redo_invalid:
+            inv = set(_invalid_batch_ids(manifest, batches_dir, responses_dir)) & set(bids)
+            target |= inv
+            print(f"  redo-invalid: {len(inv)} batch(es) with invalid/incomplete responses")
+        if args.redo_flagged:
+            fl = set(_flagged_batch_ids(manifest, reviews_dir)) & set(bids)
+            target |= fl
+            print(f"  redo-flagged: {len(fl)} batch(es) with high/medium review findings")
+        todo = sorted(target)
+        for b in todo:                                    # a re-parse invalidates the old review
+            rev = reviews_dir / f"batch_{b:03d}.review.json"
+            if rev.exists():
+                rev.unlink()
+    else:
+        todo = [b for b in bids if args.force or not (responses_dir / f"batch_{b:03d}.json").exists()]
+        if len(todo) < len(bids):
+            print(f"  skipping {len(bids) - len(todo)} batch(es) with an existing response (use --force)")
 
     run_state_path = work / "run_state.json"
     statuses: dict[int, dict] = {b: {"status": "done"} for b in bids
@@ -246,8 +336,12 @@ def main() -> None:
         return                                            # don't review/finish a partial run
 
     if args.review:
+        review_model = args.review_model or args.model
+        review_flags = _cli_flags(review_model, args.permission_mode, args.allowed_tools,
+                                  args.dangerously_skip_permissions)
+        print(f"\nReview pass ({review_model}):")
         _dispatch_reviews(batches_dir, responses_dir, reviews_dir, bids, claude_bin=args.claude_bin,
-                          cli_flags=cli_flags, cwd=project_root, timeout=args.timeout,
+                          cli_flags=review_flags, cwd=project_root, timeout=args.timeout,
                           concurrency=args.concurrency, force=args.force)
 
     print(f"Done. Next: python -m pipeline.parsing.ingest {responses_dir}/*.json --dry-run")

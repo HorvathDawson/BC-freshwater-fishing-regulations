@@ -22,8 +22,8 @@ Return ONLY this JSON object (no prose, no fences):
       "issues": [ { "index": <row>, "severity": "high"|"medium"|"low",
                     "problem": "<what is wrong>", "fix": "<the concrete correction>" } ] }
 
-Empty issues + verdict "pass" = every row is correct. You may run the repo's Python helpers to check
-(e.g. `python -m pipeline.parsing.validate <batch.json> <response.json>`)."""
+Empty issues + verdict "pass" = every row is correct. Flag `high`/`medium` for anything a stronger
+model should re-parse; `low` for nits. Judge from the material shown — do not call any tools."""
 
 
 def render_review_prompt(batch_items: list[dict], results_by_index: dict[int, dict]) -> str:
