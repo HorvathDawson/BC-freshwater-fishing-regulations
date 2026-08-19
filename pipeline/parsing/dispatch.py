@@ -58,16 +58,16 @@ def _extract_json_array(stdout: str) -> list[dict]:
 
 
 def _cli_flags(model: str, permission_mode: str, allowed_tools: str, skip_perms: bool) -> list[str]:
-    """Flags shared by the parse + review invocations. `skip_perms` (--dangerously-skip-permissions) is
-    the reliable way to let a headless `-p` subagent run its Bash self-checks; otherwise pass an
-    --allowed-tools allowlist (e.g. 'Bash Read') or a permission-mode."""
+    """Flags shared by the parse + review invocations. Default is SINGLE-SHOT: no tools, the subagent
+    just emits JSON (cheapest — validation happens downstream at ingest, failures are re-dispatched).
+    Opt into an agentic run (in-agent self-validation) with --dangerously-skip-permissions, or scope
+    it with an --allowed-tools allowlist (e.g. 'Bash Read')."""
     flags = ["-p", "--output-format", "json", "--model", model]
     if skip_perms:
         flags.append("--dangerously-skip-permissions")
-    else:
-        flags += ["--permission-mode", permission_mode]
-        if allowed_tools:
-            flags += ["--allowed-tools", allowed_tools]
+    elif allowed_tools:
+        flags += ["--permission-mode", permission_mode, "--allowed-tools", allowed_tools]
+    # else: single-shot — no tools, pure JSON generation (the default)
     return flags
 
 
@@ -155,14 +155,16 @@ def _write_run_state(path: Path, model: str, all_bids: list[int], responses_dir:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Dispatch exported batches through the Claude CLI (parallel subagents).")
     ap.add_argument("--work-dir", help="parse working dir (default: <out>/parse)")
-    ap.add_argument("--model", default="opus", help="CLI model alias (default: opus)")
+    ap.add_argument("--model", default="sonnet", help="CLI model alias (default: sonnet — parsing is "
+                    "mechanical; reserve opus for re-dispatching failures)")
     ap.add_argument("--claude-bin", default=os.environ.get("CLAUDE_BIN", "claude"))
     ap.add_argument("--permission-mode", default="acceptEdits",
-                    help="CLI permission mode (used unless --dangerously-skip-permissions)")
-    ap.add_argument("--allowed-tools", default="Bash Read",
-                    help="tools the subagent may use non-interactively so it can self-validate (default: 'Bash Read')")
+                    help="CLI permission mode (only used with --allowed-tools)")
+    ap.add_argument("--allowed-tools", default="",
+                    help="tools the subagent may use; empty (default) = single-shot, no tools")
     ap.add_argument("--dangerously-skip-permissions", action="store_true",
-                    help="reliable headless mode: let the subagent run its Bash self-checks with no prompts")
+                    help="agentic mode: give the subagent full tool access for in-agent self-validation "
+                    "(much more expensive — default is single-shot)")
     ap.add_argument("--concurrency", type=int, default=3, help="parallel batch subagents (default: 3)")
     ap.add_argument("--timeout", type=int, default=1800)
     ap.add_argument("--only", type=int, help="dispatch a single batch id")

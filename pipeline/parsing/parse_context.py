@@ -147,26 +147,19 @@ Return ONLY a JSON array — one object per ITEM above, in this exact shape:
 - Copy each item's `index` verbatim; it maps your result back to the row. Never renumber.
 - `entry` is the full Entry object (see the schema + examples above), bound to THAT item's boundaries.
 - Return one object for every item. Do not wrap in Markdown fences or add prose.
+- Pick `species` codes only from the menu shown with each item; leave it empty for ALL species.
+- Bind `extents.splits` only to that item's listed boundary ids. If none fit, record the phrase in
+  `unresolved_locators` and set `needs_review` — never invent an id.
 
-# YOU MAY RUN THE PROJECT'S PYTHON HELPERS
-
-This is a coding-agent parse — use the repo's own functions to get it right instead of guessing:
-
-    PYTHONPATH="$PWD" .venv/bin/python -c \\
-      "from pipeline.parsing.species import resolve_species_phrase as r; print(r('char'))"   # -> ['SLV']
-
-    # self-check ONE candidate entry against its item BEFORE you submit (validates Entry + split ids):
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.parsing.validate <batch.json> <candidate.json>
-
-`resolve_species_phrase(text)` maps a species word to codes; `pipeline.parsing.validate` runs the exact
-Entry validators + split-id check the ingest step will run, so you can iterate until it passes.
+This is a single-shot parse: emit the JSON directly. Your output is validated (Entry schema + split-id
+check) after you submit, and any batch that fails is re-run — so get each entry right in one pass.
 """
 
 
 def render_batch_prompt(contexts: list[ParseContext]) -> str:
     """A self-contained batch prompt: the stable rules/examples (PARSE_PROMPT.md), each item's
-    constrained menu, then the `{index, entry}` output envelope + the note that the agent may run the
-    repo's Python helpers (species resolution, self-validation)."""
+    constrained menu, then the `{index, entry}` output envelope. Single-shot — the agent emits JSON
+    directly (no tools); validation happens downstream at ingest."""
     parts = [load_system_prompt(), "\n\n---\n\n# BATCH — parse EACH item below into its own Entry\n"]
     for ctx in contexts:
         parts.append(f"\n---\n## ITEM index={ctx.row_index}\n\n{render_user_message(ctx)}\n")

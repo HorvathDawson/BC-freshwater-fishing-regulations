@@ -154,8 +154,9 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Export matched synopsis rows into agent-parse batches.")
-    ap.add_argument("--batch-size", type=int, default=15,
-                    help="rows per batch (default 15 — smaller = finer resume granularity if a run dies mid-batch)")
+    ap.add_argument("--batch-size", type=int, default=30,
+                    help="rows per batch (default 30 — balances per-call prompt overhead against resume "
+                    "granularity if a run dies mid-batch)")
     ap.add_argument("--registry", help="registry.json (default: build output).")
     ap.add_argument("--overrides", help="matcher overrides JSON.")
     ap.add_argument("--entries-dir", help="checked-in EntryFiles dir (resume skip).")

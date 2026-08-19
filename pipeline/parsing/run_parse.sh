@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # One-command setup + run for the Claude agent parser.
 #
-#   bash pipeline/parsing/run_parse.sh                 # export -> dispatch (Opus) -> review -> ingest
+#   bash pipeline/parsing/run_parse.sh                 # export -> dispatch (single-shot) -> review -> ingest
 #   REGISTRY=output/v2/full/registry.json bash pipeline/parsing/run_parse.sh
 #
-# Uses your Claude Pro/Max login (run `claude` once to log in). Env knobs:
+# Single-shot parse: each batch is one JSON generation (no in-agent tool loop); validation happens at
+# ingest and failed batches are re-dispatched. Uses your Claude Pro/Max login (run `claude` once to
+# log in). Env knobs:
 #   REGISTRY     path to registry.json         (default: output/v2/full/registry.json)
-#   BATCH_SIZE   rows per batch                 (default: 15 — smaller = finer resume granularity)
-#   MODEL        CLI model alias               (default: opus)
+#   BATCH_SIZE   rows per batch                 (default: 30)
+#   MODEL        CLI model alias               (default: sonnet — mechanical parse; opus for re-runs)
 #   CONCURRENCY  parallel batch subagents       (default: 3)
 #   CLAUDE_BIN   path to the claude CLI         (default: claude)
 set -euo pipefail
@@ -17,8 +19,8 @@ export PYTHONPATH="$PWD"
 PY=".venv/bin/python"
 
 REGISTRY="${REGISTRY:-output/v2/full/registry.json}"
-BATCH_SIZE="${BATCH_SIZE:-15}"
-MODEL="${MODEL:-opus}"
+BATCH_SIZE="${BATCH_SIZE:-30}"
+MODEL="${MODEL:-sonnet}"
 CONCURRENCY="${CONCURRENCY:-3}"
 CLAUDE_BIN="${CLAUDE_BIN:-claude}"
 
@@ -39,9 +41,9 @@ echo "  ✓ registry: $REGISTRY"
 echo "== 2/5  Export batches =="
 $PY -m pipeline.parsing.batch_exporter --registry "$REGISTRY" --batch-size "$BATCH_SIZE"
 
-echo "== 3/5  Dispatch to Claude ($MODEL, x$CONCURRENCY) + independent review =="
+echo "== 3/5  Dispatch to Claude ($MODEL, x$CONCURRENCY, single-shot) + independent review =="
 $PY -m pipeline.parsing.dispatch --model "$MODEL" --concurrency "$CONCURRENCY" \
-    --review --dangerously-skip-permissions --claude-bin "$CLAUDE_BIN"
+    --review --claude-bin "$CLAUDE_BIN"
 
 RESP="$($PY - <<'PYEOF'
 from pipeline.parsing.batch_exporter import default_work_dir
