@@ -1,0 +1,1712 @@
+{
+  "region": "2",
+  "entries": [
+    {
+      "entry_id": "gnis:10012",
+      "identity": {
+        "name": "Anderson Creek",
+        "region": "2",
+        "mus": [
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "anderson_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:10070",
+      "identity": {
+        "name": "Brunette River",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "brunette_river_2.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:10482",
+      "identity": {
+        "name": "Angus Creek",
+        "region": "2",
+        "mus": [
+          "2-5"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "angus_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:12117",
+      "identity": {
+        "name": "Mahood Creek",
+        "region": "2",
+        "mus": [
+          "2-18"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "mahood_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary listed for 152nd Street (Johnson Road); item has no bindable boundaries",
+          "rule_text": "**No Fishing** upstream of 152nd Street (Johnson Road)",
+          "location_text": "upstream of 152nd Street (Johnson Road)",
+          "exception": "",
+          "display_location": "Above 152nd Street (Johnson Road)",
+          "unresolved_locators": [
+            "152nd Street (Johnson Road)"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:12936",
+      "identity": {
+        "name": "Chapman Creek",
+        "region": "2",
+        "mus": [
+          "2-5"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** May 1-June 30\n**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "chapman_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** May 1-June 30",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "chapman_creek.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary listed for 'the falls' or the power line crossing landmark; item has no bindable boundaries",
+          "rule_text": "**No Fishing **from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
+          "location_text": "from the falls to 100 m downstream (falls are located approximately 550 m upstream of the power line crossing)",
+          "exception": "",
+          "display_location": "Near the falls (~550m upstream of power line crossing)",
+          "unresolved_locators": [
+            "the falls",
+            "power line crossing"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:13047",
+      "identity": {
+        "name": "Big Silver Creek",
+        "region": "2",
+        "mus": [
+          "2-18"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** May 1-June 30",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "big_silver_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** May 1-June 30",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:13103",
+      "identity": {
+        "name": "Birkenhead River",
+        "region": "2",
+        "mus": [
+          "2-10",
+          "2-11"
+        ]
+      },
+      "regs_verbatim": "Bait ban",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "birkenhead_river.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:17155",
+      "identity": {
+        "name": "Ashlu Creek",
+        "region": "2",
+        "mus": [
+          "2-6"
+        ]
+      },
+      "regs_verbatim": "Bait ban",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "ashlu_creek.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:5922",
+      "identity": {
+        "name": "Capilano River",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence\nBait ban, Aug 1-Oct 31; steelhead catch and release",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "capilano_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "fishing_boundary_signs_at_footbridge_situated"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence",
+          "location_text": "upstream of fishing boundary signs at footbridge situated approximately 100 m downstream of the fish fence",
+          "exception": "",
+          "display_location": "Above the footbridge fishing boundary signs",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "capilano_river.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Aug 1-Oct 31"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban, Aug 1-Oct 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "capilano_river.r3",
+          "restriction_type": "harvest",
+          "details": "Catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "steelhead catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": [
+            "ST"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:7250",
+      "identity": {
+        "name": "Campbell River",
+        "region": "2",
+        "mus": [
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "**No Fishing **upstream of 12th Avenue\n**No Fishing **downstream of 12th Avenue Apr 1-June 30\n**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30\n**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "campbell_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "12th_avenue"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing **upstream of 12th Avenue",
+          "location_text": "upstream of 12th Avenue",
+          "exception": "",
+          "display_location": "Above 12th Avenue",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "12th_avenue"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Apr 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing **downstream of 12th Avenue Apr 1-June 30",
+          "location_text": "downstream of 12th Avenue",
+          "exception": "",
+          "display_location": "Below 12th Avenue",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "two_white_triangular_fishing_boundary_signs_200_m_upstream"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Aug 15-Sept 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for pedestrian bridge at the foot of Stayte Road; bound only the upstream end",
+          "rule_text": "**No Fishing** between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road, Aug 15-Sept 30",
+          "location_text": "between two white triangular fishing boundary signs downstream to pedestrian bridge at the foot of Stayte Road",
+          "exception": "",
+          "display_location": "Below the fishing boundary signs to pedestrian bridge at Stayte Road",
+          "unresolved_locators": [
+            "to pedestrian bridge at the foot of Stayte Road"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r4",
+          "restriction_type": "closure",
+          "details": "No fishing 21:00-05:00 daily",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Aug 1-Dec 31"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing **from 21:00 hours to 05:00 hours each day, Aug 1-Dec 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:9238",
+      "identity": {
+        "name": "Brem River",
+        "region": "2",
+        "mus": [
+          "2-13"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream\n**No Fishing **upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30\nArtificial fly only upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)\nBait ban",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "brem_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "the_upstream_edge_of_1st_falls"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the endpoint 100 m downstream of 1st falls edge; bound only the upstream end",
+          "rule_text": "**No Fishing** from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream",
+          "location_text": "from the upstream edge of 1st falls (situated approximately 1.5 km from the river's mouth) to a point 100 m downstream",
+          "exception": "",
+          "display_location": "Below the upstream edge of 1st falls (~100m downstream)",
+          "unresolved_locators": [
+            "to a point 100 m downstream"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "brem_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "2nd_set_of_falls"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing **upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence) Nov 1-June 30",
+          "location_text": "upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)",
+          "exception": "",
+          "display_location": "Above 2nd set of falls",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "brem_river.r3",
+          "restriction_type": "gear_restriction",
+          "details": "Artificial fly only",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "2nd_set_of_falls"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Artificial fly only upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)",
+          "location_text": "upstream of 2nd set of falls (situated approximately 2.5 km upstream of Hillis Creek confluence)",
+          "exception": "",
+          "display_location": "Above 2nd set of falls",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "brem_river.r4",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:9630",
+      "identity": {
+        "name": "Alouette River",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\n**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alouette_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "alouette_river__the_fishing_boundary_signs"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society",
+          "location_text": "upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society",
+          "exception": "",
+          "display_location": "Above the fishing boundary signs (near Alouette River Management Society)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alouette_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "216th_street"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-June 30"
+          ],
+          "includes_tributaries": true,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30",
+          "location_text": "upstream of 216th Street (including North Alouette River[Includes Tributaries])",
+          "exception": "",
+          "display_location": "Above 216th Street (incl. North Alouette River)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alouette_river.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": false,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "no powered boats on mainstem",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Mainstem",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:9694",
+      "identity": {
+        "name": "Brothers Creek",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "brothers_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328965040",
+      "identity": {
+        "name": "Alta Lake",
+        "region": "2",
+        "mus": [
+          "4-3"
+        ]
+      },
+      "regs_verbatim": "**No Fishing **Dec 1-Mar 31\nTrout/char daily quota combined = 2, no trout over 40cm, no more than 1 char (none under 60 cm)\nKokanee catch and release, bait ban, single barbless hook; speed restriction (12 km/h)",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alta_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-Mar 31"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing **Dec 1-Mar 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alta_lake.r2",
+          "restriction_type": "harvest",
+          "details": "Combined trout/char daily quota 2; no trout over 40cm; max 1 char, none under 60cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout/char daily quota combined = 2, no trout over 40cm, no more than 1 char (none under 60 cm)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "alta_lake.r3",
+          "restriction_type": "harvest",
+          "details": "Catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Kokanee catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "KO"
+          ]
+        },
+        {
+          "rule_id": "alta_lake.r4",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alta_lake.r5",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction 12 km/h",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "speed restriction (12 km/h)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329102601",
+      "identity": {
+        "name": "Bear Lake",
+        "region": "2",
+        "mus": [
+          "7-24"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "bear_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329197276",
+      "identity": {
+        "name": "Case Lake",
+        "region": "2",
+        "mus": [
+          "2-16"
+        ]
+      },
+      "regs_verbatim": "Single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "case_lake.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329197919",
+      "identity": {
+        "name": "Cap Sheaf Lakes",
+        "region": "2",
+        "mus": [
+          "2-16"
+        ]
+      },
+      "regs_verbatim": "Single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "cap_sheaf_lakes.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329291807",
+      "identity": {
+        "name": "Alouette Lake",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "Bull trout (char) catch and release\nNo vessels in swimming areas, as buoyed and signed; speed restriction (8 km/h) at south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alouette_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bull trout (char) catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "BT"
+          ]
+        },
+        {
+          "rule_id": "alouette_lake.r2",
+          "restriction_type": "vessel_restriction",
+          "details": "No vessels in swimming areas",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for buoyed/signed swimming areas; item has no bindable boundaries",
+          "rule_text": "No vessels in swimming areas, as buoyed and signed",
+          "location_text": "in swimming areas, as buoyed and signed",
+          "exception": "",
+          "display_location": "Swimming areas (buoyed and signed)",
+          "unresolved_locators": [
+            "swimming areas, as buoyed and signed"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "alouette_lake.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction 8 km/h",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for described south-end line; item has no bindable boundaries",
+          "rule_text": "speed restriction (8 km/h) at south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake",
+          "location_text": "at south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake",
+          "exception": "",
+          "display_location": "South end of lake (south of BC Parks boat ramp to east-side signs line)",
+          "unresolved_locators": [
+            "south end of lake, south of a line drawn from the BC Parks\nboat ramp to signs on the east side of the lake"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329291868",
+      "identity": {
+        "name": "Burnaby Lake",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "burnaby_lake_2.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329303444",
+      "identity": {
+        "name": "Birkenhead Lake",
+        "region": "2",
+        "mus": [
+          "2-11"
+        ]
+      },
+      "regs_verbatim": "Bull trout (char) catch and release",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "birkenhead_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bull trout (char) catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "BT"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329522925",
+      "identity": {
+        "name": "Cedar Lake",
+        "region": "2",
+        "mus": [
+          "2-17"
+        ]
+      },
+      "regs_verbatim": "See Sumallo River",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "cedar_lake.r1",
+          "restriction_type": "note",
+          "details": "See Sumallo River regulations",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Sumallo River",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329532493",
+      "identity": {
+        "name": "Alpha Lake",
+        "region": "2",
+        "mus": [
+          "2-11",
+          "2-9"
+        ]
+      },
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alpha_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "Electric motor only, max 7.5 kW",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Electric motor only - max 7.5 kW",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329532498",
+      "identity": {
+        "name": "Alice Lake",
+        "region": "2",
+        "mus": [
+          "2-7"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alice_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329532708",
+      "identity": {
+        "name": "Browning Lake",
+        "region": "2",
+        "mus": []
+      },
+      "regs_verbatim": "No powered boats",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "browning_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    }
+  ]
+}

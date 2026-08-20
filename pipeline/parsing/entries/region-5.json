@@ -1,0 +1,1092 @@
+{
+  "region": "5",
+  "entries": [
+    {
+      "entry_id": "gnis:11119",
+      "identity": {
+        "name": "Beaver Creek",
+        "region": "5",
+        "mus": [
+          "5-2"
+        ]
+      },
+      "regs_verbatim": "**No Fishing for bass**\nIncludes: Beaver, Chambers, Joan, McCauley, Opheim, and Roberts lakes, Lake George, and the unnamed lake known locally as \"Rye\" lake",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "beaver_creek_808.r1",
+          "restriction_type": "closure",
+          "details": "No fishing for bass (named lakes in the Beaver Creek chain)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "restriction applies only to specific named lakes within the creek chain, not the flowing creek reaches; the extents model has no op to select a discrete subset of lake splits, and 'Rye' lake has no matching boundary",
+          "rule_text": "**No Fishing for bass**\nIncludes: Beaver, Chambers, Joan, McCauley, Opheim, and Roberts lakes, Lake George, and the unnamed lake known locally as \"Rye\" lake",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Named lakes along Beaver Creek chain (Beaver, Chambers, Joan, McCauley, Opheim, Roberts, Lake George, \"Rye\" lake)",
+          "unresolved_locators": [
+            "the unnamed lake known locally as \"Rye\" lake"
+          ],
+          "species": [
+            "BS"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:11611",
+      "identity": {
+        "name": "Bella Coola River",
+        "region": "5",
+        "mus": [
+          "5-11",
+          "5-8"
+        ]
+      },
+      "regs_verbatim": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "bella_coola_river_810.r1",
+          "restriction_type": "note",
+          "details": "See Atnarko/Bella Coola Rivers; includes tributaries",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Atnarko/Bella Coola Rivers[Includes Tributaries]",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river, including tributaries",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:7956",
+      "identity": {
+        "name": "Baker Creek",
+        "region": "5",
+        "mus": [
+          "5-13"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30 and downstream of Park, May 1-May 31\nYouth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "baker_creek_804.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "pinnacles_provincial_park"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Apr 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of Pinnacles Provincial Park, Apr 1-June 30",
+          "location_text": "upstream of Pinnacles Provincial Park",
+          "exception": "",
+          "display_location": "Above Pinnacles Provincial Park",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "baker_creek_804.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "pinnacles_provincial_park"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-May 31"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "downstream of Park, May 1-May 31",
+          "location_text": "downstream of Park",
+          "exception": "",
+          "display_location": "Below Pinnacles Provincial Park",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "baker_creek_804.r3",
+          "restriction_type": "note",
+          "details": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "pinnacles_provincial_park"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Youth/Disabled Accompanied Water year round (see page 4) downstream of Pinnacles Provincial Park",
+          "location_text": "downstream of Pinnacles Provincial Park",
+          "exception": "",
+          "display_location": "Below Pinnacles Provincial Park",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "noreg_basalt_lake_807",
+      "identity": {
+        "name": "BASALT LAKE",
+        "region": "5",
+        "mus": [
+          "6-1"
+        ]
+      },
+      "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "no_registry",
+      "registry_note": "skip: ignored",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_basalt_lake_807.r1",
+          "restriction_type": "closure",
+          "details": "No ice fishing",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "**No Ice Fishing;**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "noreg_basalt_lake_807.r2",
+          "restriction_type": "harvest",
+          "details": "Trout catch and release",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "trout catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "noreg_basalt_lake_807.r3",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328986884",
+      "identity": {
+        "name": "Abbott Lake",
+        "region": "5",
+        "mus": [
+          "5-2"
+        ]
+      },
+      "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook; electric motor only (max 7.5 kW)",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "abbott_lake_797.r1",
+          "restriction_type": "closure",
+          "details": "No ice fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Ice Fishing;**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "abbott_lake_797.r2",
+          "restriction_type": "harvest",
+          "details": "Trout/char daily quota = 1, none under 50 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "trout/char daily quota = 1 (none under 50 cm)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "abbott_lake_797.r3",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "abbott_lake_797.r4",
+          "restriction_type": "vessel_restriction",
+          "details": "Electric motor only, max 7.5 kW",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "electric motor only (max 7.5 kW)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329021787",
+      "identity": {
+        "name": "Banana Lake",
+        "region": "5",
+        "mus": [
+          "5-6"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "banana_lake_806.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 2",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 2",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "banana_lake_806.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329021793",
+      "identity": {
+        "name": "Avalanche Lake",
+        "region": "5",
+        "mus": [
+          "5-6"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "avalanche_lake_802.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 2",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 2",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "avalanche_lake_802.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329021828",
+      "identity": {
+        "name": "Baby Charlotte Lake",
+        "region": "5",
+        "mus": [
+          "5-6"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "baby_charlotte_lake_803.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 2",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 2",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "baby_charlotte_lake_803.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329238230",
+      "identity": {
+        "name": "Agnus Lake",
+        "region": "5",
+        "mus": [
+          "5-6"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook; unnamed lake approximately 1 km north of Miner Lake",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "agnus_lake_799.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 2",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 2",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "agnus_lake_799.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "agnus_lake_799.r3",
+          "restriction_type": "note",
+          "details": "Unnamed lake approximately 1 km north of Miner Lake",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "unnamed lake approximately 1 km north of Miner Lake",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329276293",
+      "identity": {
+        "name": "Tigulhdzin",
+        "region": "5",
+        "mus": [
+          "5-13"
+        ]
+      },
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "tigulhdzin_800.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "Electric motor only, max 7.5 kW",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Electric motor only - max 7.5 kW",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329480780",
+      "identity": {
+        "name": "Beaver Lake",
+        "region": "5",
+        "mus": [
+          "5-2"
+        ]
+      },
+      "regs_verbatim": "**No Fishing for bass**",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "beaver_lake_809.r1",
+          "restriction_type": "closure",
+          "details": "No fishing for bass",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing for bass**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "BS"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329480864",
+      "identity": {
+        "name": "Baillon Lake",
+        "region": "5",
+        "mus": [
+          "5-2"
+        ]
+      },
+      "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "baillon_lake_805.r1",
+          "restriction_type": "closure",
+          "details": "No ice fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Ice Fishing;**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "baillon_lake_805.r2",
+          "restriction_type": "harvest",
+          "details": "Trout catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "trout catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "baillon_lake_805.r3",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329601585",
+      "identity": {
+        "name": "Abuntlet Lake",
+        "region": "5",
+        "mus": [
+          "5-12"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "locked": false,
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "abuntlet_lake_798.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 2",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 2",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "abuntlet_lake_798.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban, single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    }
+  ]
+}
