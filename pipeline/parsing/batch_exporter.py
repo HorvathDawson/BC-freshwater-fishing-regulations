@@ -80,7 +80,13 @@ def _item_payload(index: int, row: dict, ctx) -> dict:
     }
 
 
-def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_ids, force: bool) -> dict:
+def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_ids, force: bool,
+           skip_existing: bool = False) -> dict:
+    """Export matchable rows into stable batches. The batch layout is a PURE FUNCTION of (rows,
+    registry) — it must NOT depend on what has already been ingested, or a re-run would renumber the
+    batches and desync them from responses/ (resume is keyed on batch id). `skip_existing` (opt-in,
+    default off) drops rows already in EntryFiles; leave it off for a resumable run and let dispatch
+    (response exists) + ingest (locked preserved) handle 'already done'."""
     batches_dir = out_dir / "batches"
     batches_dir.mkdir(parents=True, exist_ok=True)
     for stale in batches_dir.glob("batch_*"):
@@ -105,7 +111,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             # content is captured for the curator even though no locators can be bound).
             unmatched.append({"index": m.index, "water": m.water, "status": m.status, "reason": m.reason})
             entry_id = f"noreg_{_slug(m.water)}_{m.index}"
-            if entry_id in existing_ids and not force:
+            if skip_existing and entry_id in existing_ids and not force:
                 skipped_existing.append(m.index)
                 continue
             note = f"{m.status}: {m.reason}" if m.reason else m.status
@@ -117,7 +123,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             continue
         item = registry[m.item_id]
         entry_id = m.item_id
-        if entry_id in existing_ids and not force:
+        if skip_existing and entry_id in existing_ids and not force:
             skipped_existing.append(m.index)
             continue
         ctx = build_parse_context(item, raw_regs=row.get("raw_regs", ""),
@@ -162,6 +168,9 @@ def main() -> None:
     ap.add_argument("--entries-dir", help="checked-in EntryFiles dir (resume skip).")
     ap.add_argument("--out-dir", help="working dir (default: <out>/parse).")
     ap.add_argument("--force", action="store_true", help="re-export rows already present in EntryFiles.")
+    ap.add_argument("--skip-existing", action="store_true",
+                    help="drop rows already in EntryFiles (CHANGES the batch layout — breaks resume of a "
+                    "run in flight; only for a deliberate fresh export after curation)")
     args = ap.parse_args()
 
     rows = load_synopsis_rows()
@@ -172,7 +181,8 @@ def main() -> None:
     entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
     existing = load_existing_entry_ids(entries_dir)
 
-    manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force)
+    manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force,
+                      skip_existing=args.skip_existing)
     print(f"Exported {manifest['pending_count']} rows into {len(manifest['batches'])} batch(es) -> {out_dir/'batches'}")
     print(f"  of those, no-registry (content-only, flagged): {manifest['no_registry_count']}")
     print(f"  held-back detail: {len(manifest['unmatched'])}  skipped-existing: {len(manifest['skipped_existing'])}  "

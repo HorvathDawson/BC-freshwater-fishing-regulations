@@ -136,6 +136,24 @@ def test_no_registry_row_parses_content_only(tmp_path):
     assert entry.rules[0].needs_review and entry.rules[0].extents == []
 
 
+def test_batch_layout_is_stable_regardless_of_existing_entries(tmp_path):
+    # The batch layout MUST be a pure function of (rows, registry) — else a re-run that already
+    # ingested some rows would renumber the batches and desync them from responses/ (the bug that
+    # left region 3 unfinished). By default existing_ids must NOT change the layout.
+    reg = _registry()
+    m_fresh = export(_rows(), reg, tmp_path / "a", batch_size=40, overrides={},
+                     existing_ids=set(), force=False)
+    m_with_done = export(_rows(), reg, tmp_path / "b", batch_size=40, overrides={},
+                         existing_ids={"gnis:1"}, force=False)          # pretend gnis:1 already ingested
+    assert m_with_done["pending_count"] == m_fresh["pending_count"]
+    assert len(m_with_done["batches"]) == len(m_fresh["batches"])
+    assert m_with_done["skipped_existing"] == []                        # opt-in only
+    # opt-in skip_existing DOES drop it (deliberate fresh export)
+    m_skip = export(_rows(), reg, tmp_path / "c", batch_size=40, overrides={},
+                    existing_ids={"gnis:1"}, force=False, skip_existing=True)
+    assert m_skip["pending_count"] == m_fresh["pending_count"] - 1
+
+
 def test_ingest_rejects_bad_split(tmp_path):
     reg = _registry()
     out_dir = tmp_path / "parse"
