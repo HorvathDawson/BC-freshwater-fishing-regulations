@@ -83,6 +83,47 @@ def test_invalid_batch_ids_flags_bad_response(tmp_path):
     assert d._invalid_batch_ids(manifest, batches, responses) == [1]
 
 
+def test_covered_batch_ids(tmp_path):
+    manifest = {"batches": [{"id": 0, "indices": [0, 1]}, {"id": 1, "indices": [2, 3]}]}
+    batches = tmp_path / "batches"
+    batches.mkdir()
+    (batches / "batch_000.json").write_text(json.dumps({"items": [
+        {"index": 0, "entry_id": "a"}, {"index": 1, "entry_id": "b"}]}))
+    (batches / "batch_001.json").write_text(json.dumps({"items": [
+        {"index": 2, "entry_id": "c"}, {"index": 3, "entry_id": "d"}]}))
+    entries = tmp_path / "entries"
+    entries.mkdir()
+    # entries cover batch 0 fully (a, b); batch 1 only partially (c) -> not covered
+    (entries / "region-1.json").write_text(json.dumps(
+        {"region": "1", "entries": [{"entry_id": "a"}, {"entry_id": "b"}, {"entry_id": "c"}]}))
+    assert d._covered_batch_ids(manifest, batches, entries) == {0}
+
+
+def test_dispatch_skips_already_ingested_batches(tmp_path, monkeypatch):
+    work = _work(tmp_path, 2)
+    (work / "batches" / "batch_000.json").write_text(json.dumps({"items": [{"index": 0, "entry_id": "done0"}]}))
+    (work / "batches" / "batch_001.json").write_text(json.dumps({"items": [{"index": 1, "entry_id": "todo1"}]}))
+    entries = tmp_path / "entries"
+    entries.mkdir()
+    (entries / "region-1.json").write_text(json.dumps({"region": "1", "entries": [{"entry_id": "done0"}]}))
+
+    dispatched: list[str] = []
+
+    def fake(prompt_path, response_path, **kw):
+        dispatched.append(prompt_path.name)
+        response_path.parent.mkdir(parents=True, exist_ok=True)
+        response_path.write_text("[]", encoding="utf-8")
+        return []
+
+    monkeypatch.setattr(d, "dispatch_prompt", fake)
+    monkeypatch.setattr("sys.argv", ["dispatch", "--work-dir", str(work),
+                                     "--entries-dir", str(entries), "--concurrency", "1"])
+    d.main()
+    assert dispatched == ["batch_001.prompt.txt"]         # batch 0 skipped (already ingested)
+    state = json.loads((work / "run_state.json").read_text())
+    assert state["batches"]["0"]["status"] == "ingested" and state["done"] == 2
+
+
 def test_dispatch_credit_stop_halts_and_records(tmp_path, monkeypatch):
     work = _work(tmp_path, 4)
 

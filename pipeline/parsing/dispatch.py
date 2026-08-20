@@ -139,7 +139,7 @@ def _write_run_state(path: Path, model: str, all_bids: list[int], responses_dir:
             batches[str(bid)] = statuses.get(bid, {"status": "done"})
         else:
             batches[str(bid)] = statuses.get(bid, {"status": "pending"})
-    done = sum(1 for v in batches.values() if v["status"] == "done")
+    done = sum(1 for v in batches.values() if v["status"] in ("done", "ingested"))
     payload = {
         "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "model": model,
@@ -193,6 +193,26 @@ def _flagged_batch_ids(manifest: dict, reviews_dir: Path,
     return sorted({b["id"] for b in manifest["batches"] if set(b["indices"]) & flagged_idx})
 
 
+def _covered_batch_ids(manifest: dict, batches_dir: Path, entries_dir: Path) -> set[int]:
+    """Batch ids every one of whose rows is ALREADY present in the checked-in EntryFiles (parsed and
+    ingested on a prior run). These are skipped on a normal run so a resume never re-parses finished
+    work — and because the batch layout is stable, skipping here never renumbers anything (unlike the
+    old export-time skip that caused the desync)."""
+    from pipeline.parsing.batch_exporter import load_existing_entry_ids
+    done_ids = load_existing_entry_ids(entries_dir)
+    if not done_ids:
+        return set()
+    covered: set[int] = set()
+    for b in manifest["batches"]:
+        bf = batches_dir / f"batch_{b['id']:03d}.json"
+        if not bf.exists():
+            continue
+        items = json.loads(bf.read_text(encoding="utf-8")).get("items", [])
+        if items and all(it.get("entry_id") in done_ids for it in items):
+            covered.add(b["id"])
+    return covered
+
+
 def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -> list[int]:
     """Batch ids whose EXISTING response fails ingest validation — a response was written but ≥1 of its
     entries is invalid, unparseable, or missing. A normal resume skips these (the file exists), so they
@@ -218,6 +238,8 @@ def _invalid_batch_ids(manifest: dict, batches_dir: Path, responses_dir: Path) -
 def main() -> None:
     ap = argparse.ArgumentParser(description="Dispatch exported batches through the Claude CLI (parallel subagents).")
     ap.add_argument("--work-dir", help="parse working dir (default: <out>/parse)")
+    ap.add_argument("--entries-dir", help="checked-in EntryFiles dir (default: pipeline/parsing/entries) "
+                    "— batches fully covered by these are skipped as already ingested")
     ap.add_argument("--model", default="sonnet", help="CLI model alias (default: sonnet — parsing is "
                     "mechanical; reserve opus for re-dispatching failures)")
     ap.add_argument("--claude-bin", default=os.environ.get("CLAUDE_BIN", "claude"))
@@ -256,6 +278,7 @@ def main() -> None:
 
     only = None if not args.only else {int(x) for x in str(args.only).split(",") if x.strip()}
     bids = [b["id"] for b in manifest["batches"] if only is None or b["id"] in only]
+    covered: set[int] = set()
 
     if args.redo_invalid or args.redo_flagged:
         # Escalation tier: target only the hard cases (+ any still-missing responses), re-parse them
@@ -275,13 +298,24 @@ def main() -> None:
             if rev.exists():
                 rev.unlink()
     else:
-        todo = [b for b in bids if args.force or not (responses_dir / f"batch_{b:03d}.json").exists()]
-        if len(todo) < len(bids):
-            print(f"  skipping {len(bids) - len(todo)} batch(es) with an existing response (use --force)")
+        entries_dir = Path(args.entries_dir) if args.entries_dir else \
+            (Path(__file__).resolve().parent / "entries")
+        covered = set() if args.force else _covered_batch_ids(manifest, batches_dir, entries_dir)
+        todo = [b for b in bids if b not in covered
+                and (args.force or not (responses_dir / f"batch_{b:03d}.json").exists())]
+        n_ingested = len(covered & set(bids))
+        n_response = len(bids) - len(todo) - n_ingested
+        if n_ingested:
+            print(f"  skipping {n_ingested} batch(es) already ingested into EntryFiles")
+        if n_response:
+            print(f"  skipping {n_response} batch(es) with an existing response (use --force)")
 
     run_state_path = work / "run_state.json"
     statuses: dict[int, dict] = {b: {"status": "done"} for b in bids
                                  if (responses_dir / f"batch_{b:03d}.json").exists()}
+    if not (args.redo_invalid or args.redo_flagged):
+        for b in covered & set(bids):                     # already in EntryFiles (may have no response)
+            statuses.setdefault(b, {"status": "ingested"})
 
     def _parse_one(bid: int):
         result = dispatch_prompt(batches_dir / f"batch_{bid:03d}.prompt.txt",
@@ -324,7 +358,7 @@ def main() -> None:
         finally:
             _write_run_state(run_state_path, args.model, bids, responses_dir, statuses, credit_stop)
 
-    done = sum(1 for b in bids if (responses_dir / f"batch_{b:03d}.json").exists())
+    done = sum(1 for b in bids if (responses_dir / f"batch_{b:03d}.json").exists() or b in covered)
     remaining = len(bids) - done
     print(f"\nParse: {done}/{len(bids)} batches done" + (f", {failed} failed this run" if failed else "")
           + f". run_state: {run_state_path}")
