@@ -185,8 +185,11 @@ def main() -> None:
                       skip_existing=args.skip_existing)
     print(f"Exported {manifest['pending_count']} rows into {len(manifest['batches'])} batch(es) -> {out_dir/'batches'}")
     print(f"  of those, no-registry (content-only, flagged): {manifest['no_registry_count']}")
-    print(f"  held-back detail: {len(manifest['unmatched'])}  skipped-existing: {len(manifest['skipped_existing'])}  "
-          f"empty-regs: {len(manifest['excluded_empty'])}")
+    print(f"  held-back rows also parsed (no-registry): {len(manifest['unmatched'])}  "
+          f"empty-regs skipped: {len(manifest['excluded_empty'])}")
+    if manifest["skipped_existing"]:
+        print(f"  --skip-existing dropped: {len(manifest['skipped_existing'])} row(s) already in EntryFiles")
+    print("  (already-parsed batches are skipped at the parse step, not here)")
     print(f"  manifest: {out_dir/'manifest.json'}")
 
 
