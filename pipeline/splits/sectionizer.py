@@ -28,6 +28,16 @@ _ANCHOR_KIND = {"point": BoundaryKind.split, "line": BoundaryKind.split,
                 "lake": BoundaryKind.lake, "border": BoundaryKind.border,
                 "area_boundary": BoundaryKind.area}
 
+# Route-measure radius for merge/pickup. Deliberately tiny: pickup should only reuse a boundary that
+# is effectively COINCIDENT (a lake edge / border split the curated point sits on), never collapse two
+# genuinely distinct curated cuts. Keep it decoupled from SplitDef.proximity_m — that value is the
+# (much larger) tolerance for projecting a coord onto the blue line, not a merge distance. Using it
+# here merged distinct cuts, e.g. a dam and its +100 m offset sibling.
+_MERGE_PROXIMITY_M = 5.0
+# SplitDef.proximity_m default (projection tolerance). A SplitPoint carrying exactly this value has an
+# inherited default, not a deliberate pickup radius, so pickup ignores it and uses _MERGE_PROXIMITY_M.
+_DEFAULT_PROJECTION_M = 500.0
+
 
 def _rebuild_adj(edges):
     up: dict[str, list[int]] = defaultdict(list)
@@ -77,8 +87,9 @@ def _blk_extent(graph, blk, by_blk=None):
 
 def _pickup(graph, blk, sp, by_blk=None) -> bool:
     """Proximity pickup (docs/04): if an existing INTERIOR boundary on ``blk`` (a lake edge, a
-    border split, or an earlier curated cut) sits within ``sp.proximity_m`` of this split's
-    measure, RELABEL it with this split instead of cutting a near-duplicate. Returns True if it
+    border split, or an earlier curated cut) sits within the merge radius (``_MERGE_PROXIMITY_M``,
+    or an explicitly authored ``sp.proximity_m``) of this split's measure, RELABEL it with this split
+    instead of cutting a near-duplicate. Returns True if it
     picked up an existing boundary (so the caller skips the cut). Natural mouth/source ends are
     excluded — a pickup only ever reuses a real interior boundary."""
     lo_ext, hi_ext = _blk_extent(graph, blk, by_blk)
@@ -86,7 +97,10 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
         return False
     M = sp.route_measure
     blk_nids = list(by_blk.get(blk, ())) if by_blk is not None else list(graph.nodes)
-    best_m, best_d = None, (sp.proximity_m or 100.0)
+    # Merge radius: an explicitly authored pickup radius wins, else the tiny coincident-only default.
+    # NOT SplitDef.proximity_m (that's the projection tolerance) — see _MERGE_PROXIMITY_M.
+    radius = sp.proximity_m if 0.0 < sp.proximity_m < _DEFAULT_PROJECTION_M else _MERGE_PROXIMITY_M
+    best_m, best_d = None, radius
     for nid in blk_nids:
         n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
