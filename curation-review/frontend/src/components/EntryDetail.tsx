@@ -317,7 +317,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                   <summary className="dim" style={{ cursor: "pointer" }}>
                     edit rule (type · details · verbatim · binding · species)
                   </summary>
-                  <div style={{ marginTop: 8 }}>
+                  <div className="rule-edit">
                     <div className="field">
                       <span className="k">type</span>
                       <select value={rule.restriction_type}
@@ -335,9 +335,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                       <textarea className="grow" rows={2} spellCheck={false} value={rule.rule_text}
                         onChange={(e) => patchRule(idx, { rule_text: e.target.value })}
                         placeholder="exact verbatim substring of the regs (left panel)" />
-                    </div>
-                    <div className="dim" style={{ marginBottom: 6 }}>
-                      rule_text must be an exact substring of the entry's regs_verbatim.
+                      <span className="hint">must be an exact substring of the entry's regs_verbatim.</span>
                     </div>
                     <div className="field">
                       <span className="k">extents</span>
@@ -403,16 +401,14 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                     </div>
                     <div className="field">
                       <span className="k">tributary carve-outs</span>
-                      <div style={{ flex: 1 }}>
-                        <div className="dim" style={{ marginBottom: 4 }}>
-                          EXCEPT … for THIS rule only (e.g. “No Fishing in tributaries except Quinsam River”). Leave empty unless this one rule drops a tributary the others keep.
-                        </div>
-                        <ExcludesEditor
-                          itemIds={Array.from(new Set([...(item?.id ? [item.id] : []), ...entry.matched]))}
-                          excludes={rule.tributary_excludes ?? []}
-                          onChange={(next) => patchRule(idx, { tributary_excludes: next })}
-                        />
-                      </div>
+                      <span className="hint">
+                        EXCEPT … for THIS rule only (e.g. “No Fishing in tributaries except Quinsam River”). Leave empty unless this one rule drops a tributary the others keep.
+                      </span>
+                      <ExcludesEditor
+                        itemIds={Array.from(new Set([...(item?.id ? [item.id] : []), ...entry.matched]))}
+                        excludes={rule.tributary_excludes ?? []}
+                        onChange={(next) => patchRule(idx, { tributary_excludes: next })}
+                      />
                     </div>
                   </div>
                 </details>

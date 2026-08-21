@@ -84,6 +84,260 @@
       "audit_log": []
     },
     {
+      "entry_id": "gnis:39532",
+      "identity": {
+        "name": "Campbell River",
+        "region": "1",
+        "mus": [
+          "1-10",
+          "1-6",
+          "1-9"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** between Elk Falls and John Hart Dam Power Station\n**No Fishing** from Strathcona Dam downstream 100 m\n**No Fishing** from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\n**No Fishing** in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T22:03:34+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "campbell_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "campbell_river__elk_falls",
+                "campbell_river__john_hart_dam_power_station"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** between Elk Falls and John Hart Dam Power Station",
+          "location_text": "between Elk Falls and John Hart Dam Power Station",
+          "exception": "",
+          "display_location": "Elk Falls to John Hart Dam power station",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "campbell_river__strathcona_dam",
+                "campbell_river__strathcona_dam_100_m_downstream"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary marks the 100 m downstream limit; bound as downstream_of Strathcona Dam (broader than actual closure)",
+          "rule_text": "**No Fishing** from Strathcona Dam downstream 100 m",
+          "location_text": "from Strathcona Dam downstream 100 m",
+          "exception": "",
+          "display_location": "Below Strathcona Dam",
+          "unresolved_locators": [
+            "downstream 100 m"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "campbell_river__maple_street_boundary_sign"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Aug 1-Oct 31"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the cement-block sign; bound only the Maple Street end",
+          "rule_text": "**No Fishing** from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31",
+          "location_text": "from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block",
+          "exception": "",
+          "display_location": "Below Maple Street boundary sign",
+          "unresolved_locators": [
+            "the boundary sign at the cement block"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r4",
+          "restriction_type": "closure",
+          "details": "No fishing in tributaries (except Quinsam River)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-May 31"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": "gnis:27883",
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "exception (excludes Quinsam River) can't be structurally encoded in extents",
+          "rule_text": "**No Fishing** in any tributaries (except Quinsam River), Dec 1-May 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river (tributaries)",
+          "unresolved_locators": [
+            "(except Quinsam River)"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r5",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "campbell_river__john_hart_dam_power_station",
+                "campbell_river__power_line_200m_up_of_quinsam"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "From John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round",
+          "location_text": "From John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence",
+          "exception": "",
+          "display_location": "John Hart Dam power station to power line crossing near Quinsam confluence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r6",
+          "restriction_type": "gear_restriction",
+          "details": "Artificial fly only",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "campbell_river__power_line_200m_up_of_quinsam"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-May 31"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Artificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31",
+          "location_text": "downstream of power line crossing approximately 200 m upstream of Quinsam River",
+          "exception": "",
+          "display_location": "Below power line crossing near Quinsam confluence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "campbell_river.r7",
+          "restriction_type": "vessel_restriction",
+          "details": "No vessels",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "campbell_river__elk_falls",
+                "campbell_river__john_hart_dam_power_station"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No vessels between Elk Falls and John Hart Dam Power Station",
+          "location_text": "between Elk Falls and John Hart Dam Power Station",
+          "exception": "",
+          "display_location": "Elk Falls to John Hart Dam power station",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "noreg_bear_river_11",
       "identity": {
         "name": "BEAR RIVER",

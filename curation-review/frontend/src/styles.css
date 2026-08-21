@@ -267,6 +267,43 @@ body {
   color: var(--muted);
   margin-right: 6px;
 }
+
+/* ---- rule edit form: consistent label-over-control column ---- */
+.rule-edit {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rule-edit .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+.rule-edit .field > .k {
+  margin: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.rule-edit .field > .hint {
+  font-size: 11px;
+  color: var(--muted);
+}
+.rule-edit > .field > select {
+  align-self: flex-start;
+  min-width: 190px;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+}
 .human-binding {
   font-style: italic;
 }
