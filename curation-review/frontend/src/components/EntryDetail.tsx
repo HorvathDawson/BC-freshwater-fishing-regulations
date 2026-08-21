@@ -252,6 +252,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                   </button>
                 </div>
                 <div className="details">{rule.details}</div>
+                {rule.rule_text && <div className="rule-verbatim">{rule.rule_text}</div>}
 
                 {rule.species.length > 0 && (
                   <div className="field">

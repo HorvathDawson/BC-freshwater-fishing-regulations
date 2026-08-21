@@ -260,6 +260,18 @@ body {
   font-weight: 600;
   margin: 4px 0;
 }
+.rule .rule-verbatim {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #555;
+  background: #f6f7f9;
+  border-left: 3px solid var(--border);
+  padding: 4px 8px;
+  margin: 4px 0 6px;
+  white-space: pre-wrap;
+  border-radius: 0 4px 4px 0;
+}
 .rule .field {
   margin: 4px 0;
 }
@@ -489,10 +501,22 @@ body {
   color: var(--muted);
   white-space: nowrap;
 }
+.source-image {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin-top: 0;
+  padding: 10px 0 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
 .source-image img {
   display: block;
   max-width: 100%;
   height: auto;
+  max-height: 200px;
+  object-fit: contain;
+  object-position: left center;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: #fff;

@@ -150,8 +150,8 @@
    "_entry_id": "43c59654",
    "splits": [
     {
-     "id": "ash_river__dickson_lake_to_signs_200_m_downstream",
-     "label": "Dickson Lake to signs (200 m downstream)",
+     "id": "ash_river__lanternman_falls_200_m_downstream",
+     "label": "Lanternman Falls (200m downstream)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -438,6 +438,27 @@
     {
      "id": "chemainus_river__copper_canyon_falls_signs",
      "label": "Copper Canyon Falls signs",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -123.77181,
+       48.88965
+      ],
+      "is_lonlat": true,
+      "offset_m": 100,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "no obvious, again not in the obstacles.. but it is around 12km up from tidal i think it is the bottom of the canyon here based on white water kayaking maps (Lat: 48.88965° N, Lon: 123.77181° W) mark this to double check. we will assume where the sign is and that will be the locator. (fishing boundary sign or whatev)",
+     "_coord": [
+      -123.77181,
+      48.88965
+     ]
+    },
+    {
+     "id": "chemainus_river__copper_canyon_falls",
+     "label": "Copper Canyon Falls",
      "kind": "point",
      "anchor": {
       "type": "point",

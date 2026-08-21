@@ -84,6 +84,245 @@
       "audit_log": []
     },
     {
+      "entry_id": "gnis:17161",
+      "identity": {
+        "name": "Ash River",
+        "region": "1",
+        "mus": [
+          "1-7"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** from Elsie Lake to Dickson Lake\n**No Fishing** from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30\n**No Fishing** from Dickson Falls downstream 30 m to signs",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "ash_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "ash_river__elsie_lake",
+                "ash_river__dickson_lake"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from Elsie Lake to Dickson Lake",
+          "location_text": "from Elsie Lake to Dickson Lake",
+          "exception": "",
+          "display_location": "Elsie Lake to Dickson Lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "ash_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "ash_river__dickson_lake",
+                "ash_river__lanternman_falls_200_m_downstream"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-Apr 30"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30",
+          "location_text": "from Dickson Lake to signs 200 m downstream of Lanternman Falls",
+          "exception": "",
+          "display_location": "Dickson Lake to signs below Lanternman Falls",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "ash_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "ash_river__dickson_falls"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the signs 30 m downstream of Dickson Falls; bound as downstream_of the falls (broader than actual closure)",
+          "rule_text": "**No Fishing** from Dickson Falls downstream 30 m to signs",
+          "location_text": "from Dickson Falls downstream 30 m to signs",
+          "exception": "",
+          "display_location": "Below Dickson Falls",
+          "unresolved_locators": [
+            "downstream 30 m to signs"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:39267",
+      "identity": {
+        "name": "Chemainus River",
+        "region": "1",
+        "mus": [
+          "1-5"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, **No Fishing** upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\n**No Fishing** from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T23:07:50+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "chemainus_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "chemainus_river__banon_creek_into_chemainus_river"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 1-Sept 30"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30",
+          "location_text": "downstream of Bannon Creek",
+          "exception": "",
+          "display_location": "Below Banon Creek confluence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "chemainus_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "chemainus_river__banon_creek_into_chemainus_river"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-Sept 30"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30",
+          "location_text": "upstream of Bannon Creek",
+          "exception": "",
+          "display_location": "Above Banon Creek confluence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "chemainus_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "chemainus_river__copper_canyon_falls",
+                "chemainus_river__copper_canyon_falls_signs"
+              ],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the 100 m downstream limit; bound as downstream_of the falls/signs marker (broader than actual closure)",
+          "rule_text": "**No Fishing** from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
+          "location_text": "from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
+          "exception": "",
+          "display_location": "Below Copper Canyon Falls",
+          "unresolved_locators": [
+            "Copper Canyon Falls downstream 100 m to the fishing boundary signs"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "gnis:39532",
       "identity": {
         "name": "Campbell River",
