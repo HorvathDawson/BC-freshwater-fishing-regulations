@@ -150,6 +150,13 @@ Sitkatapa") is claimed by that entry, and a **direct match beats an inherited on
 parent's tributary set simply excludes it. `{all tribs − exceptions}` falls out of the graph plus
 that one priority rule; nothing is enumerated or propagated.
 
+Exceptions that do **not** self-declare (no separate entry) are named explicitly as **hand-curated
+carve-outs** subtracted from the tributary set: entry-wide via `Tributaries.excludes` (applies to
+every rule) or **per-rule via `Rule.tributary_excludes`** (scoped to one rule — e.g. a seasonal "No
+Fishing in any tributaries except Quinsam River" where other rules on the same entry still cover
+Quinsam). Each carve-out is an `Extent`: whole-tributary uses `item=<registry id>, op=whole`; a
+partial carve-out references the boundary split(s). Consumed at the resolve step (Phase 5).
+
 ---
 
 ## End-to-end data flow (worked: Chemainus)
@@ -231,7 +238,7 @@ add a `sections_override`, correct a `matched`). It is **self-contained**: it em
 source (`regs_verbatim` + per-rule `rule_text`), so you never need the ephemeral extraction to read
 or curate it. Store as per-region files (`pipeline/parsing/entries/region-2.json`) for small diffs.
 - **`Entry`** — `{entry_id, identity{name, region, mus[]}, regs_verbatim, matched:[registry_id], includes_tributaries, scope:[Extent], rules:[Rule]}`.
-- **`Rule`** — `{rule_id, type, details, dates[], extents:[Extent], includes_tributaries: bool|null, sections_override:[section_id]?, needs_review: bool, review_reason?, rule_text, location_text}` (last two = verbatim provenance). `needs_review` = the parser couldn't confidently bind it → hand-curation queue.
+- **`Rule`** — `{rule_id, type, details, dates[], extents:[Extent], includes_tributaries: bool|null, tributary_excludes:[Extent], sections_override:[section_id]?, needs_review: bool, review_reason?, rule_text, location_text}` (last two = verbatim provenance). `needs_review` = the parser couldn't confidently bind it → hand-curation queue. `tributary_excludes` = per-rule hand-curated carve-outs from THIS rule's tributary set (parser leaves `[]`).
 - **`Extent`** — `{op: whole|upstream_of|downstream_of|between|within, splits:[split_id], item?: registry_id, area?, kind?}`. The `op+split` binding. A rule's `extents` is a **list → union** (covers "A plus B"); `item` scopes an extent to a *different* registry item than the entry's `matched` (covers "plus Tenas Lake" / named side channels). Entry `scope` ∩ each rule extent composes.
 
 ### Resolve output

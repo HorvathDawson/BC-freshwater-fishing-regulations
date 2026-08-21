@@ -32,9 +32,10 @@ Rows are pre-sorted (attention first). Row:
 }
 ```
 **Rule shape** (inside `entry.rules[]`): `rule_id, restriction_type, details, extents[{op,splits[],item?,area?}],
-dates[], includes_tributaries, sections_override?, needs_review, review_reason, rule_text, location_text,
+dates[], includes_tributaries, tributary_excludes[{op,splits[],item?}], sections_override?, needs_review, review_reason, rule_text, location_text,
 exception, display_location, unresolved_locators[], species[]`. **Extent.op** ∈
 `whole|upstream_of|downstream_of|between|within`; `splits` are boundary **ids** from `item.boundaries`.
+`tributary_excludes` = per-rule tributary carve-outs (same shape as `entry.tributaries.excludes`, scoped to one rule).
 
 ## GET /api/items/search?q=
 → `[{ "id":"gnis:5480", "name":"Amor De Cosmos Creek", "kind":"stream", "mus":[...] }]` (for attaching an

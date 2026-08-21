@@ -173,6 +173,11 @@ closure (`tributary_node_ids`). `reach_except(base_ids, except_ids)` in `tributa
 whole thing. The un-split downstream pieces (below each falls/road) and any un-split creek stay in
 `result`.
 
+An EXCEPT reach with its own entry self-declares (a direct match beats the inherited one). One
+without its own entry is named as a hand-curated carve-out `Extent`: entry-wide in
+`Tributaries.excludes`, or per-rule in `Rule.tributary_excludes` when only one rule (e.g. a
+seasonal "No Fishing in tributaries except Quinsam River") should drop it. Same set difference.
+
 ```
         ocean ── Bella Coola ─────────────────────────────  headwaters
                    ▲Ordinary   ▲Young      ▲Burnt Bridge   ▲Atnarko

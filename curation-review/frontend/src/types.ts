@@ -38,6 +38,7 @@ export interface Rule {
   extents: Extent[];
   dates: string[];
   includes_tributaries?: boolean | null;
+  tributary_excludes?: Extent[];
   sections_override?: string[] | null;
   needs_review: boolean;
   review_reason: string;

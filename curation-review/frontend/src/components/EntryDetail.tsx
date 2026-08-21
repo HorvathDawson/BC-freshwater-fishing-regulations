@@ -89,6 +89,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         extents: [],
         dates: [],
         includes_tributaries: null,
+        tributary_excludes: [],
         sections_override: null,
         needs_review: true,
         review_reason: "manually added — set rule_text + details, then bind",
@@ -399,6 +400,19 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                         <option value="include">includes tributaries</option>
                         <option value="exclude">excludes tributaries</option>
                       </select>
+                    </div>
+                    <div className="field">
+                      <span className="k">tributary carve-outs</span>
+                      <div style={{ flex: 1 }}>
+                        <div className="dim" style={{ marginBottom: 4 }}>
+                          EXCEPT … for THIS rule only (e.g. “No Fishing in tributaries except Quinsam River”). Leave empty unless this one rule drops a tributary the others keep.
+                        </div>
+                        <ExcludesEditor
+                          itemIds={Array.from(new Set([...(item?.id ? [item.id] : []), ...entry.matched]))}
+                          excludes={rule.tributary_excludes ?? []}
+                          onChange={(next) => patchRule(idx, { tributary_excludes: next })}
+                        />
+                      </div>
                     </div>
                   </div>
                 </details>

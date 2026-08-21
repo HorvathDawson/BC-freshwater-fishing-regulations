@@ -370,6 +370,7 @@ def _referenced_item_ids(entry_dict: dict) -> set[str]:
     _scan((entry_dict.get("tributaries") or {}).get("excludes"))
     for r in entry_dict.get("rules") or []:
         _scan(r.get("extents"))
+        _scan(r.get("tributary_excludes"))
     return ids
 
 
