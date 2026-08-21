@@ -138,6 +138,14 @@ class Rule(BaseModel):
         default=None,
         description="per-rule tributary override (null=inherit entry, true/false=override for this rule)",
     )
+    tributary_excludes: List[Extent] = Field(
+        default_factory=list,
+        description="per-rule HAND-CURATED carve-outs subtracted from THIS rule's tributary set (only "
+        "meaningful when the rule extends to tributaries). Unlike entry-wide Tributaries.excludes (which "
+        "applies to every rule), these scope to one rule — e.g. a seasonal 'No Fishing in any tributaries "
+        "(except Quinsam River)'. A whole-tributary carve-out names the item: item=<registry id>, op=whole; "
+        "a partial carve-out references the boundary split(s). The parser leaves this empty (curator-filled).",
+    )
     sections_override: Optional[List[str]] = Field(
         default=None,
         description="escape hatch: name section ids directly when no split can express the reach",
@@ -379,6 +387,7 @@ def validate_entry_splits(entry: Entry, allowed_split_ids: set[str]) -> List[str
     _check(entry.tributaries.excludes, f"entry {entry.entry_id} tributaries.excludes")
     for rule in entry.rules:
         _check(rule.extents, f"entry {entry.entry_id} rule {rule.rule_id}")
+        _check(rule.tributary_excludes, f"entry {entry.entry_id} rule {rule.rule_id} tributary_excludes")
     return errors
 
 
@@ -397,4 +406,5 @@ def unused_splits(entry: Entry, allowed_split_ids: set[str]) -> List[str]:
     _collect(entry.tributaries.excludes)
     for rule in entry.rules:
         _collect(rule.extents)
+        _collect(rule.tributary_excludes)
     return sorted(allowed_split_ids - used)

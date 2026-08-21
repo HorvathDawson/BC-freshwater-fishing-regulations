@@ -189,3 +189,23 @@ def test_excludes_hand_curated_trib_carveout():
     assert validate_entry_splits(e, {"hunlen_falls", "sitkatapa_creek_confluence"}) == []
     errs = validate_entry_splits(e, {"hunlen_falls"})   # exclude's split not in allowed set
     assert errs and "sitkatapa_creek_confluence" in errs[0]
+
+
+def test_rule_tributary_excludes_defaults_empty_and_validates():
+    # additive per-rule carve-out (e.g. 'No Fishing in any tributaries except Quinsam River');
+    # defaults to [] so existing parses need no reparse, and its split ids are checked.
+    assert _rule().tributary_excludes == []
+    e = _entry(
+        regs_verbatim="No fishing upstream of Hunlen Falls",
+        tributaries=Tributaries(included=True),
+        rules=[Rule(
+            rule_id="atnarko_main.r1", restriction_type="closure", details="No fishing",
+            rule_text="No fishing upstream of Hunlen Falls", extents=[Extent(op=Op.WHOLE)],
+            includes_tributaries=True,
+            tributary_excludes=[Extent(op=Op.UPSTREAM_OF, splits=["sitkatapa_creek_confluence"])])],
+    )
+    assert e.rules[0].tributary_excludes[0].splits == ["sitkatapa_creek_confluence"]
+    assert validate_entry_splits(e, {"hunlen_falls", "sitkatapa_creek_confluence"}) == []
+    errs = validate_entry_splits(e, {"hunlen_falls"})   # rule exclude's split not allowed
+    assert errs and "tributary_excludes" in errs[0] and "sitkatapa_creek_confluence" in errs[0]
+
