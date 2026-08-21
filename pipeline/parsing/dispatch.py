@@ -1,5 +1,8 @@
-"""Automated dispatch — run each exported batch through the Claude CLI (headless Opus) and save the
+"""Automated dispatch — run each exported batch through the Claude CLI (headless) and save the
 response, so parsing doesn't need a human to paste prompts.
+
+⛔ HUMAN-ONLY: this spends the user's credits (it spawns `claude -p` workers). Claude/agents must NOT
+run this module — only hand the user the command to run in their own terminal. See CLAUDE.md.
 
 This is the automation layer over the tested export -> (parse) -> ingest flow. It shells out to the
 `claude` CLI in print mode with the batch's self-contained prompt; the CLI agent has Bash access, so it

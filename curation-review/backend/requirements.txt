@@ -1,0 +1,4 @@
+# Backend deps for the curation-review app. The repo's .venv already has geopandas/fiona/pydantic
+# (used by pipeline). Install these into it:  .venv/bin/pip install -r curation-review/backend/requirements.txt
+fastapi>=0.110
+uvicorn[standard]>=0.29

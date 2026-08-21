@@ -5255,9 +5255,10 @@
         "1-4"
       ]
     },
-    "note": "Matched via base name: COWICHAN LAKE",
+    "note": "Matched via base name: COWICHAN LAKE. Bear Lake is a small lake connected to Cowichan Lake.",
     "gnis_ids": [
-      "12225"
+      "12225",
+      "11061"
     ]
   },
   {

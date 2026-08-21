@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # One-command tiered parse cascade for the Claude agent parser.
 #
+# ⛔ HUMAN-ONLY: this script spends credits (it dispatches batches to the `claude` CLI). Claude/agents
+#    must NOT run it — only give the command. A human runs it in their own terminal to watch progress.
+#
 #   bash pipeline/parsing/run_parse.sh
 #   REGISTRY=output/v2/full/registry.json bash pipeline/parsing/run_parse.sh
 #
@@ -49,8 +52,12 @@ if [ ! -f "$REGISTRY" ]; then
 fi
 echo "  ✓ registry: $REGISTRY   parse=$MODEL review=$REVIEW_MODEL escalate=$ESCALATE_MODEL"
 
-echo "== 2/7  Export batches =="
-$PY -m pipeline.parsing.batch_exporter --registry "$REGISTRY" --batch-size "$BATCH_SIZE"
+echo "== 2/7  Export batches (resume: only rows missing from EntryFiles) =="
+# --skip-existing makes export ROW-GRANULAR: rows already in pipeline/parsing/entries are dropped, so
+# only entries that were deleted (or never parsed) are batched. Deleting a bad entry re-parses just it,
+# not its whole 30-row batch. Layout is keyed to current EntryFiles — don't ingest a partial run then
+# re-export; finish the run first.
+$PY -m pipeline.parsing.batch_exporter --registry "$REGISTRY" --batch-size "$BATCH_SIZE" --skip-existing
 
 echo "== 3/7  Parse ($MODEL, single-shot) =="
 "${DISPATCH[@]}" --model "$MODEL"

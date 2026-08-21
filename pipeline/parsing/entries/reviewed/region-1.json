@@ -1,0 +1,1113 @@
+{
+  "region": "1",
+  "entries": [
+    {
+      "entry_id": "gnis:12206",
+      "identity": {
+        "name": "Courtenay River",
+        "region": "1",
+        "mus": [
+          "1-6"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Dec 1-Sept 30; speed restriction on part (8 km/h),",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:02:33+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "courtenay_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-Sept 30"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** Dec 1-Sept 30",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "courtenay_river.r2",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction 8 km/h on part",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on part' names no boundary; fell back to whole",
+          "rule_text": "speed restriction on part (8 km/h)",
+          "location_text": "on part",
+          "exception": "",
+          "display_location": "Part of the river (extent not specified)",
+          "unresolved_locators": [
+            "on part"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "noreg_bear_river_11",
+      "identity": {
+        "name": "BEAR RIVER",
+        "region": "1",
+        "mus": [
+          "1-10"
+        ]
+      },
+      "regs_verbatim": "See Amor de Cosmos Creek",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T19:46:11+00:00",
+      "matched": [],
+      "registry_status": "no_registry",
+      "registry_note": "skip: Name variant of: AMOR DE COSMOS CREEK (variant_of AMOR DE COSMOS CREEK)",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_bear_river.r1",
+          "restriction_type": "note",
+          "details": "See Amor de Cosmos Creek",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents; cross-reference to Amor de Cosmos Creek",
+          "rule_text": "See Amor de Cosmos Creek",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Bear River (name variant of Amor De Cosmos Creek)",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "noreg_link_river_106",
+      "identity": {
+        "name": "\"LINK\" RIVER",
+        "region": "1",
+        "mus": [
+          "1-13"
+        ]
+      },
+      "regs_verbatim": "See Marble River",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T19:46:04+00:00",
+      "matched": [],
+      "registry_status": "no_registry",
+      "registry_note": "skip: Name variant of: MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes) (variant_of MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes))",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_link_river_106.r1",
+          "restriction_type": "note",
+          "details": "See Marble River regulations",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — cross-reference row pointing to Marble River (\"Link\" River, between Victoria and Alice lakes); attach an item and bind extents",
+          "rule_text": "See Marble River",
+          "location_text": "",
+          "exception": "",
+          "display_location": "\"Link\" River (between Victoria and Alice lakes)",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "noreg_strathcona_park_waters_178",
+      "identity": {
+        "name": "STRATHCONA PARK WATERS",
+        "region": "1",
+        "mus": [
+          "1-9"
+        ]
+      },
+      "regs_verbatim": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T19:46:34+00:00",
+      "matched": [],
+      "registry_status": "no_registry",
+      "registry_note": "feature_pin: Synopsis lists 'STRATHCONA PARK WATERS' in Region 1. Applies to all streams and lakes within Strathcona Provincial Park. Layer: TA_PARK_ECORES_PA_SVW, ID field: ADMIN_AREA_SID.",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_strathcona_park_waters_178.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats (except Gold, Upper Campbell and Buttle lakes)",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329069966",
+      "identity": {
+        "name": "Buttle Lake",
+        "region": "1",
+        "mus": [
+          "1-9"
+        ]
+      },
+      "regs_verbatim": "Fly fishing only; except Thelwood Creek is closed all year",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:01:25+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "buttle_lake.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Fly fishing only; except Thelwood Creek is closed all year",
+          "location_text": "",
+          "exception": "except Thelwood Creek is closed all year",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "buttle_lake.r2",
+          "restriction_type": "closure",
+          "details": "No fishing In Thelwood Creek",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "closure applies to Thelwood Creek, a separate tributary with no boundary on this item; fell back to whole",
+          "rule_text": "Thelwood Creek is closed all year",
+          "location_text": "Thelwood Creek",
+          "exception": "",
+          "display_location": "Thelwood Creek",
+          "unresolved_locators": [
+            "Thelwood Creek"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329069968",
+      "identity": {
+        "name": "Campbell Lake",
+        "region": "1",
+        "mus": [
+          "1-10",
+          "1-6"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:02:20+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "campbell_river__strathcona_dam"
+            ],
+            "item": "gnis:39532",
+            "area": null,
+            "kind": null,
+            "feature_types": []
+          }
+        ]
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "campbell_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Feb 1-July 15"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "closure also covers a reach of Campbell River (a different waterbody); bound the lake only",
+          "rule_text": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+          "location_text": "including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+          "exception": "",
+          "display_location": "Whole lake, including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+          "unresolved_locators": [
+            "Campbell River between Strathcona Dam and (Lower) Campbell Lake"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329069971",
+      "identity": {
+        "name": "John Hart Lake",
+        "region": "1",
+        "mus": [
+          "1-10",
+          "1-6"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:10:30+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "campbell_river__ladore_dam"
+            ],
+            "item": "gnis:39532",
+            "area": null,
+            "kind": null,
+            "feature_types": []
+          }
+        ]
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "john_hart_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Apr 15-July 15"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "closure extends beyond the lake to the channel downstream of Ladore Dam; no boundary available for that reach",
+          "rule_text": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake, including the channel downstream of Ladore Dam",
+          "unresolved_locators": [
+            "includes channel downstream of Ladore Dam"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329095566",
+      "identity": {
+        "name": "Anderson Lake",
+        "region": "1",
+        "mus": [
+          "1-6"
+        ]
+      },
+      "regs_verbatim": "Artificial fly only, bait ban, single barbless hook\nTrout and kokanee catch and release[Includes Tributaries] **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.\nWalbran",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T19:45:58+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "anderson_lake.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Artificial fly only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Artificial fly only",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "anderson_lake.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "anderson_lake.r3",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "anderson_lake.r4",
+          "restriction_type": "harvest",
+          "details": "Trout and kokanee catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout and kokanee catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake and tributaries",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "KO"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329101302",
+      "identity": {
+        "name": "Cowichan Lake",
+        "region": "1",
+        "mus": [
+          "1-4"
+        ]
+      },
+      "regs_verbatim": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:03:48+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "cowichan_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Cutthroat trout daily quota 2, none over 50 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Cutthroat trout daily quota = 2 (none over 50 cm)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "CT",
+            "CCT"
+          ]
+        },
+        {
+          "rule_id": "cowichan_lake.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban and single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 15-Apr 15"
+          ],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban and single barbless hook, Nov 15-Apr 15",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_lake.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction 8 km/h on parts",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no boundary; fell back to whole",
+          "rule_text": "Speed restriction on parts (8 km/h)",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake (extent not specified)",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_lake.r4",
+          "restriction_type": "vessel_restriction",
+          "details": "10 km/h within 60 m of shore",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "overall 10 km/h speed restriction within 60 m of shore",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Within 60 m of shore",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329102601",
+      "identity": {
+        "name": "Bear Lake",
+        "region": "1",
+        "mus": [
+          "7-24"
+        ]
+      },
+      "regs_verbatim": "See Cowichan Lake",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T19:59:57+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "bear_lake.r1",
+          "restriction_type": "note",
+          "details": "See Cowichan Lake",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "cross-reference row; actual regulations are listed under Cowichan Lake",
+          "rule_text": "See Cowichan Lake",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329467589",
+      "identity": {
+        "name": "Brannen Lake",
+        "region": "1",
+        "mus": [
+          "1-5"
+        ]
+      },
+      "regs_verbatim": "Speed restriction on parts (60 km/h)",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:00:40+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "brannen_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction 60 km/h on parts of the lake",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no specific area; bound to whole lake pending curation",
+          "rule_text": "Speed restriction on parts (60 km/h)",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329676313",
+      "identity": {
+        "name": "Elk Lake",
+        "region": "1",
+        "mus": [
+          "1-1"
+        ]
+      },
+      "regs_verbatim": "Smallmouth bass daily quota = 4\nEngine power restriction on parts - 7.5 kW (10 hp); no vessels on parts, no powered boats on parts, no towing on parts\nA wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:06:55+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "elk_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Smallmouth bass daily quota 4",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Smallmouth bass daily quota = 4",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "SMB"
+          ]
+        },
+        {
+          "rule_id": "elk_lake.r2",
+          "restriction_type": "vessel_restriction",
+          "details": "Engine power limit 7.5 kW (10 hp) on parts",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no boundary; fell back to whole",
+          "rule_text": "Engine power restriction on parts - 7.5 kW (10 hp)",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake (extent not specified)",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "elk_lake.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "No vessels on parts",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no boundary; fell back to whole",
+          "rule_text": "no vessels on parts",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake (extent not specified)",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "elk_lake.r4",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats on parts",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no boundary; fell back to whole",
+          "rule_text": "no powered boats on parts",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake (extent not specified)",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "elk_lake.r5",
+          "restriction_type": "vessel_restriction",
+          "details": "No towing on parts",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no boundary; fell back to whole",
+          "rule_text": "no towing on parts",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake (extent not specified)",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "elk_lake.r6",
+          "restriction_type": "note",
+          "details": "Wheelchair accessible fishing pier on the northwest shore via Brookleigh Road",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "A wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Northwest shore, via Brookleigh Road",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329676320",
+      "identity": {
+        "name": "Beaver Lake",
+        "region": "1",
+        "mus": [
+          "1-1"
+        ]
+      },
+      "regs_verbatim": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-21T20:00:23+00:00",
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "beaver_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Smallmouth bass daily quota 4",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Smallmouth bass daily quota = 4",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "SMB"
+          ]
+        },
+        {
+          "rule_id": "beaver_lake.r2",
+          "restriction_type": "vessel_restriction",
+          "details": "Engine power restricted to 7.5 kW (10 hp)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "engine power restriction - 7.5 kW (10 hp)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "beaver_lake.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "No towing on parts of the lake",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item": null,
+              "area": null,
+              "kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "'on parts' names no specific area; bound to whole lake pending curation",
+          "rule_text": "no towing on parts",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    }
+  ]
+}

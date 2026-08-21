@@ -136,6 +136,17 @@ def test_no_registry_row_parses_content_only(tmp_path):
     assert entry.rules[0].needs_review and entry.rules[0].extents == []
 
 
+def test_entry_review_stamps_default_empty_and_roundtrip():
+    from pipeline.parsing.entry_models import Entry
+    e = Entry(entry_id="x", identity={"name": "A"}, regs_verbatim="No fishing.",
+              rules=[{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
+                      "rule_text": "No fishing.", "extents": [{"op": "whole"}]}])
+    assert e.reviewed_by == "" and e.reviewed_at == ""            # default empty (fresh parse)
+    e2 = Entry(**{**json.loads(e.model_dump_json()), "locked": True,
+                  "reviewed_by": "curator", "reviewed_at": "2026-08-20T12:00:00+00:00"})
+    assert e2.locked and e2.reviewed_by == "curator" and e2.reviewed_at.startswith("2026")
+
+
 def test_batch_layout_is_stable_regardless_of_existing_entries(tmp_path):
     # The batch layout MUST be a pure function of (rows, registry) — else a re-run that already
     # ingested some rows would renumber the batches and desync them from responses/ (the bug that

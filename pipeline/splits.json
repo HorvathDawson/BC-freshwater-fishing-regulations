@@ -9,7 +9,7 @@
    "_entry_id": "ce41432a",
    "splits": [
     {
-     "id": "eve_river_into_adam_river",
+     "id": "adam_river__eve_river_into_adam_river",
      "label": "Eve River → Adam River",
      "kind": "confluence",
      "anchor": {
@@ -28,7 +28,7 @@
      }
     },
     {
-     "id": "hwy_19_bridge",
+     "id": "adam_river__hwy_19_bridge",
      "label": "Hwy 19 bridge",
      "kind": "point",
      "anchor": {
@@ -56,7 +56,7 @@
    "_entry_id": "8f24dc86",
    "splits": [
     {
-     "id": "upper_falls",
+     "id": "amor_de_cosmos_creek__upper_falls",
      "label": "upper falls",
      "kind": "point",
      "anchor": {
@@ -75,8 +75,8 @@
      ]
     },
     {
-     "id": "amor_de_cosmos_creek__upper_falls",
-     "label": "upper falls",
+     "id": "amor_de_cosmos_creek__logging_road_bridge",
+     "label": "logging road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -94,7 +94,7 @@
      ]
     },
     {
-     "id": "mouth",
+     "id": "amor_de_cosmos_creek__mouth",
      "label": "mouth",
      "kind": "point",
      "anchor": {
@@ -122,8 +122,8 @@
    "_entry_id": "0505ec23",
    "splits": [
     {
-     "id": "the_boundary_signs_at_the_bridge_crossing",
-     "label": "the boundary signs at the bridge crossing",
+     "id": "artlish_river__la1000_fsr_bridge",
+     "label": "LA1000 FSR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -150,7 +150,7 @@
    "_entry_id": "43c59654",
    "splits": [
     {
-     "id": "dickson_lake_to_signs_200_m_downstream",
+     "id": "ash_river__dickson_lake_to_signs_200_m_downstream",
      "label": "Dickson Lake to signs (200 m downstream)",
      "kind": "point",
      "anchor": {
@@ -172,7 +172,7 @@
      "_offset_m": 200
     },
     {
-     "id": "dickson_falls",
+     "id": "ash_river__dickson_falls",
      "label": "Dickson Falls",
      "kind": "point",
      "anchor": {
@@ -191,7 +191,7 @@
      ]
     },
     {
-     "id": "dickson_falls_30_m_downstream",
+     "id": "ash_river__dickson_falls_30_m_downstream",
      "label": "Dickson Falls (30 m downstream)",
      "kind": "point",
      "anchor": {
@@ -222,8 +222,8 @@
    "_entry_id": "2d6a28ef",
    "splits": [
     {
-     "id": "including_campbell_river_between_strathcona_dam_and",
-     "label": "including Campbell River between Strathcona Dam and",
+     "id": "campbell_river__strathcona_dam",
+     "label": "Strathcona Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -241,8 +241,8 @@
      ]
     },
     {
-     "id": "elk_falls_and_john_hart_dam_power_station",
-     "label": "Elk Falls and John Hart Dam Power Station",
+     "id": "campbell_river__elk_falls",
+     "label": "Elk Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -260,8 +260,8 @@
      ]
     },
     {
-     "id": "campbell_river__elk_falls_and_john_hart_dam_power_station",
-     "label": "Elk Falls and John Hart Dam Power Station",
+     "id": "campbell_river__john_hart_dam_power_station",
+     "label": "John Hart Dam power station",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -272,33 +272,14 @@
       "is_lonlat": true
      },
      "note": "",
-     "_note": "paired with campbell-river-584665-a.",
+     "_note": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=John Hart Dam Power Station [human-review 2026-08-06 OSM dam] John Hart Dam.",
      "_coord": [
       -125.33989,
       50.04179
      ]
     },
     {
-     "id": "john_hart_dam_power_station",
-     "label": "John Hart Dam Power Station",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -125.33964,
-       50.04192
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal H] John Hart Dam / Power Station (John Hart Lake outlet) on Campbell River (John Hart Dam -> power line ~200 m above Quinsam confl). Candidate coord [-125.33978, 50.04171]. OSM: https://www.openstreetmap.org/?mlat=50.04171&mlon=-125.33978#map=15/50.04171/-125.33978. Verify: Confirm point at John Hart Lake outlet; the reg means the generating-station tailrace which is ~1 km below the dam - decide dam-face vs tailrace.. John Hart Dam impounds John Hart Lake; the Campbell River flows out to the John Hart generating station. Coord = FWA Campbell River exit from John Hart Lake polygon (dam face). Downstream terminus is a power-line crossing ~200 m above the Quinsam confluence (~[-125.294,50.038]). [structural-split 2026-08-05 from \"From John Hart Dam Power Station to power line crossing appr\"] boundary=John Hart Dam Power Station [human-review 2026-08-06 OSM dam] John Hart Dam.",
-     "_coord": [
-      -125.33964,
-      50.04192
-     ]
-    },
-    {
-     "id": "strathcona_dam_100_m_downstream",
+     "id": "campbell_river__strathcona_dam_100_m_downstream",
      "label": "Strathcona Dam (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -320,8 +301,8 @@
      "_offset_m": 100
     },
     {
-     "id": "boundary_sign_at_the_end_of_maple_street",
-     "label": "boundary sign at the end of Maple Street",
+     "id": "campbell_river__maple_street_boundary_sign",
+     "label": "Maple Street boundary sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -339,8 +320,8 @@
      ]
     },
     {
-     "id": "boundary_sign_at_the_cement_block",
-     "label": "boundary sign at the cement block",
+     "id": "campbell_river__cement_block_boundary_sign",
+     "label": "cement block boundary sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -358,8 +339,8 @@
      ]
     },
     {
-     "id": "power_line_crossing",
-     "label": "power line crossing",
+     "id": "campbell_river__power_line_200m_up_of_quinsam",
+     "label": "power line ~200m up of Quinsam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -377,8 +358,8 @@
      ]
     },
     {
-     "id": "ladore_dam",
-     "label": "channel",
+     "id": "campbell_river__ladore_dam",
+     "label": "Ladore Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -408,7 +389,7 @@
    "_entry_id": "3a50b4c9",
    "splits": [
     {
-     "id": "hatton_creek_into_caycuse_river",
+     "id": "caycuse_river__hatton_creek_into_caycuse_river",
      "label": "Hatton Creek → Caycuse River",
      "kind": "confluence",
      "anchor": {
@@ -436,7 +417,7 @@
    "_entry_id": "d6bb14f9",
    "splits": [
     {
-     "id": "banon_creek_into_chemainus_river",
+     "id": "chemainus_river__banon_creek_into_chemainus_river",
      "label": "Banon Creek → Chemainus River",
      "kind": "confluence",
      "anchor": {
@@ -455,8 +436,8 @@
      }
     },
     {
-     "id": "copper_canyon_falls",
-     "label": "Copper Canyon Falls",
+     "id": "chemainus_river__copper_canyon_falls_signs",
+     "label": "Copper Canyon Falls signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -483,8 +464,8 @@
    "_entry_id": "ed6790c7",
    "splits": [
     {
-     "id": "the_west_main_logging_road_bridge",
-     "label": "the West Main logging road bridge",
+     "id": "cluxewe_river__west_mainline_logging_road_bridge",
+     "label": "West Mainline logging road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -511,8 +492,8 @@
    "_entry_id": "5fde172a",
    "splits": [
     {
-     "id": "signs_at_second_bridge",
-     "label": "signs at second bridge",
+     "id": "copper_creek__south_bay_main_bridge",
+     "label": "South Bay Main bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -539,8 +520,8 @@
    "_entry_id": "ce689454",
    "splits": [
     {
-     "id": "weir",
-     "label": "weir",
+     "id": "cowichan_river__weir_at_cowichan_lake_outlet",
+     "label": "weir at Cowichan Lake outlet",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -558,7 +539,7 @@
      ]
     },
     {
-     "id": "greendale_trestle",
+     "id": "cowichan_river__greendale_trestle",
      "label": "Greendale Trestle",
      "kind": "point",
      "anchor": {
@@ -577,7 +558,7 @@
      ]
     },
     {
-     "id": "holt_creek_into_cowichan_river",
+     "id": "cowichan_river__holt_creek_into_cowichan_river",
      "label": "Holt Creek → Cowichan River",
      "kind": "confluence",
      "anchor": {
@@ -596,7 +577,7 @@
      }
     },
     {
-     "id": "cnr_trestle",
+     "id": "cowichan_river__cnr_trestle",
      "label": "CNR Trestle",
      "kind": "point",
      "anchor": {
@@ -615,7 +596,7 @@
      ]
     },
     {
-     "id": "cnr_bridge",
+     "id": "cowichan_river__cnr_bridge",
      "label": "CNR Bridge",
      "kind": "point",
      "anchor": {
@@ -643,8 +624,8 @@
    "_entry_id": "fbf29fb0",
    "splits": [
     {
-     "id": "lower_falls_in_englishman_river_park",
-     "label": "lower falls in Englishman River Park",
+     "id": "englishman_river__lower_falls_englishman_river_park",
+     "label": "lower falls, Englishman River Park",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -662,7 +643,7 @@
      ]
     },
     {
-     "id": "signs_100_m_downstream_of_lower_falls_englishman_river_park",
+     "id": "englishman_river__signs_100_m_downstream_of_lower_falls_englishman_river_park",
      "label": "signs 100 m downstream of lower falls, Englishman River Park",
      "kind": "point",
      "anchor": {
@@ -684,8 +665,8 @@
      "_offset_m": 100
     },
     {
-     "id": "top_bridge_crossing_at_the_end_of_allsbro",
-     "label": "Top Bridge crossing at the end of Allsbro",
+     "id": "englishman_river__top_bridge",
+     "label": "Top Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -712,8 +693,8 @@
    "_entry_id": "167048d4",
    "splits": [
     {
-     "id": "the_fishing_boundary_signs",
-     "label": "the fishing boundary signs",
+     "id": "eve_river__signs_near_south_main_bridge",
+     "label": "signs near South Main Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -740,7 +721,7 @@
    "_entry_id": "60f3c8c1",
    "splits": [
     {
-     "id": "muchalat_river_into_gold_river",
+     "id": "gold_river__muchalat_river_into_gold_river",
      "label": "Muchalat River → Gold River",
      "kind": "confluence",
      "anchor": {
@@ -759,8 +740,8 @@
      }
     },
     {
-     "id": "the_cascade_falls",
-     "label": "the cascade falls",
+     "id": "gold_river__cascade_falls",
+     "label": "cascade falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -778,7 +759,7 @@
      ]
     },
     {
-     "id": "the_cascade_falls_80_m_downstream",
+     "id": "gold_river__the_cascade_falls_80_m_downstream",
      "label": "the cascade falls (80 m downstream)",
      "kind": "point",
      "anchor": {
@@ -809,7 +790,7 @@
    "_entry_id": "fd0d2caa",
    "splits": [
     {
-     "id": "bugaboo_creek_into_gordon_river",
+     "id": "gordon_river__bugaboo_creek_into_gordon_river",
      "label": "Bugaboo Creek → Gordon River",
      "kind": "confluence",
      "anchor": {
@@ -837,7 +818,7 @@
    "_entry_id": "f1dac566",
    "splits": [
     {
-     "id": "hemmingsen_creek_into_harris_creek",
+     "id": "harris_creek__hemmingsen_creek_into_harris_creek",
      "label": "Hemmingsen Creek → Harris Creek",
      "kind": "confluence",
      "anchor": {
@@ -865,7 +846,7 @@
    "_entry_id": "8b5f3143",
    "splits": [
     {
-     "id": "top_of_lower_canyon_1300_m_upstream",
+     "id": "heber_river__top_of_lower_canyon_1300_m_upstream",
      "label": "top of lower canyon, (1300 m upstream)",
      "kind": "point",
      "anchor": {
@@ -890,7 +871,7 @@
      }
     },
     {
-     "id": "saunders_creek_into_heber_river",
+     "id": "heber_river__saunders_creek_into_heber_river",
      "label": "Saunders Creek → Heber River",
      "kind": "confluence",
      "anchor": {
@@ -918,8 +899,8 @@
    "_entry_id": "f02f2954",
    "splits": [
     {
-     "id": "lower_fish_counting_fence_near_tidewater",
-     "label": "lower fish counting fence near tidewater",
+     "id": "keogh_river__lower_fish_counting_fence",
+     "label": "lower fish counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -946,7 +927,7 @@
    "_entry_id": "20715cbc",
    "splits": [
     {
-     "id": "boundary_signs_in_kokish_canyon",
+     "id": "kokish_river__boundary_signs_in_kokish_canyon",
      "label": "boundary signs in Kokish canyon",
      "kind": "point",
      "anchor": {
@@ -965,7 +946,7 @@
      ]
     },
     {
-     "id": "log_boom_90_m_upstream",
+     "id": "kokish_river__log_boom_90_m_upstream",
      "label": "log boom (90 m upstream)",
      "kind": "point",
      "anchor": {
@@ -987,7 +968,7 @@
      "_offset_m": 90
     },
     {
-     "id": "signs_at_the_tail_of_the_canyon_pool_300_m_downstream",
+     "id": "kokish_river__signs_at_the_tail_of_the_canyon_pool_300_m_downstream",
      "label": "signs at the tail of the canyon pool (300 m downstream)",
      "kind": "point",
      "anchor": {
@@ -1009,7 +990,7 @@
      "_offset_m": 300
     },
     {
-     "id": "signs_at_the_ipp_tail_race",
+     "id": "kokish_river__signs_at_the_ipp_tail_race",
      "label": "signs at the IPP tail race",
      "kind": "point",
      "anchor": {
@@ -1028,7 +1009,7 @@
      ]
     },
     {
-     "id": "signs_500_m_downstream_of_ipp_tail_race",
+     "id": "kokish_river__signs_500_m_downstream_of_ipp_tail_race",
      "label": "signs 500 m downstream of IPP tail race",
      "kind": "point",
      "anchor": {
@@ -1059,8 +1040,8 @@
    "_entry_id": "9e77f8d9",
    "splits": [
     {
-     "id": "falls_in_little_qualicum_falls_provincial_park",
-     "label": "falls in Little Qualicum Falls Provincial Park",
+     "id": "little_qualicum_river__upper_waterfall",
+     "label": "Upper Waterfall",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1078,7 +1059,7 @@
      ]
     },
     {
-     "id": "hatchery_fence",
+     "id": "little_qualicum_river__hatchery_fence",
      "label": "hatchery fence",
      "kind": "point",
      "anchor": {
@@ -1097,7 +1078,7 @@
      ]
     },
     {
-     "id": "signs_35_m_downstream_of_hatchery_fence",
+     "id": "little_qualicum_river__signs_35_m_downstream_of_hatchery_fence",
      "label": "signs 35 m downstream of hatchery fence",
      "kind": "point",
      "anchor": {
@@ -1128,8 +1109,8 @@
    "_entry_id": "5e563b26",
    "splits": [
     {
-     "id": "menzies_bay_logging_mainline_bridge_crossing",
-     "label": "Menzies Bay logging mainline bridge crossing",
+     "id": "mohun_creek__menzies_bay_logging_mainline_bridge",
+     "label": "Menzies Bay logging mainline bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1156,8 +1137,8 @@
    "_entry_id": "046b8cc3",
    "splits": [
     {
-     "id": "power_line_crossing_at_bore_hole",
-     "label": "power line crossing at \"Bore Hole\"",
+     "id": "nanaimo_river__power_line_at_bore_hole",
+     "label": "power line at Bore Hole",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1175,7 +1156,7 @@
      ]
     },
     {
-     "id": "boulder_creek_into_nanaimo_river",
+     "id": "nanaimo_river__boulder_creek_into_nanaimo_river",
      "label": "Boulder Creek → Nanaimo River",
      "kind": "confluence",
      "anchor": {
@@ -1194,8 +1175,8 @@
      }
     },
     {
-     "id": "cedar_road_bridge",
-     "label": "Cedar Road Bridge",
+     "id": "nanaimo_river__cedar_road_bridge",
+     "label": "Cedar Road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1232,8 +1213,8 @@
      ]
     },
     {
-     "id": "the_hwy_1_bridge",
-     "label": "the Hwy 1 bridge",
+     "id": "nanaimo_river__hwy_1_bridge",
+     "label": "Hwy 1 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1260,7 +1241,7 @@
    "_entry_id": "757ea107",
    "splits": [
     {
-     "id": "davie_river_into_nimpkish_river",
+     "id": "nimpkish_river__davie_river_into_nimpkish_river",
      "label": "Davie River → Nimpkish River",
      "kind": "confluence",
      "anchor": {
@@ -1288,7 +1269,7 @@
    "_entry_id": "6e49648b",
    "splits": [
     {
-     "id": "parker_creek_into_nitinat_river",
+     "id": "nitinat_river__parker_creek_into_nitinat_river",
      "label": "Parker Creek → Nitinat River",
      "kind": "confluence",
      "anchor": {
@@ -1307,7 +1288,7 @@
      }
     },
     {
-     "id": "fishing_boundary_signs_100_m_upstream_of_red_rock_pool",
+     "id": "nitinat_river__fishing_boundary_signs_100_m_upstream_of_red_rock_pool",
      "label": "fishing boundary signs 100 m upstream of Red Rock Pool",
      "kind": "point",
      "anchor": {
@@ -1329,7 +1310,7 @@
      "_offset_m": 100
     },
     {
-     "id": "red_rock_pool_100_m_downstream",
+     "id": "nitinat_river__red_rock_pool_100_m_downstream",
      "label": "\"Red Rock Pool,\" (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -1351,7 +1332,7 @@
      "_offset_m": 100
     },
     {
-     "id": "boundary_signs_50_m_upstream_of_nitinat_river_bridge",
+     "id": "nitinat_river__boundary_signs_50_m_upstream_of_nitinat_river_bridge",
      "label": "boundary signs 50 m upstream of Nitinat River Bridge",
      "kind": "point",
      "anchor": {
@@ -1373,7 +1354,7 @@
      "_offset_m": 50
     },
     {
-     "id": "the_nitinat_river_bridge_50_m_downstream",
+     "id": "nitinat_river__the_nitinat_river_bridge_50_m_downstream",
      "label": "the Nitinat River Bridge (50 m downstream)",
      "kind": "point",
      "anchor": {
@@ -1404,7 +1385,7 @@
    "_entry_id": "06f55b14",
    "splits": [
     {
-     "id": "little_oyster_river_into_oyster_river",
+     "id": "oyster_river__little_oyster_river_into_oyster_river",
      "label": "Little Oyster River → Oyster River",
      "kind": "confluence",
      "anchor": {
@@ -1432,8 +1413,8 @@
    "_entry_id": "3952f2fb",
    "splits": [
     {
-     "id": "the_bc_hydro_diversion_dam",
-     "label": "the BC Hydro diversion dam",
+     "id": "puntledge_river__bc_hydro_diversion_dam",
+     "label": "BC Hydro diversion dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1451,7 +1432,7 @@
      ]
     },
     {
-     "id": "base_of_stotan_falls",
+     "id": "puntledge_river__base_of_stotan_falls",
      "label": "base of Stotan Falls",
      "kind": "point",
      "anchor": {
@@ -1470,7 +1451,7 @@
      ]
     },
     {
-     "id": "morrison_creek_into_puntledge_river_u100m",
+     "id": "puntledge_river__morrison_creek_into_puntledge_river_u100m",
      "label": "Morrison Creek → Puntledge River (100 m upstream)",
      "kind": "confluence",
      "anchor": {
@@ -1492,7 +1473,7 @@
      }
     },
     {
-     "id": "morrison_creek_into_puntledge_river_d100m",
+     "id": "puntledge_river__morrison_creek_into_puntledge_river_d100m",
      "label": "Morrison Creek → Puntledge River (100 m downstream)",
      "kind": "confluence",
      "anchor": {
@@ -1514,7 +1495,7 @@
      }
     },
     {
-     "id": "fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
+     "id": "puntledge_river__fishing_boundary_signs_50_m_upstream_of_bc_hydro_puntledge_generating_station_tailrace",
      "label": "fishing boundary signs 50 m upstream of BC Hydro Puntledge generating-station tailrace",
      "kind": "point",
      "anchor": {
@@ -1536,7 +1517,7 @@
      "_offset_m": 50
     },
     {
-     "id": "signs_75_m_downstream_of_puntledge_river_hatchery_fence",
+     "id": "puntledge_river__signs_75_m_downstream_of_puntledge_river_hatchery_fence",
      "label": "signs 75 m downstream of Puntledge River hatchery fence",
      "kind": "point",
      "anchor": {
@@ -1567,8 +1548,8 @@
    "_entry_id": "107e2e8b",
    "splits": [
     {
-     "id": "boundary_signs",
-     "label": "boundary signs",
+     "id": "qualicum_river__boundary_signs_qfn",
+     "label": "boundary signs = QFN",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1586,7 +1567,7 @@
      ]
     },
     {
-     "id": "upper_hatchery_weir_125_m_downstream",
+     "id": "qualicum_river__upper_hatchery_weir_125_m_downstream",
      "label": "upper hatchery weir (125 m downstream)",
      "kind": "point",
      "anchor": {
@@ -1608,8 +1589,8 @@
      "_offset_m": 125
     },
     {
-     "id": "highway_19a_bridge",
-     "label": "Highway 19A bridge",
+     "id": "qualicum_river__hwy_19a_bridge",
+     "label": "Hwy 19A bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1636,8 +1617,8 @@
    "_entry_id": "6e6acefb",
    "splits": [
     {
-     "id": "the_quatse_river_fishway",
-     "label": "the Quatse River fishway",
+     "id": "quatse_river__quatse_river_fishway",
+     "label": "Quatse River fishway",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1664,8 +1645,8 @@
    "_entry_id": "04a9a77c",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_power_line_crossing",
-     "label": "fishing boundary signs at power line crossing",
+     "id": "quinsam_river__signs_at_power_line_crossing",
+     "label": "signs at power line crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1683,7 +1664,7 @@
      ]
     },
     {
-     "id": "fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir",
+     "id": "quinsam_river__fishing_boundary_signs_300_m_downstream_of_quinsam_hatchery_weir",
      "label": "fishing boundary signs 300 m downstream of Quinsam Hatchery weir",
      "kind": "point",
      "anchor": {
@@ -1705,8 +1686,8 @@
      "_offset_m": 300
     },
     {
-     "id": "falls_situated",
-     "label": "falls situated",
+     "id": "quinsam_river__falls_d_s_of_middle_quinsam_lake",
+     "label": "Falls d/s of Middle Quinsam Lake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1733,7 +1714,7 @@
    "_entry_id": "4a53497f",
    "splits": [
     {
-     "id": "kay_creek_into_salmon_river",
+     "id": "salmon_river__kay_creek_into_salmon_river",
      "label": "Kay Creek → Salmon River",
      "kind": "confluence",
      "anchor": {
@@ -1752,7 +1733,7 @@
      }
     },
     {
-     "id": "white_river_into_salmon_river",
+     "id": "salmon_river__white_river_into_salmon_river",
      "label": "White River → Salmon River",
      "kind": "confluence",
      "anchor": {
@@ -1780,7 +1761,7 @@
    "_entry_id": "202ffb5c",
    "splits": [
     {
-     "id": "fleet_river_into_san_juan_river",
+     "id": "san_juan_river__fleet_river_into_san_juan_river",
      "label": "Fleet River → San Juan River",
      "kind": "confluence",
      "anchor": {
@@ -1808,8 +1789,8 @@
    "_entry_id": "9a3806bd",
    "splits": [
     {
-     "id": "the_tidal_boundary_at_papermill_dam_to_boundary_signs",
-     "label": "the tidal boundary at Papermill Dam to boundary signs",
+     "id": "somass_river__tidal_boundary_at_papermill_dam",
+     "label": "tidal boundary at Papermill Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1827,8 +1808,8 @@
      ]
     },
     {
-     "id": "somass_river__boundary_signs",
-     "label": "boundary signs",
+     "id": "somass_river__boundary_signs_1km_u_s",
+     "label": "boundary signs ~1km u/s",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1855,7 +1836,7 @@
    "_entry_id": "5551826e",
    "splits": [
     {
-     "id": "sooke_river_falls",
+     "id": "sooke_river__sooke_river_falls",
      "label": "Sooke River Falls",
      "kind": "point",
      "anchor": {
@@ -1874,8 +1855,8 @@
      ]
     },
     {
-     "id": "base_of_the_lower_potholes_falls",
-     "label": "base of the lower \"potholes\" falls",
+     "id": "sooke_river__lower_potholes_falls",
+     "label": "lower potholes falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -1893,7 +1874,7 @@
      ]
     },
     {
-     "id": "signs_100_m_downstream_of_potholes_falls",
+     "id": "sooke_river__signs_100_m_downstream_of_potholes_falls",
      "label": "signs 100 m downstream of Potholes Falls",
      "kind": "point",
      "anchor": {
@@ -1924,7 +1905,7 @@
    "_entry_id": "29465d04",
    "splits": [
     {
-     "id": "fishing_boundary_signs_300_m_downstream_of_hwy_4",
+     "id": "sproat_river__fishing_boundary_signs_300_m_downstream_of_hwy_4",
      "label": "fishing boundary signs 300 m downstream of Hwy 4",
      "kind": "point",
      "anchor": {
@@ -1955,7 +1936,7 @@
    "_entry_id": "703b9db3",
    "splits": [
     {
-     "id": "fishing_boundary_signs_200_m_upstream_of_stamp_falls",
+     "id": "stamp_river__fishing_boundary_signs_200_m_upstream_of_stamp_falls",
      "label": "fishing boundary signs 200 m upstream of Stamp Falls",
      "kind": "point",
      "anchor": {
@@ -1977,7 +1958,7 @@
      "_offset_m": 200
     },
     {
-     "id": "signs_500_m_downstream_of_stamp_falls",
+     "id": "stamp_river__signs_500_m_downstream_of_stamp_falls",
      "label": "signs 500 m downstream of Stamp Falls",
      "kind": "point",
      "anchor": {
@@ -1999,7 +1980,7 @@
      "_offset_m": 500
     },
     {
-     "id": "ash_river_into_stamp_river",
+     "id": "stamp_river__ash_river_into_stamp_river",
      "label": "Ash River → Stamp River",
      "kind": "confluence",
      "anchor": {
@@ -2018,7 +1999,7 @@
      }
     },
     {
-     "id": "great_central_lake_dam",
+     "id": "stamp_river__great_central_lake_dam",
      "label": "Great Central Lake dam",
      "kind": "point",
      "anchor": {
@@ -2037,8 +2018,8 @@
      ]
     },
     {
-     "id": "signs_at_girl_guide_falls",
-     "label": "signs at \"Girl Guide Falls\"",
+     "id": "stamp_river__girl_guide_falls_signs",
+     "label": "Girl Guide Falls signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2065,7 +2046,7 @@
    "_entry_id": "951c4af2",
    "splits": [
     {
-     "id": "tidal_boundary_sign_1500_m_upstream",
+     "id": "tlell_river__tidal_boundary_sign_1500_m_upstream",
      "label": "tidal boundary sign (1500 m upstream)",
      "kind": "point",
      "anchor": {
@@ -2096,8 +2077,8 @@
    "_entry_id": "492dbcc9",
    "splits": [
     {
-     "id": "the_toquart_mainline_logging_bridge_when_open",
-     "label": "the Toquart mainline logging bridge when open",
+     "id": "toquart_river__toquart_mainline",
+     "label": "Toquart mainline",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2115,8 +2096,8 @@
      ]
     },
     {
-     "id": "the_boundary_sign",
-     "label": "the boundary sign",
+     "id": "toquart_river__boundary_sign_near_falls",
+     "label": "boundary sign near falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2143,7 +2124,7 @@
    "_entry_id": "abf3bba4",
    "splits": [
     {
-     "id": "catherine_creek_into_tsitika_river",
+     "id": "tsitika_river__catherine_creek_into_tsitika_river",
      "label": "Catherine Creek → Tsitika River",
      "kind": "confluence",
      "anchor": {
@@ -2171,7 +2152,7 @@
    "_entry_id": "2f8e871c",
    "splits": [
     {
-     "id": "within_100_m_downstream",
+     "id": "wahpeeto_creek__within_100_m_downstream",
      "label": "within (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -2202,8 +2183,8 @@
    "_entry_id": "4cf440b0",
    "splits": [
     {
-     "id": "the_sayward_road_bridge_crossing",
-     "label": "the Sayward Road Bridge crossing",
+     "id": "white_river__sayward_road_bridge",
+     "label": "Sayward Road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2230,7 +2211,7 @@
    "_entry_id": "d4b466ec",
    "splits": [
     {
-     "id": "yakoun_lake_14533_m_downstream",
+     "id": "yakoun_river__yakoun_lake_14533_m_downstream",
      "label": "Yakoun Lake (14533 m downstream)",
      "kind": "lake",
      "anchor": {
@@ -2261,8 +2242,8 @@
    "_entry_id": "dadcd21c",
    "splits": [
     {
-     "id": "alouette_river__the_fishing_boundary_signs",
-     "label": "the fishing boundary signs",
+     "id": "alouette_river__alouette_boundary_signs",
+     "label": "Alouette boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2280,8 +2261,8 @@
      ]
     },
     {
-     "id": "216th_street",
-     "label": "216th Street",
+     "id": "alouette_river__216_street_bridge",
+     "label": "216 Street bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2333,7 +2314,7 @@
    "_entry_id": "e8095112",
    "splits": [
     {
-     "id": "152nd_street",
+     "id": "bear__152nd_street",
      "label": "152nd Street",
      "kind": "point",
      "anchor": {
@@ -2364,8 +2345,8 @@
    "_entry_id": "465aae17",
    "splits": [
     {
-     "id": "the_upstream_edge_of_1st_falls",
-     "label": "the upstream edge of 1st falls",
+     "id": "brem_river__1st_falls",
+     "label": "1st falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2383,7 +2364,7 @@
      ]
     },
     {
-     "id": "the_upstream_edge_of_1st_falls_100_m_downstream",
+     "id": "brem_river__the_upstream_edge_of_1st_falls_100_m_downstream",
      "label": "the upstream edge of 1st falls (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -2405,7 +2386,7 @@
      "_offset_m": 100
     },
     {
-     "id": "2nd_set_of_falls",
+     "id": "brem_river__2nd_set_of_falls",
      "label": "2nd set of falls",
      "kind": "point",
      "anchor": {
@@ -2433,8 +2414,8 @@
    "_entry_id": "e7274b4e",
    "splits": [
     {
-     "id": "burnaby_lake_or_from_cariboo_dam_to_salamander_creek",
-     "label": "Burnaby Lake or from Cariboo Dam to Salamander Creek",
+     "id": "brunette_river__cariboo_dam",
+     "label": "Cariboo Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2461,7 +2442,7 @@
    "_entry_id": "a2178070",
    "splits": [
     {
-     "id": "12th_avenue",
+     "id": "campbell_river__12th_avenue",
      "label": "12th Avenue",
      "kind": "point",
      "anchor": {
@@ -2480,7 +2461,7 @@
      ]
     },
     {
-     "id": "two_white_triangular_fishing_boundary_signs_200_m_upstream",
+     "id": "campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream",
      "label": "two white triangular fishing boundary signs (200 m upstream)",
      "kind": "point",
      "anchor": {
@@ -2502,7 +2483,7 @@
      "_offset_m": 200
     },
     {
-     "id": "pedestrian_bridge_at_the_foot_of_stayte_road",
+     "id": "campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road",
      "label": "pedestrian bridge at the foot of Stayte Road",
      "kind": "point",
      "anchor": {
@@ -2530,8 +2511,8 @@
    "_entry_id": "b2441cc9",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_footbridge_situated",
-     "label": "fishing boundary signs at footbridge situated",
+     "id": "capilano_river__cable_pool_bridge_footbridge",
+     "label": "Cable Pool Bridge footbridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2558,8 +2539,8 @@
    "_entry_id": "bb6d5fe5",
    "splits": [
     {
-     "id": "main_logging_road_bridge",
-     "label": "main logging road bridge",
+     "id": "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk",
+     "label": "main logging road bridge ~2.4km d/s Chehalis Lk",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2590,7 +2571,7 @@
    "_entry_id": "2f3fea39",
    "splits": [
     {
-     "id": "upstream_from_a_line_between_two_fishing_boundary_signs_on_either_side_of_the_chilliwack_river_100_m_downstream",
+     "id": "chilliwack_vedder_rivers__upstream_from_a_line_between_two_fishing_boundary_signs_on_either_side_of_the_chilliwack_river_100_m_downstream",
      "label": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -2615,7 +2596,7 @@
      }
     },
     {
-     "id": "tamihi_rapids_bridge",
+     "id": "chilliwack_vedder_rivers__tamihi_rapids_bridge",
      "label": "Tamihi Rapids Bridge",
      "kind": "point",
      "anchor": {
@@ -2634,7 +2615,7 @@
      ]
     },
     {
-     "id": "vedder_crossing_bridge",
+     "id": "chilliwack_vedder_rivers__vedder_crossing_bridge",
      "label": "Vedder Crossing Bridge",
      "kind": "point",
      "anchor": {
@@ -2662,7 +2643,7 @@
    "_entry_id": "c1cead5e",
    "splits": [
     {
-     "id": "coquihalla_othello_upper_tunnel",
+     "id": "coquihalla_river__coquihalla_othello_upper_tunnel",
      "label": "the northern entrance to the upper most railway tunnel",
      "kind": "point",
      "anchor": {
@@ -2681,7 +2662,7 @@
      ]
     },
     {
-     "id": "coquihalla_othello_lower_tunnel",
+     "id": "coquihalla_river__coquihalla_othello_lower_tunnel",
      "label": "the southern entrance to the lower most railway tunnel",
      "kind": "point",
      "anchor": {
@@ -2709,7 +2690,7 @@
    "_entry_id": "f538c53d",
    "splits": [
     {
-     "id": "mary_hill_bypass_bridge",
+     "id": "coquitlam_river__mary_hill_bypass_bridge",
      "label": "Mary Hill Bypass Bridge",
      "kind": "point",
      "anchor": {
@@ -2728,7 +2709,7 @@
      ]
     },
     {
-     "id": "lougheed_highway_bridge",
+     "id": "coquitlam_river__lougheed_highway_bridge",
      "label": "Lougheed Highway Bridge",
      "kind": "point",
      "anchor": {
@@ -2770,7 +2751,7 @@
    "_entry_id": "b613729b",
    "splits": [
     {
-     "id": "the_cpr_bridge_at_mission",
+     "id": "fraser_river__the_cpr_bridge_at_mission",
      "label": "the CPR Bridge at Mission",
      "kind": "point",
      "anchor": {
@@ -2789,8 +2770,8 @@
      ]
     },
     {
-     "id": "eastern_end_of_landstrom_bar",
-     "label": "eastern end of Landstrom Bar",
+     "id": "fraser_river__landstrom_bar",
+     "label": "Landstrom Bar",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2826,8 +2807,8 @@
      ]
     },
     {
-     "id": "southern_end_of_croft_island",
-     "label": "southern end of Croft Island",
+     "id": "fraser_river__croft_island_southern_end",
+     "label": "Croft Island southern end",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2900,7 +2881,7 @@
    "_entry_id": "5cfc51fc",
    "splits": [
     {
-     "id": "cliff_park_falls",
+     "id": "kanaka_creek__cliff_park_falls",
      "label": "Cliff Park Falls",
      "kind": "point",
      "anchor": {
@@ -2919,8 +2900,8 @@
      ]
     },
     {
-     "id": "112th_avenue",
-     "label": "112th Avenue",
+     "id": "kanaka_creek__112_avenue_bridge",
+     "label": "112 Avenue bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2947,8 +2928,8 @@
    "_entry_id": "63f561e1",
    "splits": [
     {
-     "id": "the_lower_falls",
-     "label": "the lower falls",
+     "id": "liumchen_creek__lower_falls",
+     "label": "lower falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2975,8 +2956,8 @@
    "_entry_id": "8bba2d84",
    "splits": [
     {
-     "id": "272nd_street",
-     "label": "272nd Street",
+     "id": "nathan__272_street",
+     "label": "272 Street",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3003,7 +2984,7 @@
    "_entry_id": "abb7b842",
    "splits": [
     {
-     "id": "208th_street",
+     "id": "nicomekl_river__208th_street",
      "label": "208th Street",
      "kind": "point",
      "anchor": {
@@ -3022,7 +3003,7 @@
      ]
     },
     {
-     "id": "dyke_gates",
+     "id": "nicomekl_river__dyke_gates",
      "label": "dyke gates",
      "kind": "point",
      "anchor": {
@@ -3050,7 +3031,7 @@
    "_entry_id": "91c6d218",
    "splits": [
     {
-     "id": "railway_bridge",
+     "id": "noons_creek__railway_bridge",
      "label": "railway bridge",
      "kind": "point",
      "anchor": {
@@ -3078,7 +3059,7 @@
    "_entry_id": "773ca353",
    "splits": [
     {
-     "id": "garibaldi_pitt",
+     "id": "pitt_river__garibaldi_pitt",
      "label": "within Garibaldi Park",
      "kind": "area_boundary",
      "anchor": {
@@ -3095,8 +3076,8 @@
      }
     },
     {
-     "id": "in_the_lower_pitt_river",
-     "label": "in the Lower Pitt River",
+     "id": "pitt_river__cpr_bridge",
+     "label": "CPR Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3123,7 +3104,7 @@
    "_entry_id": "bfb759b1",
    "splits": [
     {
-     "id": "ruby_lake_to_fishing_boundary_signs_100_m_downstream",
+     "id": "ruby_creek__ruby_lake_to_fishing_boundary_signs_100_m_downstream",
      "label": "Ruby Lake to fishing boundary signs (100 m downstream)",
      "kind": "lake",
      "anchor": {
@@ -3154,8 +3135,8 @@
    "_entry_id": "98c1c934",
    "splits": [
     {
-     "id": "232nd_street",
-     "label": "232nd Street",
+     "id": "salmon_river__232_street",
+     "label": "232 Street",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3182,7 +3163,7 @@
    "_entry_id": "5494c7fa",
    "splits": [
     {
-     "id": "168th_street_at_bothwell_park",
+     "id": "serpentine_river__168th_street_at_bothwell_park",
      "label": "168th Street at Bothwell Park",
      "kind": "point",
      "anchor": {
@@ -3229,8 +3210,8 @@
    "_entry_id": "2b2d5a92",
    "splits": [
     {
-     "id": "bailey_bridge_situated",
-     "label": "Bailey Bridge situated",
+     "id": "silverhope__bailey_bridge",
+     "label": "Bailey Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3257,7 +3238,7 @@
    "_entry_id": "25531ceb",
    "splits": [
     {
-     "id": "ashlu_creek_into_squamish_river",
+     "id": "squamish_powerhouse_channel__ashlu_creek_into_squamish_river",
      "label": "Ashlu Creek → Squamish River",
      "kind": "confluence",
      "anchor": {
@@ -3285,8 +3266,8 @@
    "_entry_id": "054085f5",
    "splits": [
     {
-     "id": "the_falls_situated",
-     "label": "the falls situated",
+     "id": "tamihi_creek__tamihi_creek_falls",
+     "label": "Tamihi Creek Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3316,7 +3297,7 @@
    "_entry_id": "c6b28d59",
    "splits": [
     {
-     "id": "sakwi_creek_into_weaver_creek",
+     "id": "weaver_lake_and_weaver_creek__sakwi_creek_into_weaver_creek",
      "label": "Sakwi Creek → Weaver Creek",
      "kind": "confluence",
      "anchor": {
@@ -3344,7 +3325,7 @@
    "_entry_id": "b1185000",
    "splits": [
     {
-     "id": "adams_lake",
+     "id": "adams_river__adams_lake",
      "label": "Adams Lake",
      "kind": "lake",
      "anchor": {
@@ -3364,19 +3345,8 @@
    "_entry_id": "a86d90f9",
    "splits": [
     {
-     "id": "adams_river__adams_lake",
-     "label": "Adams Lake",
-     "kind": "lake",
-     "anchor": {
-      "type": "lake",
-      "wbk": "329014384"
-     },
-     "note": "",
-     "_note": "Split authored in splits.json: 'adams_lake' (lake). — authored split: adams_lake"
-    },
-    {
-     "id": "fishing_boundary_signs_in_the_vicinity_of_the_public_salmon_viewing_platforms_in_tsutswecew_provincial_park",
-     "label": "fishing boundary signs in the vicinity of the public salmon viewing platforms in Tsutswecew Provincial Park",
+     "id": "adams_river__signs_near_salmon_viewing_platforms",
+     "label": "signs near salmon-viewing platforms",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3403,7 +3373,7 @@
    "_entry_id": "72dadc1d",
    "splits": [
     {
-     "id": "falls_at_bonaparte_fishway",
+     "id": "bonaparte_river__falls_at_bonaparte_fishway",
      "label": "falls at Bonaparte fishway",
      "kind": "point",
      "anchor": {
@@ -3431,7 +3401,7 @@
    "_entry_id": "58790669",
    "splits": [
     {
-     "id": "terzaghi_dam",
+     "id": "bridge_river__terzaghi_dam",
      "label": "Terzaghi Dam",
      "kind": "point",
      "anchor": {
@@ -3450,7 +3420,7 @@
      ]
     },
     {
-     "id": "yalakom_river_into_bridge_river",
+     "id": "bridge_river__yalakom_river_into_bridge_river",
      "label": "Yalakom River → Bridge River",
      "kind": "confluence",
      "anchor": {
@@ -3469,7 +3439,7 @@
      }
     },
     {
-     "id": "hwy_40_bridge",
+     "id": "bridge_river__hwy_40_bridge",
      "label": "Hwy 40 bridge",
      "kind": "point",
      "anchor": {
@@ -3497,8 +3467,8 @@
    "_entry_id": "c05e08cf",
    "splits": [
     {
-     "id": "falls",
-     "label": "falls",
+     "id": "cayoosh_creek__cayoosh_falls",
+     "label": "Cayoosh falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3525,8 +3495,8 @@
    "_entry_id": "9c65ee1c",
    "splits": [
     {
-     "id": "the_falls",
-     "label": "the falls",
+     "id": "celista_creek__albas_falls",
+     "label": "Albas falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3553,8 +3523,8 @@
    "_entry_id": "2e5c3843",
    "splits": [
     {
-     "id": "old_clearwater_bridge",
-     "label": "old Clearwater Bridge",
+     "id": "clearwater_river__old_north_thompson_highway_bridge",
+     "label": "old North Thompson Highway bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3572,7 +3542,7 @@
      ]
     },
     {
-     "id": "falls_creek_into_clearwater_river",
+     "id": "clearwater_river__falls_creek_into_clearwater_river",
      "label": "Falls Creek → Clearwater River",
      "kind": "confluence",
      "anchor": {
@@ -3591,7 +3561,7 @@
      }
     },
     {
-     "id": "mahood_river_into_clearwater_river",
+     "id": "clearwater_river__mahood_river_into_clearwater_river",
      "label": "Mahood River → Clearwater River",
      "kind": "confluence",
      "anchor": {
@@ -3610,7 +3580,7 @@
      }
     },
     {
-     "id": "clearwater_river_into_north_thompson_river",
+     "id": "clearwater_river__clearwater_river_into_north_thompson_river",
      "label": "Clearwater River → North Thompson River",
      "kind": "confluence",
      "anchor": {
@@ -3666,7 +3636,7 @@
    "_entry_id": "d32909fa",
    "splits": [
     {
-     "id": "thompson_river_into_fraser_river",
+     "id": "fraser_river__thompson_river_into_fraser_river",
      "label": "Thompson River → Fraser River",
      "kind": "confluence",
      "anchor": {
@@ -3685,7 +3655,7 @@
      }
     },
     {
-     "id": "hell_s_gate",
+     "id": "fraser_river__hell_s_gate",
      "label": "Hell's Gate",
      "kind": "point",
      "anchor": {
@@ -3704,7 +3674,7 @@
      ]
     },
     {
-     "id": "signs_2800_m_downstream_of_hell_s_gate",
+     "id": "fraser_river__signs_2800_m_downstream_of_hell_s_gate",
      "label": "signs 2800 m downstream of Hell's Gate",
      "kind": "point",
      "anchor": {
@@ -3726,7 +3696,7 @@
      "_offset_m": 2800
     },
     {
-     "id": "fishing_boundary_signs_6500_m_downstream_of_boston_bar",
+     "id": "fraser_river__fishing_boundary_signs_6500_m_downstream_of_boston_bar",
      "label": "fishing boundary signs 6500 m downstream of Boston Bar",
      "kind": "point",
      "anchor": {
@@ -3748,7 +3718,7 @@
      "_offset_m": 6500
     },
     {
-     "id": "lower_entrance_of_the_fish_ladder_at_bridge_river_rapids",
+     "id": "fraser_river__lower_entrance_of_the_fish_ladder_at_bridge_river_rapids",
      "label": "lower entrance of the fish ladder at Bridge River Rapids",
      "kind": "point",
      "anchor": {
@@ -3767,8 +3737,8 @@
      ]
     },
     {
-     "id": "bc_railway_bridge",
-     "label": "BC Railway Bridge",
+     "id": "fraser_river__bc_railway",
+     "label": "BC Railway",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3786,7 +3756,7 @@
      ]
     },
     {
-     "id": "hwy_99_bridge_at_lillooet",
+     "id": "fraser_river__hwy_99_bridge_at_lillooet",
      "label": "Hwy 99 bridge at Lillooet",
      "kind": "point",
      "anchor": {
@@ -3805,7 +3775,7 @@
      ]
     },
     {
-     "id": "bc_hydro_s_tail_race_outflow_channel",
+     "id": "fraser_river__bc_hydro_s_tail_race_outflow_channel",
      "label": "BC Hydro's tail race outflow channel",
      "kind": "point",
      "anchor": {
@@ -3824,8 +3794,8 @@
      ]
     },
     {
-     "id": "fraser_river__cnr_bridge",
-     "label": "CNR Bridge",
+     "id": "fraser_river__cnr_bridge_1km_below_thompson",
+     "label": "CNR bridge ~1km below Thompson",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3843,7 +3813,7 @@
      ]
     },
     {
-     "id": "spuzzum_creek_into_fraser_river",
+     "id": "fraser_river__spuzzum_creek_into_fraser_river",
      "label": "Spuzzum Creek → Fraser River",
      "kind": "confluence",
      "anchor": {
@@ -3871,7 +3841,7 @@
    "_entry_id": "00d137b2",
    "splits": [
     {
-     "id": "goodwin_falls",
+     "id": "mahood_river__goodwin_falls",
      "label": "Goodwin Falls",
      "kind": "point",
      "anchor": {
@@ -3899,7 +3869,7 @@
    "_entry_id": "921224bf",
    "splits": [
     {
-     "id": "frances_lake_400_m_downstream",
+     "id": "nahatlatch_river__frances_lake_400_m_downstream",
      "label": "Frances Lake (400 m downstream)",
      "kind": "point",
      "anchor": {
@@ -3921,8 +3891,8 @@
      "_offset_m": 400
     },
     {
-     "id": "fishing_boundary_signs_at_the_logging_bridge",
-     "label": "fishing boundary signs at the logging bridge",
+     "id": "nahatlatch_river__signs_at_logging_bridge",
+     "label": "signs at logging bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3949,7 +3919,7 @@
    "_entry_id": "499c7d53",
    "splits": [
     {
-     "id": "hwy_97_bridge_at_falkland",
+     "id": "salmon_river__hwy_97_bridge_at_falkland",
      "label": "Hwy 97 bridge at Falkland",
      "kind": "point",
      "anchor": {
@@ -3977,8 +3947,8 @@
    "_entry_id": "344ca048",
    "splits": [
     {
-     "id": "seymour_river__the_falls",
-     "label": "the falls",
+     "id": "seymour_river__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4025,7 +3995,7 @@
     },
     {
      "id": "thompson_river__cnr_bridge",
-     "label": "CNR Bridge",
+     "label": "CNR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4043,8 +4013,8 @@
      ]
     },
     {
-     "id": "cnr_bridge_2",
-     "label": "CNR Bridge",
+     "id": "thompson_river__cnr_bridge_2",
+     "label": "CNR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4090,8 +4060,8 @@
    "_entry_id": "e9670588",
    "splits": [
     {
-     "id": "the_easternmost_hwy_3_bridge",
-     "label": "the easternmost Hwy 3 bridge",
+     "id": "alexander_creek__easternmost_hwy_3",
+     "label": "easternmost Hwy 3",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4111,34 +4081,6 @@
    ]
   },
   {
-   "name": "ALEXANDER CREEK (downstream of the easternmost Hwy 3 b",
-   "applies_to": {
-    "gnis_id": "9343"
-   },
-   "_entry_id": "a2098ab8",
-   "splits": [
-    {
-     "id": "alexander_creek__the_easternmost_hwy_3_bridge",
-     "label": "the easternmost Hwy 3 bridge",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -114.73324,
-       49.65497
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal L] easternmost Hwy 3 bridge over Alexander Creek on Alexander Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm which Hwy 3 bridge is the 'easternmost' over Alexander Creek (Crowsnest/Sparwood, MU 4-23); map.. Hwy 3 (Crowsnest) runs alongside Alexander Creek near the Alberta border; 'easternmost Hwy 3 bridge' implies several crossings. Public highway -> not in FWA; map/OSM-confirmable. Downstream reach. [curated 2026-08-08 manual-review batch=alexander-4-23] [easternmost of 4 Hwy 3 crossings of Alexander Creek, OSM way 100217536, East Kootenay blk 356566667]",
-     "_coord": [
-      -114.73324,
-      49.65497
-     ]
-    }
-   ]
-  },
-  {
    "name": "ASHER CREEK",
    "applies_to": {
     "gnis_id": "19619"
@@ -4146,7 +4088,7 @@
    "_entry_id": "1a3ec8b9",
    "splits": [
     {
-     "id": "south_fork",
+     "id": "asher_creek__south_fork",
      "label": "South Fork",
      "kind": "point",
      "anchor": {
@@ -4174,7 +4116,7 @@
    "_entry_id": "72f67e46",
    "splits": [
     {
-     "id": "woden_creek_into_burton_trout_creek",
+     "id": "burton_creek__woden_creek_into_burton_trout_creek",
      "label": "Woden Creek → Burton (Trout) Creek",
      "kind": "confluence",
      "anchor": {
@@ -4193,7 +4135,7 @@
      }
     },
     {
-     "id": "hwy_6_bridge",
+     "id": "burton_creek__hwy_6_bridge",
      "label": "Hwy 6 bridge",
      "kind": "point",
      "anchor": {
@@ -4221,7 +4163,7 @@
    "_entry_id": "00d8df6e",
    "splits": [
     {
-     "id": "rodd_creek_into_caribou_creek",
+     "id": "caribou_creek__rodd_creek_into_caribou_creek",
      "label": "Rodd Creek → Caribou Creek",
      "kind": "confluence",
      "anchor": {
@@ -4268,7 +4210,7 @@
    "_entry_id": "47d4ca5e",
    "splits": [
     {
-     "id": "old_mf_m_railway_bridge",
+     "id": "coal_creek__old_mf_m_railway_bridge",
      "label": "Old MF&M Railway bridge",
      "kind": "point",
      "anchor": {
@@ -4299,8 +4241,8 @@
    "_entry_id": "55a54cfd",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_falls",
-     "label": "fishing boundary signs at falls",
+     "id": "coffee_creek__falls",
+     "label": "falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4332,7 +4274,7 @@
    "_entry_id": "1f199dad",
    "splits": [
     {
-     "id": "revelstoke_dam",
+     "id": "columbia_river__revelstoke_dam",
      "label": "Revelstoke Dam",
      "kind": "point",
      "anchor": {
@@ -4351,7 +4293,7 @@
      ]
     },
     {
-     "id": "hwy_1_bridge_in_revelstoke",
+     "id": "columbia_river__hwy_1_bridge_in_revelstoke",
      "label": "Hwy 1 bridge in Revelstoke",
      "kind": "point",
      "anchor": {
@@ -4370,8 +4312,8 @@
      ]
     },
     {
-     "id": "a_line_between_the_old_robson_ferry_landing_and_a_sign_on_the_south_river_bank",
-     "label": "a line between the old Robson Ferry landing and a sign on the south river bank,",
+     "id": "columbia_river__cpr_bridge_robson",
+     "label": "CPR Bridge, Robson",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4389,8 +4331,8 @@
      ]
     },
     {
-     "id": "old_robson_ferry_landing",
-     "label": "old Robson Ferry landing",
+     "id": "columbia_river__old_robson_ferry_landing_south_bank_sign",
+     "label": "old Robson Ferry landing ↔ south-bank sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4408,7 +4350,7 @@
      ]
     },
     {
-     "id": "keenleyside_dam",
+     "id": "columbia_river__keenleyside_dam",
      "label": "Keenleyside Dam",
      "kind": "point",
      "anchor": {
@@ -4427,7 +4369,7 @@
      ]
     },
     {
-     "id": "washington_state_border",
+     "id": "columbia_river__washington_state_border",
      "label": "Washington state border",
      "kind": "point",
      "anchor": {
@@ -4446,7 +4388,7 @@
      ]
     },
     {
-     "id": "kootenay_river_into_columbia_river",
+     "id": "columbia_river__kootenay_river_into_columbia_river",
      "label": "Kootenay River → Columbia River",
      "kind": "confluence",
      "anchor": {
@@ -4465,7 +4407,7 @@
      }
     },
     {
-     "id": "fairmont",
+     "id": "columbia_river__fairmont",
      "label": "Fairmont",
      "kind": "point",
      "anchor": {
@@ -4484,7 +4426,7 @@
      ]
     },
     {
-     "id": "donald",
+     "id": "columbia_river__donald",
      "label": "Donald",
      "kind": "point",
      "anchor": {
@@ -4503,7 +4445,7 @@
      ]
     },
     {
-     "id": "pend_d_oreille_river_into_columbia_river",
+     "id": "columbia_river__pend_d_oreille_river_into_columbia_river",
      "label": "Pend-d'Oreille River → Columbia River",
      "kind": "confluence",
      "anchor": {
@@ -4531,7 +4473,7 @@
    "_entry_id": "c8e8536d",
    "splits": [
     {
-     "id": "laib_creek_into_cultus_creek",
+     "id": "cultus_creek__laib_creek_into_cultus_creek",
      "label": "Laib Creek → Cultus Creek",
      "kind": "confluence",
      "anchor": {
@@ -4559,7 +4501,7 @@
    "_entry_id": "ad04e181",
    "splits": [
     {
-     "id": "duncan_dam",
+     "id": "duncan_river__duncan_dam",
      "label": "Duncan Dam",
      "kind": "point",
      "anchor": {
@@ -4578,7 +4520,7 @@
      ]
     },
     {
-     "id": "lardeau_river_into_duncan_river",
+     "id": "duncan_river__lardeau_river_into_duncan_river",
      "label": "Lardeau River → Duncan River",
      "kind": "confluence",
      "anchor": {
@@ -4606,7 +4548,7 @@
    "_entry_id": "dfe2665a",
    "splits": [
     {
-     "id": "ben_abel_creek_into_dutch_creek",
+     "id": "dutch_creek__ben_abel_creek_into_dutch_creek",
      "label": "Ben Abel Creek → Dutch Creek",
      "kind": "confluence",
      "anchor": {
@@ -4625,7 +4567,7 @@
      }
     },
     {
-     "id": "dutch_creek_into_columbia_river",
+     "id": "dutch_creek__dutch_creek_into_columbia_river",
      "label": "Dutch Creek → Columbia River",
      "kind": "confluence",
      "anchor": {
@@ -4653,7 +4595,7 @@
    "_entry_id": "e8ba6b4f",
    "splits": [
     {
-     "id": "elko_dam",
+     "id": "elk_river__elko_dam",
      "label": "Elko Dam",
      "kind": "point",
      "anchor": {
@@ -4672,7 +4614,7 @@
      ]
     },
     {
-     "id": "cpr_bridge_at_sparwood",
+     "id": "elk_river__cpr_bridge_at_sparwood",
      "label": "CPR Bridge at Sparwood",
      "kind": "point",
      "anchor": {
@@ -4691,7 +4633,7 @@
      ]
     },
     {
-     "id": "northern_hwy_3_bridge_at_fernie",
+     "id": "elk_river__northern_hwy_3_bridge_at_fernie",
      "label": "northern Hwy 3 bridge at Fernie",
      "kind": "point",
      "anchor": {
@@ -4710,7 +4652,7 @@
      ]
     },
     {
-     "id": "hwy_3_bridge_at_hosmer",
+     "id": "elk_river__hwy_3_bridge_at_hosmer",
      "label": "Hwy 3 bridge at Hosmer",
      "kind": "point",
      "anchor": {
@@ -4729,7 +4671,7 @@
      ]
     },
     {
-     "id": "line_creek_bridge",
+     "id": "elk_river__line_creek_bridge",
      "label": "Line Creek Bridge",
      "kind": "point",
      "anchor": {
@@ -4748,7 +4690,7 @@
      ]
     },
     {
-     "id": "bridge_at_morrissey",
+     "id": "elk_river__bridge_at_morrissey",
      "label": "bridge at Morrissey",
      "kind": "point",
      "anchor": {
@@ -4767,7 +4709,7 @@
      ]
     },
     {
-     "id": "forsyth_creek_into_elk_river",
+     "id": "elk_river__forsyth_creek_into_elk_river",
      "label": "Forsyth Creek → Elk River",
      "kind": "confluence",
      "anchor": {
@@ -4788,34 +4730,6 @@
    ]
   },
   {
-   "name": "ELK RIVER (downstream of Elko Dam)",
-   "applies_to": {
-    "gnis_id": "16880"
-   },
-   "_entry_id": "6bfbbcb3",
-   "splits": [
-    {
-     "id": "elk_river__elko_dam",
-     "label": "Elko Dam",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -115.10453,
-       49.29006
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal M] Elko Dam (run-of-river, Elk River) on Elk River (downstream of Elko Dam). Candidate coord [-115.10633, 49.29954]. OSM: https://www.openstreetmap.org/?mlat=49.29954&mlon=-115.10633#map=15/49.29954/-115.10633. Verify: Confirm the Elko Dam / diversion location on the Elk River in the canyon just above the town of Elko; candidate is the nearest Elk River blue-line point.. Elko Dam is a small run-of-river diversion dam on the Elk River near the town of Elko - no large named reservoir in FWA. Candidate is the Elk River blue-line point nearest the town of Elko; refine against BC Hydro/map. Pairs with the 'upstream of Elko Dam' entries. [osm-candidate 2026-08-05] [-115.10453, 49.29006] (OSM Overpass ∩ MU-clipped FWA river; VERIFY). [human-review 2026-08-05 OSM-confirmed]",
-     "_coord": [
-      -115.10453,
-      49.29006
-     ]
-    }
-   ]
-  },
-  {
    "name": "ELK RIVER'S TRIBUTARIES (see exceptions)",
    "applies_to": {
     "gnis_id": "16880"
@@ -4823,8 +4737,8 @@
    "_entry_id": "e4b7a409",
    "splits": [
     {
-     "id": "except_coal_creek",
-     "label": "EXCEPT Coal Creek",
+     "id": "elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck",
+     "label": "old MF&M Railway bridge, Coal Ck",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4854,8 +4768,8 @@
    "_entry_id": "10cce399",
    "splits": [
     {
-     "id": "doctor_creek_bridge",
-     "label": "Doctor Creek Bridge",
+     "id": "findlay_creek__doctor_creek_fsr_bridge",
+     "label": "Doctor Creek FSR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -4873,7 +4787,7 @@
      ]
     },
     {
-     "id": "lavington_creek_bridge",
+     "id": "findlay_creek__lavington_creek_bridge",
      "label": "Lavington Creek Bridge",
      "kind": "point",
      "anchor": {
@@ -4899,34 +4813,6 @@
     "gnis_id": "19955"
    },
    "_entry_id": "049f5da5",
-   "splits": [
-    {
-     "id": "josephine_falls",
-     "label": "Josephine Falls",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -114.87661,
-       50.02261
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": " [human-review 2026-08-05 FWA-waterfall] Josephine Falls.",
-     "_coord": [
-      -114.87661,
-      50.02261
-     ]
-    }
-   ]
-  },
-  {
-   "name": "FORDING RIVER (upstream of Josephine Falls)",
-   "applies_to": {
-    "gnis_id": "19955"
-   },
-   "_entry_id": "56b0696e",
    "splits": [
     {
      "id": "fording_river__josephine_falls",
@@ -4957,7 +4843,7 @@
    "_entry_id": "15b5c995",
    "splits": [
     {
-     "id": "connor_lake_3000_m_downstream",
+     "id": "forsyth_creek__connor_lake_3000_m_downstream",
      "label": "Connor Lake (3000 m downstream)",
      "kind": "lake_outlet",
      "anchor": {
@@ -5016,7 +4902,7 @@
    "_entry_id": "2ace2dc1",
    "splits": [
     {
-     "id": "angus_creek_into_hellroaring_creek",
+     "id": "hellroaring_creek__angus_creek_into_hellroaring_creek",
      "label": "Angus Creek → Hellroaring Creek",
      "kind": "confluence",
      "anchor": {
@@ -5044,7 +4930,7 @@
    "_entry_id": "b8f4c927",
    "splits": [
     {
-     "id": "albert_canyon",
+     "id": "illecillewaet_river__albert_canyon",
      "label": "Albert Canyon",
      "kind": "point",
      "anchor": {
@@ -5072,7 +4958,7 @@
    "_entry_id": "13b0444c",
    "splits": [
     {
-     "id": "kirkup_creek_into_jordan_river",
+     "id": "jordan_river__kirkup_creek_into_jordan_river",
      "label": "Kirkup Creek → Jordan River",
      "kind": "confluence",
      "anchor": {
@@ -5104,7 +4990,7 @@
    "_entry_id": "32b0f4bc",
    "splits": [
     {
-     "id": "kootenay_idaho_border",
+     "id": "kootenay_river__kootenay_idaho_border",
      "label": "Idaho border",
      "kind": "unclassified",
      "anchor": {
@@ -5123,8 +5009,8 @@
      ]
     },
     {
-     "id": "cpr_bridge_near_creston",
-     "label": "CPR Bridge near Creston",
+     "id": "kootenay_river__cpr",
+     "label": "CPR",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5142,7 +5028,7 @@
      ]
     },
     {
-     "id": "navigation_dolphin_2000_m_downstream",
+     "id": "kootenay_river__navigation_dolphin_2000_m_downstream",
      "label": "navigation dolphin (2000 m downstream)",
      "kind": "point",
      "anchor": {
@@ -5164,7 +5050,7 @@
      "_offset_m": 2000
     },
     {
-     "id": "corra_linn_dam",
+     "id": "kootenay_river__corra_linn_dam",
      "label": "Corra Linn Dam",
      "kind": "point",
      "anchor": {
@@ -5183,7 +5069,7 @@
      ]
     },
     {
-     "id": "brilliant_dam",
+     "id": "kootenay_river__brilliant_dam",
      "label": "Brilliant Dam",
      "kind": "point",
      "anchor": {
@@ -5230,8 +5116,8 @@
    "_entry_id": "a808131e",
    "splits": [
     {
-     "id": "kootenay_koocanusa",
-     "label": "Koocanusa Reservoir",
+     "id": "kootenay_river__kootenay_koocanusa",
+     "label": "Koocanusa Reservoir u/s end",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5249,8 +5135,8 @@
      ]
     },
     {
-     "id": "the_montana_border",
-     "label": "the Montana border",
+     "id": "kootenay_river__montana_border",
+     "label": "Montana border",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5268,7 +5154,7 @@
      ]
     },
     {
-     "id": "white_river_into_kootenay_river",
+     "id": "kootenay_river__white_river_into_kootenay_river",
      "label": "White River → Kootenay River",
      "kind": "confluence",
      "anchor": {
@@ -5296,8 +5182,8 @@
    "_entry_id": "1469690a",
    "splits": [
     {
-     "id": "kuskanax_creek__falls",
-     "label": "falls",
+     "id": "kuskanax_creek__kuskanax_creek_falls",
+     "label": "Kuskanax Creek Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5324,7 +5210,7 @@
    "_entry_id": "57a2bb4f",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_trout_lake_outlet_to_fishing_boundary_signs_600_m_downstream",
+     "id": "lardeau_river__fishing_boundary_signs_at_trout_lake_outlet_to_fishing_boundary_signs_600_m_downstream",
      "label": "fishing boundary signs at Trout Lake outlet, to fishing boundary signs (600 m downstream)",
      "kind": "point",
      "anchor": {
@@ -5355,8 +5241,8 @@
    "_entry_id": "4050199b",
    "splits": [
     {
-     "id": "falls_near_the_km_26_post_on_lodgepole_road",
-     "label": "falls near the km 26 post on Lodgepole Road",
+     "id": "lodgepole_creek__falls",
+     "label": "Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5376,34 +5262,6 @@
    ]
   },
   {
-   "name": "LODGEPOLE CREEK (upstream of falls)",
-   "applies_to": {
-    "gnis_id": "17044"
-   },
-   "_entry_id": "4dbdd58a",
-   "splits": [
-    {
-     "id": "lodgepole_creek__falls",
-     "label": "falls",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -114.76147,
-       49.28952
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[curated 2026-08-08 manual-review batch=sand-lodgepole] [same falls as curated downstream row lodgepole-creek-downstream-of-falls-...-f54873]",
-     "_coord": [
-      -114.76147,
-      49.28952
-     ]
-    }
-   ]
-  },
-  {
    "name": "LUSSIER RIVER",
    "applies_to": {
     "gnis_id": "2567"
@@ -5411,8 +5269,8 @@
    "_entry_id": "6cee42e9",
    "splits": [
     {
-     "id": "premier_lake_bridge_crossing",
-     "label": "Premier Lake Bridge crossing",
+     "id": "lussier_river__premier_lake_road_bridge",
+     "label": "Premier Lake road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5430,7 +5288,7 @@
      ]
     },
     {
-     "id": "mutton_creek_into_lussier_river",
+     "id": "lussier_river__mutton_creek_into_lussier_river",
      "label": "Mutton Creek → Lussier River",
      "kind": "confluence",
      "anchor": {
@@ -5458,8 +5316,8 @@
    "_entry_id": "cb7374a9",
    "splits": [
     {
-     "id": "michel_creek__the_easternmost_hwy_3_bridge",
-     "label": "the easternmost Hwy 3 bridge",
+     "id": "michel_creek__easternmost_hwy_3",
+     "label": "easternmost Hwy 3",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5479,34 +5337,6 @@
    ]
   },
   {
-   "name": "MICHEL CREEK (downstream of the easternmost Hwy 3 brid",
-   "applies_to": {
-    "gnis_id": "28953"
-   },
-   "_entry_id": "8328cecb",
-   "splits": [
-    {
-     "id": "the_easternmost_hwy_3_bridge_2",
-     "label": "the easternmost Hwy 3 bridge",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -114.78167,
-       49.67264
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal L] easternmost Hwy 3 bridge over Michel Creek on Michel Creek. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm the 'easternmost' Hwy 3 bridge over Michel Creek (Sparwood/Elk valley, MU 4-23); map.. Hwy 3 crosses Michel Creek multiple times near Sparwood; 'easternmost' picks one. Public highway -> map-only (FSR hits are far up the creek). Downstream reach. [curated 2026-08-08 manual-review batch=michel-4-23] [easternmost of 4 Hwy 3 crossings of Michel Creek, OSM way 100217550, blk 356565783]",
-     "_coord": [
-      -114.78167,
-      49.67264
-     ]
-    }
-   ]
-  },
-  {
    "name": "MOYIE RIVER",
    "applies_to": {
     "gnis_id": "15783"
@@ -5514,7 +5344,7 @@
    "_entry_id": "7772faef",
    "splits": [
     {
-     "id": "bridge_at_south_end_of_moyie_lake",
+     "id": "moyie_river__bridge_at_south_end_of_moyie_lake",
      "label": "bridge at south end of Moyie Lake",
      "kind": "point",
      "anchor": {
@@ -5533,7 +5363,7 @@
      ]
     },
     {
-     "id": "u_s_border",
+     "id": "moyie_river__u_s_border",
      "label": "U.S. border",
      "kind": "point",
      "anchor": {
@@ -5561,8 +5391,8 @@
    "_entry_id": "51aea709",
    "splits": [
     {
-     "id": "norns__falls",
-     "label": "falls",
+     "id": "norns__norns_creek_falls",
+     "label": "Norns Creek falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5582,14 +5412,14 @@
    ]
   },
   {
-   "name": "PEND D'OREILLE RIVER (includes Waneta & Seven Mile reservoirs)",
+   "name": "PEND D'OREILLE RIVER (Includes the reservoirs behind W",
    "applies_to": {
     "gnis_id": "4927"
    },
    "_entry_id": "57ddd9ce",
    "splits": [
     {
-     "id": "waneta_dam",
+     "id": "pend_d_oreille_river__waneta_dam",
      "label": "Waneta Dam",
      "kind": "point",
      "anchor": {
@@ -5606,36 +5436,6 @@
       -117.61186,
       49.0039
      ]
-    },
-    {
-     "id": "seven_mile_dam",
-     "label": "Seven Mile Dam",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -117.50363,
-       49.02976
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[manual 2026-08-17] Seven Mile Dam on Pend-d'Oreille R; boundary between Waneta Reservoir (d/s) and Seven Mile Reservoir (u/s). Name override only; regs still reference the river."
-    },
-    {
-     "id": "seven_mile_reservoir_head",
-     "label": "Seven Mile Reservoir head",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -117.38365,
-       49.02561
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[manual 2026-08-17] Upstream extent of Seven Mile Reservoir where the Pend-d'Oreille narrows again (approx; name TBD)."
     }
    ]
   },
@@ -5647,8 +5447,8 @@
    "_entry_id": "15f8ea45",
    "splits": [
     {
-     "id": "barrier",
-     "label": "barrier",
+     "id": "st_leon_creek__st_leon_falls",
+     "label": "St. Leon Falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5675,7 +5475,7 @@
    "_entry_id": "d7d845f7",
    "splits": [
     {
-     "id": "sheep_creek_into_salmo_river",
+     "id": "salmo_river__sheep_creek_into_salmo_river",
      "label": "Sheep Creek → Salmo River",
      "kind": "confluence",
      "anchor": {
@@ -5694,7 +5494,7 @@
      }
     },
     {
-     "id": "south_salmo_river_into_salmo_river",
+     "id": "salmo_river__south_salmo_river_into_salmo_river",
      "label": "South Salmo River → Salmo River",
      "kind": "confluence",
      "anchor": {
@@ -5722,7 +5522,7 @@
    "_entry_id": "bb1b228a",
    "splits": [
     {
-     "id": "hwy_3",
+     "id": "sand_creek__hwy_3",
      "label": "Hwy 3",
      "kind": "point",
      "anchor": {
@@ -5750,8 +5550,8 @@
    "_entry_id": "6dad8cc8",
    "splits": [
     {
-     "id": "point_on_the_creek_closest",
-     "label": "point on the creek closest",
+     "id": "skookumchuck_creek__point_on_skookumchuck_ck_closest_to_km38_fsr",
+     "label": "point on Skookumchuck Ck closest to km38 FSR",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5769,7 +5569,7 @@
      ]
     },
     {
-     "id": "buhl_creek_into_skookumchuck_creek",
+     "id": "skookumchuck_creek__buhl_creek_into_skookumchuck_creek",
      "label": "Buhl Creek → Skookumchuck Creek",
      "kind": "confluence",
      "anchor": {
@@ -5797,8 +5597,8 @@
    "_entry_id": "d409b6f7",
    "splits": [
     {
-     "id": "except_koch_creek_includes_tributaries",
-     "label": "EXCEPT Koch Creek[Includes Tributaries]",
+     "id": "slocan_river__koch_creek_falls",
+     "label": "Koch Creek falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5828,7 +5628,7 @@
    "_entry_id": "46dbf481",
    "splits": [
     {
-     "id": "hail_creek_into_snow_creek",
+     "id": "snow_creek__hail_creek_into_snow_creek",
      "label": "Hail Creek → Snow Creek",
      "kind": "confluence",
      "anchor": {
@@ -5856,7 +5656,7 @@
    "_entry_id": "119ed5c6",
    "splits": [
     {
-     "id": "north_white_river_into_white_river",
+     "id": "white_river__north_white_river_into_white_river",
      "label": "North White River → White River",
      "kind": "confluence",
      "anchor": {
@@ -5882,7 +5682,7 @@
    "_entry_id": "3a243888",
    "splits": [
     {
-     "id": "whiteswan_outlet_falls",
+     "id": "whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls",
      "label": "EXCEPT the outlet stream",
      "kind": "point",
      "anchor": {
@@ -5913,36 +5713,8 @@
    "_entry_id": "29f0007b",
    "splits": [
     {
-     "id": "wigwam_km42_ram_fsr",
-     "label": "the access road adjacent to km 42 on the Bighorn",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -114.95794,
-       49.1822
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "Split authored in splits.json: 'wigwam_km42_ram_fsr' (point). — authored split: wigwam_km42_ram_fsr [audit-fix 2026-08-11 (2-reviewer agreement)] [splits-inline from splits.json wigwam_km42_ram_fsr]",
-     "_coord": [
-      -114.95794,
-      49.1822
-     ]
-    }
-   ]
-  },
-  {
-   "name": "WIGWAM RIVER (upstream of the Forest Service recreatio",
-   "applies_to": {
-    "gnis_id": "27703"
-   },
-   "_entry_id": "1770fb7f",
-   "splits": [
-    {
      "id": "wigwam_river__wigwam_km42_ram_fsr",
-     "label": "the Forest Service recreation site adjacent to km 42 on the Bighorn",
+     "label": "the access road adjacent to km 42 on the Bighorn",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -5969,7 +5741,7 @@
    "_entry_id": "9e753b9b",
    "splits": [
     {
-     "id": "burkitt_creek_into_wilson_creek",
+     "id": "wilson_creek__burkitt_creek_into_wilson_creek",
      "label": "Burkitt Creek → Wilson Creek",
      "kind": "confluence",
      "anchor": {
@@ -5997,8 +5769,8 @@
    "_entry_id": "934182b3",
    "splits": [
     {
-     "id": "within_hamber_provincial_park",
-     "label": "within Hamber Provincial Park",
+     "id": "wood_river__hamber_prov_park_boundary",
+     "label": "Hamber Prov. Park boundary",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -6027,7 +5799,7 @@
    "_entry_id": "b4222b6f",
    "splits": [
     {
-     "id": "falls_at_small_hydro_structure_800_m_upstream",
+     "id": "woodbury_creek__falls_at_small_hydro_structure_800_m_upstream",
      "label": "falls at small hydro structure (800 m upstream)",
      "kind": "point",
      "anchor": {
@@ -6056,8 +5828,8 @@
    "_entry_id": "72172723",
    "splits": [
     {
-     "id": "tweedsmuir_provincial_park_plus_tenas_lake",
-     "label": "Tweedsmuir Provincial Park plus Tenas Lake",
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__tweedsmuir_park_upstream_boundary",
+     "label": "Tweedsmuir Park upstream boundary",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -6077,8 +5849,8 @@
      }
     },
     {
-     "id": "tenas_lake_to_fishing_boundary_signs_near_atnarko_park_campsite",
-     "label": "Tenas Lake to fishing boundary signs near Atnarko Park campsite",
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__atnarko_park_campsite_boundary_signs",
+     "label": "Atnarko Park campsite boundary signs",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6099,7 +5871,7 @@
      }
     },
     {
-     "id": "goat_creek_into_atnarko_river",
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river",
      "label": "Goat Creek → Atnarko River",
      "kind": "confluence",
      "anchor": {
@@ -6118,7 +5890,7 @@
      }
     },
     {
-     "id": "talchako_river_into_bella_coola_river",
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river",
      "label": "Talchako River → Bella Coola River",
      "kind": "confluence",
      "anchor": {
@@ -6137,7 +5909,7 @@
      }
     },
     {
-     "id": "young_creek_into_atnarko_river",
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__young_creek_into_atnarko_river",
      "label": "Young Creek → Atnarko River",
      "kind": "confluence",
      "anchor": {
@@ -6165,8 +5937,8 @@
    "_entry_id": "bb0964e3",
    "splits": [
     {
-     "id": "pinnacles_provincial_park",
-     "label": "Pinnacles Provincial Park",
+     "id": "baker_creek__pinnacles_park_upstream_boundary",
+     "label": "Pinnacles Park upstream boundary",
      "kind": "area_boundary",
      "anchor": {
       "type": "area_boundary",
@@ -6195,8 +5967,8 @@
    "_entry_id": "b3a70962",
    "splits": [
     {
-     "id": "blue_lead_creek__falls_situated",
-     "label": "falls situated",
+     "id": "blue_lead_creek__falls_near_quesnel_lake",
+     "label": "falls near Quesnel Lake",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6223,7 +5995,7 @@
    "_entry_id": "e500bf96",
    "splits": [
     {
-     "id": "sitkatapa_confluence",
+     "id": "burnt_bridge_creek__sitkatapa_confluence",
      "label": "Sitkatapa",
      "kind": "confluence",
      "anchor": {
@@ -6250,7 +6022,7 @@
    "_entry_id": "98236bbf",
    "splits": [
     {
-     "id": "chilko_river_into_chilcotin_river",
+     "id": "chilcotin_river__chilko_river_into_chilcotin_river",
      "label": "Chilko River → Chilcotin River",
      "kind": "confluence",
      "anchor": {
@@ -6278,7 +6050,7 @@
    "_entry_id": "a42e90ca",
    "splits": [
     {
-     "id": "brittany_creek_into_chilko_river",
+     "id": "chilko_river__brittany_creek_into_chilko_river",
      "label": "Brittany Creek → Chilko River",
      "kind": "confluence",
      "anchor": {
@@ -6297,8 +6069,8 @@
      }
     },
     {
-     "id": "bridge_at_henry_s_crossing",
-     "label": "bridge at Henry's Crossing",
+     "id": "chilko_river__henry_crossing_bridge",
+     "label": "Henry Crossing bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6325,7 +6097,7 @@
    "_entry_id": "38c3c0c0",
    "splits": [
     {
-     "id": "fishing_boundary_signs_at_ten_mile_pool_200_m_downstream",
+     "id": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_200_m_downstream",
      "label": "fishing boundary signs at Ten Mile Pool (200 m downstream)",
      "kind": "point",
      "anchor": {
@@ -6347,7 +6119,7 @@
      "_offset_m": 200
     },
     {
-     "id": "fishing_boundary_signs_at_ten_mile_pool_100_m_upstream",
+     "id": "chuckwalla_river__fishing_boundary_signs_at_ten_mile_pool_100_m_upstream",
      "label": "fishing boundary signs at Ten Mile Pool (100 m upstream)",
      "kind": "point",
      "anchor": {
@@ -6378,7 +6150,7 @@
    "_entry_id": "a4e08e9e",
    "splits": [
     {
-     "id": "iltasyuko_river_into_dean_river",
+     "id": "dean_river__iltasyuko_river_into_dean_river",
      "label": "Iltasyuko River → Dean River",
      "kind": "confluence",
      "anchor": {
@@ -6397,7 +6169,7 @@
      }
     },
     {
-     "id": "crag_creek_into_dean_river",
+     "id": "dean_river__crag_creek_into_dean_river",
      "label": "Crag Creek → Dean River",
      "kind": "confluence",
      "anchor": {
@@ -6416,7 +6188,7 @@
      }
     },
     {
-     "id": "signs_0_5_km_above_the_canyon_500_m_upstream",
+     "id": "dean_river__signs_0_5_km_above_the_canyon_500_m_upstream",
      "label": "signs ~0.5 km above the canyon (500 m upstream)",
      "kind": "point",
      "anchor": {
@@ -6438,7 +6210,7 @@
      "_offset_m": 500
     },
     {
-     "id": "signs_100_m_below_the_canyon_100_m_downstream",
+     "id": "dean_river__signs_100_m_below_the_canyon_100_m_downstream",
      "label": "signs ~100 m below the canyon (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -6460,7 +6232,7 @@
      "_offset_m": 100
     },
     {
-     "id": "tidal_boundary",
+     "id": "dean_river__tidal_boundary",
      "label": "tidal boundary",
      "kind": "point",
      "anchor": {
@@ -6479,7 +6251,7 @@
      ]
     },
     {
-     "id": "signs_3_5_km_above_the_canyon_3500_m_upstream",
+     "id": "dean_river__signs_3_5_km_above_the_canyon_3500_m_upstream",
      "label": "signs ~3.5 km above the canyon (3500 m upstream)",
      "kind": "point",
      "anchor": {
@@ -6510,7 +6282,7 @@
    "_entry_id": "13862f1c",
    "splits": [
     {
-     "id": "chilcotin_river_into_fraser_river",
+     "id": "fraser_river__chilcotin_river_into_fraser_river",
      "label": "Chilcotin River → Fraser River",
      "kind": "confluence",
      "anchor": {
@@ -6529,7 +6301,7 @@
      }
     },
     {
-     "id": "williams_lake_river_into_fraser_river",
+     "id": "fraser_river__williams_lake_river_into_fraser_river",
      "label": "Williams Lake River → Fraser River",
      "kind": "confluence",
      "anchor": {
@@ -6557,7 +6329,7 @@
    "_entry_id": "9538df76",
    "splits": [
     {
-     "id": "horsefly_river_falls",
+     "id": "horsefly_river__horsefly_river_falls",
      "label": "Horsefly River Falls",
      "kind": "point",
      "anchor": {
@@ -6576,7 +6348,7 @@
      ]
     },
     {
-     "id": "woodjam_bridge",
+     "id": "horsefly_river__woodjam_bridge",
      "label": "Woodjam Bridge",
      "kind": "point",
      "anchor": {
@@ -6604,7 +6376,7 @@
    "_entry_id": "011e4d9f",
    "splits": [
     {
-     "id": "hunlen_falls",
+     "id": "hunlen_creek__hunlen_falls",
      "label": "Hunlen Falls",
      "kind": "point",
      "anchor": {
@@ -6654,7 +6426,7 @@
      "_offset_m": 100
     },
     {
-     "id": "within_100_m_upstream",
+     "id": "mitchell_river__within_100_m_upstream",
      "label": "within (100 m upstream)",
      "kind": "point",
      "anchor": {
@@ -6676,7 +6448,7 @@
      "_offset_m": 100
     },
     {
-     "id": "cameron_creek_into_mitchell_river",
+     "id": "mitchell_river__cameron_creek_into_mitchell_river",
      "label": "Cameron Creek → Mitchell River",
      "kind": "confluence",
      "anchor": {
@@ -6704,8 +6476,8 @@
    "_entry_id": "ff6102cf",
    "splits": [
     {
-     "id": "moffat_creek__falls",
-     "label": "falls",
+     "id": "moffat_creek__falls_8_10_km_above_horsefly",
+     "label": "falls ~8-10 km above Horsefly",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6732,7 +6504,7 @@
    "_entry_id": "cae5d13e",
    "splits": [
     {
-     "id": "signs_50_m_upstream_of_likely_bridge",
+     "id": "quesnel_river__signs_50_m_upstream_of_likely_bridge",
      "label": "signs 50 m upstream of Likely Bridge",
      "kind": "point",
      "anchor": {
@@ -6754,7 +6526,7 @@
      "_offset_m": 50
     },
     {
-     "id": "signs_50_m_downstream_of_likely_bridge",
+     "id": "quesnel_river__signs_50_m_downstream_of_likely_bridge",
      "label": "signs 50 m downstream of Likely Bridge",
      "kind": "point",
      "anchor": {
@@ -6776,7 +6548,7 @@
      "_offset_m": 50
     },
     {
-     "id": "cariboo_river_into_quesnel_river",
+     "id": "quesnel_river__cariboo_river_into_quesnel_river",
      "label": "Cariboo River → Quesnel River",
      "kind": "confluence",
      "anchor": {
@@ -6795,7 +6567,7 @@
      }
     },
     {
-     "id": "boundary_signs_1800_m_upstream_of_likely_bridge",
+     "id": "quesnel_river__boundary_signs_1800_m_upstream_of_likely_bridge",
      "label": "boundary signs 1800 m upstream of Likely Bridge",
      "kind": "point",
      "anchor": {
@@ -6817,7 +6589,7 @@
      "_offset_m": 1800
     },
     {
-     "id": "morehead_creek_into_quesnel_river",
+     "id": "quesnel_river__morehead_creek_into_quesnel_river",
      "label": "Morehead Creek → Quesnel River",
      "kind": "confluence",
      "anchor": {
@@ -6845,7 +6617,7 @@
    "_entry_id": "15fdd545",
    "splits": [
     {
-     "id": "young_hwy20",
+     "id": "young_creek__young_hwy20",
      "label": "Hwy 20",
      "kind": "point",
      "anchor": {
@@ -6873,8 +6645,8 @@
    "_entry_id": "4dd3daf7",
    "splits": [
     {
-     "id": "juvenile_fish_counting_weir",
-     "label": "juvenile fish counting weir",
+     "id": "babine_river__juvenile_counting_weir",
+     "label": "juvenile counting weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6892,7 +6664,7 @@
      ]
     },
     {
-     "id": "nilkitkwa_river_into_babine_river",
+     "id": "babine_river__nilkitkwa_river_into_babine_river",
      "label": "Nilkitkwa River → Babine River",
      "kind": "confluence",
      "anchor": {
@@ -6911,7 +6683,7 @@
      }
     },
     {
-     "id": "fishing_boundary_signs_100_m_upstream_of_adult_fish_counting_fence",
+     "id": "babine_river__fishing_boundary_signs_100_m_upstream_of_adult_fish_counting_fence",
      "label": "fishing boundary signs 100 m upstream of adult fish counting fence",
      "kind": "point",
      "anchor": {
@@ -6933,7 +6705,7 @@
      "_offset_m": 100
     },
     {
-     "id": "signs_80_m_downstream_of_adult_fish_counting_fence",
+     "id": "babine_river__signs_80_m_downstream_of_adult_fish_counting_fence",
      "label": "signs 80 m downstream of adult fish counting fence",
      "kind": "point",
      "anchor": {
@@ -6955,7 +6727,7 @@
      "_offset_m": 80
     },
     {
-     "id": "babine_river_into_skeena_river",
+     "id": "babine_river__babine_river_into_skeena_river",
      "label": "Babine River → Skeena River",
      "kind": "confluence",
      "anchor": {
@@ -6974,8 +6746,8 @@
      }
     },
     {
-     "id": "adult_fish_counting_fence",
-     "label": "adult fish counting fence",
+     "id": "babine_river__adult_counting_fence",
+     "label": "adult counting fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -6993,7 +6765,7 @@
      ]
     },
     {
-     "id": "fort_babine_bridge",
+     "id": "babine_river__fort_babine_bridge",
      "label": "Fort Babine Bridge",
      "kind": "point",
      "anchor": {
@@ -7012,7 +6784,7 @@
      ]
     },
     {
-     "id": "nichyeskwa_creek_into_babine_river",
+     "id": "babine_river__nichyeskwa_creek_into_babine_river",
      "label": "Nichyeskwa Creek → Babine River",
      "kind": "confluence",
      "anchor": {
@@ -7040,7 +6812,7 @@
    "_entry_id": "d850b295",
    "splits": [
     {
-     "id": "morice_river_into_bulkley_river",
+     "id": "bulkley_river__morice_river_into_bulkley_river",
      "label": "Morice River → Bulkley River",
      "kind": "confluence",
      "anchor": {
@@ -7059,8 +6831,8 @@
      }
     },
     {
-     "id": "cnr_bridge_at_barrett",
-     "label": "CNR Bridge at Barrett",
+     "id": "bulkley_river__cnr_bridge_at_barrett",
+     "label": "CNR bridge at Barrett",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7078,8 +6850,8 @@
      ]
     },
     {
-     "id": "in_moricetown_canyon_or_within",
-     "label": "in Moricetown Canyon or within",
+     "id": "bulkley_river__moricetown_witset_canyon_top",
+     "label": "Moricetown/Witset Canyon top",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7097,8 +6869,8 @@
      ]
     },
     {
-     "id": "bulkley_river__in_moricetown_canyon_or_within",
-     "label": "in Moricetown Canyon or within",
+     "id": "bulkley_river__moricetown_witset_canyon_bottom",
+     "label": "Moricetown/Witset Canyon bottom",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7116,7 +6888,7 @@
      ]
     },
     {
-     "id": "in_moricetown_canyon_or_within_100_m_downstream",
+     "id": "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream",
      "label": "in Moricetown Canyon or within (100 m downstream)",
      "kind": "point",
      "anchor": {
@@ -7147,8 +6919,8 @@
    "_entry_id": "4b68e157",
    "splits": [
     {
-     "id": "cheslatta_river__falls",
-     "label": "falls",
+     "id": "cheslatta_river__cheslatta_falls",
+     "label": "Cheslatta falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7175,8 +6947,8 @@
    "_entry_id": "3f88988a",
    "splits": [
     {
-     "id": "fishing_boundary_signs",
-     "label": "fishing boundary signs",
+     "id": "hays_creek__lower_culvert_near_cannery",
+     "label": "lower culvert near cannery",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7203,8 +6975,8 @@
    "_entry_id": "8fb53ca7",
    "splits": [
     {
-     "id": "forest_kerr_canyon",
-     "label": "Forest Kerr Canyon",
+     "id": "iskut_river__downstream_end_of_forrest_kerr_canyon",
+     "label": "downstream end of Forrest Kerr Canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7231,8 +7003,8 @@
    "_entry_id": "c0718831",
    "splits": [
     {
-     "id": "on_the_west_half_of_river_between_fishing_boundary_signs_near_kitimat_hatchery_outfall",
-     "label": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
+     "id": "kitimat_river__kitimat_hatchery_outfall_d_s_sign",
+     "label": "Kitimat Hatchery outfall — d/s sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7250,8 +7022,8 @@
      ]
     },
     {
-     "id": "kitimat_river__on_the_west_half_of_river_between_fishing_boundary_signs_near_kitimat_hatchery_outfall",
-     "label": "on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
+     "id": "kitimat_river__kitimat_hatchery_outfall_u_s_sign",
+     "label": "Kitimat Hatchery outfall — u/s sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7269,8 +7041,8 @@
      ]
     },
     {
-     "id": "in_tributaries_and",
-     "label": "in tributaries and",
+     "id": "kitimat_river__hwy_37_bridge",
+     "label": "Hwy 37 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7297,7 +7069,7 @@
    "_entry_id": "bef5f670",
    "splits": [
     {
-     "id": "glacier_creek_into_kitsumkalum_river",
+     "id": "kitsumkalum__glacier_creek_into_kitsumkalum_river",
      "label": "Glacier Creek → Kitsumkalum River",
      "kind": "confluence",
      "anchor": {
@@ -7325,7 +7097,7 @@
    "_entry_id": "14585c7b",
    "splits": [
     {
-     "id": "nass_road_bridge",
+     "id": "ksi_sii_aks_river__nass_road_bridge",
      "label": "Nass Road Bridge",
      "kind": "point",
      "anchor": {
@@ -7353,8 +7125,8 @@
    "_entry_id": "ea7be38a",
    "splits": [
     {
-     "id": "upstream_from_the_lower_bridge_abutments",
-     "label": "upstream from the lower bridge abutments",
+     "id": "ksi_x_anmas_river__lower_bridge_abutments",
+     "label": "lower bridge abutments",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7382,7 +7154,7 @@
    "splits": [
     {
      "id": "lakelse_river__power_line_crossing",
-     "label": "power line crossing,",
+     "label": "power line crossing",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7401,7 +7173,7 @@
     },
     {
      "id": "lakelse_river__cnr_bridge",
-     "label": "CNR Bridge",
+     "label": "CNR bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7428,7 +7200,7 @@
    "_entry_id": "c66059ee",
    "splits": [
     {
-     "id": "meziadin_river_into_nass_river",
+     "id": "meziadin_river__meziadin_river_into_nass_river",
      "label": "Meziadin River → Nass River",
      "kind": "confluence",
      "anchor": {
@@ -7456,8 +7228,8 @@
    "_entry_id": "9db3580a",
    "splits": [
     {
-     "id": "fishing_boundary_signs_near_outlet_of_morice_lake",
-     "label": "fishing boundary signs near outlet of Morice Lake",
+     "id": "morice_river__signs_at_morice_lake_outlet",
+     "label": "signs at Morice Lake outlet",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7475,7 +7247,7 @@
      ]
     },
     {
-     "id": "fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
+     "id": "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
      "label": "fishing boundary signs near outlet of Morice Lake (2000 m downstream)",
      "kind": "point",
      "anchor": {
@@ -7497,7 +7269,7 @@
      "_offset_m": 2000
     },
     {
-     "id": "thautil_river_into_morice_river",
+     "id": "morice_river__thautil_river_into_morice_river",
      "label": "Thautil River → Morice River",
      "kind": "confluence",
      "anchor": {
@@ -7516,7 +7288,7 @@
      }
     },
     {
-     "id": "gosnell_creek_into_thautil_river",
+     "id": "morice_river__gosnell_creek_into_thautil_river",
      "label": "Gosnell Creek → Thautil River",
      "kind": "confluence",
      "anchor": {
@@ -7535,7 +7307,7 @@
      }
     },
     {
-     "id": "lamprey_creek_into_morice_river",
+     "id": "morice_river__lamprey_creek_into_morice_river",
      "label": "Lamprey Creek → Morice River",
      "kind": "confluence",
      "anchor": {
@@ -7582,8 +7354,8 @@
      }
     },
     {
-     "id": "hw",
-     "label": "Hw",
+     "id": "nass_river__hwy_37_bridge",
+     "label": "Hwy 37 bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7610,8 +7382,8 @@
    "_entry_id": "2fe40ed5",
    "splits": [
     {
-     "id": "the_fish_fence",
-     "label": "the fish fence",
+     "id": "pinkut_creek__fish_fence",
+     "label": "fish fence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7636,7 +7408,7 @@
    "_entry_id": "e793b857",
    "splits": [
     {
-     "id": "kispiox_river_into_skeena_river",
+     "id": "skeena_river_kispiox_river_confluence__kispiox_river_into_skeena_river",
      "label": "Kispiox River → Skeena River",
      "kind": "confluence",
      "anchor": {
@@ -7664,7 +7436,7 @@
    "_entry_id": "2fc0d1b9",
    "splits": [
     {
-     "id": "exchamsiks_river_into_skeena_river",
+     "id": "skeena_river__exchamsiks_river_into_skeena_river",
      "label": "Exchamsiks River → Skeena River",
      "kind": "confluence",
      "anchor": {
@@ -7683,7 +7455,7 @@
      }
     },
     {
-     "id": "kitsumkalum_river_into_skeena_river_u1500m",
+     "id": "skeena_river__kitsumkalum_river_into_skeena_river_u1500m",
      "label": "Kitsumkalum River → Skeena River (1500 m upstream)",
      "kind": "confluence",
      "anchor": {
@@ -7705,7 +7477,7 @@
      }
     },
     {
-     "id": "zymoetz_river_into_skeena_river_u1500m",
+     "id": "skeena_river__zymoetz_river_into_skeena_river_u1500m",
      "label": "Zymoetz River → Skeena River (1500 m upstream)",
      "kind": "confluence",
      "anchor": {
@@ -7727,7 +7499,7 @@
      }
     },
     {
-     "id": "shegunia_river_into_skeena_river",
+     "id": "skeena_river__shegunia_river_into_skeena_river",
      "label": "Shegunia River → Skeena River",
      "kind": "confluence",
      "anchor": {
@@ -7746,7 +7518,7 @@
      }
     },
     {
-     "id": "sedan_creek_into_skeena_river",
+     "id": "skeena_river__sedan_creek_into_skeena_river",
      "label": "Sedan Creek → Skeena River",
      "kind": "confluence",
      "anchor": {
@@ -7765,7 +7537,7 @@
      }
     },
     {
-     "id": "chimdemash_creek_into_skeena_river",
+     "id": "skeena_river__chimdemash_creek_into_skeena_river",
      "label": "Chimdemash Creek → Skeena River",
      "kind": "confluence",
      "anchor": {
@@ -7793,7 +7565,7 @@
    "_entry_id": "aed39f94",
    "splits": [
     {
-     "id": "fishing_boundary_signs_250_m_downstream_of_francois_lake_road_bridge",
+     "id": "stellako_river__fishing_boundary_signs_250_m_downstream_of_francois_lake_road_bridge",
      "label": "fishing boundary signs 250 m downstream of Francois Lake Road bridge",
      "kind": "point",
      "anchor": {
@@ -7815,7 +7587,7 @@
      "_offset_m": 250
     },
     {
-     "id": "signs_4000_m_downstream_of_francois_lake_road_bridge",
+     "id": "stellako_river__signs_4000_m_downstream_of_francois_lake_road_bridge",
      "label": "signs 4000 m downstream of Francois Lake Road bridge",
      "kind": "point",
      "anchor": {
@@ -7837,8 +7609,8 @@
      "_offset_m": 4000
     },
     {
-     "id": "stellako_river__falls",
-     "label": "falls",
+     "id": "stellako_river__stellako_falls",
+     "label": "Stellako falls",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7865,7 +7637,7 @@
    "_entry_id": "99b982b7",
    "splits": [
     {
-     "id": "bcr_bridge_at_bear_river_mouth",
+     "id": "sustut_river__bcr_bridge_at_bear_river_mouth",
      "label": "BCR Bridge at Bear River mouth",
      "kind": "point",
      "anchor": {
@@ -7893,7 +7665,7 @@
    "_entry_id": "037258e5",
    "splits": [
     {
-     "id": "boundary_signs_400_m_upstream_of_tahltan_river_bridge",
+     "id": "tahltan_river__boundary_signs_400_m_upstream_of_tahltan_river_bridge",
      "label": "boundary signs 400 m upstream of Tahltan River Bridge",
      "kind": "point",
      "anchor": {
@@ -7915,7 +7687,7 @@
      "_offset_m": 400
     },
     {
-     "id": "th_750_m_upstream",
+     "id": "tahltan_river__th_750_m_upstream",
      "label": "th (750 m upstream)",
      "kind": "point",
      "anchor": {
@@ -7946,7 +7718,7 @@
    "_entry_id": "883f7f02",
    "splits": [
     {
-     "id": "mcdonell_lake_3000_m_downstream",
+     "id": "zymoetz__mcdonell_lake_3000_m_downstream",
      "label": "McDonell Lake (3000 m downstream)",
      "kind": "lake",
      "anchor": {
@@ -7968,8 +7740,8 @@
      "_offset_m": 3000
     },
     {
-     "id": "fishing_boundary_signs_in_zymoetz_canyon",
-     "label": "fishing boundary signs in Zymoetz Canyon",
+     "id": "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign",
+     "label": "Zymoetz Canyon lower entrance = transmission-line sign",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7987,8 +7759,8 @@
      ]
     },
     {
-     "id": "zymoetz__fishing_boundary_signs_in_zymoetz_canyon",
-     "label": "fishing boundary signs in Zymoetz Canyon",
+     "id": "zymoetz__zymoetz_canyon_upper_entrance",
+     "label": "Zymoetz Canyon upper entrance",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8006,7 +7778,7 @@
      ]
     },
     {
-     "id": "limonite_creek_into_zymoetz_river",
+     "id": "zymoetz__limonite_creek_into_zymoetz_river",
      "label": "Limonite Creek → Zymoetz River",
      "kind": "confluence",
      "anchor": {
@@ -8034,7 +7806,7 @@
    "_entry_id": "669f5ba9",
    "splits": [
     {
-     "id": "within_500_m_downstream",
+     "id": "anzac_river__within_500_m_downstream",
      "label": "within (500 m downstream)",
      "kind": "point",
      "anchor": {
@@ -8056,7 +7828,7 @@
      "_offset_m": 500
     },
     {
-     "id": "within_500_m_upstream",
+     "id": "anzac_river__within_500_m_upstream",
      "label": "within (500 m upstream)",
      "kind": "point",
      "anchor": {
@@ -8078,7 +7850,7 @@
      "_offset_m": 500
     },
     {
-     "id": "north_anzac_river_into_anzac_river",
+     "id": "anzac_river__north_anzac_river_into_anzac_river",
      "label": "North Anzac River → Anzac River",
      "kind": "confluence",
      "anchor": {
@@ -8106,7 +7878,7 @@
    "_entry_id": "1200c05b",
    "splits": [
     {
-     "id": "thorne_creek_into_attichika_creek_u500m",
+     "id": "attichika_creek__thorne_creek_into_attichika_creek_u500m",
      "label": "Thorne Creek → Attichika Creek (500 m upstream)",
      "kind": "confluence",
      "anchor": {
@@ -8128,7 +7900,7 @@
      }
     },
     {
-     "id": "thorne_creek_into_attichika_creek_d500m",
+     "id": "attichika_creek__thorne_creek_into_attichika_creek_d500m",
      "label": "Thorne Creek → Attichika Creek (500 m downstream)",
      "kind": "confluence",
      "anchor": {
@@ -8150,7 +7922,7 @@
      }
     },
     {
-     "id": "kemess_creek_into_attichika_creek_u500m",
+     "id": "attichika_creek__kemess_creek_into_attichika_creek_u500m",
      "label": "Kemess Creek → Attichika Creek (500 m upstream)",
      "kind": "confluence",
      "anchor": {
@@ -8172,7 +7944,7 @@
      }
     },
     {
-     "id": "kemess_creek_into_attichika_creek_d500m",
+     "id": "attichika_creek__kemess_creek_into_attichika_creek_d500m",
      "label": "Kemess Creek → Attichika Creek (500 m downstream)",
      "kind": "confluence",
      "anchor": {
@@ -8203,7 +7975,7 @@
    "_entry_id": "9fd933ca",
    "splits": [
     {
-     "id": "fishing_boundary_signs_near_its_mouth_400_m_upstream",
+     "id": "chichouyenily_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream",
      "label": "fishing boundary signs near its mouth (400 m upstream)",
      "kind": "point",
      "anchor": {
@@ -8234,8 +8006,8 @@
    "_entry_id": "823d2b21",
    "splits": [
     {
-     "id": "downstream",
-     "label": "downstream",
+     "id": "crooked_river__200_road_bridge",
+     "label": "200 Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8262,7 +8034,7 @@
    "_entry_id": "90a35dad",
    "splits": [
     {
-     "id": "cottonwood_river_into_fraser_river",
+     "id": "fraser_river__cottonwood_river_into_fraser_river",
      "label": "Cottonwood River → Fraser River",
      "kind": "confluence",
      "anchor": {
@@ -8321,7 +8093,7 @@
    "_entry_id": "9c953e5d",
    "splits": [
     {
-     "id": "macleod_creek_into_goat_river",
+     "id": "goat_river__macleod_creek_into_goat_river",
      "label": "Macleod Creek → Goat River",
      "kind": "confluence",
      "anchor": {
@@ -8349,7 +8121,7 @@
    "_entry_id": "d128b1fb",
    "splits": [
     {
-     "id": "kemess_creek_into_attichika_creek",
+     "id": "kemess_creek__kemess_creek_into_attichika_creek",
      "label": "Kemess Creek → Attichika Creek",
      "kind": "confluence",
      "anchor": {
@@ -8368,7 +8140,7 @@
      }
     },
     {
-     "id": "point_500_m_upstream_of_attichka_creek",
+     "id": "kemess_creek__point_500_m_upstream_of_attichka_creek",
      "label": "point 500 m upstream of Attichka Creek",
      "kind": "point",
      "anchor": {
@@ -8399,7 +8171,7 @@
    "_entry_id": "a9ca82b7",
    "splits": [
     {
-     "id": "war_falls",
+     "id": "mcleod_river__war_falls",
      "label": "War Falls",
      "kind": "point",
      "anchor": {
@@ -8427,7 +8199,7 @@
    "_entry_id": "eee9bebb",
    "splits": [
     {
-     "id": "cheslatta_river_into_nechako_river",
+     "id": "nechako_river__cheslatta_river_into_nechako_river",
      "label": "Cheslatta River → Nechako River",
      "kind": "confluence",
      "anchor": {
@@ -8446,7 +8218,7 @@
      }
     },
     {
-     "id": "boundary_sign_5000_m_downstream",
+     "id": "nechako_river__boundary_sign_5000_m_downstream",
      "label": "boundary sign (5000 m downstream)",
      "kind": "point",
      "anchor": {
@@ -8468,7 +8240,7 @@
      "_offset_m": 5000
     },
     {
-     "id": "hwy_27_bridge",
+     "id": "nechako_river__hwy_27_bridge",
      "label": "Hwy 27 bridge",
      "kind": "point",
      "anchor": {
@@ -8487,7 +8259,7 @@
      ]
     },
     {
-     "id": "foothills_boulevard_bridge_in_prince_george",
+     "id": "nechako_river__foothills_boulevard_bridge_in_prince_george",
      "label": "Foothills Boulevard Bridge in Prince George",
      "kind": "point",
      "anchor": {
@@ -8534,7 +8306,7 @@
      ]
     },
     {
-     "id": "quarry_bridge",
+     "id": "ptarmigan_creek__quarry_bridge",
      "label": "Quarry Bridge",
      "kind": "point",
      "anchor": {
@@ -8562,8 +8334,8 @@
    "_entry_id": "07d64663",
    "splits": [
     {
-     "id": "upstream_side_of_weir",
-     "label": "upstream side of weir",
+     "id": "swift_creek__weir",
+     "label": "weir",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8581,8 +8353,8 @@
      ]
     },
     {
-     "id": "cnr_bridge_in_valemount",
-     "label": "CNR Bridge in Valemount",
+     "id": "swift_creek__cnr_bridge_valemount",
+     "label": "CNR bridge, Valemount",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8609,7 +8381,7 @@
    "_entry_id": "15e07584",
    "splits": [
     {
-     "id": "attichika_creek",
+     "id": "thorn_creek__attichika_creek",
      "label": "Attichika Creek",
      "kind": "point",
      "anchor": {
@@ -8631,7 +8403,7 @@
      }
     },
     {
-     "id": "point",
+     "id": "thorn_creek__point",
      "label": "point",
      "kind": "point",
      "anchor": {
@@ -8659,7 +8431,7 @@
    "_entry_id": "b34e2ffb",
    "splits": [
     {
-     "id": "signs_near_its_mouth_400_m_upstream",
+     "id": "weston_creek__signs_near_its_mouth_400_m_upstream",
      "label": "signs near its mouth (400 m upstream)",
      "kind": "point",
      "anchor": {
@@ -8690,8 +8462,8 @@
    "_entry_id": "5887eab0",
    "splits": [
     {
-     "id": "the_horseshoe_road_bridge",
-     "label": "the Horseshoe Road Bridge",
+     "id": "chowade_river__horseshoe_road_bridge",
+     "label": "Horseshoe Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -8718,7 +8490,7 @@
    "_entry_id": "d0a5bca7",
    "splits": [
     {
-     "id": "halfway_river_into_peace_river",
+     "id": "halfway_river__halfway_river_into_peace_river",
      "label": "Halfway River → Peace River",
      "kind": "confluence",
      "anchor": {
@@ -8737,7 +8509,7 @@
      }
     },
     {
-     "id": "halfway_river_into_peace_river_u5000m",
+     "id": "halfway_river__halfway_river_into_peace_river_u5000m",
      "label": "Halfway River → Peace River (5000 m upstream)",
      "kind": "confluence",
      "anchor": {
@@ -8768,7 +8540,7 @@
    "_entry_id": "739c5405",
    "splits": [
     {
-     "id": "kinuseo_falls",
+     "id": "murray_river__kinuseo_falls",
      "label": "Kinuseo Falls",
      "kind": "point",
      "anchor": {
@@ -8787,7 +8559,7 @@
      ]
     },
     {
-     "id": "signs_about_2000_m_downstream",
+     "id": "murray_river__signs_about_2000_m_downstream",
      "label": "signs about (2000 m downstream)",
      "kind": "point",
      "anchor": {
@@ -8818,7 +8590,7 @@
    "_entry_id": "03e3acbe",
    "splits": [
     {
-     "id": "hwy_29_bridge",
+     "id": "peace_river__hwy_29_bridge",
      "label": "Hwy. 29 bridge",
      "kind": "point",
      "anchor": {
@@ -8837,7 +8609,7 @@
      ]
     },
     {
-     "id": "site_c_dam",
+     "id": "peace_river__site_c_dam",
      "label": "Site C dam",
      "kind": "point",
      "anchor": {
@@ -8878,7 +8650,7 @@
      }
     },
     {
-     "id": "halfway_river_into_peace_river_d5000m",
+     "id": "peace_river__halfway_river_into_peace_river_d5000m",
      "label": "Halfway River → Peace River (5000 m downstream)",
      "kind": "confluence",
      "anchor": {
@@ -8900,7 +8672,7 @@
      }
     },
     {
-     "id": "peace_canyon_dam",
+     "id": "peace_river__peace_canyon_dam",
      "label": "Peace Canyon Dam",
      "kind": "point",
      "anchor": {
@@ -8928,26 +8700,7 @@
    "_entry_id": "789839ce",
    "splits": [
     {
-     "id": "peace_river__site_c_dam",
-     "label": "Site C dam",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -120.91289,
-       56.193
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal L] Site C Dam (upstream) -> signs 1,200 m downstream on Peace River (Site C Dam -> signs 1,200 m below). No FWA coord (needs map / external source). Verify: Locate Site C Dam; downstream end = signs 1,200 m below. External to FWA.. Short reach from the Site C Dam to boundary signs 1,200 m downstream (pairs with peace-river-downstream-of-boundary-signs). Site C absent from FWA - manual/BC Hydro coord needed. [human-review 2026-08-06] Site C/John Horgan Dam (user).",
-     "_coord": [
-      -120.91289,
-      56.193
-     ]
-    },
-    {
-     "id": "boundary_signs_1200_m_downstream_of_site_c_dam",
+     "id": "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam",
      "label": "boundary signs 1200 m downstream of Site C dam",
      "kind": "point",
      "anchor": {
@@ -8971,37 +8724,6 @@
    ]
   },
   {
-   "name": "PEACE RIVER (Downstream of boundary signs 1,200m downs",
-   "applies_to": {
-    "gnis_id": "14619"
-   },
-   "_entry_id": "4068efd2",
-   "splits": [
-    {
-     "id": "boundary_signs_1_1200_m_downstream",
-     "label": "boundary signs 1 (1200 m downstream)",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -120.91289,
-       56.193
-      ],
-      "is_lonlat": true,
-      "offset_m": 1200,
-      "offset_dir": "downstream"
-     },
-     "note": "",
-     "_note": "[auto-proposal L] Boundary signs 1,200 m downstream of Site C Dam on Peace River (below Site C). No FWA coord (needs map / external source). Verify: Locate Site C Dam (BC Hydro, ~7 km SW of Fort St John) then place a point 1,200 m downstream along the Peace - Site C reservoir is too new to be in FWA.. Site C Dam is a recent BC Hydro facility likely absent from the FWA dataset. This entry is the reach downstream of signs 1,200 m below the dam. Recommend manual: get the Site C dam coord from BC Hydro, then offset 1,200 m downstream on the Peace River blue line. [human-review 2026-08-06] anchor=Site C dam; offset_m=1200 offset_dir=downstream.",
-     "_coord": [
-      -120.91289,
-      56.193
-     ],
-     "_offset_m": 1200
-    }
-   ]
-  },
-  {
    "name": "PINE RIVER",
    "applies_to": {
     "gnis_id": "23217"
@@ -9009,8 +8731,8 @@
    "_entry_id": "e2986e43",
    "splits": [
     {
-     "id": "the_hasler_road_bridge",
-     "label": "the Hasler Road Bridge",
+     "id": "pine_river__hasler_road_bridge",
+     "label": "Hasler Road Bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9068,7 +8790,7 @@
    "_entry_id": "286427f8",
    "splits": [
     {
-     "id": "burrell_creek_into_granby_river",
+     "id": "granby_river__burrell_creek_into_granby_river",
      "label": "Burrell Creek → Granby River",
      "kind": "confluence",
      "anchor": {
@@ -9096,7 +8818,7 @@
    "_entry_id": "5c070236",
    "splits": [
     {
-     "id": "jewel_lake_1500_m_downstream",
+     "id": "jewel_creek__jewel_lake_1500_m_downstream",
      "label": "Jewel Lake (1500 m downstream)",
      "kind": "lake",
      "anchor": {
@@ -9127,8 +8849,8 @@
    "_entry_id": "ead85d0e",
    "splits": [
     {
-     "id": "mcrae_creek__falls_situated",
-     "label": "falls situated",
+     "id": "mcrae_creek__falls_potholes",
+     "label": "falls/potholes",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9155,7 +8877,7 @@
    "_entry_id": "155b494f",
    "splits": [
     {
-     "id": "falls_at_gallagher_canyon",
+     "id": "mission_creek__falls_at_gallagher_canyon",
      "label": "falls at Gallagher Canyon",
      "kind": "point",
      "anchor": {
@@ -9183,7 +8905,7 @@
    "_entry_id": "52c291bb",
    "splits": [
     {
-     "id": "okanagan_lake_dam",
+     "id": "okanagan_river__okanagan_lake_dam",
      "label": "Okanagan Lake Dam",
      "kind": "point",
      "anchor": {
@@ -9202,8 +8924,8 @@
      ]
     },
     {
-     "id": "mcintyre_dam_and",
-     "label": "McIntyre Dam and",
+     "id": "okanagan_river__mcintyre_dam",
+     "label": "McIntyre Dam",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9221,7 +8943,7 @@
      ]
     },
     {
-     "id": "drop_structure_no_1",
+     "id": "okanagan_river__drop_structure_no_1",
      "label": "Drop Structure No. 1",
      "kind": "point",
      "anchor": {
@@ -9249,7 +8971,7 @@
    "_entry_id": "13c2dbeb",
    "splits": [
     {
-     "id": "hardy_falls",
+     "id": "peachland_creek__hardy_falls",
      "label": "Hardy Falls",
      "kind": "point",
      "anchor": {
@@ -9277,7 +8999,7 @@
    "_entry_id": "af3ee657",
    "splits": [
     {
-     "id": "hwy_97_bridge",
+     "id": "powers_creek__hwy_97_bridge",
      "label": "Hwy 97 bridge",
      "kind": "point",
      "anchor": {
@@ -9305,8 +9027,8 @@
    "_entry_id": "94472177",
    "splits": [
     {
-     "id": "westside_road_bridge",
-     "label": "Westside Road Bridge",
+     "id": "shorts_creek__westside_road_bridge",
+     "label": "Westside Road bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9333,7 +9055,7 @@
    "_entry_id": "dd32b777",
    "splits": [
     {
-     "id": "mara_bridge",
+     "id": "shuswap_river__mara_bridge",
      "label": "Mara Bridge",
      "kind": "point",
      "anchor": {
@@ -9352,7 +9074,7 @@
      ]
     },
     {
-     "id": "signs_50_m_downstream_of_trinity_bridge",
+     "id": "shuswap_river__signs_50_m_downstream_of_trinity_bridge",
      "label": "signs 50 m downstream of Trinity Bridge",
      "kind": "point",
      "anchor": {
@@ -9374,7 +9096,7 @@
      "_offset_m": 50
     },
     {
-     "id": "signs_50_m_upstream_of_trinity_bridge",
+     "id": "shuswap_river__signs_50_m_upstream_of_trinity_bridge",
      "label": "signs 50 m upstream of Trinity Bridge",
      "kind": "point",
      "anchor": {
@@ -9405,8 +9127,8 @@
    "_entry_id": "426962cd",
    "splits": [
     {
-     "id": "hwy_97c",
-     "label": "Hwy 97C",
+     "id": "trepanier_river__hwy_97c_bridge",
+     "label": "Hwy 97C bridge",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9433,8 +9155,8 @@
    "_entry_id": "f24bd72f",
    "splits": [
     {
-     "id": "the_trestle_in_trout_creek_canyon_to_okanagan_lake",
-     "label": "the trestle in Trout Creek Canyon to Okanagan Lake",
+     "id": "trout_creek__rail_trestle_trout_creek_canyon",
+     "label": "rail trestle, Trout Creek Canyon",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -9461,7 +9183,7 @@
    "_entry_id": "89526222",
    "splits": [
     {
-     "id": "frog_falls",
+     "id": "wap_creek__frog_falls",
      "label": "Frog Falls",
      "kind": "point",
      "anchor": {
@@ -9489,7 +9211,7 @@
    "_entry_id": "11c7347e",
    "splits": [
     {
-     "id": "aberfeldie_dam",
+     "id": "bull_river__aberfeldie_dam",
      "label": "Aberfeldie Dam",
      "kind": "point",
      "anchor": {
@@ -9508,7 +9230,7 @@
      ]
     },
     {
-     "id": "galbraith_creek_confl",
+     "id": "bull_river__galbraith_creek_confl",
      "label": "Galbraith Creek confl",
      "kind": "point",
      "anchor": {
@@ -9527,7 +9249,7 @@
      ]
     },
     {
-     "id": "tie_mill_dam",
+     "id": "bull_river__tie_mill_dam",
      "label": "Tie Mill Dam",
      "kind": "point",
      "anchor": {
@@ -9546,7 +9268,7 @@
      ]
     },
     {
-     "id": "van_creek_confl",
+     "id": "bull_river__van_creek_confl",
      "label": "Van Creek confl",
      "kind": "point",
      "anchor": {
@@ -9572,7 +9294,7 @@
    "_entry_id": "362df0a9",
    "splits": [
     {
-     "id": "sign_200_m_upstream_of_twin_falls_bridge",
+     "id": "lynn_creek__sign_200_m_upstream_of_twin_falls_bridge",
      "label": "sign 200 m upstream of Twin Falls Bridge",
      "kind": "point",
      "anchor": {
@@ -9597,7 +9319,7 @@
      }
     },
     {
-     "id": "sign_150_m_downstream_of_twin_falls_bridge",
+     "id": "lynn_creek__sign_150_m_downstream_of_twin_falls_bridge",
      "label": "sign 150 m downstream of Twin Falls Bridge",
      "kind": "point",
      "anchor": {

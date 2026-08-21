@@ -272,6 +272,8 @@ class Entry(BaseModel):
         "entry is reviewed/confirmed/edited; a re-parse MUST NOT overwrite a locked entry (the merge "
         "tool preserves it). This is how a hand-authored entry (e.g. the full Atnarko system) is frozen.",
     )
+    reviewed_by: str = Field(default="", description="curator who confirmed this entry (set by the review tool alongside locked)")
+    reviewed_at: str = Field(default="", description="ISO timestamp of the confirm (set by the review tool)")
     matched: List[str] = Field(default_factory=list, description="registry ids — written by the matcher, [] from the parser")
     registry_status: str = Field(
         default="matched",

@@ -193,15 +193,31 @@ def _clean_noun(text: str) -> str:
     return base
 
 
+def _specific_label(row: dict) -> str:
+    """The row's own curated `label`, cleaned — but only when it is a specific boundary noun (not a
+    generic 'signs'/'point' and not a bare distance). Returns '' when the label is absent/degenerate."""
+    lab = _clean_noun(row.get("label") or "")
+    if lab and lab.lower() not in _GENERIC_NOUN and not re.match(r"^[\d.]+\s*(m|km)\b", lab):
+        return lab
+    return ""
+
+
 def _landmark(row: dict) -> str:
     """The boundary the reg names. For a CONFLUENCE that's the tributary — the curated `label`
-    ('Goat Creek confluence') is clean, the locator is a verbose reach — so label-first. For a POINT
-    the boundary is in `locator_text` (the reg's own phrasing); `anchor_label` is only the *reference*
-    for an offset, so for a GENERIC/degenerate noun ('signs', 'point', '500 m …') we compose
-    'signs 500 m downstream of {reference}' to stay unambiguous."""
+    ('Goat Creek confluence') is clean, the locator is a verbose reach — so label-first. For a
+    non-offset POINT/line the per-row curated `label` is the authored boundary identity and wins:
+    structural-split rows (a/b under one 'between X and Y' reach) share the reach-level locator_text,
+    so preferring it would collapse them to the same reach label — the per-row label keeps them
+    distinct ('Elk Falls' vs 'John Hart Dam power station'). For an OFFSET row the label is the
+    *reference* landmark, so we keep locator_text/anchor_label and, for a GENERIC/degenerate noun,
+    compose 'signs 500 m downstream of {reference}' to stay unambiguous."""
     off = row.get("offset") or {}
     if row.get("anchor_kind") == "confluence":
         return _clean_noun(row.get("label") or row.get("locator_text") or "") or row["id"]
+    if not off.get("m"):
+        lab = _specific_label(row)
+        if lab:
+            return lab
     base = _clean_noun(row.get("locator_text") or row.get("label") or off.get("anchor_label") or "")
     ref = _clean_noun(off.get("anchor_label") or "")
     is_generic = (not base) or (base.lower() in _GENERIC_NOUN) \
@@ -290,9 +306,11 @@ def build_waterbodies(rows: list[dict]) -> tuple[list[dict], dict]:
     used_ids: set = set()
     waterbodies: list = []; kinds: Counter = Counter(); merged = 0
     prov: dict = {}          # split_id -> [source curation row ids] (incl. dedup-merged rows)
+    seen_by_wb: dict = {}    # wb_slug -> {dedup_key: sid}; shared across sibling entries so the same physical
+                             # cut in an up/downstream pair (Elko Dam, Josephine Falls, ...) is emitted once
     for eid, g in by_entry.items():
         wb_slug = _slug(_strip_paren(g["name"]))
-        seen: dict = {}; splits: list = []
+        seen: dict = seen_by_wb.setdefault(wb_slug, {}); splits: list = []
         for r, a in g["raw"]:
             extra: dict = {}
             if r["id"] in PARK_FIX:
@@ -335,12 +353,10 @@ def build_waterbodies(rows: list[dict]) -> tuple[list[dict], dict]:
                 lm = _landmark(r)
                 m = re.search(r"authored split: ([a-z0-9_]+)", r.get("notes", "") or "")
                 base = m.group(1) if m else _slug(lm)
-            sid = base
-            if sid in used_ids:
-                sid = f"{wb_slug}__{base}"
+            sid = f"{wb_slug}__{base}"          # every id leads with its waterbody slug
             i = 2
             while sid in used_ids:
-                sid = f"{base}_{i}"; i += 1
+                sid = f"{wb_slug}__{base}_{i}"; i += 1
             used_ids.add(sid)
             split = {"id": sid, "label": lm, "kind": r.get("anchor_kind"), "anchor": a,
                      "note": "", "_note": r.get("notes", "")}
