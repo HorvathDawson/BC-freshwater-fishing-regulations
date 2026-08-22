@@ -66,6 +66,7 @@ export interface Entry {
   entry_id: string;
   identity: Identity;
   regs_verbatim: string;
+  source_symbols: string[];
   locked: boolean;
   reviewed_by: string;
   reviewed_at: string;

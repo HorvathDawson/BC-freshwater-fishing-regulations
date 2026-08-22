@@ -274,6 +274,12 @@ class Entry(BaseModel):
     entry_id: str = Field(..., description="stable id (e.g. 'atnarko_main'); rule_ids namespace under it")
     identity: Identity
     regs_verbatim: str = Field(..., description="exact copy of the input raw_regs")
+    source_symbols: List[str] = Field(
+        default_factory=list,
+        description="verbatim synopsis-row symbols for this entry ('Incl. Tribs', 'Classified', 'Stocked'). "
+        "Injected by ingest from the batch item — provenance so tributaries.included (and future "
+        "classified/stocked flags) stay re-validatable against the source without the extraction file.",
+    )
     locked: bool = Field(
         default=False,
         description="human-curated lock. Starts False (fresh parse). A curator flips it True once the "

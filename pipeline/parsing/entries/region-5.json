@@ -215,7 +215,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:10857",
@@ -304,7 +305,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:11119",
@@ -361,7 +363,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:11611#bella_coola_river",
@@ -415,7 +420,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:12809",
@@ -468,7 +476,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:13741",
@@ -679,7 +688,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified"
+      ]
     },
     {
       "entry_id": "gnis:13744",
@@ -923,7 +935,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified"
+      ]
     },
     {
       "entry_id": "gnis:14045",
@@ -986,7 +1001,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:14477",
@@ -1043,7 +1059,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:16075",
@@ -1520,7 +1537,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified"
+      ]
     },
     {
       "entry_id": "gnis:17747",
@@ -1664,7 +1684,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:1914",
@@ -1775,7 +1796,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:1992#canim_river_also_in_m_u_3_46",
@@ -2006,7 +2030,11 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:22290",
@@ -2117,7 +2145,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:2271",
@@ -2201,7 +2232,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified"
+      ]
     },
     {
       "entry_id": "gnis:23858",
@@ -2254,7 +2288,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:24531",
@@ -2457,7 +2494,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified"
+      ]
     },
     {
       "entry_id": "gnis:25591",
@@ -2548,7 +2588,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:26104#west_road_blackwater_river",
@@ -2751,7 +2792,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:27764",
@@ -2804,7 +2846,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:27867",
@@ -2993,7 +3036,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:29965",
@@ -3149,7 +3193,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:31586",
@@ -3206,7 +3253,11 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:31700",
@@ -3319,7 +3370,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Classified"
+      ]
     },
     {
       "entry_id": "gnis:3273",
@@ -3376,7 +3430,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "gnis:35507",
@@ -3431,7 +3488,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:37911",
@@ -3488,7 +3546,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:39269",
@@ -3544,7 +3603,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:5467",
@@ -3626,7 +3686,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "gnis:7956",
@@ -3743,7 +3804,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "gnis:8173",
@@ -3799,7 +3863,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ]
     },
     {
       "entry_id": "noreg_basalt_lake_807",
@@ -3886,7 +3953,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_blackwater_river_814",
@@ -3930,7 +3998,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_bowron_lake_park_waters_other_than_bowron_lake_822",
@@ -4018,7 +4087,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_brown_lake_824",
@@ -4062,7 +4132,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_frog_lake_866",
@@ -4149,7 +4220,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_gatcho_lake_867",
@@ -4218,7 +4290,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_hidden_lake_877",
@@ -4298,7 +4371,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_naglico_lake_917",
@@ -4367,7 +4441,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_pettry_lake_928",
@@ -4436,7 +4511,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_redfern_lake_935",
@@ -4505,7 +4581,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_secret_lake_941",
@@ -4592,7 +4669,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_square_lake_949",
@@ -4661,7 +4739,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "noreg_squirrel_lake_950",
@@ -4730,7 +4809,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:328975711",
@@ -4783,7 +4863,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:328986884",
@@ -4925,7 +5006,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:328987837",
@@ -5066,7 +5150,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329021784",
@@ -5146,7 +5233,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021785",
@@ -5226,7 +5314,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021787",
@@ -5313,7 +5402,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021788",
@@ -5400,7 +5490,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021789",
@@ -5480,7 +5571,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021792",
@@ -5567,7 +5659,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021793",
@@ -5654,7 +5747,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021795",
@@ -5742,7 +5836,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021796",
@@ -5822,7 +5917,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021804",
@@ -5877,7 +5973,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021811",
@@ -6052,7 +6149,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021816",
@@ -6139,7 +6237,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021817",
@@ -6219,7 +6318,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021823",
@@ -6420,7 +6520,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021828",
@@ -6507,7 +6608,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329021868",
@@ -6595,7 +6697,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329047331",
@@ -6711,7 +6814,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329058703",
@@ -6773,7 +6877,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329060770",
@@ -6828,7 +6933,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060774",
@@ -6914,7 +7022,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060778",
@@ -6969,7 +7080,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060782",
@@ -7029,7 +7143,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329060793",
@@ -7170,7 +7285,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060797",
@@ -7284,7 +7402,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060800",
@@ -7371,7 +7492,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060802",
@@ -7485,7 +7609,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329060821",
@@ -7599,7 +7724,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329060825",
@@ -7679,7 +7805,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060848",
@@ -7759,7 +7888,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329060853",
@@ -7953,7 +8083,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329060886",
@@ -8121,7 +8254,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329061097",
@@ -8201,7 +8337,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329074474#grizzly_lake_unnamed_lake_approx_4_5_km_upstream",
@@ -8316,7 +8453,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329079684#chilko_lake",
@@ -8434,7 +8572,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329079684#chilko_lake_s_tributary_streams",
@@ -8520,7 +8659,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329079686",
@@ -8573,7 +8713,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329097899",
@@ -8626,7 +8767,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329098146",
@@ -8706,7 +8850,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329116770",
@@ -8820,7 +8965,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329116771",
@@ -8962,7 +9110,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329116791",
@@ -9103,7 +9254,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329116844",
@@ -9190,7 +9344,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329126712#toms_lake",
@@ -9277,7 +9434,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329126718#chipmunk_lake",
@@ -9364,7 +9522,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329126731",
@@ -9478,7 +9637,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329126819",
@@ -9650,7 +9810,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329170746",
@@ -9703,7 +9866,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329170758",
@@ -9817,7 +9983,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329182795",
@@ -9878,7 +10047,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329184481",
@@ -9966,7 +10136,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329184482",
@@ -10054,7 +10225,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329184513",
@@ -10196,7 +10368,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329184528",
@@ -10303,7 +10476,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329238138",
@@ -10391,7 +10565,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329238149",
@@ -10478,7 +10653,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329238230",
@@ -10592,7 +10768,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329276269",
@@ -10647,7 +10824,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329276293",
@@ -10753,7 +10931,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329276383",
@@ -10806,7 +10987,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329276527",
@@ -10859,7 +11043,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329283053",
@@ -10971,7 +11156,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329354718",
@@ -11025,7 +11211,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329354719",
@@ -11078,7 +11265,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329354723",
@@ -11219,7 +11409,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329354737",
@@ -11272,7 +11465,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329354750",
@@ -11325,7 +11521,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329354751",
@@ -11585,7 +11782,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329354776",
@@ -11672,7 +11870,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329354783",
@@ -11806,7 +12007,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329354797",
@@ -11860,7 +12064,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329354827",
@@ -11947,7 +12152,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329354830#wolf_lake_situated_approx_2_3_km_northeast_of_lo",
@@ -12062,7 +12268,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329412989",
@@ -12115,7 +12322,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329413012",
@@ -12176,7 +12386,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329413147#blue_lake_near_alexandria",
@@ -12290,7 +12503,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329413147#blue_lake_soda_creek_area",
@@ -12343,7 +12559,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329430941",
@@ -12780,7 +12999,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480767",
@@ -12835,7 +13055,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480768#big_lake_approx_10_km_west_of_100_mile_house",
@@ -12922,7 +13143,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480768#big_lake_approx_30_km_west_of_likely",
@@ -13008,7 +13232,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480769",
@@ -13099,7 +13324,10 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480771",
@@ -13154,7 +13382,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480772",
@@ -13214,7 +13443,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480775",
@@ -13274,7 +13504,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480776",
@@ -13327,7 +13558,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480778",
@@ -13387,7 +13619,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480780",
@@ -13442,7 +13675,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480782",
@@ -13497,7 +13731,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480783",
@@ -13584,7 +13819,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480788",
@@ -13639,7 +13875,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480789",
@@ -13694,7 +13931,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480790",
@@ -13749,7 +13987,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480795",
@@ -13802,7 +14041,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480802",
@@ -13857,7 +14097,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480815",
@@ -13998,7 +14239,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480817",
@@ -14053,7 +14297,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480818",
@@ -14108,7 +14353,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329480831",
@@ -14188,7 +14434,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480864",
@@ -14416,7 +14665,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480895",
@@ -14531,7 +14783,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480905",
@@ -14646,7 +14901,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329480977",
@@ -14699,7 +14957,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329481525",
@@ -14813,7 +15072,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329494714",
@@ -14868,7 +15128,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329494722",
@@ -14921,7 +15182,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329494735",
@@ -15089,7 +15353,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329494736",
@@ -15142,7 +15409,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329494751",
@@ -15283,7 +15553,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329494762",
@@ -15396,7 +15669,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329494927",
@@ -15449,7 +15723,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329495189",
@@ -15509,7 +15784,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329554404",
@@ -15683,7 +15959,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329586230",
@@ -15824,7 +16103,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329586239",
@@ -15958,7 +16240,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329586263",
@@ -16011,7 +16296,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329586268",
@@ -16091,7 +16377,10 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": [
+        "Stocked"
+      ]
     },
     {
       "entry_id": "wbk:329601581",
@@ -16151,7 +16440,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329601585",
@@ -16238,7 +16528,8 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     },
     {
       "entry_id": "wbk:329677094",
@@ -16293,7 +16584,8 @@
           ]
         }
       ],
-      "audit_log": []
+      "audit_log": [],
+      "source_symbols": []
     }
   ]
 }

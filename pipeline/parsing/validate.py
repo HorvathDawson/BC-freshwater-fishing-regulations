@@ -40,9 +40,11 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
     """Validate one entry against its batch item. Returns (Entry|None, errors, unused_split_ids)."""
     data = dict(entry_data)
     data["regs_verbatim"] = item.get("raw_regs", "")      # inject authoritative source; don't trust the copy
-    if "symbols" in item:                                 # authoritative entry-level tributary flag from the
-        tribs = dict(data.get("tributaries") or {})       # synopsis symbol ("Incl. Tribs"), same as raw_regs
-        tribs["included"] = symbols_include_tributaries(item["symbols"])
+    if "symbols" in item:                                 # authoritative synopsis symbols: store as provenance
+        syms = list(item["symbols"])                      # AND derive entry-level tributaries.included from them
+        data["source_symbols"] = syms
+        tribs = dict(data.get("tributaries") or {})
+        tribs["included"] = symbols_include_tributaries(syms)
         data["tributaries"] = tribs
     if item.get("entry_id"):                              # authoritative id/status — never trusted from the model
         data["entry_id"] = item["entry_id"]

@@ -19,7 +19,7 @@ Rows are pre-sorted (attention first). Row:
 ```json
 {
   "entry": { ...full Entry (see pipeline/parsing/entry_models.py): entry_id, identity{name,region,mus},
-             regs_verbatim, registry_status, registry_note, locked, reviewed_by, reviewed_at,
+             regs_verbatim, source_symbols[], registry_status, registry_note, locked, reviewed_by, reviewed_at,
              revisit, revisit_note, matched[], tributaries{included,only,excludes}, scope[], rules[...], audit_log[] },
   "region": "1",
   "match": { "item_id":"gnis:5480"|null, "status":"matched|override|skip|ambiguous|no_registry|feature_pin",

@@ -1,10 +1,12 @@
-"""Backfill entry-level `tributaries.included` from the synopsis tributary symbol.
+"""Backfill synopsis symbol provenance onto entries (and the entry-level tributaries flag).
 
 The parser skewed nearly every entry to `tributaries.included=false`, even for rows the synopsis flags
 with the **[Includes Tributaries]** symbol ("Incl. Tribs"). That symbol is the authoritative entry-level
-signal but never survived into `regs_verbatim`, so the flag was lost. This backfills it from the SAME
-source the parser reads (`load_synopsis_rows`), joining each entry to its row by verbatim regs (name as
-tiebreaker — the exact join `curation-review` uses for the source image).
+signal but never survived into the entry, so the flag was lost. This joins each entry to its synopsis
+row (SAME source the parser reads, `load_synopsis_rows`) and writes back:
+  * `source_symbols` — the verbatim row symbols ('Incl. Tribs' / 'Classified' / 'Stocked'), so the entry
+    is self-describing and re-validatable without the extraction file;
+  * `tributaries.included = true` when the row is tributary-flagged.
 
 Additive + safe: only flips `included: false -> true` for symbol-flagged rows, never the reverse, and
 never touches a `locked` (hand-reviewed) entry. Each file is re-validated through the `EntryFile` model
@@ -20,33 +22,33 @@ import json
 from pathlib import Path
 
 from pipeline.parsing.entry_models import EntryFile
-from pipeline.parsing.rows import load_synopsis_rows, row_includes_tributaries
+from pipeline.parsing.rows import load_synopsis_rows, symbols_include_tributaries
 
 _ROOT = Path(__file__).resolve().parents[2]
 _ENTRIES_DIR = _ROOT / "pipeline" / "parsing" / "entries"
 
 
-def _symbol_index() -> dict[str, list[tuple[str, bool]]]:
-    """raw_regs -> [(water_lower, has_tributary_symbol)] — same key the source-image join uses."""
-    idx: dict[str, list[tuple[str, bool]]] = {}
+def _symbol_index() -> dict[str, list[tuple[str, list[str]]]]:
+    """raw_regs -> [(water_lower, symbols)] — same key the source-image join uses."""
+    idx: dict[str, list[tuple[str, list[str]]]] = {}
     for r in load_synopsis_rows():
         raw = r.get("raw_regs")
         if raw:
-            idx.setdefault(raw, []).append((str(r.get("water", "")).lower(), row_includes_tributaries(r)))
+            idx.setdefault(raw, []).append((str(r.get("water", "")).lower(), list(r.get("symbols", []))))
     return idx
 
 
-def _row_has_symbol(entry: dict, idx: dict[str, list[tuple[str, bool]]]) -> bool | None:
-    """Whether the entry's synopsis row is tributary-flagged. None = no confident row match (skip)."""
+def _row_symbols(entry: dict, idx: dict[str, list[tuple[str, list[str]]]]) -> list[str] | None:
+    """The entry's synopsis-row symbols. None = no confident row match (skip)."""
     cands = idx.get(entry.get("regs_verbatim", ""))
     if not cands:
         return None
     if len(cands) == 1:
         return cands[0][1]
     name = str(entry.get("identity", {}).get("name", "")).lower()
-    for water, has in cands:
+    for water, syms in cands:
         if water == name:
-            return has
+            return syms
     return None  # ambiguous shared regs, no name match -> don't guess
 
 
@@ -61,13 +63,20 @@ def main() -> None:
         data = json.loads(path.read_text(encoding="utf-8"))
         changed: list[str] = []
         for e in data.get("entries", []):
-            if e.get("locked"):
+            syms = _row_symbols(e, idx)
+            if syms is None:
                 continue
-            tribs = e.setdefault("tributaries", {"included": False, "only": False, "excludes": []})
-            if tribs.get("included") is True:
-                continue
-            if _row_has_symbol(e, idx) is True:
-                tribs["included"] = True
+            entry_changed = False
+            if e.get("source_symbols") != syms:                 # store provenance (re-validatable later)
+                e["source_symbols"] = syms
+                entry_changed = True
+            if not e.get("locked"):                             # never override a hand-reviewed flag
+                tribs = e.setdefault("tributaries", {"included": False, "only": False, "excludes": []})
+                want = symbols_include_tributaries(syms)
+                if want and tribs.get("included") is not True:  # additive: only false -> true
+                    tribs["included"] = True
+                    entry_changed = True
+            if entry_changed:
                 changed.append(e["entry_id"])
         if not changed:
             continue
@@ -75,11 +84,11 @@ def main() -> None:
         if not args.dry_run:
             path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         total_changed += len(changed)
-        print(f"{path.name}: {len(changed)} entries -> included=true")
+        print(f"{path.name}: {len(changed)} entries updated (source_symbols / included)")
         for eid in changed:
             print(f"    {eid}")
-    verb = "would set" if args.dry_run else "set"
-    print(f"\n{verb} tributaries.included=true on {total_changed} entries")
+    verb = "would update" if args.dry_run else "updated"
+    print(f"\n{verb} {total_changed} entries")
 
 
 if __name__ == "__main__":
