@@ -25,9 +25,9 @@ export type RegistryStatus = "matched" | "no_registry";
 export interface Extent {
   op: Op;
   splits: string[];
-  item?: string | null;
-  area?: string | null;
-  kind?: string | null;
+  item_id?: string | null;
+  area_id?: string | null;
+  area_kind?: string | null;
   feature_types?: string[];
 }
 
@@ -62,6 +62,19 @@ export interface Tributaries {
   excludes: Extent[];
 }
 
+export interface ReviewIssue {
+  severity: string;
+  problem: string;
+  fix: string;
+}
+
+export interface ParseReview {
+  verdict: string; // "" | pass | changes_requested
+  model: string;
+  reviewed_at: string;
+  issues: ReviewIssue[];
+}
+
 export interface Entry {
   entry_id: string;
   identity: Identity;
@@ -72,6 +85,7 @@ export interface Entry {
   reviewed_at: string;
   revisit: boolean;
   revisit_note: string;
+  parse_review: ParseReview;
   matched: string[];
   registry_status: RegistryStatus;
   registry_note: string;

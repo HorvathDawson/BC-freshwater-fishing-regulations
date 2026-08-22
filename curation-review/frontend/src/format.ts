@@ -18,7 +18,7 @@ export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
     case "between":
       return `between ${lbls[0] ?? "?"} and ${lbls[1] ?? "?"}`;
     case "within":
-      return `within ${ex.area ?? lbls.join(" & ") ?? "?"}`;
+      return `within ${ex.area_id ?? lbls.join(" & ") ?? "?"}`;
     default:
       return ex.op;
   }
@@ -27,7 +27,7 @@ export function humanExtent(ex: Extent, boundaries: Boundary[]): string {
 // Raw form, e.g. "upstream_of[foo_falls]".
 export function rawExtent(ex: Extent): string {
   const parts = [...ex.splits];
-  if (ex.area) parts.push(`area=${ex.area}`);
+  if (ex.area_id) parts.push(`area=${ex.area_id}`);
   return `${ex.op}[${parts.join(", ")}]`;
 }
 

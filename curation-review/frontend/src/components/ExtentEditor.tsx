@@ -107,8 +107,8 @@ export function ExtentEditor({ extents, boundaries, onChange }: Props) {
               <input
                 type="text"
                 placeholder="area id (e.g. area:park:foo)"
-                value={ex.area ?? ""}
-                onChange={(e) => update(i, { area: e.target.value })}
+                value={ex.area_id ?? ""}
+                onChange={(e) => update(i, { area_id: e.target.value })}
               />
             )}
             {needSplits && (

@@ -20,7 +20,7 @@ Rows are pre-sorted (attention first). Row:
 {
   "entry": { ...full Entry (see pipeline/parsing/entry_models.py): entry_id, identity{name,region,mus},
              regs_verbatim, source_symbols[], registry_status, registry_note, locked, reviewed_by, reviewed_at,
-             revisit, revisit_note, matched[], tributaries{included,only,excludes}, scope[], rules[...], audit_log[] },
+             revisit, revisit_note, parse_review{verdict,model,reviewed_at,issues[]}, matched[], tributaries{included,only,excludes}, scope[], rules[...], audit_log[] },
   "region": "1",
   "match": { "item_id":"gnis:5480"|null, "status":"matched|override|skip|ambiguous|no_registry|feature_pin",
              "reason":"", "candidates":[] },
@@ -31,8 +31,8 @@ Rows are pre-sorted (attention first). Row:
   "unused_curated_splits": [ {"id":"foo_falls","label":"Foo Falls","anchor_type":"confluence"} ]
 }
 ```
-**Rule shape** (inside `entry.rules[]`): `rule_id, restriction_type, details, extents[{op,splits[],item?,area?}],
-dates[], includes_tributaries, tributary_excludes[{op,splits[],item?}], sections_override?, needs_review, review_reason, rule_text, location_text,
+**Rule shape** (inside `entry.rules[]`): `rule_id, restriction_type, details, extents[{op,splits[],item_id?,area_id?}],
+dates[], includes_tributaries, tributary_excludes[{op,splits[],item_id?}], sections_override?, needs_review, review_reason, rule_text, location_text,
 exception, display_location, unresolved_locators[], species[]`. **Extent.op** ∈
 `whole|upstream_of|downstream_of|between|within`; `splits` are boundary **ids** from `item.boundaries`.
 `tributary_excludes` = per-rule tributary carve-outs (same shape as `entry.tributaries.excludes`, scoped to one rule).

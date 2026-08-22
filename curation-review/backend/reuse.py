@@ -363,8 +363,8 @@ def _referenced_item_ids(entry_dict: dict) -> set[str]:
 
     def _scan(extents):
         for ex in extents or []:
-            if ex.get("item"):
-                ids.add(ex["item"])
+            if ex.get("item_id"):
+                ids.add(ex["item_id"])
 
     _scan(entry_dict.get("scope"))
     _scan((entry_dict.get("tributaries") or {}).get("excludes"))

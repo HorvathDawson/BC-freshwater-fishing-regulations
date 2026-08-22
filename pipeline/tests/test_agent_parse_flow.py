@@ -136,6 +136,34 @@ def test_no_registry_row_parses_content_only(tmp_path):
     assert entry.rules[0].needs_review and entry.rules[0].extents == []
 
 
+def test_ingest_persists_agent_review(tmp_path):
+    # The agent reviewer's verdict/issues must survive on the entry (durable), so review state isn't
+    # lost if the ephemeral parse/review outputs are deleted.
+    reg = _registry()
+    out_dir = tmp_path / "parse"
+    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
+    batch_file = out_dir / "batches" / "batch_000.json"
+    batch_items = validate_mod.load_batch_items(batch_file)
+    cand = json.dumps([_candidate_entry()])
+
+    reviews = {0: {"verdict": "changes_requested", "model": "haiku", "reviewed_at": "2026-08-21T00:00:00+00:00",
+                   "issues": [{"severity": "high", "problem": "wrong reach", "fix": "use downstream_of"}]}}
+    accepted, _ = ingest_mod.ingest([cand], batch_items, reviews)
+    pr = accepted[0].parse_review
+    assert pr.verdict == "changes_requested" and pr.model == "haiku"
+    assert pr.issues[0].severity == "high" and pr.issues[0].fix == "use downstream_of"
+
+    # load_reviews maps a per-batch review file -> per-index records (pass for rows with no issues)
+    reviews_dir = out_dir / "reviews"
+    reviews_dir.mkdir()
+    (reviews_dir / "batch_000.review.json").write_text(json.dumps(
+        {"verdict": "changes_requested", "model": "haiku", "reviewed_at": "t",
+         "issues": [{"index": 0, "severity": "medium", "problem": "x", "fix": "y"}]}))
+    loaded = ingest_mod.load_reviews(reviews_dir, out_dir / "batches")
+    assert loaded[0]["verdict"] == "changes_requested"
+    assert loaded[1]["verdict"] == "pass" and loaded[1]["issues"] == []   # other batch row, no issues
+
+
 def test_entry_review_stamps_default_empty_and_roundtrip():
     from pipeline.parsing.entry_models import Entry
     e = Entry(entry_id="x", identity={"name": "A"}, regs_verbatim="No fishing.",

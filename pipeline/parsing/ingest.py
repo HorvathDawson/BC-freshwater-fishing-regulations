@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import defaultdict
 from pathlib import Path
 
 from pipeline.parsing.entry_models import Entry, EntryFile
@@ -25,6 +26,41 @@ def _load_all_batch_items(batches_dir: Path) -> dict[int, dict]:
     for p in sorted(batches_dir.glob("batch_*.json")):
         items.update(load_batch_items(p))
     return items
+
+
+def load_reviews(reviews_dir: Path, batches_dir: Path) -> dict[int, dict]:
+    """Map row index -> durable parse_review dict from the agent reviewer's per-batch files
+    (`reviews/batch_NNN.review.json`). Every row in a reviewed batch gets a record: `changes_requested`
+    with its issues, or `pass` when the reviewer flagged nothing for it. Absent = entry never reviewed."""
+    out: dict[int, dict] = {}
+    if not reviews_dir.exists():
+        return out
+    for rp in sorted(reviews_dir.glob("batch_*.review.json")):
+        try:
+            obj = json.loads(rp.read_text(encoding="utf-8"))
+        except Exception:                                 # noqa: BLE001 — skip a garbage review file
+            continue
+        bid = rp.name.split(".", 1)[0]                    # 'batch_000'
+        batch_path = batches_dir / f"{bid}.json"
+        if not batch_path.exists():
+            continue
+        indices = load_batch_items(batch_path).keys()
+        by_idx: dict[int, list] = defaultdict(list)
+        for iss in obj.get("issues", []):
+            if iss.get("index") is not None:
+                by_idx[iss["index"]].append(
+                    {"severity": iss.get("severity", "low"), "problem": iss.get("problem", ""),
+                     "fix": iss.get("fix", "")})
+        for idx in indices:
+            issues = by_idx.get(idx, [])
+            out[idx] = {
+                "verdict": "changes_requested" if issues else "pass",
+                "model": obj.get("model", ""),
+                "reviewed_at": obj.get("reviewed_at", ""),
+                "issues": issues,
+            }
+    return out
+
 
 
 def _parse_response(text: str) -> list[dict]:
@@ -44,8 +80,11 @@ def _parse_response(text: str) -> list[dict]:
     return data
 
 
-def ingest(response_texts: list[str], batch_items: dict[int, dict]) -> tuple[dict[int, Entry], dict]:
-    """Validate all responses against their batch items. Returns (accepted {index: Entry}, report)."""
+def ingest(response_texts: list[str], batch_items: dict[int, dict],
+           reviews: dict[int, dict] | None = None) -> tuple[dict[int, Entry], dict]:
+    """Validate all responses against their batch items. Returns (accepted {index: Entry}, report).
+    `reviews` (index -> parse_review) is injected onto each entry as durable agent-review state."""
+    reviews = reviews or {}
     accepted: dict[int, Entry] = {}
     report: dict = {"accepted": [], "failed": [], "duplicates": [], "unknown_index": [], "unused": {}}
     seen: set[int] = set()
@@ -60,7 +99,10 @@ def ingest(response_texts: list[str], batch_items: dict[int, dict]) -> tuple[dic
                 report["duplicates"].append(idx)
                 continue
             seen.add(idx)
-            entry, errors, unused = validate_candidate(item, obj.get("entry", {}))
+            entry_data = obj.get("entry", {})
+            if idx in reviews:                            # persist the agent review onto the entry
+                entry_data = {**entry_data, "parse_review": reviews[idx]}
+            entry, errors, unused = validate_candidate(item, entry_data)
             if entry is None:
                 report["failed"].append({"index": idx, "errors": errors})
                 continue
@@ -107,6 +149,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Ingest agent responses into checked-in EntryFiles.")
     ap.add_argument("responses", nargs="+", help="response JSON file(s)")
     ap.add_argument("--batches-dir", help="dir with batch_*.json (default: <out>/parse/batches)")
+    ap.add_argument("--reviews-dir", help="dir with batch_*.review.json (default: <out>/parse/reviews)")
     ap.add_argument("--entries-dir", help="output EntryFiles dir (default: pipeline/parsing/entries)")
     ap.add_argument("--dry-run", action="store_true", help="validate + report only; write nothing")
     args = ap.parse_args()
@@ -116,11 +159,13 @@ def main() -> None:
     else:
         from pipeline.parsing.batch_exporter import default_work_dir
         batches_dir = default_work_dir() / "batches"
+    reviews_dir = Path(args.reviews_dir) if args.reviews_dir else (batches_dir.parent / "reviews")
     entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
 
     batch_items = _load_all_batch_items(batches_dir)
+    reviews = load_reviews(reviews_dir, batches_dir)
     texts = [Path(p).read_text(encoding="utf-8") for p in args.responses]
-    accepted, report = ingest(texts, batch_items)
+    accepted, report = ingest(texts, batch_items, reviews)
 
     print("Ingest summary:")
     print(f"  accepted : {len(report['accepted'])}")

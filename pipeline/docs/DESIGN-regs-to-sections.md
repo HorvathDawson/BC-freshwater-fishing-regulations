@@ -237,9 +237,9 @@ The entries file is both the parser's output **and** the file a curator hand-edi
 add a `sections_override`, correct a `matched`). It is **self-contained**: it embeds the verbatim
 source (`regs_verbatim` + per-rule `rule_text`), so you never need the ephemeral extraction to read
 or curate it. Store as per-region files (`pipeline/parsing/entries/region-2.json`) for small diffs.
-- **`Entry`** — `{entry_id, identity{name, region, mus[]}, regs_verbatim, matched:[registry_id], includes_tributaries, scope:[Extent], rules:[Rule]}`.
+- **`Entry`** — `{entry_id, identity{name, region, mus[]}, regs_verbatim, source_symbols[], matched:[registry_id], tributaries{included,only,excludes[Extent]}, scope:[Extent], rules:[Rule], parse_review{verdict,model,issues[]}, locked, reviewed_by, revisit, revisit_note}`. `source_symbols`/`matched`/`registry_*` are ingest/matcher provenance; `parse_review` is the durable agent-review pass; `locked`/`reviewed_by`/`revisit*` are human curation.
 - **`Rule`** — `{rule_id, type, details, dates[], extents:[Extent], includes_tributaries: bool|null, tributary_excludes:[Extent], sections_override:[section_id]?, needs_review: bool, review_reason?, rule_text, location_text}` (last two = verbatim provenance). `needs_review` = the parser couldn't confidently bind it → hand-curation queue. `tributary_excludes` = per-rule hand-curated carve-outs from THIS rule's tributary set (parser leaves `[]`).
-- **`Extent`** — `{op: whole|upstream_of|downstream_of|between|within, splits:[split_id], item?: registry_id, area?, kind?}`. The `op+split` binding. A rule's `extents` is a **list → union** (covers "A plus B"); `item` scopes an extent to a *different* registry item than the entry's `matched` (covers "plus Tenas Lake" / named side channels). Entry `scope` ∩ each rule extent composes.
+- **`Extent`** — `{op: whole|upstream_of|downstream_of|between|within, splits:[split_id], item_id?: registry_id, area_id?, area_kind?}`. The `op+split` binding. A rule's `extents` is a **list → union** (covers "A plus B"); `item_id` scopes an extent to a *different* registry item than the entry's `matched` (covers "plus Tenas Lake" / named side channels). Entry `scope` ∩ each rule extent composes.
 
 ### Resolve output
 - **`SectionRegs`** *(exists)* — `{section_id, named_reg_ids[], tributary_reg_ids[]}`. The flat overlay; the deliverable.

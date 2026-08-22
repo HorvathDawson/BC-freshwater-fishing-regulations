@@ -36,7 +36,7 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
   }, [idsKey]);
 
   useEffect(() => {
-    const want = excludes.map((e) => e.item).filter((x): x is string => !!x && !(x in cache));
+    const want = excludes.map((e) => e.item_id).filter((x): x is string => !!x && !(x in cache));
     want.forEach((id) => api.itemBoundaries(id).then((b) => setCache((c) => ({ ...c, [id]: b }))).catch(() => {}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [excludes]);
@@ -44,7 +44,7 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
   const tribName = useMemo(() => Object.fromEntries(tribs.map((t) => [t.id, t.name])), [tribs]);
 
   function reachOptions(ex: Extent): Boundary[] {
-    return (ex.item ? cache[ex.item] ?? [] : [])
+    return (ex.item_id ? cache[ex.item_id] ?? [] : [])
       .filter((b) => !(b.curated && !b.in_splits))
       .slice()
       .sort((a, b) => (b.curated ? 1 : 0) - (a.curated ? 1 : 0) || (a.label || a.id).localeCompare(b.label || b.id));
@@ -72,16 +72,16 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
         const opts = reachOptions(ex);
         return (
           <div className="extent-row" key={i}>
-            <select value={ex.item ?? ""} onChange={(e) => update(i, { item: e.target.value || null, splits: [] })}>
+            <select value={ex.item_id ?? ""} onChange={(e) => update(i, { item_id: e.target.value || null, splits: [] })}>
               <option value="">— pick tributary —</option>
-              {ex.item && !tribName[ex.item] && <option value={ex.item}>{ex.item}</option>}
+              {ex.item_id && !tribName[ex.item_id] && <option value={ex.item_id}>{ex.item_id}</option>}
               {tribs.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
             </select>
             <select value={ex.op} onChange={(e) => setOp(i, e.target.value as Op)} title="whole = the whole tributary">
               {OPS.map((o) => <option key={o} value={o}>{o}</option>)}
             </select>
             {need && (
-              ex.item ? (
+              ex.item_id ? (
                 <select className="split-multi" multiple value={ex.splits}
                   onChange={(e) => update(i, { splits: Array.from(e.target.selectedOptions).map((o) => o.value).slice(0, arity ?? undefined) })}>
                   {opts.length === 0 && <option disabled>no splits on this tributary</option>}

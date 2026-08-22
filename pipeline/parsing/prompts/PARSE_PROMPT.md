@@ -25,9 +25,9 @@ Each rule has `extents`: a list of `{op, splits}` bindings, UNIONed (use several
 - `upstream_of` — above one boundary. `splits: [id]`.
 - `downstream_of` — below one boundary. `splits: [id]`.
 - `between` — between two boundaries. `splits: [a, b]`.
-- `within` — inside an area (park/closure). `area: "<area_id>"`, no splits.
+- `within` — inside an area (park/closure). `area_id: "<area_id>"`, no splits.
 
-**`splits` ids MUST come from the "Bindable boundaries" list. `area` MUST come from "Reachable areas".**
+**`splits` ids MUST come from the "Bindable boundaries" list. `area_id` MUST come from "Reachable areas".**
 Never write an id that is not in those lists.
 
 ### When you cannot bind a locator — DO NOT GUESS

@@ -374,6 +374,36 @@ body {
   font-family: ui-monospace, monospace;
   font-size: 11px;
 }
+.parse-review {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+.parse-review.pass {
+  background: var(--ok-bg);
+  border-color: var(--ok-border);
+  color: var(--ok-text);
+}
+.parse-review.changes_requested {
+  background: var(--warn-bg);
+  border-color: var(--warn-border);
+  color: var(--warn-text);
+}
+.parse-review ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.parse-review .sev {
+  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 700;
+  margin-right: 4px;
+}
+.parse-review .sev.high { color: var(--danger-text); }
+.parse-review .sev.medium { color: #8a5a00; }
+.parse-review .sev.low { color: var(--muted); }
 
 /* ---- boundaries ---- */
 .boundaries {

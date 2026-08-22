@@ -15,10 +15,10 @@ def test_extent_arity():
     assert Extent(op=Op.WHOLE).splits == []
     assert len(Extent(op=Op.UPSTREAM_OF, splits=["falls"]).splits) == 1
     assert len(Extent(op=Op.BETWEEN, splits=["a", "b"]).splits) == 2
-    assert Extent(op=Op.WITHIN, area="GARIBALDI PARK").area == "GARIBALDI PARK"
-    assert Extent(op=Op.WITHIN, area="area:park:wells_gray", feature_types=["lake", "wetland"]).feature_types == ["lake", "wetland"]
+    assert Extent(op=Op.WITHIN, area_id="GARIBALDI PARK").area_id == "GARIBALDI PARK"
+    assert Extent(op=Op.WITHIN, area_id="area:park:wells_gray", feature_types=["lake", "wetland"]).feature_types == ["lake", "wetland"]
     with pytest.raises(ValidationError):
-        Extent(op=Op.WITHIN, area="x", feature_types=["fish"])       # invalid feature kind
+        Extent(op=Op.WITHIN, area_id="x", feature_types=["fish"])       # invalid feature kind
     with pytest.raises(ValidationError):
         Extent(op=Op.WHOLE, feature_types=["lake"])                  # feature_types only for within
     for bad in (

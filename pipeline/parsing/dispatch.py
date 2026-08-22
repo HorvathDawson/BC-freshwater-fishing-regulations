@@ -93,7 +93,7 @@ def dispatch_prompt(prompt_path: Path, response_path: Path, *, claude_bin: str, 
 
 def _dispatch_reviews(batches_dir: Path, responses_dir: Path, reviews_dir: Path, bids: list[int], *,
                       claude_bin: str, cli_flags: list[str], cwd: Path, timeout: int,
-                      concurrency: int, force: bool) -> None:
+                      concurrency: int, force: bool, review_model: str = "") -> None:
     """Second pass: an INDEPENDENT reviewer subagent per parsed batch (render + dispatch)."""
     from pipeline.parsing.review_exporter import render_from_files
     reviews_dir.mkdir(parents=True, exist_ok=True)
@@ -115,7 +115,13 @@ def _dispatch_reviews(batches_dir: Path, responses_dir: Path, reviews_dir: Path,
             if _is_credit_error(f"{proc.stderr}\n{proc.stdout}"):
                 raise CreditExhausted(f"credit/usage limit hit reviewing batch {bid:03d}")
             return bid, f"CLI failed: {proc.stderr[:200]}"
-        out_path.write_text(proc.stdout, encoding="utf-8")
+        # Normalize + stamp provenance (model, time) so ingest can persist a durable review record.
+        obj = _extract_json_obj(proc.stdout)
+        obj.setdefault("verdict", "")
+        obj.setdefault("issues", [])
+        obj["model"] = review_model
+        obj["reviewed_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        out_path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
         return bid, f"reviewed -> {out_path.name}"
 
     with ThreadPoolExecutor(max_workers=concurrency) as pool:
@@ -379,7 +385,7 @@ def main() -> None:
         print(f"\nReview pass ({review_model}):")
         _dispatch_reviews(batches_dir, responses_dir, reviews_dir, bids, claude_bin=args.claude_bin,
                           cli_flags=review_flags, cwd=project_root, timeout=args.timeout,
-                          concurrency=args.concurrency, force=args.force)
+                          concurrency=args.concurrency, force=args.force, review_model=review_model)
 
     print(f"Done. Next: python -m pipeline.parsing.ingest {responses_dir}/*.json --dry-run")
 

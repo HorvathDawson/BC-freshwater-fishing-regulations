@@ -11,9 +11,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30; rainbow trout daily quota = 1 (none over 50 cm; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -32,9 +41,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -61,9 +70,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -90,9 +99,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -110,8 +119,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:10765",
@@ -123,9 +131,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of Forest Kerr Canyon[Includes Tributaries], Apr 1-Apr 30; no powered boats between Natadesleen Lake and Kinaskan Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -146,9 +163,9 @@
               "splits": [
                 "iskut_river__downstream_end_of_forrest_kerr_canyon"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -178,9 +195,9 @@
                 "iskut_river__natadesleen_lake",
                 "iskut_river__kinaskan_lake"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -198,8 +215,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:11267",
@@ -212,9 +228,18 @@
         ]
       },
       "regs_verbatim": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of the\nRancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -233,9 +258,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -262,9 +287,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -291,9 +316,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -311,8 +336,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:11623",
@@ -326,9 +350,18 @@
         ]
       },
       "regs_verbatim": "Bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -347,9 +380,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -367,8 +400,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:12586",
@@ -380,9 +412,20 @@
         ]
       },
       "regs_verbatim": "Open June 16-Apr 30 each year\nBait ban\nAngling permitted in Fulton River opposite the spawning channels, as signed",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -401,9 +444,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -430,9 +473,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -457,9 +500,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -477,10 +520,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:12684",
@@ -493,9 +533,20 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year**[Includes Tributaries]**; Steelhead Stamp mandatory Sept 1-Oct 31**[Includes Tributaries]",
+      "source_symbols": [
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -514,9 +565,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -541,9 +592,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -568,9 +619,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -590,10 +641,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:13033",
@@ -606,9 +654,18 @@
         ]
       },
       "regs_verbatim": "Trout catch and release; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -627,9 +684,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -654,9 +711,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -686,9 +743,21 @@
         ]
       },
       "regs_verbatim": "**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nBait ban",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -707,9 +776,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -736,9 +805,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -756,11 +825,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:14918",
@@ -772,9 +837,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nNo Fishing** from fishing boundary signs near outlet of Morice Lake (UTM: 602539.02E, 5997165.96N) to the fishing boundary signs\napproximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N)\n**No Fishing** Jan 1-Sept 30 from fishing boundary signs approximately 2 km downstream (the \"Dunes\", UTM: 603741.00E, 5998628.00N) of\nMorice Lake to Gosnell Creek\n**No Fishing** from Gosnell Creek to Lamprey Creek, Jan 1-Aug 31; Fly fishing only from Gosnell Creek to Lamprey Creek, Sept 1-Sept 30\nBait ban\nNo angling from boats, Aug 15-Dec 31 (all parts)\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -793,9 +870,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -825,9 +902,9 @@
                 "morice_river__morice_lake",
                 "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -854,9 +931,9 @@
               "splits": [
                 "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -887,9 +964,9 @@
               "splits": [
                 "morice_river__lamprey_creek_into_morice_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -920,9 +997,9 @@
               "splits": [
                 "morice_river__lamprey_creek_into_morice_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -951,9 +1028,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -978,9 +1055,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1007,9 +1084,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1029,11 +1106,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:15535",
@@ -1045,9 +1118,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1066,9 +1148,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1098,9 +1180,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** July 20-Aug 15",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1119,9 +1210,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1141,8 +1232,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:17687",
@@ -1155,9 +1245,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays from the juvenile fish counting weir located at\nthe outlet of Nilkitkwa Lake to the Nilkitkwa River confluence, Sept 1-Oct 31 (See map **page 56**)\nNo Fishing** between fishing boundary signs approximately 100 m upstream of and 80 m downstream of the adult fish counting fence,\nlocated approximately 1.8 km downstream of Nilkitkwa Lake\nOpen all year in the stream channel known as \"Rainbow Alley\" located between Babine and Nilkitkwa lakes (see map 2 page 51)\nFly fishing only (a) from the Fort Babine Bridge downstream to signs 100 m upstream of the adult fish counting fence (including Nilkitkwa\nLake), during open times and (b) from signs about 80 m downstream of the adult fish counting fence to Nichyeskwa Creek, June 16-Sept 30; includes \"Rainbow Alley\"\nBait ban\nNo angling from boats from the adult fish counting fence (described above) downstream to the Babine River's confluence with the Skeena\nRiver\n**Class 1 water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31 from the juvenile fish counting weir located at the outlet of\nNilkitkwa Lake downstream to the Babine River's confluence with the Skeena River (See map **page 56**)**",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1179,9 +1281,9 @@
                 "babine_river__juvenile_counting_weir",
                 "babine_river__nilkitkwa_river_into_babine_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1208,9 +1310,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1240,9 +1342,9 @@
                 "babine_river__babine_lake",
                 "babine_river__nilkitkwa_lake"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1270,9 +1372,9 @@
                 "babine_river__fort_babine_bridge",
                 "babine_river__fishing_boundary_signs_100_m_upstream_of_adult_fish_counting_fence"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1297,9 +1399,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1328,9 +1430,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1357,9 +1459,9 @@
               "splits": [
                 "babine_river__fishing_boundary_signs_100_m_upstream_of_adult_fish_counting_fence"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1388,9 +1490,9 @@
               "splits": [
                 "babine_river__juvenile_counting_weir"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1410,11 +1512,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs",
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:18182",
@@ -1426,9 +1524,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1447,9 +1556,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1476,9 +1585,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1496,10 +1605,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:20356",
@@ -1511,9 +1617,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Dec 1-June 30 and Aug 20-Sept 15",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1532,9 +1647,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1555,8 +1670,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:21084",
@@ -1568,9 +1682,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1589,9 +1712,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1609,8 +1732,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:21180",
@@ -1622,9 +1744,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 15-June 30",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1643,9 +1774,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1665,8 +1796,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2195",
@@ -1680,9 +1810,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1701,9 +1843,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1730,9 +1872,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1759,9 +1901,9 @@
               "splits": [
                 "bulkley_river__morice_river_into_bulkley_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1786,9 +1928,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1816,9 +1958,9 @@
                 "bulkley_river__morice_river_into_bulkley_river",
                 "bulkley_river__cnr_bridge_at_barrett"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1845,9 +1987,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1874,9 +2016,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1896,11 +2038,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs",
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2308",
@@ -1912,9 +2050,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31**\nBait ban\nNo angling from boats, no powered boats\n**Class II water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**\nSee Skeena River/Kispiox River confluence",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1933,9 +2083,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1962,9 +2112,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1989,9 +2139,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2016,9 +2166,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2045,9 +2195,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2065,11 +2215,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:23163",
@@ -2082,9 +2228,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** all year from boundary signs located approximately 400 m upstream from the Tahltan RIver Bridge on the Telegraph Creek\nRoad to the landslide located approximately 750 m upstream from the Tahltan River Bridge.\n**No Fishing** Dec 1-June 30",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2103,9 +2260,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2132,9 +2289,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2154,10 +2311,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:23229",
@@ -2169,9 +2323,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of the fish fence, Aug 15-Sept 15; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2192,9 +2355,9 @@
               "splits": [
                 "pinkut_creek__fish_fence"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2221,9 +2384,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2241,8 +2404,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2343",
@@ -2255,9 +2417,21 @@
         ]
       },
       "regs_verbatim": "Bait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2276,9 +2450,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2303,9 +2477,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2325,11 +2499,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2404",
@@ -2341,9 +2511,18 @@
         ]
       },
       "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2362,9 +2541,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2389,9 +2568,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2416,9 +2595,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2443,8 +2622,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2439",
@@ -2456,9 +2634,20 @@
         ]
       },
       "regs_verbatim": "Bait ban\n**Class II water Sept 1-Oct 31**[Includes Tributaries]**; Steelhead Stamp mandatory Sept 1-Oct 31**[Includes Tributaries]",
+      "source_symbols": [
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2477,9 +2666,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2504,9 +2693,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2533,9 +2722,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2555,10 +2744,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:24733",
@@ -2571,9 +2757,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** Sept 1-Oct 31\nBait ban\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2592,9 +2790,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2621,9 +2819,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2648,9 +2846,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2670,11 +2868,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs",
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:25386",
@@ -2687,9 +2881,21 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream of BCR Bridge at Bear River mouth\nBait ban\n**Class I water Sept 1-Oct 31; Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2710,9 +2916,9 @@
               "splits": [
                 "sustut_river__bcr_bridge_at_bear_river_mouth"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2737,9 +2943,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2764,9 +2970,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2786,11 +2992,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs",
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:25405",
@@ -2802,9 +3004,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Dec 1-June 30 and Aug 20-Sept 15",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2823,9 +3036,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2846,10 +3059,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:26104",
@@ -2865,9 +3075,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2886,9 +3105,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2920,9 +3139,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2947,9 +3166,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2974,9 +3193,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2994,8 +3213,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2637",
@@ -3007,9 +3225,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** on Saturdays and Sundays, all year\nBait ban\n**Class I water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3028,9 +3258,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3055,9 +3285,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3082,9 +3312,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3104,11 +3334,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs",
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2728",
@@ -3120,9 +3346,20 @@
         ]
       },
       "regs_verbatim": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of\nthe Swift River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling.**",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3141,9 +3378,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3170,9 +3407,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3199,9 +3436,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3219,10 +3456,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:28108",
@@ -3235,9 +3469,20 @@
         ]
       },
       "regs_verbatim": "Bait ban\n**No fishing **from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries, Jan 1-June 15",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3256,9 +3501,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3285,9 +3530,9 @@
               "splits": [
                 "meziadin_river__meziadin_lake"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3307,10 +3552,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:2936",
@@ -3333,9 +3575,20 @@
         ]
       },
       "regs_verbatim": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+      "source_symbols": [
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3357,9 +3610,9 @@
                 "skeena_river__exchamsiks_river_into_skeena_river",
                 "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3388,9 +3641,9 @@
               "splits": [
                 "skeena_river__zymoetz_river_into_skeena_river_u1500m"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3420,9 +3673,9 @@
                 "skeena_river__exchamsiks_river_into_skeena_river",
                 "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3451,9 +3704,9 @@
               "splits": [
                 "skeena_river__zymoetz_river_into_skeena_river_u1500m"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3483,9 +3736,9 @@
                 "skeena_river__shegunia_river_into_skeena_river",
                 "skeena_river__sedan_creek_into_skeena_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3515,9 +3768,9 @@
                 "skeena_river__chimdemash_creek_into_skeena_river",
                 "skeena_river__zymoetz_river_into_skeena_river_u1500m"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3537,10 +3790,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:30327",
@@ -3552,9 +3802,18 @@
         ]
       },
       "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3573,9 +3832,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3600,9 +3859,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3627,9 +3886,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3654,8 +3913,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:31345",
@@ -3667,9 +3925,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3688,9 +3957,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3717,9 +3986,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3737,10 +4006,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3137",
@@ -3752,9 +4018,21 @@
         ]
       },
       "regs_verbatim": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3776,9 +4054,9 @@
                 "zymoetz_river__mcdonell_lake",
                 "zymoetz__mcdonell_lake_3000_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3806,9 +4084,9 @@
                 "zymoetz__zymoetz_canyon_upper_entrance",
                 "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3835,9 +4113,9 @@
               "splits": [
                 "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3864,9 +4142,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3893,9 +4171,9 @@
               "splits": [
                 "zymoetz__limonite_creek_into_zymoetz_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3924,9 +4202,9 @@
               "splits": [
                 "zymoetz__limonite_creek_into_zymoetz_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3955,9 +4233,9 @@
               "splits": [
                 "zymoetz__limonite_creek_into_zymoetz_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3986,9 +4264,9 @@
               "splits": [
                 "zymoetz__limonite_creek_into_zymoetz_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4008,11 +4286,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs",
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3206",
@@ -4028,9 +4302,20 @@
         ]
       },
       "regs_verbatim": "Bait ban\n**No Fishing** from white triangular fishing boundary signs located downstream of the Meziadin River confluence, and upstream to the Hwy\n37 bridge, Aug 8-Sept 15",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4049,9 +4334,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4079,9 +4364,9 @@
                 "nass_river__meziadin_river_into_nass_river",
                 "nass_river__hwy_37_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4101,10 +4386,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3225",
@@ -4117,9 +4399,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\n**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4138,9 +4431,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4167,9 +4460,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4198,9 +4491,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4225,9 +4518,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4254,9 +4547,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4283,9 +4576,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4303,10 +4596,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3227",
@@ -4320,9 +4610,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year**\nBait ban\n**Class II water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4341,9 +4643,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4368,9 +4670,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4395,9 +4697,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4417,11 +4719,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3480",
@@ -4433,9 +4731,20 @@
         ]
       },
       "regs_verbatim": "Trout catch and release; bait ban",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4454,9 +4763,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4488,9 +4797,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4508,10 +4817,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3508",
@@ -4523,9 +4829,21 @@
         ]
       },
       "regs_verbatim": "Bait ban\n**Class I water all year; Steelhead Stamp mandatory Apr 1-May 31**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4544,9 +4862,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4571,9 +4889,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4598,9 +4916,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4620,11 +4938,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3608",
@@ -4636,9 +4950,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-May 31",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4657,9 +4980,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4679,8 +5002,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:36404",
@@ -4692,9 +5014,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Aug 1-Oct 31; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4713,9 +5044,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4742,9 +5073,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4762,8 +5093,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3674",
@@ -4775,9 +5105,18 @@
         ]
       },
       "regs_verbatim": "Bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4796,9 +5135,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4816,8 +5155,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3696#diana_creek",
@@ -4829,9 +5167,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Aug 1-Oct 31; bait ban\nUnnamed stream between Diana and Prudhomme lakes\nAlso see Prudhomme Lake (south of the Hwy 16 bridge)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4853,9 +5200,9 @@
                 "diana_creek__diana_lake",
                 "diana_creek__prudhomme_lake"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4885,9 +5232,9 @@
                 "diana_creek__diana_lake",
                 "diana_creek__prudhomme_lake"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4912,9 +5259,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4932,8 +5279,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3723",
@@ -4945,9 +5291,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4966,9 +5321,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4986,8 +5341,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:37312",
@@ -4999,9 +5353,18 @@
         ]
       },
       "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5020,9 +5383,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5047,9 +5410,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5074,9 +5437,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5106,9 +5469,21 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream from the lower bridge abutments, July 1-Aug 20\n**Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5129,9 +5504,9 @@
               "splits": [
                 "ksi_x_anmas_river__lower_bridge_abutments"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5158,9 +5533,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5181,11 +5556,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3828",
@@ -5198,9 +5569,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream of Nass Road Bridge, Aug 1-Dec 31; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5221,9 +5601,9 @@
               "splits": [
                 "ksi_sii_aks_river__nass_road_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5250,9 +5630,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5270,8 +5650,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3942",
@@ -5284,9 +5663,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year**[Includes Tributaries]** ; Steelhead Stamp mandatory Aug 7 - May 31**\nBait ban",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5308,9 +5699,9 @@
                 "kitsumkalum_river__kitsumkalum_lake",
                 "kitsumkalum__glacier_creek_into_kitsumkalum_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5335,9 +5726,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5362,9 +5753,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5391,9 +5782,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5411,11 +5802,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3983",
@@ -5427,9 +5814,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5448,9 +5844,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5468,8 +5864,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:3986",
@@ -5481,9 +5876,21 @@
         ]
       },
       "regs_verbatim": "Bait ban\n**Class II water all year; Steelhead Stamp not required unless angling for steelhead**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5502,9 +5909,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5529,9 +5936,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5556,9 +5963,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5576,11 +5983,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4069",
@@ -5592,9 +5995,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** June 15-Sept 1; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5613,9 +6025,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5642,9 +6054,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5662,8 +6074,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4074",
@@ -5675,9 +6086,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5696,9 +6118,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5716,10 +6138,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4089",
@@ -5731,9 +6150,18 @@
         ]
       },
       "regs_verbatim": "Bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5752,9 +6180,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5772,8 +6200,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4152",
@@ -5785,9 +6212,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert\nIncludes \"Oldfield\" Creek",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5808,9 +6246,9 @@
               "splits": [
                 "hays_creek__lower_culvert_near_cannery"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5835,9 +6273,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5855,10 +6293,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4674",
@@ -5871,9 +6306,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** between fishing boundary signs upstream of and downstream of Cranberry River Canyon\nNote: the section of river from Cranberry-Kiteen junction to Nass River is the Cranberry River\nBait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5892,9 +6336,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5921,9 +6365,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5948,9 +6392,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5968,8 +6412,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4688",
@@ -5981,9 +6424,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** June 15-Aug 1\nBait ban, June 1-June 14 and Aug 2-Oct 15",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6002,9 +6456,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6031,9 +6485,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6054,10 +6508,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4791",
@@ -6069,9 +6520,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** July 1-Sept 15; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6090,9 +6550,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6119,9 +6579,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6139,8 +6599,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:4903",
@@ -6152,9 +6611,21 @@
         ]
       },
       "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens from the outlet of Lakelse Lake to the power line crossing, located 3.5 km\nupstream of the Lakelse River mouth, all year (See map **page 55**)**\nFly fishing only between Lakelse Lake and CNR Bridge, Mar 1-May 31\nBait ban, no powered boats\nNote: The mouth of the river is designated by signs 1.7 km downstream of Lakelse River logging road bridge\n**Class I water all year; Steelhead Stamp mandatory Sept 1-May 31**",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6176,9 +6647,9 @@
                 "lakelse_river__lakelse_lake",
                 "lakelse_river__power_line_crossing"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6206,9 +6677,9 @@
                 "lakelse_river__lakelse_lake",
                 "lakelse_river__cnr_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6235,9 +6706,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6262,9 +6733,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6289,9 +6760,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6316,9 +6787,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6338,11 +6809,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:7114",
@@ -6355,9 +6822,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Jan 1-June 15; bait ban",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6376,9 +6854,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6405,9 +6883,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6425,10 +6903,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:7836",
@@ -6441,9 +6916,20 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
+      "source_symbols": [
+        "Classified"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6462,9 +6948,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6491,9 +6977,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6518,9 +7004,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6550,9 +7036,9 @@
                 "stellako_river__fishing_boundary_signs_250_m_downstream_of_francois_lake_road_bridge",
                 "stellako_river__signs_4000_m_downstream_of_francois_lake_road_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6580,9 +7066,9 @@
                 "stellako_river__fran_ois_lake",
                 "stellako_river__stellako_falls"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6607,9 +7093,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6627,10 +7113,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:8573",
@@ -6642,9 +7125,20 @@
         ]
       },
       "regs_verbatim": "Bait ban, June 1-Oct 15",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6663,9 +7157,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6685,10 +7179,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "noreg_basalt_lake_984",
@@ -6700,9 +7191,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
@@ -6775,8 +7275,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_chilkoot_trail_national_historic_park_waters_996",
@@ -6788,9 +7287,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing (please contact Parks Canada for details, see **page 9** in the Provincial Regulations)**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "feature_pin: Synopsis lists 'CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS' in Region 6 MU 6-28. Applies to all streams and lakes within the Chilkoot Trail National Historic Site. Layer: HIST_HERITAGE_WRECK_SVW, ID field: SITE_ID.",
@@ -6820,8 +7328,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_copper_river_998",
@@ -6833,9 +7340,18 @@
         ]
       },
       "regs_verbatim": "See Zymoetz River",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: ZYMOETZ (Copper) RIVER (variant_of ZYMOETZ (Copper) RIVER)",
@@ -6865,8 +7381,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_endako_river_1009",
@@ -6878,9 +7393,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 15-June 30",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
@@ -6912,8 +7436,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_gatcho_lake_1012",
@@ -6925,9 +7448,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
@@ -6975,8 +7507,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_ishkheenickh_river_1021",
@@ -6988,9 +7519,18 @@
         ]
       },
       "regs_verbatim": "See Ksi Hlginx River",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI HLGINX RIVER (formerly Ishkheenickh River) (variant_of KSI HLGINX RIVER (formerly Ishkheenickh River))",
@@ -7020,8 +7560,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_kwinamass_river_1042",
@@ -7033,9 +7572,21 @@
         ]
       },
       "regs_verbatim": "See Ksi X'anmas River",
+      "source_symbols": [
+        "Classified",
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI X'ANMAS RIVER (formerly Kwinamass River) (variant_of KSI X'ANMAS RIVER (formerly Kwinamass River))",
@@ -7065,11 +7616,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Classified",
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "noreg_mcqueen_creek_1052",
@@ -7081,9 +7628,20 @@
         ]
       },
       "regs_verbatim": "See Hevenor Creek",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: HEVENOR (\"McQueen\") CREEK (variant_of HEVENOR (\"McQueen\") CREEK)",
@@ -7113,10 +7671,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "noreg_naglico_lake_1057",
@@ -7128,9 +7683,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2\nBait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
@@ -7178,8 +7742,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_pettry_lake_1067",
@@ -7191,9 +7754,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
@@ -7241,8 +7813,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_seaskinnish_creek_1072",
@@ -7254,9 +7825,18 @@
         ]
       },
       "regs_verbatim": "See Ksi Sgasginist Creek",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI SGASGINIST CREEK (formerly Seaskinnish Creek) (variant_of KSI SGASGINIST CREEK (formerly Seaskinnish Creek))",
@@ -7286,8 +7866,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_skeena_river_kispiox_river_confluence_1077",
@@ -7299,9 +7878,18 @@
         ]
       },
       "regs_verbatim": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "unmatched: no name/variant match",
@@ -7331,8 +7919,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_squirrel_lake_1080",
@@ -7344,9 +7931,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
@@ -7419,8 +8015,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_tseax_river_1097",
@@ -7432,9 +8027,18 @@
         ]
       },
       "regs_verbatim": "See Ksi Sii Aks River",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI SII AKS RIVER (formerly Tseax River) (variant_of KSI SII AKS RIVER (formerly Tseax River))",
@@ -7464,8 +8068,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961703",
@@ -7477,9 +8080,18 @@
         ]
       },
       "regs_verbatim": "Lake trout daily and possession quotas = 1 (none between 60 cm and 90 cm)\nArctic grayling daily and possession quotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm);\nNorthern pike daily and possession quotas = 4 (only 1 over 100 cm, none between 70 cm and 100 cm)\nWhitefish daily quota = 5\n**B.C. and Yukon angling licences are valid on all parts of Teslin Lake, but only one daily quota may be retained regardless of\nwhich side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction\nwhere angling**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7498,9 +8110,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7527,9 +8139,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7556,9 +8168,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7585,9 +8197,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7614,9 +8226,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7634,8 +8246,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961727",
@@ -7647,9 +8258,18 @@
         ]
       },
       "regs_verbatim": "Lake trout daily quota = 3: EITHER none over 60 cm, OR only 1 over 60 cm and the other 2 must be 60 cm or less; arctic grayling daily\nquota = 3 (only 1 over 35 cm); northern pike daily quota = 5 (only 1 over 70 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences\nare valid on all parts of Laidlaw Lake, but only one daily quota may be retained regardless of which side of the border the fish were\nangled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7668,9 +8288,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7697,9 +8317,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7726,9 +8346,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7755,9 +8375,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7784,9 +8404,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7804,8 +8424,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961732",
@@ -7818,9 +8437,18 @@
         ]
       },
       "regs_verbatim": "Lake trout daily quota = 3: EITHER none over 60 cm, OR only 1 over 60 cm and the other 2 must be 60 cm or less; Arctic grayling daily\nquota = 3 (only 1 over 35 cm); northern pike daily quota = 5 (only 1 over 70 cm); whitefish daily quota = 5\nOnly one daily quota may be retained from Atlin Lake regardless of which side of the border the fish were taken",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7839,9 +8467,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7868,9 +8496,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7897,9 +8525,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7926,9 +8554,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7955,9 +8583,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7975,8 +8603,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961735",
@@ -7988,9 +8615,18 @@
         ]
       },
       "regs_verbatim": "Lake trout daily and possession quotas = 2 (only 1 over 90 cm, none between 60 cm and 90 cm)\nArctic grayling daily and possession quotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm)\nNorthern pike daily and possession quotas = 4 (only 1 over 100 cm, none between 70 cm and 100 cm)\nWhitefish daily quota = 5\n**B.C. and Yukon angling licences are valid on all parts of Tagish Lake, but only one daily quota may be retained regardless of\nwhich side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction\nwhere angling**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8009,9 +8645,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8038,9 +8674,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8067,9 +8703,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8096,9 +8732,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8125,9 +8761,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8145,8 +8781,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961747",
@@ -8158,9 +8793,18 @@
         ]
       },
       "regs_verbatim": "Lake trout daily and possession quotas = 2 (only 1 over 90 cm, none between 60 cm and 90 cm); Arctic grayling daily and possession\nquotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm); northern pike daily and possession quotas = 4 (only 1 over 100 cm, none\nbetween 70 cm and 100 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of Morley Lake, but\nonly one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8179,9 +8823,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8208,9 +8852,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8237,9 +8881,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8266,9 +8910,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8295,9 +8939,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8315,8 +8959,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961756",
@@ -8329,9 +8972,18 @@
         ]
       },
       "regs_verbatim": "Lake trout daily and possession quotas = 2 (only 1 over 90 cm, none between 60 cm and 90 cm); Arctic grayling daily and possession\nquotas = 4 (only 1 over 44 cm, none between 36 cm and 44 cm); northern pike daily and possession quotas = 4 (only 1 over 100 cm, none\nbetween 70 cm and 100 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of Bennett Lake, but\nonly one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle\nrestrictions and other regulations for the jurisdiction where angling**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8350,9 +9002,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8379,9 +9031,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8408,9 +9060,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8437,9 +9089,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8466,9 +9118,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8486,8 +9138,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329026676",
@@ -8503,9 +9154,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** east of a line from Gullwing Creek to the south shore of Babine Lake\n**No Fishing** within a 400 m radius of the mouth of Pinkut Creek, Aug 15-Sept 15\nThat section of flowing water between Babine and Nilkitkwa lakes, known as \"Rainbow Alley\", is designated Babine River (see map 2 page\n51); see Babine River regulations below (paragraphs 3 and 4)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8524,9 +9184,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8553,9 +9213,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8584,9 +9244,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8604,8 +9264,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329026685",
@@ -8617,9 +9276,18 @@
         ]
       },
       "regs_verbatim": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)\nThat section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year (see also Babine\nRiver) (See map 2 page 51)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8638,9 +9306,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8665,9 +9333,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8685,8 +9353,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329026689",
@@ -8698,9 +9365,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores of the outlet bay, Apr 1-June 30",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8719,9 +9395,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8743,8 +9419,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329026691",
@@ -8756,9 +9431,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nRainbow trout catch and release; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8777,9 +9461,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8804,9 +9488,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8833,9 +9517,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8853,8 +9537,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329026695",
@@ -8866,9 +9549,18 @@
         ]
       },
       "regs_verbatim": "Lake trout catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8887,9 +9579,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8909,8 +9601,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329064459",
@@ -8922,9 +9613,18 @@
         ]
       },
       "regs_verbatim": "Lake trout catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8943,9 +9643,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -8965,8 +9665,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329064473",
@@ -8978,9 +9677,18 @@
         ]
       },
       "regs_verbatim": "No powered boats",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8999,9 +9707,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9019,8 +9727,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329064478",
@@ -9032,9 +9739,18 @@
         ]
       },
       "regs_verbatim": "No powered boats",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9053,9 +9769,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9073,8 +9789,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329064512",
@@ -9086,9 +9801,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9107,9 +9831,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9139,9 +9863,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9160,9 +9893,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9192,9 +9925,18 @@
         ]
       },
       "regs_verbatim": "Lake trout catch and release, Sept 15-Oct 31\nLake trout daily and possession quotas = 3 (only 1 over 50 cm), Nov 1-Sept 14",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9213,9 +9955,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9244,9 +9986,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9268,8 +10010,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329075503",
@@ -9281,9 +10022,18 @@
         ]
       },
       "regs_verbatim": "Lake trout catch and release, Sept 15-Oct 31\nLake trout daily and possession quotas = 3 (only 1 over 50 cm), Nov 1-Sept 14",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9302,9 +10052,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9333,9 +10083,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9357,8 +10107,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329126712",
@@ -9370,9 +10119,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9391,9 +10149,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9425,9 +10183,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9452,9 +10210,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9472,8 +10230,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329126718",
@@ -9485,9 +10242,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9506,9 +10272,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9533,9 +10299,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9553,8 +10319,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329148307",
@@ -9566,9 +10331,18 @@
         ]
       },
       "regs_verbatim": "For the area at the outlet of François Lake described on map 1, (see below): **No Fishing** Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9587,9 +10361,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9618,9 +10392,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9647,9 +10421,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9676,9 +10450,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9703,9 +10477,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9730,9 +10504,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9750,8 +10524,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329148309",
@@ -9763,9 +10536,18 @@
         ]
       },
       "regs_verbatim": "Lake trout catch and release EXCEPT during months of February and July (when regional quotas apply)\nSingle barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9784,9 +10566,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9813,9 +10595,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9833,8 +10615,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329148317",
@@ -9846,9 +10627,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement, Mar 1-May 31",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9867,9 +10657,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9891,8 +10681,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329148379",
@@ -9904,9 +10693,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9925,9 +10723,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -9945,8 +10743,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329148423",
@@ -9958,9 +10755,18 @@
         ]
       },
       "regs_verbatim": "Bait ban, single barbless hook; engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -9979,9 +10785,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10006,9 +10812,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10026,8 +10832,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329201816",
@@ -10039,9 +10844,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1- Apr 30; rainbow trout daily quota = 2 (none over 50 cm); bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10060,9 +10874,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10089,9 +10903,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10118,9 +10932,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10138,8 +10952,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329229736",
@@ -10151,9 +10964,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10172,9 +10994,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10192,8 +11014,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329242402",
@@ -10203,9 +11024,18 @@
         "mus": []
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10224,9 +11054,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10244,8 +11074,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329310750",
@@ -10257,9 +11086,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout over 50 cm catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10278,9 +11116,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10300,8 +11138,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329318485",
@@ -10313,9 +11150,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing;** rainbow trout catch and release\nBait ban, single barbless hook\nLocated approximately 6.25 km south/southeast of Yellow Moose Lake and approximately 6.25 km west/southwest of Chedakuz Arm",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10334,9 +11180,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10361,9 +11207,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10390,9 +11236,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10417,9 +11263,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10444,9 +11290,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10464,8 +11310,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329385453",
@@ -10477,9 +11322,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 50 m of the outlet, May 1-June 30",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10498,9 +11352,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10522,8 +11376,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329529450",
@@ -10535,9 +11388,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10556,9 +11418,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10587,9 +11449,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10614,9 +11476,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10634,8 +11496,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329529467",
@@ -10647,9 +11508,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 100 m of outlet, May 15-July 31\nTrout/char daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10668,9 +11538,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10699,9 +11569,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10734,9 +11604,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10754,8 +11624,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329542437",
@@ -10767,9 +11636,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10788,9 +11666,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10820,9 +11698,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10841,9 +11728,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10861,8 +11748,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329591352",
@@ -10874,9 +11760,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout over 50 cm catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10895,9 +11790,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10917,8 +11812,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329613022",
@@ -10930,9 +11824,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout daily quota = 1 (none over 50 cm)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -10951,9 +11854,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -10973,8 +11876,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329626889",
@@ -10986,9 +11888,18 @@
         ]
       },
       "regs_verbatim": "Single barbless hook; no powered boats",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11007,9 +11918,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11034,9 +11945,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11054,8 +11965,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329679837",
@@ -11067,9 +11977,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11088,9 +12007,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11117,9 +12036,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11144,9 +12063,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11164,8 +12083,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329682393",
@@ -11177,9 +12095,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout over 50 cm catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11198,9 +12125,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11232,9 +12159,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout over 50 cm catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11253,9 +12189,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11275,8 +12211,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329682397",
@@ -11288,9 +12223,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout over 50 cm catch and release",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11309,9 +12253,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11331,8 +12275,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wsc:400-426207-245962",
@@ -11344,9 +12287,18 @@
         ]
       },
       "regs_verbatim": "Bait ban; open all year, no minimum size for trout",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11365,9 +12317,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11392,9 +12344,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11412,8 +12364,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wsc:400-431358-585806-708951-288577",
@@ -11425,9 +12376,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11446,9 +12406,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11475,9 +12435,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11507,9 +12467,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**\nUnnamed stream on Gribbell Island across Ursula Channel from Goat Harbour",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11528,9 +12497,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11555,9 +12524,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11575,8 +12544,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wsc:915-755598-329884-406409",
@@ -11588,9 +12556,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing;** see Hays Creek",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -11609,9 +12586,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -11629,8 +12606,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     }
   ]
 }

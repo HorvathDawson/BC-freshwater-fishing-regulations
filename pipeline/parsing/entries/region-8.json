@@ -11,9 +11,18 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -32,14 +41,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -51,8 +61,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:11984",
@@ -67,9 +76,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -88,9 +106,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -98,6 +116,7 @@
             "Jul 25-Sept 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -116,14 +135,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -144,14 +164,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -163,8 +184,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:13822",
@@ -176,9 +196,18 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -197,14 +226,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -226,14 +256,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -247,8 +278,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:17159",
@@ -260,9 +290,18 @@
         ]
       },
       "regs_verbatim": "Rainbow and cutthroat trout catch and release; exempt from spring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -281,14 +320,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -310,14 +350,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -329,8 +370,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:17171",
@@ -342,9 +382,18 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -363,14 +412,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -394,9 +444,18 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -415,14 +474,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -434,8 +494,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:17440",
@@ -447,9 +506,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -471,14 +539,15 @@
                 "jewel_creek__jewel_lake",
                 "jewel_creek__jewel_lake_1500_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -490,8 +559,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:1806",
@@ -503,9 +571,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -526,9 +603,9 @@
               "splits": [
                 "wap_creek__frog_falls"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -536,6 +613,7 @@
             "Sept 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -556,14 +634,15 @@
               "splits": [
                 "wap_creek__frog_falls"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -575,8 +654,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:18775",
@@ -588,9 +666,18 @@
         ]
       },
       "regs_verbatim": "Bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -609,14 +696,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -640,9 +728,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -661,14 +758,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -680,8 +778,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:22618",
@@ -693,9 +790,18 @@
         ]
       },
       "regs_verbatim": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -714,14 +820,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -733,8 +840,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:22758",
@@ -746,9 +852,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -769,14 +884,15 @@
               "splits": [
                 "powers_creek__hwy_97_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -788,8 +904,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:25455",
@@ -801,9 +916,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Westside Road Bridge to Okanagan Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -824,14 +948,15 @@
               "splits": [
                 "shorts_creek__westside_road_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -843,8 +968,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:26324",
@@ -862,9 +986,20 @@
         ]
       },
       "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban, Apr 1-Oct 31; exempt from spring closure",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -883,14 +1018,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -912,9 +1048,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -922,6 +1058,7 @@
             "Apr 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -933,10 +1070,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Incl. Tribs"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "gnis:27124",
@@ -948,9 +1082,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Sept 1-Oct 15",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -969,9 +1112,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -979,6 +1122,7 @@
             "Sept 1-Oct 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -990,8 +1134,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:27258",
@@ -1003,9 +1146,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1026,14 +1178,15 @@
               "splits": [
                 "mcrae_creek__falls_potholes"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1045,8 +1198,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:27648",
@@ -1058,9 +1210,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1081,14 +1242,15 @@
               "splits": [
                 "trepanier_river__hwy_97c_bridge"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1100,8 +1262,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:28477",
@@ -1114,9 +1275,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1135,14 +1305,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no boundary for 'the trestle in Trout Creek Canyon'; bound as whole",
@@ -1163,14 +1334,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no boundary for 'the trestle'; bound as whole",
@@ -1184,8 +1356,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:29608",
@@ -1197,9 +1368,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1220,14 +1400,15 @@
               "splits": [
                 "mission_creek__falls_at_gallagher_canyon"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1239,8 +1420,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:29844",
@@ -1252,9 +1432,18 @@
         ]
       },
       "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban Apr 1-Oct 31\nExempt from spring closure",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1273,14 +1462,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1302,9 +1492,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1312,6 +1502,7 @@
             "Apr 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1330,14 +1521,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1349,8 +1541,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:32069",
@@ -1364,9 +1555,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1385,9 +1585,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1395,6 +1595,7 @@
             "Oct 1-Nov 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1413,14 +1614,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1445,9 +1647,9 @@
                 "okanagan_river__okanagan_lake",
                 "okanagan_river__mcintyre_dam"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             },
             {
@@ -1455,14 +1657,15 @@
               "splits": [
                 "okanagan_river__drop_structure_no_1"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1481,14 +1684,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1509,14 +1713,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1528,8 +1733,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:5012",
@@ -1541,9 +1745,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Hardy Falls to Okanagan Lake",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1564,14 +1777,15 @@
               "splits": [
                 "peachland_creek__hardy_falls"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1583,8 +1797,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "gnis:6358",
@@ -1597,9 +1810,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1618,9 +1840,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1628,6 +1850,7 @@
             "Jul 25-Sept 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1646,14 +1869,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1674,14 +1898,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1693,8 +1918,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "noreg_hidden_lake_1319",
@@ -1706,9 +1930,20 @@
         ]
       },
       "regs_verbatim": "No towing",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: not_found",
@@ -1726,6 +1961,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no registry match — attach an item and bind extents",
@@ -1737,10 +1973,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "noreg_sawmill_lake_1362",
@@ -1752,9 +1985,20 @@
         ]
       },
       "regs_verbatim": "See Burnell Lake",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: BURNELL (Sawmill) LAKE (variant_of BURNELL (Sawmill) LAKE)",
@@ -1772,6 +2016,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no registry match — attach an item and bind extents",
@@ -1783,10 +2028,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328961724",
@@ -1798,9 +2040,18 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1819,9 +2070,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1829,6 +2080,7 @@
             "July 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1849,14 +2101,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1877,14 +2130,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1905,9 +2159,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1915,6 +2169,7 @@
             "July 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1933,14 +2188,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "specific swimming-area locations not resolvable to boundaries; whole-lake fallback",
@@ -1954,8 +2210,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328970801",
@@ -1967,9 +2222,18 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1988,14 +2252,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2017,14 +2282,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2045,14 +2311,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2064,8 +2331,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328985532",
@@ -2075,9 +2341,18 @@
         "mus": []
       },
       "regs_verbatim": "**No Fishing**\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2096,14 +2371,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2115,8 +2391,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328985738",
@@ -2128,9 +2403,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2149,14 +2435,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2175,14 +2462,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2209,14 +2497,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2235,14 +2524,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2254,10 +2544,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328985739",
@@ -2269,9 +2556,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2290,14 +2586,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2321,9 +2618,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2342,14 +2648,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2361,8 +2668,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328985759",
@@ -2374,9 +2680,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2395,14 +2710,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2421,14 +2737,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2447,8 +2764,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:328988962",
@@ -2460,9 +2776,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2481,14 +2806,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2507,14 +2833,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2541,14 +2868,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2572,9 +2900,20 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 2\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2593,14 +2932,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2627,14 +2967,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2653,14 +2994,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2672,10 +3014,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329102648",
@@ -2687,9 +3026,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2708,14 +3058,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2734,14 +3085,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2760,14 +3112,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2779,10 +3132,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329123527",
@@ -2794,9 +3144,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2815,14 +3176,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2834,10 +3196,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329154761",
@@ -2849,9 +3208,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2870,14 +3240,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2889,10 +3260,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329216611",
@@ -2904,9 +3272,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31\nRainbow trout daily quota = 2, bass daily quota = 8, yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2925,9 +3302,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -2935,6 +3312,7 @@
             "Mar 1-May 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no boundary for the Bald/Knob Points line; bound to whole lake",
@@ -2955,14 +3333,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2983,14 +3362,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3012,14 +3392,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3033,8 +3414,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329216612",
@@ -3046,9 +3426,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3067,14 +3456,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3086,8 +3476,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329216614",
@@ -3099,9 +3488,20 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 20\nEngine power restriction - 7.5 kW (10 hp) and speed restriction (8 km/h)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3120,14 +3520,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3148,14 +3549,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3167,10 +3569,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329216635",
@@ -3182,9 +3581,18 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3203,14 +3611,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3224,8 +3633,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329216655",
@@ -3237,9 +3645,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1; bait ban, single barbless hook; electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3258,14 +3677,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3284,14 +3704,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3317,14 +3738,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3343,14 +3765,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3369,14 +3792,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3388,10 +3812,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329216683",
@@ -3403,9 +3824,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3424,14 +3854,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3450,14 +3881,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3484,14 +3916,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3515,9 +3948,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3536,14 +3980,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3555,10 +4000,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329451901",
@@ -3570,9 +4012,20 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3591,14 +4044,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3610,10 +4064,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329451906",
@@ -3625,9 +4076,20 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3646,14 +4108,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3665,10 +4128,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459116",
@@ -3685,9 +4145,18 @@
         ]
       },
       "regs_verbatim": "Rainbow trout daily quota = 2 (only one over 50 cm), bass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3706,14 +4175,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3734,14 +4204,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3762,14 +4233,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3790,14 +4262,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "various buoyed/signed speed-restriction zones not resolvable to boundaries",
@@ -3811,8 +4284,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459117",
@@ -3824,9 +4296,18 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5, Yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3845,14 +4326,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3873,14 +4355,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3901,14 +4384,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "various buoyed/signed speed-restriction zones not resolvable to boundaries",
@@ -3922,8 +4406,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459118",
@@ -3937,9 +4420,18 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5 (none over 35 cm from July 10-Oct 31)\nBass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -3958,9 +4450,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -3968,6 +4460,7 @@
             "July 10-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -3988,14 +4481,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4016,14 +4510,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4044,14 +4539,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "specific buoyed/signed locations not resolvable to boundaries; whole-lake fallback",
@@ -4065,8 +4561,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459119",
@@ -4079,9 +4574,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4100,14 +4604,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4126,9 +4631,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4136,6 +4641,7 @@
             "Sept 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4156,9 +4662,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -4166,6 +4672,7 @@
             "Apr 1-Aug 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4186,14 +4693,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4214,14 +4722,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' has no boundary/area to bind a partial zone; defaulted to whole",
@@ -4233,8 +4742,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459120",
@@ -4246,9 +4754,20 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4267,14 +4786,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4288,10 +4808,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459122",
@@ -4303,9 +4820,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4324,14 +4850,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4355,9 +4882,18 @@
         ]
       },
       "regs_verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4376,14 +4912,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4402,14 +4939,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4431,14 +4969,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4452,8 +4991,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459126",
@@ -4465,9 +5003,18 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4486,14 +5033,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4507,8 +5055,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459127",
@@ -4520,9 +5067,18 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4541,14 +5097,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4562,8 +5119,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459132",
@@ -4575,9 +5131,18 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4596,14 +5161,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4624,14 +5190,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4655,9 +5222,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4676,14 +5252,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4707,9 +5284,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4728,14 +5314,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4754,14 +5341,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4785,9 +5373,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4806,14 +5403,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4837,9 +5435,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4858,14 +5465,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4877,8 +5485,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459143",
@@ -4890,9 +5497,18 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -4911,14 +5527,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4940,14 +5557,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4968,14 +5586,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -4999,9 +5618,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5020,14 +5648,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5039,8 +5668,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459155",
@@ -5052,9 +5680,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**\nElectric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5073,14 +5710,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5099,14 +5737,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5125,14 +5764,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5144,8 +5784,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459158",
@@ -5157,9 +5796,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5178,14 +5826,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5209,9 +5858,20 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5230,14 +5890,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5258,14 +5919,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5277,10 +5939,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459172",
@@ -5292,9 +5951,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5313,14 +5981,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5339,14 +6008,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5365,14 +6035,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5384,8 +6055,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459189",
@@ -5397,9 +6067,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5418,14 +6097,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5444,14 +6124,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5477,14 +6158,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5496,8 +6178,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459193",
@@ -5509,9 +6190,20 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5530,9 +6222,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -5540,6 +6232,7 @@
             "May 1-Jun 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5551,10 +6244,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459222",
@@ -5566,9 +6256,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban\nMotorized vehicle closure. Walk-in access only. See sign at trailhead.",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5587,14 +6288,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5613,14 +6315,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5647,14 +6350,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5673,14 +6377,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5692,10 +6397,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459266",
@@ -5707,9 +6409,18 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5728,14 +6439,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5749,8 +6461,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459318",
@@ -5762,9 +6473,18 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5783,14 +6503,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5812,14 +6533,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5833,8 +6555,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459325",
@@ -5846,9 +6567,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5867,14 +6597,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5893,14 +6624,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5927,14 +6659,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -5946,8 +6679,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329459820",
@@ -5957,9 +6689,18 @@
         "mus": []
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -5978,14 +6719,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6007,14 +6749,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6028,8 +6771,7 @@
           ]
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329460964",
@@ -6039,9 +6781,20 @@
         "mus": []
       },
       "regs_verbatim": "Trout daily quota = 1; Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6060,14 +6813,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6093,9 +6847,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -6103,6 +6857,7 @@
             "May 1-Jun 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6114,10 +6869,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329518146",
@@ -6131,9 +6883,18 @@
         ]
       },
       "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6152,14 +6913,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6178,14 +6940,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no bindable boundaries listed for this item; CPR bridge not resolvable",
@@ -6199,8 +6962,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329518151",
@@ -6212,9 +6974,18 @@
         ]
       },
       "regs_verbatim": "No powered boats south of the CPR Bridge",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6233,14 +7004,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no boundary for 'the CPR Bridge'; whole-lake fallback",
@@ -6254,8 +7026,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329519997",
@@ -6268,9 +7039,18 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6289,14 +7069,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6315,14 +7096,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6341,14 +7123,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6360,8 +7143,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329519999",
@@ -6374,9 +7156,18 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6395,14 +7186,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6414,8 +7206,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520002",
@@ -6427,9 +7218,20 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration**",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6448,14 +7250,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6476,14 +7279,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6502,14 +7306,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6521,10 +7326,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520015",
@@ -6536,9 +7338,20 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6557,14 +7370,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6576,10 +7390,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520017",
@@ -6591,9 +7402,20 @@
         ]
       },
       "regs_verbatim": "See Friday, Saturday, and Sunday Lakes",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6612,14 +7434,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6631,10 +7454,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520029",
@@ -6646,9 +7466,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6667,14 +7498,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6693,14 +7525,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6727,14 +7560,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6753,14 +7587,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6779,14 +7614,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6805,14 +7641,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6831,14 +7668,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6850,10 +7688,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520037",
@@ -6866,9 +7701,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6887,14 +7733,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6906,10 +7753,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520046",
@@ -6921,9 +7765,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6942,14 +7795,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -6973,9 +7827,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -6994,14 +7857,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7025,9 +7889,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7046,14 +7919,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7077,9 +7951,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7098,14 +7981,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7117,8 +8001,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520066",
@@ -7130,9 +8013,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7151,14 +8043,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7170,8 +8063,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520086",
@@ -7183,9 +8075,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7204,14 +8107,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7230,14 +8134,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7264,14 +8169,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7283,10 +8189,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520169",
@@ -7298,9 +8201,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7319,14 +8233,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7338,10 +8253,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520185",
@@ -7353,9 +8265,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7374,14 +8295,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7393,8 +8315,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520198",
@@ -7406,9 +8327,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7427,14 +8359,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7446,10 +8379,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520255",
@@ -7461,9 +8391,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7482,14 +8423,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7508,14 +8450,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7542,14 +8485,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7568,14 +8512,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7594,14 +8539,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7620,14 +8566,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7639,10 +8586,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520322",
@@ -7654,9 +8598,20 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7675,14 +8630,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7708,14 +8664,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7727,10 +8684,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520336",
@@ -7742,9 +8696,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7763,14 +8726,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7782,8 +8746,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520505",
@@ -7795,9 +8758,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7816,14 +8788,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7835,8 +8808,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329520774",
@@ -7848,9 +8820,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7869,14 +8850,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7895,14 +8877,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -7914,8 +8897,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329663955",
@@ -7928,9 +8910,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -7949,9 +8940,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -7959,6 +8950,7 @@
             "Jan 1-May 31"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no bindable boundaries listed for this item; boundary-sign line not resolvable",
@@ -7979,14 +8971,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8008,14 +9001,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8027,8 +9021,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329663956",
@@ -8040,9 +9033,18 @@
         ]
       },
       "regs_verbatim": "Bull trout/Dolly Varden daily quota = 1 (none under 50 cm); single barbless hook",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8061,14 +9063,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8090,14 +9093,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8109,8 +9113,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": []
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329664027",
@@ -8122,9 +9125,20 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8143,14 +9157,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8169,14 +9184,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8203,14 +9219,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8229,14 +9246,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8255,14 +9273,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8274,10 +9293,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:329664029",
@@ -8289,9 +9305,20 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8310,14 +9337,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -8329,10 +9357,7 @@
           "species": []
         }
       ],
-      "audit_log": [],
-      "source_symbols": [
-        "Stocked"
-      ]
+      "audit_log": []
     },
     {
       "entry_id": "wbk:708021450",
@@ -8342,9 +9367,18 @@
         "mus": []
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -8363,14 +9397,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",

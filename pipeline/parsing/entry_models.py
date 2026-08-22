@@ -7,8 +7,9 @@ file is frozen and checked in (`pipeline/parsing/entries/region-N.json`); re-par
 merge, never an overwrite.
 
 Shape:
-    EntryFile{ region, entries:[ Entry{ identity, regs_verbatim, matched, includes_tributaries,
-                                        scope:[Extent], rules:[ Rule{ extents:[Extent], … } ] } ] }
+    EntryFile{ region, entries:[ Entry{ identity, regs_verbatim, source_symbols, tributaries,
+                                        scope:[Extent], rules:[ Rule{ extents:[Extent], … } ],
+                                        parse_review, locked/reviewed_by/revisit } ] }
 
 The anti-hallucination chain-of-custody validators from `models.py` are preserved:
     rule_text ⊆ regs_verbatim   ·   location_text ⊆ rule_text   ·   each date ⊆ rule_text
@@ -78,17 +79,17 @@ class Op(str, Enum):
 class Extent(BaseModel):
     """One `op + split ids` binding. A rule's `extents` is a list → UNION (covers "A plus B").
 
-    `item` scopes this extent to a *different* registry item than the entry's `matched`
-    (covers "…plus Tenas Lake" or a named side channel). `area`/`kind` carry a `within(area)`.
+    `item_id` scopes this extent to a *different* registry item than the entry's `matched`
+    (covers "…plus Tenas Lake" or a named side channel). `area_id`/`area_kind` carry a `within(area)`.
     """
 
     model_config = ConfigDict(frozen=True)
 
     op: Op
     splits: List[str] = Field(default_factory=list, description="curated split ids this extent binds to")
-    item: Optional[str] = Field(default=None, description="registry id, if this extent scopes a different item")
-    area: Optional[str] = Field(default=None, description="area id (op=within), e.g. 'area:watershed:liard_river'")
-    kind: Optional[str] = Field(default=None, description="admin feature kind (op=within), e.g. 'park'")
+    item_id: Optional[str] = Field(default=None, description="registry id, if this extent scopes a different item")
+    area_id: Optional[str] = Field(default=None, description="area id (op=within), e.g. 'area:watershed:liard_river'")
+    area_kind: Optional[str] = Field(default=None, description="admin area kind (op=within), e.g. 'park'")
     feature_types: List[str] = Field(
         default_factory=list,
         description="op=within only: restrict the area's members to these feature kinds "
@@ -104,7 +105,7 @@ class Extent(BaseModel):
             raise ValueError(f"op between needs exactly 2 split ids, got {n}")
         if self.op == Op.WHOLE and n != 0:
             raise ValueError(f"op whole takes no split ids, got {n}")
-        if self.op == Op.WITHIN and not (self.area or self.splits):
+        if self.op == Op.WITHIN and not (self.area_id or self.splits):
             raise ValueError("op within needs an area (or bounding split ids)")
         if self.feature_types:
             if self.op != Op.WITHIN:
@@ -143,7 +144,7 @@ class Rule(BaseModel):
         description="per-rule HAND-CURATED carve-outs subtracted from THIS rule's tributary set (only "
         "meaningful when the rule extends to tributaries). Unlike entry-wide Tributaries.excludes (which "
         "applies to every rule), these scope to one rule — e.g. a seasonal 'No Fishing in any tributaries "
-        "(except Quinsam River)'. A whole-tributary carve-out names the item: item=<registry id>, op=whole; "
+        "(except Quinsam River)'. A whole-tributary carve-out names the item: item_id=<registry id>, op=whole; "
         "a partial carve-out references the boundary split(s). The parser leaves this empty (curator-filled).",
     )
     sections_override: Optional[List[str]] = Field(
@@ -246,6 +247,27 @@ class Identity(BaseModel):
     mus: List[str] = Field(default_factory=list, description="management units, e.g. ['5-4']")
 
 
+class ReviewIssue(BaseModel):
+    """One finding from the agent reviewer's second pass (see review_exporter / REVIEW_PROMPT.md)."""
+
+    model_config = ConfigDict(frozen=True)
+    severity: str = Field(..., description="high | medium | low")
+    problem: str = Field(..., description="what the reviewer believes is wrong")
+    fix: str = Field(default="", description="the concrete correction the reviewer suggests")
+
+
+class ParseReview(BaseModel):
+    """Durable record of the parser's AGENT review pass, persisted onto the entry at ingest so the
+    review state survives even if the ephemeral parse/review outputs are lost. Distinct from human
+    curation (locked/reviewed_by/revisit): this is the automated second-pass reviewer's verdict."""
+
+    model_config = ConfigDict(frozen=True)
+    verdict: str = Field(default="", description="'' (not reviewed) | pass | changes_requested")
+    model: str = Field(default="", description="reviewer model, e.g. 'haiku'")
+    reviewed_at: str = Field(default="", description="ISO timestamp of the review pass")
+    issues: List[ReviewIssue] = Field(default_factory=list, description="reviewer findings for this entry")
+
+
 class Tributaries(BaseModel):
     """Entry-wide tributary scope, grouped. `excludes` are HAND-CURATED carve-outs subtracted from
     the tributary set (e.g. 'EXCEPT Burnt Bridge upstream of Sitkatapa'); the parser leaves them
@@ -294,6 +316,7 @@ class Entry(BaseModel):
         "later (e.g. a low-confidence binding they accepted to keep moving). Defaults False.",
     )
     revisit_note: str = Field(default="", description="why it should be revisited (free text; set alongside revisit)")
+    parse_review: ParseReview = Field(default_factory=ParseReview, description="durable agent-review pass state (verdict/issues), persisted by ingest")
     matched: List[str] = Field(default_factory=list, description="registry ids — written by the matcher, [] from the parser")
     registry_status: str = Field(
         default="matched",

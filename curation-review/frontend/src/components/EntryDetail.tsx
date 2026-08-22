@@ -201,6 +201,28 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         )}
       </div>
 
+      {/* Durable agent-review state (persisted at ingest) */}
+      {entry.parse_review?.verdict && (
+        <div className={`parse-review ${entry.parse_review.verdict}`}>
+          <strong>
+            agent review: {entry.parse_review.verdict.replace("_", " ")}
+          </strong>
+          {entry.parse_review.model && (
+            <span className="dim"> · {entry.parse_review.model}{entry.parse_review.reviewed_at ? ` @ ${entry.parse_review.reviewed_at}` : ""}</span>
+          )}
+          {entry.parse_review.issues.length > 0 && (
+            <ul>
+              {entry.parse_review.issues.map((iss, i) => (
+                <li key={i}>
+                  <span className={`sev ${iss.severity}`}>{iss.severity}</span> {iss.problem}
+                  {iss.fix && <div className="dim">→ {iss.fix}</div>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
       {/* no_registry attach flow */}
       {isNoRegistry && (
         <div className="section">
