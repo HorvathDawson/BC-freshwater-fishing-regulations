@@ -95,7 +95,7 @@ export function ExtentEditor({ extents, boundaries, onChange }: Props) {
                     {opts.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.curated ? "★ " : ""}
-                        {b.label || b.id}
+                        {b.label && b.label !== b.id ? `${b.label} — ${b.id}` : b.id}
                       </option>
                     ))}
                   </select>

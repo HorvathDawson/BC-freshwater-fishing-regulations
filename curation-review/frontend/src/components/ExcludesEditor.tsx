@@ -85,7 +85,7 @@ export function ExcludesEditor({ itemIds, excludes, onChange }: Props) {
                 <select className="split-multi" multiple value={ex.splits}
                   onChange={(e) => update(i, { splits: Array.from(e.target.selectedOptions).map((o) => o.value).slice(0, arity ?? undefined) })}>
                   {opts.length === 0 && <option disabled>no splits on this tributary</option>}
-                  {opts.map((b) => <option key={b.id} value={b.id}>{b.curated ? "★ " : ""}{b.label || b.id}</option>)}
+                  {opts.map((b) => <option key={b.id} value={b.id}>{b.curated ? "★ " : ""}{b.label && b.label !== b.id ? `${b.label} — ${b.id}` : b.id}</option>)}
                 </select>
               ) : <span className="dim">pick a tributary first</span>
             )}
