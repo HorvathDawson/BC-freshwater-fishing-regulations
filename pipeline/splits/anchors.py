@@ -179,6 +179,11 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
             if trib is None or trib.geometry is None:
                 continue
             mouth = Point(trib.geometry.coords[0])
+            # A braided parent reach (main stem + side channels sharing the gnis/WSC) would otherwise
+            # yield one cut PER channel for a single confluence. Collect the candidate cuts, then emit
+            # ONE — on the main channel (largest stream_magnitude, then longest) — so a confluence is a
+            # single split point. (Single-channel targets are unaffected: one candidate in, one out.)
+            cands: list[tuple] = []                    # (magnitude, length, blk, route_measure, off, concern)
             for blk, c in targets:
                 if c.geometry is None:
                     continue
@@ -195,7 +200,12 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
                 if off <= sd.proximity_m:
                     m, oc = _apply_offset(d, c.geometry.length, a)
                     concern = "; ".join(x for x in (concern, oc) if x)
-                    _emit(sd, blk, c.mouth_measure + m, concern=concern, offset=off)
+                    cands.append(((c.stream_magnitude or 0), c.length_m, blk,
+                                  c.mouth_measure + m, off, concern))
+            if cands:
+                cands.sort(key=lambda t: (t[0], t[1]), reverse=True)   # main channel first
+                _, _, blk, measure, off, concern = cands[0]
+                _emit(sd, blk, measure, concern=concern, offset=off)
 
         elif a.type == AnchorType.lake:
             for blk, c in targets:

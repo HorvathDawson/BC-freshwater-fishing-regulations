@@ -18,11 +18,11 @@ _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/b
 # split_id -> max acceptable distance (m) from its curated _coord (offset-accounted).
 # Confluences/points on-channel resolve to ~0; a generous cap catches wrong-channel regressions.
 _EXPECT = {
-    "sitkatapa_confluence": 100,                    # confluence (unnamed trib in FWA -> curated label)
-    "goat_creek_into_atnarko_river": 100,           # confluence (auto-named trib -> parent)
-    "talchako_river_into_bella_coola_river": 150,    # confluence (auto-named trib -> parent)
-    "hunlen_falls": 200,                            # point (obstacle-grounded)
-    "young_hwy20": 250,                             # point (Hwy 20 crossing)
+    "burnt_bridge_creek__sitkatapa_confluence": 100,           # confluence (curated label)
+    "atnarko_bella_coola_rivers_includes_tributaries_exce__goat_creek_into_atnarko_river": 100,       # confluence
+    "atnarko_bella_coola_rivers_includes_tributaries_exce__talchako_river_into_bella_coola_river": 150,  # confluence
+    "hunlen_creek__hunlen_falls": 200,                         # point (obstacle-grounded)
+    "young_creek__young_hwy20": 250,                           # point (Hwy 20 crossing)
 }
 
 
