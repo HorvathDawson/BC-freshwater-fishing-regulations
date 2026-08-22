@@ -26,6 +26,7 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
           <div className="name">
             {r.name}
             {r.locked && <span className="badge lock">🔒 locked</span>}
+            {r.revisit && <span className="badge revisit" title="conditionally accepted — revisit later">↻ revisit</span>}
           </div>
           <div className="meta">
             <span className={`badge ${r.status}`}>{r.status}</span>

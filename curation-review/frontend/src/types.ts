@@ -69,6 +69,8 @@ export interface Entry {
   locked: boolean;
   reviewed_by: string;
   reviewed_at: string;
+  revisit: boolean;
+  revisit_note: string;
   matched: string[];
   registry_status: RegistryStatus;
   registry_note: string;
@@ -93,6 +95,7 @@ export interface QueueRow {
   mus: string[];
   status: Status;
   locked: boolean;
+  revisit?: boolean;
   registry_status: string;
   n_rules: number;
   matched_item_id: string | null;

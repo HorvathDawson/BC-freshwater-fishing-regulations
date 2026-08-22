@@ -163,6 +163,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         <h2>
           {entry.identity.name}{" "}
           {entry.locked && <span className="badge lock">🔒 locked</span>}
+          {entry.revisit && <span className="badge revisit">↻ revisit later</span>}
         </h2>
         <div className="sub">
           <span>region {entry.identity.region || detail.region}</span>
@@ -580,6 +581,22 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
 
       {/* Actions */}
       <div className="actions">
+        <label className="revisit" title="Conditionally accept: confirm now but flag it to revisit later">
+          <input
+            type="checkbox"
+            checked={entry.revisit}
+            onChange={(e) => setEntry((s) => ({ ...s, revisit: e.target.checked }))}
+          />{" "}
+          revisit later
+          <input
+            type="text"
+            className="revisit-note"
+            placeholder="why? (optional comment)"
+            value={entry.revisit_note}
+            disabled={!entry.revisit}
+            onChange={(e) => setEntry((s) => ({ ...s, revisit_note: e.target.value }))}
+          />
+        </label>
         <button
           className="btn"
           disabled={saving || !dirty}
@@ -592,7 +609,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
           disabled={saving}
           onClick={() => doSave(true)}
         >
-          Confirm &amp; lock
+          {entry.revisit ? "Confirm (revisit later)" : "Confirm & lock"}
         </button>
         {dirty && <span className="dim">unsaved changes</span>}
         {toast && <span className="toast">{toast}</span>}

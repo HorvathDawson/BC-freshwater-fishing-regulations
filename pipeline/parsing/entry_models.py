@@ -282,6 +282,12 @@ class Entry(BaseModel):
     )
     reviewed_by: str = Field(default="", description="curator who confirmed this entry (set by the review tool alongside locked)")
     reviewed_at: str = Field(default="", description="ISO timestamp of the confirm (set by the review tool)")
+    revisit: bool = Field(
+        default=False,
+        description="conditional-accept flag: the entry was confirmed but a curator wants it revisited "
+        "later (e.g. a low-confidence binding they accepted to keep moving). Defaults False.",
+    )
+    revisit_note: str = Field(default="", description="why it should be revisited (free text; set alongside revisit)")
     matched: List[str] = Field(default_factory=list, description="registry ids — written by the matcher, [] from the parser")
     registry_status: str = Field(
         default="matched",

@@ -406,6 +406,7 @@ def queue(region: str | None = None, status: str | None = None) -> list[dict]:
             "mus": e.get("identity", {}).get("mus", []),
             "status": st,
             "locked": bool(e.get("locked")),
+            "revisit": bool(e.get("revisit")),
             "registry_status": e.get("registry_status", "matched"),
             "n_rules": len(e.get("rules", [])),
             "matched_item_id": item.id if item else None,

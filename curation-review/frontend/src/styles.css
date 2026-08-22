@@ -177,6 +177,31 @@ body {
   border-color: #e0c14c;
   color: #7a5c00;
 }
+.badge.revisit {
+  background: #e7f0ff;
+  border-color: #9dbdf0;
+  color: #274d80;
+}
+.actions .revisit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-right: auto;
+}
+.actions .revisit-note {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  min-width: 220px;
+}
+.actions .revisit-note:disabled {
+  background: #f2f3f5;
+  color: var(--muted);
+}
 
 /* ---- detail sections ---- */
 .identity h2 {

@@ -11,7 +11,7 @@ Both query params optional. `status` ∈ `no_registry | needs_review | unused_sp
 Rows are pre-sorted (attention first). Row:
 ```json
 { "entry_id":"noreg_link_river_106", "region":"1", "name":"\"LINK\" RIVER", "mus":["1-9"],
-  "status":"no_registry", "locked":false, "registry_status":"no_registry",
+  "status":"no_registry", "locked":false, "revisit":false, "registry_status":"no_registry",
   "n_rules":2, "matched_item_id":null, "matched_item_name":null, "unused_curated_splits":0 }
 ```
 
@@ -20,7 +20,7 @@ Rows are pre-sorted (attention first). Row:
 {
   "entry": { ...full Entry (see pipeline/parsing/entry_models.py): entry_id, identity{name,region,mus},
              regs_verbatim, registry_status, registry_note, locked, reviewed_by, reviewed_at,
-             matched[], tributaries{included,only,excludes}, scope[], rules[...], audit_log[] },
+             revisit, revisit_note, matched[], tributaries{included,only,excludes}, scope[], rules[...], audit_log[] },
   "region": "1",
   "match": { "item_id":"gnis:5480"|null, "status":"matched|override|skip|ambiguous|no_registry|feature_pin",
              "reason":"", "candidates":[] },
