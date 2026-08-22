@@ -57,8 +57,8 @@ function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<s
       const p = { ...(f.properties ?? {}) } as Record<string, unknown>;
       if (p.kind === "split") {
         const id = String(p.split_id ?? "");
-        p._color = splitColor(id, ref, unused);
-        p._note = ref.has(id) ? "bound" : unused.has(id) ? "UNUSED" : "";
+        p._color = p.auto ? "#0891b2" : splitColor(id, ref, unused);   // auto lake boundary = teal
+        p._note = p.auto ? "lake" : ref.has(id) ? "bound" : unused.has(id) ? "UNUSED" : "";
       }
       return { ...f, properties: p };
     }),

@@ -528,7 +528,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
           </div>
         )}
         <div className="dim" style={{ marginTop: 6 }}>
-          ★ = curated split · click a boundary to highlight it on the map + see its details
+          ★ = curated split · click a boundary to highlight it on the map + see its details · lake/auto boundaries show teal
         </div>
         {(() => {
           const b = boundaries.find((x) => x.id === selBoundary);

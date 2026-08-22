@@ -2,6 +2,190 @@
   "region": "1",
   "entries": [
     {
+      "entry_id": "gnis:10886",
+      "identity": {
+        "name": "Little Qualicum River",
+        "region": "1",
+        "mus": [
+          "1-6"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** - All tributaries\n**No Fishing** from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31\nThe standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\napproximately 35 m downstream\nFly fishing only, Sept 1-Nov 30 (where open)",
+      "source_symbols": [],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T05:17:50+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "little_qualicum_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 15-Aug 31"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** July 15-Aug 31[Includes Tributaries]",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "little_qualicum_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing in all tributaries",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** - All tributaries",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river (tributaries)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "little_qualicum_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "little_qualicum_river__upper_waterfall",
+                "little_qualicum_river__hatchery_fence"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-May 31"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence, Dec 1-May 31",
+          "location_text": "from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence",
+          "exception": "",
+          "display_location": "Upper Waterfall to hatchery fence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "little_qualicum_river.r4",
+          "restriction_type": "closure",
+          "details": "No fishing area (reduced fish-rearing-facility closure)",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "little_qualicum_river__hatchery_fence",
+                "little_qualicum_river__signs_35_m_downstream_of_hatchery_fence"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the signs ~35 m downstream of the hatchery fence; bound as downstream_of the fence (broader than actual closure)",
+          "rule_text": "The standard 100 m closure around a fish rearing facility has been reduced to a no fishing area from the hatchery fence to signs\napproximately 35 m downstream",
+          "location_text": "from the hatchery fence to signs\napproximately 35 m downstream",
+          "exception": "",
+          "display_location": "Below hatchery fence",
+          "unresolved_locators": [
+            "signs approximately 35 m downstream"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "little_qualicum_river.r5",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Sept 1-Nov 30"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Fly fishing only, Sept 1-Nov 30 (where open)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "gnis:12206",
       "identity": {
         "name": "Courtenay River",
@@ -90,6 +274,500 @@
           "display_location": "Part of the river (extent not specified)",
           "unresolved_locators": [
             "on part"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:12227",
+      "identity": {
+        "name": "Cowichan River",
+        "region": "1",
+        "mus": [
+          "1-4"
+        ]
+      },
+      "regs_verbatim": "**No Fishing July 4-July 14\nNo Fishing** July 15-Aug 31[Includes Tributaries], **No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15\n**No Fishing** in tributaries upstream of and including Holt Creek\nFly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15\n**No Fishing** downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15\nFly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)\nSpeed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
+      "source_symbols": [
+        "Stocked"
+      ],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T04:56:22+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "cowichan_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 4-July 14"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing July 4-July 14",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 15-Aug 31"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No Fishing** July 15-Aug 31[Includes Tributaries]",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "cowichan_river__cowichan_lake",
+                "cowichan_river__greendale_trestle"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 15-Apr 15"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from weir (dam) at Cowichan Lake's outlet to Greendale Trestle, Nov 15-Apr 15",
+          "location_text": "from weir (dam) at Cowichan Lake's outlet to Greendale Trestle",
+          "exception": "",
+          "display_location": "Cowichan Lake outlet to Greendale Trestle",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r4",
+          "restriction_type": "closure",
+          "details": "No fishing in tributaries above Holt Creek",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "cowichan_river__holt_creek_into_cowichan_river"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** in tributaries upstream of and including Holt Creek",
+          "location_text": "upstream of and including Holt Creek",
+          "exception": "",
+          "display_location": "Tributaries above Holt Creek confluence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r5",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "cowichan_river__cnr_trestle"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Sept 1-Nov 15"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Fly fishing only upstream of CNR Trestle (Mile 66) Sept 1-Nov 15",
+          "location_text": "upstream of CNR Trestle (Mile 66)",
+          "exception": "",
+          "display_location": "Above CNR Trestle",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r6",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "cowichan_river__cnr_trestle"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Sept 1-Nov 15"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** downstream of the CNR Mile 66 Trestle between Sept 1-Nov 15",
+          "location_text": "downstream of the CNR Mile 66 Trestle",
+          "exception": "",
+          "display_location": "Below CNR Trestle",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r7",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "cowichan_river__greendale_trestle",
+                "cowichan_river__cnr_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Fly fishing only from signs at Greendale Trestle to CNR Bridge (mile 70.2)",
+          "location_text": "from signs at Greendale Trestle to CNR Bridge (mile 70.2)",
+          "exception": "",
+          "display_location": "Greendale Trestle to CNR Bridge",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "cowichan_river.r8",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction (8 km/h); engine power restriction 7.5 kW (10 hp)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "regulation says 'on parts' of the river without specifying which reach; no boundary named",
+          "rule_text": "Speed restriction (8 km/h) and engine power restriction - 7.5 kW (10 hp) on parts",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:16505",
+      "identity": {
+        "name": "Nanaimo River",
+        "region": "1",
+        "mus": [
+          "1-5"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** July 15-Aug 31\n**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\n**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\n**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "nanaimo_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 15-Aug 31"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** July 15-Aug 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "nanaimo_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "nanaimo_river__power_line_at_bore_hole",
+                "nanaimo_river__boulder_creek_into_nanaimo_river"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek",
+          "location_text": "from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek",
+          "exception": "",
+          "display_location": "Power line at Bore Hole to Boulder Creek confluence",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "nanaimo_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "nanaimo_river__cedar_road_bridge",
+                "nanaimo_river__hwy_19_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Sept 1-Oct 15"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for Cedar Road Bridge; bound only the Hwy 19 bridge end",
+          "rule_text": "**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15",
+          "location_text": "from the Cedar Road Bridge upstream to the Hwy 19 bridge",
+          "exception": "",
+          "display_location": "Below Hwy 19 bridge",
+          "unresolved_locators": [
+            "the Cedar Road Bridge"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "nanaimo_river.r4",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "nanaimo_river__hwy_1_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-May 31"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31",
+          "location_text": "upstream of the Hwy 1 bridge",
+          "exception": "",
+          "display_location": "Above Hwy 1 bridge",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "nanaimo_river.r5",
+          "restriction_type": "gear_restriction",
+          "details": "Artificial fly only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "two lakes both listed as 'Nanaimo Lakes' with no way to determine which is the westernmost/'Second' Lake; cannot bind confidently",
+          "rule_text": "Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries",
+          "location_text": "upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake",
+          "exception": "",
+          "display_location": "Above Second (westernmost) Nanaimo Lake",
+          "unresolved_locators": [
+            "the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "nanaimo_river.r6",
+          "restriction_type": "vessel_restriction",
+          "details": "Engine power restriction 7.5 kW (10 hp)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "regulation applies to unspecified 'parts' of the river; no boundary given",
+          "rule_text": "Engine power restriction on parts - 7.5 kW (10 hp)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [
+            "on parts"
           ],
           "species": []
         }
@@ -229,6 +907,134 @@
       "audit_log": []
     },
     {
+      "entry_id": "gnis:17355",
+      "identity": {
+        "name": "Englishman River",
+        "region": "1",
+        "mus": [
+          "1-5"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** July 15-Aug 31[Includes Tributaries]\n**No Fishing** from lower falls in Englishman River Park to signs approximately 100 m downstream\n**No Fishing** downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of\nAllsbrook Road[Includes Tributaries], Dec 1-May 31",
+      "source_symbols": [],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T04:59:03+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "englishman_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 15-Aug 31"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** July 15-Aug 31[Includes Tributaries]",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "englishman_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "englishman_river__lower_falls_englishman_river_park",
+                "englishman_river__signs_100_m_downstream_of_lower_falls_englishman_river_park"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the signs 100 m downstream of the falls; bound as downstream_of the falls (broader than actual closure)",
+          "rule_text": "**No Fishing** from lower falls in Englishman River Park to signs approximately 100 m downstream",
+          "location_text": "from lower falls in Englishman River Park to signs approximately 100 m downstream",
+          "exception": "",
+          "display_location": "Below lower falls, Englishman River Park",
+          "unresolved_locators": [
+            "signs approximately 100 m downstream"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "englishman_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "englishman_river__lower_falls_englishman_river_park",
+                "englishman_river__top_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-May 31"
+          ],
+          "includes_tributaries": true,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of\nAllsbrook Road[Includes Tributaries], Dec 1-May 31",
+          "location_text": "downstream of the lower falls in Englishman River Falls Provincial Park to the Top Bridge crossing at the end of\nAllsbrook Road",
+          "exception": "",
+          "display_location": "Lower falls to Top Bridge",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "gnis:26654",
       "identity": {
         "name": "Rogers Creek",
@@ -288,6 +1094,140 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:30726",
+      "identity": {
+        "name": "Kokish River",
+        "region": "1",
+        "mus": [
+          "1-11"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30;\n**No Fishing** from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream\n**No Fishing** between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+      "source_symbols": [],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T05:29:15+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "kokish_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "kokish_river__bonanza_river_into_kokish_river",
+                "kokish_river__boundary_signs_in_kokish_canyon"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 1-Apr 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for Ida Lake; bound only the Kokish canyon signs end",
+          "rule_text": "**No Fishing** from boundary signs in Kokish canyon to Ida Lake, Nov 1-Apr 30",
+          "location_text": "from boundary signs in Kokish canyon to Ida Lake",
+          "exception": "",
+          "display_location": "Kokish canyon signs to Ida Lake",
+          "unresolved_locators": [
+            "Ida Lake"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "kokish_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "kokish_river__log_boom_90_m_upstream",
+                "kokish_river__signs_at_the_tail_of_the_canyon_pool_300_m_downstream"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream",
+          "location_text": "from the log boom located approximately 100 m upstream of the IPP intake to signs at the tail of the canyon pool located\napproximately 250 m downstream",
+          "exception": "",
+          "display_location": "Log boom to IPP tail race signs",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "kokish_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "kokish_river__signs_500_m_downstream_of_ipp_tail_race",
+                "kokish_river__signs_at_the_ipp_tail_race"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the downstream signs ~500 m below the IPP tail race; bound only the upstream end",
+          "rule_text": "**No Fishing** between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+          "location_text": "between signs at the IPP tail race confluence downstream approximately 500 m to signs",
+          "exception": "",
+          "display_location": "Below IPP tail race signs",
+          "unresolved_locators": [
+            "signs approximately 500 m downstream of the IPP tail race"
+          ],
           "species": []
         }
       ],
@@ -1013,6 +1953,191 @@
           "display_location": "",
           "unresolved_locators": [],
           "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328996530",
+      "identity": {
+        "name": "Lake Weston",
+        "region": "1",
+        "mus": [
+          "1-1"
+        ]
+      },
+      "regs_verbatim": "See Lake Weston",
+      "source_symbols": [],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T05:12:49+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "lake_weston.r1",
+          "restriction_type": "note",
+          "details": "See Lake Weston",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "cross-reference row ('See Lake Weston') carries no substantive regulation; self-referential",
+          "rule_text": "See Lake Weston",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329016195",
+      "identity": {
+        "name": "Great Central Lake",
+        "region": "1",
+        "mus": [
+          "1-7"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Jan 1-Apr 30, from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge\nSingle barbless hook, no wild rainbow trout over 50 cm",
+      "source_symbols": [],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T04:59:47+00:00",
+      "revisit": true,
+      "revisit_note": "this will be a lake split. will need to handle later",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "great_central_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Jan 1-Apr 30"
+          ],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundaries on this item for the dam or the Ash Main Bridge signs; fell back to whole — reach must be narrowed by a curator",
+          "rule_text": "**No Fishing** Jan 1-Apr 30, from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
+          "location_text": "from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
+          "exception": "",
+          "display_location": "From the dam to the fishing boundary signs approx. 50 m upstream (southwest) of the Ash Main Bridge",
+          "unresolved_locators": [
+            "from the dam",
+            "to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "great_central_lake.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "great_central_lake.r3",
+          "restriction_type": "harvest",
+          "details": "No wild rainbow trout over 50 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "no wild rainbow trout over 50 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB"
+          ]
         }
       ],
       "audit_log": []
@@ -1998,6 +3123,99 @@
           "unresolved_locators": [
             "on parts"
           ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329467594",
+      "identity": {
+        "name": "Long Lake",
+        "region": "1",
+        "mus": [
+          "1-5"
+        ]
+      },
+      "regs_verbatim": "Speed restriction on parts (60 km/h); wheelchair accessible fishing platform is located in Loudon Park",
+      "source_symbols": [
+        "Stocked"
+      ],
+      "locked": true,
+      "reviewed_by": "dawson",
+      "reviewed_at": "2026-08-22T05:18:39+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "long_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction (60 km/h)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "speed restriction applies to unspecified parts of the lake; no boundaries available — bound whole as a fallback",
+          "rule_text": "Speed restriction on parts (60 km/h)",
+          "location_text": "on parts",
+          "exception": "",
+          "display_location": "Parts of the lake",
+          "unresolved_locators": [
+            "on parts"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "long_lake.r2",
+          "restriction_type": "note",
+          "details": "Wheelchair accessible fishing platform in Loudon Park",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "wheelchair accessible fishing platform is located in Loudon Park",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Loudon Park",
+          "unresolved_locators": [],
           "species": []
         }
       ],

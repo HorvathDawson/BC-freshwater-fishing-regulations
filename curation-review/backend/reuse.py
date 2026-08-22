@@ -477,6 +477,17 @@ def _sql_in(col: str, vals) -> str:
     return f"{col} IN ({quoted})"
 
 
+def _rep_point(geom: dict | None) -> list[float] | None:
+    """A representative lon/lat point for a GeoJSON geometry (its first coordinate) — used to drop a
+    clickable marker at a lake boundary's location."""
+    if not geom:
+        return None
+    c = geom.get("coordinates")
+    while isinstance(c, list) and c and isinstance(c[0], list):
+        c = c[0]
+    return c if isinstance(c, list) and len(c) >= 2 and isinstance(c[0], (int, float)) else None
+
+
 def _read_gpkg_features(layer: str, where: str, keep: list[str], kind: str) -> list[dict]:
     """Read a graph.gpkg layer with a driver-level WHERE (only matching features are scanned) and return
     GeoJSON features **reprojected to EPSG:4326 (lon/lat)** so they overlay the web-mercator PMTiles
@@ -524,6 +535,21 @@ def item_geojson(item_id: str) -> dict:
         feats += _read_gpkg_features(
             "split_points", _sql_in("split_id", split_ids),
             ["split_id", "label", "anchor_type", "picked_up"], "split")
+
+    # Auto (non-curated) LAKE boundaries have no split_point; surface each as a clickable point at the
+    # lake's location so a curator can "see where it is" — same select/fly machinery as curated splits.
+    lake_by_wbk = {b.wbk: b for b in _boundaries(item)
+                   if b.wbk and not str(b.ref or "").startswith("split:")}
+    if lake_by_wbk:
+        for lf in _read_gpkg_features("lakes", _sql_in("wbk", list(lake_by_wbk)),
+                                      ["wbk", "display_name"], "split"):
+            b = lake_by_wbk.get(str(lf["properties"].get("wbk")))
+            pt = _rep_point(lf.get("geometry"))
+            if b and pt:
+                feats.append({"type": "Feature",
+                              "geometry": {"type": "Point", "coordinates": pt},
+                              "properties": {"kind": "split", "split_id": b.id, "label": b.label,
+                                             "anchor_type": "lake", "auto": True}})
 
     return {"type": "FeatureCollection", "features": feats}
 
