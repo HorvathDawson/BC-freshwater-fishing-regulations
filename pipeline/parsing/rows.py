@@ -13,6 +13,21 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Synopsis symbol (from pipeline.extraction) that flags a whole row as extending to tributaries —
+# the entry-level "[Includes Tributaries]" marker. Single source of truth for parser + curation.
+TRIBUTARIES_SYMBOL = "Incl. Tribs"
+
+
+def symbols_include_tributaries(symbols: Optional[List[Any]]) -> bool:
+    """True when a row's `symbols` list carries the tributaries marker (entry-level includes)."""
+    return any(TRIBUTARIES_SYMBOL.lower() in str(s).lower() for s in symbols or [])
+
+
+def row_includes_tributaries(row: Dict[str, Any]) -> bool:
+    """True when a synopsis row is symbol-flagged as including its tributaries."""
+    return symbols_include_tributaries(row.get("symbols"))
+
+
 
 def load_synopsis_rows(raw_path: Optional[Path] = None) -> List[Dict[str, Any]]:
     """Flatten ``synopsis_raw_data.json`` pages into an ordered row list.

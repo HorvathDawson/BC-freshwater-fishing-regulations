@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline.models import RegistryItem
+from pipeline.parsing.rows import symbols_include_tributaries
 from pipeline.parsing.species import prompt_menu
 
 _PROMPT = Path(__file__).resolve().parent / "prompts" / "PARSE_PROMPT.md"
@@ -40,6 +41,7 @@ class ParseContext:
     variants: tuple[str, ...] = ()
     boundaries: tuple[tuple[str, str, str], ...] = ()    # (id, label, kind) — the bindable cut-points
     raw_regs: str = ""
+    symbols: tuple[str, ...] = ()                        # synopsis row symbols (e.g. 'Incl. Tribs')
     no_registry: bool = False                            # True: no registry match — split rules, bind nothing
     registry_note: str = ""                              # why (matcher status + reason), when no_registry
 
@@ -51,7 +53,8 @@ class ParseContext:
 
 
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
-                        region: str = "", row_index: int = -1, name: str = "") -> ParseContext:
+                        region: str = "", row_index: int = -1, name: str = "",
+                        symbols: tuple[str, ...] = ()) -> ParseContext:
     """Assemble the constrained menu for one item: its bindable boundaries + identity. Area `within`
     targets are intentionally excluded — area scoping is a curation step (see module docstring).
 
@@ -69,11 +72,13 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
         variants=item.variants,
         boundaries=tuple((b.id, b.label, b.kind) for b in item.boundaries),
         raw_regs=raw_regs,
+        symbols=tuple(symbols),
     )
 
 
 def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, registry_note: str,
-                              region: str = "", mus: tuple[str, ...] = (), row_index: int = -1) -> ParseContext:
+                              region: str = "", mus: tuple[str, ...] = (), row_index: int = -1,
+                              symbols: tuple[str, ...] = ()) -> ParseContext:
     """A parse menu for a row with NO registry match. The reg text is still split into rules, but there
     are no boundaries to bind — every rule goes to review and no extents are invented. Identity comes
     from the synopsis row (not a registry item)."""
@@ -88,6 +93,7 @@ def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, regist
         variants=(),
         boundaries=(),
         raw_regs=raw_regs,
+        symbols=tuple(symbols),
         no_registry=True,
         registry_note=registry_note,
     )
@@ -109,6 +115,8 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append(f"Region {ctx.region or '?'} · MUs: {', '.join(ctx.mus) or '?'}")
     if ctx.variants:
         lines.append(f"Also known as: {', '.join(ctx.variants)}")
+    if symbols_include_tributaries(ctx.symbols):
+        lines.append("Synopsis symbol **[Includes Tributaries]** → set entry `tributaries.included = true`.")
     lines.append("")
 
     if ctx.no_registry:

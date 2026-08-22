@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
+from pipeline.parsing.rows import symbols_include_tributaries
 
 
 def load_batch_items(batch_path: str | Path) -> dict[int, dict]:
@@ -39,6 +40,10 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
     """Validate one entry against its batch item. Returns (Entry|None, errors, unused_split_ids)."""
     data = dict(entry_data)
     data["regs_verbatim"] = item.get("raw_regs", "")      # inject authoritative source; don't trust the copy
+    if "symbols" in item:                                 # authoritative entry-level tributary flag from the
+        tribs = dict(data.get("tributaries") or {})       # synopsis symbol ("Incl. Tribs"), same as raw_regs
+        tribs["included"] = symbols_include_tributaries(item["symbols"])
+        data["tributaries"] = tribs
     if item.get("entry_id"):                              # authoritative id/status — never trusted from the model
         data["entry_id"] = item["entry_id"]
     if item.get("no_registry"):

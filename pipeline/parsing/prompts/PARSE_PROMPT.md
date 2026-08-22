@@ -67,7 +67,9 @@ This captures the regulation's content for the curator even though its location 
 - **`includes_tributaries`**: `null` = inherit the entry; `true`/`false` = override for this rule.
 - **`tributary_excludes`**: per-rule carve-outs from THIS rule's tributary set (e.g. "No Fishing in any
   tributaries except Quinsam River"). Leave `[]` (hand-curated later).
-- **Entry-level `tributaries`**: `{ included, only, excludes }`. Leave `excludes` empty (hand-curated later).
+- **Entry-level `tributaries`**: `{ included, only, excludes }`. Set `included: true` when the row shows
+  the **[Includes Tributaries]** synopsis symbol (stated in the header) — ingest also enforces this from
+  the symbol, so keep them consistent. Leave `excludes` empty (hand-curated later).
 - **`scope`** (entry-level extents) composes by intersection with each rule's extents; usually leave it `[]`.
 - Leave **`matched`** `[]` (the matcher fills it) and **`locked`** `false`.
 

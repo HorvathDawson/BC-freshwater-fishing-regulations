@@ -84,6 +84,7 @@ def _item_payload(index: int, ctx) -> dict:
         "bindable_ids": sorted(ctx.bindable_ids),
         "no_registry": ctx.no_registry,
         "registry_note": ctx.registry_note,
+        "symbols": list(ctx.symbols),
     }
 
 
@@ -137,7 +138,8 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             note = f"{m.status}: {m.reason}" if m.reason else m.status
             ctx = build_no_registry_context(
                 entry_id=eid, name=m.water, raw_regs=raw, registry_note=note,
-                region=region_num(row), mus=tuple(sorted(parse_reg_mus(row))), row_index=m.index)
+                region=region_num(row), mus=tuple(sorted(parse_reg_mus(row))), row_index=m.index,
+                symbols=tuple(row.get("symbols", [])))
             is_noreg = True
         else:
             if item_rowcount[m.item_id] > 1:            # multi-row waterbody -> per-row entry
@@ -157,7 +159,8 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
                 eid = m.item_id
                 name = ""                               # -> item.name (unchanged single-row entries)
             ctx = build_parse_context(registry[m.item_id], raw_regs=raw, entry_id=eid,
-                                      region=region_num(row), row_index=m.index, name=name)
+                                      region=region_num(row), row_index=m.index, name=name,
+                                      symbols=tuple(row.get("symbols", [])))
             is_noreg = False
 
         if skip_existing and eid in existing_ids and not force:
