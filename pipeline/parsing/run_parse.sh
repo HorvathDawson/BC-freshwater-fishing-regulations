@@ -61,7 +61,15 @@ case "$CMD" in
 
   review)  # review EVERY current entry in place (locked + not); stamp parse_review. No re-parse.
     echo "== review: preflight =="; _need_claude; _need_registry
-    RR=""; [ "${2:-}" = "rereview" ] && RR="--rereview" && echo "  (rereview: refreshing even already-reviewed)"
+    RR=""
+    if [ "${2:-}" = "clean" ]; then
+      echo "== clean: wiping ALL prior agent reviews (files + entry parse_review) =="
+      rm -f output/parse/reviews/*.review.json 2>/dev/null || true
+      $PY -m pipeline.parsing.ingest --clear-reviews
+      RR="--rereview"
+    elif [ "${2:-}" = "rereview" ]; then
+      RR="--rereview"; echo "  (rereview: refreshing even already-reviewed batches)"
+    fi
     echo "== full export (all entries -> batches) =="; "${EXPORT[@]}"
     echo "== synth responses from current entries =="; $PY -m pipeline.parsing.synth_responses
     echo "== review ($REVIEW_MODEL) =="; "${DISPATCH[@]}" --review $RR --review-model "$REVIEW_MODEL"
@@ -101,6 +109,9 @@ PYEOF
     ;;
 
   *)
-    echo "usage: bash pipeline/parsing/run_parse.sh <parse|review|repass|prune|status> [rereview]"; exit 1
+    echo "usage: bash pipeline/parsing/run_parse.sh <parse|review|repass|prune|status>"
+    echo "  review [rereview|clean]   rereview = re-review even reviewed batches;"
+    echo "                            clean    = wipe ALL prior reviews (files + parse_review) then rereview"
+    exit 1
     ;;
 esac

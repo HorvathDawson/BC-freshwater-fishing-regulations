@@ -161,12 +161,34 @@ def apply_reviews(reviews_dir: Path, batches_dir: Path, entries_dir: Path) -> di
     return {"updated": len(matched), "requested": len(pr_by_id), "missing": len(set(pr_by_id) - matched)}
 
 
+def clear_parse_review(entries_dir: Path) -> int:
+    """Reset every entry's `parse_review` to empty — a fresh-review start, so no stale verdict survives.
+    Content-safe (only parse_review changes). Returns how many entries were cleared."""
+    empty = {"verdict": "", "model": "", "reviewed_at": "", "issues": []}
+    n = 0
+    for p in sorted(Path(entries_dir).glob("region-*.json")):
+        region = p.stem.split("region-")[1]
+        by_id = io.read_entryfile(p)
+        changed = False
+        for e in by_id.values():
+            pr = e.get("parse_review") or {}
+            if pr.get("verdict") or pr.get("issues") or pr.get("model") or pr.get("reviewed_at"):
+                e["parse_review"] = dict(empty)
+                changed = True
+                n += 1
+        if changed:
+            io.write_entryfile(p, region, by_id.values())
+    return n
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Ingest agent responses into checked-in EntryFiles.")
     ap.add_argument("responses", nargs="*", help="response JSON file(s) (omit with --apply-reviews)")
     ap.add_argument("--apply-reviews", action="store_true",
                     help="don't ingest responses — just stamp each entry's parse_review from the review "
                     "pass (reviews/*.review.json). Content untouched; safe on locked entries.")
+    ap.add_argument("--clear-reviews", action="store_true",
+                    help="reset every entry's parse_review to empty (a fresh-review start). Content-safe.")
     ap.add_argument("--batches-dir", help="dir with batch_*.json (default: <out>/parse/batches)")
     ap.add_argument("--reviews-dir", help="dir with batch_*.review.json (default: <out>/parse/reviews)")
     ap.add_argument("--entries-dir", help="output EntryFiles dir (default: pipeline/parsing/entries)")
@@ -183,6 +205,10 @@ def main() -> None:
         batches_dir = default_work_dir() / "batches"
     reviews_dir = Path(args.reviews_dir) if args.reviews_dir else (batches_dir.parent / "reviews")
     entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
+
+    if args.clear_reviews:
+        print(f"Cleared parse_review on {clear_parse_review(entries_dir)} entr(ies).")
+        return
 
     if args.apply_reviews:
         rep = apply_reviews(reviews_dir, batches_dir, entries_dir)
