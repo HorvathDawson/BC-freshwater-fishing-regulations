@@ -59,7 +59,9 @@ def main() -> None:
 
     idx = _symbol_index()
     total_changed = 0
-    for path in sorted(_ENTRIES_DIR.glob("region-*.json")):
+    paths = (sorted(_ENTRIES_DIR.glob("region-*.json"))
+             + sorted((_ENTRIES_DIR / "reviewed").glob("region-*.json")))   # incl. the curator overlay
+    for path in paths:
         data = json.loads(path.read_text(encoding="utf-8"))
         changed: list[str] = []
         for e in data.get("entries", []):

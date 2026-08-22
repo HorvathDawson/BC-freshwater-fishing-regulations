@@ -52,7 +52,9 @@ def main() -> None:
     args = ap.parse_args()
 
     total = 0
-    for path in sorted(_ENTRIES_DIR.glob("region-*.json")):
+    paths = (sorted(_ENTRIES_DIR.glob("region-*.json"))
+             + sorted((_ENTRIES_DIR / "reviewed").glob("region-*.json")))   # incl. the curator overlay
+    for path in paths:
         data = json.loads(path.read_text(encoding="utf-8"))
         for e in data.get("entries", []):
             _migrate_entry_dict(e)

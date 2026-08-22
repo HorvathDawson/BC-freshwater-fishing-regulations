@@ -11,9 +11,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Dec 1-Sept 30; speed restriction on part (8 km/h),",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:02:33+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -32,9 +41,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -42,6 +51,7 @@
             "Dec 1-Sept 30"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -60,14 +70,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on part' names no boundary; fell back to whole",
@@ -93,9 +104,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Elsie Lake to Dickson Lake\n**No Fishing** from Dickson Lake to signs 200 m downstream of Lanternman Falls, Dec 1-Apr 30\n**No Fishing** from Dickson Falls downstream 30 m to signs",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T23:17:34+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -117,9 +137,9 @@
                 "ash_river__elsie_lake",
                 "ash_river__dickson_lake"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -147,9 +167,9 @@
                 "ash_river__dickson_lake",
                 "ash_river__lanternman_falls_200_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -179,9 +199,9 @@
                 "ash_river__dickson_falls",
                 "ash_river__dickson_falls_30_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -213,9 +233,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Dec 1-Apr 30",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:16:04+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -234,9 +263,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -268,9 +297,21 @@
         ]
       },
       "regs_verbatim": "**No Fishing** May 1-June 15\nHatchery steelhead daily quota = 1\n**No Fishing **upstream of the Quatse River fishway (approximately 1.4 km upstream of Dick Booth Creek), Dec 1-June 15\nBait ban, May 1-Nov 30",
+      "source_symbols": [
+        "Stocked",
+        "Incl. Tribs"
+      ],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:15:31+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -289,9 +330,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -318,9 +359,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -349,9 +390,9 @@
               "splits": [
                 "quatse_river__quatse_river_fishway"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -378,9 +419,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -412,9 +453,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of Bannon Creek[Includes Tributaries] July 1-Sept 30, **No Fishing** upstream of Bannon Creek[Includes Tributaries] Dec 1-Sept 30\n**No Fishing** from Copper Canyon Falls downstream 100 m to the fishing boundary signs",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T23:07:50+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -435,9 +485,9 @@
               "splits": [
                 "chemainus_river__banon_creek_into_chemainus_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -466,9 +516,9 @@
               "splits": [
                 "chemainus_river__banon_creek_into_chemainus_river"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -498,9 +548,9 @@
                 "chemainus_river__copper_canyon_falls",
                 "chemainus_river__copper_canyon_falls_signs"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -534,9 +584,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** between Elk Falls and John Hart Dam Power Station\n**No Fishing** from Strathcona Dam downstream 100 m\n**No Fishing** from the boundary sign at the end of Maple Street downstream to the boundary sign at the cement block, Aug 1-Oct 31\n**No Fishing** in any tributaries (except Quinsam River), Dec 1-May 31\nFrom John Hart Dam Power Station to power line crossing approximately 200 m upstream of Quinsam River confluence: fly fishing only\nyear-round\nArtificial fly only downstream of power line crossing approximately 200 m upstream of Quinsam River: Dec 1-May 31\nNo vessels between Elk Falls and John Hart Dam Power Station",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T22:03:34+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -558,9 +617,9 @@
                 "campbell_river__elk_falls",
                 "campbell_river__john_hart_dam_power_station"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -588,9 +647,9 @@
                 "campbell_river__strathcona_dam",
                 "campbell_river__strathcona_dam_100_m_downstream"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -619,9 +678,9 @@
               "splits": [
                 "campbell_river__maple_street_boundary_sign"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -650,9 +709,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -664,9 +723,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": "gnis:27883",
-              "area": null,
-              "kind": null,
+              "item_id": "gnis:27883",
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -693,9 +752,9 @@
                 "campbell_river__john_hart_dam_power_station",
                 "campbell_river__power_line_200m_up_of_quinsam"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -722,9 +781,9 @@
               "splits": [
                 "campbell_river__power_line_200m_up_of_quinsam"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -754,9 +813,9 @@
                 "campbell_river__elk_falls",
                 "campbell_river__john_hart_dam_power_station"
               ],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -786,9 +845,18 @@
         ]
       },
       "regs_verbatim": "See Amor de Cosmos Creek",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T19:46:11+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: AMOR DE COSMOS CREEK (variant_of AMOR DE COSMOS CREEK)",
@@ -806,6 +874,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no registry match — attach an item and bind extents; cross-reference to Amor de Cosmos Creek",
@@ -829,9 +898,18 @@
         ]
       },
       "regs_verbatim": "See Marble River",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T19:46:04+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes) (variant_of MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes))",
@@ -849,6 +927,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no registry match — cross-reference row pointing to Marble River (\"Link\" River, between Victoria and Alice lakes); attach an item and bind extents",
@@ -872,9 +951,18 @@
         ]
       },
       "regs_verbatim": "No powered boats on any water within Strathcona Park except Gold, Upper Campbell and Buttle lakes",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T19:46:34+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "no_registry",
       "registry_note": "feature_pin: Synopsis lists 'STRATHCONA PARK WATERS' in Region 1. Applies to all streams and lakes within Strathcona Provincial Park. Layer: TA_PARK_ECORES_PA_SVW, ID field: ADMIN_AREA_SID.",
@@ -892,6 +980,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "no registry match — attach an item and bind extents",
@@ -915,9 +1004,18 @@
         ]
       },
       "regs_verbatim": "Fly fishing only; except Thelwood Creek is closed all year",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:01:25+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -936,14 +1034,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -962,14 +1061,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "closure applies to Thelwood Creek, a separate tributary with no boundary on this item; fell back to whole",
@@ -996,9 +1096,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Feb 1-July 15 including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:02:20+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1011,9 +1120,9 @@
             "splits": [
               "campbell_river__strathcona_dam"
             ],
-            "item": "gnis:39532",
-            "area": null,
-            "kind": null,
+            "item_id": "gnis:39532",
+            "area_id": null,
+            "area_kind": null,
             "feature_types": []
           }
         ]
@@ -1028,9 +1137,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1038,6 +1147,7 @@
             "Feb 1-July 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "closure also covers a reach of Campbell River (a different waterbody); bound the lake only",
@@ -1064,9 +1174,18 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Apr 15-July 15 (includes channel downstream of Ladore Dam)",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:10:30+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1079,9 +1198,9 @@
             "splits": [
               "campbell_river__ladore_dam"
             ],
-            "item": "gnis:39532",
-            "area": null,
-            "kind": null,
+            "item_id": "gnis:39532",
+            "area_id": null,
+            "area_kind": null,
             "feature_types": []
           }
         ]
@@ -1096,9 +1215,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1106,6 +1225,7 @@
             "Apr 15-July 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "closure extends beyond the lake to the channel downstream of Ladore Dam; no boundary available for that reach",
@@ -1131,9 +1251,20 @@
         ]
       },
       "regs_verbatim": "Trout catch and release; bait ban, single barbless hook",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:15:40+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1152,9 +1283,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1186,9 +1317,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1218,9 +1349,18 @@
         ]
       },
       "regs_verbatim": "No powered boats",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:16:29+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1239,9 +1379,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1271,9 +1411,18 @@
         ]
       },
       "regs_verbatim": "Artificial fly only, bait ban, single barbless hook\nTrout and kokanee catch and release[Includes Tributaries] **Unnamed lake in the Walbran Creek Watershed approximately** 7 km west/southwest of Mt.\nWalbran",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T19:45:58+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1292,14 +1441,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1318,14 +1468,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1344,14 +1495,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1370,14 +1522,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": true,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1409,9 +1562,18 @@
         ]
       },
       "regs_verbatim": "Cutthroat trout daily quota = 2 (none over 50 cm); bait ban and single barbless hook, Nov 15-Apr 15\nSpeed restriction on parts (8 km/h), plus overall 10 km/h speed restriction within 60 m of shore",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:03:48+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1430,14 +1592,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1459,9 +1622,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1469,6 +1632,7 @@
             "Nov 15-Apr 15"
           ],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1487,14 +1651,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no boundary; fell back to whole",
@@ -1515,14 +1680,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -1546,9 +1712,18 @@
         ]
       },
       "regs_verbatim": "No powered boats",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:14:46+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1567,9 +1742,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1599,9 +1774,18 @@
         ]
       },
       "regs_verbatim": "See Cowichan Lake",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T19:59:57+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1620,14 +1804,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "cross-reference row; actual regulations are listed under Cowichan Lake",
@@ -1651,9 +1836,18 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:16:19+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1672,9 +1866,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1711,9 +1905,20 @@
         ]
       },
       "regs_verbatim": "Speed restriction on parts (60 km/h)",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:00:40+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1732,14 +1937,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no specific area; bound to whole lake pending curation",
@@ -1765,9 +1971,18 @@
         ]
       },
       "regs_verbatim": "No trout over 50 cm; bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:15:54+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1786,9 +2001,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1820,9 +2035,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1852,9 +2067,18 @@
         ]
       },
       "regs_verbatim": "Trout catch and release; artificial fly only, bait ban, single barbless hook",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:14:32+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -1873,9 +2097,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1907,9 +2131,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1934,9 +2158,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1961,9 +2185,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
@@ -1993,9 +2217,20 @@
         ]
       },
       "regs_verbatim": "Smallmouth bass daily quota = 4\nEngine power restriction on parts - 7.5 kW (10 hp); no vessels on parts, no powered boats on parts, no towing on parts\nA wheelchair accessible fishing pier is located on the lake's northwest shore via Brookleigh Road",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:06:55+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2014,14 +2249,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2042,14 +2278,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no boundary; fell back to whole",
@@ -2070,14 +2307,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no boundary; fell back to whole",
@@ -2098,14 +2336,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no boundary; fell back to whole",
@@ -2126,14 +2365,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no boundary; fell back to whole",
@@ -2154,14 +2394,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2185,9 +2426,20 @@
         ]
       },
       "regs_verbatim": "Smallmouth bass daily quota = 4; engine power restriction - 7.5 kW (10 hp), no towing on parts",
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-21T20:00:23+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2206,14 +2458,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2234,14 +2487,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
@@ -2260,14 +2514,15 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "'on parts' names no specific area; bound to whole lake pending curation",
@@ -2293,9 +2548,18 @@
         ]
       },
       "regs_verbatim": "No powered boats",
+      "source_symbols": [],
       "locked": true,
       "reviewed_by": "dawson",
       "reviewed_at": "2026-08-22T00:14:35+00:00",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
@@ -2314,9 +2578,9 @@
             {
               "op": "whole",
               "splits": [],
-              "item": null,
-              "area": null,
-              "kind": null,
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
               "feature_types": []
             }
           ],
