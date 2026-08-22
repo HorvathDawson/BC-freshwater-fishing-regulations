@@ -62,16 +62,11 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
   const mapItemId = item?.id ?? entry.matched[0] ?? null;
   const isNoRegistry = entry.registry_status === "no_registry";
 
-  // Parser skewed most entries to tributaries.included=false; flag when the source says the reg extends
-  // to tributaries but the global flag is off. Prefer the authoritative synopsis symbol (source_symbols,
-  // injected at ingest); fall back to the raw-text marker for entries with no captured symbol.
+  // Parser skewed most entries to tributaries.included=false; flag when the authoritative synopsis
+  // symbol (source_symbols, injected at ingest) says the reg extends to tributaries but the global
+  // flag is off. Symbol-only — raw text mentions are per-rule, not the entry-level tributary flag.
   const symbolSaysTributaries = (entry.source_symbols ?? []).some((s) => /incl.*trib/i.test(s));
-  const rawSaysTributaries =
-    /\[\s*includes?\s+tributaries\s*\]|includ\w*\s+(?:all\s+|its\s+)?tributar|all\s+tributaries/i.test(
-      entry.regs_verbatim,
-    );
-  const tribFlagMismatch =
-    (symbolSaysTributaries || rawSaysTributaries) && entry.tributaries.included === false;
+  const tribFlagMismatch = symbolSaysTributaries && entry.tributaries.included === false;
 
   const dirty = useMemo(
     () => JSON.stringify(entry) !== JSON.stringify(detail.entry),
@@ -284,10 +279,9 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
           <div>
             {tribFlagMismatch && (
               <div className="trib-warning">
-                ⚠ The synopsis flags this row <strong>[Includes Tributaries]</strong>
-                {symbolSaysTributaries ? " (source symbol)" : " (raw text)"} but this entry's global
-                tributaries flag is <strong>off</strong>. Verify — the parser defaulted many entries to
-                false.
+                ⚠ The synopsis symbol flags this row <strong>[Includes Tributaries]</strong> but this
+                entry's global tributaries flag is <strong>off</strong>. Verify — the parser defaulted
+                many entries to false.
               </div>
             )}
             <div className="verbatim">{entry.regs_verbatim}</div>

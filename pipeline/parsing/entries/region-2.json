@@ -22,7 +22,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -83,16 +83,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
-        "issues": [
-          {
-            "severity": "high",
-            "problem": "Rule r1's second extent uses op='downstream_of' Cariboo Dam with no downstream limit, but regs specify 'from Cariboo Dam to Salamander Creek' — unbounded downstream allows fishing beyond Salamander Creek",
-            "fix": "Change the second extent op to 'between' and bind both Cariboo Dam and Salamander Creek endpoints (Salamander Creek boundary currently unresolved)"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -198,7 +192,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -261,7 +255,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -324,17 +318,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": [
           {
-            "severity": "high",
-            "problem": "FRASER RIVER r1 (dead fin fish bait rule): species field is empty, but regs explicitly state 'only when fishing for sturgeon' — should be species=[\"WSG\"]. ITEM 279 (Harrison River) parses the identical text correctly with species=[\"WSG\"], creating an inconsistency.",
-            "fix": "Set species to [\"WSG\"] in r1 to match the semantic limitation 'only when fishing for sturgeon' and align with ITEM 279's parse."
-          },
-          {
-            "severity": "medium",
-            "problem": "FRASER RIVER r3 (night closure): regs mention 'in the non-tidal portion of the Fraser River in Region 2', but extent is op=\"whole\" with needs_review=false. Geographic limits mentioned in location_text are not reflected in the extent. Compare to r2 and r4 in the same entry, which correctly flag similar unbound geographic references with needs_review=true.",
-            "fix": "Set needs_review=true with a review_reason explaining that the 'non-tidal portion' boundary is not available to bind the extent."
+            "severity": "low",
+            "problem": "r5 is a pure cross-reference carrying no regulation ('See page 26 for a map of the No Fishing areas')",
+            "fix": "Remove r5 (note rule); the map reference is documentation, not a binding regulation"
           }
         ]
       },
@@ -581,7 +570,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -644,7 +633,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -742,7 +731,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -807,7 +796,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -873,7 +862,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -934,16 +923,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
-        "issues": [
-          {
-            "severity": "medium",
-            "problem": "Rule r2 bounds as 'whole creek' but regs specify 'from the falls to 100m downstream' — a bounded reach. Current extent overstates closure range to entire creek rather than a limited section",
-            "fix": "Once falls and 100m-downstream boundaries are bindable, change r2 from op='whole' to op='between' with both endpoints"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -1038,7 +1021,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -1104,7 +1087,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -1202,7 +1185,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -1270,7 +1253,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -1333,7 +1316,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -1397,7 +1380,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -1460,7 +1443,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -1559,7 +1542,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -1624,7 +1607,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -1691,7 +1674,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -1816,7 +1799,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -1881,7 +1864,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -1946,7 +1929,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -2009,7 +1992,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -2074,7 +2057,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -2140,7 +2123,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -2269,10 +2252,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "marshall_creek.r1: pure cross-reference note ('See Lonzo Creek') with no actual fishing regulation.",
+            "fix": "Consider removing rule r1 or mark for curation review — it carries no enforceable regulation, only a pointer to another entry."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -2336,7 +2325,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -2399,12 +2388,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": [
           {
             "severity": "high",
-            "problem": "Lynn Creek r1: Regs specify closure 'between' two boundary signs (200 m upstream and 150 m downstream of Twin Falls Bridge), but extent uses `op: whole` (entire creek), which incorrectly broadens the closure to the full waterbody instead of the defined reach between the signs.",
-            "fix": "Resolve the missing '150 m downstream' boundary or use a bounded extent operation (e.g., between/band) instead of `op: whole`. Current parsing makes closure apply to entire creek, not just the closure band."
+            "problem": "lynn_creek.r1: falls back to op:whole with unresolved_locators ['150 m downstream of Twin Falls Bridge'], but both boundary signs are available in bindable boundaries: lynn_creek__sign_200_m_upstream_of_twin_falls_bridge and lynn_creek__sign_150_m_downstream_of_twin_falls_bridge. Regs clearly state 'between fishing boundary signs.'",
+            "fix": "lynn_creek.r1: bind extents with op:'between' and splits both signs: [lynn_creek__sign_200_m_upstream_of_twin_falls_bridge, lynn_creek__sign_150_m_downstream_of_twin_falls_bridge]. Remove unresolved_locators; the downstream sign exists."
           }
         ]
       },
@@ -2498,10 +2487,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "Rules r6 and r7 lack dates for downstream Othello regulations. Regs specify 'Trout/char catch and release, bait ban, downstream of the southern entrance to the lower most railway tunnel, Nov' but both rules have empty dates arrays, making them apply year-round instead of November only.",
+            "fix": "Add dates: ['Nov'] (or 'Nov 1-30') to both r6 (catch and release) and r7 (bait ban)"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -2761,16 +2756,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
-        "issues": [
-          {
-            "severity": "medium",
-            "problem": "r2 'No powered boats on parts' extent is 'whole' but 'on parts' indicates a specific restricted area, not the entire reach",
-            "fix": "r2: mark unresolved_locators to capture 'on parts' as vague, or keep needs_review=true if the specific areas cannot be determined"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -2906,7 +2895,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -2971,7 +2960,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -3036,7 +3025,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -3135,7 +3124,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -3198,16 +3187,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
-        "issues": [
-          {
-            "severity": "high",
-            "problem": "rule nicomekl_river.r3 captures seasonal dates (Aug 1-Dec 31) but omits the nighttime restriction (21:00-05:00 hours each day); closure applies only at night, not all day",
-            "fix": "add time-of-day component to capture '21:00-05:00' restriction separately from seasonal dates"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -3421,16 +3404,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
-        "issues": [
-          {
-            "severity": "medium",
-            "problem": "rule nicomen_slough.r1 binds speed restriction to 'whole slough' when regs say 'on parts'; 4 bindable lake boundaries available but none used",
-            "fix": "resolve which parts of the slough the 8 km/h restriction applies to, or flag if boundary definitions are unavailable"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -3492,7 +3469,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -3557,7 +3534,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -3622,7 +3599,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -3687,7 +3664,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -3753,7 +3730,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -3818,7 +3795,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -3883,7 +3860,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -3948,7 +3925,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4015,7 +3992,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4080,7 +4057,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4144,7 +4121,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -4210,7 +4187,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4303,16 +4280,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
-        "issues": [
-          {
-            "severity": "medium",
-            "problem": "Rule r3 (Serpentine River nighttime closure Aug 1-Dec 31) is missing the time-of-day component in structured fields. Regs specify '21:00 hours to 05:00 hours each day' but the `dates` field only captures 'Aug 1-Dec 31'. Consumers relying on structured date data will think the entire period is closed, not just nighttime.",
-            "fix": "Either (a) add time-of-day fields to the rule structure, or (b) flag this rule with `needs_review: true` to signal the limitation to users, since the schema cannot represent daytime carve-outs within a date range."
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -4470,7 +4441,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -4537,7 +4508,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4634,7 +4605,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4699,7 +4670,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4765,7 +4736,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -4959,7 +4930,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -5024,7 +4995,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -5090,7 +5061,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -5223,7 +5194,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -5289,7 +5260,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -5352,7 +5323,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -5451,7 +5422,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -5514,7 +5485,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -5577,7 +5548,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -5642,7 +5613,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -5707,7 +5678,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -5770,7 +5741,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -5833,7 +5804,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -5898,7 +5869,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -5993,7 +5964,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -6058,7 +6029,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -6124,7 +6095,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -6189,7 +6160,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -6316,7 +6287,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -6383,12 +6354,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": [
           {
             "severity": "high",
-            "problem": "Rule r3 uses op='downstream_of' the triangular signs with no downstream limit, but regs specify 'between signs downstream to pedestrian bridge' — unbounded extends closure past the intended boundary",
-            "fix": "Change r3 op to 'between' and bind both endpoints: upstream (triangular signs) and downstream (pedestrian bridge at Stayte Road)"
+            "problem": "Rule campbell_river.r3 ('No Fishing between triangular signs downstream to pedestrian bridge') is bound downstream_of the signs but should be between the signs and the pedestrian bridge. Currently unbounded downstream.",
+            "fix": "Change r3 extent op to 'between' and add splits: ['campbell_river__two_white_triangular_fishing_boundary_signs_200_m_upstream', 'campbell_river__pedestrian_bridge_at_the_foot_of_stayte_road']. Remove unresolved_locators."
           }
         ]
       },
@@ -6551,16 +6522,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
-        "issues": [
-          {
-            "severity": "high",
-            "problem": "rule pitt_river.r4 captures the reach (CPR Bridge to Pitt Lake) but omits the nighttime-only restriction (one hour after sunset to one hour before sunrise); closure applies only at night, not all day",
-            "fix": "add time-of-day component to capture the sunset/sunrise-based restriction"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -6715,7 +6680,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -6814,7 +6779,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -6881,7 +6846,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -6945,26 +6910,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
-        "issues": [
-          {
-            "severity": "high",
-            "problem": "r2 extent is 'upstream_of' Tamihi Rapids only, but regs specify 'downstream of [Slesse signs] to Tamihi Rapids Bridge' — should be 'between' or correctly bound to both limits",
-            "fix": "r2: change 'op': 'upstream_of' to 'op': 'between' and include both boundary splits (Slesse signs and Tamihi Rapids) once the upstream boundary is resolved"
-          },
-          {
-            "severity": "high",
-            "problem": "r3 extent is 'downstream_of' Tamihi Rapids only, but regs specify 'downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge' — missing downstream boundary",
-            "fix": "r3: change 'op': 'downstream_of' to 'op': 'between' with splits [Tamihi Rapids, Vedder Crossing Bridge] once Vedder Crossing is bindable"
-          },
-          {
-            "severity": "high",
-            "problem": "r4, r5, r6 have 'op': 'whole' but regs clearly state 'Downstream of Vedder Crossing Bridge' — these rules apply only below Vedder Crossing, not whole river",
-            "fix": "r4, r5, r6: change 'op': 'whole' to 'op': 'downstream_of' with split [Vedder Crossing Bridge] once it is bindable"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -7198,7 +7147,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -7263,12 +7212,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": [
           {
             "severity": "high",
-            "problem": "Rule r1 uses op='downstream_of' with only the upstream endpoint (1st falls), but regs specify 'from upstream edge of 1st falls to a point 100m downstream' — unbounded downstream allows fishing beyond the intended closure limit",
-            "fix": "Change r1 op to 'between' and bind both endpoints: upstream (1st falls) and downstream (100m point). A bindable boundary 'brem_river__the_upstream_edge_of_1st_falls_100_m_downstream' is listed but unused"
+            "problem": "Rule brem_river.r1 ('No Fishing from upstream edge of 1st falls to 100m downstream') is bound downstream_of 1st_falls but should be between 1st_falls and the_upstream_edge_of_1st_falls_100_m_downstream. Currently unbounded downstream.",
+            "fix": "Change r1 extent op to 'between' and add splits: ['brem_river__1st_falls', 'brem_river__the_upstream_edge_of_1st_falls_100_m_downstream']. Remove unresolved_locators."
           }
         ]
       },
@@ -7428,7 +7377,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -7493,7 +7442,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -7616,10 +7565,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "r1 is a useless note: pure cross-reference 'See Alouette River' with no substantive regulation",
+            "fix": "Remove the note rule; the entry should either inherit actual regulations from Alouette River via a separate parsing pass, or document the cross-reference in entry-level metadata rather than as a rule"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -7683,7 +7638,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -7746,7 +7701,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -7811,7 +7766,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -7867,7 +7822,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -7921,7 +7876,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -7975,7 +7930,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -8194,7 +8149,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -8381,7 +8336,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -8446,7 +8401,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -8511,7 +8466,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -8641,7 +8596,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -8802,7 +8757,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -8865,10 +8820,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "Rule rice_lake.r2 is facility information ('wheelchair accessible: excellent path system; see gate attendant') with no fishing regulation; consider removing",
+            "fix": "Delete the note rule; wheelchair accessibility is not a fishing regulation"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -8966,7 +8927,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -9064,16 +9025,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
-        "issues": [
-          {
-            "severity": "medium",
-            "problem": "r4 'Speed restriction (5 km/h) at north end' extent is 'whole' but regs explicitly limit to 'north end, as buoyed and signed' — not the entire lake",
-            "fix": "r4: change 'op': 'whole' to a bounded extent if a 'north end' boundary is available, or mark with unresolved_locators for the buoyed area"
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -9262,7 +9217,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -9325,10 +9280,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "r2 is a useless note: 'Youth/Disabled Accompanied Water year round (see page 4)' carries no fishing regulation, only facility designation and a cross-reference",
+            "fix": "Consider removing r2 or clarifying if this is a regulatory restriction vs. facility information"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -9418,7 +9379,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -9481,7 +9442,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -9576,7 +9537,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -9708,7 +9669,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -9771,7 +9732,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -9872,7 +9833,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -9974,7 +9935,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -10074,7 +10035,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -10135,10 +10096,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "r1 is a pure cross-reference carrying no regulation ('See Wahleach Lake')",
+            "fix": "Remove r1 (note rule); replace with actual regulations from Wahleach Lake or mark as requiring manual entry"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -10202,7 +10169,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -10272,7 +10239,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -10337,7 +10304,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -10403,7 +10370,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -10499,7 +10466,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -10560,7 +10527,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -10623,12 +10590,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": [
           {
             "severity": "low",
-            "problem": "r2 'Official name: Lake Errock' is parsed as a restriction rule with restriction_type 'note', but this is metadata, not a fishing regulation",
-            "fix": "r2: remove this rule or move the official name to identity metadata rather than rules array"
+            "problem": "Rule r2 ('Official name: Lake Errock') is a useless note carrying no actual regulation—pure metadata.",
+            "fix": "Consider removing rule r2 entirely; official name metadata belongs in identity, not rules"
           }
         ]
       },
@@ -10720,7 +10687,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -10913,7 +10880,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -10978,7 +10945,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -11041,7 +11008,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -11132,12 +11099,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": [
           {
             "severity": "medium",
-            "problem": "Lois Lake r1: 'Wild trout/char daily quota = 2' has empty species array, inconsistent with similar regulations elsewhere that populate species.",
-            "fix": "Add species codes (trout/char types) to r1 species array to match parsing pattern."
+            "problem": "lois_lake.r1: species array is empty for 'Wild trout/char daily quota = 2', but r2 and r3 specify their species ([RB], [RB, ST]); inconsistent encoding of which species are affected.",
+            "fix": "lois_lake.r1: populate species with trout/char codes (e.g., [RB, CT, WCT, CCT, GB, GT]) to match r2/r3 pattern and clarify the rule applies to specific trout/char species, not all species."
           }
         ]
       },
@@ -11290,7 +11257,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -11353,7 +11320,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -11452,7 +11419,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -11583,7 +11550,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -11714,7 +11681,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -11837,7 +11804,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -11900,7 +11867,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -12000,7 +11967,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -12099,7 +12066,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -12198,7 +12165,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -12261,7 +12228,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -12352,7 +12319,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -12443,7 +12410,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -12506,7 +12473,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -12569,7 +12536,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -12630,10 +12597,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "r2 is facility information carrying no regulation ('Wheelchair accessible')",
+            "fix": "Remove r2 (note rule); accessibility info is not a binding fishing regulation"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -12723,7 +12696,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -12823,7 +12796,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -12886,7 +12859,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -13011,10 +12984,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "Rule paq_lake.r1 is a pure cross-reference ('See Lily Lake') with no actual regulation; consider removing",
+            "fix": "Delete the note rule and treat PAQ Lake as regulated under Lily Lake's entry instead, or leave it empty if cross-references are not actionable in the schema"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -13078,7 +13057,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -13141,7 +13120,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -13204,7 +13183,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -13267,7 +13246,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -13330,7 +13309,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -13468,7 +13447,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -13595,7 +13574,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -13690,7 +13669,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -13820,7 +13799,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -13881,7 +13860,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -13944,7 +13923,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -14007,7 +13986,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -14106,7 +14085,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -14197,7 +14176,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -14262,7 +14241,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -14327,12 +14306,12 @@
       "parse_review": {
         "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": [
           {
-            "severity": "medium",
-            "problem": "Mill Lake r1: 'Trout/char daily quota = 2' has empty species array, inconsistent with pattern in other entries.",
-            "fix": "Populate r1 species array with trout/char species codes."
+            "severity": "low",
+            "problem": "mill_lake.r4: facility accessibility note ('wheelchair accessible: paved path to dock with rails') with no fishing regulation or restriction.",
+            "fix": "Consider removing rule r4 — it is facility information, not a fishing regulation."
           }
         ]
       },
@@ -14484,7 +14463,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -14549,7 +14528,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -14614,7 +14593,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "reviewed_at": "2026-08-22T17:39:43+00:00",
         "issues": []
       },
       "matched": [],
@@ -14715,7 +14694,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -14806,7 +14785,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -14871,7 +14850,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -14932,7 +14911,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -14997,7 +14976,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -15101,7 +15080,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -15166,7 +15145,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -15230,16 +15209,10 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "changes_requested",
+        "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
-        "issues": [
-          {
-            "severity": "medium",
-            "problem": "Little Lillooet Lake r1: 'Trout/char catch and release' has empty species array, but identical rule in Lily Lake (index 305) lists species [RB, CT, WCT, CCT, GB, GT, SLV]. Inconsistent parsing.",
-            "fix": "Populate species array for r1 with trout/char species codes to match pattern seen in other entries with identical regulations."
-          }
-        ]
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
+        "issues": []
       },
       "matched": [],
       "registry_status": "matched",
@@ -15330,7 +15303,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -15519,7 +15492,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:32+00:00",
+        "reviewed_at": "2026-08-22T17:41:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -15582,7 +15555,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -15645,7 +15618,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -15710,7 +15683,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
         "issues": []
       },
       "matched": [],
@@ -15805,7 +15778,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -15871,7 +15844,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -15936,7 +15909,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -15999,7 +15972,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "reviewed_at": "2026-08-22T17:41:02+00:00",
         "issues": []
       },
       "matched": [],
@@ -16062,7 +16035,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "reviewed_at": "2026-08-22T17:39:19+00:00",
         "issues": []
       },
       "matched": [],
@@ -16127,7 +16100,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "reviewed_at": "2026-08-22T17:40:38+00:00",
         "issues": []
       },
       "matched": [],
@@ -16224,7 +16197,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -16291,7 +16264,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
@@ -16442,10 +16415,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
+        "verdict": "changes_requested",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:12:00+00:00",
-        "issues": []
+        "reviewed_at": "2026-08-22T17:41:51+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "r1 is a useless note: pure cross-reference 'See Chilliwack River' with no substantive regulation",
+            "fix": "Remove the note rule; handle the cross-reference via metadata rather than as an empty rule"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -16509,7 +16488,7 @@
       "parse_review": {
         "verdict": "pass",
         "model": "haiku",
-        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "reviewed_at": "2026-08-22T17:41:28+00:00",
         "issues": []
       },
       "matched": [],
