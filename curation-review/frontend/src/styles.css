@@ -221,6 +221,16 @@ body {
   max-height: 480px;
   overflow: auto;
 }
+.trib-warning {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  color: var(--warn-text);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
 
 .rule {
   background: var(--panel);

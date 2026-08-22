@@ -51,13 +51,17 @@ class ParseContext:
 
 
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
-                        region: str = "", row_index: int = -1) -> ParseContext:
+                        region: str = "", row_index: int = -1, name: str = "") -> ParseContext:
     """Assemble the constrained menu for one item: its bindable boundaries + identity. Area `within`
-    targets are intentionally excluded — area scoping is a curation step (see module docstring)."""
+    targets are intentionally excluded — area scoping is a curation step (see module docstring).
+
+    `name` overrides the displayed identity name — used when several synopsis rows share one registry
+    item (reach splits like "Elk River (downstream of Elko Dam)"): each row becomes its OWN entry that
+    keeps its reach-qualified name, so the reach is visible and can scope the whole entry."""
     return ParseContext(
         entry_id=entry_id or item.id,
         row_index=row_index,
-        name=item.name,
+        name=name or item.name,
         region=region,
         mus=item.mus,
         item_id=item.id,

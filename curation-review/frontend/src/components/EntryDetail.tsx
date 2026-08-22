@@ -62,6 +62,14 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
   const mapItemId = item?.id ?? entry.matched[0] ?? null;
   const isNoRegistry = entry.registry_status === "no_registry";
 
+  // Parser skewed most entries to tributaries.included=false; flag when the raw text clearly says
+  // the reg extends to tributaries but the global flag is off, so the curator re-checks.
+  const rawSaysTributaries =
+    /\[\s*includes?\s+tributaries\s*\]|includ\w*\s+(?:all\s+|its\s+)?tributar|all\s+tributaries/i.test(
+      entry.regs_verbatim,
+    );
+  const tribFlagMismatch = rawSaysTributaries && entry.tributaries.included === false;
+
   const dirty = useMemo(
     () => JSON.stringify(entry) !== JSON.stringify(detail.entry),
     [entry, detail.entry],
@@ -227,11 +235,35 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         </div>
       )}
 
+      {/* Global reach — the entry-level scope that applies to EVERY rule (e.g. a row named
+          "Elk River (downstream of Elko Dam)" scopes the whole entry downstream of that split). */}
+      <div className="section">
+        <h3>Global reach (applies to all rules)</h3>
+        <div className="dim" style={{ marginBottom: 6 }}>
+          The reach this whole entry covers — e.g. <em>downstream of</em> a dam/lake split. Every rule
+          below inherits it; leave empty if the entry covers the whole waterbody.
+        </div>
+        <ExtentEditor
+          extents={entry.scope}
+          boundaries={boundaries}
+          onChange={(next) => setEntry((s) => ({ ...s, scope: next }))}
+        />
+      </div>
+
       {/* Side-by-side: original text vs parsed rules */}
       <div className="section">
         <h3>Original regs ↔ parsed rules</h3>
         <div className="stacked">
-          <div className="verbatim">{entry.regs_verbatim}</div>
+          <div>
+            {tribFlagMismatch && (
+              <div className="trib-warning">
+                ⚠ Raw text mentions <strong>[Includes Tributaries]</strong> but this entry's global
+                tributaries flag is <strong>off</strong>. Verify — the parser defaulted many entries to
+                false.
+              </div>
+            )}
+            <div className="verbatim">{entry.regs_verbatim}</div>
+          </div>
           <div className="rules-list">
             {entry.rules.map((rule, idx) => (
               <div
