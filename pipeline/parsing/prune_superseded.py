@@ -13,37 +13,36 @@ and NEVER a `locked` (human-confirmed) entry.
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
+
+from pipeline.parsing import io
 
 
 def _entries_dir() -> Path:
-    return Path(__file__).resolve().parent / "entries"
+    return io.entries_dir()
 
 
 def prune(entries_dir: Path, dry_run: bool = False) -> dict:
-    report: dict[str, list] = {"removed": [], "kept_locked": [], "skipped_no_replacement": []}
-    for path in sorted(entries_dir.glob("region-*.json")):
-        data = json.loads(path.read_text(encoding="utf-8"))
-        entries = data.get("entries", [])
+    report: dict[str, list] = {"removed": [], "kept_locked": []}
+    for path in sorted(Path(entries_dir).glob("region-*.json")):
+        region = path.stem.split("region-")[1]
+        by_id = io.read_entryfile(path)                         # {entry_id: entry_dict}
         # bases that now have per-row replacements (entry_id "item#reach")
-        superseded_bases = {e["entry_id"].split("#", 1)[0] for e in entries if "#" in e.get("entry_id", "")}
-        kept = []
+        superseded_bases = {eid.split("#", 1)[0] for eid in by_id if "#" in eid}
+        kept: dict[str, dict] = {}
         changed = False
-        for e in entries:
-            eid = e.get("entry_id", "")
+        for eid, e in by_id.items():
             if "#" not in eid and eid in superseded_bases:      # a bare id with per-row replacements
                 if e.get("locked"):
                     report["kept_locked"].append(eid)
-                    kept.append(e)
+                    kept[eid] = e
                     continue
                 report["removed"].append(eid)
                 changed = True
                 continue
-            kept.append(e)
+            kept[eid] = e
         if changed and not dry_run:
-            data["entries"] = kept
-            path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            io.write_entryfile(path, region, kept.values())     # atomic, via the model
     return report
 
 

@@ -16,14 +16,11 @@ import json
 import sys
 from pathlib import Path
 
+from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
 from pipeline.parsing.rows import symbols_include_tributaries
 
-
-def load_batch_items(batch_path: str | Path) -> dict[int, dict]:
-    """index -> batch item ({item_id, name, region, raw_regs, bindable_ids})."""
-    data = json.loads(Path(batch_path).read_text(encoding="utf-8"))
-    return {it["index"]: it for it in data.get("items", [])}
+load_batch_items = io.load_batch_items                   # shared helper (io is the single home)
 
 
 def _candidates(candidate_path: str | Path) -> list[dict]:

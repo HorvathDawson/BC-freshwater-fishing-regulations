@@ -17,15 +17,11 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, EntryFile
 from pipeline.parsing.validate import load_batch_items, validate_candidate
 
-
-def _load_all_batch_items(batches_dir: Path) -> dict[int, dict]:
-    items: dict[int, dict] = {}
-    for p in sorted(batches_dir.glob("batch_*.json")):
-        items.update(load_batch_items(p))
-    return items
+_load_all_batch_items = io.load_all_batch_items          # shared helper (io is the single home)
 
 
 def load_reviews(reviews_dir: Path, batches_dir: Path) -> dict[int, dict]:
@@ -63,21 +59,7 @@ def load_reviews(reviews_dir: Path, batches_dir: Path) -> dict[int, dict]:
 
 
 
-def _parse_response(text: str) -> list[dict]:
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        stripped = "\n".join(lines).strip()
-    data = json.loads(stripped)
-    if isinstance(data, dict) and "entry" in data:
-        return [data]
-    if not isinstance(data, list):
-        raise ValueError(f"expected a JSON array of {{index, entry}}, got {type(data).__name__}")
-    return data
+_parse_response = io.parse_response                      # shared helper (io is the single home)
 
 
 def ingest(response_texts: list[str], batch_items: dict[int, dict],
@@ -117,9 +99,14 @@ def _region_of(index: int, batch_items: dict[int, dict]) -> str:
     return str(batch_items.get(index, {}).get("region") or "unknown")
 
 
-def write_entry_files(accepted: dict[int, Entry], batch_items: dict[int, dict], entries_dir: Path) -> dict:
-    """Merge accepted entries into per-region EntryFiles, preserving any `locked` entry on disk.
-    Returns a per-region write report."""
+def write_entry_files(accepted: dict[int, Entry], batch_items: dict[int, dict], entries_dir: Path,
+                      *, review_only_on_locked: bool = False) -> dict:
+    """Merge accepted entries into per-region EntryFiles (atomic, via `io.write_entryfile`), preserving
+    any `locked` entry on disk. Returns a per-region write report.
+
+    `review_only_on_locked` (a review pass): a locked entry's curated content is still NOT overwritten,
+    but its `parse_review` IS refreshed from the incoming entry — so "review everything" can stamp a
+    verdict on locked entries too without disturbing the human's edits."""
     by_region: dict[str, dict[int, Entry]] = {}
     for idx, entry in accepted.items():
         by_region.setdefault(_region_of(idx, batch_items), {})[idx] = entry
@@ -130,28 +117,63 @@ def write_entry_files(accepted: dict[int, Entry], batch_items: dict[int, dict], 
         path = entries_dir / f"region-{region}.json"
         existing: dict[str, Entry] = {}
         if path.exists():
-            ef = EntryFile(**json.loads(path.read_text(encoding="utf-8")))
-            existing = {e.entry_id: e for e in ef.entries}
+            existing = {e.entry_id: e for e in EntryFile(**json.loads(path.read_text(encoding="utf-8"))).entries}
         kept_locked = 0
         for entry in entries.values():
             prior = existing.get(entry.entry_id)
             if prior is not None and prior.locked:
-                kept_locked += 1                       # never overwrite a human-frozen entry
+                if review_only_on_locked:              # refresh ONLY the review verdict on a locked entry
+                    existing[entry.entry_id] = prior.model_copy(update={"parse_review": entry.parse_review})
+                kept_locked += 1                       # never overwrite a human-frozen entry's content
                 continue
             existing[entry.entry_id] = entry
-        ef = EntryFile(region=region, entries=sorted(existing.values(), key=lambda e: e.entry_id))
-        path.write_text(ef.model_dump_json(indent=2), encoding="utf-8")
-        written[region] = {"path": str(path), "entries": len(ef.entries), "kept_locked": kept_locked}
+        io.write_entryfile(path, region, existing.values())
+        written[region] = {"path": str(path), "entries": len(existing), "kept_locked": kept_locked}
     return written
+
+
+def apply_reviews(reviews_dir: Path, batches_dir: Path, entries_dir: Path) -> dict:
+    """Write ONLY each entry's `parse_review` from a completed review pass — no content change, so it is
+    safe on locked/curated entries (unlike a full re-ingest, which would re-derive fields). Maps a
+    review's row index -> entry_id via the batch items, then stamps the verdict onto the matching entry.
+    Returns {updated, requested, missing}."""
+    reviews = load_reviews(reviews_dir, batches_dir)          # index -> parse_review dict
+    if not reviews:
+        return {"updated": 0, "requested": 0, "missing": 0}
+    items = _load_all_batch_items(batches_dir)                # index -> batch item (for entry_id)
+    pr_by_id: dict[str, dict] = {}
+    for idx, pr in reviews.items():
+        eid = (items.get(idx) or {}).get("entry_id")
+        if eid:
+            pr_by_id[eid] = pr
+    matched: set[str] = set()
+    for p in sorted(Path(entries_dir).glob("region-*.json")):
+        region = p.stem.split("region-")[1]
+        by_id = io.read_entryfile(p)
+        changed = False
+        for eid, e in by_id.items():
+            if eid in pr_by_id:
+                e["parse_review"] = pr_by_id[eid]
+                matched.add(eid)
+                changed = True
+        if changed:
+            io.write_entryfile(p, region, by_id.values())
+    return {"updated": len(matched), "requested": len(pr_by_id), "missing": len(set(pr_by_id) - matched)}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Ingest agent responses into checked-in EntryFiles.")
-    ap.add_argument("responses", nargs="+", help="response JSON file(s)")
+    ap.add_argument("responses", nargs="*", help="response JSON file(s) (omit with --apply-reviews)")
+    ap.add_argument("--apply-reviews", action="store_true",
+                    help="don't ingest responses — just stamp each entry's parse_review from the review "
+                    "pass (reviews/*.review.json). Content untouched; safe on locked entries.")
     ap.add_argument("--batches-dir", help="dir with batch_*.json (default: <out>/parse/batches)")
     ap.add_argument("--reviews-dir", help="dir with batch_*.review.json (default: <out>/parse/reviews)")
     ap.add_argument("--entries-dir", help="output EntryFiles dir (default: pipeline/parsing/entries)")
     ap.add_argument("--dry-run", action="store_true", help="validate + report only; write nothing")
+    ap.add_argument("--review-only-locked", action="store_true",
+                    help="a review pass: refresh ONLY parse_review on locked entries (don't overwrite "
+                    "their curated content). Use when ingesting a review-only re-parse of all entries.")
     args = ap.parse_args()
 
     if args.batches_dir:
@@ -161,6 +183,12 @@ def main() -> None:
         batches_dir = default_work_dir() / "batches"
     reviews_dir = Path(args.reviews_dir) if args.reviews_dir else (batches_dir.parent / "reviews")
     entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
+
+    if args.apply_reviews:
+        rep = apply_reviews(reviews_dir, batches_dir, entries_dir)
+        print(f"Applied parse_review to {rep['updated']}/{rep['requested']} entr(ies)"
+              + (f"  ({rep['missing']} review(s) had no matching entry)" if rep["missing"] else ""))
+        return
 
     batch_items = _load_all_batch_items(batches_dir)
     reviews = load_reviews(reviews_dir, batches_dir)
@@ -185,7 +213,8 @@ def main() -> None:
     if not accepted:
         print("No valid entries to write.")
         return
-    written = write_entry_files(accepted, batch_items, entries_dir)
+    written = write_entry_files(accepted, batch_items, entries_dir,
+                                review_only_on_locked=args.review_only_locked)
     for region, info in sorted(written.items()):
         locked_note = f" (kept {info['kept_locked']} locked)" if info["kept_locked"] else ""
         print(f"  region {region}: {info['entries']} entries -> {info['path']}{locked_note}")

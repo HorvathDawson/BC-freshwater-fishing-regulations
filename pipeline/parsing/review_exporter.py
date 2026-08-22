@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pipeline.parsing.parse_context import render_boundary_menu
+
 _REVIEW_PROMPT = Path(__file__).resolve().parent / "prompts" / "REVIEW_PROMPT.md"
 
 _ENVELOPE = """\
@@ -33,11 +35,19 @@ def render_review_prompt(batch_items: list[dict], results_by_index: dict[int, di
     for it in batch_items:
         idx = it["index"]
         entry = results_by_index.get(idx, {})
+        # Prefer the full boundary menu (id — label [kind]); fall back to bare ids for old batch files.
+        boundaries = it.get("boundaries") or [[b, b, ""] for b in it.get("bindable_ids", [])]
+        menu = "\n".join(render_boundary_menu(boundaries))
+        trib = entry.get("tributaries") or {}
+        trib_line = (f"included={trib.get('included')} only={trib.get('only')} "
+                     f"excludes={len(trib.get('excludes') or [])}")
         parts.append(
             f"\n## ITEM index={idx} — {it.get('name','')}\n"
-            f"Bindable boundaries: {it.get('bindable_ids', [])}\n"
-            f"Regs: {it.get('raw_regs','')}\n\n"
-            f"Produced entry:\n```json\n{json.dumps(entry, ensure_ascii=False, indent=2)}\n```\n"
+            f"### Bindable boundaries (the ids an extent may bind)\n{menu}\n\n"
+            f"Entry-level tributaries: {trib_line}\n"
+            f"Regs:\n{it.get('raw_regs','')}\n\n"
+            f"Produced entry (check every rule's extents, dates, species, includes_tributaries):\n"
+            f"```json\n{json.dumps(entry, ensure_ascii=False, indent=2)}\n```\n"
         )
     parts.append(_ENVELOPE)
     return "\n".join(parts)

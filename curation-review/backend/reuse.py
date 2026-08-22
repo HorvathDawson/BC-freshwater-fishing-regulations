@@ -6,10 +6,10 @@
 - "Unused curated splits" reuses `entry_models.unused_splits`, restricted to curated (`ref="split:*"`)
   boundaries so lake/outlet/headwaters auto-boundaries don't count.
 
-Write model: the PARSER owns `pipeline/parsing/entries/region-*.json` (append-only as parsing
-progresses). This app never writes there — curator decisions go to a SEPARATE overlay
-`pipeline/parsing/entries/reviewed/region-*.json`, so the app can run against a half-finished parse
-while parsing keeps adding entries. The presented entry = parser entry overlaid by its reviewed copy.
+Write model: `pipeline/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator decisions
+are written straight back to them (the old separate reviewed/ overlay has been merged in and retired).
+A parser re-run preserves `locked` entries and, with --skip-existing, skips entries already present —
+so curator edits are safe as long as re-parses stay targeted.
 """
 
 from __future__ import annotations
@@ -24,13 +24,13 @@ from pathlib import Path
 from pipeline.matching.matcher import (
     MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
+from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
 from pipeline.parsing.rows import load_synopsis_rows
 from pipeline.registry import load_registry
 
 _ROOT = Path(__file__).resolve().parents[2]
 ENTRIES_DIR = _ROOT / "pipeline" / "parsing" / "entries"
-REVIEWED_DIR = ENTRIES_DIR / "reviewed"
 REGISTRY_PATH = _ROOT / "output" / "v2" / "full" / "registry.json"
 OVERRIDES_PATH = _ROOT / "pipeline" / "matching" / "overrides.json"
 SPLITS_RESOLVED_PATH = _ROOT / "output" / "v2" / "full" / "splits.resolved.json"
@@ -125,27 +125,18 @@ def match_identity(name: str, region: str, mus: list[str]) -> MatchResult:
 # Entry loading + reviewed overlay
 # --------------------------------------------------------------------------- #
 
-def _read_entryfile(path: Path) -> dict[str, dict]:
-    if not path.exists():
-        return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return {e["entry_id"]: e for e in data.get("entries", [])}
+_read_entryfile = io.read_entryfile                      # shared helper (io is the single home)
 
 
 def regions() -> list[str]:
     """Region ids that have a parser EntryFile (e.g. ['1','2',...])."""
-    out = []
-    for p in sorted(ENTRIES_DIR.glob("region-*.json")):
-        out.append(p.stem.split("region-")[1])
-    return out
+    return io.region_ids(ENTRIES_DIR)
 
 
 def load_region(region: str) -> dict[str, dict]:
-    """Parser entries for a region, overlaid by any reviewed copies (reviewed wins)."""
-    base = _read_entryfile(ENTRIES_DIR / f"region-{region}.json")
-    review = _read_entryfile(REVIEWED_DIR / f"region-{region}.json")
-    base.update(review)
-    return base
+    """Entries for a region. EntryFiles are the SINGLE SOURCE OF TRUTH — curator edits are written back
+    here (the old reviewed/ overlay was merged in), so no overlay to apply."""
+    return io.read_entryfile(ENTRIES_DIR / f"region-{region}.json")
 
 
 def _all_entries() -> list[tuple[str, dict]]:
@@ -671,21 +662,14 @@ def _to_entry(e: dict) -> Entry:
     return Entry(**e)
 
 
-def _atomic_write(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(dir=str(path.parent), suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(text)
-        os.replace(tmp, path)
-    finally:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
+_atomic_write = io.atomic_write                          # shared helper (io is the single home)
 
 
 def save_entry(region: str, entry_dict: dict, *, lock: bool = False, reviewed_by: str = "") -> dict:
     """Validate an edited entry (Entry model + split-id check against its matched item's boundaries) and
-    write it to the reviewed overlay. Returns {ok, errors}. On lock, stamp reviewed_by/reviewed_at."""
+    write it back to the region EntryFile (the single source of truth). Returns {ok, errors}. On lock,
+    stamp reviewed_by/reviewed_at. A future parser re-run preserves locked entries; keep non-locked
+    curator edits safe by only re-parsing with --skip-existing (which skips entries already present)."""
     data = dict(entry_dict)
     if lock:
         data["locked"] = True
@@ -705,9 +689,8 @@ def save_entry(region: str, entry_dict: dict, *, lock: bool = False, reviewed_by
     if errs:
         return {"ok": False, "errors": errs}
 
-    path = REVIEWED_DIR / f"region-{region}.json"
-    existing = _read_entryfile(path)
+    path = ENTRIES_DIR / f"region-{region}.json"
+    existing = io.read_entryfile(path)
     existing[entry.entry_id] = json.loads(entry.model_dump_json())
-    payload = {"region": region, "entries": sorted(existing.values(), key=lambda x: x["entry_id"])}
-    _atomic_write(path, json.dumps(payload, indent=2, ensure_ascii=False))
+    io.write_entryfile(path, region, existing.values())   # atomic, via the model (single home)
     return {"ok": True, "errors": []}

@@ -27,6 +27,7 @@ _MAX_DAY = {1: 31, 2: 29, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 3
 
 _SEP = re.compile(r"\s*(?:-|–|—|to|through|thru|until)\s*", re.IGNORECASE)
 _DATE = re.compile(r"^([A-Za-z]+)\.?\s+(\d{1,2})$")
+_BARE_DAY = re.compile(r"^(\d{1,2})$")
 
 
 @dataclass(frozen=True)
@@ -60,16 +61,36 @@ def _parse_one(token: str) -> "tuple[int, int] | None":
     return mon, day
 
 
+def _parse_end(token: str, start_month: int) -> "tuple[int, int] | None":
+    """The END of a window: a full "Month Day", or the common same-month shorthand where only the day
+    is given ("May 1-31" -> end = May 31), inheriting the start month."""
+    full = _parse_one(token)
+    if full is not None:
+        return full
+    m = _BARE_DAY.match(token.strip())
+    if m:
+        day = int(m.group(1))
+        if 1 <= day <= _MAX_DAY[start_month]:
+            return start_month, day
+    return None
+
+
 def parse_date_window(text: str) -> "DateWindow | None":
-    """One date string -> a DateWindow, or None if it doesn't parse to a real calendar window."""
+    """One date string -> a DateWindow, or None if it doesn't parse to a real calendar window.
+    Tolerates markdown bold the parser may copy from the synopsis ("Dec 1-**Aug 15**") and the
+    same-month day shorthand ("May 1-31")."""
     if not text or not text.strip():
         return None
-    parts = _SEP.split(text.strip(), maxsplit=1)
+    text = text.replace("*", "").strip()                     # strip markdown bold (**Aug 15**)
+    parts = _SEP.split(text, maxsplit=1)
     if len(parts) == 1:
         one = _parse_one(parts[0])
         return DateWindow(*one, *one) if one else None
-    a, b = _parse_one(parts[0]), _parse_one(parts[1])
-    if a is None or b is None:
+    a = _parse_one(parts[0])
+    if a is None:
+        return None
+    b = _parse_end(parts[1], a[0])                            # end may inherit the start month
+    if b is None:
         return None
     return DateWindow(a[0], a[1], b[0], b[1])
 

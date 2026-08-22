@@ -40,6 +40,10 @@ outlet/inlet with no listed boundary):
 - Still bind what you CAN (e.g. the one end you found), or fall back to `[{ "op": "whole" }]`.
 - Set **`display_location`** to a readable description so a human can still locate the reach.
 
+Do NOT put **vague, non-specific phrases** in `unresolved_locators` — "all other parts", "other parts",
+"elsewhere", "the rest" are not real locators (they mean "the whole reach not covered above"). Bind
+`op:whole` (or the complementary reach) and leave `unresolved_locators` empty for these.
+
 A wrong-but-confident binding is the worst outcome. An unbound locator sent to review is correct behavior.
 
 ### When an item is marked `[NO REGISTRY MATCH]`

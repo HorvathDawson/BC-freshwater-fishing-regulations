@@ -213,8 +213,8 @@ class Rule(BaseModel):
             errors.append(f"exception not found in rule_text. Exception: '{self.exception[:80]}'")
 
         for date in self.dates:
-            if "\n" in date or "*" in date:
-                errors.append(f"Date '{date}' contains newlines/asterisks")
+            if "\n" in date:
+                errors.append(f"Date '{date}' contains a newline")
             elif _normalize_date(date) not in _normalize_date(self.rule_text):
                 errors.append(f"Date '{date}' not found in rule_text. Rule: '{self.rule_text[:100]}'")
         # every verbatim date must resolve to a real calendar window (hallucination guard)

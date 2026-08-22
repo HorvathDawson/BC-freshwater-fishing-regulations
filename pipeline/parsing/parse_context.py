@@ -42,6 +42,7 @@ class ParseContext:
     boundaries: tuple[tuple[str, str, str], ...] = ()    # (id, label, kind) — the bindable cut-points
     raw_regs: str = ""
     symbols: tuple[str, ...] = ()                        # synopsis row symbols (e.g. 'Incl. Tribs')
+    review_hints: tuple[str, ...] = ()                    # prior reviewer findings (a REPASS re-parse)
     no_registry: bool = False                            # True: no registry match — split rules, bind nothing
     registry_note: str = ""                              # why (matcher status + reason), when no_registry
 
@@ -54,7 +55,7 @@ class ParseContext:
 
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
                         region: str = "", row_index: int = -1, name: str = "",
-                        symbols: tuple[str, ...] = ()) -> ParseContext:
+                        symbols: tuple[str, ...] = (), review_hints: tuple[str, ...] = ()) -> ParseContext:
     """Assemble the constrained menu for one item: its bindable boundaries + identity. Area `within`
     targets are intentionally excluded — area scoping is a curation step (see module docstring).
 
@@ -73,6 +74,7 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
         boundaries=tuple((b.id, b.label, b.kind) for b in item.boundaries),
         raw_regs=raw_regs,
         symbols=tuple(symbols),
+        review_hints=tuple(review_hints),
     )
 
 
@@ -104,6 +106,15 @@ def load_system_prompt() -> str:
     return _PROMPT.read_text(encoding="utf-8")
 
 
+def render_boundary_menu(boundaries) -> list[str]:
+    """The bindable-boundary menu lines shared by the PARSE and REVIEW prompts: `id — label [kind]`.
+    `boundaries` is an iterable of (id, label, kind) (tuples from ParseContext, or lists from a batch
+    item). Empty -> a single 'no cut-points' line."""
+    if not boundaries:
+        return ["- (none) — this item has no cut-points; only op:whole is bindable."]
+    return [f"- `{bid}`  — {label}  [{kind}]" for bid, label, kind in boundaries]
+
+
 def render_user_message(ctx: ParseContext) -> str:
     """The per-entry payload: identity, the closed boundary menu, `within` targets, species menu, and
     the verbatim regs. Deliberately terse — the parser selects from these, it does not invent ids."""
@@ -119,6 +130,12 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append("Synopsis symbol **[Includes Tributaries]** → set entry `tributaries.included = true`.")
     lines.append("")
 
+    if ctx.review_hints:
+        lines.append("### ⚠ A prior review flagged this parse — FIX these before re-emitting:")
+        for h in ctx.review_hints:
+            lines.append(f"- {h}")
+        lines.append("")
+
     if ctx.no_registry:
         lines.append("### ⚠ NO REGISTRY MATCH — content-only parse")
         lines.append(f"Reason: {ctx.registry_note or 'unmatched'}")
@@ -131,11 +148,7 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append("")
     else:
         lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")
-        if ctx.boundaries:
-            for bid, label, kind in ctx.boundaries:
-                lines.append(f"- `{bid}`  — {label}  [{kind}]")
-        else:
-            lines.append("- (none) — this item has no cut-points; only op:whole is bindable.")
+        lines.extend(render_boundary_menu(ctx.boundaries))
         lines.append("")
 
     lines.append("### Species codes (leave rule.species empty = ALL species; else pick from these)")

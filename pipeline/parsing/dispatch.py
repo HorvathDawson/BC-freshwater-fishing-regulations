@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pipeline.parsing.ingest import _parse_response
+from pipeline.parsing import io
 
 
 class CreditExhausted(RuntimeError):
@@ -47,17 +47,7 @@ def _is_credit_error(text: str) -> bool:
     return any(m in low for m in _CREDIT_MARKERS)
 
 
-def _extract_json_array(stdout: str) -> list[dict]:
-    """The CLI (`--output-format json`) wraps the reply in an envelope with a `result` string; older/raw
-    modes print the reply directly. Handle both, then reuse the ingest fence-stripping parser."""
-    text = stdout.strip()
-    try:
-        env = json.loads(text)
-        if isinstance(env, dict) and "result" in env:
-            text = env["result"]
-    except json.JSONDecodeError:
-        pass
-    return _parse_response(text)
+_extract_json_array = io.parse_response                  # CLI envelope + fences -> [{index, entry}] (io)
 
 
 def _cli_flags(model: str, permission_mode: str, allowed_tools: str, skip_perms: bool) -> list[str]:
@@ -161,28 +151,7 @@ def _write_run_state(path: Path, model: str, all_bids: list[int], responses_dir:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def _extract_json_obj(stdout: str) -> dict:
-    """Like _extract_json_array but for the reviewer's single `{verdict, issues}` object."""
-    text = stdout.strip()
-    try:
-        env = json.loads(text)
-        if isinstance(env, dict) and "result" in env:
-            text = env["result"]
-    except json.JSONDecodeError:
-        pass
-    text = text.strip()
-    if text.startswith("```"):
-        lines = text.splitlines()
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        text = "\n".join(lines).strip()
-    try:
-        obj = json.loads(text)
-        return obj if isinstance(obj, dict) else {}
-    except json.JSONDecodeError:
-        return {}
+_extract_json_obj = io.extract_json_obj                  # CLI envelope + fences -> {verdict, issues} (io)
 
 
 def _flagged_batch_ids(manifest: dict, reviews_dir: Path,
@@ -264,6 +233,9 @@ def main() -> None:
     ap.add_argument("--only", help="dispatch only these batch id(s), comma-separated (e.g. '3' or '3,5,7')")
     ap.add_argument("--force", action="store_true", help="re-dispatch batches with an existing response")
     ap.add_argument("--review", action="store_true", help="also run an independent reviewer subagent per batch")
+    ap.add_argument("--rereview", action="store_true",
+                    help="re-review even batches that already have a review file (refresh the verdict), "
+                    "WITHOUT --force re-parsing. Use to re-review everything after a prompt change.")
     ap.add_argument("--review-model", default="", help="model for the review pass (default: same as --model)")
     ap.add_argument("--redo-invalid", action="store_true",
                     help="re-parse batches whose existing response fails validation (schema/split-id/"
@@ -378,14 +350,15 @@ def main() -> None:
               f"SAME command; completed responses are skipped automatically.")
         return                                            # don't review/finish a partial run
 
-    if args.review:
+    if args.review or args.rereview:
         review_model = args.review_model or args.model
         review_flags = _cli_flags(review_model, args.permission_mode, args.allowed_tools,
                                   args.dangerously_skip_permissions)
-        print(f"\nReview pass ({review_model}):")
+        print(f"\nReview pass ({review_model}){' — rereview (force)' if args.rereview else ''}:")
         _dispatch_reviews(batches_dir, responses_dir, reviews_dir, bids, claude_bin=args.claude_bin,
                           cli_flags=review_flags, cwd=project_root, timeout=args.timeout,
-                          concurrency=args.concurrency, force=args.force, review_model=review_model)
+                          concurrency=args.concurrency, force=(args.force or args.rereview),
+                          review_model=review_model)
 
     print(f"Done. Next: python -m pipeline.parsing.ingest {responses_dir}/*.json --dry-run")
 

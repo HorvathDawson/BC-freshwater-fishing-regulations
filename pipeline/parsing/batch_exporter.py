@@ -21,6 +21,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+from pipeline.parsing import io
 from pipeline.matching.matcher import load_overrides, match_rows, parse_reg_mus, region_num
 from pipeline.parsing.parse_context import (
     build_no_registry_context, build_parse_context, render_batch_prompt,
@@ -41,32 +42,10 @@ def compute_rows_digest(rows: list[dict]) -> str:
     return h.hexdigest()
 
 
-def default_work_dir() -> Path:
-    # Own top-level dir: the parse work (batches/responses/reviews) is unrelated to the FWA graph
-    # artifacts, so it no longer piggybacks under output/pipeline/graph. <project-root>/output/parse.
-    return Path(__file__).resolve().parents[2] / "output" / "parse"
-
-
-def load_existing_entry_ids(entries_dir: Path) -> set[str]:
-    """entry_ids already present in checked-in EntryFiles (resume: don't re-export them)."""
-    return set(load_existing_entry_regs(entries_dir))
-
-
-def load_existing_entry_regs(entries_dir: Path) -> dict[str, str]:
-    """entry_id -> regs_verbatim for every entry already in the checked-in EntryFiles. Used by
-    ``--only-changed`` to re-export only the entries whose combined regs differ from what was parsed."""
-    out: dict[str, str] = {}
-    if not entries_dir.exists():
-        return out
-    for p in entries_dir.glob("region-*.json"):
-        try:
-            data = json.loads(p.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        for e in data.get("entries", []):
-            if e.get("entry_id"):
-                out[e["entry_id"]] = e.get("regs_verbatim", "")
-    return out
+# Shared helpers now live in io (the single home); kept as names here for existing importers.
+default_work_dir = io.default_work_dir
+load_existing_entry_ids = io.load_existing_entry_ids
+load_existing_entry_regs = io.load_existing_entry_regs
 
 
 def _item_payload(index: int, ctx) -> dict:
@@ -82,6 +61,7 @@ def _item_payload(index: int, ctx) -> dict:
         "mus": list(ctx.mus),
         "raw_regs": ctx.raw_regs,
         "bindable_ids": sorted(ctx.bindable_ids),
+        "boundaries": [list(b) for b in ctx.boundaries],   # (id,label,kind) — the review prompt's menu
         "no_registry": ctx.no_registry,
         "registry_note": ctx.registry_note,
         "symbols": list(ctx.symbols),
@@ -90,7 +70,8 @@ def _item_payload(index: int, ctx) -> dict:
 
 def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_ids, force: bool,
            skip_existing: bool = False, only_changed: bool = False,
-           existing_regs: dict | None = None) -> dict:
+           existing_regs: dict | None = None, flagged_ids: set[str] | None = None,
+           review_hints: dict[str, list] | None = None) -> dict:
     """Export matchable rows into stable batches, ONE batch item per synopsis ROW (each row is its own
     entry). Rows that share a registry item get a reach-qualified `entry_id` (`item_id#<reach-slug>`) so
     they no longer collide and overwrite at ingest (the bug); single-row waterbodies keep
@@ -160,9 +141,13 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
                 name = ""                               # -> item.name (unchanged single-row entries)
             ctx = build_parse_context(registry[m.item_id], raw_regs=raw, entry_id=eid,
                                       region=region_num(row), row_index=m.index, name=name,
-                                      symbols=tuple(row.get("symbols", [])))
+                                      symbols=tuple(row.get("symbols", [])),
+                                      review_hints=tuple((review_hints or {}).get(eid, ())))
             is_noreg = False
 
+        if flagged_ids is not None and eid not in flagged_ids:
+            skipped_existing.append(m.index)            # repass: only the review-flagged entries
+            continue
         if skip_existing and eid in existing_ids and not force:
             skipped_existing.append(m.index)
             continue
@@ -184,6 +169,18 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
         (batches_dir / f"batch_{bid:03d}.prompt.txt").write_text(
             render_batch_prompt([ctx for (_, ctx) in chunk]), encoding="utf-8")
         manifest_batches.append({"id": bid, "count": len(chunk), "indices": [i for (i, _) in chunk]})
+
+    # Drop ORPHANED responses/reviews from a previous (larger) export: a batch id no longer produced
+    # here would otherwise be glob-ingested against the new layout -> "unknown index" + duplicate noise.
+    n = len(manifest_batches)
+    for sub, pat in (("responses", "batch_*.json"), ("reviews", "batch_*")):
+        d = out_dir / sub
+        if not d.exists():
+            continue
+        for f in d.glob(pat):
+            mm = re.search(r"batch_(\d+)", f.name)
+            if mm and int(mm.group(1)) >= n:
+                f.unlink()
 
     manifest = {
         "created_at": datetime.now().isoformat(),
@@ -218,6 +215,10 @@ def main() -> None:
                     help="export ONLY entries whose combined regs differ from the already-parsed entry "
                     "(i.e. multi-row collisions + genuinely new/changed rows). The minimal re-parse set "
                     "after the per-row grouping fix — pair with `dispatch --force` on a fresh --out-dir.")
+    ap.add_argument("--flagged", action="store_true",
+                    help="REPASS: export ONLY entries the review flagged (parse_review.verdict == "
+                    "'changes_requested'), skipping locked ones; the reviewer's issues are passed to the "
+                    "re-parse as hints. Pair with `dispatch --force` on a fresh --out-dir.")
     args = ap.parse_args()
 
     rows = load_synopsis_rows()
@@ -229,16 +230,34 @@ def main() -> None:
     existing_regs = load_existing_entry_regs(entries_dir)
     existing = set(existing_regs)
 
+    flagged_ids = review_hints = None
+    if args.flagged:
+        flagged_ids, review_hints = set(), {}
+        for eid, e in io.read_entries_dir(entries_dir).items():
+            pr = e.get("parse_review") or {}
+            if pr.get("verdict") == "changes_requested" and not e.get("locked"):
+                flagged_ids.add(eid)
+                review_hints[eid] = [
+                    f"[{i.get('severity','?')}] {i.get('problem','')}"
+                    + (f" -> fix: {i.get('fix')}" if i.get("fix") else "")
+                    for i in (pr.get("issues") or [])]
+
     manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force,
                       skip_existing=args.skip_existing, only_changed=args.only_changed,
-                      existing_regs=existing_regs)
+                      existing_regs=existing_regs, flagged_ids=flagged_ids, review_hints=review_hints)
     print(f"Exported {manifest['pending_count']} rows into {len(manifest['batches'])} batch(es) -> {out_dir/'batches'}")
     print(f"  of those, no-registry (content-only, flagged): {manifest['no_registry_count']}")
     print(f"  held-back rows also parsed (no-registry): {len(manifest['unmatched'])}  "
           f"empty-regs skipped: {len(manifest['excluded_empty'])}")
     if manifest["skipped_existing"]:
-        why = "unchanged (already parsed)" if args.only_changed else "already in EntryFiles"
+        why = ("review-flagged only" if args.flagged else
+               "unchanged (already parsed)" if args.only_changed else "already in EntryFiles")
         print(f"  dropped {len(manifest['skipped_existing'])} row(s) — {why}")
+    if args.flagged:
+        print(f"  repass: {len(flagged_ids)} flagged entr(y/ies) requested; {manifest['pending_count']} exported")
+        if manifest["pending_count"] < len(flagged_ids):
+            print("    ⚠ some flagged entries did not map to a current row (id drift / superseded / "
+                  "locked) — not re-parsed")
     print("  (already-parsed batches are skipped at the parse step, not here)")
     print(f"  manifest: {out_dir/'manifest.json'}")
 
