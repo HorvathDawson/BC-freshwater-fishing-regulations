@@ -65,6 +65,8 @@ This captures the regulation's content for the curator even though its location 
 - **`species`**: codes from the Species menu this rule applies to. **Empty = ALL species.** Use a group
   code (e.g. `SLV` for char) when the regs say the group; list specific codes otherwise. Never invent a code.
 - **`includes_tributaries`**: `null` = inherit the entry; `true`/`false` = override for this rule.
+- **`tributaries_only`**: `true` when THIS rule applies to the tributaries only, not the mainstem reach
+  (e.g. a standalone "No Fishing tributaries" line). Implies includes_tributaries. Default `false`.
 - **`tributary_excludes`**: per-rule carve-outs from THIS rule's tributary set (e.g. "No Fishing in any
   tributaries except Quinsam River"). Leave `[]` (hand-curated later).
 - **Entry-level `tributaries`**: `{ included, only, excludes }`. Set `included: true` when the row shows

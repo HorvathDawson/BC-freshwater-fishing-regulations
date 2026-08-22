@@ -118,6 +118,14 @@ def test_tributary_only_implies_included():
     assert e.tributaries.included is True
 
 
+def test_rule_tributaries_only_implies_include():
+    # per-rule 4-state: 'only' definitely reaches tributaries, so includes_tributaries is forced True
+    r = _rule(tributaries_only=True, includes_tributaries=False)
+    assert r.tributaries_only is True and r.includes_tributaries is True
+    assert _rule().tributaries_only is False   # default off (inherit/yes/no unaffected)
+
+
+
 # --- EntryFile + split-id validation --------------------------------------
 
 def test_entryfile_unique_entry_ids():

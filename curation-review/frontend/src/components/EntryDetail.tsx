@@ -100,6 +100,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         extents: [],
         dates: [],
         includes_tributaries: null,
+        tributaries_only: false,
         tributary_excludes: [],
         sections_override: null,
         needs_review: true,
@@ -350,11 +351,15 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                     “{rule.display_location || rule.location_text}”
                   </div>
                 )}
-                {rule.includes_tributaries != null && (
+                {(rule.includes_tributaries != null || rule.tributaries_only) && (
                   <div className="field">
                     <span className="k">tributaries</span>
-                    <span className={`chip-tag ${rule.includes_tributaries ? "new" : "orphan"}`}>
-                      {rule.includes_tributaries ? "includes tributaries" : "excludes tributaries"}
+                    <span className={`chip-tag ${rule.tributaries_only || rule.includes_tributaries ? "new" : "orphan"}`}>
+                      {rule.tributaries_only
+                        ? "tributaries only"
+                        : rule.includes_tributaries
+                        ? "includes tributaries"
+                        : "excludes tributaries"}
                     </span>
                     <span className="dim"> (rule override)</span>
                   </div>
@@ -448,15 +453,28 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                     <div className="field">
                       <span className="k">tributaries</span>
                       <select
-                        value={rule.includes_tributaries == null ? "inherit" : rule.includes_tributaries ? "include" : "exclude"}
+                        value={
+                          rule.tributaries_only
+                            ? "only"
+                            : rule.includes_tributaries == null
+                            ? "inherit"
+                            : rule.includes_tributaries
+                            ? "include"
+                            : "exclude"
+                        }
                         onChange={(e) => {
                           const v = e.target.value;
-                          patchRule(idx, { includes_tributaries: v === "inherit" ? null : v === "include" });
+                          patchRule(idx, {
+                            tributaries_only: v === "only",
+                            includes_tributaries:
+                              v === "inherit" ? null : v === "exclude" ? false : true,
+                          });
                         }}
                       >
                         <option value="inherit">inherit entry</option>
-                        <option value="include">includes tributaries</option>
-                        <option value="exclude">excludes tributaries</option>
+                        <option value="include">includes tributaries (yes)</option>
+                        <option value="exclude">excludes tributaries (no)</option>
+                        <option value="only">tributaries only</option>
                       </select>
                     </div>
                     <div className="field">

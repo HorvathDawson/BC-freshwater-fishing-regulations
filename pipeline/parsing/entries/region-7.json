@@ -49,6 +49,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -76,6 +77,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -84,6 +86,90 @@
           "location_text": "upstream of Cottonwood River",
           "exception": "",
           "display_location": "Upstream of Cottonwood River confluence",
+          "unresolved_locators": [
+            "upstream of Cottonwood River"
+          ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:10494#fraser_river_2",
+      "identity": {
+        "name": "FRASER RIVER",
+        "region": "7",
+        "mus": [
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "Exempt from spring closure; also EXEMPT from bait ban upstream of Cottonwood River",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "fraser_river.r1",
+          "restriction_type": "note",
+          "details": "Exempt from spring closure",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Exempt from spring closure",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river.r2",
+          "restriction_type": "note",
+          "details": "Exempt from bait ban upstream of Cottonwood River",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the Cottonwood River confluence on this item",
+          "rule_text": "also EXEMPT from bait ban upstream of Cottonwood River",
+          "location_text": "upstream of Cottonwood River",
+          "exception": "",
+          "display_location": "Upstream of the Cottonwood River confluence",
           "unresolved_locators": [
             "upstream of Cottonwood River"
           ],
@@ -142,6 +228,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -169,6 +256,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -238,6 +326,7 @@
             "Sept 1-June 30"
           ],
           "includes_tributaries": true,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -300,6 +389,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -362,6 +452,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -428,6 +519,7 @@
             "Sept 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -494,6 +586,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -525,6 +618,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -593,6 +687,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -622,6 +717,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -634,6 +730,405 @@
           "species": [
             "KO"
           ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:14619#peace_river_downstream_of_boundary_signs_1_200m",
+      "identity": {
+        "name": "PEACE RIVER (Downstream of boundary signs 1,200m downstream of the Site C dam)",
+        "region": "7",
+        "mus": [
+          "7-31",
+          "7-32",
+          "7-33",
+          "7-34",
+          "7-35"
+        ]
+      },
+      "regs_verbatim": "Arctic grayling catch and release; Kokanee daily quota = 10",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [
+        {
+          "op": "downstream_of",
+          "splits": [
+            "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam"
+          ],
+          "item_id": null,
+          "area_id": null,
+          "area_kind": null,
+          "feature_types": []
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "peace_river_downstream_of_signs_1200m_below_site_c_dam.r1",
+          "restriction_type": "harvest",
+          "details": "Arctic grayling catch and release",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Arctic grayling catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Downstream of boundary signs 1,200 m below the Site C dam",
+          "unresolved_locators": [],
+          "species": [
+            "GR"
+          ]
+        },
+        {
+          "rule_id": "peace_river_downstream_of_signs_1200m_below_site_c_dam.r2",
+          "restriction_type": "harvest",
+          "details": "Kokanee daily quota = 10",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Kokanee daily quota = 10",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Downstream of boundary signs 1,200 m below the Site C dam",
+          "unresolved_locators": [],
+          "species": [
+            "KO"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:14619#peace_river_from_hwy_29_bridge_to_the_site_c_dam",
+      "identity": {
+        "name": "PEACE RIVER (From Hwy. 29 bridge to the Site C dam)",
+        "region": "7",
+        "mus": [
+          "7-31",
+          "7-32",
+          "7-33",
+          "7-34",
+          "7-35"
+        ]
+      },
+      "regs_verbatim": "Kokanee daily quota = 10\nArctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries\nLake trout daily quota = 3\n**No Fishing** from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30\n**No Fishing between Peace Canyon Dam and Hwy 29 Bridge**",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [
+        {
+          "op": "between",
+          "splits": [
+            "peace_river__hwy_29_bridge",
+            "peace_river__site_c_dam"
+          ],
+          "item_id": null,
+          "area_id": null,
+          "area_kind": null,
+          "feature_types": []
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "peace_river_hwy_29_bridge_to_site_c_dam.r1",
+          "restriction_type": "harvest",
+          "details": "Kokanee daily quota = 10",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Kokanee daily quota = 10",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Hwy. 29 bridge to Site C dam",
+          "unresolved_locators": [],
+          "species": [
+            "KO"
+          ]
+        },
+        {
+          "rule_id": "peace_river_hwy_29_bridge_to_site_c_dam.r2",
+          "restriction_type": "harvest",
+          "details": "Arctic grayling and mountain whitefish catch and release, including tributaries",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Arctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Hwy. 29 bridge to Site C dam, including tributaries",
+          "unresolved_locators": [],
+          "species": [
+            "GR",
+            "MW"
+          ]
+        },
+        {
+          "rule_id": "peace_river_hwy_29_bridge_to_site_c_dam.r3",
+          "restriction_type": "harvest",
+          "details": "Lake trout daily quota = 3",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__hwy_29_bridge",
+                "peace_river__site_c_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Lake trout daily quota = 3",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Hwy. 29 bridge to Site C dam",
+          "unresolved_locators": [],
+          "species": [
+            "LT"
+          ]
+        },
+        {
+          "rule_id": "peace_river_hwy_29_bridge_to_site_c_dam.r4",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__halfway_river_into_peace_river_d5000m",
+                "peace_river__halfway_river_into_peace_river_u5000m"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Mar 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30",
+          "location_text": "from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream",
+          "exception": "",
+          "display_location": "Halfway River mouth, 5 km upstream to 5 km downstream",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "peace_river_hwy_29_bridge_to_site_c_dam.r5",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__peace_canyon_dam",
+                "peace_river__hwy_29_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing between Peace Canyon Dam and Hwy 29 Bridge**",
+          "location_text": "between Peace Canyon Dam and Hwy 29 Bridge",
+          "exception": "",
+          "display_location": "Between Peace Canyon Dam and Hwy. 29 bridge",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:14619#peace_river_from_site_c_dam_to_boundary_signs_1",
+      "identity": {
+        "name": "PEACE RIVER (From Site C dam to boundary signs 1,200m downstream)",
+        "region": "7",
+        "mus": [
+          "7-31",
+          "7-32",
+          "7-33",
+          "7-34",
+          "7-35"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "peace_river_site_c_dam_to_signs_1200m_downstream.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "peace_river__site_c_dam",
+                "peace_river__boundary_signs_1200_m_downstream_of_site_c_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Site C dam to boundary signs 1,200 m downstream",
+          "unresolved_locators": [],
+          "species": []
         }
       ],
       "audit_log": []
@@ -688,6 +1183,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -754,6 +1250,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -783,6 +1280,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -850,6 +1348,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -880,6 +1379,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -912,6 +1412,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -943,6 +1444,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1019,6 +1521,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1086,6 +1589,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1151,6 +1655,7 @@
             "Apr 1-Aug 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1180,6 +1685,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -1251,6 +1757,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1313,6 +1820,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1378,6 +1886,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1445,6 +1954,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1511,6 +2021,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1538,6 +2049,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1565,6 +2077,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1573,6 +2086,136 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:26104#west_road_blackwater_river_s_tributaries_1",
+      "identity": {
+        "name": "WEST ROAD (\"Blackwater\") RIVER'S TRIBUTARIES",
+        "region": "7",
+        "mus": [
+          "5-12",
+          "5-13",
+          "6-1",
+          "7-10",
+          "7-8"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 1 (none under 30 cm); artificial fly only\nFor regulations on the mainstem of the West Road River, see Region 5",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "west_road_blackwater_rivers_tributaries_r7.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 1 (none under 30 cm)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 1 (none under 30 cm)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Tributaries",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "west_road_blackwater_rivers_tributaries_r7.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Artificial fly only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "artificial fly only",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Tributaries",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "west_road_blackwater_rivers_tributaries_r7.r3",
+          "restriction_type": "note",
+          "details": "See Region 5 for mainstem regulations",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "For regulations on the mainstem of the West Road River, see Region 5",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Mainstem (see Region 5)",
           "unresolved_locators": [],
           "species": []
         }
@@ -1630,6 +2273,7 @@
             "Apr 1-Aug 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1695,6 +2339,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1759,6 +2404,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1786,6 +2432,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1852,6 +2499,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1916,6 +2564,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1978,6 +2627,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2043,6 +2693,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2070,6 +2721,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2138,6 +2790,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2165,6 +2818,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2231,6 +2885,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2303,6 +2958,7 @@
             "Mar 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2333,6 +2989,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2362,6 +3019,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2430,6 +3088,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2461,6 +3120,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2528,6 +3188,7 @@
             "July 1-July 15"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2596,6 +3257,7 @@
             "Aug 15-Oct 15"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2665,6 +3327,7 @@
             "Aug 15-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2696,6 +3359,7 @@
             "Jul 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2758,6 +3422,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2820,6 +3485,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2884,6 +3550,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2911,6 +3578,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2977,6 +3645,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3044,6 +3713,7 @@
             "Nov 15-May 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3071,6 +3741,7 @@
           ],
           "dates": [],
           "includes_tributaries": true,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3098,6 +3769,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3130,6 +3802,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3160,6 +3833,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3187,6 +3861,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -3198,6 +3873,222 @@
           "unresolved_locators": [
             "François Lake's outlet area"
           ],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:7836#stellako_river_1",
+      "identity": {
+        "name": "STELLAKO RIVER",
+        "region": "7",
+        "mus": [
+          "6-4",
+          "7-13"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee Region 6 tables for restrictions applying to François Lake's outlet area",
+      "source_symbols": [
+        "Classified"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "stellako_river_r7.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 15-May 14"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** Nov 15-May 14",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "stellako_river_r7.r2",
+          "restriction_type": "licensing",
+          "details": "Class II water when open (Steelhead Stamp not required)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river (includes tributaries)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "stellako_river_r7.r3",
+          "restriction_type": "harvest",
+          "details": "Rainbow trout catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Rainbow trout catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": [
+            "RB"
+          ]
+        },
+        {
+          "rule_id": "stellako_river_r7.r4",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "stellako_river__fishing_boundary_signs_250_m_downstream_of_francois_lake_road_bridge",
+                "stellako_river__signs_4000_m_downstream_of_francois_lake_road_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Fly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet",
+          "location_text": "between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet",
+          "exception": "",
+          "display_location": "Between signs 250 m and 4 km downstream of the François Lake Road bridge",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "stellako_river_r7.r5",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "stellako_river__fran_ois_lake",
+                "stellako_river__stellako_falls"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats from François Lake to the falls",
+          "location_text": "from François Lake to the falls",
+          "exception": "",
+          "display_location": "From François Lake to Stellako falls",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "stellako_river_r7.r6",
+          "restriction_type": "note",
+          "details": "See Region 6 tables for François Lake outlet area restrictions",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Region 6 tables for restrictions applying to François Lake's outlet area",
+          "location_text": "",
+          "exception": "",
+          "display_location": "François Lake outlet area",
+          "unresolved_locators": [],
           "species": []
         }
       ],
@@ -3253,6 +4144,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3280,6 +4172,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3344,6 +4237,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3407,6 +4301,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3472,6 +4367,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3537,6 +4433,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3599,6 +4496,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -3663,6 +4561,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3692,6 +4591,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3759,6 +4659,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3786,6 +4687,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3841,6 +4743,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -3896,6 +4799,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -3951,6 +4855,7 @@
             "Nov 15-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -4006,6 +4911,7 @@
             "Aug 15-Oct 15"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -4028,6 +4934,7 @@
             "Oct 16-Aug 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -4100,6 +5007,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4129,6 +5037,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4156,6 +5065,7 @@
           ],
           "dates": [],
           "includes_tributaries": true,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4187,6 +5097,7 @@
             "Oct 16-Aug 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4218,6 +5129,7 @@
             "Nov 1-Sept 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4226,6 +5138,564 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "LT"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328961697#davis_bay_in_finlay_reach_of_williston_lake",
+      "identity": {
+        "name": "DAVIS BAY (in Finlay Reach of Williston Lake)",
+        "region": "7",
+        "mus": [
+          "7-24",
+          "7-29",
+          "7-30",
+          "7-31",
+          "7-35",
+          "7-36",
+          "7-37",
+          "7-38",
+          "7-40"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge. See Davis River",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "davis_bay_in_finlay_reach_of_williston_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing within 500 m of the Davis Forest Service Road Bridge",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary or area for the 500 m radius around the Davis FSR Bridge",
+          "rule_text": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge.",
+          "location_text": "within a 500 m radius of the Davis Forest Service Road Bridge",
+          "exception": "",
+          "display_location": "Within 500 m of the Davis Forest Service Road Bridge",
+          "unresolved_locators": [
+            "within a 500 m radius of the Davis Forest Service Road Bridge"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "davis_bay_in_finlay_reach_of_williston_lake.r2",
+          "restriction_type": "note",
+          "details": "See Davis River",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Davis River",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole bay",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328961697#nation_arm_williston_lake",
+      "identity": {
+        "name": "NATION ARM (Williston Lake)",
+        "region": "7",
+        "mus": [
+          "7-24",
+          "7-29",
+          "7-30",
+          "7-31",
+          "7-35",
+          "7-36",
+          "7-37",
+          "7-38",
+          "7-40"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30\nBull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "nation_arm_williston_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [],
+          "dates": [
+            "Apr 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the fishing boundary sign line near the Nation River Bridge",
+          "rule_text": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30",
+          "location_text": "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road",
+          "exception": "",
+          "display_location": "West of the boundary signs ~500 m downstream of the Nation River Bridge (Finlay FSR)",
+          "unresolved_locators": [
+            "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "nation_arm_williston_lake.r2",
+          "restriction_type": "harvest",
+          "details": "Bull trout catch and release",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the fishing boundary sign line near the Nation River Bridge",
+          "rule_text": "Bull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
+          "location_text": "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road",
+          "exception": "",
+          "display_location": "West of the boundary signs ~500 m downstream of the Nation River Bridge (Finlay FSR)",
+          "unresolved_locators": [
+            "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road"
+          ],
+          "species": [
+            "BT"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328961697#williston_lake_in_zone_a_includes_waters_500_m_e",
+      "identity": {
+        "name": "WILLISTON LAKE (in Zone A) (includes waters 500 m east/upstream of the Causeway Road)",
+        "region": "7",
+        "mus": [
+          "7-24",
+          "7-29",
+          "7-30",
+          "7-31",
+          "7-35",
+          "7-36",
+          "7-37",
+          "7-38",
+          "7-40"
+        ]
+      },
+      "regs_verbatim": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\n**See mercury warning on **page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "williston_lake_in_zone_a.r1",
+          "restriction_type": "harvest",
+          "details": "No rainbow trout under 30 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No rainbow trout under 30 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone A)",
+          "unresolved_locators": [],
+          "species": [
+            "RB"
+          ]
+        },
+        {
+          "rule_id": "williston_lake_in_zone_a.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [],
+          "dates": [
+            "July 1-Oct 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundaries for the Causeway Road 500 m band",
+          "rule_text": "Bait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30",
+          "location_text": "500 m upstream and downstream of Causeway Road",
+          "exception": "",
+          "display_location": "Within 500 m upstream and downstream of the Causeway Road",
+          "unresolved_locators": [
+            "500 m upstream and downstream of Causeway Road"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "williston_lake_in_zone_a.r3",
+          "restriction_type": "note",
+          "details": "See Nation Arm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Nation Arm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Nation Arm",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "williston_lake_in_zone_a.r4",
+          "restriction_type": "harvest",
+          "details": "Arctic grayling catch and release in tributaries",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "REMINDER: Arctic grayling catch and release from tributaries",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Tributaries",
+          "unresolved_locators": [],
+          "species": [
+            "GR"
+          ]
+        },
+        {
+          "rule_id": "williston_lake_in_zone_a.r5",
+          "restriction_type": "note",
+          "details": "See mercury warning and definition of \"stream mouth\" in the Provincial Regulations",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**See mercury warning on **page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone A)",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328961697#williston_lake_in_zone_b",
+      "identity": {
+        "name": "WILLISTON LAKE (in Zone B)",
+        "region": "7",
+        "mus": [
+          "7-24",
+          "7-29",
+          "7-30",
+          "7-31",
+          "7-35",
+          "7-36",
+          "7-37",
+          "7-38",
+          "7-40"
+        ]
+      },
+      "regs_verbatim": "No rainbow trout under 30 cm\n**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80\nArctic grayling catch and release[Includes Tributaries]\nBull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14\nLake trout daily quota =3 (none under 30 cm, 1 over 50 cm), Nov 1-Sept 14",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "williston_lake_in_zone_b.r1",
+          "restriction_type": "harvest",
+          "details": "No rainbow trout under 30 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No rainbow trout under 30 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone B)",
+          "unresolved_locators": [],
+          "species": [
+            "RB"
+          ]
+        },
+        {
+          "rule_id": "williston_lake_in_zone_b.r2",
+          "restriction_type": "note",
+          "details": "See mercury warning and definition of \"stream mouth\"",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone B)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "williston_lake_in_zone_b.r3",
+          "restriction_type": "harvest",
+          "details": "Arctic grayling catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Arctic grayling catch and release[Includes Tributaries]",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone B), including tributaries",
+          "unresolved_locators": [],
+          "species": [
+            "GR"
+          ]
+        },
+        {
+          "rule_id": "williston_lake_in_zone_b.r4",
+          "restriction_type": "harvest",
+          "details": "Bull trout daily quota = 1 (none under 30 cm or over 50 cm)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Oct 16-Aug 14"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone B)",
+          "unresolved_locators": [],
+          "species": [
+            "BT"
+          ]
+        },
+        {
+          "rule_id": "williston_lake_in_zone_b.r5",
+          "restriction_type": "harvest",
+          "details": "Lake trout daily quota = 3 (none under 30 cm, 1 over 50 cm)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 1-Sept 14"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Lake trout daily quota =3 (none under 30 cm, 1 over 50 cm), Nov 1-Sept 14",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake (Zone B)",
           "unresolved_locators": [],
           "species": [
             "LT"
@@ -4284,6 +5754,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4348,6 +5819,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4375,6 +5847,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4441,6 +5914,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4468,6 +5942,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4497,6 +5972,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4563,6 +6039,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4590,6 +6067,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4619,6 +6097,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4685,6 +6164,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4712,6 +6192,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4741,6 +6222,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4807,6 +6289,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4834,6 +6317,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4863,6 +6347,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4925,6 +6410,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4991,6 +6477,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5018,6 +6505,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5047,6 +6535,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5074,6 +6563,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5136,6 +6626,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5200,6 +6691,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5262,6 +6754,72 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329102648#square_lake_located_in_crooked_river_provincial",
+      "identity": {
+        "name": "SQUARE LAKE (located in Crooked River Provincial Park)",
+        "region": "7",
+        "mus": [
+          "7-24"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "source_symbols": [
+        "Stocked"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "square_lake_located_in_crooked_river_provincial_park.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5324,6 +6882,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5388,6 +6947,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5451,6 +7011,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5518,6 +7079,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5545,6 +7107,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5574,6 +7137,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5639,6 +7203,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5666,6 +7231,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5695,6 +7261,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5759,6 +7326,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5823,6 +7391,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5885,6 +7454,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5914,6 +7484,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5978,6 +7549,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6040,6 +7612,72 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Kokanee daily quota = 5",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "KO"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329272362#bobtail_naltesby_lake",
+      "identity": {
+        "name": "BOBTAIL (Naltesby) LAKE",
+        "region": "7",
+        "mus": [
+          "7-12"
+        ]
+      },
+      "regs_verbatim": "Kokanee daily quota = 5",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "bobtail_naltesby_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Kokanee daily quota = 5",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6106,6 +7744,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6133,6 +7772,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6162,6 +7802,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6224,6 +7865,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6284,6 +7926,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6347,6 +7990,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6376,6 +8020,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6438,6 +8083,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6502,6 +8148,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6564,6 +8211,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6628,6 +8276,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6692,6 +8341,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6758,6 +8408,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6787,6 +8438,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6853,6 +8505,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6917,6 +8570,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6983,6 +8637,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7045,6 +8700,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7107,6 +8763,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7173,6 +8830,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7200,6 +8858,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7229,6 +8888,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7293,6 +8953,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7320,6 +8981,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7349,6 +9011,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7413,6 +9076,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7440,6 +9104,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7469,6 +9134,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7533,6 +9199,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7560,6 +9227,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7595,6 +9263,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7659,6 +9328,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7686,6 +9356,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7715,6 +9386,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7779,6 +9451,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7806,6 +9479,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7835,6 +9509,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7899,6 +9574,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7926,6 +9602,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7990,6 +9667,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8052,6 +9730,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8114,6 +9793,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8176,6 +9856,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8205,6 +9886,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8269,6 +9951,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8298,6 +9981,7 @@
             "May 1-Aug 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8327,6 +10011,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8391,6 +10076,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8420,6 +10106,7 @@
             "May 1-Aug 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8449,6 +10136,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8513,6 +10201,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8540,6 +10229,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8569,6 +10259,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8633,6 +10324,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8660,6 +10352,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8689,6 +10382,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8753,6 +10447,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8780,6 +10475,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8809,6 +10505,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8873,6 +10570,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8900,6 +10598,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8929,6 +10628,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8993,6 +10693,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9020,6 +10721,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9049,6 +10751,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9113,6 +10816,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9140,6 +10844,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9169,6 +10874,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9233,6 +10939,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9260,6 +10967,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9289,6 +10997,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9353,6 +11062,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9380,6 +11090,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9409,6 +11120,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9473,6 +11185,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9500,6 +11213,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9529,6 +11243,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9592,6 +11307,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9621,6 +11337,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9687,6 +11404,7 @@
             "Apr 1-May 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -9751,6 +11469,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9813,6 +11532,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9877,6 +11597,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9939,6 +11660,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10003,6 +11725,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10030,6 +11753,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10059,6 +11783,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10124,6 +11849,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10151,6 +11877,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10180,6 +11907,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10244,6 +11972,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10271,6 +12000,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10300,6 +12030,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10327,6 +12058,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10391,6 +12123,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10455,6 +12188,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10482,6 +12216,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10511,6 +12246,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10575,6 +12311,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10604,6 +12341,7 @@
             "May 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10666,6 +12404,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10693,6 +12432,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10757,6 +12497,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10821,6 +12562,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10885,6 +12627,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10912,6 +12655,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10974,6 +12718,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11036,6 +12781,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11100,6 +12846,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11127,6 +12874,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11191,6 +12939,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11218,6 +12967,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11245,6 +12995,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11309,6 +13060,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11371,6 +13123,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11433,6 +13186,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11460,6 +13214,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11522,6 +13277,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11586,6 +13342,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11613,6 +13370,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11642,6 +13400,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11706,6 +13465,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11733,6 +13493,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11762,6 +13523,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11826,6 +13588,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11853,6 +13616,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11882,6 +13646,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11946,6 +13711,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11973,6 +13739,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12002,6 +13769,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12029,6 +13797,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12093,6 +13862,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12122,6 +13892,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12149,6 +13920,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12213,6 +13985,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12277,6 +14050,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12306,6 +14080,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12370,6 +14145,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12399,6 +14175,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12463,6 +14240,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12525,6 +14303,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12589,6 +14368,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12616,6 +14396,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12645,6 +14426,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12709,6 +14491,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12736,6 +14519,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12765,6 +14549,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12829,6 +14614,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12856,6 +14642,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12885,6 +14672,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12949,6 +14737,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12976,6 +14765,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13040,6 +14830,70 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Electric motor only - max 7.5 kW",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329554444#slim_lake_1",
+      "identity": {
+        "name": "SLIM LAKE",
+        "region": "7",
+        "mus": [
+          "5-4"
+        ]
+      },
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "slim_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "Electric motor only - max 7.5 kW",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13104,6 +14958,7 @@
             "May 15-July 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -13133,6 +14988,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13162,6 +15018,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13226,6 +15083,7 @@
             "May 15-July 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -13255,6 +15113,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13284,6 +15143,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13348,6 +15208,7 @@
             "May 15-July 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -13377,6 +15238,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13406,6 +15268,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13470,6 +15333,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13497,6 +15361,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13526,6 +15391,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13590,6 +15456,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13654,6 +15521,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13718,6 +15586,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13783,6 +15652,7 @@
             "June 1-July 15"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13810,6 +15680,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13839,6 +15710,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13903,6 +15775,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13930,6 +15803,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13959,6 +15833,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14023,6 +15898,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14050,6 +15926,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14079,6 +15956,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14143,6 +16021,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14207,6 +16086,7 @@
             "Sept 15-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14236,6 +16116,7 @@
             "Nov 1-Sept 14"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14301,6 +16182,7 @@
           ],
           "dates": [],
           "includes_tributaries": true,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -14333,6 +16215,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14360,6 +16243,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14422,6 +16306,133 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329657328#cameron_lakes",
+      "identity": {
+        "name": "CAMERON LAKES",
+        "region": "7",
+        "mus": [
+          "7-31"
+        ]
+      },
+      "regs_verbatim": "See North and South Cameron lakes",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "cameron_lakes.r1",
+          "restriction_type": "note",
+          "details": "See North and South Cameron lakes",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See North and South Cameron lakes",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lakes",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329657328#south_cameron_lake",
+      "identity": {
+        "name": "SOUTH CAMERON LAKE",
+        "region": "7",
+        "mus": [
+          "7-31"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "south_cameron_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14485,6 +16496,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14549,6 +16561,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14576,6 +16589,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14640,6 +16654,7 @@
             "Nov 1- Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14667,6 +16682,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14694,6 +16710,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14721,6 +16738,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14783,6 +16801,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14845,6 +16864,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14912,6 +16932,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14939,6 +16960,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14968,6 +16990,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15030,6 +17053,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15092,6 +17116,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15158,6 +17183,7 @@
             "Nov 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15185,6 +17211,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15214,6 +17241,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15276,6 +17304,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15338,6 +17367,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -15400,6 +17430,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,

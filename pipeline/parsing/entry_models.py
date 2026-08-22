@@ -139,6 +139,12 @@ class Rule(BaseModel):
         default=None,
         description="per-rule tributary override (null=inherit entry, true/false=override for this rule)",
     )
+    tributaries_only: bool = Field(
+        default=False,
+        description="rule applies ONLY to tributaries, not the mainstem reach (per-rule parallel of "
+        "Tributaries.only). Implies includes_tributaries=True. The 4 states a curator picks are: inherit "
+        "(includes_tributaries=null), yes (true), no (false), only (this flag).",
+    )
     tributary_excludes: List[Extent] = Field(
         default_factory=list,
         description="per-rule HAND-CURATED carve-outs subtracted from THIS rule's tributary set (only "
@@ -180,6 +186,13 @@ class Rule(BaseModel):
         "species. Validated against the known BC species table so an unrecognized code surfaces as an "
         "error rather than being stored silently wrong.",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _only_implies_include(cls, data):
+        if isinstance(data, dict) and data.get("tributaries_only"):
+            data = dict(data); data["includes_tributaries"] = True   # 'only' definitely reaches tributaries
+        return data
 
     @model_validator(mode="after")
     def _validate_chain(self) -> "Rule":

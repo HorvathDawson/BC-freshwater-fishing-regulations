@@ -51,6 +51,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -113,6 +114,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -121,6 +123,176 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:10070#brunette_river",
+      "identity": {
+        "name": "BRUNETTE RIVER",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek; steelhead catch and release",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "brunette_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "brunette_river__burnaby_lake"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            },
+            {
+              "op": "downstream_of",
+              "splits": [
+                "brunette_river__cariboo_dam"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for Salamander Creek; bound only the Cariboo Dam end of the second reach",
+          "rule_text": "**No Fishing** upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
+          "location_text": "upstream of Burnaby Lake or from Cariboo Dam to Salamander Creek",
+          "exception": "",
+          "display_location": "Above Burnaby Lake, and from Cariboo Dam to Salamander Creek",
+          "unresolved_locators": [
+            "Salamander Creek"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "brunette_river.r2",
+          "restriction_type": "harvest",
+          "details": "Steelhead catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "steelhead catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": [
+            "ST"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:10070#brunette_river_s_tributaries",
+      "identity": {
+        "name": "BRUNETTE RIVER'S TRIBUTARIES",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "brunette_river_tributaries.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "All tributaries",
           "unresolved_locators": [],
           "species": []
         }
@@ -175,6 +347,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -237,6 +410,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -268,6 +442,7 @@
             "May 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -298,6 +473,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -329,6 +505,7 @@
             "May 15-July 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -362,6 +539,7 @@
             "Aug 15-Dec 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -393,6 +571,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -401,6 +580,252 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole channel",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:10494#fraser_river_upstream_of_the_cpr_bridge_at_missi",
+      "identity": {
+        "name": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
+        "region": "2",
+        "mus": [
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\n**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\n**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\n**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\n**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Dead fin fish as bait only when fishing for sturgeon",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river (upstream of the CPR Bridge at Mission)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r2",
+          "restriction_type": "closure",
+          "details": "No fishing in the signed area at Landstrom Bar / Croft Island",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-Oct 31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no bindable boundaries on this item for the Landstrom Bar / Croft Island signed area; fell back to whole",
+          "rule_text": "**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31",
+          "location_text": "in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement",
+          "exception": "",
+          "display_location": "Signed area from Landstrom Bar (Scale Bar) to the south end of Croft Island",
+          "unresolved_locators": [
+            "fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)",
+            "fishing boundary sign at the southern end of Croft Island"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r3",
+          "restriction_type": "closure",
+          "details": "No fishing from one hour after sunset to one hour before sunrise",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise",
+          "location_text": "in the non-tidal portion of the Fraser River in Region 2",
+          "exception": "",
+          "display_location": "Non-tidal Fraser River in Region 2",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r4",
+          "restriction_type": "closure",
+          "details": "No fishing in Jesperson's, Herrling and Seabird Island north side channels",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 15-July 31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundaries for the named side channels; fell back to whole",
+          "rule_text": "**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31.",
+          "location_text": "in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel",
+          "exception": "",
+          "display_location": "Jesperson's, Herrling and Seabird Island north side channels",
+          "unresolved_locators": [
+            "Jesperson's Side Channel",
+            "Herrling Side Channel",
+            "Seabird Island north Side Channel"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r5",
+          "restriction_type": "note",
+          "details": "Map of the No Fishing areas on page 26",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See page 26\nfor a map of the No Fishing areas",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r6",
+          "restriction_type": "closure",
+          "details": "No fishing for steelhead",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Aug 15-Dec 31"
+          ],
+          "includes_tributaries": false,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31",
+          "location_text": "Fraser River Mainstem",
+          "exception": "",
+          "display_location": "Fraser River mainstem",
+          "unresolved_locators": [],
+          "species": [
+            "ST"
+          ]
+        },
+        {
+          "rule_id": "fraser_river_upstream_of_cpr_bridge_at_mission.r7",
+          "restriction_type": "vessel_restriction",
+          "details": "Boats under 20 m must not impede commercial vessels",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Boats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
           "unresolved_locators": [],
           "species": []
         }
@@ -455,6 +880,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -519,6 +945,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -549,6 +976,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -611,6 +1039,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -677,6 +1106,7 @@
             "Oct 15-Apr 15"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -740,6 +1170,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -804,6 +1235,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -831,6 +1263,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -896,6 +1329,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -960,6 +1394,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1025,6 +1460,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1087,6 +1523,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1150,6 +1587,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1212,6 +1650,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -1243,6 +1682,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -1309,6 +1749,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1373,6 +1814,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1439,6 +1881,7 @@
           ],
           "dates": [],
           "includes_tributaries": false,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1466,6 +1909,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1495,6 +1939,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -1561,6 +2006,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1625,6 +2071,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1689,6 +2136,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1751,6 +2199,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -1815,6 +2264,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1877,6 +2327,204 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Lonzo Creek",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:1860#lonzo_marshall_creek",
+      "identity": {
+        "name": "LONZO (\"Marshall\") CREEK",
+        "region": "2",
+        "mus": [
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Feb 1-June 15\nTrout/char 20-30 cm in lenth Jun 16-Jan 31\nYouth/Disabled Accompanied Water year round (see page 4)",
+      "source_symbols": [
+        "Incl. Tribs",
+        "Stocked"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "lonzo_creek.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Feb 1-June 15"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** Feb 1-June 15",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "lonzo_creek.r2",
+          "restriction_type": "harvest",
+          "details": "Trout/char retention 20-30 cm only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Jun 16-Jan 31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout/char 20-30 cm in lenth Jun 16-Jan 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "lonzo_creek.r3",
+          "restriction_type": "licensing",
+          "details": "Youth/Disabled Accompanied Water, year round",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:1860#marshall_creek",
+      "identity": {
+        "name": "\"MARSHALL\" CREEK",
+        "region": "2",
+        "mus": [
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "See Lonzo Creek",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "marshall_creek.r1",
+          "restriction_type": "note",
+          "details": "Cross-reference: see Lonzo Creek",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -1941,6 +2589,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2003,6 +2652,7 @@
           ],
           "dates": [],
           "includes_tributaries": true,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2032,6 +2682,7 @@
           ],
           "dates": [],
           "includes_tributaries": false,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2100,6 +2751,7 @@
             "Nov 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2131,6 +2783,7 @@
             "Jul 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2162,6 +2815,7 @@
             "Jul 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2193,6 +2847,7 @@
             "Apr 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2223,6 +2878,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2252,6 +2908,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2290,6 +2947,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2356,6 +3014,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2383,6 +3042,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2417,6 +3077,7 @@
             "July 1-Oct 15"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2486,6 +3147,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2550,6 +3212,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2616,6 +3279,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2647,6 +3311,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2711,6 +3376,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2777,6 +3443,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2808,6 +3475,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2839,6 +3507,7 @@
             "Aug 1-Dec 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2868,6 +3537,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2895,6 +3565,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -2924,6 +3595,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -2986,6 +3658,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3048,6 +3721,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3114,6 +3788,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3176,6 +3851,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3240,6 +3916,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3303,6 +3980,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3369,6 +4047,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3433,6 +4112,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3497,6 +4177,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3561,6 +4242,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3623,6 +4305,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3686,6 +4369,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3753,6 +4437,7 @@
             "Nov 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3780,6 +4465,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3846,6 +4532,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3877,6 +4564,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3908,6 +4596,7 @@
             "Aug 1-Dec 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -3937,6 +4626,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4001,6 +4691,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4065,6 +4756,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -4073,6 +4765,233 @@
           "location_text": "",
           "exception": "Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
           "display_location": "Squamish River tributaries (general closure; this waterbody named as exception)",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:25671#squamish_powerhouse_channel",
+      "identity": {
+        "name": "SQUAMISH POWERHOUSE CHANNEL",
+        "region": "2",
+        "mus": [
+          "2-6",
+          "2-7",
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "Bait ban; Squamish River tributary located upstream of Ashlu Creek",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "squamish_powerhouse_channel.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole channel",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "squamish_powerhouse_channel.r2",
+          "restriction_type": "note",
+          "details": "Squamish River tributary upstream of Ashlu Creek",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "squamish_powerhouse_channel__ashlu_creek_into_squamish_river"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Squamish River tributary located upstream of Ashlu Creek",
+          "location_text": "upstream of Ashlu Creek",
+          "exception": "",
+          "display_location": "Squamish River tributary above Ashlu Creek confluence",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:25671#squamish_river",
+      "identity": {
+        "name": "SQUAMISH RIVER",
+        "region": "2",
+        "mus": [
+          "2-6",
+          "2-7",
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "Bait ban",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "squamish_river.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:25671#squamish_river_s_tributaries",
+      "identity": {
+        "name": "SQUAMISH RIVER'S TRIBUTARIES",
+        "region": "2",
+        "mus": [
+          "2-6",
+          "2-7",
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "squamish_rivers_tributaries.r1",
+          "restriction_type": "closure",
+          "details": "No fishing in tributaries (except Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
+          "location_text": "",
+          "exception": "EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
+          "display_location": "All Squamish River tributaries except the named waters",
           "unresolved_locators": [],
           "species": []
         }
@@ -4134,6 +5053,7 @@
             "Nov 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4165,6 +5085,7 @@
             "July 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4196,6 +5117,7 @@
             "July 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4226,6 +5148,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4255,6 +5178,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4319,6 +5243,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4383,6 +5308,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4450,6 +5376,7 @@
             "Nov 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4477,6 +5404,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4514,6 +5442,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4581,6 +5510,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4643,6 +5573,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4707,6 +5638,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4738,6 +5670,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4802,6 +5735,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4864,6 +5798,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4928,6 +5863,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -4990,6 +5926,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5052,6 +5989,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5114,6 +6052,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5176,6 +6115,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5244,6 +6184,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5271,6 +6212,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5335,6 +6277,7 @@
             "Dec 1-Sept 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5397,6 +6340,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5462,6 +6406,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5528,6 +6473,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5557,6 +6503,7 @@
             "Aug 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5584,6 +6531,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5652,6 +6600,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5718,6 +6667,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5749,6 +6699,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5780,6 +6731,7 @@
             "Aug 15-Sept 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -5811,6 +6763,7 @@
             "Aug 1-Dec 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5876,6 +6829,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5903,6 +6857,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -5934,6 +6889,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -5964,6 +6920,7 @@
           ],
           "dates": [],
           "includes_tributaries": false,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6030,6 +6987,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6061,6 +7019,7 @@
             "Apr 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6127,6 +7086,7 @@
             "May 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6191,6 +7151,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6253,6 +7214,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6319,6 +7281,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -6352,6 +7315,7 @@
             "Nov 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6381,6 +7345,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6408,6 +7373,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6472,6 +7438,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6534,10 +7501,201 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
           "review_reason": "cross-reference note only; no substantive regulation text provided",
+          "rule_text": "See Alouette River",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:9630#alouette_river",
+      "identity": {
+        "name": "ALOUETTE RIVER",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society\n**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30; no powered boats on mainstem",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alouette_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "alouette_river__alouette_boundary_signs"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society",
+          "location_text": "upstream of the fishing boundary signs located at 49° 14.790'N and 122° 32.080'W, near the southern boundary (chain-link\nfence) of the Alouette River Management Society",
+          "exception": "",
+          "display_location": "Above the Alouette boundary signs (Alouette River Management Society)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alouette_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "alouette_river__216_street_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-June 30"
+          ],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** upstream of 216th Street (including North Alouette River[Includes Tributaries]), May 1-June 30",
+          "location_text": "upstream of 216th Street (including North Alouette River[Includes Tributaries])",
+          "exception": "",
+          "display_location": "Above 216 Street bridge, including the North Alouette River",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alouette_river.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats on mainstem",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": false,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "no powered boats on mainstem",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Mainstem",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:9630#south_alouette_river",
+      "identity": {
+        "name": "SOUTH ALOUETTE RIVER",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "See Alouette River",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "south_alouette_river.r1",
+          "restriction_type": "note",
+          "details": "Cross-reference: see Alouette River",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
           "rule_text": "See Alouette River",
           "location_text": "",
           "exception": "",
@@ -6598,6 +7756,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6662,6 +7821,7 @@
             "Dec 1-Sept 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6715,6 +7875,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -6770,6 +7931,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -6823,6 +7985,7 @@
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -6887,6 +8050,7 @@
             "Nov 1-June 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6914,6 +8078,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6944,6 +8109,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -6978,6 +8144,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7007,6 +8174,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7034,6 +8202,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7100,6 +8269,7 @@
             "Dec 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7127,6 +8297,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7162,6 +8333,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7196,6 +8368,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7225,6 +8398,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7254,6 +8428,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7281,6 +8456,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7308,6 +8484,196 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "speed restriction (12 km/h)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328965040#alta_lake",
+      "identity": {
+        "name": "ALTA LAKE",
+        "region": "2",
+        "mus": [
+          "4-3"
+        ]
+      },
+      "regs_verbatim": "**No Fishing **Dec 1-Mar 31\nTrout/char daily quota combined = 2, no trout over 40cm, no more than 1 char (none under 60 cm)\nKokanee catch and release, bait ban, single barbless hook; speed restriction (12 km/h)",
+      "source_symbols": [
+        "Stocked"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "alta_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-Mar 31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing **Dec 1-Mar 31",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alta_lake.r2",
+          "restriction_type": "harvest",
+          "details": "Trout/char combined daily quota = 2; no trout over 40 cm; max 1 char, none under 60 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout/char daily quota combined = 2, no trout over 40cm, no more than 1 char (none under 60 cm)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "alta_lake.r3",
+          "restriction_type": "harvest",
+          "details": "Kokanee catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Kokanee catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "KO"
+          ]
+        },
+        {
+          "rule_id": "alta_lake.r4",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban; single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "alta_lake.r5",
+          "restriction_type": "vessel_restriction",
+          "details": "Speed restriction (12 km/h)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7370,6 +8736,70 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:328970801#trout_lake_sasquatch_park",
+      "identity": {
+        "name": "TROUT LAKE (Sasquatch Park)",
+        "region": "2",
+        "mus": [
+          "2-18"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "trout_lake_sasquatch_park.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7434,6 +8864,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7498,6 +8929,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7533,6 +8965,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7560,6 +8993,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7627,6 +9061,7 @@
             "Dec 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7654,6 +9089,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7690,6 +9126,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7717,6 +9154,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7782,6 +9220,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7846,6 +9285,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7881,6 +9321,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7943,6 +9384,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -7977,6 +9419,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8041,6 +9484,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8075,6 +9519,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8104,6 +9549,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -8133,6 +9579,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -8162,6 +9609,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8226,6 +9674,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8290,6 +9739,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8317,6 +9767,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8379,6 +9830,70 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329102601#bear_lake_1",
+      "identity": {
+        "name": "BEAR LAKE",
+        "region": "2",
+        "mus": [
+          "7-24"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "bear_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8443,6 +9958,7 @@
             "Dec 1-Feb 28"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8470,6 +9986,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8536,6 +10053,7 @@
             "Dec 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8563,6 +10081,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8600,6 +10119,137 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329154761#silver_silverhope_lake",
+      "identity": {
+        "name": "SILVER (Silverhope) LAKE",
+        "region": "2",
+        "mus": [
+          "2-2"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Dec 1-Apr 30; kokanee, trout and char catch and release, bait ban, single barbless hook",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "silver_lake.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Dec 1-Apr 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** Dec 1-Apr 30",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "silver_lake.r2",
+          "restriction_type": "harvest",
+          "details": "Kokanee, trout and char catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "kokanee, trout and char catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "KO",
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "silver_lake.r3",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban; single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8662,6 +10312,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8724,6 +10375,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8751,6 +10403,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8778,11 +10431,111 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
           "review_reason": "",
           "rule_text": "single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329176402#morgan_lake",
+      "identity": {
+        "name": "MORGAN LAKE",
+        "region": "2",
+        "mus": [
+          "3-19"
+        ]
+      },
+      "regs_verbatim": "Trout/char catch and release; bait ban, single barbless hook",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "morgan_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Trout/char catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout/char catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "morgan_lake.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban; single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
@@ -8842,6 +10595,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8878,6 +10632,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -8942,6 +10697,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -8950,6 +10706,169 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329177885#chehalis_lake",
+      "identity": {
+        "name": "CHEHALIS LAKE",
+        "region": "2",
+        "mus": [
+          "2-19"
+        ]
+      },
+      "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "chehalis_lake.r1",
+          "restriction_type": "harvest",
+          "details": "No wild trout over 50 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No wild trout over 50 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "chehalis_lake.r2",
+          "restriction_type": "harvest",
+          "details": "1 bull trout over 60 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "1 bull trout over 60 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "BT"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329177885#chehalis_lake_s_tributaries",
+      "identity": {
+        "name": "CHEHALIS LAKE'S TRIBUTARIES",
+        "region": "2",
+        "mus": [
+          "2-19"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "chehalis_lake_tributaries.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "All tributaries",
           "unresolved_locators": [],
           "species": []
         }
@@ -9004,6 +10923,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9012,6 +10932,204 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329177886#jones_lake",
+      "identity": {
+        "name": "\"JONES\" LAKE",
+        "region": "2",
+        "mus": [
+          "2-3"
+        ]
+      },
+      "regs_verbatim": "See Wahleach Lake",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "jones_lake.r1",
+          "restriction_type": "note",
+          "details": "Cross-reference: see Wahleach Lake",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Wahleach Lake",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329177886#wahleach_jones_lake",
+      "identity": {
+        "name": "WAHLEACH (\"Jones\") LAKE",
+        "region": "2",
+        "mus": [
+          "2-3"
+        ]
+      },
+      "regs_verbatim": "Trout daily quota = 4 (one over 40 cm)",
+      "source_symbols": [
+        "Stocked"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "wahleach_jones_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Trout daily quota = 4 (only one over 40 cm)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout daily quota = 4 (one over 40 cm)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329177886#wahleach_jones_lake_s_tributaries",
+      "identity": {
+        "name": "WAHLEACH (\"Jones\") LAKE'S TRIBUTARIES",
+        "region": "2",
+        "mus": [
+          "2-3"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "wahleach_jones_lakes_tributaries.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "All tributaries of Wahleach (\"Jones\") Lake",
           "unresolved_locators": [],
           "species": []
         }
@@ -9068,6 +11186,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9133,6 +11252,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -9163,6 +11283,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9225,6 +11346,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9285,6 +11407,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9347,6 +11470,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9374,6 +11498,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9436,6 +11561,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9471,6 +11597,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9506,6 +11633,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9533,6 +11661,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9560,6 +11689,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9624,6 +11754,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9688,6 +11819,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9750,6 +11882,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9777,6 +11910,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9839,6 +11973,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9866,6 +12001,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9895,6 +12031,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9925,6 +12062,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -9987,6 +12125,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10049,6 +12188,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10084,6 +12224,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10148,6 +12289,7 @@
             "Nov 1-Dec 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -10180,6 +12322,7 @@
             "Nov 1-Dec 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -10210,6 +12353,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10274,6 +12418,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10310,6 +12455,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10337,6 +12483,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10402,6 +12549,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -10431,6 +12579,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10460,6 +12609,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10522,6 +12672,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10584,6 +12735,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10620,6 +12772,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10682,6 +12835,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10717,6 +12871,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10779,6 +12934,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10814,6 +12970,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10876,6 +13033,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10938,6 +13096,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -10965,6 +13124,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11027,6 +13187,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11054,6 +13215,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11116,6 +13278,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11178,6 +13341,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11240,6 +13404,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11302,6 +13467,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11329,6 +13495,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11391,6 +13558,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11427,6 +13595,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11489,6 +13658,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11551,6 +13721,197 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "See Lily Lake",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329197172#lily_paq_lake",
+      "identity": {
+        "name": "LILY (\"Paq\") LAKE",
+        "region": "2",
+        "mus": [
+          "2-5"
+        ]
+      },
+      "regs_verbatim": "Trout/char catch and release, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "lily_lake.r1",
+          "restriction_type": "harvest",
+          "details": "Trout/char catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Trout/char catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "lily_lake.r2",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban; single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "lily_lake.r3",
+          "restriction_type": "vessel_restriction",
+          "details": "Electric motor only - max 7.5 kW",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Electric motor only - max 7.5 kW",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329197172#paq_lake",
+      "identity": {
+        "name": "\"PAQ\" LAKE",
+        "region": "2",
+        "mus": [
+          "2-5"
+        ]
+      },
+      "regs_verbatim": "See Lily Lake",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "paq_lake.r1",
+          "restriction_type": "note",
+          "details": "Cross-reference: see Lily Lake",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11613,6 +13974,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11675,6 +14037,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11737,6 +14100,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11799,6 +14163,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11861,6 +14226,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11895,6 +14261,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -11924,6 +14291,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -11996,6 +14364,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12025,6 +14394,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -12054,6 +14424,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -12120,6 +14491,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12149,6 +14521,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -12213,6 +14586,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12249,6 +14623,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12276,6 +14651,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12340,6 +14716,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12400,6 +14777,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12462,6 +14840,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12524,6 +14903,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12559,6 +14939,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12621,6 +15002,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12629,6 +15011,160 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329291868#burnaby_lake",
+      "identity": {
+        "name": "BURNABY LAKE",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "Single barbless hook; No powered boats",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "burnaby_lake.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "burnaby_lake.r2",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329291868#burnaby_lake_s_tributaries",
+      "identity": {
+        "name": "BURNABY LAKE'S TRIBUTARIES",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": true,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "burnaby_lake_tributaries.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": true,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "All tributaries",
           "unresolved_locators": [],
           "species": []
         }
@@ -12685,6 +15221,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12749,6 +15286,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12776,6 +15314,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12805,6 +15344,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12832,6 +15372,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12896,6 +15437,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -12960,6 +15502,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13022,6 +15565,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13057,6 +15601,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13119,6 +15664,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13146,6 +15692,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13208,6 +15755,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13272,6 +15820,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13332,6 +15881,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13398,6 +15948,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13407,6 +15958,177 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329303443#lillooet_lake",
+      "identity": {
+        "name": "LILLOOET LAKE",
+        "region": "2",
+        "mus": [
+          "2-10",
+          "2-11",
+          "2-9"
+        ]
+      },
+      "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "lillooet_lake.r1",
+          "restriction_type": "harvest",
+          "details": "No wild trout over 50 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No wild trout over 50 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "lillooet_lake.r2",
+          "restriction_type": "harvest",
+          "details": "1 bull trout over 60 cm",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "1 bull trout over 60 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": [
+            "BT"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329303443#lillooet_lake_lillooet_river",
+      "identity": {
+        "name": "LILLOOET LAKE, LILLOOET RIVER",
+        "region": "2",
+        "mus": [
+          "2-10",
+          "2-11",
+          "2-9"
+        ]
+      },
+      "regs_verbatim": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and\nLittle Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of\nland on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake's\nlower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake's entry below)",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "lillooet_lake_lillooet_river.r1",
+          "restriction_type": "note",
+          "details": "The channel between Lillooet Lake and Little Lillooet Lake is part of the Lillooet River (stream regulations apply)",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "boundary-definition note; no bindable boundaries on this item",
+          "rule_text": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and\nLittle Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of\nland on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake's\nlower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake's entry below)",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Channel between Lillooet Lake and Little Lillooet Lake",
+          "unresolved_locators": [
+            "the channel between Lillooet Lake and Little Lillooet Lake"
+          ],
           "species": []
         }
       ],
@@ -13460,6 +16182,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13525,6 +16248,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13552,6 +16276,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13617,6 +16342,7 @@
             "Dec 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13644,6 +16370,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13681,6 +16408,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13708,6 +16436,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13735,6 +16464,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -13799,6 +16529,70 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "No powered boats",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329354830#wolf_lake",
+      "identity": {
+        "name": "WOLF LAKE",
+        "region": "2",
+        "mus": [
+          "5-1"
+        ]
+      },
+      "regs_verbatim": "No powered boats",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "wolf_lake.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "No powered boats",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13861,6 +16655,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -13923,6 +16718,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -13989,6 +16785,7 @@
             "May 1-Sept 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14018,6 +16815,7 @@
             "Oct 1-Apr 30"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14080,6 +16878,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14145,6 +16944,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14209,6 +17009,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14271,6 +17072,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14333,6 +17135,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14399,6 +17202,7 @@
             "Nov 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14426,6 +17230,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -14494,6 +17299,7 @@
             "Nov 1-Mar 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14560,6 +17366,7 @@
             "Nov 1-Mar 31"
           ],
           "includes_tributaries": true,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14589,6 +17396,7 @@
             "Apr 1-Oct 31"
           ],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14616,6 +17424,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14645,6 +17454,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
@@ -14707,6 +17517,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": true,
@@ -14771,6 +17582,7 @@
           ],
           "dates": [],
           "includes_tributaries": null,
+          "tributaries_only": false,
           "tributary_excludes": [],
           "sections_override": null,
           "needs_review": false,
