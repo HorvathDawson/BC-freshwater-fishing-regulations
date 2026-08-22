@@ -541,25 +541,6 @@
    "_entry_id": "ce689454",
    "splits": [
     {
-     "id": "cowichan_river__weir_at_cowichan_lake_outlet",
-     "label": "weir at Cowichan Lake outlet",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -124.06119,
-       48.82418
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal H] Weir (dam) at Cowichan Lake outlet on Cowichan River (lake weir -> Greendale Trestle). Candidate coord [-124.06119, 48.82418]. OSM: https://www.openstreetmap.org/?mlat=48.82418&mlon=-124.06119#map=15/48.82418/-124.06119. Verify: Confirm the control weir at the Cowichan Lake outlet (town of Lake Cowichan); downstream end = Greendale Trestle.. A control weir/dam sits at the Cowichan Lake outlet in the town of Lake Cowichan. Coord = FWA Cowichan River exit from Cowichan Lake polygon. Reach runs to the Greendale Trestle downstream. [structural-split 2026-08-05 from \"from weir (dam) at Cowichan Lake's outlet to Greendale Trest\"] boundary=weir (dam) at Cowichan Lake's outlet [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [human-review 2026-08-06] Cowichan Lake outlet weir.",
-     "_coord": [
-      -124.06119,
-      48.82418
-     ]
-    },
-    {
      "id": "cowichan_river__greendale_trestle",
      "label": "Greendale Trestle",
      "kind": "point",
@@ -1050,6 +1031,21 @@
       50.51996
      ],
      "_offset_m": 500
+    },
+    {
+     "id": "kokish_river__bonanza_river_into_kokish_river",
+     "label": "Bonanza River → Kokish River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "920-810549-414824-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "Bonanza River"
+     },
+     "note": "",
+     "_note": "[curated 2026-08-21] Confluence = mouth of Bonanza River (GNIS Bonanza River, FWA WSC 920-810549-414824) on Kokish River. Coord resolved from FWA at build.",
+     "applies_to": {
+      "wsc": "920-810549"
+     }
     }
    ]
   },
