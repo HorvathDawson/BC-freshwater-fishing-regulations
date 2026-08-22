@@ -65,132 +65,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:11984",
-      "identity": {
-        "name": "Kettle River",
-        "region": "8",
-        "mus": [
-          "8-12",
-          "8-13",
-          "8-14",
-          "8-15"
-        ]
-      },
-      "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "kettle_river_11984_b.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "Jul 25-Sept 15"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "No Fishing** Jul 25-Sept 15",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "kettle_river_11984_b.r2",
-          "restriction_type": "harvest",
-          "details": "Catch and release",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Rainbow trout catch and release",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": [
-            "RB"
-          ]
-        },
-        {
-          "rule_id": "kettle_river_11984_b.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:11984#kettle_river",
       "identity": {
         "name": "KETTLE RIVER",
@@ -945,69 +819,6 @@
           "location_text": "upstream of Frog Falls",
           "exception": "",
           "display_location": "Above Frog Falls",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "gnis:18775",
-      "identity": {
-        "name": "Granby River",
-        "region": "8",
-        "mus": [
-          "8-15"
-        ]
-      },
-      "regs_verbatim": "Bait ban",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "granby_river_2.r1",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
           "unresolved_locators": [],
           "species": []
         }
@@ -2062,102 +1873,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:28477",
-      "identity": {
-        "name": "Trout Creek",
-        "region": "8",
-        "mus": [
-          "3-45",
-          "3-46"
-        ]
-      },
-      "regs_verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "trout_creek.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no boundary for 'the trestle in Trout Creek Canyon'; bound as whole",
-          "rule_text": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake",
-          "location_text": "from the trestle in Trout Creek Canyon to Okanagan Lake",
-          "exception": "",
-          "display_location": "From the trestle in Trout Creek Canyon to Okanagan Lake",
-          "unresolved_locators": [
-            "the trestle in Trout Creek Canyon"
-          ],
-          "species": []
-        },
-        {
-          "rule_id": "trout_creek.r2",
-          "restriction_type": "note",
-          "details": "Exempt from spring closure",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no boundary for 'the trestle'; bound as whole",
-          "rule_text": "Upstream of the trestle exempt from spring closure",
-          "location_text": "Upstream of the trestle",
-          "exception": "",
-          "display_location": "Upstream of the trestle",
-          "unresolved_locators": [
-            "the trestle"
-          ],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:28477#trout_creek",
       "identity": {
         "name": "Trout Creek",
@@ -2699,130 +2414,6 @@
           "location_text": "from Hardy Falls to Okanagan Lake",
           "exception": "",
           "display_location": "Hardy Falls to Okanagan Lake (mouth)",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "gnis:6358",
-      "identity": {
-        "name": "West Kettle River",
-        "region": "8",
-        "mus": [
-          "8-12",
-          "8-14"
-        ]
-      },
-      "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "west_kettle_river.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "Jul 25-Sept 15"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing **Jul 25-Sept 15",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "west_kettle_river.r2",
-          "restriction_type": "harvest",
-          "details": "Catch and release",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Rainbow trout catch and release",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": [
-            "RB"
-          ]
-        },
-        {
-          "rule_id": "west_kettle_river.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
           "unresolved_locators": [],
           "species": []
         }
@@ -3407,130 +2998,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:328970801",
-      "identity": {
-        "name": "Trout Lake",
-        "region": "8",
-        "mus": [
-          "2-18"
-        ]
-      },
-      "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "trout_lake.r1",
-          "restriction_type": "harvest",
-          "details": "Bass daily quota = 8",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Bass daily quota = 8",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "SMB",
-            "LMB"
-          ]
-        },
-        {
-          "rule_id": "trout_lake.r2",
-          "restriction_type": "harvest",
-          "details": "Yellow perch daily quota = 20",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "yellow perch daily quota = 20",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "YP"
-          ]
-        },
-        {
-          "rule_id": "trout_lake.r3",
-          "restriction_type": "vessel_restriction",
-          "details": "Electric motor only, max 7.5 kW",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Electric motor only - max 7.5 kW",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:328970801#trout_lake_1",
       "identity": {
         "name": "Trout Lake",
@@ -3872,69 +3339,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:328985739",
-      "identity": {
-        "name": "McCulloch Reservoir",
-        "region": "8",
-        "mus": [
-          "8-10"
-        ]
-      },
-      "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "mcculloch_reservoir_328985739_b.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "Engine power restriction - 7.5 kW (10 hp)",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:328985739#mcculloch_reservoir",
       "identity": {
         "name": "MCCULLOCH RESERVOIR",
@@ -4259,7 +3663,9 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4506,127 +3912,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329102648",
-      "identity": {
-        "name": "Square Lake",
-        "region": "8",
-        "mus": [
-          "7-24"
-        ]
-      },
-      "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "square_lake.r1",
-          "restriction_type": "closure",
-          "details": "No ice fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Ice Fishing**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "square_lake.r2",
-          "restriction_type": "harvest",
-          "details": "Trout/char daily quota = 2",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout/char daily quota = 2",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "square_lake.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329102648#square_lake",
       "identity": {
         "name": "Square Lake",
@@ -4748,71 +4033,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329123527",
-      "identity": {
-        "name": "Lost Lake",
-        "region": "8",
-        "mus": [
-          "4-23"
-        ]
-      },
-      "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "lost_lake_329123527.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "Electric motor only - max 7.5 kW",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Electric motor only - max 7.5 kW",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329123527#lost_lake_1",
       "identity": {
         "name": "LOST LAKE",
@@ -4848,71 +4068,6 @@
       "rules": [
         {
           "rule_id": "lost_lake.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "Electric motor only - max 7.5 kW",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Electric motor only - max 7.5 kW",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "wbk:329154761",
-      "identity": {
-        "name": "Silver Lake",
-        "region": "8",
-        "mus": [
-          "2-2"
-        ]
-      },
-      "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "silver_lake.r1",
           "restriction_type": "vessel_restriction",
           "details": "Electric motor only - max 7.5 kW",
           "extents": [
@@ -5582,7 +4737,9 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5690,71 +4847,6 @@
           "needs_review": false,
           "review_reason": "",
           "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "wbk:329320955",
-      "identity": {
-        "name": "Jackpine Lake",
-        "region": "8",
-        "mus": [
-          "3-28"
-        ]
-      },
-      "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "jackpine_lake_329320955.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "Electric motor only - max 7.5 kW",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Electric motor only - max 7.5 kW",
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
@@ -6666,7 +5758,9 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6983,7 +6077,9 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7076,7 +6172,9 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7230,7 +6328,9 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8046,73 +7146,6 @@
           "needs_review": false,
           "review_reason": "",
           "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "wbk:329459193",
-      "identity": {
-        "name": "Shannon Lake",
-        "region": "8",
-        "mus": [
-          "8-11"
-        ]
-      },
-      "regs_verbatim": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "shannon_lake_2.r1",
-          "restriction_type": "harvest",
-          "details": "Trout daily quota = 1; Youth/Disabled Accompanied Water",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "May 1-Jun 15"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
           "location_text": "",
           "exception": "",
           "display_location": "Whole lake",
@@ -8954,101 +7987,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329518146",
-      "identity": {
-        "name": "Mara Lake",
-        "region": "8",
-        "mus": [
-          "3-26",
-          "3-34",
-          "8-26"
-        ]
-      },
-      "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "mara_lake_329518146.r1",
-          "restriction_type": "note",
-          "details": "See Shuswap Lake in Region 3",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "See Shuswap Lake in Region 3",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "mara_lake_329518146.r2",
-          "restriction_type": "vessel_restriction",
-          "details": "No powered boats",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no bindable boundaries listed for this item; CPR bridge not resolvable",
-          "rule_text": "No powered boats south of the CPR bridge",
-          "location_text": "south of the CPR bridge",
-          "exception": "",
-          "display_location": "South of the CPR bridge",
-          "unresolved_locators": [
-            "south of the CPR bridge"
-          ],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329518146#mara_lake_1",
       "identity": {
         "name": "MARA LAKE",
@@ -9572,71 +8510,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329520017",
-      "identity": {
-        "name": "Tepee Lakes",
-        "region": "8",
-        "mus": [
-          "8-6"
-        ]
-      },
-      "regs_verbatim": "See Friday, Saturday, and Sunday Lakes",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "tepee_lakes_sunday_2.r1",
-          "restriction_type": "note",
-          "details": "See Friday, Saturday, and Sunday Lakes",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "See Friday, Saturday, and Sunday Lakes",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329520017#sunday_lake",
       "identity": {
         "name": "Sunday Lake",
@@ -10146,7 +9019,9 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10209,7 +9084,9 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",

@@ -27,7 +27,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -259,7 +259,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -2251,7 +2251,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -3015,7 +3015,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -3120,7 +3120,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -5604,7 +5604,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -5826,7 +5826,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -6449,7 +6449,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -7286,7 +7286,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -9524,7 +9524,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -9782,7 +9782,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -10540,7 +10540,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -10638,7 +10638,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -10736,7 +10736,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -11223,7 +11223,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -11349,7 +11349,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -11420,7 +11420,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -11618,7 +11618,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -11892,7 +11892,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -12473,7 +12473,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -13018,7 +13018,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -13135,7 +13135,9 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13151,7 +13153,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -13632,7 +13634,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -13793,7 +13795,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -13922,7 +13924,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -14060,7 +14062,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -14188,7 +14190,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -14419,7 +14421,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -14735,7 +14737,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -14802,7 +14804,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -14900,7 +14902,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -15369,7 +15371,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -15569,7 +15571,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -15732,7 +15734,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -15797,7 +15799,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -16353,7 +16355,9 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17137,7 +17141,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -17943,7 +17947,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -18530,7 +18534,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },

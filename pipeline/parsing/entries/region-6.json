@@ -1145,7 +1145,9 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1161,7 +1163,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": false,
+        "included": true,
         "only": false,
         "excludes": []
       },
@@ -3135,164 +3137,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:26104",
-      "identity": {
-        "name": "West Road (Blackwater) River",
-        "region": "6",
-        "mus": [
-          "5-12",
-          "5-13",
-          "6-1",
-          "7-10",
-          "7-8"
-        ]
-      },
-      "regs_verbatim": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "west_road_blackwater_river.r1",
-          "restriction_type": "harvest",
-          "details": "Trout daily quota = 1",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout daily quota = 1",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": [
-            "RB",
-            "CT",
-            "WCT",
-            "CCT",
-            "GB",
-            "GT"
-          ]
-        },
-        {
-          "rule_id": "west_road_blackwater_river.r2",
-          "restriction_type": "gear_restriction",
-          "details": "Artificial fly only",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "artificial fly only",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "west_road_blackwater_river.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "west_road_blackwater_river.r4",
-          "restriction_type": "note",
-          "details": "For regulations on the mainstem of the West Road River, see Region 5",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "For regulations on the mainstem of the West Road River, see Region 5",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:26104#west_road_blackwater_river_s_tributaries",
       "identity": {
         "name": "WEST ROAD (\"Blackwater\") RIVER'S TRIBUTARIES",
@@ -3763,250 +3607,6 @@
           "location_text": "from fishing boundary signs at outlet of Meziadin Lake to Nass River, including tributaries",
           "exception": "",
           "display_location": "From Meziadin Lake outlet to Nass River",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "gnis:2936",
-      "identity": {
-        "name": "Skeena River",
-        "region": "6",
-        "mus": [
-          "6-10",
-          "6-11",
-          "6-14",
-          "6-15",
-          "6-17",
-          "6-18",
-          "6-20",
-          "6-3",
-          "6-30",
-          "6-7",
-          "6-8",
-          "6-9"
-        ]
-      },
-      "regs_verbatim": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
-      "source_symbols": [
-        "Classified"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "skeena_river.r1",
-          "restriction_type": "licensing",
-          "details": "Class II water (Skeena River 2)",
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "skeena_river__exchamsiks_river_into_skeena_river",
-                "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "July 1-Sept 30"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
-          "location_text": "from Exchamsiks River to 1.5 km upstream of Kitsumkalum River",
-          "exception": "",
-          "display_location": "Skeena River 2 (Exchamsiks River to 1.5 km above Kitsumkalum River)",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "skeena_river.r2",
-          "restriction_type": "licensing",
-          "details": "Class II water (Skeena River Section 4)",
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "skeena_river__zymoetz_river_into_skeena_river_u1500m"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "July 1-Dec 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "and** (b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
-          "location_text": "1.5 km upstream of Zymoetz River",
-          "exception": "",
-          "display_location": "Skeena River Section 4 (from 1.5 km above Zymoetz River, upstream)",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "skeena_river.r3",
-          "restriction_type": "licensing",
-          "details": "Steelhead Stamp not mandatory unless fishing for steelhead",
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "skeena_river__exchamsiks_river_into_skeena_river",
-                "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead.",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Skeena River 2",
-          "unresolved_locators": [],
-          "species": [
-            "ST"
-          ]
-        },
-        {
-          "rule_id": "skeena_river.r4",
-          "restriction_type": "licensing",
-          "details": "Steelhead Stamp mandatory during Classified Waters period",
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "skeena_river__zymoetz_river_into_skeena_river_u1500m"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "July 1-Dec 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Skeena River Section 4",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "skeena_river.r5",
-          "restriction_type": "closure",
-          "details": "Angling prohibited for non-guided non-resident aliens, Sat-Sun",
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "skeena_river__shegunia_river_into_skeena_river",
-                "skeena_river__sedan_creek_into_skeena_river"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "July 1-Dec 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54)",
-          "location_text": "Shegunia\nRiver confluence to Sedan Creek confluence",
-          "exception": "",
-          "display_location": "Shegunia River confluence to Sedan Creek confluence",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "skeena_river.r6",
-          "restriction_type": "closure",
-          "details": "Angling prohibited for non-guided non-resident aliens, Sat-Sun",
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "skeena_river__chimdemash_creek_into_skeena_river",
-                "skeena_river__zymoetz_river_into_skeena_river_u1500m"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "July 1 - Dec 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "and** (b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
-          "location_text": "Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence",
-          "exception": "",
-          "display_location": "Chimdemash Creek confluence to 1.5 km above Zymoetz River confluence",
           "unresolved_locators": [],
           "species": []
         }
@@ -5671,7 +5271,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": true,
+        "included": false,
         "only": false,
         "excludes": []
       },
@@ -5938,7 +5538,9 @@
         ]
       },
       "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
-      "source_symbols": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5954,7 +5556,7 @@
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": false,
+        "included": true,
         "only": false,
         "excludes": []
       },
@@ -7520,222 +7122,6 @@
           "location_text": "",
           "exception": "",
           "display_location": "Whole creek",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "gnis:7836",
-      "identity": {
-        "name": "Stellako River",
-        "region": "6",
-        "mus": [
-          "6-4",
-          "7-13"
-        ]
-      },
-      "regs_verbatim": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee restrictions for François Lake's outlet area",
-      "source_symbols": [
-        "Classified"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "stellako_river.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "Nov 15-May 14"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing** Nov 15-May 14",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "stellako_river.r2",
-          "restriction_type": "licensing",
-          "details": "Class II water when open; Steelhead Stamp not required",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": true,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**Class II water**[Includes Tributaries] **when open (Steelhead Stamp not required)**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "stellako_river.r3",
-          "restriction_type": "harvest",
-          "details": "Rainbow trout catch and release",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Rainbow trout catch and release",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
-          "unresolved_locators": [],
-          "species": [
-            "RB"
-          ]
-        },
-        {
-          "rule_id": "stellako_river.r4",
-          "restriction_type": "gear_restriction",
-          "details": "Fly fishing only",
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "stellako_river__fishing_boundary_signs_250_m_downstream_of_francois_lake_road_bridge",
-                "stellako_river__signs_4000_m_downstream_of_francois_lake_road_bridge"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Fly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet",
-          "location_text": "between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet",
-          "exception": "",
-          "display_location": "Signs 250 m to 4 km downstream of François Lake Road bridge",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "stellako_river.r5",
-          "restriction_type": "vessel_restriction",
-          "details": "No powered boats",
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "stellako_river__fran_ois_lake",
-                "stellako_river__stellako_falls"
-              ],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "No powered boats from François Lake to the falls",
-          "location_text": "from François Lake to the falls",
-          "exception": "",
-          "display_location": "François Lake to Stellako Falls",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "stellako_river.r6",
-          "restriction_type": "note",
-          "details": "See François Lake outlet restrictions",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "See restrictions for François Lake's outlet area",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
           "unresolved_locators": [],
           "species": []
         }
@@ -10709,7 +10095,9 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10772,7 +10160,9 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",

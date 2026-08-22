@@ -20,9 +20,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -67,69 +67,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:10070",
-      "identity": {
-        "name": "Brunette River",
-        "region": "2",
-        "mus": [
-          "2-8"
-        ]
-      },
-      "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "brunette_river.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:10070#brunette_river",
       "identity": {
         "name": "BRUNETTE RIVER",
@@ -146,10 +83,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "Rule r1's second extent uses op='downstream_of' Cariboo Dam with no downstream limit, but regs specify 'from Cariboo Dam to Salamander Creek' — unbounded downstream allows fishing beyond Salamander Creek",
+            "fix": "Change the second extent op to 'between' and bind both Cariboo Dam and Salamander Creek endpoints (Salamander Creek boundary currently unresolved)"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -253,9 +196,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -316,9 +259,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -363,230 +306,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:10494",
-      "identity": {
-        "name": "Annacis Channel",
-        "region": "2",
-        "mus": [
-          "2-4"
-        ]
-      },
-      "regs_verbatim": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)\n**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31\n**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise\n**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas\n**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31\nBoats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "annacis_channel.r1",
-          "restriction_type": "gear_restriction",
-          "details": "Dead fin fish allowed as bait only when fishing for sturgeon",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Dead fin fish may be used for bait only when fishing for sturgeon (see page 8 in the Provincial Regulations)",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole channel",
-          "unresolved_locators": [],
-          "species": [
-            "WSG"
-          ]
-        },
-        {
-          "rule_id": "annacis_channel.r2",
-          "restriction_type": "closure",
-          "details": "No fishing (seasonal, bounded area)",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "May 1-Oct 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "sign-bounded closure area has no matching registry boundary; item has no cut-points",
-          "rule_text": "**No Fishing** in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement, May 1-Oct 31",
-          "location_text": "in the area bounded by a line commencing at a fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)\nto a fishing boundary sign on the opposite bank of the river, thence to a fishing boundary sign at the southern end of Croft Island, thence\nto a fishing boundary sign on the nearest bank of the river in a westerly direction, thence following the bank of the river in a westerly\ndirection to the Point of Commencement",
-          "exception": "",
-          "display_location": "Bounded area near Landstrom Bar / Croft Island (signed)",
-          "unresolved_locators": [
-            "fishing boundary sign located at the eastern end of Landstrom Bar (Scale Bar)",
-            "southern end of Croft Island"
-          ],
-          "species": []
-        },
-        {
-          "rule_id": "annacis_channel.r3",
-          "restriction_type": "closure",
-          "details": "No fishing (night closure)",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no boundary for 'non-tidal portion'; item has no cut-points",
-          "rule_text": "**No Fishing** in the non-tidal portion of the Fraser River in Region 2 from one hour after sunset to one hour before sunrise",
-          "location_text": "in the non-tidal portion of the Fraser River in Region 2",
-          "exception": "",
-          "display_location": "Non-tidal Fraser River, Region 2",
-          "unresolved_locators": [
-            "the non-tidal portion of the Fraser River in Region 2"
-          ],
-          "species": []
-        },
-        {
-          "rule_id": "annacis_channel.r4",
-          "restriction_type": "closure",
-          "details": "No fishing (side channels, seasonal)",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "May 15-July 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "named side channels have no matching registry boundary; item has no cut-points",
-          "rule_text": "**No Fishing** in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel May 15-July 31. See page 26\nfor a map of the No Fishing areas",
-          "location_text": "in the Jesperson's Side Channel, Herrling Side Channel, and Seabird Island north Side Channel",
-          "exception": "",
-          "display_location": "Jesperson's, Herrling, and Seabird Island north Side Channels",
-          "unresolved_locators": [
-            "Jesperson's Side Channel",
-            "Herrling Side Channel",
-            "Seabird Island north Side Channel"
-          ],
-          "species": []
-        },
-        {
-          "rule_id": "annacis_channel.r5",
-          "restriction_type": "closure",
-          "details": "No fishing for steelhead",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "Aug 15-Dec 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no boundary for 'Fraser River Mainstem'; item has no cut-points",
-          "rule_text": "**No Fishing** for steelhead Fraser River Mainstem Aug 15-Dec 31",
-          "location_text": "Fraser River Mainstem",
-          "exception": "",
-          "display_location": "Fraser River Mainstem",
-          "unresolved_locators": [
-            "Fraser River Mainstem"
-          ],
-          "species": [
-            "ST"
-          ]
-        },
-        {
-          "rule_id": "annacis_channel.r6",
-          "restriction_type": "vessel_restriction",
-          "details": "Boats under 20 m must not impede commercial vessels",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Boats less than 20 m in length, under power or anchored, must not impede the passage of commercial vessels",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole channel",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:10494#fraser_river_upstream_of_the_cpr_bridge_at_missi",
       "identity": {
         "name": "FRASER RIVER (upstream of the CPR Bridge at Mission)",
@@ -603,10 +322,21 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "FRASER RIVER r1 (dead fin fish bait rule): species field is empty, but regs explicitly state 'only when fishing for sturgeon' — should be species=[\"WSG\"]. ITEM 279 (Harrison River) parses the identical text correctly with species=[\"WSG\"], creating an inconsistency.",
+            "fix": "Set species to [\"WSG\"] in r1 to match the semantic limitation 'only when fishing for sturgeon' and align with ITEM 279's parse."
+          },
+          {
+            "severity": "medium",
+            "problem": "FRASER RIVER r3 (night closure): regs mention 'in the non-tidal portion of the Fraser River in Region 2', but extent is op=\"whole\" with needs_review=false. Geographic limits mentioned in location_text are not reflected in the extent. Compare to r2 and r4 in the same entry, which correctly flag similar unbound geographic references with needs_review=true.",
+            "fix": "Set needs_review=true with a review_reason explaining that the 'non-tidal portion' boundary is not available to bind the extent."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -849,9 +579,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -912,9 +642,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -1001,23 +731,25 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream of 152nd Street (Johnson Road)",
-      "source_symbols": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": false,
+        "included": true,
         "only": false,
         "excludes": []
       },
@@ -1073,9 +805,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -1139,9 +871,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -1202,10 +934,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "Rule r2 bounds as 'whole creek' but regs specify 'from the falls to 100m downstream' — a bounded reach. Current extent overstates closure range to entire creek rather than a limited section",
+            "fix": "Once falls and 100m-downstream boundaries are bindable, change r2 from op='whole' to op='between' with both endpoints"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -1298,9 +1036,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -1345,6 +1083,107 @@
       "audit_log": []
     },
     {
+      "entry_id": "gnis:13015",
+      "identity": {
+        "name": "Chehalis River",
+        "region": "2",
+        "mus": [
+          "2-18",
+          "2-19"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake\n**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "issues": []
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "chehalis_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "chehalis_river__chehalis_lake",
+                "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake",
+          "location_text": "from boundary signs at outlet of Chehalis Lake to main logging road bridge approximately 2.4 km downstream of Chehalis Lake",
+          "exception": "",
+          "display_location": "Chehalis Lake outlet to the main logging road bridge (~2.4 km downstream)",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "chehalis_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "chehalis_river__main_logging_road_bridge_2_4km_d_s_chehalis_lk"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake, May 1-31",
+          "location_text": "downstream of the main logging road bridge situated approximately 2.4 km downstream of Chehalis Lake",
+          "exception": "",
+          "display_location": "Below the main logging road bridge (~2.4 km below Chehalis Lake)",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "gnis:13047",
       "identity": {
         "name": "Big Silver Creek",
@@ -1361,9 +1200,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -1429,9 +1268,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -1492,9 +1331,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -1556,9 +1395,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -1619,9 +1458,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -1718,9 +1557,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -1783,9 +1622,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -1850,9 +1689,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -1975,9 +1814,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -2040,9 +1879,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -2105,9 +1944,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -2168,9 +2007,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -2233,9 +2072,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -2280,69 +2119,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:1860",
-      "identity": {
-        "name": "Marshall Creek",
-        "region": "2",
-        "mus": [
-          "2-4"
-        ]
-      },
-      "regs_verbatim": "See Lonzo Creek",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "marshall_creek.r1",
-          "restriction_type": "note",
-          "details": "See Lonzo Creek",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "See Lonzo Creek",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole creek",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:1860#lonzo_marshall_creek",
       "identity": {
         "name": "LONZO (\"Marshall\") CREEK",
@@ -2362,9 +2138,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -2493,9 +2269,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -2558,9 +2334,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -2621,10 +2397,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "Lynn Creek r1: Regs specify closure 'between' two boundary signs (200 m upstream and 150 m downstream of Twin Falls Bridge), but extent uses `op: whole` (entire creek), which incorrectly broadens the closure to the full waterbody instead of the defined reach between the signs.",
+            "fix": "Resolve the missing '150 m downstream' boundary or use a bounded extent operation (e.g., between/band) instead of `op: whole`. Current parsing makes closure apply to entire creek, not just the closure band."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -2716,9 +2498,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -2979,10 +2761,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "r2 'No powered boats on parts' extent is 'whole' but 'on parts' indicates a specific restricted area, not the entire reach",
+            "fix": "r2: mark unresolved_locators to capture 'on parts' as vague, or keep needs_review=true if the specific areas cannot be determined"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -3116,9 +2904,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -3181,9 +2969,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -3246,9 +3034,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -3345,9 +3133,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -3410,10 +3198,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "rule nicomekl_river.r3 captures seasonal dates (Aug 1-Dec 31) but omits the nighttime restriction (21:00-05:00 hours each day); closure applies only at night, not all day",
+            "fix": "add time-of-day component to capture '21:00-05:00' restriction separately from seasonal dates"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -3627,10 +3421,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "rule nicomen_slough.r1 binds speed restriction to 'whole slough' when regs say 'on parts'; 4 bindable lake boundaries available but none used",
+            "fix": "resolve which parts of the slough the 8 km/h restriction applies to, or flag if boundary definitions are unavailable"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -3690,9 +3490,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -3755,9 +3555,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -3820,9 +3620,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -3885,9 +3685,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -3942,23 +3742,25 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": false,
+        "included": true,
         "only": false,
         "excludes": []
       },
@@ -4014,9 +3816,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -4079,9 +3881,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -4144,9 +3946,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -4211,9 +4013,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -4267,23 +4069,25 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": false,
+        "included": true,
         "only": false,
         "excludes": []
       },
@@ -4338,9 +4142,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -4404,9 +4208,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -4499,10 +4303,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "Rule r3 (Serpentine River nighttime closure Aug 1-Dec 31) is missing the time-of-day component in structured fields. Regs specify '21:00 hours to 05:00 hours each day' but the `dates` field only captures 'Aug 1-Dec 31'. Consumers relying on structured date data will think the entire period is closed, not just nighttime.",
+            "fix": "Either (a) add time-of-day fields to the rule structure, or (b) flag this rule with `needs_review: true` to signal the limitation to users, since the schema cannot represent daytime carve-outs within a date range."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -4658,9 +4468,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -4707,71 +4517,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:25671",
-      "identity": {
-        "name": "Squamish Powerhouse Channel",
-        "region": "2",
-        "mus": [
-          "2-6",
-          "2-7",
-          "2-8"
-        ]
-      },
-      "regs_verbatim": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "squamish_powerhouse_channel_375.r1",
-          "restriction_type": "closure",
-          "details": "No fishing in Squamish River tributaries",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "general tributary closure naming this waterbody as an exception; verify closure does not actually apply here",
-          "rule_text": "**No Fishing** tributaries EXCEPT: Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
-          "location_text": "",
-          "exception": "Ashlu Creek, Cheakamus, Elaho and Mamquam Rivers, and the Squamish Powerhouse Channel",
-          "display_location": "Squamish River tributaries (general closure; this waterbody named as exception)",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:25671#squamish_powerhouse_channel",
       "identity": {
         "name": "SQUAMISH POWERHOUSE CHANNEL",
@@ -4790,9 +4535,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -4887,9 +4632,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -4952,9 +4697,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -5018,9 +4763,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -5212,9 +4957,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -5277,9 +5022,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -5343,9 +5088,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -5476,9 +5221,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -5542,9 +5287,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -5605,9 +5350,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -5704,9 +5449,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -5767,9 +5512,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -5830,9 +5575,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -5895,9 +5640,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -5951,23 +5696,25 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
-        "included": false,
+        "included": true,
         "only": false,
         "excludes": []
       },
@@ -6021,9 +5768,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -6084,9 +5831,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -6149,9 +5896,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -6244,9 +5991,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -6309,9 +6056,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -6375,9 +6122,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -6440,9 +6187,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -6567,9 +6314,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -6634,10 +6381,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "Rule r3 uses op='downstream_of' the triangular signs with no downstream limit, but regs specify 'between signs downstream to pedestrian bridge' — unbounded extends closure past the intended boundary",
+            "fix": "Change r3 op to 'between' and bind both endpoints: upstream (triangular signs) and downstream (pedestrian bridge at Stayte Road)"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -6798,10 +6551,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "rule pitt_river.r4 captures the reach (CPR Bridge to Pitt Lake) but omits the nighttime-only restriction (one hour after sunset to one hour before sunrise); closure applies only at night, not all day",
+            "fix": "add time-of-day component to capture the sunset/sunrise-based restriction"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -6954,9 +6713,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -7053,9 +6812,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -7120,9 +6879,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -7167,6 +6926,260 @@
       "audit_log": []
     },
     {
+      "entry_id": "gnis:8634",
+      "identity": {
+        "name": "Chilliwack River",
+        "region": "2",
+        "mus": [
+          "2-3",
+          "2-4"
+        ]
+      },
+      "regs_verbatim": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek\n**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30\n**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30\nDownstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31; **(b) No Fishing** June 1-30; **(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "r2 extent is 'upstream_of' Tamihi Rapids only, but regs specify 'downstream of [Slesse signs] to Tamihi Rapids Bridge' — should be 'between' or correctly bound to both limits",
+            "fix": "r2: change 'op': 'upstream_of' to 'op': 'between' and include both boundary splits (Slesse signs and Tamihi Rapids) once the upstream boundary is resolved"
+          },
+          {
+            "severity": "high",
+            "problem": "r3 extent is 'downstream_of' Tamihi Rapids only, but regs specify 'downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge' — missing downstream boundary",
+            "fix": "r3: change 'op': 'downstream_of' to 'op': 'between' with splits [Tamihi Rapids, Vedder Crossing Bridge] once Vedder Crossing is bindable"
+          },
+          {
+            "severity": "high",
+            "problem": "r4, r5, r6 have 'op': 'whole' but regs clearly state 'Downstream of Vedder Crossing Bridge' — these rules apply only below Vedder Crossing, not whole river",
+            "fix": "r4, r5, r6: change 'op': 'whole' to 'op': 'downstream_of' with split [Vedder Crossing Bridge] once it is bindable"
+          }
+        ]
+      },
+      "matched": [],
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "chilliwack_river.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the signs 100 m below Slesse Creek; fell back to whole reach",
+          "rule_text": "**No Fishing **upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek",
+          "location_text": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River 100 m downstream of the\nconfluence of the Chilliwack River and Slesse Creek",
+          "exception": "",
+          "display_location": "Above the boundary signs 100 m below the Slesse Creek confluence",
+          "unresolved_locators": [
+            "fishing boundary signs 100 m downstream of the confluence of the Chilliwack River and Slesse Creek"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "chilliwack_river.r2",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "chilliwack_vedder_rivers__tamihi_rapids_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Apr 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for the signs 100 m below Slesse Creek; bound only the downstream end (Tamihi Rapids Bridge)",
+          "rule_text": "**No Fishing** downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge, Apr 1-June 30",
+          "location_text": "downstream of a line between two fishing boundary signs on either side of the Chilliwack River 100m downstream of the\nconfluence of the Chilliwack River and Slesse Creek to Tamihi Rapids Bridge",
+          "exception": "",
+          "display_location": "Boundary signs 100 m below Slesse Creek down to Tamihi Rapids Bridge",
+          "unresolved_locators": [
+            "fishing boundary signs 100m downstream of the confluence of the Chilliwack River and Slesse Creek"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "chilliwack_river.r3",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "chilliwack_vedder_rivers__tamihi_rapids_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for Vedder Crossing Bridge; bound only the upstream end (Tamihi Rapids Bridge)",
+          "rule_text": "**No Fishing **downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1-June 30",
+          "location_text": "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge",
+          "exception": "",
+          "display_location": "Tamihi Rapids Bridge down to Vedder Crossing Bridge",
+          "unresolved_locators": [
+            "Vedder Crossing Bridge"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "chilliwack_river.r4",
+          "restriction_type": "gear_restriction",
+          "details": "Fly fishing only, bait ban; hatchery rainbow trout (50 cm or less) and hatchery cutthroat catch and release",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "May 1-31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no boundary for Vedder Crossing Bridge; fell back to whole reach",
+          "rule_text": "Downstream of Vedder Crossing Bridge: **(a)** fly fishing only, bait ban, hatchery rainbow trout catch and release (50 cm or less), and hatch-\nery cutthroat catch and release, May 1-31;",
+          "location_text": "Downstream of Vedder Crossing Bridge",
+          "exception": "",
+          "display_location": "Below Vedder Crossing Bridge",
+          "unresolved_locators": [
+            "Vedder Crossing Bridge"
+          ],
+          "species": [
+            "RB",
+            "CT",
+            "CCT"
+          ]
+        },
+        {
+          "rule_id": "chilliwack_river.r5",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "June 1-30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "clause (b) of the 'Downstream of Vedder Crossing Bridge' block; no boundary for Vedder Crossing Bridge, fell back to whole reach",
+          "rule_text": "**(b) No Fishing** June 1-30;",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Below Vedder Crossing Bridge",
+          "unresolved_locators": [
+            "Vedder Crossing Bridge"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "chilliwack_river.r6",
+          "restriction_type": "harvest",
+          "details": "Hatchery rainbow trout 50 cm or less: daily quota = 4",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "July 1-Apr 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "clause (c) of the 'Downstream of Vedder Crossing Bridge' block; no boundary for Vedder Crossing Bridge, fell back to whole reach",
+          "rule_text": "**(c)** hatchery rainbow trout of any length 50 cm or less: daily quota =\n4, July 1-Apr 30",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Below Vedder Crossing Bridge",
+          "unresolved_locators": [
+            "Vedder Crossing Bridge"
+          ],
+          "species": [
+            "RB"
+          ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "gnis:8664",
       "identity": {
         "name": "Cougar Canyon Creek",
@@ -7183,9 +7196,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -7248,10 +7261,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
+        "issues": [
+          {
+            "severity": "high",
+            "problem": "Rule r1 uses op='downstream_of' with only the upstream endpoint (1st falls), but regs specify 'from upstream edge of 1st falls to a point 100m downstream' — unbounded downstream allows fishing beyond the intended closure limit",
+            "fix": "Change r1 op to 'between' and bind both endpoints: upstream (1st falls) and downstream (100m point). A bindable boundary 'brem_river__the_upstream_edge_of_1st_falls_100_m_downstream' is listed but unused"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -7407,9 +7426,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -7454,69 +7473,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "gnis:9630",
-      "identity": {
-        "name": "Alouette River",
-        "region": "2",
-        "mus": [
-          "2-8"
-        ]
-      },
-      "regs_verbatim": "See Alouette River",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "alouette_river.r1",
-          "restriction_type": "note",
-          "details": "See Alouette River",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "cross-reference note only; no substantive regulation text provided",
-          "rule_text": "See Alouette River",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:9630#alouette_river",
       "identity": {
         "name": "ALOUETTE RIVER",
@@ -7535,9 +7491,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -7660,9 +7616,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -7725,9 +7681,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -7788,9 +7744,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -7853,9 +7809,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -7909,9 +7865,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -7963,9 +7919,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -8017,9 +7973,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -8218,288 +8174,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:328965040",
-      "identity": {
-        "name": "Alta Lake",
-        "region": "2",
-        "mus": [
-          "4-3"
-        ]
-      },
-      "regs_verbatim": "**No Fishing **Dec 1-Mar 31\nTrout/char daily quota combined = 2, no trout over 40cm, no more than 1 char (none under 60 cm)\nKokanee catch and release, bait ban, single barbless hook; speed restriction (12 km/h)",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "alta_lake.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "Dec 1-Mar 31"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing **Dec 1-Mar 31",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "alta_lake.r2",
-          "restriction_type": "harvest",
-          "details": "Trout/char daily quota combined = 2",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout/char daily quota combined = 2",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "RB",
-            "CT",
-            "WCT",
-            "CCT",
-            "GB",
-            "GT",
-            "SLV"
-          ]
-        },
-        {
-          "rule_id": "alta_lake.r3",
-          "restriction_type": "harvest",
-          "details": "No trout over 40 cm",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "no trout over 40cm",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "RB",
-            "CT",
-            "WCT",
-            "CCT",
-            "GB",
-            "GT"
-          ]
-        },
-        {
-          "rule_id": "alta_lake.r4",
-          "restriction_type": "harvest",
-          "details": "No more than 1 char, none under 60 cm",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "no more than 1 char (none under 60 cm)",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "SLV"
-          ]
-        },
-        {
-          "rule_id": "alta_lake.r5",
-          "restriction_type": "harvest",
-          "details": "Catch and release",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Kokanee catch and release",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "KO"
-          ]
-        },
-        {
-          "rule_id": "alta_lake.r6",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "alta_lake.r7",
-          "restriction_type": "gear_restriction",
-          "details": "Single barbless hook",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "single barbless hook",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "alta_lake.r8",
-          "restriction_type": "vessel_restriction",
-          "details": "Speed restriction 12 km/h",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "speed restriction (12 km/h)",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:328965040#alta_lake",
       "identity": {
         "name": "ALTA LAKE",
@@ -8518,9 +8192,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -8689,69 +8363,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:328970801",
-      "identity": {
-        "name": "Trout Lake",
-        "region": "2",
-        "mus": [
-          "2-18"
-        ]
-      },
-      "regs_verbatim": "No powered boats",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "trout_lake_328970801.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "No powered boats",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "No powered boats",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:328970801#trout_lake_sasquatch_park",
       "identity": {
         "name": "TROUT LAKE (Sasquatch Park)",
@@ -8768,9 +8379,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -8833,9 +8444,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -8898,9 +8509,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -9028,9 +8639,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -9189,9 +8800,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -9254,9 +8865,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -9353,9 +8964,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -9453,10 +9064,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "r4 'Speed restriction (5 km/h) at north end' extent is 'whole' but regs explicitly limit to 'north end, as buoyed and signed' — not the entire lake",
+            "fix": "r4: change 'op': 'whole' to a bounded extent if a 'north end' boundary is available, or mark with unresolved_locators for the buoyed area"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -9643,9 +9260,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -9708,9 +9325,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -9783,69 +9400,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329102601",
-      "identity": {
-        "name": "Bear Lake",
-        "region": "2",
-        "mus": [
-          "7-24"
-        ]
-      },
-      "regs_verbatim": "No powered boats",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "bear_lake.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "No powered boats",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "No powered boats",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329102601#bear_lake_1",
       "identity": {
         "name": "BEAR LAKE",
@@ -9862,9 +9416,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -9925,9 +9479,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -10004,137 +9558,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329154761",
-      "identity": {
-        "name": "Silver Lake",
-        "region": "2",
-        "mus": [
-          "2-2"
-        ]
-      },
-      "regs_verbatim": "**No Fishing** Dec 1-Apr 30; kokanee, trout and char catch and release, bait ban, single barbless hook",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "silver_lake.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [
-            "Dec 1-Apr 30"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing** Dec 1-Apr 30",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "silver_lake.r2",
-          "restriction_type": "harvest",
-          "details": "Catch and release",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "kokanee, trout and char catch and release",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "KO",
-            "RB",
-            "ST",
-            "CT",
-            "WCT",
-            "CCT",
-            "GB",
-            "GT",
-            "SLV"
-          ]
-        },
-        {
-          "rule_id": "silver_lake.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban, single barbless hook",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329154761#silver_silverhope_lake",
       "identity": {
         "name": "SILVER (Silverhope) LAKE",
@@ -10151,9 +9574,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -10274,16 +9697,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -10328,125 +9753,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329176402",
-      "identity": {
-        "name": "Morgan Lake",
-        "region": "2",
-        "mus": [
-          "3-19"
-        ]
-      },
-      "regs_verbatim": "Trout/char catch and release; bait ban, single barbless hook",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "morgan_lake.r1",
-          "restriction_type": "harvest",
-          "details": "Trout/char catch and release",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout/char catch and release",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "morgan_lake.r2",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "morgan_lake.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Single barbless hook",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "single barbless hook",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329176402#morgan_lake",
       "identity": {
         "name": "MORGAN LAKE",
@@ -10463,9 +9769,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -10564,9 +9870,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -10650,69 +9956,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329177885",
-      "identity": {
-        "name": "Chehalis Lake",
-        "region": "2",
-        "mus": [
-          "2-19"
-        ]
-      },
-      "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "chehalis_lake.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329177885#chehalis_lake",
       "identity": {
         "name": "CHEHALIS LAKE",
@@ -10729,9 +9972,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -10829,9 +10072,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -10876,69 +10119,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329177886",
-      "identity": {
-        "name": "Wahleach Lake",
-        "region": "2",
-        "mus": [
-          "2-3"
-        ]
-      },
-      "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "wahleach_lake.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329177886#jones_lake",
       "identity": {
         "name": "\"JONES\" LAKE",
@@ -10955,9 +10135,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -11020,9 +10200,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -11090,9 +10270,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -11155,9 +10335,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -11221,9 +10401,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -11308,16 +10488,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -11376,9 +10558,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -11439,10 +10621,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
+        "issues": [
+          {
+            "severity": "low",
+            "problem": "r2 'Official name: Lake Errock' is parsed as a restriction rule with restriction_type 'note', but this is metadata, not a fishing regulation",
+            "fix": "r2: remove this rule or move the official name to identity metadata rather than rules array"
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -11530,9 +10718,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -11723,9 +10911,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -11788,9 +10976,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -11851,9 +11039,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -11942,10 +11130,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "Lois Lake r1: 'Wild trout/char daily quota = 2' has empty species array, inconsistent with similar regulations elsewhere that populate species.",
+            "fix": "Add species codes (trout/char types) to r1 species array to match parsing pattern."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -12094,9 +11288,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -12157,9 +11351,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -12256,9 +11450,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -12387,9 +11581,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -12518,9 +11712,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -12641,9 +11835,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -12704,9 +11898,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -12804,9 +11998,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -12903,9 +12097,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -13002,9 +12196,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -13065,9 +12259,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -13156,9 +12350,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -13247,9 +12441,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -13310,9 +12504,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -13373,9 +12567,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -13436,9 +12630,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -13527,9 +12721,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -13627,9 +12821,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -13674,69 +12868,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329197172",
-      "identity": {
-        "name": "Lily Lake",
-        "region": "2",
-        "mus": [
-          "2-5"
-        ]
-      },
-      "regs_verbatim": "See Lily Lake",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "lily_lake.r1",
-          "restriction_type": "note",
-          "details": "Cross-reference: see Lily Lake",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "See Lily Lake",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329197172#lily_paq_lake",
       "identity": {
         "name": "LILY (\"Paq\") LAKE",
@@ -13753,9 +12884,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -13880,9 +13011,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -13936,16 +13067,18 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -14006,9 +13139,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -14069,9 +13202,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -14132,9 +13265,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -14195,9 +13328,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -14333,9 +13466,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -14460,9 +13593,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -14555,9 +13688,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -14685,9 +13818,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -14746,9 +13879,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -14809,9 +13942,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -14872,9 +14005,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -14955,69 +14088,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329291868",
-      "identity": {
-        "name": "Burnaby Lake",
-        "region": "2",
-        "mus": [
-          "2-8"
-        ]
-      },
-      "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "burnaby_lake.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "**No Fishing**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329291868#burnaby_lake",
       "identity": {
         "name": "BURNABY LAKE",
@@ -15034,9 +14104,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -15125,9 +14195,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -15190,9 +14260,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -15255,10 +14325,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "Mill Lake r1: 'Trout/char daily quota = 2' has empty species array, inconsistent with pattern in other entries.",
+            "fix": "Populate r1 species array with trout/char species codes."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -15406,9 +14482,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -15471,9 +14547,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -15527,16 +14603,18 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 2; single barbless hook",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:09:52+00:00",
         "issues": []
       },
       "matched": [],
@@ -15626,16 +14704,18 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 2; single barbless hook",
-      "source_symbols": [],
+      "source_symbols": [
+        "Stocked"
+      ],
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -15724,9 +14804,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -15789,9 +14869,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -15850,9 +14930,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -15897,73 +14977,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329303443",
-      "identity": {
-        "name": "Lillooet Lake",
-        "region": "2",
-        "mus": [
-          "2-10",
-          "2-11",
-          "2-9"
-        ]
-      },
-      "regs_verbatim": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and\nLittle Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of\nland on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake's\nlower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake's entry below)",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": true,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "lillooet_lake.r1",
-          "restriction_type": "note",
-          "details": "Channel between Lillooet Lake and Little Lillooet Lake is part of the Lillooet River, not the lake",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Because regional quotas and gear restrictions are different in lakes and streams, please note: the channel between Lillooet Lake and\nLittle Lillooet Lake is part of the Lillooet River. This channel starts at the southern end of Lillooet Lake where it is defined by the point of\nland on the west side and by a sign immediately across the channel and next to the main logging road on the east. Little Lillooet Lake's\nlower boundary is approximately 1 km upstream of Billygoat Creek (see map below and Little Lillooet Lake's entry below)",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329303443#lillooet_lake",
       "identity": {
         "name": "LILLOOET LAKE",
@@ -15982,9 +14995,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -16086,9 +15099,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -16151,9 +15164,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -16217,10 +15230,16 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
+        "verdict": "changes_requested",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
+        "issues": [
+          {
+            "severity": "medium",
+            "problem": "Little Lillooet Lake r1: 'Trout/char catch and release' has empty species array, but identical rule in Lily Lake (index 305) lists species [RB, CT, WCT, CCT, GB, GT, SLV]. Inconsistent parsing.",
+            "fix": "Populate species array for r1 with trout/char species codes to match pattern seen in other entries with identical regulations."
+          }
+        ]
       },
       "matched": [],
       "registry_status": "matched",
@@ -16309,9 +15328,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -16482,69 +15501,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329354830",
-      "identity": {
-        "name": "Wolf Lake",
-        "region": "2",
-        "mus": [
-          "5-1"
-        ]
-      },
-      "regs_verbatim": "No powered boats",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "wolf_lake.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "No powered boats",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "No powered boats",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329354830#wolf_lake",
       "identity": {
         "name": "WOLF LAKE",
@@ -16561,9 +15517,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:32+00:00",
         "issues": []
       },
       "matched": [],
@@ -16624,9 +15580,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -16687,9 +15643,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -16752,9 +15708,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -16847,9 +15803,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -16913,9 +15869,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -16978,9 +15934,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -17041,9 +15997,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:34+00:00",
         "issues": []
       },
       "matched": [],
@@ -17104,9 +16060,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:11+00:00",
         "issues": []
       },
       "matched": [],
@@ -17169,9 +16125,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:11:06+00:00",
         "issues": []
       },
       "matched": [],
@@ -17266,9 +16222,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -17333,9 +16289,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],
@@ -17486,9 +16442,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:12:00+00:00",
         "issues": []
       },
       "matched": [],
@@ -17551,9 +16507,9 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
+        "verdict": "pass",
+        "model": "haiku",
+        "reviewed_at": "2026-08-22T06:10:47+00:00",
         "issues": []
       },
       "matched": [],

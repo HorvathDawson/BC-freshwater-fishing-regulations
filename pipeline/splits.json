@@ -92,25 +92,6 @@
       -125.66758,
       50.33945
      ]
-    },
-    {
-     "id": "amor_de_cosmos_creek__mouth",
-     "label": "mouth",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -125.68532,
-       50.35706
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "the way it is worded it seems like this is the same as \"upper falls\"? since 3km from tidewater is the bridge + 1km to falls = 4km from tide water [structural-split 2026-08-05 from \"from mouth to falls about 4 km upstream\"] boundary=mouth [curated 2026-08-08 manual-review batch=amor-1-10] [FWA creek mouth at tidewater]",
-     "_coord": [
-      -125.68532,
-      50.35706
-     ]
     }
    ]
   },
