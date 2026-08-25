@@ -72135,5 +72135,33 @@
     "note": "BC Lakes Database: survey_id 1784"
    }
   ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "7250"
+   ]
+  },
+  "names": [
+   {
+    "name": "LITTLE CAMPBELL RIVER",
+    "source": "regulation",
+    "note": "variant_of CAMPBELL RIVER; overrides.json skip; REGION 2 - Lower Mainland; MU 2-4"
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "26104"
+   ]
+  },
+  "names": [
+   {
+    "name": "BLACKWATER RIVER",
+    "source": "regulation",
+    "note": "variant_of WEST ROAD (\"Blackwater\") RIVER; overrides.json skip; REGION 5 - Cariboo; MU 5-13"
+   }
+  ]
  }
 ]
