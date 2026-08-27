@@ -230,6 +230,40 @@ def test_merge_by_name_drops_unnamed_side_branch_from_extras():
     assert len(extra.get(rep, [])) == 1, "same-name braid kept as an extra; the unnamed side-branch is dropped"
 
 
+def test_export_carries_fwa_exclude_and_name_variants():
+    """The build export must tell the consumer what to remove from FWA and how names survive: a municipal
+    DUPLICATE of an FWA blue line becomes a name variant (alias) of that FWA blk."""
+    _, _, report = _mint()
+    assert report["fwa_exclude"] == []                            # nothing excluded in this fixture
+    dup = [v for v in report["name_variants"] if v["kind"] == "duplicate"]
+    assert any(v["name"] == "Big Creek" and v["target_blk"] == "1000" for v in dup), \
+        "Big Creek (a duplicate of Big River / blk 1000) is exported as a name variant of that blk"
+
+
+def test_excluded_fwa_name_becomes_a_variant_of_the_superseding_stream():
+    """When an FWA reach is excluded, its own gnis name is kept as a variant of the municipal stream that
+    superseded it — so the name is not lost with the FWA line. Coast Creek reaches tidal on its own, so it
+    still mints once the overlapping FWA is excluded, and inherits that FWA's name."""
+    from pipeline.added_streams.tests.test_build import _chain
+    coast_fwa = _chain("5000", "100-500000", [(-123.1, 49.30), (-123.105, 49.305)],
+                       gnis_name="Old Coast River", gnis_id="9")
+    streams, _, report = resolve_and_mint(_FEATS, _FWA + [coast_fwa], LakeIndex([]), _TIDAL,
+                                          exclude_wsc=("100-500000",))
+    assert report["fwa_exclude"] == ["100-500000"]
+    ev = [v for v in report["name_variants"] if v["kind"] == "excluded_fwa"]
+    assert any(v["name"] == "Old Coast River" for v in ev), "excluded FWA name kept as a variant"
+
+
+def test_nonlinear_blk_geometry_is_detected():
+    """A blk whose geometry self-crosses is a loop the graph must never ingest — resolve_and_mint raises,
+    and the detector flags it."""
+    from pipeline.added_streams.build_dataset import _nonlinear_blks
+    straight = {"blk": "-1", "segments": [{"coords3005": [(0, 0), (0, 1), (0, 2)], "wbk": ""}]}
+    bowtie = {"blk": "-2", "segments": [{"coords3005": [(0, 0), (1, 1), (1, 0), (0, 1)], "wbk": ""}]}
+    assert _nonlinear_blks([straight]) == []
+    assert _nonlinear_blks([bowtie]) == ["-2"]
+
+
 def test_name_conflict_candidate_emitted():
     _, cands, report = _mint()
     conflicts = [c for c in cands if c.conflict]

@@ -686,6 +686,19 @@ def approved_lake_polys(gpkg, bbox, source: str) -> list:
     return out
 
 
+def _stream_geom(s):
+    """Albers geometry of a minted stream = union of its (under-lake-split) segment lines."""
+    lines = [LineString(seg["coords3005"]) for seg in s["segments"] if len(seg["coords3005"]) >= 2]
+    return unary_union(lines) if lines else Point(1e18, 1e18)
+
+
+def _nonlinear_blks(streams) -> list:
+    """Minted streams with a self-crossing (non-simple) segment — a loop the graph must never ingest."""
+    return [s["blk"] for s in streams
+            if any(len(seg["coords3005"]) >= 2 and not LineString(seg["coords3005"]).is_simple
+                   for seg in s["segments"])]
+
+
 def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_index: LakeIndex,
                      tidal_geoms: list, *, tol: float = 30.0, connect_tol: float = _CONNECT_TOL,
                      drop_unconfirmed: bool = True, exclude_wsc: tuple = (),
@@ -699,9 +712,14 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     starts with any prefix is removed along with everything upstream of it (its tributaries share the
     prefix). Used to delete FWA reaches the municipal geojson supersedes (the muni lines there then
     classify as novels and mint their own codes) — e.g. Squamish drops ``900-105574-087851``."""
+    excluded_fwa: list = []                                     # named FWA reaches we removed (for name variants)
     if exclude_wsc:
-        fwa_chains = [c for c in fwa_chains
-                      if not any(trim_wsc(c.fwa_watershed_code).startswith(p) for p in exclude_wsc)]
+        keep_c, drop_c = [], []
+        for c in fwa_chains:
+            (drop_c if any(trim_wsc(c.fwa_watershed_code).startswith(p) for p in exclude_wsc)
+             else keep_c).append(c)
+        fwa_chains = keep_c
+        excluded_fwa = [c for c in drop_c if (c.gnis_name or "").strip() and c.geometry is not None]
     if drop_unconfirmed:      # e.g. Squamish 'Unconfirmed' watercourses — too noisy to mint
         features = [f for f in features
                     if not str(f.get("properties", {}).get("ftype", "")).lower().startswith("unconfirmed")]
@@ -1058,9 +1076,30 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                            "name": st["name"], "ftype": c["kind"], "fish": "",
                            "coords": [[round(mx, 6), round(my, 6)], [round(cx, 6), round(cy, 6)]]})
 
+    # NAME VARIANTS for downstream consumption (graph/registry). Two kinds:
+    #  - duplicate/extension: a municipal line that hugs a KEPT FWA blue line — the municipal NAME is an alias
+    #    of that FWA blk (FWA name stays boss).
+    #  - excluded_fwa: an FWA reach we removed via exclude_wsc — its OWN gnis name is an alias of the minted
+    #    municipal stream that superseded it (nearest within `tol`), so the name survives the exclusion.
+    name_variants = [{"kind": "duplicate", "name": c.name, "target_blk": c.target_blk,
+                      "target_gnis": c.target_gnis} for c in candidates if c.name]
+    for c in excluded_fwa:
+        near = min(streams, key=lambda s: _stream_geom(s).distance(c.geometry), default=None)
+        if near is not None and _stream_geom(near).distance(c.geometry) <= tol:
+            name_variants.append({"kind": "excluded_fwa", "name": c.gnis_name,
+                                  "target_blk": near["blk"], "target_gnis": c.gnis_id or ""})
+
+    # blk LINEARITY: every minted stream must consume as a linear (non-self-crossing) line — a looping segment
+    # would create a cycle in the stream graph and break the tributary walk.
+    nonlinear = _nonlinear_blks(streams)
+    if nonlinear:
+        raise ValueError(f"added streams: non-linear (self-looping) blk geometry: {nonlinear}")
+
     report = {"counts": {k: sum(1 for ch in channels if cls[ch.blk].klass == k)
                          for k in ("duplicate", "extension", "novel")},
               "minted": len(streams), "unresolved": unresolved,
+              "fwa_exclude": list(exclude_wsc),                 # FWA wsc PREFIXES the consumer must remove
+              "name_variants": name_variants,
               "name_conflicts": [asdict(c) for c in candidates if c.conflict],
               "diagnostics": _diagnostics(channels, cls, kept_blks, wsc_of, ch_by_blk, geom,
                                           folded, ext_meta) + conn_diags}
@@ -1173,8 +1212,13 @@ def load_build(path: str | Path) -> list[dict]:
 
 def write(streams, candidates, report, out_dir: Path, name: str = "added_streams") -> Path:
     out = Path(out_dir) / "added_streams.build.json"
-    out.write_text(json.dumps({"_about": "Minted additional-streams dataset (see added_streams).",
-                               "streams": streams}, indent=1), encoding="utf-8")
+    out.write_text(json.dumps({
+        "_about": "Minted additional-streams dataset (see added_streams). Consumer: remove FWA blue lines "
+                  "whose trimmed wsc starts with any `fwa_exclude` prefix, ingest `streams` (blk/wsc/geometry/"
+                  "segments), and apply `name_variants` (municipal names -> the FWA/added blk they alias).",
+        "fwa_exclude": report.get("fwa_exclude", []),
+        "name_variants": report.get("name_variants", []),
+        "streams": streams}, indent=1), encoding="utf-8")
     from pipeline.added_streams import __file__ as _pkg
     outputs = Path(_pkg).resolve().parents[2] / "output"
     outputs.mkdir(parents=True, exist_ok=True)
@@ -1243,10 +1287,11 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
     chains, lake_index, tidal, _, _ = _load_fwa(gpkg, bbox)
     from pipeline.added_streams.dem import ElevationSampler
     source = sources[0] if len(sources) == 1 else ""
+    exclude = tuple(dict.fromkeys(p for s in sources for p in FWA_EXCLUDE_BY_SOURCE.get(s, ())))  # union across
+    approved = [ply for s in sources for ply in approved_lake_polys(gpkg, bbox, s)]                # all sources
     streams, candidates, report = resolve_and_mint(
         features, chains, lake_index, tidal,
-        exclude_wsc=FWA_EXCLUDE_BY_SOURCE.get(source, ()),
-        approved_lakes=approved_lake_polys(gpkg, bbox, source),
+        exclude_wsc=exclude, approved_lakes=approved,
         orient_sampler=ElevationSampler(), trust_source=source in RELIABLE_SOURCES)
     out_dir = out_dir or (Path(__file__).resolve().parent)
     out = write(streams, candidates, report, out_dir)
