@@ -135,8 +135,10 @@ _NAME_ALIASES_BY_SOURCE: dict[str, dict] = {
 # Municipal features to DROP per source by exact src_id — for pruning a SINGLE bad piece (a spurious
 # connector / a fragment that mis-routes flow) without dropping every other feature that shares its name.
 _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
-    "burnaby": {"344", "356.1", "279", "305", "274", "268", "4", "8", "9"},  # Ancient Grove Trib.1 stub; Rudolph
-    #   356.1 part; Fraser River; 305 Lost<->Holmes connector; 268/274 Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3
+    "burnaby": {"344", "356.1", "279", "305", "274", "268", "4", "8", "9",
+                "410", "41.0", "41.1", "105", "384", "292"},  # Ancient Grove Trib.1 stub; Rudolph 356.1 part;
+    #   Fraser River; 305 Lost<->Holmes connector; 268/274 Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3;
+    #   410 Jerry Rogers Creek; 41.0/41.1 JR Trib.1; 105/384/292 unnamed spurious pieces
     "squamish": {"654", "654.0", "654.1", "654.2", "608.5", "608.4", "597.1", "597.2", "664", "658.1",
                  # Harris Slough & tribs (654.0, 612, 622.0/.1, 648.0/.1, 659), Whitaker Slough (373, 684),
                  # Mamquam Side Channel (609), Dryden Creek Trib 1 (666), Stawamus River + Trib 1 (589, 590):
