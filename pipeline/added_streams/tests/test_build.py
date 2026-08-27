@@ -169,6 +169,28 @@ def test_clip_receiver_overshoot_walks_mouth_back_to_crossing():
     assert _clip_receiver_overshoot(big, river) is big
 
 
+def test_merge_by_name_drops_unnamed_side_branch_from_extras():
+    """Dallas Creek regression. When a fragmented named creek folds into one blk, a same-name BRAID rides
+    along as an extra segment. But an UNNAMED side-branch that folds in (off the longest trunk, via the
+    unnamed-fragment rule) must NOT ride along — else it is drawn as a disconnected segment of the creek
+    (the 'flows upstream then a straight line back' artifact). Only same-name braids are kept as extras."""
+    from types import SimpleNamespace
+    from shapely.geometry import LineString
+    from pipeline.added_streams.build_dataset import _merge_by_name
+    geom = {-1: LineString([(0, 0), (0, 100)]),        # R (Creek) — the rep (mouth at 0,0)
+            -2: LineString([(0, 100), (0, 200)]),      # A (Creek) — long up-end continuation -> the trunk
+            -3: LineString([(0, 100), (5, 150)]),      # Bd (Creek) — short same-name braid -> extra KEPT
+            -4: LineString([(0, 100), (-5, 150)])}     # U (unnamed) — side-branch -> extra DROPPED
+    names = {-1: "Creek", -2: "Creek", -3: "Creek", -4: ""}
+    minted = [SimpleNamespace(blk=b, name=names[b], members=(b,)) for b in geom]
+    ch_all = {b: SimpleNamespace(blk=b, name=names[b]) for b in geom}
+    receiver = {-1: ("tidal", ""), -2: ("added", "-1"), -3: ("added", "-1"), -4: ("added", "-1")}
+    keep, _, _, extra = _merge_by_name(minted, receiver, geom, ch_all)
+    assert len(keep) == 1, "the same-name pieces merge into one Creek stream"
+    rep = keep[0].blk
+    assert len(extra.get(rep, [])) == 1, "same-name braid kept as an extra; the unnamed side-branch is dropped"
+
+
 def test_name_conflict_candidate_emitted():
     _, cands, report = _mint()
     conflicts = [c for c in cands if c.conflict]

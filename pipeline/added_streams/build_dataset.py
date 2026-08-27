@@ -563,7 +563,11 @@ def _merge_by_name(minted, receiver, geom, ch_by_blk_all):
         if len(members) > 1:
             trunk = _longest(rep)                            # mouth->source main path -> the trunk geometry
             coords = list(geom[rep].coords)                  # rep is mouth-first; KEEP mouth at coords[0]
-            extras = [geom[b] for b in members if b not in set(trunk)]
+            # a non-trunk member rides along as a braid SEGMENT only if it is the SAME creek (same name). An
+            # UNNAMED side-branch that folded in (via the unnamed-fragment rule) is NOT a braid of this creek —
+            # keeping it would draw a disconnected segment ('flows upstream then a straight line back', Dallas
+            # Creek's -113/-186 branch off connector 420/499). Drop it; the trunk carries the real flow.
+            extras = [geom[b] for b in members if b not in set(trunk) and nm(b) == nm(rep)]
             for i, b in enumerate(trunk[1:], 1):
                 bc = list(geom[b].coords)
                 if Point(bc[-1]).distance(Point(coords[-1])) < Point(bc[0]).distance(Point(coords[-1])):
