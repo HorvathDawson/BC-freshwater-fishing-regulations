@@ -1,0 +1,264 @@
+"""build_dataset.resolve_and_mint + to_graph_inputs — classification, receiver resolution, WSC
+propagation, under-lake wbk, and graph tie-in. Hermetic: synthetic FWA chains + lake/tidal geometry."""
+
+from shapely.geometry import LineString, Polygon
+
+from pipeline.added_streams.build_dataset import resolve_and_mint, to_graph_inputs, _is_name_tributary
+from pipeline.added_streams.fwa_match import line_to_albers
+from pipeline.added_streams.underlake import LakeIndex
+from pipeline.graph.blk_chains import build_blk_chains
+from pipeline.graph.graph import ancestors, build_stream_graph
+from pipeline.models import BlkChain
+
+
+def _chain(blk, wsc, coords, gnis_name="", gnis_id="", order=3, mag=5):
+    g = line_to_albers(coords)
+    return BlkChain(blk=blk, fwa_watershed_code=wsc, fids=(), geometry=g, mouth_measure=0.0,
+                    length_m=g.length, name_tuples=(), gnis_id=gnis_id, gnis_name=gnis_name,
+                    stream_order=order, stream_magnitude=mag)
+
+
+def _feat(coords, name, **props):
+    p = {"source": "burnaby", "src_id": name, "name": name, "connect_to_hint": "",
+         "ftype": "stream", "fish": "", "species": "", "trib_parent": "", **props}
+    return {"type": "Feature", "properties": p,
+            "geometry": {"type": "LineString", "coordinates": coords}}
+
+
+# FWA: a Fraser (100) mainstem + a far coastal (900) stream for tidal estimation
+_BIG = _chain("1000", "100-100000", [(-123.0, 49.20), (-123.0, 49.24)], gnis_name="Big River", gnis_id="111")
+_COAST = _chain("3000", "900-500000", [(-123.2, 49.30), (-123.2, 49.31)])
+_FWA = [_BIG, _COAST]
+_TIDAL = [line_to_albers([(-123.1004, 49.29), (-123.1004, 49.31)])]  # coastline (3005) near Coast Creek
+
+_FEATS = [
+    _feat([(-123.0, 49.205), (-123.0, 49.235)], "Big Creek"),          # duplicate of Big River (drop)
+    _feat([(-123.0, 49.22), (-123.010, 49.22)], "Trib A"),             # novel -> joins Big River (FWA)
+    _feat([(-123.005, 49.22), (-123.005, 49.226)], "Fork B"),          # novel -> joins Trib A (added)
+    _feat([(-123.1, 49.30), (-123.105, 49.305)], "Coast Creek"),       # novel -> tidal (900)
+]
+
+
+def _mint():
+    return resolve_and_mint(_FEATS, _FWA, LakeIndex([]), _TIDAL)
+
+
+def test_classes_counts_and_drops_duplicate():
+    streams, cands, report = _mint()
+    assert report["counts"]["duplicate"] == 1
+    assert report["counts"]["novel"] == 3 and report["minted"] == 3
+    assert not report["unresolved"]
+
+
+def test_wsc_propagation_inherits_primary():
+    streams, _, _ = _mint()
+    by = {s["name"]: s for s in streams}
+    assert by["Trib A"]["wsc"].startswith("100-100000")               # inherits Fraser 100
+    assert by["Fork B"]["wsc"].startswith(by["Trib A"]["wsc"])        # descends its added receiver
+    assert by["Coast Creek"]["wsc"].startswith("900")                 # tidal root
+    assert by["Coast Creek"]["receiver_kind"] == "tidal"
+
+
+def test_name_conflict_candidate_emitted():
+    _, cands, report = _mint()
+    conflicts = [c for c in cands if c.conflict]
+    assert any(c.name == "Big Creek" and c.target_blk == "1000" for c in conflicts)
+    assert report["name_conflicts"]
+
+
+def test_negative_blks_are_unique():
+    streams, _, _ = _mint()
+    blks = [s["blk"] for s in streams]
+    assert all(b.startswith("-") for b in blks) and len(set(blks)) == len(blks)
+
+
+class _StubSampler:
+    """Elevation that decreases toward a given lon/lat point (that point is 'downhill')."""
+    def __init__(self, low):
+        self.low = low
+    def elevation(self, lon, lat):
+        return (lon - self.low[0]) ** 2 + (lat - self.low[1]) ** 2
+
+
+def test_resolver_flow_direction_follows_dem_sampler():
+    """With an injected sampler, the resolver takes flow DIRECTION from dem_flow: a creek touching an
+    FWA outlet at EACH end is oriented (mouth, hence receiver) at the dem-downstream end. Flipping which
+    end dem calls downhill flips which FWA it drains into — proving dem drives flow, not the geometry."""
+    east = _chain("1000", "100-100000", [(-123.0, 49.20), (-123.0, 49.24)], gnis_name="East River")
+    west = _chain("2000", "100-200000", [(-123.02, 49.20), (-123.02, 49.24)], gnis_name="West River")
+    creek = _feat([(-123.02, 49.22), (-123.0, 49.22)], "Dem Creek")   # touches West River (W) and East River (E)
+    e, _, _ = resolve_and_mint([creek], [east, west], LakeIndex([]), [],
+                               orient_sampler=_StubSampler((-123.0, 49.22)))     # east end downhill
+    assert e and e[0]["receiver_blk"] == "1000", "dem mouth at the east outlet -> drains into East River"
+    w, _, _ = resolve_and_mint([creek], [east, west], LakeIndex([]), [],
+                               orient_sampler=_StubSampler((-123.02, 49.22)))    # west end downhill
+    assert w and w[0]["receiver_blk"] == "2000", "flip the downhill end -> drains into West River"
+
+
+def test_dem_stranded_mouth_connects_to_fwa_within_dem_outlet_reach():
+    """A novel that is its component's sink resolves via dem's OWN outlet connector: dem attaches a
+    stranded sink to the nearest FWA/tidal within its reach (~800 m) and hands the resolver that outlet
+    point, so the sink roots on the FWA. A creek beyond dem's reach has no outlet and stays unresolved."""
+    river = _chain("1000", "100-100000", [(-123.0, 49.20), (-123.0, 49.24)], gnis_name="River")
+    e_near = -123.0 - 300 / 72000.0      # mouth 300 m west of the FWA (within dem's outlet reach)
+    near = _feat([(e_near, 49.22), (e_near - 200 / 72000.0, 49.22)], "Near Creek")
+    r, _, _ = resolve_and_mint([near], [river], LakeIndex([]), [],
+                               orient_sampler=_StubSampler((e_near, 49.22)))   # mouth (east) downhill
+    assert r and r[0]["receiver_kind"] == "fwa", "a 300 m stranded sink connects via dem's outlet"
+    e_far = -123.0 - 1000 / 72000.0      # mouth 1000 m from the FWA (beyond dem's outlet reach)
+    far = _feat([(e_far, 49.22), (e_far - 200 / 72000.0, 49.22)], "Far Creek")
+    r2, _, rep2 = resolve_and_mint([far], [river], LakeIndex([]), [],
+                                   orient_sampler=_StubSampler((e_far, 49.22)))
+    assert not r2 and rep2["unresolved"], "a mouth 1000 m from any outlet stays unresolved"
+
+
+def test_lake_inflows_resolve_through_approved_lake():
+    """Deer Lake regression: streams draining INTO an approved lake resolve — the lake is a node whose
+    outflow reaches an FWA river, so inflows chain through it (inflow -> outflow -> river). The lake's
+    under-lake FWA reach is excluded, so the ONLY way inflows reach the network is the lake node.
+    Without the lake approved, the inflows strand as unresolved."""
+    from pyproj import Transformer
+    from shapely.geometry import Polygon
+    ta = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
+    river = _chain("1000", "100-100000", [(-123.0, 49.20), (-123.0, 49.24)], gnis_name="Brunette")
+    lake = Polygon([ta.transform(x, y) for x, y in                       # a lake box west of the river
+                    [(-123.025, 49.215), (-123.015, 49.215), (-123.015, 49.225), (-123.025, 49.225)]])
+    outflow = _feat([(-123.016, 49.22), (-123.001, 49.22)], "Lake Brook")     # lake -> river (flows east)
+    in_a = _feat([(-123.05, 49.223), (-123.024, 49.223)], "North Inflow")     # -> lake (east end at lake)
+    in_b = _feat([(-123.05, 49.217), (-123.024, 49.217)], "South Inflow")     # -> lake
+    low = (-123.0, 49.22)                                                # east (the river) is downhill
+    streams, _, rep = resolve_and_mint([outflow, in_a, in_b], [river], LakeIndex([]), [],
+                                       approved_lakes=[lake], orient_sampler=_StubSampler(low))
+    assert {s["name"] for s in streams} == {"Lake Brook", "North Inflow", "South Inflow"}, rep["unresolved"]
+    assert not rep["unresolved"]
+    assert next(s for s in streams if s["name"] == "Lake Brook")["receiver_kind"] == "fwa"
+    s2, _, rep2 = resolve_and_mint([outflow, in_a, in_b], [river], LakeIndex([]), [],
+                                   orient_sampler=_StubSampler(low))          # lake NOT approved
+    assert rep2["unresolved"], "inflows need the approved lake node to resolve"
+
+
+def test_tributary_connected_in_dem_resolves_into_its_novel_mainstem():
+    """Little Stawamus regression: a tributary that flows INTO a novel mainstem and is connected to it in
+    the dem graph (via a small confluence gap, not a shared vertex) must resolve to that mainstem — not
+    strand as unresolved. The resolver mirrors the dem tree, so the trib's receiver is the mainstem blk."""
+    main = _feat(_dense(-123.0, 49.22, -0.008, 0.0), "Main Creek")           # mouth at Big River (FWA, east)
+    trib = _feat(_dense(-123.006, 49.22003, 0.0, 0.003), "Side Creek")       # joins Main's UPSTREAM half, ~3 m off
+    streams, _, rep = resolve_and_mint([main, trib], _FWA, LakeIndex([]), _TIDAL,
+                                       orient_sampler=_StubSampler((-123.0, 49.22)))   # Big River downhill
+    assert not rep["unresolved"], rep["unresolved"]
+    by = {s["name"]: s for s in streams}
+    assert by["Side Creek"]["receiver_kind"] == "added"
+    assert by["Side Creek"]["receiver_blk"] == by["Main Creek"]["blk"], "trib drains into its mainstem"
+
+
+def test_to_graph_inputs_makes_tributaries():
+    streams, _, _ = _mint()
+    # rebuild fwa fids for Big River so the added fids can merge/attach
+    from pipeline.graph.blk_chains import FidRow
+    from pipeline.graph import cutting
+    dn, up = cutting.blk_endpoints(_BIG.geometry)
+    big_fid = FidRow(fid="F1", blk="1000", wsc="100-100000", edge_type="1000", wbk="",
+                     gnis_id="111", gnis_name="Big River", stream_order=3, stream_magnitude=5,
+                     down_m=0.0, up_m=_BIG.geometry.length, geometry=_BIG.geometry, down_node=dn, up_node=up)
+    add_fids, specs = to_graph_inputs(streams)
+    all_fids = [big_fid] + add_fids
+    chains = build_blk_chains(all_fids, {})
+    graph = build_stream_graph(chains, all_fids, {}, {})
+    from pipeline.added_streams.ingest import attach_connectors
+    attach_connectors(graph, {}, specs)
+    big_node = [nid for nid, n in graph.nodes.items() if str(n.blk) == "1000"][0]
+    anc = ancestors(graph, big_node)
+    trib_a = [s["blk"] for s in streams if s["name"] == "Trib A"][0]
+    fork_b = [s["blk"] for s in streams if s["name"] == "Fork B"][0]
+    assert f"{trib_a}:0" in anc and f"{fork_b}:0" in anc            # both are tributaries of Big River
+
+
+def _max_jump_m(coords):
+    pts = [line_to_albers([c, c]).coords[0] for c in coords]         # lon/lat -> 3005 per vertex
+    return max((((pts[i][0] - pts[i + 1][0]) ** 2 + (pts[i][1] - pts[i + 1][1]) ** 2) ** 0.5
+                for i in range(len(pts) - 1)), default=0.0)
+
+
+def test_same_name_branch_is_a_segment_not_a_straight_trunk_jump():
+    # A same-name creek with a branch that joins the trunk MID-line (not at its up-end). Folding it into
+    # one blk/wsc must NOT concatenate the branch onto the trunk's far end — that fabricates a long
+    # straight 'uphill' edge (the Squamish artifact). The branch rides as a separate same-blk segment.
+    # Arms are densely sampled (like real data) so a fabricated fork-jump dwarfs legit vertex spacing.
+    def dense(lon0, lat0, dlon, dlat, n=40):
+        return [(lon0 + dlon * i / n, lat0 + dlat * i / n) for i in range(n + 1)]
+    feats = [
+        _feat(dense(-123.0, 49.213, -0.010, 0.0), "Y Creek"),          # trunk: mouth at Big -> up (west)
+        _feat(dense(-123.005, 49.2131, 0.0, 0.004), "Y Creek"),        # branch off mid-trunk, going north
+    ]
+    streams, _, report = resolve_and_mint(feats, _FWA, LakeIndex([]), _TIDAL)
+    y = [s for s in streams if s["name"] == "Y Creek"]
+    assert len({s["wsc"] for s in y}) == 1                          # same name -> ONE wsc (a braid shares it)
+    assert len({s["blk"] for s in y}) == 2                          # ...but the branch keeps its OWN blk
+    for d in report["diagnostics"]:
+        if d["name"] == "Y Creek" and d["klass"] != "connector":
+            assert _max_jump_m(d["coords"]) <= 20.0, \
+                f"Y Creek drawn with a {_max_jump_m(d['coords']):.0f} m straight jump"
+
+
+def _dense(lon0, lat0, dlon, dlat, n=30):
+    return [(lon0 + dlon * i / n, lat0 + dlat * i / n) for i in range(n + 1)]
+
+
+def test_immediate_tributary_is_exactly_one_level_deeper():
+    # A tributary that flows straight into the mainstem must sit ONE wsc level below it — not several
+    # (the bug was a trib minting off a deep braid code that later collapsed to the mainstem's).
+    feats = [
+        _feat(_dense(-123.0, 49.22, -0.010, 0.0), "Depth Creek"),          # mouth at Big River (FWA)
+        _feat(_dense(-123.005, 49.2201, 0.0, 0.003), "Depth Creek Trib 1"),  # joins the mainstem, goes up
+    ]
+    streams, _, _ = resolve_and_mint(feats, _FWA, LakeIndex([]), _TIDAL)
+    main = next(s for s in streams if s["name"] == "Depth Creek")
+    trib = next(s for s in streams if s["name"] == "Depth Creek Trib 1")
+    assert trib["wsc"].startswith(main["wsc"])                      # descends the mainstem
+    assert trib["wsc"].count("-") == main["wsc"].count("-") + 1     # ...by EXACTLY one level
+
+
+def test_mainstem_never_flows_into_its_own_tributary():
+    # A same-name braid must not root THROUGH the stream's own tributary. Here a second "Fork Creek"
+    # piece only touches "Fork Creek Trib 1" (which touches the mainstem) — topology would route the
+    # braid -> Trib 1 -> mainstem; the name hierarchy must bypass the trib so no mainstem flows into it.
+    feats = [
+        _feat(_dense(-123.0, 49.22, -0.006, 0.0), "Fork Creek"),           # mainstem, mouth at Big River
+        _feat(_dense(-123.006, 49.2201, 0.0, 0.003), "Fork Creek Trib 1"),  # trib off the mainstem up-end
+        _feat(_dense(-123.006, 49.2231, -0.004, 0.0), "Fork Creek"),        # a braid touching only the trib
+    ]
+    streams, _, _ = resolve_and_mint(feats, _FWA, LakeIndex([]), _TIDAL)
+    by = {str(s["blk"]): s for s in streams}
+    for s in streams:
+        r = by.get(str(s.get("receiver_blk")))
+        if r:
+            assert not _is_name_tributary(r["name"], s["name"]), \
+                f"{s['name']} flows into its own tributary {r['name']}"
+    assert len({s["wsc"] for s in streams if s["name"] == "Fork Creek"}) == 1   # braid shares mainstem wsc
+
+
+def test_same_name_in_different_drainages_stays_distinct():
+    # Two creeks that merely SHARE A NAME but drain to different primaries (a coastal 900 vs the Fraser
+    # 100) must NOT be collapsed to one wsc — the primary drainage code is inherited, never overwritten.
+    feats = [
+        _feat([(-123.0, 49.22), (-123.010, 49.22)], "Twin Creek"),        # novel -> Big River (Fraser 100)
+        _feat([(-123.1, 49.30), (-123.105, 49.305)], "Twin Creek"),       # novel -> tidal (coastal 900)
+    ]
+    streams, _, _ = resolve_and_mint(feats, _FWA, LakeIndex([]), _TIDAL)
+    prims = {s["wsc"][:3] for s in streams if s["name"] == "Twin Creek"}
+    assert prims == {"100", "900"}                                  # each keeps its own drainage primary
+
+
+def test_under_lake_segment_tagged_and_noded():
+    # a novel stream crossing a lake polygon -> under-lake fid tagged with the lake wbk
+    line3005 = line_to_albers([(-123.0, 49.22), (-123.02, 49.22)])   # Trib A footprint (3005)
+    mid = line3005.interpolate(0.5, normalized=True)
+    lake = mid.buffer(60.0)                                          # a lake straddling the middle
+    lake_index = LakeIndex([(lake, "LAKE7")])
+    streams, _, _ = resolve_and_mint([_FEATS[1]], [_BIG], lake_index, _TIDAL)
+    seg_wbks = [seg["wbk"] for s in streams for seg in s["segments"]]
+    assert "LAKE7" in seg_wbks                                       # inside segment carries the wbk
+    # and build_blk_chains turns it into a WaterbodyRun (ties into the lake node)
+    add_fids, _ = to_graph_inputs(streams)
+    chains = build_blk_chains(add_fids, {"LAKE7": "lake"})
+    assert any(r.wbk == "LAKE7" for c in chains for r in c.waterbody_runs)

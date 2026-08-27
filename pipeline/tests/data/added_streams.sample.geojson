@@ -1,0 +1,44 @@
+{
+ "type": "FeatureCollection",
+ "_about": "Sample added-stream input for pipeline/added_streams (harness demo + docs). All anchored off the Salamander Creek → Brunette River confluence (verified 1.2 m off Brunette blk 356294414, gnis 10070). Shows: a hand-drawn manual stream joining FWA; a 2-way same-name OSM channel that MERGES into one blue line; and an added-to-added join (Demo Creek → Salamander Creek) so the WSC hierarchy nests Brunette → Salamander → Demo.",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "source": "manual",
+    "blk": -9000001,
+    "name": "Salamander Creek",
+    "connect_to": {"gnis_id": "10070"}
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [[-122.92304, 49.24585], [-122.92345, 49.24480], [-122.92395, 49.24405]]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "source": "osm",
+    "osm_way_id": 8001,
+    "name": "Demo Creek",
+    "connect_to": {"blk": -9000001}
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [[-122.92345, 49.24480], [-122.92230, 49.24470]]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "source": "osm",
+    "osm_way_id": 8002,
+    "name": "Demo Creek"
+   },
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [[-122.92230, 49.24470], [-122.92110, 49.24500]]
+   }
+  }
+ ]
+}
