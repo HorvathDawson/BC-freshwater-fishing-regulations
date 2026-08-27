@@ -380,6 +380,16 @@ def _clip_receiver_overshoot(line: LineString, rgeom) -> LineString:
     return substring(line, d, line.length)                   # drop the mouth-side overshoot [0, d]
 
 
+def _keep_novel(name: str, members, dem_kept_src) -> bool:
+    """Keep a novel channel iff the DEM kept at least one of its member features — dropping loops/braids the
+    DEM eliminated (every feature was a loop-closer it removed), not just nameless noise. So a NAMED braid
+    that is gone in dem-raw is gone in resolved too (Little Stawamus side channels). Without a DEM pass
+    (``dem_kept_src is None``, hermetic tests) keep it iff it is named."""
+    if dem_kept_src is None:
+        return bool((name or "").strip())
+    return any(s in dem_kept_src for s in members)
+
+
 def _touched_receiver_channel(mouth: Point, dd, cand, geom) -> Optional[int]:
     """A tributary joins the stream it PHYSICALLY touches. If the DEM routed a mouth into a channel ``dd`` it
     does NOT touch (needs a connector, > _TOUCH_TOL away) while the mouth sits ON another candidate channel
@@ -772,14 +782,15 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                     cand[b] = (dist, rb)
         dem_down = {b: v[1] for b, v in cand.items()}
 
-    # dem-aware nameless-novel drop (deferred from above): keep a nameless novel only if dem kept any of
-    # its features (a real connector/outlet reach); otherwise drop it as noise.
+    # dem-aware novel drop (deferred from above): keep a novel only if dem kept any of its features (a real
+    # connector/outlet reach). This drops loop/braid channels the dem eliminated — even NAMED ones, so a
+    # braid gone in dem-raw is gone in resolved too — as well as nameless noise.
     dem_kept_src = ({features[i].get("properties", {}).get("src_id") for i in dem_out}
                     if orient_sampler is not None else None)
     def _keep(ch):
-        if cls[ch.blk].klass != "novel" or (ch.name or "").strip():
+        if cls[ch.blk].klass != "novel":
             return True
-        return dem_kept_src is not None and any(s in dem_kept_src for s in ch.members)
+        return _keep_novel(ch.name, ch.members, dem_kept_src)
     channels = [ch for ch in channels if _keep(ch)]
     novels = [ch for ch in channels if cls[ch.blk].klass == "novel"]
 

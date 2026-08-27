@@ -173,6 +173,21 @@ def test_tributary_prefers_the_channel_it_physically_touches():
     assert _touched_receiver_channel(Point(0.0, 50.0), 20, [30], far) is None
 
 
+def test_keep_novel_drops_dem_eliminated_loops():
+    """Little Stawamus regression. The DEM drops loop-closer / braid features; the resolver used to keep any
+    NAMED novel regardless, so those loops survived in resolved though they were gone in dem-raw. Now a novel
+    is kept only if the DEM kept a member — so a named braid whose every feature the DEM eliminated is dropped
+    too. Without a DEM pass (hermetic), keep iff named."""
+    from pipeline.added_streams.build_dataset import _keep_novel
+    kept = {"1", "2", "3"}
+    assert _keep_novel("Main Creek", ["1", "2"], kept) is True          # a member survived the DEM
+    assert _keep_novel("Braid Creek", ["8", "9"], kept) is False        # NAMED but the DEM dropped every member
+    assert _keep_novel("", ["8"], kept) is False                        # nameless + dropped
+    assert _keep_novel("", ["2"], kept) is True                         # nameless but the DEM kept a member
+    assert _keep_novel("Main Creek", ["1"], None) is True               # no DEM pass -> keep iff named
+    assert _keep_novel("", ["1"], None) is False
+
+
 def test_name_conflict_candidate_emitted():
     _, cands, report = _mint()
     conflicts = [c for c in cands if c.conflict]
