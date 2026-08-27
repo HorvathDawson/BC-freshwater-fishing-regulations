@@ -8,7 +8,9 @@ can be eyeballed before it is wired into the pipeline build:
   - KEPT FWA           -> thin grey (the FWA that survives — added streams should connect INTO it).
   - EXCLUDED FWA       -> red dashed (the FWA the municipal layer supersedes; anything on a `fwa_exclude`
                           prefix). You should see an added stream drawn where each red line was.
-  - connectors         -> orange dashed (mouth -> receiver, where a real gap is bridged).
+
+Gap connectors are folded INTO the mainstem geometry (same blk/wsc), so they are drawn as part of the green
+added stream, not as separate features.
 
 Self-contained html (Leaflet + OSM from CDN) -> ``output/verify_<source>.html``. Needs the gpkg only for the
 FWA geometry; the stream package itself comes from ``resolve_and_mint`` (identical to the build export).
@@ -68,10 +70,6 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                 "recv": f"{s['receiver_kind']}:{s['receiver_blk']}", "primary": i == 0,
                 "aliases": variants_by_blk.get(str(s["blk"]), [])}))
 
-    # connectors (mouth -> receiver confluence) from the report diagnostics
-    connectors = [_feature(d["coords"], {"name": d["name"], "blk": d["blk"]})
-                  for d in report["diagnostics"] if d.get("klass") == "connector" and len(d["coords"]) >= 2]
-
     # FWA near the municipal data, split kept vs excluded
     from shapely.ops import unary_union
     muni_union = unary_union([LineString([_TO_ALBERS.transform(x, y) for x, y in f["geometry"]["coordinates"]])
@@ -90,7 +88,7 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
         (excl_fwa if _excluded(c.fwa_watershed_code, exclude) else kept_fwa).append(_feature(coords, props))
 
     out = out_dir / f"verify_{source}.html"
-    out.write_text(_html(source, added, connectors, kept_fwa, excl_fwa, report, list(exclude)),
+    out.write_text(_html(source, added, kept_fwa, excl_fwa, report, list(exclude)),
                    encoding="utf-8")
     return out
 
@@ -110,11 +108,10 @@ added streams: <b>%(nadded)d</b> · excluded FWA: <b>%(nexcl)d</b> · name varia
 <span class=sw style="background:#2ca02c"></span>novel &nbsp;
 <span class=sw style="background:#1f77b4"></span>extension<br>
 <span class=sw style="background:#7a7a7a"></span>kept FWA &nbsp;
-<span class=sw style="background:#d62728"></span>excluded FWA &nbsp;
-<span class=sw style="background:#ff7f0e"></span>connector</div>
+<span class=sw style="background:#d62728"></span>excluded FWA</div>
 <b>fwa_exclude</b>: <code>%(excl)s</code></div>
 <script>
-const ADDED=%(added)s, CONN=%(conn)s, KEPT=%(kept)s, EXCL=%(excl_fwa)s;
+const ADDED=%(added)s, KEPT=%(kept)s, EXCL=%(excl_fwa)s;
 const KL={novel:'#2ca02c',extension:'#1f77b4',duplicate:'#9e9e9e'};
 const map=L.map('map');
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
@@ -125,8 +122,6 @@ const keptL=L.geoJSON(KEPT,{style:{color:'#7a7a7a',weight:1.5,opacity:.6},
   onEachFeature:(f,l)=>l.bindPopup('FWA (kept)<br>'+pop(f.properties))}).addTo(map);
 const exclL=L.geoJSON(EXCL,{style:{color:'#d62728',weight:3,opacity:.9,dashArray:'6,4'},
   onEachFeature:(f,l)=>l.bindPopup('<b>FWA EXCLUDED</b> (municipal supersedes)<br>'+pop(f.properties))}).addTo(map);
-const connL=L.geoJSON(CONN,{style:{color:'#ff7f0e',weight:2,opacity:.9,dashArray:'4,4'},
-  onEachFeature:(f,l)=>l.bindPopup('connector · '+(f.properties.name||'')+'<br>blk '+f.properties.blk)}).addTo(map);
 const arrows=[];
 const addL=L.geoJSON(ADDED,{style:f=>({color:KL[f.properties.klass]||'#000',weight:3,opacity:.95}),
   onEachFeature:(f,l)=>{l.bindPopup(pop(f.properties));
@@ -134,15 +129,15 @@ const addL=L.geoJSON(ADDED,{style:f=>({color:KL[f.properties.klass]||'#000',weig
       const d=L.polylineDecorator(ll,{patterns:[{offset:14,repeat:70,
         symbol:L.Symbol.arrowHead({pixelSize:8,pathOptions:{color:KL[f.properties.klass]||'#000',fillOpacity:.95,weight:0}})}]});
       d.addTo(map);arrows.push(d);}}}).addTo(map);
-L.control.layers(null,{'added streams':addL,'connectors':connL,'FWA kept (grey)':keptL,
+L.control.layers(null,{'added streams':addL,'FWA kept (grey)':keptL,
   'FWA excluded (red)':exclL}).addTo(map);
 const grp=L.featureGroup([addL,keptL,exclL]);
 try{map.fitBounds(grp.getBounds(),{padding:[20,20]});}catch(e){map.setView([49.25,-122.95],12);}
 </script></body></html>"""
 
 
-def _html(title, added, conn, kept, excl_fwa, report, exclude) -> str:
-    return _HTML % {"title": title, "added": json.dumps(added), "conn": json.dumps(conn),
+def _html(title, added, kept, excl_fwa, report, exclude) -> str:
+    return _HTML % {"title": title, "added": json.dumps(added),
                     "kept": json.dumps(kept), "excl_fwa": json.dumps(excl_fwa),
                     "nadded": report["minted"], "nexcl": len(excl_fwa),
                     "nvar": len(report["name_variants"]), "excl": ", ".join(exclude) or "—"}

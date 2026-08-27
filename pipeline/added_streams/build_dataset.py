@@ -686,6 +686,19 @@ def approved_lake_polys(gpkg, bbox, source: str) -> list:
     return out
 
 
+def _with_connector(line: LineString, conn) -> LineString:
+    """Fold a gap connector INTO the stream's mainstem geometry: prepend the confluence point (on the
+    receiver) to the mouth, so the exported stream is ONE continuous line under one blk/wsc that reaches its
+    receiver — the connector is part of the mainstem, not a separate feature. A zero-gap confluence (the
+    stream already touches its receiver) adds nothing."""
+    if not conn or conn.get("kind") != "connector":
+        return line
+    confl = (conn["x"], conn["y"])
+    if Point(confl).distance(Point(line.coords[0])) <= _CONFLUENCE_GAP:
+        return line
+    return LineString([confl] + list(line.coords))
+
+
 def _stream_geom(s):
     """Albers geometry of a minted stream = union of its (under-lake-split) segment lines."""
     lines = [LineString(seg["coords3005"]) for seg in s["segments"] if len(seg["coords3005"]) >= 2]
@@ -1028,7 +1041,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     streams: list[dict] = []
     for ch in minted:
         kind, rblk = receiver[ch.blk]
-        line = geom[ch.blk]
+        line = _with_connector(geom[ch.blk], connector_of[ch.blk])   # fold a gap connector INTO the mainstem
         segs = assign_under_lake(line, lake_index)
         for g in extra_geoms.get(ch.blk, ()):               # same-name braids ride along as extra fids
             segs += assign_under_lake(g, lake_index)
@@ -1045,7 +1058,6 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                                connector=connector_of[ch.blk]))
     for ch in extensions:                                       # classified + synthetic (up-end) extensions
         em = ext_meta[ch.blk]; fwa = em["fwa"]; clip = em["clip"]
-        segs = assign_under_lake(clip, lake_index)
         # an extension continues its FWA blue line past the line's END: connect the extension's mouth to
         # that end (a connector if the source left a gap, else a zero-gap confluence), then extend.
         mouth = Point(clip.coords[0])
@@ -1055,6 +1067,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
         conn = {"to_blk": em["fwa_blk"], "to_fwa": True, "at_measure": em["base_measure"],
                 "x": end_pt.x, "y": end_pt.y,
                 "kind": "confluence" if gap <= _CONFLUENCE_GAP else "connector"}
+        segs = assign_under_lake(_with_connector(clip, conn), lake_index)   # fold the connector into the line
         streams.append(_record(ch, em["fwa_blk"], em["fwa_wsc"], "extension", "fwa", em["fwa_blk"],
                                em["fwa_wsc"], fwa.stream_order or 1, fwa.stream_magnitude or 1, segs,
                                base_measure=em["base_measure"], connector=conn))
