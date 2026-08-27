@@ -79,22 +79,26 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     lake_axis = [(poly, _major_axis(poly)) for poly in approved]
     def _ll(pt):
         return [round(v, 6) for v in _TO_LONLAT.transform(pt[0], pt[1])]
-    def _lake_of(ll):
-        p = Point(_TO_ALBERS.transform(*ll))
+    def _crosses_lake(mouth, confl):
+        # a lake inflow's connector CUTS ACROSS the lake to an outflow point that is usually OUTSIDE the polygon
+        # (Deer Lake drains NE past its own shore), so key off the LINE crossing the lake, not its endpoint.
+        seg = LineString([mouth, confl]); best = (-1, 0.0)
         for j, (poly, _) in enumerate(lake_axis):
-            if poly.distance(p) <= 20.0:                    # lands in the lake (or right at its edge outflow)
-                return j
-        return -1
-    outflows: dict = {}                                     # lake idx -> Counter of the confluence points in it
+            crossed = seg.intersection(poly).length
+            if crossed > best[1]:
+                best = (j, crossed)
+        return best[0] if best[1] >= 30.0 else -1
+    outflows: dict = {}                                     # lake idx -> Counter of the confluence points crossing it
     for d in diags:
         if d["klass"] == "connector" and len(d["coords"]) >= 2:
-            j = _lake_of(d["coords"][-1])
+            mouth = Point(_TO_ALBERS.transform(*d["coords"][0]))
+            confl = Point(_TO_ALBERS.transform(*d["coords"][-1]))
+            j = _crosses_lake(mouth, confl)
             if j >= 0:
                 outflows.setdefault(j, _Counter())[tuple(d["coords"][-1])] += 1
-                axis = lake_axis[j][1]                       # attach to the nearest point on the lake's axis
-                mouth = Point(_TO_ALBERS.transform(*d["coords"][0]))
+                axis = lake_axis[j][1]                       # attach the mouth to the nearest point on the axis
                 np = axis.interpolate(axis.project(mouth))
-                d["coords"][-1] = _ll((np.x, np.y))
+                d["coords"] = [d["coords"][0], _ll((np.x, np.y))]   # stop at the spine (drop the cross-lake shot)
     for j, cnt in outflows.items():                         # one spine per lake: axis (oriented to) -> outflow
         axis = lake_axis[j][1]; ac = list(axis.coords)
         outflow = _TO_ALBERS.transform(*cnt.most_common(1)[0][0])
