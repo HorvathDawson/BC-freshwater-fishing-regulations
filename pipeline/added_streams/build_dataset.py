@@ -391,6 +391,29 @@ def _keep_novel(name: str, members, dem_kept_src) -> bool:
 _MOUTH_TIE_M = 5.0        # both channel ends sit on an own reach-mouth within this -> a tie, broken by elevation
 
 
+# Curation: force a municipal piece (by src_id) to drain into a NAMED creek, for the rare case the DEM
+# mis-routes it. Magnolia Creek Trib 1 (594) touches Magnolia Creek but the DEM's noding buffer bridged its
+# mouth to Little Stawamus 24 m below the confluence; a general "join the stream you touch" rule wrecked
+# port_moody, so this one is a targeted override instead. {source: {src_id: receiver creek name}}.
+RECEIVER_OVERRIDE_BY_SOURCE: dict[str, dict[str, str]] = {
+    "squamish": {"594": "Magnolia Creek"},
+}
+
+
+def _apply_receiver_overrides(channels, receiver, geom, overrides) -> None:
+    """Point the channel carrying ``src_id`` at the NEAREST channel of the given name (see
+    RECEIVER_OVERRIDE_BY_SOURCE). Mutates ``receiver`` in place; a no-op when the piece or the named receiver
+    isn't present."""
+    for srcid, recv_name in overrides.items():
+        b = next((ch.blk for ch in channels if str(srcid) in [str(m) for m in ch.members]), None)
+        if b is None or b not in geom:
+            continue
+        mouth = Point(geom[b].coords[0])
+        cands = [ch.blk for ch in channels if ch.name == recv_name and ch.blk != b and ch.blk in geom]
+        if cands:
+            receiver[b] = ("added", str(min(cands, key=lambda x: geom[x].distance(mouth))))
+
+
 def _mouth_end(e0: Point, e1: Point, own_mouths: list, global_dist, elev=None) -> Point:
     """Which END of a merged channel is its dem mouth: the endpoint nearest one of the channel's OWN reach
     mouths. Scoping to own reaches stops a FOREIGN creek whose mouth touches this channel's HEADWATER from
@@ -820,6 +843,8 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     receiver, unresolved = _resolve_topology(channels, geom, cls, index, fwa_by_blk, fwa_chains,
                                              approved_lake_index, tidal_union, connect_tol, ext_clip,
                                              dem_mouth, dem_down=dem_down, dem_outlet=dem_outlet)
+    _src = next((f.get("properties", {}).get("source") for f in features), "")   # curation receiver overrides
+    _apply_receiver_overrides(channels, receiver, geom, RECEIVER_OVERRIDE_BY_SOURCE.get(_src, {}))
 
     # Flow direction from the NAMES: a mainstem must never flow INTO its own tributary. If topology routed
     # a piece named "X" into a piece named "X Trib N" (e.g. a Little Stawamus mainstem section rooting

@@ -169,6 +169,25 @@ def test_clip_receiver_overshoot_walks_mouth_back_to_crossing():
     assert _clip_receiver_overshoot(big, river) is big
 
 
+def test_apply_receiver_overrides_forces_receiver_by_name():
+    """Magnolia Trib 1 regression. When the DEM mis-bridges a piece's mouth to a neighbour, a curation
+    override points it at the NEAREST channel of the named creek it should join."""
+    from types import SimpleNamespace
+    from shapely.geometry import LineString
+    from pipeline.added_streams.build_dataset import _apply_receiver_overrides
+    geom = {-1: LineString([(0, 0), (0, 10)]),        # the trib (mouth at 0,0)
+            -2: LineString([(0, 0), (10, 0)]),        # Magnolia Creek (touches the trib's mouth)
+            -3: LineString([(100, 0), (110, 0)])}     # Little Stawamus (far)
+    ch = [SimpleNamespace(blk=-1, name="Magnolia Creek Trib 1", members=("594",)),
+          SimpleNamespace(blk=-2, name="Magnolia Creek", members=("593",)),
+          SimpleNamespace(blk=-3, name="Little Stawamus Creek", members=("635",))]
+    receiver = {-1: ("added", "-3"), -2: ("added", "-3"), -3: ("tidal", "")}   # trib wrongly -> Little Stawamus
+    _apply_receiver_overrides(ch, receiver, geom, {"594": "Magnolia Creek"})
+    assert receiver[-1] == ("added", "-2"), "the trib is forced onto Magnolia Creek"
+    _apply_receiver_overrides(ch, receiver, geom, {"999": "Magnolia Creek"})   # absent src_id -> no-op
+    assert receiver[-1] == ("added", "-2")
+
+
 def test_merge_by_name_does_not_fold_different_named_creeks():
     """port_moody Goulet/Hatchley regression. Two DIFFERENT named creeks connected THROUGH an unnamed
     connector must NOT fold into one blk — the upstream creek would become a non-trunk member and its whole
