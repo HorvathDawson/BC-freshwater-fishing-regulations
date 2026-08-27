@@ -147,7 +147,7 @@ _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
                  "651.5", "651.2",   # Little Stawamus: 651.5 is a spur off the 651.3/651.4 junction; 651.2 is
                  #     an exact duplicate of 651.1 whose parallel edge split the mainstem and disconnected
                  #     651.1 from 636 — dropping it reconnects the 651.0-651.1-651.3-651.4-636 run
-                 "528.1",            # unnamed spurious piece (528.2 KEPT: it is the connector that grounds the
+                 "528.1", "528.0",   # unnamed spurious pieces (528.2 KEPT: it is the connector that grounds the
                  #                     whole Logger's Lane cluster to its outlet — removing it strands ~16 streams)
                  "625.3", "625.1", "603"},   # Logger's Lane Creek Trib 4 parts
     "port_moody": {"160", "161"},   # Suter Brook Creek spurious pieces

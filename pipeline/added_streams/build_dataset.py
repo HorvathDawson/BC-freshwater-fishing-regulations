@@ -261,22 +261,13 @@ def _resolve_topology(channels, geom, cls, index, fwa_by_blk, fwa_chains, lake_i
                 continue
             mouth = Point(geom[b].coords[0])
             op = dem_outlet.get(b) if dem_outlet else None        # b is a component SINK draining to a real
-            if op is not None:                                     # FWA/tidal/lake outlet: root it THERE first —
-                # ...unless the mouth actually TOUCHES another added creek nearer than that outlet: the dem
-                # grounds a sink at the closest FWA/tidal without seeing it join a differently-named added
-                # creek (Britannia Slough's mouth sits ON Wilson Slough, 365 m from the tidal it was given).
-                o = min((o for o in adj[b] if o != b), key=lambda o: geom[o].distance(mouth), default=None)
-                if o is not None and geom[o].distance(mouth) <= _CONFLUENCE_GAP \
-                        and geom[o].distance(mouth) < op.distance(mouth):
-                    dem_receiver[b] = _recv_of_channel(o); continue
+            if op is not None:                                     # FWA/tidal/lake outlet: root it THERE
                 a = _anchor(b, only=op, reach=connector_tol)      # authoritative OVER dem_down, which for a sink
                 if a is not None:                                  # can be a spurious cross-channel cycle (Eagle
                     dem_receiver[b] = (a[0], a[1]); continue       # Creek 154 <-> its short reach: 198<->199)
             dd = dem_down.get(b) if dem_down else None            # else the channel dem routes b's mouth INTO
-            if dd is not None and dd != b and dd in ch_by_blk:    # authoritative: mirror the dem tree exactly,
-                alt = _touched_receiver_channel(mouth, dd, adj[b], geom)   # but a trib joins the stream it
-                tgt = alt if (alt is not None and alt in ch_by_blk) else dd  # TOUCHES, not a farther one dem
-                dem_receiver[b] = _recv_of_channel(tgt); continue           # bridged its mouth to (Magnolia Trib 1)
+            if dd is not None and dd != b and dd in ch_by_blk:    # authoritative: mirror the dem tree exactly
+                dem_receiver[b] = _recv_of_channel(dd); continue
             a = _anchor(b, only=mouth)                             # else an outlet AT the mouth end?
             if a is not None:
                 dem_receiver[b] = (a[0], a[1]); continue
@@ -395,20 +386,6 @@ def _keep_novel(name: str, members, dem_kept_src) -> bool:
     if dem_kept_src is None:
         return bool((name or "").strip())
     return any(s in dem_kept_src for s in members)
-
-
-def _touched_receiver_channel(mouth: Point, dd, cand, geom) -> Optional[int]:
-    """A tributary joins the stream it PHYSICALLY touches. If the DEM routed a mouth into a channel ``dd`` it
-    does NOT touch (needs a connector, > _TOUCH_TOL away) while the mouth sits ON another candidate channel
-    (<= _CONFLUENCE_GAP), return that touched channel so the trib nests under it — Magnolia Trib 1 joins
-    Magnolia Creek 24 m above the Magnolia -> Little Stawamus confluence, so the DEM bridged its mouth
-    straight to Little Stawamus (the near-mouth T was inside the noding end_buf). Else None (keep ``dd``)."""
-    if geom[dd].distance(mouth) <= _TOUCH_TOL:
-        return None                                    # dem's receiver is already touched — nothing to prefer
-    best = min((o for o in cand if o != dd), key=lambda o: geom[o].distance(mouth), default=None)
-    if best is not None and geom[best].distance(mouth) <= _CONFLUENCE_GAP:
-        return best
-    return None
 
 
 _MOUTH_TIE_M = 5.0        # both channel ends sit on an own reach-mouth within this -> a tie, broken by elevation
