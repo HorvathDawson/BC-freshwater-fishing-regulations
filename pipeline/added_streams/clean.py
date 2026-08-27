@@ -150,8 +150,9 @@ _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
                  "528.1", "528.0",   # unnamed spurious pieces (528.2 KEPT: it is the connector that grounds the
                  #                     whole Logger's Lane cluster to its outlet — removing it strands ~16 streams)
                  "625.3", "625.1", "603"},   # Logger's Lane Creek Trib 4 parts
-    "port_moody": {"160", "161", "164", "80", "81", "157", "158", "159",   # Suter Brook Creek spurious pieces
-                   "204.1"},   # (164 = redundant parallel mouth beside 163); 204.1 = Kyle Creek part
+    "port_moody": {"160", "161", "164", "80", "81", "157", "158", "159", "79",   # Suter Brook Creek spurious
+                   "204.1", "334"},   # pieces (164 = redundant parallel mouth beside 163); 204.1 = Kyle Creek
+    #                                   part; 334 = Village Creek piece
 }
 
 

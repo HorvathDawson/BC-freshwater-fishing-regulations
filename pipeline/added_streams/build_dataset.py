@@ -649,6 +649,7 @@ FWA_EXCLUDE_BY_SOURCE: dict[str, tuple] = {
     #                                              version + lake-node graph. Trailing '-' keeps Brunette River
     #                                              (100-019698) itself. 100-010829 / 100-011460 / 100-011602:
     #                                              FWA reaches the municipal layer supersedes.
+    "port_moody": ("900-058384",),               # coastal FWA reach + tribs the municipal layer supersedes.
 }
 
 # Only these lakes (by GNIS name) form drainage NODES per source — every stream touching one connects to
