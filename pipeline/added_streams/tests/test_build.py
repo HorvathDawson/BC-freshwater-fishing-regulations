@@ -155,6 +155,24 @@ def test_clip_receiver_overshoot_walks_mouth_back_to_crossing():
     assert _clip_receiver_overshoot(big, river) is big
 
 
+def test_tributary_prefers_the_channel_it_physically_touches():
+    """Magnolia Trib 1 regression. A trib joining a mainstem just above where that mainstem meets a bigger
+    creek can get its mouth bridged by the DEM straight to the bigger creek (the near-mouth T is inside the
+    noding buffer). If the DEM receiver is a channel the mouth does NOT touch while the mouth sits ON another
+    added channel, prefer the touched one so the trib nests under it (-> Magnolia Creek, not Little Stawamus)."""
+    from shapely.geometry import LineString, Point
+    from pipeline.added_streams.build_dataset import _touched_receiver_channel
+    geom = {10: LineString([(0.0, 0.0), (0.0, 100.0)]),        # Magnolia (mouth sits ON this)
+            20: LineString([(30.0, 0.0), (130.0, 0.0)])}       # Little Stawamus (dem receiver, 30 m away)
+    mouth = Point(0.0, 0.0)
+    assert _touched_receiver_channel(mouth, 20, [10], geom) == 10, "prefer the touched channel"
+    # dem receiver is itself touched -> don't override
+    assert _touched_receiver_channel(Point(0.5, 0.0), 10, [20], geom) is None
+    # no touched candidate among the alternatives -> keep the dem receiver
+    far = {20: LineString([(30.0, 0.0), (130.0, 0.0)]), 30: LineString([(60.0, 0.0), (60.0, 100.0)])}
+    assert _touched_receiver_channel(Point(0.0, 50.0), 20, [30], far) is None
+
+
 def test_name_conflict_candidate_emitted():
     _, cands, report = _mint()
     conflicts = [c for c in cands if c.conflict]
