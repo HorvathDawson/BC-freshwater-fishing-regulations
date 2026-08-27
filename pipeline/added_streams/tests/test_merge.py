@@ -76,6 +76,20 @@ def test_same_name_sections_with_small_gap_merge_when_enabled():
     assert len(merged[0].geometry.coords) == 4                  # both sections chained (nothing dropped)
 
 
+def test_gap_bridged_by_a_connector_is_not_gap_merged():
+    """Dallas Creek regression. Two same-name sections within gap_tol are gap-merged into one channel — but
+    when a CONNECTOR feature already bridges that gap (its ends sit on both), the gap-merge is redundant and
+    stitches the second section on with a straight-line JUMP (the 'flows upstream then a straight line back'
+    artifact). Skip the gap-merge when a connector spans the gap; the connector links the sections instead."""
+    a = _feat([[-123.0, 49.200], [-123.0, 49.201]], osm_way_id=1, name="Dallas Creek")
+    b = _feat([[-123.0, 49.2011], [-123.0, 49.202]], osm_way_id=2, name="Dallas Creek")   # ~11 m gap above a
+    conn = _feat([[-123.0, 49.201], [-123.0, 49.2011]], osm_way_id=3, name="")            # unnamed, spans the gap
+    dallas = [c for c in merge_channels([a, b, conn], gap_tol_m=15.0) if c.name == "Dallas Creek"]
+    assert len(dallas) == 2, "a connector-bridged gap keeps the two sections separate"
+    # sanity: without the connector the two sections DO gap-merge into one
+    assert len([c for c in merge_channels([a, b], gap_tol_m=15.0) if c.name == "Dallas Creek"]) == 1
+
+
 def test_gap_merge_does_not_join_different_names():
     feats = [
         _feat([[-123.0, 49.200], [-123.0, 49.201]], osm_way_id=1, name="A Creek"),

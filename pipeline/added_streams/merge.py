@@ -132,22 +132,34 @@ def merge_channels(features: list[dict], mint_missing_blk: bool = False,
 
     # near-adjacent same-name merge: a creek split into sections with small GAPS -> one channel
     if gap_tol_m > 0:
+        all_eps = [(_TO_ALBERS.transform(*f["geometry"]["coordinates"][0]),
+                    _TO_ALBERS.transform(*f["geometry"]["coordinates"][-1])) for f in feats]
+
+        def _d(p, q):
+            return ((p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2) ** 0.5
+
+        def _bridged(pa, pb, ia, ib):
+            """A CONNECTOR feature already spans this gap (an end on pa AND an end on pb)? Then the gap-merge
+            is redundant — it would stitch the far section on with a straight-line jump (Dallas Creek 298->299
+            is bridged by connector 420). Leave the sections separate; the connector links them."""
+            for j, (ja, jb) in enumerate(all_eps):
+                if j == ia or j == ib:
+                    continue
+                if min(_d(pa, ja), _d(pa, jb)) <= gap_tol_m and min(_d(pb, ja), _d(pb, jb)) <= gap_tol_m:
+                    return True
+            return False
+
         by_name: dict[str, list[int]] = {}
-        eps3005: dict[int, tuple] = {}
         for i, f in enumerate(feats):
             nm = _norm_name(f.get("properties", {}))
-            if not nm:
-                continue                                    # never proximity-merge unnamed features
-            by_name.setdefault(nm, []).append(i)
-            c = f["geometry"]["coordinates"]
-            eps3005[i] = (_TO_ALBERS.transform(*c[0]), _TO_ALBERS.transform(*c[-1]))
+            if nm:                                          # never proximity-merge unnamed features
+                by_name.setdefault(nm, []).append(i)
         for members in by_name.values():
             for a in range(len(members)):
                 for b in range(a + 1, len(members)):
                     ia, ib = members[a], members[b]
-                    gap = min(((pa[0] - pb[0]) ** 2 + (pa[1] - pb[1]) ** 2) ** 0.5
-                              for pa in eps3005[ia] for pb in eps3005[ib])
-                    if gap <= gap_tol_m:
+                    pa, pb = min(((x, y) for x in all_eps[ia] for y in all_eps[ib]), key=lambda t: _d(*t))
+                    if _d(pa, pb) <= gap_tol_m and not _bridged(pa, pb, ia, ib):
                         uf.union(ia, ib)
 
     groups: dict[int, list[int]] = {}
