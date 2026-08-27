@@ -84,10 +84,12 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     def _ll(pt):
         return [round(v, 6) for v in _TO_LONLAT.transform(pt[0], pt[1])]
     def _lake_of(mouth, confl):
-        # a lake inflow either drains to a shared outlet hub just past the shore (Deer Lake: 10 -> one hub 30 m
-        # out) or cuts across the lake; either way fold it onto the spine.
+        # a lake inflow gives itself away three ways: its MOUTH sits on the shore (Buckingham Creek, 9 m out), it
+        # drains to a shared outlet hub just past the shore (Deer Lake: 10 -> one hub 30 m out), or it cuts across
+        # the lake. Any of the three folds it onto the spine.
         for j, (poly, _) in enumerate(lake_axis):
-            if poly.distance(confl) <= 60.0 or LineString([mouth, confl]).intersection(poly).length >= 30.0:
+            if (poly.distance(mouth) <= 60.0 or poly.distance(confl) <= 60.0
+                    or LineString([mouth, confl]).intersection(poly).length >= 30.0):
                 return j
         return -1
     outflows: dict = {}                                     # lake idx -> Counter of the outlet-hub points
