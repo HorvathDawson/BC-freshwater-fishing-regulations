@@ -37,6 +37,23 @@ def _feature(coords, props):
             "geometry": {"type": "LineString", "coordinates": coords}}
 
 
+def _major_axis(poly):
+    """A lake's central axis (albers LineString): the long axis of its minimum rotated rectangle, clipped to
+    inside the polygon — a simple medial-ish spine creeks can attach to. Falls back to the un-clipped axis for
+    an awkward (concave) lake."""
+    p = list(poly.minimum_rotated_rectangle.exterior.coords)[:4]
+    dist = lambda a, b: ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+    mid = lambda a, b: ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+    if dist(p[0], p[1]) <= dist(p[1], p[2]):        # 0-1 & 2-3 are the SHORT edges -> axis joins their midpoints
+        axis = LineString([mid(p[0], p[1]), mid(p[2], p[3])])
+    else:
+        axis = LineString([mid(p[1], p[2]), mid(p[3], p[0])])
+    inside = axis.intersection(poly)
+    if inside.geom_type == "MultiLineString" and not inside.is_empty:
+        inside = max(inside.geoms, key=lambda g: g.length)
+    return inside if inside.geom_type == "LineString" and inside.length > 0 else axis
+
+
 def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Path:
     features = clean_source(source)
     # drop 'Unconfirmed' watercourses (Squamish) from ALL views, matching resolve_and_mint's default
@@ -55,15 +72,17 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
 
     diags = report["diagnostics"]
     # Declutter lake-node inflows: many creeks drain into an approved lake and their connectors all cut ACROSS
-    # the lake to the SAME outflow point (Deer Lake: 10 inflows to one spot). Reroute each connector whose
-    # confluence lands IN the lake to the lake CENTROID (a hub), and draw ONE spine centroid -> outflow, so the
-    # lake reads as a node instead of a busy fan.
+    # the lake to the SAME outflow point (Deer Lake: 10 inflows to one spot). Route each connector that lands in
+    # the lake to the NEAREST point on the lake's central AXIS (its major axis, clipped inside), and draw ONE
+    # spine = that axis extended to the outflow. The lake then shows a simple internal line creeks join.
     from collections import Counter as _Counter
-    lakes_ll = [(poly, list(_TO_LONLAT.transform(poly.centroid.x, poly.centroid.y))) for poly in approved]
+    lake_axis = [(poly, _major_axis(poly)) for poly in approved]
+    def _ll(pt):
+        return [round(v, 6) for v in _TO_LONLAT.transform(pt[0], pt[1])]
     def _lake_of(ll):
         p = Point(_TO_ALBERS.transform(*ll))
-        for j, (poly, _) in enumerate(lakes_ll):
-            if poly.distance(p) <= 20.0:                    # in the lake (or right at its edge outflow)
+        for j, (poly, _) in enumerate(lake_axis):
+            if poly.distance(p) <= 20.0:                    # lands in the lake (or right at its edge outflow)
                 return j
         return -1
     outflows: dict = {}                                     # lake idx -> Counter of the confluence points in it
@@ -72,12 +91,17 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
             j = _lake_of(d["coords"][-1])
             if j >= 0:
                 outflows.setdefault(j, _Counter())[tuple(d["coords"][-1])] += 1
-                d["coords"][-1] = [round(lakes_ll[j][1][0], 6), round(lakes_ll[j][1][1], 6)]   # snap to centroid
-    for j, cnt in outflows.items():                         # one spine per lake: centroid -> its outflow point
-        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake outflow",
-                          "ftype": "connector", "fish": "",
-                          "coords": [[round(lakes_ll[j][1][0], 6), round(lakes_ll[j][1][1], 6)],
-                                     list(cnt.most_common(1)[0][0])]}]
+                axis = lake_axis[j][1]                       # attach to the nearest point on the lake's axis
+                mouth = Point(_TO_ALBERS.transform(*d["coords"][0]))
+                np = axis.interpolate(axis.project(mouth))
+                d["coords"][-1] = _ll((np.x, np.y))
+    for j, cnt in outflows.items():                         # one spine per lake: axis (oriented to) -> outflow
+        axis = lake_axis[j][1]; ac = list(axis.coords)
+        outflow = _TO_ALBERS.transform(*cnt.most_common(1)[0][0])
+        if Point(ac[0]).distance(Point(outflow)) < Point(ac[-1]).distance(Point(outflow)):
+            ac = ac[::-1]                                   # orient the axis toward the outflow
+        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake spine",
+                          "ftype": "connector", "fish": "", "coords": [_ll(c) for c in ac] + [_ll(outflow)]}]
     muni = [_feature(d["coords"], {"klass": d["klass"], "blk": d["blk"], "wsc": d["wsc"],
                                    "name": d["name"], "ftype": d["ftype"], "fish": d["fish"]})
             for d in diags if len(d["coords"]) >= 2]
