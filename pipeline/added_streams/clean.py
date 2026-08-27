@@ -146,6 +146,7 @@ _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
                  #     an exact duplicate of 651.1 whose parallel edge split the mainstem and disconnected
                  #     651.1 from 636 — dropping it reconnects the 651.0-651.1-651.3-651.4-636 run
                  "528.1"},           # unnamed spurious piece
+    "port_moody": {"160", "161"},   # Suter Brook Creek spurious pieces
 }
 
 
