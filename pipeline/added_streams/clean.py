@@ -136,9 +136,12 @@ _NAME_ALIASES_BY_SOURCE: dict[str, dict] = {
 # connector / a fragment that mis-routes flow) without dropping every other feature that shares its name.
 _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
     "burnaby": {"344", "356.1", "279", "305", "274", "268", "4", "8", "9",
-                "410", "41.0", "41.1", "105", "384", "292", "405", "223"},  # Ancient Grove Trib.1 stub; Rudolph
-    #   356.1 part; Fraser River; 305 Lost<->Holmes connector; 268/274 Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3;
-    #   410 Jerry Rogers Creek; 41.0/41.1 JR Trib.1; 223 Jr 1-3; 105/384/292/405 unnamed spurious pieces
+                "410", "41.0", "41.1", "105", "384", "292", "405", "223",
+                "334.0", "334.3", "334.7", "334.9", "334.10", "334.14", "334.17", "334.18", "334.19",  # Salmon
+                "233.1", "159", "234", "196", "121", "391"},   # Slough parts; 233.1/159/234/196/121/391 spurious
+    #   Ancient Grove Trib.1 stub; Rudolph 356.1 part; Fraser River; 305 Lost<->Holmes connector; 268/274
+    #   Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3; 410 Jerry Rogers Creek; 41.0/41.1 JR Trib.1; 223 Jr 1-3;
+    #   105/384/292/405 unnamed spurious pieces
     "squamish": {"654", "654.0", "654.1", "654.2", "608.5", "608.4", "597.1", "597.2", "664", "658.1",
                  # Harris Slough & tribs (654.0, 612, 622.0/.1, 648.0/.1, 659), Whitaker Slough (373, 684),
                  # Mamquam Side Channel (609), Dryden Creek Trib 1 (666), Stawamus River + Trib 1 (589, 590):
@@ -151,8 +154,8 @@ _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
                  #                     whole Logger's Lane cluster to its outlet — removing it strands ~16 streams)
                  "625.3", "625.1", "603"},   # Logger's Lane Creek Trib 4 parts
     "port_moody": {"160", "161", "164", "80", "81", "157", "158", "159", "79",   # Suter Brook Creek spurious
-                   "204.1", "334"},   # pieces (164 = redundant parallel mouth beside 163); 204.1 = Kyle Creek
-    #                                   part; 334 = Village Creek piece
+                   "204.1", "334", "63", "329"},   # pieces (164 = redundant parallel mouth beside 163);
+    #                                   204.1 = Kyle Creek part; 334 = Village Creek piece; 63/329 spurious
 }
 
 
