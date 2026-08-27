@@ -524,16 +524,35 @@ def _merge_by_name(minted, receiver, geom, ch_by_blk_all):
     # sections). A same-name BRAID/SLOUGH that rejoins mid-line is NOT folded — it keeps its own blk and
     # is tied to the mainstem's wsc later (same name => same wsc, different blk; the user's model). This
     # also keeps `_longest`+append from ever stitching a straight jump across a fork.
+    def _own_creek_continues(b, rb):
+        """A NAMED piece ``b`` folds down into ``rb`` only if ``rb``'s chain reaches a SAME-name piece before
+        it hits a DIFFERENT named creek or leaves the added network — i.e. ``b`` continues its OWN creek
+        across (unnamed) connectors, it does not get chained into a neighbour through a shared connector
+        (port_moody Goulet/Hatchley folded into another creek and were pruned)."""
+        target = nm(b); cur = rb; seen = set()
+        while cur in blks and cur not in seen:
+            seen.add(cur)
+            if nm(cur) == target:
+                return True
+            if nm(cur):                                      # a different named creek -> stop, do not fold
+                return False
+            k2, nxt = receiver[cur]
+            if k2 != "added" or int(nxt) not in blks:
+                return False
+            cur = int(nxt)
+        return False
+
     same_parent = {}                                         # child -> the receiver it continues at up-end
     for b in blks:
         k, rb = receiver[b]
         if k != "added" or int(rb) not in blks:
             continue
-        name_ok = (not nm(b)) or (not nm(int(rb))) or nm(b) == nm(int(rb))   # same-name or an unnamed frag
+        # an UNNAMED fragment folds into whatever it continues; a NAMED piece folds only along its own creek
+        fold_ok = (not nm(b)) or _own_creek_continues(b, int(rb))
         ci = cont(b)
         gap_tol = _MAINSTEM_GAP if nm(b) and nm(b) == nm(int(rb)) else _CONT_GAP   # mainstem folds wider
         touches_upend = ci[0] >= _CONT_PROP and ci[1] <= gap_tol      # a real end-to-end continuation
-        if touches_upend and name_ok:
+        if touches_upend and fold_ok:
             same_parent[b] = int(rb); uf[find(b)] = find(int(rb))
     groups: dict[int, list[int]] = {}
     for b in blks:

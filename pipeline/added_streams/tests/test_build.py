@@ -169,6 +169,26 @@ def test_clip_receiver_overshoot_walks_mouth_back_to_crossing():
     assert _clip_receiver_overshoot(big, river) is big
 
 
+def test_merge_by_name_does_not_fold_different_named_creeks():
+    """port_moody Goulet/Hatchley regression. Two DIFFERENT named creeks connected THROUGH an unnamed
+    connector must NOT fold into one blk — the upstream creek would become a non-trunk member and its whole
+    path would be pruned (99% of Goulet Creek vanished). A named creek folds only along its OWN name; an
+    unnamed connector continues the creek it belongs to, it does not bridge two creeks into one."""
+    from types import SimpleNamespace
+    from shapely.geometry import LineString
+    from pipeline.added_streams.build_dataset import _merge_by_name
+    geom = {-1: LineString([(0, 0), (0, 100)]),       # Alpha — downstream (rep, exits to tidal)
+            -2: LineString([(0, 100), (0, 150)]),     # unnamed connector: -2 -> Alpha
+            -3: LineString([(0, 150), (0, 250)])}     # Beta — upstream: -3 -> connector -> Alpha
+    names = {-1: "Alpha Creek", -2: "", -3: "Beta Creek"}
+    minted = [SimpleNamespace(blk=b, name=names[b], members=(b,)) for b in geom]
+    ch_all = {b: SimpleNamespace(blk=b, name=names[b]) for b in geom}
+    receiver = {-1: ("tidal", ""), -2: ("added", "-1"), -3: ("added", "-2")}
+    keep, _, _, _ = _merge_by_name(minted, receiver, geom, ch_all)
+    kept = {c.name for c in keep}
+    assert "Alpha Creek" in kept and "Beta Creek" in kept, f"both creeks kept as separate streams; got {kept}"
+
+
 def test_merge_by_name_drops_unnamed_side_branch_from_extras():
     """Dallas Creek regression. When a fragmented named creek folds into one blk, a same-name BRAID rides
     along as an extra segment. But an UNNAMED side-branch that folds in (off the longest trunk, via the
