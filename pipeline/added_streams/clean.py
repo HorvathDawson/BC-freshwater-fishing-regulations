@@ -129,8 +129,8 @@ _EXCLUDE_NAMES_BY_SOURCE: dict[str, set] = {
 # Municipal features to DROP per source by exact src_id — for pruning a SINGLE bad piece (a spurious
 # connector / a fragment that mis-routes flow) without dropping every other feature that shares its name.
 _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
-    "burnaby": {"344", "356.1", "279", "305", "274", "268"},  # Ancient Grove Trib.1 stub; Rudolph 356.1 part;
-    #                                             Fraser River; 305 Lost<->Holmes connector; 268/274 Thomas Trib.5
+    "burnaby": {"344", "356.1", "279", "305", "274", "268", "4", "8", "9"},  # Ancient Grove Trib.1 stub; Rudolph
+    #   356.1 part; Fraser River; 305 Lost<->Holmes connector; 268/274 Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3
     "squamish": {"654", "654.1", "654.2", "608.5", "597.1", "597.2", "664", "658.1"},  # spurious pieces
 }
 
