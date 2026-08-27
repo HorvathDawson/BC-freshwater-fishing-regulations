@@ -696,7 +696,9 @@ def _with_connector(line: LineString, conn) -> LineString:
     confl = (conn["x"], conn["y"])
     if Point(confl).distance(Point(line.coords[0])) <= _CONFLUENCE_GAP:
         return line
-    return LineString([confl] + list(line.coords))
+    merged = LineString([confl] + list(line.coords))
+    return merged if merged.is_simple else line   # a doubling-back connector would self-cross the mainstem —
+    #                                               keep it separate rather than fold a loop into the blk
 
 
 def _stream_geom(s):
@@ -1042,9 +1044,9 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     for ch in minted:
         kind, rblk = receiver[ch.blk]
         line = _with_connector(geom[ch.blk], connector_of[ch.blk])   # fold a gap connector INTO the mainstem
-        segs = assign_under_lake(line, lake_index)
-        for g in extra_geoms.get(ch.blk, ()):               # same-name braids ride along as extra fids
-            segs += assign_under_lake(g, lake_index)
+        segs = assign_under_lake(line, lake_index)          # ONLY the trunk: a blk must stay LINEAR, so same-name
+        #   braids are NOT carried as extra fids (they rejoin the trunk -> a loop in the blk, and drew as the
+        #   "added loops" on the verify map). The mainstem trunk is the blk's geometry.
         if kind == "ext":                                   # attaches to the extended FWA blue line
             em = ext_meta[int(rblk)]; rk, rb, rwsc = "fwa", em["fwa_blk"], em["fwa_wsc"]
         elif kind == "tidal":
