@@ -51,17 +51,19 @@ a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the expl
 - `build_dataset.py`: `FWA_EXCLUDE_BY_SOURCE` (squamish adds 900-102882-190726), `RELIABLE_SOURCES=set()`,
   `APPROVED_LAKE_NAMES_BY_SOURCE` (burnaby: Deer + Burnaby Lake).
 
+## RESOLVED (kept as regressions in `tests/test_build.py`)
+- **Stoney Creek reversal** — `dem_mouth` picked which channel END is the mouth by nearest reach mouth over
+  ALL features; a foreign trib whose mouth touched Stoney's HEADWATER flipped it. Now scoped to the channel's
+  OWN reach mouths (`_mouth_end`, `own_mouths` via merge provenance). Stoney mints mouth-at-13.3 m, 3.5 m
+  connector to the Brunette. `test_channel_mouth_endpoint_scoped_to_own_reaches`.
+- **100- route-measure percentage** — our FWA extract is regional, so a big river's blue line is only
+  partially loaded (`mouth_measure > 0`) and `length_m` understates it; proj/length_m over-counted (Sanctuary
+  got 100-**567200**). Now `_blue_line_total` recovers the true length from the receiver's already-coded FWA
+  children (median of route-measure / local-code) and mints `(mouth_measure+proj)/true_total`. Live: Sanctuary
+  100-012900, Fraser River Trib.1 100-011200, Boundary 100-010400. `test_wsc_on_partially_loaded_river_...`.
+
 ## OPEN ISSUES
-1. **Stoney Creek (burnaby src 98) reversed in RESOLVED.** DEM is correct (flows to its 13.3 m mouth,
-   `down=None`, outlet set) but the resolver mints it mouth-at-73.2 m (the HIGH end) + a big connector —
-   `dem_mouth` picks the wrong end for this long merged mainstem. Investigate `dem_mouth` / `merge_channels`
-   for the Stoney channel.
-2. **100- route-measure percentage.** A stream on the Fraser mainstem gets `mint_wsc(rwsc, proj, rlen)` =
-   proj / LOCAL-reach length → too big (Sanctuary Slough got 100-**567200**; neighbour is 100-012330). It
-   should be `(mouth_measure + proj) / TOTAL Fraser route length`. The total blue-line length is NOT in the
-   loaded FWA (only the lower ~30 km of reaches). Need to source the total (derive from a known tributary
-   proportion, or read a per-blue-line length field from the gpkg).
-3. Residual: ~4 burnaby unresolved (one `Eagle Trib.3` sub-branch).
+1. Residual: ~4 burnaby unresolved (one `Eagle Trib.3` sub-branch).
 
 ## Guardrails
 - Prefix shell with `rtk`; `graphify query/explain` before grepping; `graphify update .` after code changes.

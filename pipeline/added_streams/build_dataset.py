@@ -324,6 +324,18 @@ _BLUELINE_TRUNC_TOL = 1.0     # a receiver whose loaded chain starts more than t
 _CHILD_TOUCH_TOL = 30.0       # an FWA child must touch its parent blue line within this to fix the scale
 
 
+def _mouth_end(e0: Point, e1: Point, own_mouths: list, global_dist) -> Point:
+    """Which END of a merged channel is its dem mouth: the endpoint nearest one of the channel's OWN reach
+    mouths. Scoping to own reaches stops a FOREIGN creek whose mouth touches this channel's HEADWATER from
+    flipping it (the Stoney Creek reversal — a trib mouth landed exactly on Stoney's high end, so a global
+    scan chose the wrong end). A channel with none of its own reaches falls back to the global nearest-mouth
+    distance (unchanged behaviour)."""
+    if own_mouths:
+        d = lambda p: min(p.distance(q) for q in own_mouths)
+        return e0 if d(e0) <= d(e1) else e1
+    return e0 if global_dist(e0) <= global_dist(e1) else e1
+
+
 def _blue_line_total(rc: BlkChain, fwa_chains: list[BlkChain]) -> Optional[float]:
     """Effective full route-length of ``rc``'s blue line, recovered from its already-coded FWA children.
 
@@ -644,22 +656,32 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                 return 1e18
             hits = [mouth_pts[int(j)] for j in mtree.query(p.buffer(50.0))]
             return min((p.distance(q) for q in hits), default=1e18)
+        # each channel's OWN reach mouths (via merge provenance), so the mouth-end pick is scoped to this
+        # channel — a foreign trib whose mouth touches this channel's headwater can't flip it (Stoney Creek).
+        src_to_blk: dict = {}                                   # EXACT feature -> channel via merge provenance
+        for ch in channels:                                     # (geometry-nearest mis-maps a trib to the
+            for sid in ch.members:                              #  mainstem it runs beside -> its `down` looked
+                src_to_blk[sid] = ch.blk                        #  internal and it never got a receiver)
+        own_mouths: dict = {}
+        for i in dem_out:
+            b = src_to_blk.get(features[i].get("properties", {}).get("src_id"))
+            for r in _reaches(dem_out[i]):
+                own_mouths.setdefault(b, []).append(Point(_TO_ALBERS.transform(*r["coords"][0])))
         dem_mouth = {}
         for ch in channels:
             c = list(geom[ch.blk].coords)
-            e0, e1 = Point(c[0]), Point(c[-1])
-            dem_mouth[ch.blk] = e0 if _dist_to_mouth(e0) <= _dist_to_mouth(e1) else e1
+            dem_mouth[ch.blk] = _mouth_end(Point(c[0]), Point(c[-1]),
+                                           own_mouths.get(ch.blk, []), _dist_to_mouth)
 
         # DEM TREE -> per-channel downstream receiver. dem_flow already routes every piece to its
         # component sink (good direction + bridges); mirror that exactly: map each dem FEATURE to the
         # channel that carries it (nearest channel geometry), then each channel's dem-downstream = the
         # channel its mouth feature flows INTO (`down`). This replaces the resolver's own longest-neighbour
         # guess, so resolved flow == dem-raw. A channel whose mouth feature has no `down` drains to an
-        # external outlet (handled by the anchor fallback in _resolve_topology).
-        src_to_blk: dict = {}                                   # EXACT feature -> channel via merge provenance
-        for ch in channels:                                     # (geometry-nearest mis-maps a trib to the
-            for sid in ch.members:                              #  mainstem it runs beside -> its `down` looked
-                src_to_blk[sid] = ch.blk                        #  internal and it never got a receiver)
+        # external outlet (handled by the anchor fallback in _resolve_topology). `src_to_blk` (built above
+        # for own_mouths) maps each EXACT feature to its channel via merge provenance — geometry-nearest
+        # would mis-map a trib to the mainstem it runs beside, so its `down` looked internal and it never
+        # got a receiver.
         fblk = {i: src_to_blk.get(features[i].get("properties", {}).get("src_id")) for i in dem_out}
         cand: dict[int, tuple] = {}                              # channel -> (dist-of-exit-feature, recv chan)
         dem_outlet: dict[int, Point] = {}                        # channel -> dem's outlet POINT (on FWA/tidal)

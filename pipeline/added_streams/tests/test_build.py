@@ -94,6 +94,20 @@ def test_wsc_on_partially_loaded_river_uses_true_blue_line_length():
     assert abs(seg - 15000) <= 20, f"expected ~100-015000 from the true blue-line length, got {s['wsc']}"
 
 
+def test_channel_mouth_endpoint_scoped_to_own_reaches():
+    """Stoney Creek reversal. dem_mouth picks which END of a merged channel is its mouth by nearest reach
+    mouth. Scanning ALL reach mouths lets a FOREIGN creek whose mouth touches Stoney's HEADWATER flip the
+    channel (Stoney got minted mouth-at-73.2 m + a big connector). Scoping to the channel's OWN reach mouths
+    pins the mouth to the true low end; only a channel with none of its own reaches falls back to global."""
+    from shapely.geometry import Point
+    from pipeline.added_streams.build_dataset import _mouth_end
+    low, high = Point(0.0, 0.0), Point(100.0, 0.0)
+    own = [Point(2.0, 0.0)]                              # this channel's OWN mouth reach, near the LOW end
+    foreign_at_high = lambda p: 0.0 if p.distance(high) < 1e-9 else p.distance(Point(2.0, 0.0))
+    assert _mouth_end(low, high, own, foreign_at_high).equals(low), "own reaches pin the mouth to the low end"
+    assert _mouth_end(low, high, [], foreign_at_high).equals(high), "no own reaches -> global fallback (old)"
+
+
 def test_name_conflict_candidate_emitted():
     _, cands, report = _mint()
     conflicts = [c for c in cands if c.conflict]
