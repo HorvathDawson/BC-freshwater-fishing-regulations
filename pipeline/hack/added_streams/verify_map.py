@@ -25,7 +25,7 @@ from pathlib import Path
 from shapely.geometry import LineString
 
 from pipeline.hack.added_streams.build_dataset import (_load_fwa, resolve_and_mint, FWA_EXCLUDE_BY_SOURCE,
-                                                  approved_lake_polys, RELIABLE_SOURCES)
+                                                  approved_lake_polys, RELIABLE_SOURCES, lake_spine_routing)
 from pipeline.hack.added_streams.clean import clean_source
 from pipeline.hack.added_streams.dem import ElevationSampler
 from pipeline.hack.added_streams.mapcheck import _TO_ALBERS, _TO_LONLAT, _feature, _SOURCES
@@ -50,6 +50,15 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                                           approved_lakes=approved, orient_sampler=ElevationSampler(),
                                           trust_source=source in RELIABLE_SOURCES)
 
+    # Declutter lake nodes exactly as mapcheck does: fold each lake's inflow connectors onto ONE central spine.
+    # A gap connector was folded INTO the mainstem (segments[0] starts at the confluence hub), so re-aim that
+    # first point at the spine, and draw the spine itself as an added line.
+    lake_conn = [s for s in streams if (s.get("connector") or {}).get("kind") == "connector" and s["segments"]]
+    pairs = [(tuple(s["connector"]["mouth"]), (s["connector"]["x"], s["connector"]["y"])) for s in lake_conn]
+    attach, spines = lake_spine_routing(pairs, approved)
+    for i, xy in attach.items():
+        lake_conn[i]["segments"][0]["coords3005"][0] = [xy[0], xy[1]]   # re-aim the mainstem at the spine
+
     # name variants keyed by the blk they alias, so a stream / FWA line can show its aliases in the popup
     variants_by_blk: dict = defaultdict(list)
     for v in report["name_variants"]:
@@ -69,6 +78,9 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                 "name": s["name"] or "(unnamed)", "blk": s["blk"], "wsc": s["wsc"], "klass": s["klass"],
                 "recv": f"{s['receiver_kind']}:{s['receiver_blk']}", "primary": i == 0,
                 "aliases": variants_by_blk.get(str(s["blk"]), [])}))
+    for spine in spines:                                   # lake spine: one central drainage line per lake (grey)
+        added.append(_feature(_lonlat(spine), {"name": "lake spine", "blk": "", "wsc": "", "klass": "duplicate",
+                                               "recv": "", "primary": True, "aliases": []}))
 
     # FWA near the municipal data, split kept vs excluded
     from shapely.ops import unary_union

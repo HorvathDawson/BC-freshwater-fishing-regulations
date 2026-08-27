@@ -701,6 +701,80 @@ def _with_connector(line: LineString, conn) -> LineString:
     #                                               keep it separate rather than fold a loop into the blk
 
 
+def _major_axis(poly):
+    """A lake's central axis (albers LineString): the long axis of its minimum rotated rectangle, clipped to
+    inside the polygon — a simple medial-ish spine creeks can attach to. Falls back to the un-clipped axis for
+    an awkward (concave) lake."""
+    p = list(poly.minimum_rotated_rectangle.exterior.coords)[:4]
+    dist = lambda a, b: ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+    mid = lambda a, b: ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+    if dist(p[0], p[1]) <= dist(p[1], p[2]):        # 0-1 & 2-3 are the SHORT edges -> axis joins their midpoints
+        axis = LineString([mid(p[0], p[1]), mid(p[2], p[3])])
+    else:
+        axis = LineString([mid(p[1], p[2]), mid(p[3], p[0])])
+    inside = axis.intersection(poly)
+    if inside.geom_type == "MultiLineString" and not inside.is_empty:
+        inside = max(inside.geoms, key=lambda g: g.length)
+    return inside if inside.geom_type == "LineString" and inside.length > 0 else axis
+
+
+_LAKE_SHORE_M = 60.0        # a connector whose mouth/hub is within this of a lake, or that crosses it, is an inflow
+_LAKE_CROSS_M = 30.0
+_AXIS_INSET = 0.12          # float the spine off both shores by this fraction of the major axis at each end
+
+
+def lake_spine_routing(pairs, approved_lakes):
+    """Fold many creeks' lake-inflow connectors onto ONE tidy central spine per lake, instead of every connector
+    fanning across the lake to a shared outlet hub.
+
+    ``pairs`` is a list of ``(mouth_xy, confl_xy)`` albers tuples, one per candidate connector (the connector's
+    pre-merge mouth and its receiver confluence). Returns ``(attach, spines)``:
+      * ``attach``: ``{index -> (x, y)}`` — for each pair that folds onto a lake, the point ON the spine its mouth
+        should connect to (the connector is re-aimed here instead of at the hub);
+      * ``spines``: list of albers polylines ``[(x, y), ...]`` running the central axis from its far end down to
+        the outlet tap and on to the lake's outlet ON the shore — one per lake that captured any inflow.
+    Nothing produced ever leaves the lake polygon."""
+    from collections import Counter
+    from shapely.ops import nearest_points
+    axes = []
+    for poly in approved_lakes:
+        ax = _major_axis(poly); L = ax.length          # float the spine off both shores (no edge-to-edge)
+        axes.append((poly, LineString([ax.interpolate(_AXIS_INSET * L),
+                                       ax.interpolate((1 - _AXIS_INSET) * L)]) if L > 0 else ax))
+
+    def lake_of(m, c):
+        # an inflow gives itself away three ways: its MOUTH sits on the shore, it drains to a shared outlet hub
+        # just past the shore, or its connector cuts across the lake. Any of the three folds it onto the spine.
+        for j, (poly, _) in enumerate(axes):
+            if (poly.distance(m) <= _LAKE_SHORE_M or poly.distance(c) <= _LAKE_SHORE_M
+                    or LineString([m, c]).intersection(poly).length >= _LAKE_CROSS_M):
+                return j
+        return -1
+
+    members: dict = {}                                  # lake idx -> [(pair index, mouth Point)]
+    hubs: dict = {}                                     # lake idx -> Counter of confluence hubs
+    for i, (m_xy, c_xy) in enumerate(pairs):
+        m, c = Point(m_xy), Point(c_xy)
+        j = lake_of(m, c)
+        if j >= 0:
+            members.setdefault(j, []).append((i, m))
+            hubs.setdefault(j, Counter())[tuple(c_xy)] += 1
+
+    attach: dict = {}
+    spines: list = []
+    for j, mem in members.items():
+        poly, axis = axes[j]
+        hub = Point(hubs[j].most_common(1)[0][0])       # the drainage hub (usually just outside the lake)
+        outlet = nearest_points(poly.boundary, hub)[0]  # its outlet ON the shore -> stay INSIDE the lake
+        tap_d = axis.project(outlet)                     # spine runs from the FAR end down to the tap, no overshoot
+        spine = substring(axis, 0.0, tap_d) if tap_d >= axis.length / 2 else substring(axis, axis.length, tap_d)
+        for i, m in mem:
+            p = spine.interpolate(spine.project(m))      # attach to the truncated spine (project auto-clamps)
+            attach[i] = (p.x, p.y)
+        spines.append([tuple(cc) for cc in spine.coords] + [(outlet.x, outlet.y)])
+    return attach, spines
+
+
 def _stream_geom(s):
     """Albers geometry of a minted stream = union of its (under-lake-split) segment lines."""
     lines = [LineString(seg["coords3005"]) for seg in s["segments"] if len(seg["coords3005"]) >= 2]

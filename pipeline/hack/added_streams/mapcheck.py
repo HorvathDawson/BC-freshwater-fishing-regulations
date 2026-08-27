@@ -23,7 +23,7 @@ from shapely.ops import unary_union
 
 from pipeline.hack.added_streams.build_dataset import (_albers, _load_fwa, resolve_and_mint,
                                                   FWA_EXCLUDE_BY_SOURCE, approved_lake_polys,
-                                                  RELIABLE_SOURCES)
+                                                  RELIABLE_SOURCES, lake_spine_routing)
 from pipeline.hack.added_streams.dem import ElevationSampler, dem_flow
 from pipeline.hack.added_streams.clean import clean_source
 
@@ -35,23 +35,6 @@ _SOURCES = ["port_moody", "burnaby", "squamish"]     # abbotsford is huge/slow â
 def _feature(coords, props):
     return {"type": "Feature", "properties": props,
             "geometry": {"type": "LineString", "coordinates": coords}}
-
-
-def _major_axis(poly):
-    """A lake's central axis (albers LineString): the long axis of its minimum rotated rectangle, clipped to
-    inside the polygon â€” a simple medial-ish spine creeks can attach to. Falls back to the un-clipped axis for
-    an awkward (concave) lake."""
-    p = list(poly.minimum_rotated_rectangle.exterior.coords)[:4]
-    dist = lambda a, b: ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
-    mid = lambda a, b: ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
-    if dist(p[0], p[1]) <= dist(p[1], p[2]):        # 0-1 & 2-3 are the SHORT edges -> axis joins their midpoints
-        axis = LineString([mid(p[0], p[1]), mid(p[2], p[3])])
-    else:
-        axis = LineString([mid(p[1], p[2]), mid(p[3], p[0])])
-    inside = axis.intersection(poly)
-    if inside.geom_type == "MultiLineString" and not inside.is_empty:
-        inside = max(inside.geoms, key=lambda g: g.length)
-    return inside if inside.geom_type == "LineString" and inside.length > 0 else axis
 
 
 def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Path:
@@ -75,49 +58,17 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     # the lake to the SAME outflow point (Deer Lake: 10 inflows to one spot). Route each connector that lands in
     # the lake to the NEAREST point on the lake's central AXIS (its major axis, clipped inside), and draw ONE
     # spine = that axis extended to the outflow. The lake then shows a simple internal line creeks join.
-    from collections import Counter as _Counter
-    from shapely.ops import nearest_points as _nearest, substring as _substring
-    def _central_axis(poly):
-        ax = _major_axis(poly); L = ax.length                # float the spine OFF both shores (no edge-to-edge)
-        return LineString([ax.interpolate(0.12 * L), ax.interpolate(0.88 * L)]) if L > 0 else ax
-    lake_axis = [(poly, _central_axis(poly)) for poly in approved]
     def _ll(pt):
         return [round(v, 6) for v in _TO_LONLAT.transform(pt[0], pt[1])]
-    def _lake_of(mouth, confl):
-        # a lake inflow gives itself away three ways: its MOUTH sits on the shore (Buckingham Creek, 9 m out), it
-        # drains to a shared outlet hub just past the shore (Deer Lake: 10 -> one hub 30 m out), or it cuts across
-        # the lake. Any of the three folds it onto the spine.
-        for j, (poly, _) in enumerate(lake_axis):
-            if (poly.distance(mouth) <= 60.0 or poly.distance(confl) <= 60.0
-                    or LineString([mouth, confl]).intersection(poly).length >= 30.0):
-                return j
-        return -1
-    # PASS 1: gather each lake's inflows (defer rerouting) and its drainage hub.
-    inflows: dict = {}                                      # lake idx -> [(diag, mouth_pt), ...]
-    outflows: dict = {}                                     # lake idx -> Counter of the outlet-hub points
-    for d in diags:
-        if d["klass"] == "connector" and len(d["coords"]) >= 2:
-            mouth = Point(_TO_ALBERS.transform(*d["coords"][0]))
-            confl = Point(_TO_ALBERS.transform(*d["coords"][-1]))
-            j = _lake_of(mouth, confl)
-            if j >= 0:
-                inflows.setdefault(j, []).append((d, mouth))
-                outflows.setdefault(j, _Counter())[(confl.x, confl.y)] += 1
-    # PASS 2: build a spine that STOPS at the outlet tap (no overshoot past the junction), then attach every
-    # inflow to that truncated spine (project() clamps, so none land beyond the outlet), and run the spine on
-    # through the tap to the outlet on the shore as one continuous line.
-    for j, cnt in outflows.items():
-        poly, axis = lake_axis[j]
-        hub = Point(cnt.most_common(1)[0][0])                 # the drainage hub (usually just outside the lake)
-        outlet = _nearest(poly.boundary, hub)[0]             # its outlet ON the shore -> stay INSIDE the lake
-        tap_d = axis.project(outlet)                          # spine runs from the FAR end down to the tap
-        spine = _substring(axis, 0.0, tap_d) if tap_d >= axis.length / 2 else _substring(axis, axis.length, tap_d)
-        for d, mouth in inflows[j]:
-            np = spine.interpolate(spine.project(mouth))      # attach to the truncated spine (auto-clamped)
-            d["coords"] = [d["coords"][0], _ll((np.x, np.y))]
+    # Declutter lake nodes: fold each lake's inflow connectors onto ONE central spine (shared with verify_map).
+    conns = [d for d in diags if d["klass"] == "connector" and len(d["coords"]) >= 2]
+    pairs = [(_TO_ALBERS.transform(*d["coords"][0]), _TO_ALBERS.transform(*d["coords"][-1])) for d in conns]
+    attach, spines = lake_spine_routing(pairs, approved)
+    for i, xy in attach.items():                            # re-aim each inflow at the spine (drop the fan shot)
+        conns[i]["coords"] = [conns[i]["coords"][0], _ll(xy)]
+    for spine in spines:                                   # one continuous spine per lake: far end -> tap -> outlet
         diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake spine",
-                          "ftype": "connector", "fish": "",
-                          "coords": [_ll(c) for c in spine.coords] + [_ll((outlet.x, outlet.y))]}]
+                          "ftype": "connector", "fish": "", "coords": [_ll(c) for c in spine]}]
     muni = [_feature(d["coords"], {"klass": d["klass"], "blk": d["blk"], "wsc": d["wsc"],
                                    "name": d["name"], "ftype": d["ftype"], "fish": d["fish"]})
             for d in diags if len(d["coords"]) >= 2]

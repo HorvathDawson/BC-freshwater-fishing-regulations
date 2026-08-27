@@ -1,7 +1,7 @@
 """build_dataset.resolve_and_mint + to_graph_inputs — classification, receiver resolution, WSC
 propagation, under-lake wbk, and graph tie-in. Hermetic: synthetic FWA chains + lake/tidal geometry."""
 
-from shapely.geometry import LineString, Polygon
+from shapely.geometry import LineString, Point, Polygon
 
 from pipeline.hack.added_streams.build_dataset import resolve_and_mint, to_graph_inputs, _is_name_tributary
 from pipeline.hack.added_streams.fwa_match import line_to_albers
@@ -228,6 +228,27 @@ def test_merge_by_name_drops_unnamed_side_branch_from_extras():
     assert len(keep) == 1, "the same-name pieces merge into one Creek stream"
     rep = keep[0].blk
     assert len(extra.get(rep, [])) == 1, "same-name braid kept as an extra; the unnamed side-branch is dropped"
+
+
+def test_lake_spine_routing_folds_inflows_onto_one_inside_spine():
+    """Lake-node declutter (shared by mapcheck + verify_map). Many creeks draining a lake fan across it to a
+    shared outlet hub JUST OUTSIDE the polygon; the router folds them onto one central spine. Every attach point
+    and every spine vertex but the shore outlet must stay INSIDE the lake, and a far-off connector is left alone."""
+    from pipeline.hack.added_streams.build_dataset import lake_spine_routing
+    lake = Polygon([(0, 0), (1000, 0), (1000, 300), (0, 300)])   # elongated E-W -> axis runs E-W at y=150
+    hub = (1050, 150)                                            # the drainage outlet, 50 m past the EAST shore
+    pairs = [((200, 310), hub),        # 0: inflow, mouth 10 m north of the shore -> folds
+             ((600, -10), hub),        # 1: inflow, mouth 10 m south of the shore -> folds
+             ((5000, 5000), (6000, 6000))]  # 2: unrelated connector nowhere near the lake -> left alone
+    attach, spines = lake_spine_routing(pairs, [lake])
+    assert set(attach) == {0, 1}, "only the two lake inflows fold; the far connector is untouched"
+    for xy in attach.values():
+        assert lake.buffer(1e-6).contains(Point(xy)), "each inflow attaches to a point INSIDE the lake"
+    assert len(spines) == 1
+    spine = spines[0]
+    for v in spine[:-1]:
+        assert lake.buffer(1e-6).contains(Point(v)), "the spine stays inside the lake"
+    assert lake.boundary.distance(Point(spine[-1])) <= 1e-6, "the spine ends AT the shore outlet, not past it"
 
 
 def test_export_carries_fwa_exclude_and_name_variants():
