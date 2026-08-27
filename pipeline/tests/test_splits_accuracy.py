@@ -1,8 +1,8 @@
 """Accuracy guard: resolved cuts must land near their curated `_coord` (ground truth).
 
-A fast, single-bbox slice of pipeline.oneoff.audit_splits over the Bella Coola / Atnarko system
+A fast, single-bbox slice of pipeline.hack.audit_splits over the Bella Coola / Atnarko system
 (mainstem cuts + the three self-declaring tributary cards). The full sweep lives in
-`python -m pipeline.oneoff.audit_splits`; this keeps a regression tripwire in the suite.
+`python -m pipeline.hack.audit_splits`; this keeps a regression tripwire in the suite.
 """
 
 import json
