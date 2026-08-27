@@ -11,9 +11,9 @@ from pipeline.graph.graph import ancestors, build_stream_graph
 from pipeline.models import BlkChain
 
 
-def _chain(blk, wsc, coords, gnis_name="", gnis_id="", order=3, mag=5):
+def _chain(blk, wsc, coords, gnis_name="", gnis_id="", order=3, mag=5, mouth_measure=0.0):
     g = line_to_albers(coords)
-    return BlkChain(blk=blk, fwa_watershed_code=wsc, fids=(), geometry=g, mouth_measure=0.0,
+    return BlkChain(blk=blk, fwa_watershed_code=wsc, fids=(), geometry=g, mouth_measure=mouth_measure,
                     length_m=g.length, name_tuples=(), gnis_id=gnis_id, gnis_name=gnis_name,
                     stream_order=order, stream_magnitude=mag)
 
@@ -57,6 +57,41 @@ def test_wsc_propagation_inherits_primary():
     assert by["Fork B"]["wsc"].startswith(by["Trib A"]["wsc"])        # descends its added receiver
     assert by["Coast Creek"]["wsc"].startswith("900")                 # tidal root
     assert by["Coast Creek"]["receiver_kind"] == "tidal"
+
+
+def test_wsc_on_partially_loaded_river_uses_true_blue_line_length():
+    """Sanctuary Slough regression. Our FWA extract is regional, so a big river's blue line is only
+    PARTIALLY loaded — its chain starts well up from the true mouth (mouth_measure > 0) and length_m
+    understates the real length. Minting a tributary as proj/length_m then over-counts (Sanctuary got
+    100-567200 where its real FWA neighbours sit near 100-0123xx). The fix recovers the true total from
+    the receiver's already-coded FWA children (each child's local code = route-measure / TRUE length),
+    so a novel mints the same small proportion its real neighbours do."""
+    from pyproj import Transformer
+    to_ll = Transformer.from_crs("EPSG:3005", "EPSG:4326", always_xy=True)
+    # receiver: a big river whose loaded chain starts 9000 m up from its true (unloaded) mouth
+    recv = _chain("1000", "100", [(-123.0, 49.20), (-123.0, 49.34)], gnis_name="Big River",
+                  mouth_measure=9000.0)
+    g = recv.geometry                                             # albers; ~13 km long
+
+    def _touch_lonlat(proj_m):                                   # lon/lat of the point proj_m up recv
+        p = g.interpolate(proj_m)
+        return to_ll.transform(p.x, p.y)
+
+    # two REAL FWA children touching recv at route measures 10000 and 20000 -> they imply total = 1e6 m
+    def _child(blk, seg, route_m):
+        lon, lat = _touch_lonlat(route_m - recv.mouth_measure)
+        return _chain(blk, f"100-{seg:06d}", [(lon, lat), (lon + 0.002, lat + 0.002)])
+    cA = _child("1100", 10000, 10000.0)                          # 100-010000
+    cB = _child("1200", 20000, 20000.0)                          # 100-020000
+    # a novel whose mouth touches recv midway between the children (route measure 15000)
+    lon, lat = _touch_lonlat(6000.0)                             # 9000 + 6000 = route 15000
+    novel = _feat([(lon, lat), (lon + 0.002, lat)], "Novel Slough")
+    streams, _, _ = resolve_and_mint([novel], [recv, cA, cB], LakeIndex([]), [])
+    s = next(x for x in streams if x["name"] == "Novel Slough")
+    assert s["receiver_kind"] == "fwa" and s["receiver_blk"] == "1000"
+    seg = int(s["wsc"].split("-")[-1])
+    # route 15000 / true total 1e6 -> ~015000 (between its neighbours); NOT the naive proj/length_m (~045xxx)
+    assert abs(seg - 15000) <= 20, f"expected ~100-015000 from the true blue-line length, got {s['wsc']}"
 
 
 def test_name_conflict_candidate_emitted():

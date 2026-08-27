@@ -318,6 +318,47 @@ _MAINSTEM_GAP = 120.0     # ...but a SAME-NAME mainstem section that continues a
                           # connector), bridged as part of the mainstem geometry. Municipal data leaves
                           # ~tens-of-metres gaps where a mainstem crosses a tributary confluence.
 
+_BLUELINE_TRUNC_TOL = 1.0     # a receiver whose loaded chain starts more than this far up its blue line
+                              # (mouth_measure) is only PARTIALLY loaded — its length_m understates the true
+                              # blue-line length, so proj/length_m mis-mints (see _blue_line_total).
+_CHILD_TOUCH_TOL = 30.0       # an FWA child must touch its parent blue line within this to fix the scale
+
+
+def _blue_line_total(rc: BlkChain, fwa_chains: list[BlkChain]) -> Optional[float]:
+    """Effective full route-length of ``rc``'s blue line, recovered from its already-coded FWA children.
+
+    Our FWA extract is regional, so a big river's blue line is only partially loaded: ``rc.length_m`` (the
+    loaded span) understates the true length, and minting a tributary's segment as proj/length_m over-counts
+    (Sanctuary Slough got 100-567200 on the Fraser, whose real FWA neighbours sit near 100-0123xx). But every
+    existing FWA tributary carries its OWN local code = (its route measure up rc) / (rc's TRUE total length);
+    inverting that over rc's touching DIRECT children and taking the median recovers the true total —
+    name-agnostic, using only loaded data. ``None`` when rc has no usable coded children (mint falls back to
+    length_m)."""
+    base = trim_wsc(rc.fwa_watershed_code)
+    if rc.geometry is None or not base:
+        return None
+    g = rc.geometry
+    ests: list[float] = []
+    for c in fwa_chains:
+        cw = trim_wsc(c.fwa_watershed_code)
+        if c.geometry is None or not cw.startswith(base + "-"):
+            continue
+        tail = cw[len(base) + 1:]
+        if "-" in tail or not tail.isdigit():
+            continue                                       # a DIRECT child only (one segment beyond rc)
+        seg = int(tail)
+        if seg <= 0:
+            continue
+        m0, m1 = Point(c.geometry.coords[0]), Point(c.geometry.coords[-1])
+        mouth = m0 if m0.distance(g) <= m1.distance(g) else m1
+        if mouth.distance(g) > _CHILD_TOUCH_TOL:
+            continue                                       # mouth doesn't touch rc (a clip/grandchild off-line)
+        ests.append((rc.mouth_measure + g.project(mouth)) / (seg / 1e6))
+    if not ests:
+        return None
+    ests.sort()
+    return ests[len(ests) // 2]                            # median (robust to a stray off-line child)
+
 
 def _canon_name(s: str) -> str:
     """Canonical name key: lowercase, punctuation/space stripped ("Logger's Lane" == "loggerslane")."""
@@ -705,6 +746,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     rlen_of: dict[int, float] = {}
     connector_of: dict[int, Optional[dict]] = {}
     used_coastal: set[str] = set()
+    bl_total: dict[str, float] = {}                               # FWA blk -> true blue-line length (cached)
     add_geom_wsc: dict[str, tuple[LineString, str, float]] = {}   # added blk -> (geom, wsc, length)
     for ch in order_topo:
         kind, rblk = receiver[ch.blk]
@@ -733,7 +775,13 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
             else:
                 rgeom, rwsc, rlen = add_geom_wsc[rblk]; rmm = 0.0
             proj = rgeom.project(mouth); confl = rgeom.interpolate(proj)
-            wsc = str(ch.overrides.get("wsc") or mint_wsc(rwsc, proj, rlen))
+            mint_d, mint_len = proj, rlen
+            if kind == "fwa" and rmm > _BLUELINE_TRUNC_TOL:       # partially-loaded big river: mint against the
+                total = bl_total.get(rblk)                        # ABSOLUTE route measure over the TRUE blue-line
+                if total is None:                                 # length (rlen is only the loaded span)
+                    total = bl_total[rblk] = _blue_line_total(fwa_by_blk[rblk], fwa_chains) or rlen
+                mint_d, mint_len = rmm + proj, total
+            wsc = str(ch.overrides.get("wsc") or mint_wsc(rwsc, mint_d, mint_len))
             proj_of[ch.blk] = proj; rlen_of[ch.blk] = rlen
             gap = mouth.distance(confl)
             connector_of[ch.blk] = {"to_blk": to_blk, "to_fwa": kind in ("fwa", "ext"),
