@@ -46,9 +46,20 @@ a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the expl
   few m PAST the river it drains into crossed the receiver and dangled beyond it, so the connector doubled
   BACK. Trim the mouth-side overshoot so the mouth lands ON the crossing (zero-gap confluence, no connector).
 
+## Classification (`fwa_match.py::classify`)
+- duplicate (drop, favour FWA) / extension (keep the novel tail) / novel (keep whole). A **differently-named**
+  municipal creek that only PARTIALLY hugs an FWA line (covb in [ext, dup)) is kept as a novel, not dropped as
+  a duplicate of the FWA it runs beside — Brackendale Creek hugs Dryden Creek ~40 %, 59 % unique. High (>=dup)
+  coverage or a name match still classifies as duplicate.
+
 ## Resolver (`build_dataset.py::resolve_and_mint`, `_resolve_topology`)
 - Derives receivers from the dem tree. **`dem_outlet` is checked BEFORE `dem_down`** — a channel that
   drains to a real river roots THERE, not on a spurious cross-channel `dem_down` cycle (Eagle Creek 154).
+- **A trib joins the stream it TOUCHES** (`_touched_receiver_channel`): if the dem routed a mouth into a
+  channel it does NOT touch (a connector) while the mouth sits ON another added channel (~0), prefer the
+  touched one — Magnolia Trib 1 → Magnolia Creek, not the Little Stawamus its mouth got bridged to.
+- **Novels the dem eliminated are dropped** (`_keep_novel`): a channel is minted only if the dem kept a
+  member, so a NAMED braid/loop gone in dem-raw is gone in resolved too (Little Stawamus side channels).
 - `_anchor` is **coastal-aware**: a 900- coastal FWA reach is open sea like the tidal boundary, so tidal
   wins over it (Dynamite/Heron → Burrard Inlet). A real inland route (100- Fraser) beats tidal (Sanctuary
   Slough → 100-). tidal is still the last resort when nothing else is within reach.

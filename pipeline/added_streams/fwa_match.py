@@ -161,8 +161,14 @@ def classify(line3005: LineString, index: _FwaIndex, tol: float = _TOL_M, wide: 
                    key=lambda p: p.distance(index.geoms[best_i]))
         m.divergence = (near.x, near.y)
         return m
-    if best_covw >= dup or best_covb >= ext:                  # offset re-draw the whole way, or partial
-        return _dup_match(m, index, best_i)                  # overlap -> drop, favour FWA
+    if best_covw >= dup:                                      # offset re-draw the whole way -> drop, favour FWA
+        return _dup_match(m, index, best_i)
+    if best_covb >= ext:                                      # partial overlap with the FWA line...
+        fwa_nm = _norm(index.name[best_i])
+        if not (muni_name and fwa_nm and _norm(muni_name) != fwa_nm):
+            return _dup_match(m, index, best_i)              # ...a re-draw (same/unnamed) -> drop, favour FWA
+        # a DIFFERENTLY-named creek merely hugging this FWA for part of its length (Brackendale Creek runs
+        # along Dryden Creek for ~40%, 59% unique) is its OWN stream -> keep it whole as a novel, not a dup.
     return m                                                  # genuinely new (little overlap even wide)
 
 

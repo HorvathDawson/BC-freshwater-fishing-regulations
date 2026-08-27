@@ -45,6 +45,21 @@ def test_far_line_is_novel():
     assert m.klass == "novel" and m.fwa_blk == ""
 
 
+def test_named_line_partly_hugging_a_differently_named_fwa_is_novel():
+    """Brackendale Creek regression. A NAMED municipal creek that runs along a DIFFERENTLY-named FWA stream
+    for part of its length (partial coverage, mostly unique) is its OWN creek — not a duplicate of the FWA it
+    merely hugs. Only a name match, or high (>= dup) coverage, makes it a duplicate."""
+    dryden = _chain("1000", "100-100000", [(-123.0, 49.20), (-123.0, 49.24)], gnis_name="Dryden Creek")
+    idx = _FwaIndex([dryden])
+    # unique east -> onto Dryden (a mid-section overlap) -> back east unique; NEITHER end touches Dryden, so
+    # it is not an end-tail extension, and only ~40% lies on the FWA.
+    brack = line_to_albers([(-123.02, 49.205), (-123.0, 49.214),
+                            (-123.0, 49.230), (-123.02, 49.238)])
+    m = classify(brack, idx, muni_name="Brackendale Creek")
+    assert m.klass == "novel", f"a differently-named, mostly-unique creek is novel, got {m.klass}"
+    assert classify(brack, idx, muni_name="Dryden Creek").klass == "duplicate", "same name -> a re-draw"
+
+
 def test_name_conflict_candidate_fwa_boss():
     feats = [{"type": "Feature", "properties": {"name": "Local Creek"},
               "geometry": {"type": "LineString", "coordinates": [(-123.0, 49.205), (-123.0, 49.225)]}}]
