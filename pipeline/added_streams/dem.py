@@ -734,19 +734,13 @@ def dem_flow(features: list[dict], sampler: "ElevationSampler", tol_m: float = 2
                 outlet_draw.append((s, seed_outlet[s]))
             markers.append({"kind": "sink", "lonlat": list(node_coord[s]), "comp": int(cid),
                             "elev": round(E(s), 1)})
-        src_added = False
-        for nd in nodes:                                           # SOURCES = headwaters. trust_source: nodes
+        for nd in nodes:                                           # SOURCES = headwaters. trust_source: a node with
             is_src = (indeg[nd] == 0 and outdeg[nd] > 0) if trust_source \
-                else (len(adj[nd]) == 1 and nd not in seed_outlet and E(nd) > lo + sink_band)  # DEM leaves
-            if is_src:
-                markers.append({"kind": "source", "lonlat": list(node_coord[nd]), "comp": int(cid),
-                                "elev": round(E(nd), 1)})
-                src_added = True
-        if not trust_source and not src_added:                     # FLAT component (a tidal slough): no leaf rose
-            for nd in nodes:                                       # sink_band above the low, so nothing qualified —
-                if len(adj[nd]) == 1 and nd not in seed_outlet and nd not in final_sinks:  # a dead-end that is
-                    markers.append({"kind": "source", "lonlat": list(node_coord[nd]),      # neither mouth nor sink
-                                    "comp": int(cid), "elev": round(E(nd), 1)})             # is still a headwater
+                else (len(adj[nd]) == 1 and nd not in seed_outlet and nd not in final_sinks)  # a DEM leaf that is
+            if is_src:                                             # neither a mouth-outlet nor a sink is a headwater
+                markers.append({"kind": "source", "lonlat": list(node_coord[nd]),          # — even on FLAT ground
+                                "comp": int(cid), "elev": round(E(nd), 1)})                 # (tidal sloughs), where no
+                #                                                    leaf rises sink_band above the component low
     # GROUP kept pieces back per feature. Unsplit feature -> ONE piece -> ``out[i]`` is byte-identical to
     # before. A feature noded into >1 reach -> ``out[i]`` carries the primary (longest) reach for back-
     # compat single-arrow consumers PLUS a ``reaches`` list (each {coords,down,outlet}) so the resolver /
