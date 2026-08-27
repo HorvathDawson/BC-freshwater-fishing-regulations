@@ -76,7 +76,7 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     # the lake to the NEAREST point on the lake's central AXIS (its major axis, clipped inside), and draw ONE
     # spine = that axis extended to the outflow. The lake then shows a simple internal line creeks join.
     from collections import Counter as _Counter
-    from shapely.ops import nearest_points as _nearest
+    from shapely.ops import nearest_points as _nearest, substring as _substring
     def _central_axis(poly):
         ax = _major_axis(poly); L = ax.length                # float the spine OFF both shores (no edge-to-edge)
         return LineString([ax.interpolate(0.12 * L), ax.interpolate(0.88 * L)]) if L > 0 else ax
@@ -92,6 +92,8 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                     or LineString([mouth, confl]).intersection(poly).length >= 30.0):
                 return j
         return -1
+    # PASS 1: gather each lake's inflows (defer rerouting) and its drainage hub.
+    inflows: dict = {}                                      # lake idx -> [(diag, mouth_pt), ...]
     outflows: dict = {}                                     # lake idx -> Counter of the outlet-hub points
     for d in diags:
         if d["klass"] == "connector" and len(d["coords"]) >= 2:
@@ -99,19 +101,23 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
             confl = Point(_TO_ALBERS.transform(*d["coords"][-1]))
             j = _lake_of(mouth, confl)
             if j >= 0:
-                axis = lake_axis[j][1]                        # attach the mouth to the nearest point on the spine
-                np = axis.interpolate(axis.project(mouth))
-                d["coords"] = [d["coords"][0], _ll((np.x, np.y))]
-                outflows.setdefault(j, _Counter())[(confl.x, confl.y)] += 1   # remember the drainage hub
+                inflows.setdefault(j, []).append((d, mouth))
+                outflows.setdefault(j, _Counter())[(confl.x, confl.y)] += 1
+    # PASS 2: build a spine that STOPS at the outlet tap (no overshoot past the junction), then attach every
+    # inflow to that truncated spine (project() clamps, so none land beyond the outlet), and run the spine on
+    # through the tap to the outlet on the shore as one continuous line.
     for j, cnt in outflows.items():
         poly, axis = lake_axis[j]
-        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake spine",
-                          "ftype": "connector", "fish": "", "coords": [_ll(c) for c in axis.coords]}]
         hub = Point(cnt.most_common(1)[0][0])                 # the drainage hub (usually just outside the lake)
         outlet = _nearest(poly.boundary, hub)[0]             # its outlet ON the shore -> stay INSIDE the lake
-        tap = axis.interpolate(axis.project(outlet))          # minimum-length stub from spine to outlet
-        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake outlet",
-                          "ftype": "connector", "fish": "", "coords": [_ll((tap.x, tap.y)), _ll((outlet.x, outlet.y))]}]
+        tap_d = axis.project(outlet)                          # spine runs from the FAR end down to the tap
+        spine = _substring(axis, 0.0, tap_d) if tap_d >= axis.length / 2 else _substring(axis, axis.length, tap_d)
+        for d, mouth in inflows[j]:
+            np = spine.interpolate(spine.project(mouth))      # attach to the truncated spine (auto-clamped)
+            d["coords"] = [d["coords"][0], _ll((np.x, np.y))]
+        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake spine",
+                          "ftype": "connector", "fish": "",
+                          "coords": [_ll(c) for c in spine.coords] + [_ll((outlet.x, outlet.y))]}]
     muni = [_feature(d["coords"], {"klass": d["klass"], "blk": d["blk"], "wsc": d["wsc"],
                                    "name": d["name"], "ftype": d["ftype"], "fish": d["fish"]})
             for d in diags if len(d["coords"]) >= 2]
