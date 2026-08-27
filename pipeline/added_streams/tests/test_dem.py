@@ -257,6 +257,21 @@ def _fwa_line(coords):
     return _LS([_TO_ALBERS.transform(x, y) for x, y in coords])
 
 
+def test_flat_slough_headwater_leaf_still_gets_a_source_marker():
+    """Wilson Slough regression. On a FLAT tidal slough no leaf rises `sink_band` above the component low, so
+    the elevation-gated source test marks nothing — a real headwater dead-end (626's far end) gets no source
+    dot. A degree-1 node that is neither the mouth-outlet nor a sink is still a headwater and must be marked."""
+    class _Flat:
+        def elevation(self, lon, lat):
+            return 7.6
+    slough = _feat("Slough", [[_e(0), _n(0)], [_e(200), _n(0)]])      # west leaf (headwater) -> east mouth
+    fwa = _fwa_line([[_e(206), _n(-40)], [_e(206), _n(40)]])           # FWA just east of the mouth (the outlet)
+    _, _, markers = dem_flow([slough], _Flat(), fwa=[fwa])
+    srcs = [m for m in markers if m["kind"] == "source"]
+    assert any(abs(m["lonlat"][0] - _e(0)) < 1e-6 and abs(m["lonlat"][1] - _n(0)) < 1e-6 for m in srcs), \
+        "a flat slough's west headwater leaf must still get a source marker"
+
+
 def test_sink_is_the_outlet_even_when_a_trib_joins_there():
     """A tributary that joins the mainstem near its OUTLET makes that outlet node degree-2 (not a leaf).
     The sink must still be the outlet (the node at the FWA/tidal it drains to), not flip to a headwater
