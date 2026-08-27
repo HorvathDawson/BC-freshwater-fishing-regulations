@@ -6,7 +6,7 @@ merged mainstem = one node/blk/wsc, tributaries nest under it, added nodes are a
 stream they join. Optionally writes output/added_demo.gpkg for eyeballing in QGIS.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.harness \
-        --geojson pipeline/tests/data/added_streams.sample.geojson
+        --geojson pipeline/added_streams/tests/data/added_streams.sample.geojson
 
 Local only (no network, no credits): it reads the FWA gpkg and the curated GeoJSON.
 """
@@ -103,7 +103,7 @@ def _write_gpkg(graph, geoms, add_chains, specs, out: str) -> None:
 def main() -> None:
     from project_config import get_config
     ap = argparse.ArgumentParser(description="Standalone added-streams end-to-end demo.")
-    ap.add_argument("--geojson", default="pipeline/tests/data/added_streams.sample.geojson")
+    ap.add_argument("--geojson", default="pipeline/added_streams/tests/data/added_streams.sample.geojson")
     ap.add_argument("--gpkg", default=None, help="FWA gpkg (default: project config)")
     ap.add_argument("--bbox", nargs=4, type=float, default=None,
                     metavar=("MINX", "MINY", "MAXX", "MAXY"), help="EPSG:3005 bbox (default: auto)")

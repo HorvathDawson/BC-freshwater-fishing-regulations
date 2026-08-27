@@ -7,9 +7,11 @@ now (`RELIABLE_SOURCES = set()` — burnaby moved off trust_source once the fixe
 
 ## Run / validate (safe for the assistant — no LLM credits)
 ```bash
-PYTHONPATH=. .venv/bin/python -m pytest pipeline/tests/ -q -k added_streams   # 92 pass
+PYTHONPATH=. .venv/bin/python -m pytest pipeline/added_streams/tests -q       # 92 pass (~1 s)
 PYTHONPATH=. .venv/bin/python -m pipeline.added_streams.mapcheck burnaby      # regen one map (~50 s)
 ```
+Tests live IN the module (`pipeline/added_streams/tests/`), separate from the main pipeline suite —
+a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the explicit path above.
 - gpkg: `data/bc_fisheries_data.gpkg`; elevation: `dem.ElevationSampler` (AWS Terrarium tiles, cached).
 - **⛔ Never run the LLM parser** (`run_parse.sh`, `dispatch`) — spends the user's credits; human-only.
 - `dem_flow` on burnaby is ~20–25 s (the FWA-overshoot clip + noding). mapcheck calls it twice/source.
