@@ -143,7 +143,7 @@ _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
                  # Harris Slough & tribs (654.0, 612, 622.0/.1, 648.0/.1, 659), Whitaker Slough (373, 684),
                  # Mamquam Side Channel (609), Dryden Creek Trib 1 (666), Stawamus River + Trib 1 (589, 590):
                  "659", "612", "622.0", "622.1", "648.0", "648.1", "373", "684", "609", "666", "589", "590",
-                 "598.0", "598.1",   # Logger's Lane Creek parts
+                 "598.0", "598.1", "598.3",   # Logger's Lane Creek parts
                  "651.5", "651.2",   # Little Stawamus: 651.5 is a spur off the 651.3/651.4 junction; 651.2 is
                  #     an exact duplicate of 651.1 whose parallel edge split the mainstem and disconnected
                  #     651.1 from 636 — dropping it reconnects the 651.0-651.1-651.3-651.4-636 run
