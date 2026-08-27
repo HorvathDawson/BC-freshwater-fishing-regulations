@@ -675,6 +675,10 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
 
     # 1. classify (name-aware: a same-named FWA stream nearby is a duplicate even if offset)
     cls = {ch.blk: classify(geom[ch.blk], index, tol=tol, muni_name=ch.name) for ch in channels}
+    for ch in channels:                                     # a differently-named creek that only PARTLY hugs an
+        m = cls[ch.blk]                                     # FWA keeps just its UNIQUE reach — drop the overlap
+        if m.klass == "novel" and m.clip3005 is not None:  # (which IS the FWA there); the clip connects to the
+            geom[ch.blk] = m.clip3005                       # FWA at the divergence (Brackendale Creek / Dryden)
     candidates: list[NameCandidate] = []
     for ch in channels:
         m = cls[ch.blk]

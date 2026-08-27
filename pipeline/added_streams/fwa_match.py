@@ -102,6 +102,17 @@ def _tail_past_end(line: LineString, fwa_geom: LineString, tol: float) -> Option
     return tail
 
 
+def _longest_unique(line: LineString, fwa_geom: LineString, tol: float) -> Optional[LineString]:
+    """The longest contiguous piece of ``line`` that lies OUTSIDE the FWA's ``tol`` buffer — the part that is
+    genuinely this creek's own, not a re-draw of the FWA it runs beside (Brackendale Creek's 467 m unique reach
+    where the whole line is 766 m, ~40% on Dryden Creek)."""
+    rem = line.difference(fwa_geom.buffer(tol))
+    parts = ([rem] if rem.geom_type == "LineString"
+             else [g for g in getattr(rem, "geoms", []) if g.geom_type == "LineString"])
+    parts = [p for p in parts if p.length > tol]
+    return max(parts, key=lambda p: p.length) if parts else None
+
+
 _NAME_TOL_M = 400.0    # a name-matched FWA stream this close is the same river even if offset (wide rivers)
 
 
@@ -167,8 +178,12 @@ def classify(line3005: LineString, index: _FwaIndex, tol: float = _TOL_M, wide: 
         fwa_nm = _norm(index.name[best_i])
         if not (muni_name and fwa_nm and _norm(muni_name) != fwa_nm):
             return _dup_match(m, index, best_i)              # ...a re-draw (same/unnamed) -> drop, favour FWA
-        # a DIFFERENTLY-named creek merely hugging this FWA for part of its length (Brackendale Creek runs
-        # along Dryden Creek for ~40%, 59% unique) is its OWN stream -> keep it whole as a novel, not a dup.
+        # a DIFFERENTLY-named creek hugging this FWA for part of its length (Brackendale Creek runs along
+        # Dryden Creek ~40%, 59% unique) is its OWN stream -> keep only its UNIQUE reach as a novel, dropping
+        # the overlapping part (which IS the FWA there); the clip connects to the FWA at the divergence.
+        uniq = _longest_unique(line3005, index.geoms[best_i], tol)
+        if uniq is not None and uniq.length >= _MIN_TAIL_FRAC * L:
+            m.clip3005 = uniq
     return m                                                  # genuinely new (little overlap even wide)
 
 

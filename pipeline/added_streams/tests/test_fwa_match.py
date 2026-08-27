@@ -57,6 +57,7 @@ def test_named_line_partly_hugging_a_differently_named_fwa_is_novel():
                             (-123.0, 49.230), (-123.02, 49.238)])
     m = classify(brack, idx, muni_name="Brackendale Creek")
     assert m.klass == "novel", f"a differently-named, mostly-unique creek is novel, got {m.klass}"
+    assert m.clip3005 is not None and m.clip3005.length < brack.length, "keeps only the unique reach"
     assert classify(brack, idx, muni_name="Dryden Creek").klass == "duplicate", "same name -> a re-draw"
 
 
