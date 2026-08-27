@@ -131,7 +131,10 @@ _EXCLUDE_NAMES_BY_SOURCE: dict[str, set] = {
 _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
     "burnaby": {"344", "356.1", "279", "305", "274", "268", "4", "8", "9"},  # Ancient Grove Trib.1 stub; Rudolph
     #   356.1 part; Fraser River; 305 Lost<->Holmes connector; 268/274 Thomas Trib.5; 4/8/9 Squatters Trib.2/1/3
-    "squamish": {"654", "654.1", "654.2", "608.5", "597.1", "597.2", "664", "658.1"},  # spurious pieces
+    "squamish": {"654", "654.0", "654.1", "654.2", "608.5", "608.4", "597.1", "597.2", "664", "658.1",
+                 # Harris Slough & tribs (654.0, 612, 622.0/.1, 648.0/.1, 659), Whitaker Slough (373, 684),
+                 # Mamquam Side Channel (609), Dryden Creek Trib 1 (666), Stawamus River + Trib 1 (589, 590):
+                 "659", "612", "622.0", "622.1", "648.0", "648.1", "373", "684", "609", "666", "589", "590"},
 }
 
 
