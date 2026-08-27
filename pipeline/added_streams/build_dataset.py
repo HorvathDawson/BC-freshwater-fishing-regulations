@@ -598,11 +598,11 @@ def _name_candidate(muni_name: str, fwa_name: str, fwa_blk: str, fwa_gnis: str) 
 # upstream). The muni lines there then classify as novels and mint their own codes. Keyed by source.
 FWA_EXCLUDE_BY_SOURCE: dict[str, tuple] = {
     "squamish": ("900-105574-087851", "900-103611", "900-102882-190726"),  # each reach + all tribs -> municipal
-    "burnaby": ("100-019698-", "100-010829", "100-011460"),   # everything UPSTREAM of Brunette River (Deer +
-    #                                              Burnaby Lake, Still/Stoney/etc.) -> municipal version +
-    #                                              lake-node graph. Trailing '-' keeps Brunette River
-    #                                              (100-019698) itself. 100-010829 / 100-011460: FWA reaches
-    #                                              the municipal layer supersedes.
+    "burnaby": ("100-019698-", "100-010829", "100-011460", "100-011602"),   # everything UPSTREAM of Brunette
+    #                                              River (Deer + Burnaby Lake, Still/Stoney/etc.) -> municipal
+    #                                              version + lake-node graph. Trailing '-' keeps Brunette River
+    #                                              (100-019698) itself. 100-010829 / 100-011460 / 100-011602:
+    #                                              FWA reaches the municipal layer supersedes.
 }
 
 # Only these lakes (by GNIS name) form drainage NODES per source — every stream touching one connects to
