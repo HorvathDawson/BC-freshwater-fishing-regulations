@@ -976,6 +976,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
             gap = mouth.distance(confl)
             connector_of[ch.blk] = {"to_blk": to_blk, "to_fwa": kind in ("fwa", "ext"),
                                     "at_measure": rmm + proj, "x": confl.x, "y": confl.y,
+                                    "mouth": [mouth.x, mouth.y],   # pre-merge mouth (the merge prepends confl)
                                     "kind": "confluence" if gap <= _CONFLUENCE_GAP else "connector"}
         wsc_of[ch.blk] = wsc
         add_geom_wsc[str(ch.blk)] = (line, wsc, line.length)
@@ -1067,7 +1068,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                      key=lambda p: p.distance(mouth))            # the FWA endpoint it diverges from
         gap = mouth.distance(end_pt)
         conn = {"to_blk": em["fwa_blk"], "to_fwa": True, "at_measure": em["base_measure"],
-                "x": end_pt.x, "y": end_pt.y,
+                "x": end_pt.x, "y": end_pt.y, "mouth": [mouth.x, mouth.y],
                 "kind": "confluence" if gap <= _CONFLUENCE_GAP else "connector"}
         segs = assign_under_lake(_with_connector(clip, conn), lake_index)   # fold the connector into the line
         streams.append(_record(ch, em["fwa_blk"], em["fwa_wsc"], "extension", "fwa", em["fwa_blk"],
@@ -1085,7 +1086,8 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
         c = st.get("connector")
         if not c or c["kind"] != "connector" or not st["segments"]:
             continue
-        mx, my = _TO_LONLAT.transform(*st["segments"][0]["coords3005"][0])
+        mouth3005 = c.get("mouth") or st["segments"][0]["coords3005"][0]   # pre-merge mouth (merge prepends confl)
+        mx, my = _TO_LONLAT.transform(*mouth3005)
         cx, cy = _TO_LONLAT.transform(c["x"], c["y"])
         conn_diags.append({"klass": "connector", "blk": st["blk"], "wsc": "",
                            "name": st["name"], "ftype": c["kind"], "fish": "",
