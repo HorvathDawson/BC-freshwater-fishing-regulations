@@ -76,36 +76,40 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     # the lake to the NEAREST point on the lake's central AXIS (its major axis, clipped inside), and draw ONE
     # spine = that axis extended to the outflow. The lake then shows a simple internal line creeks join.
     from collections import Counter as _Counter
-    lake_axis = [(poly, _major_axis(poly)) for poly in approved]
+    from shapely.ops import nearest_points as _nearest
+    def _central_axis(poly):
+        ax = _major_axis(poly); L = ax.length                # float the spine OFF both shores (no edge-to-edge)
+        return LineString([ax.interpolate(0.12 * L), ax.interpolate(0.88 * L)]) if L > 0 else ax
+    lake_axis = [(poly, _central_axis(poly)) for poly in approved]
     def _ll(pt):
         return [round(v, 6) for v in _TO_LONLAT.transform(pt[0], pt[1])]
-    def _crosses_lake(mouth, confl):
-        # a lake inflow's connector CUTS ACROSS the lake to an outflow point that is usually OUTSIDE the polygon
-        # (Deer Lake drains NE past its own shore), so key off the LINE crossing the lake, not its endpoint.
-        seg = LineString([mouth, confl]); best = (-1, 0.0)
+    def _lake_of(mouth, confl):
+        # a lake inflow either drains to a shared outlet hub just past the shore (Deer Lake: 10 -> one hub 30 m
+        # out) or cuts across the lake; either way fold it onto the spine.
         for j, (poly, _) in enumerate(lake_axis):
-            crossed = seg.intersection(poly).length
-            if crossed > best[1]:
-                best = (j, crossed)
-        return best[0] if best[1] >= 30.0 else -1
-    outflows: dict = {}                                     # lake idx -> Counter of the confluence points crossing it
+            if poly.distance(confl) <= 60.0 or LineString([mouth, confl]).intersection(poly).length >= 30.0:
+                return j
+        return -1
+    outflows: dict = {}                                     # lake idx -> Counter of the outlet-hub points
     for d in diags:
         if d["klass"] == "connector" and len(d["coords"]) >= 2:
             mouth = Point(_TO_ALBERS.transform(*d["coords"][0]))
             confl = Point(_TO_ALBERS.transform(*d["coords"][-1]))
-            j = _crosses_lake(mouth, confl)
+            j = _lake_of(mouth, confl)
             if j >= 0:
-                outflows.setdefault(j, _Counter())[tuple(d["coords"][-1])] += 1
-                axis = lake_axis[j][1]                       # attach the mouth to the nearest point on the axis
+                axis = lake_axis[j][1]                        # attach the mouth to the nearest point on the spine
                 np = axis.interpolate(axis.project(mouth))
-                d["coords"] = [d["coords"][0], _ll((np.x, np.y))]   # stop at the spine (drop the cross-lake shot)
-    for j, cnt in outflows.items():                         # one spine per lake: axis (oriented to) -> outflow
-        axis = lake_axis[j][1]; ac = list(axis.coords)
-        outflow = _TO_ALBERS.transform(*cnt.most_common(1)[0][0])
-        if Point(ac[0]).distance(Point(outflow)) < Point(ac[-1]).distance(Point(outflow)):
-            ac = ac[::-1]                                   # orient the axis toward the outflow
+                d["coords"] = [d["coords"][0], _ll((np.x, np.y))]
+                outflows.setdefault(j, _Counter())[(confl.x, confl.y)] += 1   # remember the drainage hub
+    for j, cnt in outflows.items():
+        poly, axis = lake_axis[j]
         diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake spine",
-                          "ftype": "connector", "fish": "", "coords": [_ll(c) for c in ac] + [_ll(outflow)]}]
+                          "ftype": "connector", "fish": "", "coords": [_ll(c) for c in axis.coords]}]
+        hub = Point(cnt.most_common(1)[0][0])                 # the drainage hub (usually just outside the lake)
+        outlet = _nearest(poly.boundary, hub)[0]             # its outlet ON the shore -> stay INSIDE the lake
+        tap = axis.interpolate(axis.project(outlet))          # minimum-length stub from spine to outlet
+        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake outlet",
+                          "ftype": "connector", "fish": "", "coords": [_ll((tap.x, tap.y)), _ll((outlet.x, outlet.y))]}]
     muni = [_feature(d["coords"], {"klass": d["klass"], "blk": d["blk"], "wsc": d["wsc"],
                                    "name": d["name"], "ftype": d["ftype"], "fish": d["fish"]})
             for d in diags if len(d["coords"]) >= 2]
