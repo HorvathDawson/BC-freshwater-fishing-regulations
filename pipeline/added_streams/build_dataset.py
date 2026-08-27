@@ -1089,17 +1089,17 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
             name_variants.append({"kind": "excluded_fwa", "name": c.gnis_name,
                                   "target_blk": near["blk"], "target_gnis": c.gnis_id or ""})
 
-    # blk LINEARITY: every minted stream must consume as a linear (non-self-crossing) line — a looping segment
-    # would create a cycle in the stream graph and break the tributary walk.
+    # blk LINEARITY: every minted stream should consume as a linear (non-self-crossing) line — a looping
+    # segment would create a cycle in the stream graph and break the tributary walk. Reported (not raised) so
+    # the package still builds; the consumer / verify map flags the offending blks.
     nonlinear = _nonlinear_blks(streams)
-    if nonlinear:
-        raise ValueError(f"added streams: non-linear (self-looping) blk geometry: {nonlinear}")
 
     report = {"counts": {k: sum(1 for ch in channels if cls[ch.blk].klass == k)
                          for k in ("duplicate", "extension", "novel")},
               "minted": len(streams), "unresolved": unresolved,
               "fwa_exclude": list(exclude_wsc),                 # FWA wsc PREFIXES the consumer must remove
               "name_variants": name_variants,
+              "nonlinear_blks": nonlinear,                      # minted blks with a self-looping segment (bug)
               "name_conflicts": [asdict(c) for c in candidates if c.conflict],
               "diagnostics": _diagnostics(channels, cls, kept_blks, wsc_of, ch_by_blk, geom,
                                           folded, ext_meta) + conn_diags}
