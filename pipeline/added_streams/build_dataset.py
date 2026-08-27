@@ -20,7 +20,7 @@ from typing import Optional
 
 from pyproj import Transformer
 from shapely.geometry import LineString, Point
-from shapely.ops import unary_union
+from shapely.ops import substring, unary_union
 from shapely.strtree import STRtree
 
 from pipeline.added_streams import coastal
@@ -322,6 +322,60 @@ _BLUELINE_TRUNC_TOL = 1.0     # a receiver whose loaded chain starts more than t
                               # (mouth_measure) is only PARTIALLY loaded — its length_m understates the true
                               # blue-line length, so proj/length_m mis-mints (see _blue_line_total).
 _CHILD_TOUCH_TOL = 30.0       # an FWA child must touch its parent blue line within this to fix the scale
+
+
+_SHORT_TRIB_M = 50.0      # drop a SHORT leaf tributary of another added stream (a stub with nothing flowing
+                          # into it); iterated so a stream left with only pruned inflows becomes prunable too.
+_OVERSHOOT_TOL = 40.0     # walk a channel mouth that overshoots PAST its receiver back to the crossing when
+                          # the overshoot is at most this; a larger gap is a genuine connector, left alone.
+
+
+def _prune_short_leaf_tribs(minted, receiver, geom, max_len: float = _SHORT_TRIB_M):
+    """Filter out short municipal stub tributaries: a stream is dropped when it flows into ANOTHER ADDED
+    stream, is at most ``max_len`` long, and has nothing (still kept) flowing into it. Iterated, so a short
+    stream whose only tributaries were themselves pruned becomes a leaf and is pruned in turn (Buena Vista
+    Trib.3, 48 m, and its like). Mainstems, FWA/tidal-attached streams, and anything with a surviving
+    tributary are kept. Returns the surviving ``minted`` list."""
+    kept = {ch.blk for ch in minted}
+    changed = True
+    while changed:
+        changed = False
+        has_inflow = set()
+        for ch in minted:
+            if ch.blk not in kept:
+                continue
+            k, rb = receiver[ch.blk]
+            if k == "added" and int(rb) in kept:
+                has_inflow.add(int(rb))
+        for ch in minted:
+            if ch.blk not in kept:
+                continue
+            k, rb = receiver[ch.blk]
+            if k == "added" and geom[ch.blk].length <= max_len and ch.blk not in has_inflow:
+                kept.discard(ch.blk); changed = True
+    return [ch for ch in minted if ch.blk in kept]
+
+
+def _clip_receiver_overshoot(line: LineString, rgeom) -> LineString:
+    """Walk a channel mouth back to its receiver when it OVERSHOOTS. A municipal line drawn a few m past the
+    river it drains into crosses ``rgeom`` then dangles beyond it, so the mouth sits on the far side and the
+    connector doubles BACK to the river (the Brunette screenshot). If the mouth-side of the line crosses the
+    receiver within ``_OVERSHOOT_TOL``, trim that overshoot so the mouth lands ON the crossing (a zero-gap
+    confluence). A mouth already on the receiver, a non-crossing gap (a real connector), or an overshoot
+    longer than the tol is left unchanged. ``line`` is mouth-first; the result stays mouth-first."""
+    if Point(line.coords[0]).distance(rgeom) <= _CONFLUENCE_GAP:
+        return line                                          # already touching — nothing to trim
+    inter = line.intersection(rgeom)
+    if inter.is_empty:
+        return line                                          # doesn't cross — a genuine gap (real connector)
+    xs = ([inter] if inter.geom_type == "Point"
+          else [g for g in getattr(inter, "geoms", []) if g.geom_type == "Point"])
+    if not xs:
+        return line                                          # overlapping/parallel — not an overshoot
+    d = min(line.project(p) for p in xs)                     # first crossing from the mouth
+    if not (0.0 < d <= _OVERSHOOT_TOL):
+        return line                                          # crossing at the mouth (0) or too far up — leave it
+    return substring(line, d, line.length)                   # drop the mouth-side overshoot [0, d]
 
 
 def _mouth_end(e0: Point, e1: Point, own_mouths: list, global_dist) -> Point:
@@ -759,6 +813,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                 if k2 == "added" and int(rb2) == ch.blk:
                     receiver[other.blk] = ("ext", str(ch.blk))
     _bypass_own_tribs()                              # again: reclassification may have re-pointed receivers
+    minted = _prune_short_leaf_tribs(minted, receiver, geom)   # drop short municipal stub tributaries
     kept_blks = {ch.blk for ch in minted}
 
     # 3. topo order (receiver-first over added edges) for top-down WSC
@@ -796,6 +851,10 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                 to_blk = em["fwa_blk"]
             else:
                 rgeom, rwsc, rlen = add_geom_wsc[rblk]; rmm = 0.0
+            clipped = _clip_receiver_overshoot(line, rgeom)   # a mouth that overshot PAST the receiver is
+            if clipped is not line:                           # walked back to the crossing (no backwards
+                geom[ch.blk] = line = clipped                 # connector); the trimmed geometry is the output
+                mouth = Point(line.coords[0])
             proj = rgeom.project(mouth); confl = rgeom.interpolate(proj)
             mint_d, mint_len = proj, rlen
             if kind == "fwa" and rmm > _BLUELINE_TRUNC_TOL:       # partially-loaded big river: mint against the

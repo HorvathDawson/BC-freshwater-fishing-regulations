@@ -37,6 +37,15 @@ a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the expl
    Squatters). Stranded sinks (mouth up to ~800 m from the river) fall back to the single-sink + outlet.
    `out[i]`: `{coords (mouth-first), comp, down (feat idx | None), outlet (FWA/tidal lonlat | None), reaches?}`
 
+## Curation filters (`build_dataset.py`, general — all sources)
+- **Short-tributary prune** (`_prune_short_leaf_tribs`, `_SHORT_TRIB_M = 50 m`): drop a stream that flows into
+  ANOTHER added stream, is <= 50 m, and has nothing (kept) flowing into it. Iterated, so a short stream left
+  with only pruned inflows becomes a leaf and goes too (Buena Vista Trib.3, 48 m). ONLY <= 50 m streams are
+  ever dropped — a longer creek is never cascaded out. FWA/tidal-attached streams and mainstems are untouched.
+- **Receiver-overshoot clip** (`_clip_receiver_overshoot`, `_OVERSHOOT_TOL = 40 m`): a municipal line drawn a
+  few m PAST the river it drains into crossed the receiver and dangled beyond it, so the connector doubled
+  BACK. Trim the mouth-side overshoot so the mouth lands ON the crossing (zero-gap confluence, no connector).
+
 ## Resolver (`build_dataset.py::resolve_and_mint`, `_resolve_topology`)
 - Derives receivers from the dem tree. **`dem_outlet` is checked BEFORE `dem_down`** — a channel that
   drains to a real river roots THERE, not on a spurious cross-channel `dem_down` cycle (Eagle Creek 154).

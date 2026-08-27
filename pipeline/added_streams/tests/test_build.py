@@ -108,6 +108,53 @@ def test_channel_mouth_endpoint_scoped_to_own_reaches():
     assert _mouth_end(low, high, [], foreign_at_high).equals(high), "no own reaches -> global fallback (old)"
 
 
+def test_prune_short_leaf_tributaries_cascades():
+    """Short-tributary filter (Buena Vista Trib.3, 48 m). A stream that flows into ANOTHER added stream, is
+    short, and has nothing (kept) flowing into it is dropped — iterated, so a short stream left with only
+    pruned inflows becomes a leaf and goes too. Long tribs, streams with a surviving inflow, and non-added
+    receivers are kept."""
+    from types import SimpleNamespace
+    from shapely.geometry import LineString
+    from pipeline.added_streams.build_dataset import _prune_short_leaf_tribs
+    def L(n):
+        return LineString([(0.0, 0.0), (0.0, n)])
+    minted = [SimpleNamespace(blk=b) for b in (-1, -2, -3, -4, -5, -6, -7)]
+    receiver = {-1: ("fwa", "X"),        # mainstem -> FWA (never pruned even if short)
+                -2: ("added", "-1"),     # long trib of main -> kept
+                -3: ("added", "-1"),     # short leaf trib of main -> PRUNED
+                -4: ("added", "-1"),     # short trib of main but has an inflow -> kept
+                -5: ("added", "-4"),     # long inflow of -4 -> kept
+                -6: ("added", "-1"),     # short trib, only inflow is short leaf -7 -> PRUNED (cascade)
+                -7: ("added", "-6")}     # short leaf inflow of -6 -> PRUNED first
+    geom = {-1: L(1000), -2: L(200), -3: L(30), -4: L(20), -5: L(300), -6: L(25), -7: L(15)}
+    kept = {ch.blk for ch in _prune_short_leaf_tribs(minted, receiver, geom, max_len=50.0)}
+    assert kept == {-1, -2, -4, -5}, f"kept={kept}"
+
+
+def test_clip_receiver_overshoot_walks_mouth_back_to_crossing():
+    """A municipal line drawn a few m PAST the river it drains into crosses the receiver then dangles beyond
+    it, so the connector doubles BACK (the Brunette screenshot). Trim the mouth-side overshoot so the mouth
+    lands ON the crossing. A real gap (no crossing), a mouth already touching, and an overshoot beyond the
+    tol are all left unchanged."""
+    from shapely.geometry import LineString, Point
+    from pipeline.added_streams.build_dataset import _clip_receiver_overshoot, _OVERSHOOT_TOL
+    river = LineString([(-100.0, 0.0), (100.0, 0.0)])          # E-W receiver through y=0
+    # mouth-first line coming from the north, crossing the river and overshooting 10 m to the south
+    over = LineString([(0.0, -10.0), (0.0, 50.0)])             # coords[0] = mouth at y=-10 (past the river)
+    clipped = _clip_receiver_overshoot(over, river)
+    assert clipped.distance(river) < 1e-6 and Point(clipped.coords[0]).distance(river) < 1e-6, "mouth on river"
+    assert abs(clipped.length - 50.0) < 1e-6, "10 m overshoot trimmed"
+    # a genuine gap (ends 10 m short of the river, never crosses) -> unchanged (a real connector)
+    gap = LineString([(0.0, 10.0), (0.0, 60.0)])
+    assert _clip_receiver_overshoot(gap, river) is gap
+    # mouth already on the river -> unchanged
+    onit = LineString([(0.0, 0.0), (0.0, 50.0)])
+    assert _clip_receiver_overshoot(onit, river) is onit
+    # overshoot longer than the tol -> left alone (never eat a real reach)
+    big = LineString([(0.0, -(_OVERSHOOT_TOL + 20.0)), (0.0, 50.0)])
+    assert _clip_receiver_overshoot(big, river) is big
+
+
 def test_name_conflict_candidate_emitted():
     _, cands, report = _mint()
     conflicts = [c for c in cands if c.conflict]
