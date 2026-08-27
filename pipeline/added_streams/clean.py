@@ -126,6 +126,12 @@ _EXCLUDE_NAMES_BY_SOURCE: dict[str, set] = {
     "port_moody": {"stoney creek"},        # a Burnaby creek that does not belong in the Port Moody layer
 }
 
+# Per-source name fixes applied AFTER mapping: a misspelling splits one creek into two names, so its pieces
+# never merge into one channel (they can even resolve into each other). Map the typo onto the canonical name.
+_NAME_ALIASES_BY_SOURCE: dict[str, dict] = {
+    "squamish": {"Willson Slough": "Wilson Slough"},   # OID 627 typo — same slough as 626 (StreamDetail agrees)
+}
+
 # Municipal features to DROP per source by exact src_id — for pruning a SINGLE bad piece (a spurious
 # connector / a fragment that mis-routes flow) without dropping every other feature that shares its name.
 _EXCLUDE_SRC_IDS_BY_SOURCE: dict[str, set] = {
@@ -157,10 +163,13 @@ def clean_features(features: list[dict], source: str) -> list[dict]:
     mapper = _SOURCES[source]
     exclude = _EXCLUDE_NAMES_BY_SOURCE.get(source, set())
     exclude_ids = _EXCLUDE_SRC_IDS_BY_SOURCE.get(source, set())
+    aliases = _NAME_ALIASES_BY_SOURCE.get(source, {})
     out: list[dict] = []
     for ft in features:
         props = mapper(ft.get("properties", {}))
         props["source"] = source
+        if props.get("name") in aliases:                  # fix a misspelling so the creek's pieces merge as one
+            props["name"] = aliases[props["name"]]
         if (props.get("name") or "").strip().lower() in exclude:
             continue                                      # bad/duplicated data (see _EXCLUDE_NAMES_BY_SOURCE)
         parts = _linestrings(ft.get("geometry") or {})

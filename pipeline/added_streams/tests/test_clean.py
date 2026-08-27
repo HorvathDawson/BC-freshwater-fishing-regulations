@@ -24,6 +24,16 @@ def test_abbotsford_strips_cruft_titlecases_and_keeps_ditches():
     assert feats[1]["properties"]["ftype"] == "ditch" and feats[1]["properties"]["name"] == ""
 
 
+def test_squamish_name_alias_fixes_typo():
+    """A misspelled StreamName ('Willson Slough') is normalised to the canonical 'Wilson Slough' so the
+    slough's pieces merge as one channel instead of resolving into each other."""
+    feats = clean_features([
+        _ls([[0, 0], [1, 1]], OBJECTID=627, StreamName="Willson Slough", StreamDetail="Wilson Slough"),
+        _ls([[1, 1], [2, 2]], OBJECTID=626, StreamName="Wilson Slough", StreamDetail="Wilson Slough"),
+    ], "squamish")
+    assert [f["properties"]["name"] for f in feats] == ["Wilson Slough", "Wilson Slough"]
+
+
 def test_port_moody_drops_excluded_stoney_creek():
     """Port Moody's layer contains a 'Stoney Creek' that belongs to Burnaby — it must be dropped, while
     other Port Moody streams are kept. The exclusion is source-scoped (Burnaby keeps its Stoney Creek)."""

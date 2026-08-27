@@ -262,6 +262,13 @@ def _resolve_topology(channels, geom, cls, index, fwa_by_blk, fwa_chains, lake_i
             mouth = Point(geom[b].coords[0])
             op = dem_outlet.get(b) if dem_outlet else None        # b is a component SINK draining to a real
             if op is not None:                                     # FWA/tidal/lake outlet: root it THERE first —
+                # ...unless the mouth actually TOUCHES another added creek nearer than that outlet: the dem
+                # grounds a sink at the closest FWA/tidal without seeing it join a differently-named added
+                # creek (Britannia Slough's mouth sits ON Wilson Slough, 365 m from the tidal it was given).
+                o = min((o for o in adj[b] if o != b), key=lambda o: geom[o].distance(mouth), default=None)
+                if o is not None and geom[o].distance(mouth) <= _CONFLUENCE_GAP \
+                        and geom[o].distance(mouth) < op.distance(mouth):
+                    dem_receiver[b] = _recv_of_channel(o); continue
                 a = _anchor(b, only=op, reach=connector_tol)      # authoritative OVER dem_down, which for a sink
                 if a is not None:                                  # can be a spurious cross-channel cycle (Eagle
                     dem_receiver[b] = (a[0], a[1]); continue       # Creek 154 <-> its short reach: 198<->199)
