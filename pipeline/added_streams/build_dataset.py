@@ -411,15 +411,23 @@ def _touched_receiver_channel(mouth: Point, dd, cand, geom) -> Optional[int]:
     return None
 
 
-def _mouth_end(e0: Point, e1: Point, own_mouths: list, global_dist) -> Point:
+_MOUTH_TIE_M = 5.0        # both channel ends sit on an own reach-mouth within this -> a tie, broken by elevation
+
+
+def _mouth_end(e0: Point, e1: Point, own_mouths: list, global_dist, elev=None) -> Point:
     """Which END of a merged channel is its dem mouth: the endpoint nearest one of the channel's OWN reach
     mouths. Scoping to own reaches stops a FOREIGN creek whose mouth touches this channel's HEADWATER from
     flipping it (the Stoney Creek reversal — a trib mouth landed exactly on Stoney's high end, so a global
-    scan chose the wrong end). A channel with none of its own reaches falls back to the global nearest-mouth
-    distance (unchanged behaviour)."""
+    scan chose the wrong end). When BOTH ends sit on an own reach-mouth (a channel whose flow exits and
+    re-enters through an external connector — port_moody Dallas -280), the distance ties, so break it by
+    elevation: the DOWNHILL end is the mouth (else the channel reverses into a receiver cycle). A channel
+    with none of its own reaches falls back to the global nearest-mouth distance (unchanged behaviour)."""
     if own_mouths:
         d = lambda p: min(p.distance(q) for q in own_mouths)
-        return e0 if d(e0) <= d(e1) else e1
+        d0, d1 = d(e0), d(e1)
+        if elev is not None and d0 <= _MOUTH_TIE_M and d1 <= _MOUTH_TIE_M:
+            return e0 if elev(e0) <= elev(e1) else e1
+        return e0 if d0 <= d1 else e1
     return e0 if global_dist(e0) <= global_dist(e1) else e1
 
 
@@ -758,11 +766,13 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
             b = src_to_blk.get(features[i].get("properties", {}).get("src_id"))
             for r in _reaches(dem_out[i]):
                 own_mouths.setdefault(b, []).append(Point(_TO_ALBERS.transform(*r["coords"][0])))
+        _to_ll = Transformer.from_crs("EPSG:3005", "EPSG:4326", always_xy=True)
+        _elev = lambda p: orient_sampler.elevation(*_to_ll.transform(p.x, p.y))   # ground height at an albers pt
         dem_mouth = {}
         for ch in channels:
             c = list(geom[ch.blk].coords)
             dem_mouth[ch.blk] = _mouth_end(Point(c[0]), Point(c[-1]),
-                                           own_mouths.get(ch.blk, []), _dist_to_mouth)
+                                           own_mouths.get(ch.blk, []), _dist_to_mouth, elev=_elev)
 
         # DEM TREE -> per-channel downstream receiver. dem_flow already routes every piece to its
         # component sink (good direction + bridges); mirror that exactly: map each dem FEATURE to the

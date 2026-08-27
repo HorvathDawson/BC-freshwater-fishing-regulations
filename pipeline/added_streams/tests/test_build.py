@@ -108,6 +108,20 @@ def test_channel_mouth_endpoint_scoped_to_own_reaches():
     assert _mouth_end(low, high, [], foreign_at_high).equals(high), "no own reaches -> global fallback (old)"
 
 
+def test_mouth_end_breaks_own_mouth_tie_by_elevation():
+    """port_moody Dallas -280: a merged channel whose flow exits and re-enters through an external connector
+    has an own reach-mouth at BOTH endpoints, so the distance test ties. The DOWNHILL end is the true mouth;
+    picking the uphill end reverses the channel and routes its receiver into the cycle (-> unresolved)."""
+    from shapely.geometry import Point
+    from pipeline.added_streams.build_dataset import _mouth_end
+    e0, e1 = Point(0.0, 0.0), Point(100.0, 0.0)         # e0 is UPHILL, e1 is DOWNHILL (the mouth)
+    own = [e0, e1]                                       # both endpoints are own reach-mouths -> a tie
+    elev = lambda p: 25.4 if p.equals(e0) else 22.5
+    assert _mouth_end(e0, e1, own, lambda p: 1e9, elev=elev).equals(e1), "downhill end wins the tie"
+    # only ONE end is an own-mouth -> not a tie -> distance decides, elevation ignored
+    assert _mouth_end(e0, e1, [Point(2.0, 0.0)], lambda p: 1e9, elev=elev).equals(e0)
+
+
 def test_prune_short_leaf_tributaries_cascades():
     """Short-tributary filter (Buena Vista Trib.3, 48 m). A stream that flows into ANOTHER added stream, is
     short, and has nothing (kept) flowing into it is dropped — iterated, so a short stream left with only
