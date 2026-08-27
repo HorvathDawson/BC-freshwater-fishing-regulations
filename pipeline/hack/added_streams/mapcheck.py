@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Optional
 
 from pyproj import Transformer
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 from shapely.ops import unary_union
 
 from pipeline.hack.added_streams.build_dataset import (_albers, _load_fwa, resolve_and_mint,
@@ -54,6 +54,30 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                                     trust_source=source in RELIABLE_SOURCES)
 
     diags = report["diagnostics"]
+    # Declutter lake-node inflows: many creeks drain into an approved lake and their connectors all cut ACROSS
+    # the lake to the SAME outflow point (Deer Lake: 10 inflows to one spot). Reroute each connector whose
+    # confluence lands IN the lake to the lake CENTROID (a hub), and draw ONE spine centroid -> outflow, so the
+    # lake reads as a node instead of a busy fan.
+    from collections import Counter as _Counter
+    lakes_ll = [(poly, list(_TO_LONLAT.transform(poly.centroid.x, poly.centroid.y))) for poly in approved]
+    def _lake_of(ll):
+        p = Point(_TO_ALBERS.transform(*ll))
+        for j, (poly, _) in enumerate(lakes_ll):
+            if poly.distance(p) <= 20.0:                    # in the lake (or right at its edge outflow)
+                return j
+        return -1
+    outflows: dict = {}                                     # lake idx -> Counter of the confluence points in it
+    for d in diags:
+        if d["klass"] == "connector" and len(d["coords"]) >= 2:
+            j = _lake_of(d["coords"][-1])
+            if j >= 0:
+                outflows.setdefault(j, _Counter())[tuple(d["coords"][-1])] += 1
+                d["coords"][-1] = [round(lakes_ll[j][1][0], 6), round(lakes_ll[j][1][1], 6)]   # snap to centroid
+    for j, cnt in outflows.items():                         # one spine per lake: centroid -> its outflow point
+        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake outflow",
+                          "ftype": "connector", "fish": "",
+                          "coords": [[round(lakes_ll[j][1][0], 6), round(lakes_ll[j][1][1], 6)],
+                                     list(cnt.most_common(1)[0][0])]}]
     muni = [_feature(d["coords"], {"klass": d["klass"], "blk": d["blk"], "wsc": d["wsc"],
                                    "name": d["name"], "ftype": d["ftype"], "fish": d["fish"]})
             for d in diags if len(d["coords"]) >= 2]
