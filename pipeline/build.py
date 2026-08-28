@@ -11,6 +11,7 @@ anchors layers for QGIS), and summary.txt.
 from __future__ import annotations
 
 import argparse
+import json
 from collections import Counter
 from pathlib import Path
 
@@ -91,6 +92,26 @@ def get_wetland_names(fwa: FWADataAccessor, bbox=None) -> dict[str, tuple]:
     return _gnis_name_pairs(fwa, ("wetlands",), bbox)
 
 
+def get_waterbody_polys(fwa: FWADataAccessor, wbks: set[str], bbox=None) -> dict:
+    """wbk -> its (unioned) FWA polygon, for the given ``wbks`` across the lake/manmade/wetland layers.
+    Isolated named lakes/reservoirs and wetlands never become graph nodes, so they carry no section
+    geometry — this loads their OWN polygon so the registry can compute the MUs they intersect (a wbk
+    can span several reaches; they're unioned). Only wbks in ``wbks`` are kept."""
+    from shapely.ops import unary_union
+    if not wbks:
+        return {}
+    parts: dict[str, list] = {}
+    for layer in ("lakes", "manmade", "wetlands"):
+        if layer not in fwa.layer_names:
+            continue
+        gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox)
+        for row in gdf.itertuples():
+            wbk = str(row.WATERBODY_KEY) if row.WATERBODY_KEY else ""
+            if wbk in wbks and row.geometry is not None and not row.geometry.is_empty:
+                parts.setdefault(wbk, []).append(row.geometry)
+    return {w: (g[0] if len(g) == 1 else unary_union(g)) for w, g in parts.items()}
+
+
 def get_mu_polys(fwa: FWADataAccessor) -> dict:
     """WILDLIFE_MGMT_UNIT_ID -> full MU polygon (the fishing region-MU scheme reuses these).
     Loaded whole (only ~225 rows) so mu_boundary anchors get unclipped polygons for adjacency."""
@@ -144,7 +165,7 @@ def resolve_node(graph, key: str):
     return max(cands, key=lambda n: (n.stream_magnitude or 0, n.length_m)).node_id
 
 
-def summarize(chains, graph, fids) -> str:
+def summarize(chains, graph, fids, pruned_fids=None) -> str:
     from pipeline.models import NodeKind
     streams = [n for n in graph.nodes.values() if n.kind == NodeKind.stream]
     lakes = [n for n in graph.nodes.values() if n.kind == NodeKind.lake]
@@ -159,7 +180,9 @@ def summarize(chains, graph, fids) -> str:
     covered = set()
     for n in graph.nodes.values():
         covered.update(n.member_fids)
-    missing_fids = len({f.fid for f in fids} - covered)
+    # a DELIBERATELY pruned braid loop is not a missing fid — the check exists to catch fids that
+    # silently failed to reach the graph, not ones we chose to drop.
+    missing_fids = len({f.fid for f in fids} - covered - set(pruned_fids or ()))
     multi_outlet = sum(1 for n in lakes if len(graph.down_adj.get(n.node_id, [])) > 1)
 
     lines = [
@@ -184,6 +207,54 @@ def summarize(chains, graph, fids) -> str:
     return "\n".join(lines)
 
 
+_ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "hack" / "added_streams" / "added_streams.build.json"
+
+
+def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
+    """Drop FWA fids whose (already trimmed) WSC starts with any `fwa_exclude` prefix — the coarse FWA
+    tributaries the municipal added-streams network supersedes. Returns (kept fids, dropped count)."""
+    if not prefixes:
+        return fids, 0
+    kept = [f for f in fids if not any(f.wsc.startswith(p) for p in prefixes)]
+    return kept, len(fids) - len(kept)
+
+
+def _streams_in_bbox(streams: list[dict], bbox) -> list[dict]:
+    """Keep added streams with a vertex inside ``bbox`` (EPSG:3005) PLUS their added-receiver ancestors, so a
+    bbox-limited build doesn't add another region's streams as orphans, yet never severs an added->added chain
+    at the bbox edge (a kept tributary always keeps the mainstem it drains into). ``bbox`` None keeps all."""
+    if bbox is None:
+        return streams
+    minx, miny, maxx, maxy = bbox
+    by_blk = {str(s["blk"]): s for s in streams}
+    keep: dict[str, dict] = {}
+    stack = [s for s in streams
+             if any(minx <= x <= maxx and miny <= y <= maxy
+                    for seg in s["segments"] for x, y in seg["coords3005"])]
+    while stack:
+        s = stack.pop()
+        if str(s["blk"]) in keep:
+            continue
+        keep[str(s["blk"])] = s
+        if s.get("receiver_kind") == "added":            # follow the mainstem it drains into
+            r = by_blk.get(str(s["receiver_blk"]))
+            if r is not None:
+                stack.append(r)
+    return list(keep.values())
+
+
+def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
+    """Convert the artifact's flat name variants ({kind,name,target_blk,target_gnis}) to apply_name_variants
+    entries (a municipal/FWA name aliased onto the blk it belongs to)."""
+    out = []
+    for v in variants:
+        if not v.get("name"):
+            continue
+        out.append({"target": {"blk": str(v["target_blk"]), "gnis_id": str(v.get("target_gnis") or "")},
+                    "names": [{"name": v["name"], "source": "alias", "note": f"added:{v.get('kind', '')}"}]})
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--gpkg", default=_DEFAULT_GPKG)
@@ -198,6 +269,10 @@ def main() -> None:
                     help="force-skip the border stage even under --full (the bc_outline WMU union + "
                          "cross-border split is slow; irrelevant to registry item names/MUs)")
     ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
+    ap.add_argument("--added-streams", default=None,
+                    help="path to a frozen added_streams.build.json (default: the packaged one)")
+    ap.add_argument("--no-added-streams", action="store_true",
+                    help="skip merging the minted municipal added-streams dataset (on by default)")
     ap.add_argument("--tributaries-of", metavar="NAME|BLK",
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
     ap.add_argument("--lakes", action="store_true",
@@ -236,6 +311,24 @@ def main() -> None:
     print("loading stream fids ...")
     fids = load_stream_fids(args.gpkg, bbox=bbox)
     print(f"  {len(fids)} fids")
+
+    # Merge the frozen, vetted municipal added-streams dataset (on by default): remove the FWA blue lines it
+    # supersedes (fwa_exclude), then add its synthetic fids so the SAME blk-chain / graph / geometry passes below
+    # ingest them as first-class streams. Connectors (added stream -> receiver) and name variants are applied
+    # after the graph is built. See pipeline/hack/added_streams.
+    add_specs: list = []
+    add_nv: list[dict] = []
+    if not args.no_added_streams:
+        from pipeline.hack.added_streams.build_dataset import to_graph_inputs
+        asp = Path(args.added_streams) if args.added_streams else _ADDED_STREAMS_JSON
+        data = json.loads(asp.read_text(encoding="utf-8"))
+        add_streams = _streams_in_bbox(data["streams"], bbox)
+        add_fids, add_specs = to_graph_inputs(add_streams)
+        fids, n_excl = _apply_fwa_exclude(fids, data.get("fwa_exclude", []))
+        fids += add_fids
+        add_nv = data.get("name_variants", [])
+        print(f"  added streams: -{n_excl} superseded FWA fids, +{len(add_fids)} added fids, "
+              f"{len(add_specs)} connectors, {len(add_nv)} name variants")
     _tick("load fids + lakes")
 
     print("building blk chains + names ...")
@@ -245,7 +338,20 @@ def main() -> None:
     graph = build_stream_graph(chains, fids, lake_kind, lake_names)
     print("building geometry sidecar ...")
     geoms = build_section_geometries(chains, fids, lake_kind)
+    if add_specs:                                   # wire each added stream to its receiver at the confluence
+        from pipeline.hack.added_streams.ingest import attach_connectors
+        cr = attach_connectors(graph, geoms, add_specs)
+        print(f"  added-stream connectors: {cr['added']} edges ({cr['skipped']} skipped)")
     _tick("blk-chains + graph + geometry")
+
+    # Braid loops carry no tributary, no name and no possible regulation; they only make a reach
+    # ambiguous ("is this channel above or below the cut" has no answer when it is attached at both
+    # ends). Pruned BEFORE the border/split stages so nothing is ever cut onto a piece we then drop.
+    from pipeline.graph.prune import prune_mainstem_loops
+    print("pruning pure braid loops off mainstems ...")
+    graph, n_pruned, pruned_fids = prune_mainstem_loops(graph, geoms)
+    print(f"  {n_pruned} loop piece(s) removed -> {len(graph.nodes)} nodes")
+    _tick("prune braid loops")
 
     fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
 
@@ -275,7 +381,9 @@ def main() -> None:
         # cuts. Everything still runs BEFORE any tributary walk so each piece is a first-class node.
         area_pts = [p for p in pts if p.anchor_type == AnchorType.area_boundary]
         other_pts = [p for p in pts if p.anchor_type != AnchorType.area_boundary]
-        split_graph_at(graph, geoms, other_pts, fid_index, proximity_pickup=True, applied=applied_splits)
+        aliased_splits: list = []
+        split_graph_at(graph, geoms, other_pts, fid_index, proximity_pickup=True,
+                       applied=applied_splits, aliased=aliased_splits)
         if area_pts:
             from pipeline.splits.anchors import _target_blks
             from pipeline.splits.border import mark_inside_area
@@ -291,6 +399,16 @@ def main() -> None:
         n_pick = sum(1 for s in applied_splits if s.picked_up)
         print(f"  resolved {len(pts)} curated split point(s) ({n_pick} picked up existing "
               f"boundaries) -> {len(graph.nodes)} nodes")
+        if aliased_splits:
+            # Could not be cut because the measure sits inside a LAKE RUN — a dam or weir at the
+            # outlet, whose coordinate projects a little way into the water. Recorded as another name
+            # for that lake's boundary, so the binding still resolves. The distance from the lake edge
+            # is printed: a large one means the authored point is not really at the outlet.
+            print(f"  {len(aliased_splits)} split(s) landed in a lake and were aliased onto it:")
+            for sid, onto, dist in aliased_splits[:20]:
+                print(f"      {sid}  ->  {onto}  ({dist:.0f} m from the lake edge)")
+            if len(aliased_splits) > 20:
+                print(f"      … and {len(aliased_splits) - 20} more")
         _tick("curated splits")
 
     # Blanket area closures (areas.json) — cut ALL streams crossing each admin polygon
@@ -321,7 +439,7 @@ def main() -> None:
     # Attach compiled name variations (docs/13) to nodes — AFTER splits so reach targets hit pieces.
     from pipeline.graph.names import apply_name_variants, load_name_variants
     nv_path = args.name_variants or (Path(__file__).resolve().parent / "name_variants.json")
-    nv = load_name_variants(nv_path)
+    nv = load_name_variants(nv_path) + _added_name_variant_entries(add_nv)   # + municipal aliases from the artifact
     if nv:
         n = apply_name_variants(graph, nv)
         print(f"  applied {len(nv)} name-variant entries -> {n} node attachments")
@@ -352,7 +470,13 @@ def main() -> None:
     registry = add_curated_wbk_items(registry, nv)
     print(f"  + {len(registry) - n1} curated-only wbk item(s) (named via name_variants)")
     _tick("build_registry")
-    registry = add_mu_sets(registry, geoms, get_mu_polys(fwa))
+    # Isolated lakes/wetlands are minted from FWA layers with no graph geometry; load their own wbk
+    # polygons so add_mu_sets can compute the MUs they intersect (every named item gets real MUs).
+    nogeom_wbks = {iid.split(":", 1)[1] for iid, it in registry.items()
+                   if it.kind in ("lake", "wetland") and not it.section_ids and iid.startswith("wbk:")}
+    wbk_polys = get_waterbody_polys(fwa, nogeom_wbks, bbox)
+    print(f"  loaded {len(wbk_polys)} isolated waterbody polygon(s) for MU calc ({len(nogeom_wbks)} needed)")
+    registry = add_mu_sets(registry, geoms, get_mu_polys(fwa), wbk_polys)
     _tick("add_mu_sets")
     write_registry(registry, out / "registry.json")
     print(f"  registry -> {out / 'registry.json'}")
@@ -394,7 +518,7 @@ def main() -> None:
     timings.append(("TOTAL", _clock() - _t0))
     timing_str = "timings:\n" + "\n".join(f"  {label:32} {secs:8.1f}s" for label, secs in timings)
 
-    summary = summarize(chains, graph, fids) + "\n\n" + timing_str
+    summary = summarize(chains, graph, fids, pruned_fids) + "\n\n" + timing_str
     (out / "summary.txt").write_text(summary)
     print("\n" + summary)
     print(f"\nwrote artifacts + graph.gpkg to {out}/")

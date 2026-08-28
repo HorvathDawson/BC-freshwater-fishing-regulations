@@ -279,6 +279,14 @@ def _fwa_node_for_measure(graph: StreamGraph, blk: str, measure: float) -> Optio
     return min(cands, key=lambda kv: min(abs(kv[1].down_m - measure), abs(kv[1].up_m - measure)))[0]
 
 
+def _mouth_node(graph: StreamGraph, blk: str) -> Optional[str]:
+    """The mouth-most stream node on ``blk`` (smallest down_m) — the tributary's outlet piece, used when its
+    literal ``{blk}:0`` node is absent because the mouth runs under a lake."""
+    cands = [(nid, n) for nid, n in graph.nodes.items()
+             if n.kind == NodeKind.stream and str(n.blk) == blk]
+    return min(cands, key=lambda kv: kv[1].down_m)[0] if cands else None
+
+
 def connector_geom_id(mainstem_blk: str, from_node: str) -> str:
     """Geometry-sidecar key for a connector bridge — keyed by the RECEIVING MAINSTEM blk so the
     connector shares the mainstem's blk (the mainstem reaching out to pick up the tributary)."""
@@ -294,23 +302,27 @@ def attach_connectors(graph: StreamGraph, geoms: dict, specs: list[ConnectorSpec
     connectors: list[dict] = []
     skipped = 0
     for s in specs:
-        to_node = f"{s.to_blk}:0" if not s.to_fwa else _fwa_node_for_measure(graph, s.to_blk, s.at_measure)
-        if s.from_node not in graph.nodes or not to_node or to_node not in graph.nodes:
+        # Resolve nodes BY MEASURE, not by a `{blk}:0` guess — a stream node id is `{blk}:{down_m}`, and a mouth
+        # that now runs under a lake (the through-lake spine) has NO :0 section. The receiver node is the one
+        # whose span holds at_measure; the tributary's from_node is its own mouth-most piece.
+        to_node = _fwa_node_for_measure(graph, str(s.to_blk), s.at_measure)
+        from_node = s.from_node if s.from_node in graph.nodes else _mouth_node(graph, s.from_node.rsplit(":", 1)[0])
+        if not from_node or from_node not in graph.nodes or not to_node or to_node not in graph.nodes:
             skipped += 1
             continue
-        if (s.from_node, to_node) in existing:
+        if (from_node, to_node) in existing:
             skipped += 1
             continue
         ei = len(graph.edges)
-        graph.edges.append(FlowEdge(from_node=s.from_node, to_node=to_node, at_measure=s.at_measure,
+        graph.edges.append(FlowEdge(from_node=from_node, to_node=to_node, at_measure=s.at_measure,
                                     x=s.x, y=s.y, kind=s.kind))
         graph.up_adj.setdefault(to_node, []).append(ei)
-        graph.down_adj.setdefault(s.from_node, []).append(ei)
-        existing.add((s.from_node, to_node))
-        geom_id = connector_geom_id(s.to_blk, s.from_node)          # connector's blk == mainstem blk
-        g = geoms.get(s.from_node)
+        graph.down_adj.setdefault(from_node, []).append(ei)
+        existing.add((from_node, to_node))
+        geom_id = connector_geom_id(s.to_blk, from_node)            # connector's blk == mainstem blk
+        g = geoms.get(from_node)
         if g is not None and hasattr(g, "coords"):
             geoms[geom_id] = LineString([g.coords[0], (s.x, s.y)])
-        connectors.append({"blk": s.to_blk, "from_node": s.from_node, "to_node": to_node,
+        connectors.append({"blk": s.to_blk, "from_node": from_node, "to_node": to_node,
                            "kind": s.kind, "geom_id": geom_id})
     return {"added": len(connectors), "skipped": skipped, "connectors": connectors}
