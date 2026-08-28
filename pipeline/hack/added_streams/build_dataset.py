@@ -1070,6 +1070,18 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     # collapses strictly UP); anchors and unique-name tributaries are left to re-mint. Namesakes in another
     # watershed mint DIVERGENT codes (no ancestor relation) and stay distinct — the primary is never
     # overwritten.
+    # Same-name TRIBUTARIES vs gap-fragments: a same-name piece that is ONE OF SEVERAL same-name children of an
+    # added receiver is a distinct tributary (Hatchley Creek has two), NOT a fragment of one creek. It keeps its
+    # OWN descendant code and is renamed "<mainstem> Trib.N" — never collapsed onto the mainstem's exact code. A
+    # SOLE same-name child is still treated as a fragment continuation (collapses).
+    sn_kids: dict[int, list[int]] = {}
+    for b in wsc_of:
+        kind, rblk = receiver[b]
+        cn_b = _canon_name(ch_by_blk[b].name)
+        if kind == "added" and cn_b and cn_b == _canon_name(ch_by_blk[int(rblk)].name):
+            sn_kids.setdefault(int(rblk), []).append(b)
+    same_name_tribs = {b for kids in sn_kids.values() if len(kids) > 1 for b in kids}
+
     anchors: dict[str, list[str]] = {}                           # canonical name -> candidate senior wscs
     for ch in extensions:
         cn = _canon_name(ch.name)
@@ -1085,15 +1097,15 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
         tw = trim_wsc(wsc_of[b])
         seniors = [w for w in anchors.get(cn, ()) if tw.startswith(trim_wsc(w))]   # my lineage ancestors
         senior = min(seniors, key=lambda w: len(trim_wsc(w))) if seniors else wsc_of[b]
-        if trim_wsc(senior) != tw and tw.startswith(trim_wsc(senior)):            # collapses strictly UP
-            pin[b] = senior
+        if trim_wsc(senior) != tw and tw.startswith(trim_wsc(senior)) and b not in same_name_tribs:
+            pin[b] = senior                                                        # collapses strictly UP
     # same-name SIBLINGS under the same parent (a fragmented tributary that joins the mainstem at a couple
     # of nearby points) share ONE code — the mouth-most (shortest, then lexicographically smallest). Keyed
     # by (name, parent) so namesakes in a different drainage/parent stay distinct.
     sib: dict[tuple, list[int]] = {}
     for b in wsc_of:
         cn = _canon_name(ch_by_blk[b].name)
-        if not cn:
+        if not cn or b in same_name_tribs:              # distinct tributaries never share a sibling code
             continue
         tw = trim_wsc(pin.get(b, wsc_of[b]))
         parent = tw.rsplit("-", 1)[0] if "-" in tw else tw
@@ -1122,7 +1134,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
         # UNIQUENESS: two DIFFERENT streams must never share a code (they'd join at the same point). Same-name
         # siblings intentionally share (a fragmented creek); an unnamed stream shares with nobody. Done here in
         # receiver-first order so a bumped parent propagates to children (they mint off `wsc_of[rblk]` below).
-        ident = _canon_name(ch_by_blk[b].name) or f"~{b}"
+        ident = f"~{b}" if b in same_name_tribs else (_canon_name(ch_by_blk[b].name) or f"~{b}")
         w = wsc_of[b]
         if w in used_wsc and used_wsc[w] != ident and not ch.overrides.get("wsc"):
             w = wsc_of[b] = _bump_wsc(w, used_wsc)
@@ -1131,6 +1143,15 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
 
     # 4. Strahler order + Shreve magnitude over the novel added network (leaves first)
     order_v, mag_v = _order_magnitude(minted, receiver, proj_of)
+
+    # rename same-name tributaries "<mainstem> Trib.N" (join-order) so distinct pieces read as distinct streams
+    for a_blk, kids in sn_kids.items():
+        if len(kids) <= 1:
+            continue
+        base = ch_by_blk[a_blk].name
+        for i, b in enumerate(sorted(kids, key=lambda k: proj_of.get(k, 0.0)), 1):
+            if b in ch_by_blk:
+                ch_by_blk[b].name = f"{base} Trib.{i}"
 
     # 5. build stream records
     streams: list[dict] = []

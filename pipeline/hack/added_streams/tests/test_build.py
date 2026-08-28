@@ -249,6 +249,29 @@ def test_lake_through_spine_extends_outlet_and_spreads_inlet_measures():
         "distinct measures -> distinct minted codes (no shared -999999)"
 
 
+def test_same_name_tributaries_get_distinct_codes_and_trib_names():
+    """Hatchley regression. Two tributaries that share their mainstem's NAME must NOT collapse onto the
+    mainstem's exact code — they are distinct streams, so each mints its own descendant code and is renamed
+    "<mainstem> Trib.N". They still flow INTO the mainstem (network intact). A SOLE same-name child stays a
+    fragment continuation (unchanged)."""
+    feats = [
+        _feat([(-123.0, 49.22), (-123.02, 49.22)], "Fork Creek"),         # mainstem -> joins Big River (FWA)
+        _feat([(-123.008, 49.223), (-123.008, 49.2201)], "Fork Creek"),   # trib 1 -> joins mainstem at x=-.008
+        _feat([(-123.015, 49.223), (-123.015, 49.2201)], "Fork Creek"),   # trib 2 -> joins mainstem at x=-.015
+    ]
+    streams, _, _ = resolve_and_mint(feats, _FWA, LakeIndex([]), _TIDAL)
+    forks = [s for s in streams if "fork creek" in (s["name"] or "").lower()]
+    assert len(forks) == 3
+    main = [s for s in forks if s["receiver_kind"] != "added" or "trib" not in s["name"].lower()]
+    tribs = [s for s in forks if "trib" in s["name"].lower()]
+    assert len(tribs) == 2, f"both same-name tributaries are renamed Trib.N: {[s['name'] for s in forks]}"
+    assert {s["wsc"] for s in tribs}.__len__() == 2, "the two tributaries get DISTINCT codes"
+    for t in tribs:
+        assert t["receiver_kind"] == "added", "each tributary still flows into the added mainstem (network intact)"
+        assert t["wsc"] != main[0]["wsc"], "a tributary never takes the mainstem's exact code"
+        assert t["wsc"].startswith(main[0]["wsc"] + "-"), "and it descends from the mainstem's code"
+
+
 def test_bump_wsc_gives_the_nearest_free_code():
     """No two DIFFERENT streams may mint the same WSC (they'd join a receiver at the identical point). When a
     code is taken, the loser is nudged to the nearest FREE trailing segment — same parent, one notch along."""
