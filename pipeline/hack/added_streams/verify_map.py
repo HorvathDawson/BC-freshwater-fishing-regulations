@@ -51,13 +51,22 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                                           trust_source=source in RELIABLE_SOURCES)
 
     # Declutter lake nodes exactly as mapcheck does: fold each lake's inflow connectors onto ONE central spine.
-    # A gap connector was folded INTO the mainstem (segments[0] starts at the confluence hub), so re-aim that
-    # first point at the spine, and draw the spine itself as an added line.
+    # A gap connector was folded INTO the mainstem, then under-lake splitting scattered the hub->mouth shot
+    # across several segments. So rebuild each folded inflow: drop the whole cross-lake connector and replace it
+    # with one [attach, mouth] leg into the spine, keeping the upstream geometry. Then draw the spine itself.
     lake_conn = [s for s in streams if (s.get("connector") or {}).get("kind") == "connector" and s["segments"]]
     pairs = [(tuple(s["connector"]["mouth"]), (s["connector"]["x"], s["connector"]["y"])) for s in lake_conn]
     attach, spines = lake_spine_routing(pairs, approved)
     for i, xy in attach.items():
-        lake_conn[i]["segments"][0]["coords3005"][0] = [xy[0], xy[1]]   # re-aim the mainstem at the spine
+        s = lake_conn[i]
+        full = []                                          # concat the split segments back into one polyline
+        for seg in s["segments"]:
+            for p in seg["coords3005"]:
+                if not full or abs(full[-1][0] - p[0]) > 1e-6 or abs(full[-1][1] - p[1]) > 1e-6:
+                    full.append([p[0], p[1]])
+        mouth = s["connector"]["mouth"]                    # the connector ran hub -> mouth; keep mouth..upstream
+        mi = min(range(len(full)), key=lambda k: (full[k][0] - mouth[0]) ** 2 + (full[k][1] - mouth[1]) ** 2)
+        s["segments"] = [{"coords3005": [[xy[0], xy[1]]] + full[mi:]}]   # [attach, mouth, ...upstream]
 
     # name variants keyed by the blk they alias, so a stream / FWA line can show its aliases in the popup
     variants_by_blk: dict = defaultdict(list)
