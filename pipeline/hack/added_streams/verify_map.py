@@ -25,7 +25,7 @@ from pathlib import Path
 from shapely.geometry import LineString
 
 from pipeline.hack.added_streams.build_dataset import (_load_fwa, resolve_and_mint, FWA_EXCLUDE_BY_SOURCE,
-                                                  approved_lake_polys, RELIABLE_SOURCES, lake_spine_routing)
+                                                  approved_lake_polys, RELIABLE_SOURCES)
 from pipeline.hack.added_streams.clean import clean_source
 from pipeline.hack.added_streams.dem import ElevationSampler
 from pipeline.hack.added_streams.mapcheck import _TO_ALBERS, _TO_LONLAT, _feature, _SOURCES
@@ -49,24 +49,8 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
     streams, _, report = resolve_and_mint(features, chains, lake_index, tidal, exclude_wsc=exclude,
                                           approved_lakes=approved, orient_sampler=ElevationSampler(),
                                           trust_source=source in RELIABLE_SOURCES)
-
-    # Declutter lake nodes exactly as mapcheck does: fold each lake's inflow connectors onto ONE central spine.
-    # A gap connector was folded INTO the mainstem, then under-lake splitting scattered the hub->mouth shot
-    # across several segments. So rebuild each folded inflow: drop the whole cross-lake connector and replace it
-    # with one [attach, mouth] leg into the spine, keeping the upstream geometry. Then draw the spine itself.
-    lake_conn = [s for s in streams if (s.get("connector") or {}).get("kind") == "connector" and s["segments"]]
-    pairs = [(tuple(s["connector"]["mouth"]), (s["connector"]["x"], s["connector"]["y"])) for s in lake_conn]
-    attach, spines = lake_spine_routing(pairs, approved)
-    for i, xy in attach.items():
-        s = lake_conn[i]
-        full = []                                          # concat the split segments back into one polyline
-        for seg in s["segments"]:
-            for p in seg["coords3005"]:
-                if not full or abs(full[-1][0] - p[0]) > 1e-6 or abs(full[-1][1] - p[1]) > 1e-6:
-                    full.append([p[0], p[1]])
-        mouth = s["connector"]["mouth"]                    # the connector ran hub -> mouth; keep mouth..upstream
-        mi = min(range(len(full)), key=lambda k: (full[k][0] - mouth[0]) ** 2 + (full[k][1] - mouth[1]) ** 2)
-        s["segments"] = [{"coords3005": [[xy[0], xy[1]]] + full[mi:]}]   # [attach, mouth, ...upstream]
+    # NB: lake decluttering now happens IN the resolver (lake_through_spine): a lake's outlet stream runs through
+    # the lake as a central spine and its inlets attach to it at distinct measures — so we just draw the streams.
 
     # name variants keyed by the blk they alias, so a stream / FWA line can show its aliases in the popup
     variants_by_blk: dict = defaultdict(list)
@@ -87,10 +71,6 @@ def verify_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                 "name": s["name"] or "(unnamed)", "blk": s["blk"], "wsc": s["wsc"], "klass": s["klass"],
                 "recv": f"{s['receiver_kind']}:{s['receiver_blk']}", "primary": i == 0,
                 "aliases": variants_by_blk.get(str(s["blk"]), [])}))
-    for spine in spines:                                   # lake spine: one central drainage line per lake (grey)
-        added.append(_feature(_lonlat(spine), {"name": "lake spine", "blk": "", "wsc": "", "klass": "duplicate",
-                                               "recv": "", "primary": True, "aliases": []}))
-
     # FWA near the municipal data, split kept vs excluded
     from shapely.ops import unary_union
     muni_union = unary_union([LineString([_TO_ALBERS.transform(x, y) for x, y in f["geometry"]["coordinates"]])

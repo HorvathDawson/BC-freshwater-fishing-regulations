@@ -721,58 +721,62 @@ def _major_axis(poly):
 _LAKE_SHORE_M = 60.0        # a connector whose mouth/hub is within this of a lake, or that crosses it, is an inflow
 _LAKE_CROSS_M = 30.0
 _AXIS_INSET = 0.12          # float the spine off both shores by this fraction of the major axis at each end
+_LAKE_HEADWATER_M = 60.0    # nudge the through-spine this far past the headwater shore so the farthest inlets
+                            # project INSIDE it (else the westernmost creeks clamp to 100% -> identical -999999)
 
 
-def lake_spine_routing(pairs, approved_lakes):
-    """Fold many creeks' lake-inflow connectors onto ONE tidy central spine per lake, instead of every connector
-    fanning across the lake to a shared outlet hub.
+def _bump_wsc(wsc: str, used: dict) -> str:
+    """A free WSC nearest ``wsc`` (not a key of ``used``): nudge the trailing 6-digit segment out by ±1, ±2 …
+    (preferring a slightly SMALLER measure). Two DIFFERENT streams must never mint the identical code — when
+    they'd join a receiver at the same proportional point, the loser is bumped to the nearest open segment so it
+    still nests under the same parent, just one notch along."""
+    head, _, seg = wsc.rpartition("-")
+    if not seg.isdigit():                                    # no numeric tail: append a disambiguating segment
+        for k in range(1, 1_000_000):
+            c = f"{wsc}-{k:06d}"
+            if c not in used:
+                return c
+        return wsc
+    s0 = int(seg)
+    for delta in range(1, 1_000_000):
+        for cs in (s0 - delta, s0 + delta):                 # prefer the lower measure first (stays < 100%)
+            if 0 <= cs <= 999999:
+                c = f"{head}-{cs:06d}" if head else f"{cs:06d}"
+                if c not in used:
+                    return c
+    return wsc
 
-    ``pairs`` is a list of ``(mouth_xy, confl_xy)`` albers tuples, one per candidate connector (the connector's
-    pre-merge mouth and its receiver confluence). Returns ``(attach, spines)``:
-      * ``attach``: ``{index -> (x, y)}`` — for each pair that folds onto a lake, the point ON the spine its mouth
-        should connect to (the connector is re-aimed here instead of at the hub);
-      * ``spines``: list of albers polylines ``[(x, y), ...]`` running the central axis from its far end down to
-        the outlet tap and on to the lake's outlet ON the shore — one per lake that captured any inflow.
-    Nothing produced ever leaves the lake polygon."""
-    from collections import Counter
-    from shapely.ops import nearest_points
-    axes = []
+
+def _central_axis(poly):
+    """The lake's major axis floated off both shores by ``_AXIS_INSET`` at each end — the spine creeks attach to."""
+    ax = _major_axis(poly); L = ax.length
+    return LineString([ax.interpolate(_AXIS_INSET * L), ax.interpolate((1 - _AXIS_INSET) * L)]) if L > 0 else ax
+
+
+def lake_through_spine(line: LineString, approved_lakes) -> Optional[LineString]:
+    """If ``line`` is a lake's OUTLET stream — its source (up-end) sits on an approved lake it drains — run it
+    THROUGH the lake as the central spine so the many creeks entering around the lake attach at DISTINCT measures
+    along it (else they all pile at the outlet and mint the same ``…-999999`` code). Returns the extended line
+    (mouth … up-end, then up-end → spine → far shore), or ``None`` when ``line`` is not a lake outlet."""
+    if not approved_lakes or len(line.coords) < 2:
+        return None
+    up = Point(line.coords[-1])                                   # the source end (drains the lake)
+    mouth = Point(line.coords[0])
     for poly in approved_lakes:
-        ax = _major_axis(poly); L = ax.length          # float the spine off both shores (no edge-to-edge)
-        axes.append((poly, LineString([ax.interpolate(_AXIS_INSET * L),
-                                       ax.interpolate((1 - _AXIS_INSET) * L)]) if L > 0 else ax))
-
-    def lake_of(m, c):
-        # an inflow gives itself away three ways: its MOUTH sits on the shore, it drains to a shared outlet hub
-        # just past the shore, or its connector cuts across the lake. Any of the three folds it onto the spine.
-        for j, (poly, _) in enumerate(axes):
-            if (poly.distance(m) <= _LAKE_SHORE_M or poly.distance(c) <= _LAKE_SHORE_M
-                    or LineString([m, c]).intersection(poly).length >= _LAKE_CROSS_M):
-                return j
-        return -1
-
-    members: dict = {}                                  # lake idx -> [(pair index, mouth Point)]
-    hubs: dict = {}                                     # lake idx -> Counter of confluence hubs
-    for i, (m_xy, c_xy) in enumerate(pairs):
-        m, c = Point(m_xy), Point(c_xy)
-        j = lake_of(m, c)
-        if j >= 0:
-            members.setdefault(j, []).append((i, m))
-            hubs.setdefault(j, Counter())[tuple(c_xy)] += 1
-
-    attach: dict = {}
-    spines: list = []
-    for j, mem in members.items():
-        poly, axis = axes[j]
-        hub = Point(hubs[j].most_common(1)[0][0])       # the drainage hub (usually just outside the lake)
-        outlet = nearest_points(poly.boundary, hub)[0]  # its outlet ON the shore -> stay INSIDE the lake
-        tap_d = axis.project(outlet)                     # spine runs from the FAR end down to the tap, no overshoot
-        spine = substring(axis, 0.0, tap_d) if tap_d >= axis.length / 2 else substring(axis, axis.length, tap_d)
-        for i, m in mem:
-            p = spine.interpolate(spine.project(m))      # attach to the truncated spine (project auto-clamps)
-            attach[i] = (p.x, p.y)
-        spines.append([tuple(cc) for cc in spine.coords] + [(outlet.x, outlet.y)])
-    return attach, spines
+        if poly.distance(up) > _LAKE_SHORE_M or poly.buffer(_LAKE_SHORE_M).contains(mouth):
+            continue                                             # not this lake's outlet (or line lives in it)
+        axis = _major_axis(poly)                                 # FULL major axis (reaches both shores)
+        if axis.length <= 0:
+            continue
+        d_up = axis.project(up)                                   # run the spine from the tap to the FAR shore end
+        far = axis.length if d_up < axis.length / 2 else 0.0
+        cs = list(substring(axis, d_up, far).coords)             # tap -> far end
+        a, b = cs[-2], cs[-1]                                     # nudge the far end just PAST the headwater shore so
+        n = ((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2) ** 0.5 or 1.0  # inlets entering there project INSIDE the spine
+        cs[-1] = (b[0] + (b[0] - a[0]) / n * _LAKE_HEADWATER_M, b[1] + (b[1] - a[1]) / n * _LAKE_HEADWATER_M)
+        merged = LineString(list(line.coords) + cs)              # …up-end -> tap -> …far end
+        return merged if merged.is_simple else None
+    return None
 
 
 def _stream_geom(s):
@@ -1008,6 +1012,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     used_coastal: set[str] = set()
     bl_total: dict[str, float] = {}                               # FWA blk -> true blue-line length (cached)
     add_geom_wsc: dict[str, tuple[LineString, str, float]] = {}   # added blk -> (geom, wsc, length)
+    lake_outlet_blks: set[int] = set()                            # streams run THROUGH a lake as its spine
     for ch in order_topo:
         kind, rblk = receiver[ch.blk]
         line = geom[ch.blk]
@@ -1053,6 +1058,10 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                                     "mouth": [mouth.x, mouth.y],   # pre-merge mouth (the merge prepends confl)
                                     "kind": "confluence" if gap <= _CONFLUENCE_GAP else "connector"}
         wsc_of[ch.blk] = wsc
+        through = lake_through_spine(line, approved_lakes)        # a lake outlet runs THROUGH the lake as a spine,
+        if through is not None:                                   # so its inlets attach at distinct measures (not
+            geom[ch.blk] = line = through                         # all piled at the outlet -> identical -999999).
+            lake_outlet_blks.add(ch.blk)                          # its extra length is under-lake (gets the wbk)
         add_geom_wsc[str(ch.blk)] = (line, wsc, line.length)
 
     # same name => same wsc. Collapse each same-name lineage to its SENIOR code (the shallowest same-name
@@ -1100,6 +1109,7 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     # code; every other added stream re-mints off its receiver's (now-collapsed) code — so a tributary that
     # flows straight into the mainstem lands exactly ONE level below it, not several (its old receiver was a
     # deep braid code that has since collapsed). FWA/ext/tidal receivers are fixed, so those keep their code.
+    used_wsc: dict[str, str] = {}                                # final wsc -> the stream identity holding it
     for ch in order_topo:
         b = ch.blk
         if b in pin:
@@ -1109,6 +1119,14 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
             if kind == "added":
                 wsc_of[b] = str(ch.overrides.get("wsc")
                                 or mint_wsc(wsc_of[int(rblk)], proj_of[b], rlen_of[b]))
+        # UNIQUENESS: two DIFFERENT streams must never share a code (they'd join at the same point). Same-name
+        # siblings intentionally share (a fragmented creek); an unnamed stream shares with nobody. Done here in
+        # receiver-first order so a bumped parent propagates to children (they mint off `wsc_of[rblk]` below).
+        ident = _canon_name(ch_by_blk[b].name) or f"~{b}"
+        w = wsc_of[b]
+        if w in used_wsc and used_wsc[w] != ident and not ch.overrides.get("wsc"):
+            w = wsc_of[b] = _bump_wsc(w, used_wsc)
+        used_wsc.setdefault(w, ident)
         add_geom_wsc[str(b)] = (geom[b], wsc_of[b], geom[b].length)
 
     # 4. Strahler order + Shreve magnitude over the novel added network (leaves first)

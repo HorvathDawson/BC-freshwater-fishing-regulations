@@ -23,7 +23,7 @@ from shapely.ops import unary_union
 
 from pipeline.hack.added_streams.build_dataset import (_albers, _load_fwa, resolve_and_mint,
                                                   FWA_EXCLUDE_BY_SOURCE, approved_lake_polys,
-                                                  RELIABLE_SOURCES, lake_spine_routing)
+                                                  RELIABLE_SOURCES)
 from pipeline.hack.added_streams.dem import ElevationSampler, dem_flow
 from pipeline.hack.added_streams.clean import clean_source
 
@@ -54,21 +54,9 @@ def region_map(source: str, gpkg: str, out_dir: Path, pad: float = 3000.0) -> Pa
                                     trust_source=source in RELIABLE_SOURCES)
 
     diags = report["diagnostics"]
-    # Declutter lake-node inflows: many creeks drain into an approved lake and their connectors all cut ACROSS
-    # the lake to the SAME outflow point (Deer Lake: 10 inflows to one spot). Route each connector that lands in
-    # the lake to the NEAREST point on the lake's central AXIS (its major axis, clipped inside), and draw ONE
-    # spine = that axis extended to the outflow. The lake then shows a simple internal line creeks join.
-    def _ll(pt):
-        return [round(v, 6) for v in _TO_LONLAT.transform(pt[0], pt[1])]
-    # Declutter lake nodes: fold each lake's inflow connectors onto ONE central spine (shared with verify_map).
-    conns = [d for d in diags if d["klass"] == "connector" and len(d["coords"]) >= 2]
-    pairs = [(_TO_ALBERS.transform(*d["coords"][0]), _TO_ALBERS.transform(*d["coords"][-1])) for d in conns]
-    attach, spines = lake_spine_routing(pairs, approved)
-    for i, xy in attach.items():                            # re-aim each inflow at the spine (drop the fan shot)
-        conns[i]["coords"] = [conns[i]["coords"][0], _ll(xy)]
-    for spine in spines:                                   # one continuous spine per lake: far end -> tap -> outlet
-        diags = diags + [{"klass": "connector", "blk": "lake-spine", "wsc": "", "name": "lake spine",
-                          "ftype": "connector", "fish": "", "coords": [_ll(c) for c in spine]}]
+    # Lake decluttering now happens IN the resolver (lake_through_spine): a lake's outlet stream runs through the
+    # lake as a central spine and its inlet connectors land on it at distinct points — so the diagnostics already
+    # show the tidy lake node; nothing to reroute here.
     muni = [_feature(d["coords"], {"klass": d["klass"], "blk": d["blk"], "wsc": d["wsc"],
                                    "name": d["name"], "ftype": d["ftype"], "fish": d["fish"]})
             for d in diags if len(d["coords"]) >= 2]

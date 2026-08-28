@@ -230,25 +230,35 @@ def test_merge_by_name_drops_unnamed_side_branch_from_extras():
     assert len(extra.get(rep, [])) == 1, "same-name braid kept as an extra; the unnamed side-branch is dropped"
 
 
-def test_lake_spine_routing_folds_inflows_onto_one_inside_spine():
-    """Lake-node declutter (shared by mapcheck + verify_map). Many creeks draining a lake fan across it to a
-    shared outlet hub JUST OUTSIDE the polygon; the router folds them onto one central spine. Every attach point
-    and every spine vertex but the shore outlet must stay INSIDE the lake, and a far-off connector is left alone."""
-    from pipeline.hack.added_streams.build_dataset import lake_spine_routing
+def test_lake_through_spine_extends_outlet_and_spreads_inlet_measures():
+    """A lake's outlet stream must run THROUGH the lake as a central spine so its many inlets attach at DISTINCT
+    measures (else the westernmost creeks pile at the outlet end and mint the same ...-999999 code). Here the
+    outlet's up-end sits on the lake's east shore; the extended line runs on across the lake, and two inlets
+    entering at different points along it project to different proportions."""
+    from pipeline.hack.added_streams.build_dataset import lake_through_spine
+    from pipeline.hack.added_streams.wsc import mint_wsc
     lake = Polygon([(0, 0), (1000, 0), (1000, 300), (0, 300)])   # elongated E-W -> axis runs E-W at y=150
-    hub = (1050, 150)                                            # the drainage outlet, 50 m past the EAST shore
-    pairs = [((200, 310), hub),        # 0: inflow, mouth 10 m north of the shore -> folds
-             ((600, -10), hub),        # 1: inflow, mouth 10 m south of the shore -> folds
-             ((5000, 5000), (6000, 6000))]  # 2: unrelated connector nowhere near the lake -> left alone
-    attach, spines = lake_spine_routing(pairs, [lake])
-    assert set(attach) == {0, 1}, "only the two lake inflows fold; the far connector is untouched"
-    for xy in attach.values():
-        assert lake.buffer(1e-6).contains(Point(xy)), "each inflow attaches to a point INSIDE the lake"
-    assert len(spines) == 1
-    spine = spines[0]
-    for v in spine[:-1]:
-        assert lake.buffer(1e-6).contains(Point(v)), "the spine stays inside the lake"
-    assert lake.boundary.distance(Point(spine[-1])) <= 1e-6, "the spine ends AT the shore outlet, not past it"
+    outlet = LineString([(1400, 150), (1000, 150)])              # mouth east, up-end ON the east shore (drains lake)
+    ext = lake_through_spine(outlet, [lake])
+    assert ext is not None and ext.length > outlet.length, "the outlet is extended through the lake"
+    assert ext.length >= 1000, "the spine reaches across to (past) the far/west shore"
+    m_east = Point(900, 305); m_west = Point(150, 305)           # two inlets, near the east vs west end of the lake
+    d_e, d_w = ext.project(m_east), ext.project(m_west)
+    assert d_e < d_w, "the west inlet is farther up the spine than the east inlet"
+    assert mint_wsc("100-019698", d_e, ext.length) != mint_wsc("100-019698", d_w, ext.length), \
+        "distinct measures -> distinct minted codes (no shared -999999)"
+
+
+def test_bump_wsc_gives_the_nearest_free_code():
+    """No two DIFFERENT streams may mint the same WSC (they'd join a receiver at the identical point). When a
+    code is taken, the loser is nudged to the nearest FREE trailing segment — same parent, one notch along."""
+    from pipeline.hack.added_streams.build_dataset import _bump_wsc
+    used = {"100-019698-972600-668400": "first beach creek"}
+    got = _bump_wsc("100-019698-972600-668400", used)
+    assert got not in used and got.rsplit("-", 1)[0] == "100-019698-972600", "stays under the same parent"
+    assert got == "100-019698-972600-668399", "nearest free segment, preferring the lower measure"
+    # at the ceiling (999999) it steps DOWN rather than overflowing
+    assert _bump_wsc("100-019698-972600-999999", {"100-019698-972600-999999": "x"}) == "100-019698-972600-999998"
 
 
 def test_export_carries_fwa_exclude_and_name_variants():
