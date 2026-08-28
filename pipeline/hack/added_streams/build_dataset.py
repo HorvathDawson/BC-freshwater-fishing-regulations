@@ -1070,17 +1070,19 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     # collapses strictly UP); anchors and unique-name tributaries are left to re-mint. Namesakes in another
     # watershed mint DIVERGENT codes (no ancestor relation) and stay distinct — the primary is never
     # overwritten.
-    # Same-name TRIBUTARIES vs gap-fragments: a same-name piece that is ONE OF SEVERAL same-name children of an
-    # added receiver is a distinct tributary (Hatchley Creek has two), NOT a fragment of one creek. It keeps its
-    # OWN descendant code and is renamed "<mainstem> Trib.N" — never collapsed onto the mainstem's exact code. A
-    # SOLE same-name child is still treated as a fragment continuation (collapses).
-    sn_kids: dict[int, list[int]] = {}
+    # Same-name TRIBUTARIES vs gap-fragments: a same-name piece flowing into a same-name receiver is a distinct
+    # TRIBUTARY when it joins PARTWAY up the receiver (Hatchley, West Sundial, Axford, Ottley …), but a fragment
+    # CONTINUATION when it joins at the receiver's SOURCE (up-end) — one creek digitised across a gap (Village at
+    # 100 %, Schoolhouse at 91 %). A tributary keeps its OWN descendant code and is renamed "<mainstem> Trib.N";
+    # a continuation collapses onto the mainstem's code as before.
+    same_name_tribs: set[int] = set()
     for b in wsc_of:
         kind, rblk = receiver[b]
         cn_b = _canon_name(ch_by_blk[b].name)
         if kind == "added" and cn_b and cn_b == _canon_name(ch_by_blk[int(rblk)].name):
-            sn_kids.setdefault(int(rblk), []).append(b)
-    same_name_tribs = {b for kids in sn_kids.values() if len(kids) > 1 for b in kids}
+            rlen = rlen_of.get(b, 0.0)
+            if rlen > 0 and proj_of.get(b, 0.0) < _CONTINUATION_FRAC * rlen:
+                same_name_tribs.add(b)          # joins the same-name mainstem PARTWAY -> a distinct tributary
 
     anchors: dict[str, list[str]] = {}                           # canonical name -> candidate senior wscs
     for ch in extensions:
@@ -1144,14 +1146,16 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
     # 4. Strahler order + Shreve magnitude over the novel added network (leaves first)
     order_v, mag_v = _order_magnitude(minted, receiver, proj_of)
 
-    # rename same-name tributaries "<mainstem> Trib.N" (join-order) so distinct pieces read as distinct streams
-    for a_blk, kids in sn_kids.items():
-        if len(kids) <= 1:
-            continue
-        base = ch_by_blk[a_blk].name
-        for i, b in enumerate(sorted(kids, key=lambda k: proj_of.get(k, 0.0)), 1):
+    # rename same-name tributaries "<mainstem> Trib.N" (by join measure). Receiver-first so a tributary-of-a-
+    # tributary nests correctly (Ottley chain -> "Ottley Creek Trib.1", then its own trib -> "… Trib.1 Trib.1").
+    tribs_by_recv: dict[int, list[int]] = {}
+    for b in same_name_tribs:
+        tribs_by_recv.setdefault(int(receiver[b][1]), []).append(b)
+    for ch in order_topo:                                   # receiver before its children
+        kids = sorted(tribs_by_recv.get(ch.blk, []), key=lambda k: proj_of.get(k, 0.0))
+        for i, b in enumerate(kids, 1):
             if b in ch_by_blk:
-                ch_by_blk[b].name = f"{base} Trib.{i}"
+                ch_by_blk[b].name = f"{ch_by_blk[ch.blk].name} Trib.{i}"
 
     # 5. build stream records
     streams: list[dict] = []
@@ -1458,6 +1462,8 @@ def _offset_added_blks(streams: list[dict], name_variants: list[dict], offset: i
 
 
 _MINT_BASE = 2_000_000_000        # mirror merge._MINT_BASE: a minted added blk is -(base + i)
+_CONTINUATION_FRAC = 0.85         # a same-name piece joining its receiver above this fraction is a fragment
+                                  # CONTINUATION (shares the code); below it is a distinct TRIBUTARY
 
 
 def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[Path] = None) -> Path:

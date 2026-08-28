@@ -272,7 +272,7 @@
   },
   {
    "kind": "added",
-   "name": "Stoney Trib.2",
+   "name": "Stoney Trib.2 Trib.1",
    "target_blk": "-2000000342",
    "target_gnis": ""
   },
@@ -392,7 +392,7 @@
   },
   {
    "kind": "added",
-   "name": "Simon Trib.1",
+   "name": "Simon Trib.1 Trib.1",
    "target_blk": "-2000000319",
    "target_gnis": ""
   },
@@ -782,7 +782,7 @@
   },
   {
    "kind": "added",
-   "name": "Kaymar Trib.2",
+   "name": "Kaymar Trib.2 Trib.1",
    "target_blk": "-2000000246",
    "target_gnis": ""
   },
@@ -1058,7 +1058,7 @@
   },
   {
    "kind": "added",
-   "name": "Eagle Creek",
+   "name": "Eagle Creek Trib.1",
    "target_blk": "-2000000192",
    "target_gnis": ""
   },
@@ -1784,7 +1784,7 @@
   },
   {
    "kind": "added",
-   "name": "Finch Connector Trib 1",
+   "name": "Finch Connector Trib 1 Trib.1",
    "target_blk": "-2100000040",
    "target_gnis": ""
   },
@@ -1838,7 +1838,7 @@
   },
   {
    "kind": "added",
-   "name": "Brennan Park Creek (Unnamed)",
+   "name": "Brennan Park Creek (Unnamed) Trib.1",
    "target_blk": "-2100000025",
    "target_gnis": ""
   },
@@ -1922,7 +1922,7 @@
   },
   {
    "kind": "added",
-   "name": "West Sundial Creek",
+   "name": "West Sundial Creek Trib.1",
    "target_blk": "-2200000418",
    "target_gnis": ""
   },
@@ -1946,7 +1946,7 @@
   },
   {
    "kind": "added",
-   "name": "Turner Creek",
+   "name": "Turner Creek Trib.1",
    "target_blk": "-2200000393",
    "target_gnis": ""
   },
@@ -2018,7 +2018,7 @@
   },
   {
    "kind": "added",
-   "name": "Pigeon Creek Trib.2",
+   "name": "Pigeon Creek",
    "target_blk": "-2200000340",
    "target_gnis": ""
   },
@@ -2030,13 +2030,13 @@
   },
   {
    "kind": "added",
-   "name": "Ottley Creek",
+   "name": "Ottley Creek Trib.1",
    "target_blk": "-2200000338",
    "target_gnis": ""
   },
   {
    "kind": "added",
-   "name": "Ottley Creek",
+   "name": "Ottley Creek Trib.1 Trib.1",
    "target_blk": "-2200000337",
    "target_gnis": ""
   },
@@ -2054,7 +2054,7 @@
   },
   {
    "kind": "added",
-   "name": "Noble Creek",
+   "name": "Noble Creek Trib.1 Trib.1",
    "target_blk": "-2200000324",
    "target_gnis": ""
   },
@@ -2156,7 +2156,7 @@
   },
   {
    "kind": "added",
-   "name": "Axford Creek",
+   "name": "Axford Creek Trib.1",
    "target_blk": "-2200000276",
    "target_gnis": ""
   },
@@ -10714,8 +10714,8 @@
   },
   {
    "blk": "-2000000342",
-   "wsc": "100-019698-561100-311500",
-   "name": "Stoney Trib.2",
+   "wsc": "100-019698-561100-311500-228400",
+   "name": "Stoney Trib.2 Trib.1",
    "source": "burnaby",
    "src_id": 331,
    "klass": "novel",
@@ -18384,7 +18384,7 @@
   },
   {
    "blk": "-2000000320",
-   "wsc": "900-059190-148900-723800",
+   "wsc": "900-059190-148900-273800-723800",
    "name": "Simon Trib.1-1-1",
    "source": "burnaby",
    "src_id": 88,
@@ -18396,7 +18396,7 @@
    "stream_magnitude": 1,
    "receiver_kind": "added",
    "receiver_blk": "-2000000319",
-   "receiver_wsc": "900-059190-148900",
+   "receiver_wsc": "900-059190-148900-273800",
    "base_measure": 0.0,
    "connector": {
     "to_blk": "-2000000319",
@@ -18476,8 +18476,8 @@
   },
   {
    "blk": "-2000000319",
-   "wsc": "900-059190-148900",
-   "name": "Simon Trib.1",
+   "wsc": "900-059190-148900-273800",
+   "name": "Simon Trib.1 Trib.1",
    "source": "burnaby",
    "src_id": 85,
    "klass": "novel",
@@ -31605,8 +31605,8 @@
   },
   {
    "blk": "-2000000246",
-   "wsc": "100-010800-688800",
-   "name": "Kaymar Trib.2",
+   "wsc": "100-010800-688800-251200",
+   "name": "Kaymar Trib.2 Trib.1",
    "source": "burnaby",
    "src_id": 189,
    "klass": "novel",
@@ -42116,8 +42116,8 @@
   },
   {
    "blk": "-2000000192",
-   "wsc": "100-019698-794100",
-   "name": "Eagle Creek",
+   "wsc": "100-019698-794100-204300",
+   "name": "Eagle Creek Trib.1",
    "source": "burnaby",
    "src_id": 303,
    "klass": "novel",
@@ -71289,8 +71289,8 @@
   },
   {
    "blk": "-2100000040",
-   "wsc": "900-105462-575700-926200-728100",
-   "name": "Finch Connector Trib 1",
+   "wsc": "900-105462-575700-926200-728100-361300",
+   "name": "Finch Connector Trib 1 Trib.1",
    "source": "squamish",
    "src_id": "629.1",
    "klass": "novel",
@@ -73274,8 +73274,8 @@
   },
   {
    "blk": "-2100000025",
-   "wsc": "900-105462-575700-926200-820300",
-   "name": "Brennan Park Creek (Unnamed)",
+   "wsc": "900-105462-575700-926200-820300-502100",
+   "name": "Brennan Park Creek (Unnamed) Trib.1",
    "source": "squamish",
    "src_id": "606.9",
    "klass": "novel",
@@ -74931,8 +74931,8 @@
   },
   {
    "blk": "-2200000418",
-   "wsc": "900-056279-717700",
-   "name": "West Sundial Creek",
+   "wsc": "900-056279-717700-471000",
+   "name": "West Sundial Creek Trib.1",
    "source": "port_moody",
    "src_id": 148,
    "klass": "novel",
@@ -76521,8 +76521,8 @@
   },
   {
    "blk": "-2200000393",
-   "wsc": "900-057240",
-   "name": "Turner Creek",
+   "wsc": "900-057240-436900",
+   "name": "Turner Creek Trib.1",
    "source": "port_moody",
    "src_id": 115,
    "klass": "novel",
@@ -78830,8 +78830,8 @@
   },
   {
    "blk": "-2200000340",
-   "wsc": "900-057242-999999",
-   "name": "Pigeon Creek Trib.2",
+   "wsc": "900-057242",
+   "name": "Pigeon Creek",
    "source": "port_moody",
    "src_id": 387,
    "klass": "novel",
@@ -79034,8 +79034,8 @@
   },
   {
    "blk": "-2200000338",
-   "wsc": "900-056280-692300-999999",
-   "name": "Ottley Creek",
+   "wsc": "900-056280-692300-999999-557000",
+   "name": "Ottley Creek Trib.1",
    "source": "port_moody",
    "src_id": 166,
    "klass": "novel",
@@ -79098,8 +79098,8 @@
   },
   {
    "blk": "-2200000337",
-   "wsc": "900-056280-692300-999999",
-   "name": "Ottley Creek",
+   "wsc": "900-056280-692300-999999-557000-343200",
+   "name": "Ottley Creek Trib.1 Trib.1",
    "source": "port_moody",
    "src_id": 165,
    "klass": "novel",
@@ -79110,7 +79110,7 @@
    "stream_magnitude": 1,
    "receiver_kind": "added",
    "receiver_blk": "-2200000338",
-   "receiver_wsc": "900-056280-692300-999999",
+   "receiver_wsc": "900-056280-692300-999999-557000",
    "base_measure": 0.0,
    "connector": {
     "to_blk": -2200000338,
@@ -79342,8 +79342,8 @@
   },
   {
    "blk": "-2200000324",
-   "wsc": "900-056279-352700",
-   "name": "Noble Creek",
+   "wsc": "900-056279-352700-460700-441900",
+   "name": "Noble Creek Trib.1 Trib.1",
    "source": "port_moody",
    "src_id": 174,
    "klass": "novel",
@@ -81635,8 +81635,8 @@
   },
   {
    "blk": "-2200000276",
-   "wsc": "900-056280-999999",
-   "name": "Axford Creek",
+   "wsc": "900-056280-999999-324700",
+   "name": "Axford Creek Trib.1",
    "source": "port_moody",
    "src_id": 208,
    "klass": "novel",

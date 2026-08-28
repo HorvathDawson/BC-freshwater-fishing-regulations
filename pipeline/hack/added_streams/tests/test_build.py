@@ -438,11 +438,11 @@ def _max_jump_m(coords):
                 for i in range(len(pts) - 1)), default=0.0)
 
 
-def test_same_name_branch_is_a_segment_not_a_straight_trunk_jump():
-    # A same-name creek with a branch that joins the trunk MID-line (not at its up-end). Folding it into
-    # one blk/wsc must NOT concatenate the branch onto the trunk's far end — that fabricates a long
-    # straight 'uphill' edge (the Squamish artifact). The branch rides as a separate same-blk segment.
-    # Arms are densely sampled (like real data) so a fabricated fork-jump dwarfs legit vertex spacing.
+def test_same_name_mid_trunk_branch_is_a_distinct_tributary():
+    # A same-name creek with a branch that joins the trunk MID-line (not at its up-end) is a distinct
+    # TRIBUTARY: it keeps its OWN blk, mints its OWN descendant code, and is renamed "<trunk> Trib.N". It is
+    # never folded onto the trunk (which would fabricate a long straight 'uphill' edge, the Squamish artifact),
+    # so the trunk stays a clean linear line. Arms densely sampled so a fabricated fork-jump would stand out.
     def dense(lon0, lat0, dlon, dlat, n=40):
         return [(lon0 + dlon * i / n, lat0 + dlat * i / n) for i in range(n + 1)]
     feats = [
@@ -450,10 +450,15 @@ def test_same_name_branch_is_a_segment_not_a_straight_trunk_jump():
         _feat(dense(-123.005, 49.2131, 0.0, 0.004), "Y Creek"),        # branch off mid-trunk, going north
     ]
     streams, _, report = resolve_and_mint(feats, _FWA, LakeIndex([]), _TIDAL)
-    y = [s for s in streams if s["name"] == "Y Creek"]
-    assert len({s["wsc"] for s in y}) == 1                          # same name -> ONE wsc (a braid shares it)
-    assert len({s["blk"] for s in y}) == 2                          # ...but the branch keeps its OWN blk
-    for d in report["diagnostics"]:
+    y = [s for s in streams if "y creek" in (s["name"] or "").lower()]
+    assert len({s["blk"] for s in y}) == 2, "trunk and mid-line branch stay SEPARATE blks"
+    trunk = next(s for s in y if s["name"] == "Y Creek")
+    trib = next(s for s in y if "trib" in s["name"].lower())
+    assert trib["wsc"] != trunk["wsc"] and trib["wsc"].startswith(trunk["wsc"] + "-"), \
+        "the branch mints its own descendant code, not the trunk's exact code"
+    assert trib["receiver_kind"] == "added" and str(trib["receiver_blk"]) == trunk["blk"], \
+        "the branch flows INTO the trunk (network intact)"
+    for d in report["diagnostics"]:                                    # trunk drawn with no fabricated jump
         if d["name"] == "Y Creek" and d["klass"] != "connector":
             assert _max_jump_m(d["coords"]) <= 20.0, \
                 f"Y Creek drawn with a {_max_jump_m(d['coords']):.0f} m straight jump"
