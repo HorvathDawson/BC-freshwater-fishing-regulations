@@ -1206,13 +1206,17 @@ def resolve_and_mint(features: list[dict], fwa_chains: list[BlkChain], lake_inde
                            "name": st["name"], "ftype": c["kind"], "fish": "",
                            "coords": [[round(mx, 6), round(my, 6)], [round(cx, 6), round(cy, 6)]]})
 
-    # NAME VARIANTS for downstream consumption (graph/registry). Two kinds:
+    # NAME VARIANTS for downstream consumption (graph/registry). Three kinds:
+    #  - added: a minted stream's OWN municipal name -> its own blk. The synthetic fids carry no gnis, so this is
+    #    how the added node gets its name (and thus a registry item); without it the stream is unnamed.
     #  - duplicate/extension: a municipal line that hugs a KEPT FWA blue line — the municipal NAME is an alias
     #    of that FWA blk (FWA name stays boss).
     #  - excluded_fwa: an FWA reach we removed via exclude_wsc — its OWN gnis name is an alias of the minted
     #    municipal stream that superseded it (nearest within `tol`), so the name survives the exclusion.
-    name_variants = [{"kind": "duplicate", "name": c.name, "target_blk": c.target_blk,
-                      "target_gnis": c.target_gnis} for c in candidates if c.name]
+    name_variants = [{"kind": "added", "name": s["name"], "target_blk": s["blk"], "target_gnis": ""}
+                     for s in streams if s["name"]]
+    name_variants += [{"kind": "duplicate", "name": c.name, "target_blk": c.target_blk,
+                       "target_gnis": c.target_gnis} for c in candidates if c.name]
     for c in excluded_fwa:
         near = min(streams, key=lambda s: _stream_geom(s).distance(c.geometry), default=None)
         if near is not None and _stream_geom(near).distance(c.geometry) <= tol:
