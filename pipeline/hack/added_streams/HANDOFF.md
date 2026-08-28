@@ -1,6 +1,6 @@
 # Added-streams DEM / resolver — handoff
 
-Working doc for `pipeline/hack/added_streams/`. Validated visually through `output/added_map_{burnaby,
+Working doc for `pipeline/hack/added_streams/`. Validated visually through `output/added_streams/added_map_{burnaby,
 squamish,port_moody}.html` (top-right toggle: **dem raw** teal = the DEM flow model; **resolved** =
 the minted dataset; "colour dem by connected component" groups a basin). ALL sources are DEM-oriented
 now (`RELIABLE_SOURCES = set()` — burnaby moved off trust_source once the fixes below made DEM correct).

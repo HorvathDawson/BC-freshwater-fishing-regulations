@@ -6,6 +6,14 @@
 output:
   base: "output"
 
+  # Graph builds from pipeline/build.py (--out): per-region (adams, kootenay, …) + full/.
+  # Single source of truth for the build location — consumers read project_config.builds_dir.
+  builds: "output/v2"
+
+  # Added-streams review artifacts (pipeline/hack/added_streams): mapcheck / verify_map html,
+  # the demo gpkg, and OSM candidates. project_config.added_streams_dir.
+  added_streams: "output/added_streams"
+
   # Pipeline Outputs
   pipeline:
     base: "output/pipeline"

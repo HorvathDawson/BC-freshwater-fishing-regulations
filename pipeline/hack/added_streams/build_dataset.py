@@ -1357,8 +1357,8 @@ def write(streams, candidates, report, out_dir: Path, name: str = "added_streams
         "fwa_exclude": report.get("fwa_exclude", []),
         "name_variants": report.get("name_variants", []),
         "streams": streams}, indent=1), encoding="utf-8")
-    from pipeline.hack.added_streams import __file__ as _pkg
-    outputs = Path(_pkg).resolve().parents[2] / "output"
+    from project_config import get_config
+    outputs = get_config().added_streams_dir
     outputs.mkdir(parents=True, exist_ok=True)
     (outputs / "added_name_variant_candidates.json").write_text(
         json.dumps([asdict(c) for c in candidates], indent=1), encoding="utf-8")

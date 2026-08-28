@@ -12,7 +12,7 @@ can be eyeballed before it is wired into the pipeline build:
 Gap connectors are folded INTO the mainstem geometry (same blk/wsc), so they are drawn as part of the green
 added stream, not as separate features.
 
-Self-contained html (Leaflet + OSM from CDN) -> ``output/verify_<source>.html``. Needs the gpkg only for the
+Self-contained html (Leaflet + OSM from CDN) -> ``<output.added_streams>/verify_<source>.html``. gpkg only for the
 FWA geometry; the stream package itself comes from ``resolve_and_mint`` (identical to the build export).
 """
 
@@ -150,10 +150,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Verification map: added streams + FWA (kept/excluded) context.")
     ap.add_argument("sources", nargs="*", default=_SOURCES, help="sources (default: all)")
     ap.add_argument("--gpkg", default=None)
-    ap.add_argument("--out", default="output")
+    ap.add_argument("--out", default=None, help="output dir (default: config output.added_streams)")
     args = ap.parse_args()
     gpkg = args.gpkg or get_config().fwa_data_gpkg
-    out_dir = Path(args.out)
+    out_dir = Path(args.out) if args.out else get_config().added_streams_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     for src in (args.sources or _SOURCES):
         out = verify_map(src, gpkg, out_dir)

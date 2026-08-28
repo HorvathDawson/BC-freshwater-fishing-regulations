@@ -154,10 +154,6 @@ class ProjectConfig:
 
         return api_keys
 
-    def get_llm_config(self) -> Dict[str, Any]:
-        """Get LLM parsing configuration."""
-        return self._config.get("llm", {})
-
     # ========================================================================
     # Graph Builder
     # ========================================================================
@@ -173,19 +169,19 @@ class ProjectConfig:
         return self.get_path("output", "pipeline", "graph", "graph")
 
     @property
-    def fwa_metadata_path(self) -> Path:
-        """Get path to FWA metadata pickle file."""
-        return self.get_path("output", "pipeline", "graph", "metadata")
-
-    @property
-    def fwa_temp_dir(self) -> Path:
-        """Get graph builder temporary files directory."""
-        return self.get_path("output", "pipeline", "graph", "temp")
-
-    @property
     def fwa_data_gpkg(self) -> Path:
         """Get path to unified FWA GeoPackage for FWADataAccessor."""
         return self.get_path("data_accessor", "gpkg_path")
+
+    @property
+    def builds_dir(self) -> Path:
+        """Graph-build output root (build.py --out): per-region + full/. Single source of truth."""
+        return self.get_path("output", "builds", default="output/v2")
+
+    @property
+    def added_streams_dir(self) -> Path:
+        """Added-streams review artifacts (mapcheck/verify_map html, demo gpkg, OSM candidates)."""
+        return self.get_path("output", "added_streams", default="output/added_streams")
 
     # ========================================================================
     # Data Fetch
@@ -200,11 +196,6 @@ class ProjectConfig:
     def fetch_temp_dir(self) -> Path:
         """Get temporary directory for data fetch operations."""
         return self.get_path("data", "fetch", "temp_dir")
-
-    @property
-    def shard_version(self) -> int:
-        """Get the shard version from config.yaml (source of truth for pipeline)."""
-        return self._config["output"]["pipeline"]["shard_version"]
 
 
 # Global singleton instance

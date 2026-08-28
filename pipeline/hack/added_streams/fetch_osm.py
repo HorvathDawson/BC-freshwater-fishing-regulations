@@ -2,7 +2,7 @@
 
 Fetches `waterway` ways from Overpass, merges same-name connected ways into channels
 (`merge.merge_channels`, minting a `-min(way_id)` blk each), and writes:
-  - output/added_candidates.geojson  (one Feature per channel; edit + copy the keepers into
+  - <output.added_streams>/added_candidates.geojson  (one Feature per channel; edit + copy the keepers into
                                        pipeline/added_streams.geojson, adding `connect_to`)
   - output/added_candidates.md       (a review table)
 
@@ -101,7 +101,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="One-time OSM waterway sweep -> candidate channels.")
     ap.add_argument("--bbox", nargs=4, type=float, required=True,
                     metavar=("MINLON", "MINLAT", "MAXLON", "MAXLAT"))
-    ap.add_argument("--out", default="output/added_candidates.geojson")
+    ap.add_argument("--out", default=None,
+                    help="output geojson (default: config output.added_streams/added_candidates.geojson)")
     args = ap.parse_args()
 
     print(f"== fetch_osm: waterways in bbox {args.bbox} (Overpass; external network) ==")
@@ -110,7 +111,11 @@ def main() -> None:
     channels = merge_channels(feats)
     print(f"  {len(channels)} channel(s) after same-name merge")
 
-    out = Path(args.out)
+    if args.out:
+        out = Path(args.out)
+    else:
+        from project_config import get_config
+        out = get_config().added_streams_dir / "added_candidates.geojson"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"type": "FeatureCollection",
                                "_about": "OSM waterway candidates — review, add connect_to, and copy "

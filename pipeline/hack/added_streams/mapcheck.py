@@ -1,7 +1,7 @@
 """Throwaway visual check: one Leaflet map per region showing the added-streams batch result.
 
 For each municipal source it runs the batch, then writes a SELF-CONTAINED html (Leaflet + OSM tiles
-from CDN, no build deps) to `output/added_map_<source>.html`:
+from CDN, no build deps) to `<output.added_streams>/added_map_<source>.html` (config-driven):
 
   - FWA streams near the municipal data  -> thin grey background (what was ORIGINAL FWA)
   - municipal features coloured by class  -> duplicate (grey, dropped/kept-as-FWA), extension (blue),
@@ -242,10 +242,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Write a Leaflet check map per municipal source.")
     ap.add_argument("sources", nargs="*", default=_SOURCES, help="sources (default: all)")
     ap.add_argument("--gpkg", default=None)
-    ap.add_argument("--out", default="output")
+    ap.add_argument("--out", default=None, help="output dir (default: config output.added_streams)")
     args = ap.parse_args()
     gpkg = args.gpkg or get_config().fwa_data_gpkg
-    out_dir = Path(args.out)
+    out_dir = Path(args.out) if args.out else get_config().added_streams_dir
     out_dir.mkdir(parents=True, exist_ok=True)
     for src in (args.sources or _SOURCES):
         out = region_map(src, gpkg, out_dir)

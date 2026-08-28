@@ -108,10 +108,12 @@ def main() -> None:
     ap.add_argument("--bbox", nargs=4, type=float, default=None,
                     metavar=("MINX", "MINY", "MAXX", "MAXY"), help="EPSG:3005 bbox (default: auto)")
     ap.add_argument("--pad", type=float, default=3000.0, help="auto-bbox padding metres")
-    ap.add_argument("--out", default="output/added_demo.gpkg")
+    ap.add_argument("--out", default=None, help="output gpkg (default: config output.added_streams/added_demo.gpkg)")
     args = ap.parse_args()
     gpkg = args.gpkg or get_config().fwa_data_gpkg
-    result = run(args.geojson, gpkg, bbox=args.bbox, pad=args.pad, out=args.out)
+    out = args.out or str(get_config().added_streams_dir / "added_demo.gpkg")
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    result = run(args.geojson, gpkg, bbox=args.bbox, pad=args.pad, out=out)
     print(f"\n  RESULT: all added streams are FWA tributaries = {result['all_tributaries']}")
 
 
