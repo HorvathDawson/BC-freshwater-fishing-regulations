@@ -1387,25 +1387,87 @@ def _geoms(fwa, layer, bbox):
     return [g for g in gdf.geometry if g is not None]
 
 
-def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[Path] = None) -> Path:
+_SOURCE_BLK_SPAN = 100_000_000    # each source's minted blks live in a disjoint band, offset by this per source
+
+
+def _resolve_source(source: str, gpkg: str, pad: float):
+    """Resolve ONE municipal source in its OWN bbox — identical to what verify_map / mapcheck render, so the
+    frozen artifact matches the vetted maps (a combined bbox cross-contaminates: a Burnaby creek can pick up a
+    Squamish coastal code). Unconfirmed features are dropped, exactly as the maps do."""
     from pipeline.hack.added_streams.clean import clean_source
-    features = [f for s in sources for f in clean_source(s)]
+    from pipeline.hack.added_streams.dem import ElevationSampler
+    features = [f for f in clean_source(source)
+                if not str(f.get("properties", {}).get("ftype", "")).lower().startswith("unconfirmed")]
     pts = [_TO_ALBERS.transform(x, y) for f in features for x, y in f["geometry"]["coordinates"]]
     xs, ys = [p[0] for p in pts], [p[1] for p in pts]
     bbox = (min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad)
     chains, lake_index, tidal, _, _ = _load_fwa(gpkg, bbox)
-    from pipeline.hack.added_streams.dem import ElevationSampler
-    source = sources[0] if len(sources) == 1 else ""
-    exclude = tuple(dict.fromkeys(p for s in sources for p in FWA_EXCLUDE_BY_SOURCE.get(s, ())))  # union across
-    approved = [ply for s in sources for ply in approved_lake_polys(gpkg, bbox, s)]                # all sources
-    streams, candidates, report = resolve_and_mint(
+    approved = approved_lake_polys(gpkg, bbox, source)
+    return resolve_and_mint(
         features, chains, lake_index, tidal,
-        exclude_wsc=exclude, approved_lakes=approved,
+        exclude_wsc=FWA_EXCLUDE_BY_SOURCE.get(source, ()), approved_lakes=approved,
         orient_sampler=ElevationSampler(), trust_source=source in RELIABLE_SOURCES)
+
+
+def _offset_added_blks(streams: list[dict], name_variants: list[dict], offset: int) -> None:
+    """Shift every MINTED blk (``<= -_MINT_BASE``) in one source's records into a disjoint band, updating all
+    references (a stream's blk, its added receiver, its connector's target, and any name-variant target). So
+    per-source builds never collide on the shared ``-(2e9 + i)`` mint range when merged."""
+    if not offset:
+        return
+    def _is_minted(v):
+        try:
+            return int(v) <= -_MINT_BASE
+        except (TypeError, ValueError):
+            return False
+    remap = {str(s["blk"]): str(int(s["blk"]) - offset) for s in streams if _is_minted(s["blk"])}
+    for s in streams:
+        s["blk"] = remap.get(str(s["blk"]), s["blk"])
+        if s.get("receiver_kind") == "added":
+            s["receiver_blk"] = remap.get(str(s["receiver_blk"]), s["receiver_blk"])
+        c = s.get("connector")
+        if c and not c.get("to_fwa") and _is_minted(c.get("to_blk")):
+            c["to_blk"] = int(remap.get(str(c["to_blk"]), c["to_blk"]))
+    for nv in name_variants:
+        nv["target_blk"] = remap.get(str(nv["target_blk"]), nv["target_blk"])
+
+
+_MINT_BASE = 2_000_000_000        # mirror merge._MINT_BASE: a minted added blk is -(base + i)
+
+
+def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[Path] = None) -> Path:
+    all_streams: list[dict] = []
+    all_candidates: list = []
+    exclude: list[str] = []
+    name_variants: list[dict] = []
+    counts = {"duplicate": 0, "extension": 0, "novel": 0}
+    minted = 0
+    unresolved: list = []
+    name_conflicts: list = []
+    nonlinear: list = []
+    for k, source in enumerate(sources):
+        streams, candidates, report = _resolve_source(source, gpkg, pad)
+        _offset_added_blks(streams, report["name_variants"], k * _SOURCE_BLK_SPAN)   # keep blks disjoint per source
+        all_streams += streams
+        all_candidates += candidates
+        for p in report.get("fwa_exclude", ()):                 # union, order-preserving
+            if p not in exclude:
+                exclude.append(p)
+        name_variants += report["name_variants"]
+        for kk in counts:
+            counts[kk] += report["counts"].get(kk, 0)
+        minted += report["minted"]
+        unresolved += [f"{source}: {u}" for u in report["unresolved"]]
+        name_conflicts += report.get("name_conflicts", [])
+        nonlinear += report.get("nonlinear_blks", [])
+        print(f"  {source}: {report['counts']}  minted={report['minted']}  "
+              f"unresolved={len(report['unresolved'])}")
+    report = {"counts": counts, "minted": minted, "unresolved": unresolved,
+              "fwa_exclude": exclude, "name_variants": name_variants,
+              "nonlinear_blks": nonlinear, "name_conflicts": name_conflicts, "diagnostics": []}
     out_dir = out_dir or (Path(__file__).resolve().parent)
-    out = write(streams, candidates, report, out_dir)
-    print(f"  sources={sources}  {report['counts']}  minted={report['minted']}  "
-          f"unresolved={len(report['unresolved'])}  -> {out}")
+    out = write(all_streams, all_candidates, report, out_dir)
+    print(f"  sources={sources}  {counts}  minted={minted}  streams={len(all_streams)}  -> {out}")
     return out
 
 
