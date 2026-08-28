@@ -7,8 +7,8 @@ blk+wsc; novel streams mint a negative blk with a WSC that prefix-descends their
 another added stream, or a 900 tidal root). `resolve_and_mint` is the pure core (inject FWA chains +
 lake/tidal geometry) so it is hermetically testable; `build` is the gpkg-loading wrapper.
 
-Output: `pipeline/added_streams/added_streams.build.json` (+ name-variant candidates + a report).
-Nothing here edits existing pipeline code; graph wiring is a later Phase B.
+Output: the frozen `added_streams.build.json` (+ name-variant candidates + a report). `pipeline/build.py`
+consumes that artifact on every build (on by default) — see the package README "Build integration".
 """
 
 from __future__ import annotations

@@ -34,8 +34,8 @@ hand-drawn LineString  ──────────┘        (curated, allowl
    ```
    Prints merged mainstem = one node/blk/wsc, tributaries nesting under it, added nodes ∈
    `ancestors(FWA stream)`; writes a small gpkg to eyeball in QGIS.
-4. **(Phase B, separate change)** wire `ingest` + `attach_connectors` into `pipeline/build.py` so a
-   full build picks up `pipeline/added_streams.geojson` automatically.
+4. **Build integration — DONE** (see *Build integration* below): `pipeline/build.py` reads the frozen
+   `added_streams.build.json` on every build (on by default) and wires the added streams into the graph.
 
 ## Curated file (`pipeline/added_streams.geojson`)
 
@@ -111,7 +111,55 @@ Flow: `clean` (uniform schema, strip ArcGIS cruft) → `merge` (same-name connec
   the tolerance).
 
 Consume the built dataset with `build_dataset.to_graph_inputs(load_build(path))` →
-`(added FidRows, ConnectorSpecs)` (Phase B / harness).
+`(added FidRows, ConnectorSpecs)`.
+
+## Build integration (consumed by `pipeline/build.py`)
+
+The build **does not re-run the resolver**. It consumes a single **frozen, vetted** artifact —
+`pipeline/hack/added_streams/added_streams.build.json` — that is generated once, eyeballed on the
+verify maps, and checked in. `build.py` reads it on **every build, on by default** (skip with
+`--no-added-streams`; point elsewhere with `--added-streams PATH`).
+
+**Artifact contents** (top-level keys):
+- `streams` — one record per minted stream: `blk` (negative), `wsc`, `name`, `segments`
+  (`coords3005` + under-lake `wbk`), `connector` (mouth→receiver, with the pre-merge `mouth`),
+  `stream_order`/`stream_magnitude`, `receiver_kind`/`receiver_blk`, `base_measure`.
+- `fwa_exclude` — WSC **prefixes** whose FWA blue lines the municipal network supersedes (e.g.
+  `100-019698-` = every tributary under Still Creek). The consumer removes them.
+- `name_variants` — three kinds: **added** (a stream's own municipal name → its own blk; this is how
+  the otherwise-nameless added node gets named + a registry item), **duplicate** (a municipal line
+  that hugs a KEPT FWA blue line → its name aliases that FWA blk), **excluded_fwa** (an excluded FWA
+  reach's own gnis name → the added stream that superseded it, so the name survives the exclusion).
+
+**What `build.py` does** (all additive, right after `load_stream_fids`):
+1. drop FWA fids whose trimmed WSC starts with any `fwa_exclude` prefix (`_apply_fwa_exclude`);
+2. `to_graph_inputs(streams)` → append the synthetic added fids so the **same** `build_blk_chains` /
+   `build_stream_graph` / `build_section_geometries` ingest them (under-lake segments tie into lake
+   nodes via their `wbk`);
+3. after the graph is built, `attach_connectors` wires each added stream to its receiver at the
+   confluence (resolving nodes **by measure**, since a node id is `{blk}:{down_m}` and a lake-inlet
+   mouth under the through-lake spine has no `:0` section);
+4. feed the artifact's `name_variants` into the existing `apply_name_variants` call.
+A bbox build keeps only in-bbox added streams **plus their added-receiver chain** (`_streams_in_bbox`),
+so it never adds another region's streams as orphans nor severs a chain at the bbox edge.
+
+**Regenerate + re-freeze** (Claude-safe: gpkg + DEM only, **no credits**) — resolves each source in its
+OWN bbox (a combined bbox cross-contaminates), then merges with per-source blk offsets:
+```
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.hack.added_streams.build_dataset burnaby squamish port_moody
+```
+Then eyeball `output/verify_<source>.html` (regenerate with `python -m pipeline.hack.added_streams.verify_map <source>`)
+and commit the artifact. It is the checked-off source of truth from then on.
+
+**Guarantees the resolver enforces** for the consumer:
+- **Unique WSC** — no two DIFFERENT streams share a code (`_bump_wsc`); same-name *fragments* of one
+  creek intentionally share, an unnamed stream shares with nobody.
+- **Lake through-flow** — a lake's outlet stream runs THROUGH the lake as a central spine
+  (`lake_through_spine`), so its many inlets attach at DISTINCT measures (no pile-up of identical
+  `…-999999` codes) and the under-lake span carries the lake `wbk`.
+- **Same-name tributaries** — a same-name piece joining its same-name mainstem **partway** (< 85 % up)
+  is a distinct tributary: its own descendant code + a `<mainstem> Trib.N` name. One joining at the
+  **source** is a fragment continuation and shares the code.
 
 ## Notes
 

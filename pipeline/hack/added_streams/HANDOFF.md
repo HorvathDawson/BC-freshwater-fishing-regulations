@@ -7,9 +7,12 @@ now (`RELIABLE_SOURCES = set()` — burnaby moved off trust_source once the fixe
 
 ## Run / validate (safe for the assistant — no LLM credits)
 ```bash
-PYTHONPATH=. .venv/bin/python -m pytest pipeline/hack/added_streams/tests -q       # 92 pass (~1 s)
-PYTHONPATH=. .venv/bin/python -m pipeline.added_streams.mapcheck burnaby      # regen one map (~50 s)
+PYTHONPATH=. .venv/bin/python -m pytest pipeline/hack/added_streams/tests -q            # 110 pass (~1 s)
+PYTHONPATH=. .venv/bin/python -m pipeline.hack.added_streams.mapcheck burnaby           # regen one map (~50 s)
+PYTHONPATH=. .venv/bin/python -m pipeline.hack.added_streams.verify_map burnaby         # final result + FWA context
+PYTHONPATH=. .venv/bin/python -m pipeline.hack.added_streams.build_dataset burnaby squamish port_moody  # re-freeze the artifact
 ```
+The build **consumes the frozen `added_streams.build.json`** (on by default) — see README "Build integration".
 Tests live IN the module (`pipeline/hack/added_streams/tests/`), separate from the main pipeline suite —
 a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the explicit path above.
 - gpkg: `data/bc_fisheries_data.gpkg`; elevation: `dem.ElevationSampler` (AWS Terrarium tiles, cached).
@@ -82,8 +85,28 @@ a bare `pytest` (testpaths = pipeline/tests) does NOT collect them; run the expl
   children (median of route-measure / local-code) and mints `(mouth_measure+proj)/true_total`. Live: Sanctuary
   100-012900, Fraser River Trib.1 100-011200, Boundary 100-010400. `test_wsc_on_partially_loaded_river_...`.
 
+## RECENT — lake through-flow, unique WSC, same-name tribs, build integration
+- **Lake through-flow** (`lake_through_spine`) — a lake's OUTLET stream runs THROUGH the lake as its central
+  axis (major axis of the lake, nudged just past the headwater shore), so the many inlets attach at DISTINCT
+  measures instead of all piling at the outlet with identical `…-999999`. The under-lake span carries the lake
+  `wbk`. `mapcheck`/`verify_map` just render the resolver output now (no separate spine hack).
+- **Unique WSC** (`_bump_wsc`) — two DIFFERENT streams never share a code (bumped to the nearest free trailing
+  segment, receiver-first so a bumped parent propagates). Same-name *fragments* still share; unnamed shares
+  with nobody. `test_bump_wsc_...`.
+- **Same-name tributaries** (`_CONTINUATION_FRAC = 0.85`) — a same-name piece joining its same-name mainstem
+  PARTWAY is a distinct tributary (own descendant code + `<mainstem> Trib.N`); joining at the SOURCE it is a
+  fragment continuation (shares the code). Hatchley / Axford / West Sundial split; Village / Schoolhouse /
+  Pigeon (≥85 %) stay merged. `test_same_name_..._tributary`.
+- **Name variants** — `added` (each stream's own name → its blk, so it gets a registry item), `duplicate`
+  (municipal name → kept FWA blk), `excluded_fwa` (excluded FWA gnis name → the superseding added stream).
+- **Build integration** — `pipeline/build.py` drops `fwa_exclude` FWA fids, adds the artifact's fids, and
+  `attach_connectors` (resolving nodes BY MEASURE — `{blk}:{down_m}`, not `{blk}:0`). `--no-added-streams` opts
+  out. Verified: added streams resolve upstream of Still Creek and become named registry items; excluded FWA +
+  their headwaters fully dropped.
+
 ## OPEN ISSUES
 1. Residual: ~4 burnaby unresolved (one `Eagle Trib.3` sub-branch).
+2. `nonlinear_blks` may still flag a source-data bowtie (Dallas 393) — reported, not raised.
 
 ## Guardrails
 - Prefix shell with `rtk`; `graphify query/explain` before grepping; `graphify update .` after code changes.
