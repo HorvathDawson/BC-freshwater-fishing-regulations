@@ -7,7 +7,7 @@ blk+wsc; novel streams mint a negative blk with a WSC that prefix-descends their
 another added stream, or a 900 tidal root). `resolve_and_mint` is the pure core (inject FWA chains +
 lake/tidal geometry) so it is hermetically testable; `build` is the gpkg-loading wrapper.
 
-Output: the frozen `added_streams.build.json` (+ name-variant candidates + a report). `pipeline/build.py`
+Output: the frozen `pipeline/added_streams.build.json` (+ name-variant candidates + a report). `pipeline/build.py`
 consumes that artifact on every build (on by default) — see the package README "Build integration".
 """
 
@@ -1496,7 +1496,7 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
     report = {"counts": counts, "minted": minted, "unresolved": unresolved,
               "fwa_exclude": exclude, "name_variants": name_variants,
               "nonlinear_blks": nonlinear, "name_conflicts": name_conflicts, "diagnostics": []}
-    out_dir = out_dir or (Path(__file__).resolve().parent)
+    out_dir = out_dir or Path(__file__).resolve().parents[2]   # pipeline/ (sibling of splits.json)
     out = write(all_streams, all_candidates, report, out_dir)
     print(f"  sources={sources}  {counts}  minted={minted}  streams={len(all_streams)}  -> {out}")
     return out

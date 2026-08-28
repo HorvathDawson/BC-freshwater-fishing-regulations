@@ -207,7 +207,7 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
     return "\n".join(lines)
 
 
-_ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "hack" / "added_streams" / "added_streams.build.json"
+_ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "added_streams.build.json"
 
 
 def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:

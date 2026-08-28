@@ -116,7 +116,7 @@ Consume the built dataset with `build_dataset.to_graph_inputs(load_build(path))`
 ## Build integration (consumed by `pipeline/build.py`)
 
 The build **does not re-run the resolver**. It consumes a single **frozen, vetted** artifact —
-`pipeline/hack/added_streams/added_streams.build.json` — that is generated once, eyeballed on the
+`pipeline/added_streams.build.json` (top-level, beside `splits.json`) — that is generated once, eyeballed on the
 verify maps, and checked in. `build.py` reads it on **every build, on by default** (skip with
 `--no-added-streams`; point elsewhere with `--added-streams PATH`).
 
