@@ -184,6 +184,46 @@ will not hold for every future candidate.
 
 ---
 
+## 2.5 Twenty-four exemptions are stated in prose only — small, high-value curation
+
+Surfaced by a UI review asking whether `note` is a catch-all bin, then measured:
+
+```
+rules whose TEXT says "exempt"              83
+  carrying a machine-readable exempts_from  59
+  PROSE ONLY, invisible to the resolver     24
+```
+
+78 of the 83 are typed `note`, which is right — they lift a restriction rather than impose
+one. The problem is the 24 that say so only in words:
+
+```
+gnis:21875  oyster_river.r1     "Exempt from summer closure"
+gnis:23318  nitinat_river.r1    "Exempt from summer closure"
+gnis:27060  puntledge_river.r1  "Exempt from summer closure"
+gnis:27804  qualicum_river.r6   "Exempt from summer closure"
+gnis:27883  quinsam_river.r3    "Exempt from summer closure"
+```
+
+**These fail in the dangerous direction.** An exemption the resolver cannot see means the
+general closure stands, so the app reports a river CLOSED when the synopsis says it is
+open — under-application on a closure, the mirror of ⑨ and just as wrong.
+
+Note the cluster: every example needs `summer_closure`, one of the **five vocabulary codes
+with zero uses**. The code exists; nobody stamped it. So this is not new machinery — it is
+~24 rules to stamp during the curation pass, and it takes the vocabulary from 2 codes in
+use to at least 3.
+
+```python
+import json, glob, re
+for p in glob.glob("pipeline/parsing/entries/region-*.json"):
+    for e in json.load(open(p))["entries"]:
+        for r in e.get("rules") or []:
+            txt = f"{r.get('details') or ''} {r.get('rule_text') or ''}"
+            if re.search(r"\bexempt", txt, re.I) and not r.get("exempts_from"):
+                print(e["entry_id"], r["rule_id"], (r.get("details") or "")[:60])
+```
+
 ## 3. Tributary walk
 
 555 rules are `tributaries_pending`; **176 of them sit on a BOUNDED extent** ("between A and
