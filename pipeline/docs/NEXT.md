@@ -1,5 +1,46 @@
 # Next up — not started
 
+---
+
+## 0. ⚠️ FIRST THING: `output/v2/full_named` exists and is NOT yet safe to switch to
+
+The side-channel naming bug is **fixed** — and it was never a code bug. `output/v2/full`
+was simply **stale**, built before the directional guard in `names.py`. Rebuilding fixes it:
+
+| | side-channel names | leaked onto a larger water |
+|---|---|---|
+| `output/v2/full` (still the active build) | 4,780 | **2,135** |
+| `output/v2/full_named` (new) | 19,739 | **0** |
+
+McLennan Creek: 9 sections → 1. Verified by rebuilding the same bbox with current code.
+
+**But the new build changes far more than names**, and switching blindly would break curation:
+
+```
+items      19,722 -> 19,857   (28 removed, 163 added, 3,295 CHANGED)
+sections   49,639 -> 80,236   (+30,597, +62%)
+```
+
+* **The 4 `area:` items are gone**, replaced by 163 finer-grained ones
+  (`area:ecological_reserves:…`, `area:chilkoot_trail:…`). So `pitt_river.r1`'s
+  `area_id='area:within_garibaldi_park'` no longer resolves — the Garibaldi case we just
+  got working would dangle again.
+* **`cut_not_found` jumps 5 → 364.** The curated splits resolve against the old section
+  geometry; with 62% more sections the boundaries moved. 364 rules lose their binding.
+
+Reach builder against the new build: **2,562 bound / 475 unresolved** (vs 2,866 / 139 today).
+
+### What this needs before adopting — the registry-resync workflow
+
+1. Re-resolve the curated splits against `full_named` and inspect `cut_not_found`
+   (`pipeline/tools/reparse_candidates.py` and the reach builder's `--against` diff both help).
+2. Re-point the two `within(area)` extents at the new area ids.
+3. `prune_remapped` → `backfill_matched` → hand off `parse-missing` (HUMAN-ONLY).
+4. Expect entry ids to remap again, and locks to drop as they did last time — **finish the
+   current curation pass first, or accept another remap.**
+
+`output/v2/full` remains the active build; nothing has been switched. Decide deliberately.
+
 Parked work, with the thinking done so it can start cold.
 
 ---
