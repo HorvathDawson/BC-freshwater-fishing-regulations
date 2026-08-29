@@ -16,7 +16,7 @@ from pipeline.models import AnchorType, BlkChain, SplitPoint
 from pipeline.splits.anchors import _area_transition_measures
 
 ROOT = get_config().project_root
-_GPKG = str(ROOT / "data/bc_fisheries_data.gpkg")
+_GPKG = str(get_config().fwa_data_gpkg)
 
 
 def load_area_split_defs(path: str | None = None) -> list[dict]:

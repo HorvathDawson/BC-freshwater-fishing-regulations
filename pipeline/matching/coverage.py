@@ -28,6 +28,7 @@ _WATERSHED = re.compile(r"\bwatershed(s)?\b", re.I)
 _REGIONNOTE = re.compile(r"\b(region|all waters|province|zone|all lakes|all streams|these waters)\b", re.I)
 
 
+from project_config import get_config
 def _categorize_miss(row: dict) -> str:
     water = row.get("water", "")
     if not row.get("raw_regs", "").strip():
@@ -211,7 +212,7 @@ def run(registry_path: str, overrides_path: str | None, show: int, tables_dir: s
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Match-coverage audit over the synopsis rows.")
-    ap.add_argument("--registry", default="output/v2/full/registry.json")
+    ap.add_argument("--registry", default=str(get_config().review_build_dir / "registry.json"))
     ap.add_argument("--overrides", default=None)
     ap.add_argument("--show", type=int, default=15)
     ap.add_argument("--tables", nargs="?", const="pipeline/docs/coverage",

@@ -10,6 +10,11 @@ output:
   # Single source of truth for the build location — consumers read project_config.builds_dir.
   builds: "output/v2"
 
+  # Which build under `builds` the review app SERVES, and the one its rebuild button WRITES.
+  # These were two independent hard-codings of "output/v2/full" in reuse.py and rebuild.py: the app
+  # could rebuild one directory and read another, and neither would say so. One name, read by both.
+  review_build: "full"
+
   # Added-streams review artifacts (pipeline/hack/added_streams): mapcheck / verify_map html,
   # the demo gpkg, and OSM candidates. project_config.added_streams_dir.
   added_streams: "output/added_streams"

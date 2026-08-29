@@ -179,6 +179,15 @@ class ProjectConfig:
         return self.get_path("output", "builds", default="output/v2")
 
     @property
+    def review_build_dir(self) -> Path:
+        """The build directory the curation-review app serves AND rebuilds into (`builds_dir` /
+        `output.review_build`). Repointing the app at a newer build is a config edit, not a code
+        edit — which matters because a stale build is invisible: every reach still renders, just
+        against yesterday's graph."""
+        name = (self._config.get("output", {}) or {}).get("review_build", "full")
+        return self.builds_dir / str(name)
+
+    @property
     def added_streams_dir(self) -> Path:
         """Added-streams review artifacts (mapcheck/verify_map html, demo gpkg, OSM candidates)."""
         return self.get_path("output", "added_streams", default="output/added_streams")

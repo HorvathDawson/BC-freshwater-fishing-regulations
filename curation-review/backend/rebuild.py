@@ -16,6 +16,8 @@ import re
 import subprocess
 import sys
 import threading
+
+from project_config import get_config
 import time
 from collections import deque
 
@@ -34,8 +36,10 @@ _EXPECTED_STAGES = [
     "write artifacts + gpkg",
 ]
 _TICK_RE = re.compile(r"\[(?P<label>[^\]]+?):\s*(?P<sec>[\d.]+)s\]")
+# Rebuilds INTO the directory reuse.py serves. Both read `project_config.review_build_dir`, so the
+# two cannot drift — this used to be a second, independent hard-coding of "output/v2/full".
 _CMD = [sys.executable, "-m", "pipeline.build", "--full",
-        "--out", "output/v2/full", "--splits", "pipeline/splits.json"]
+        "--out", str(get_config().review_build_dir), "--splits", "pipeline/splits.json"]
 
 
 class _Rebuild:

@@ -143,7 +143,7 @@ def _ident(e: dict) -> Optional[dict]:
 
 
 def _load_match_index() -> dict:
-    mt = json.loads((ROOT / "output/pipeline/matching/match_table.json").read_text())
+    mt = json.loads(get_config().get_path("output", "pipeline", "match_table").read_text())
     try:
         ov = json.loads((ROOT / "pipeline/matching/overrides.json").read_text())
     except Exception:

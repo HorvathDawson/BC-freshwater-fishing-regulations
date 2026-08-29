@@ -15,6 +15,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from project_config import get_config
 from data.data_extractor import FWADataAccessor
 
 from pipeline.graph.blk_chains import build_blk_chains, load_stream_fids
@@ -24,7 +25,7 @@ from pipeline.graph.names import resolve_names
 from pipeline.io.serialize import write_artifact
 from pipeline.splits.splits import load_split_defs
 
-_DEFAULT_GPKG = "data/bc_fisheries_data.gpkg"
+_DEFAULT_GPKG = str(get_config().fwa_data_gpkg)
 
 
 def get_wetland_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
@@ -298,7 +299,7 @@ def main() -> None:
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
     ap.add_argument("--lakes", action="store_true",
                     help="export lake inlet/outlet points as a 'lake_io' layer")
-    ap.add_argument("--out", default="output/v2/validate")
+    ap.add_argument("--out", default=str(get_config().builds_dir / "validate"))
     args = ap.parse_args()
 
     fwa = FWADataAccessor(args.gpkg)

@@ -24,6 +24,7 @@ from pipeline.graph.prune import loop_nodes, nv_blks
 W, H = 460, 400
 
 
+from project_config import get_config
 def _rings(graph, geoms, nid):
     """(kind, points) for a node. A LAKE stores its ring as a LineString, so keying off the geometry
     type alone drew every lake as a stray loop hanging off the stream that threads it."""
@@ -235,7 +236,7 @@ def build_page(graph, geoms, limit=6, protected=None):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", default="output/v2/full", help="a build directory (UNPRUNED is best: "
+    ap.add_argument("--out", default=str(get_config().review_build_dir), help="a build directory (UNPRUNED is best: "
                     "run the build with --no-simplify-braids so the nests are still there to show)")
     ap.add_argument("--html", required=True)
     ap.add_argument("--limit", type=int, default=6)

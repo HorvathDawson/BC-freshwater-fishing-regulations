@@ -27,6 +27,7 @@ from pipeline.matching.matcher import (
 from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
 from pipeline.parsing.rows import load_synopsis_rows
+from project_config import get_config
 from pipeline.registry import load_registry
 from pipeline.reach.build import build_reach as _build_reach
 from pipeline.reach import extent as _resolve
@@ -34,11 +35,16 @@ from pipeline.utils.wsc import trim_wsc
 
 _ROOT = Path(__file__).resolve().parents[2]
 ENTRIES_DIR = _ROOT / "pipeline" / "parsing" / "entries"
-REGISTRY_PATH = _ROOT / "output" / "v2" / "full" / "registry.json"
+# The build the app SERVES. `project_config.review_build_dir` is the one name for it, shared with
+# rebuild.py (which writes this same directory) — see config.yaml `output.review_build`. Hard-coding
+# it here meant the app could serve a build months older than the pipeline and say nothing: every
+# reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
+_BUILD = get_config().review_build_dir
+REGISTRY_PATH = _BUILD / "registry.json"
 OVERRIDES_PATH = _ROOT / "pipeline" / "matching" / "overrides.json"
-SPLITS_RESOLVED_PATH = _ROOT / "output" / "v2" / "full" / "splits.resolved.json"
-GRAPH_GPKG_PATH = _ROOT / "output" / "v2" / "full" / "graph.gpkg"
-GRAPH_PKL_PATH = _ROOT / "output" / "v2" / "full" / "graph.pkl"
+SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
+GRAPH_GPKG_PATH = _BUILD / "graph.gpkg"
+GRAPH_PKL_PATH = _BUILD / "graph.pkl"
 BASEMAP_PMTILES = _ROOT / "data" / "bc.pmtiles"          # the webapp's basemap (web-mercator)
 SPLITS_JSON_PATH = _ROOT / "pipeline" / "splits.json"    # THE hand-curated split source (editable here)
 ROW_IMAGES_DIR = _ROOT / "output" / "pipeline" / "extraction" / "row_images"  # source synopsis row crops

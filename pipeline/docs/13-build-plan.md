@@ -233,6 +233,42 @@ content, a durable binding must be *re-resolved*, never *cached*. A saved place 
 
 ---
 
+### 2.1 — `default_only` is two orthogonal axes fused into one enum
+
+Raised by a UI review and **verified against the data**, 2026-08-29.
+
+Doc 10 ㉜ added `default_only` as a fifth status for "the 97.6% with no assessed rule". Four
+members of that enum describe an **outcome** (open / restricted / closed / unknown); the
+fifth describes **provenance** (no water-specific record). They are independent, and fusing
+them silently loses the outcome.
+
+The proof is a real base rule:
+
+```
+zones=['3']  feature_types=['stream']  dates='Jan 1 – Jun 30'
+"No fishing in any stream in Region 3 from Jan 1 to June 30 (see tables for exceptions)."
+```
+
+An unnamed creek in Region 3 on 20 May is **closed**. Under the current enum it renders
+`default_only` — grey — because no rule names it. Region 1 has the same shape (`"No fishing
+in any stream in Management Units 1-1 to 1-6 from July 15 to August 31"`). Grey drawn beside
+red teaches a user that grey is the safe colour, which is precisely backwards here.
+
+**The model needs two fields, not five values:**
+
+| | |
+|---|---|
+| `outcome` | open · restricted · closed · unknown |
+| `provenance` | water_specific · default_only |
+
+Rendering: **hue carries outcome, texture carries provenance.** A default-only closure is
+closed-red at reduced weight, not grey. `color.status.default_only` becomes a provenance
+chip rather than a line colour.
+
+This changes `rule_date_status`, the map style's `reg_status` enum (whose every-member rule
+already forces the five to be coloured), and every "is it open" surface. Cheap now, and
+expensive once clients render against it.
+
 ## 3. What the content store holds
 
 Doc 10 §4's schema is sound and its census corrections are real defects — **keep it**, with these

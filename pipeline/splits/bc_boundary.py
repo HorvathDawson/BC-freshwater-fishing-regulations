@@ -26,6 +26,7 @@ _RESULT_SIMPLIFY = 100.0   # final outline thinning (m)
 _MAX_SLIVER_HOLE = 5_000_000.0   # interior rings smaller than this (m^2) are simplification slivers
 
 
+from project_config import get_config
 def boundary_path(gpkg_path: str | Path) -> Path:
     """Where the cached boundary lives — beside the gpkg, in the same data dir."""
     return Path(gpkg_path).parent / BOUNDARY_FILENAME
@@ -110,7 +111,7 @@ def build_boundary(fwa, out_path: Path) -> object:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Build the cached BC provincial boundary (one-time).")
-    ap.add_argument("--gpkg", default="data/bc_fisheries_data.gpkg")
+    ap.add_argument("--gpkg", default=str(get_config().fwa_data_gpkg))
     args = ap.parse_args()
 
     from data.data_extractor import FWADataAccessor
