@@ -43,6 +43,24 @@ for (const t of themes)
     if (def.themeable && t.values[name] === undefined)
       err(`theme "${t.name}" is missing themeable token "${name}"`);
 
+// --- no two colour tokens may share a value ---
+// Each token exists to mean a DIFFERENT thing, so an identical hex is a semantic collision.
+// It hid here for real: `color.status.open` and `color.flow.normal` were both #2e8b57, so the
+// same green line meant "you may fish here" in the Regulations view and "normal water level"
+// in Conditions. The enum-coverage rule cannot see it — the collision is ACROSS colour modes,
+// not within one.
+for (const t of themes) {
+  const byValue = new Map();
+  for (const [name, value] of Object.entries(t.values)) {
+    if (typeof value !== "string" || !value.startsWith("#")) continue;
+    const k = value.toLowerCase();
+    if (byValue.has(k))
+      err(`theme "${t.name}": ${byValue.get(k)} and ${name} are both ${value} — two meanings, ` +
+          `one colour. A reader cannot tell them apart.`);
+    else byValue.set(k, name);
+  }
+}
+
 // --- external sources must be attributed ---
 for (const [id, s] of Object.entries(src.sources ?? {}))
   if (s.external && !s.attribution)

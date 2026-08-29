@@ -10,9 +10,9 @@
     "color.status.closed": "#c0392b",
     "color.status.unknown": "#7d5ba6",
     "color.status.default_only": "#8a8a8a",
-    "color.flow.low": "#c9a227",
-    "color.flow.normal": "#2e8b57",
-    "color.flow.high": "#2f6fb5",
+    "color.flow.low": "#b8842b",
+    "color.flow.normal": "#3a7fb5",
+    "color.flow.high": "#14456e",
     "width.stream.base": 1.4,
     "width.stream.highlight": 3.2,
     "opacity.overlay": 0.55
