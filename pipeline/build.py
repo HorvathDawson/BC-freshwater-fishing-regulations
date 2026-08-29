@@ -27,6 +27,19 @@ from pipeline.splits.splits import load_split_defs
 _DEFAULT_GPKG = "data/bc_fisheries_data.gpkg"
 
 
+def get_wetland_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
+    """Every wetland WATERBODY_KEY, named or not. `get_wetland_names` returns only the GAZETTED ones,
+    but curation names wetlands the gazetteer does not: Cheam Lake and Minnekhada Marsh are wetland
+    polygons with all three GNIS_NAME fields null, named only by a `name_variants` entry. Minting was
+    gated on the lake/manmade key set, so those never became nodes and their registry items resolved
+    to nothing — the exact failure minting exists to prevent."""
+    out: set[str] = set()
+    if "wetlands" in fwa.layer_names:
+        gdf = fwa.get_layer("wetlands", columns=["WATERBODY_KEY"], bbox=bbox)
+        out = {str(w) for w in gdf["WATERBODY_KEY"] if w}
+    return out
+
+
 def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
     kind: dict[str, str] = {}
     for layer, k in (("lakes", "lake"), ("manmade", "manmade")):
@@ -387,16 +400,24 @@ def main() -> None:
     from pipeline.graph.names import mint_waterbody_nodes
     from pipeline.models import NameSource
     wetland_names = get_wetland_names(fwa, bbox)
-    _curated = {}
-    for _e in _nv_all:                            # curation-only names on FWA-unnamed lake polygons
+    # Curation-only names, split by which layer the polygon lives in so each gets the right node kind.
+    _wet_wbks = get_wetland_wbks(fwa, bbox)
+    _curated, _curated_wet = {}, {}
+    for _e in _nv_all:
         _nm = next((n.get("name") for n in (_e.get("names") or []) if n.get("name")), "")
+        if not _nm:
+            continue
         for _w in ((_e.get("target") or {}).get("wbks") or []):
-            if _nm and str(_w) in lake_kind:
-                _curated.setdefault(str(_w), ((_nm, ""),))
+            _w = str(_w)
+            if _w in lake_kind:
+                _curated.setdefault(_w, ((_nm, ""),))
+            elif _w in _wet_wbks:
+                _curated_wet.setdefault(_w, ((_nm, ""),))
     from pipeline.models import NodeKind as _NK
     _iso = (mint_waterbody_nodes(graph, lake_names, NameSource.gazette)
             + mint_waterbody_nodes(graph, wetland_names, NameSource.gazette, _NK.wetland)
-            + mint_waterbody_nodes(graph, _curated, NameSource.override))
+            + mint_waterbody_nodes(graph, _curated, NameSource.override)
+            + mint_waterbody_nodes(graph, _curated_wet, NameSource.override, _NK.wetland))
     if _iso:
         print(f"  minted {_iso} named waterbody node(s) — no stream runs through them")
     _tick("name variants (whole-feature)")
