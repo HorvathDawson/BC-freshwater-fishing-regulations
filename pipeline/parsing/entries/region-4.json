@@ -15933,7 +15933,9 @@
         "reviewed_at": "2026-08-22T17:44:29+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328974978"
+      ],
       "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
@@ -16103,7 +16105,13 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [
+        {
+          "at": "2026-08-29",
+          "by": "claude",
+          "what": "backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
+        }
+      ]
     },
     {
       "entry_id": "wbk:328989174",
@@ -22072,7 +22080,9 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329262654"
+      ],
       "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
@@ -22144,7 +22154,13 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [
+        {
+          "at": "2026-08-29",
+          "by": "claude",
+          "what": "backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
+        }
+      ]
     },
     {
       "entry_id": "wbk:329262668",
@@ -24274,7 +24290,9 @@
         "reviewed_at": "2026-08-22T17:44:29+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329524034"
+      ],
       "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
@@ -24414,7 +24432,13 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [
+        {
+          "at": "2026-08-29",
+          "by": "claude",
+          "what": "backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
+        }
+      ]
     },
     {
       "entry_id": "wbk:329524078",
