@@ -43,6 +43,50 @@ for (const t of themes)
     if (def.themeable && t.values[name] === undefined)
       err(`theme "${t.name}" is missing themeable token "${name}"`);
 
+// --- colour tokens must be PERCEPTUALLY distinguishable, not merely different ---
+//
+// Exact-equality was the first version of this rule and it was too weak: it caught
+// status.open == flow.normal, but missed color.highlight sitting ΔE 7.6 from
+// status.restricted — a selected reach that looks like a restricted one.
+//
+// Threshold is ΔE76 >= 12 between tokens from DIFFERENT families. The target is 20; it is
+// 12 today because the dark theme cannot reach 20 while `status.default_only` is a grey
+// LINE colour competing with `water.regulated`. That is not a palette problem — it is the
+// outcome/provenance conflation recorded in 13-build-plan §2.1. Raise this to 20 when
+// default_only becomes a provenance chip.
+//
+// Steps WITHIN the flow ramp are exempt: a sequential ramp is meant to be ordered and
+// close, and its members never encode different meanings.
+const MIN_DELTA_E = 12;
+const _lab = (hex) => {
+  const h = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const X = f((r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047);
+  const Y = f(r * 0.2126 + g * 0.7152 + b * 0.0722);
+  const Z = f((r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883);
+  return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
+};
+const deltaE = (a, b) => Math.hypot(...
+  _lab(a).map((v, i) => v - _lab(b)[i]));
+const family = (name) => name.split(".")[1];
+
+for (const t of themes) {
+  const cols = Object.entries(t.values)
+    .filter(([, v]) => typeof v === "string" && v.startsWith("#"));
+  for (let i = 0; i < cols.length; i++) {
+    for (let j = i + 1; j < cols.length; j++) {
+      const [n1, v1] = cols[i], [n2, v2] = cols[j];
+      if (family(n1) === family(n2) && family(n1) === "flow") continue;   // sequential ramp
+      const d = deltaE(v1, v2);
+      if (d < MIN_DELTA_E)
+        err(`theme "${t.name}": ${n1} (${v1}) and ${n2} (${v2}) are ΔE ${d.toFixed(1)} apart ` +
+            `— under ${MIN_DELTA_E}, a reader cannot reliably tell them apart on a 1.4px line.`);
+    }
+  }
+}
+
 // --- no two colour tokens may share a value ---
 // Each token exists to mean a DIFFERENT thing, so an identical hex is a semantic collision.
 // It hid here for real: `color.status.open` and `color.flow.normal` were both #2e8b57, so the
