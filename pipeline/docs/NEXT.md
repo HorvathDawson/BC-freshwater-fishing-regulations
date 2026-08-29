@@ -20,7 +20,7 @@ discriminator, not the build's name.
 
 ### What the active build measures
 
-| | build 19 (`full_build19_bak`) | active (`full`) |
+| | build 19 (retired) | active (`full`) |
 |---|---|---|
 | registry items | 19,722 | 19,861 |
 | `area:` items | 4 | **167** |
@@ -69,7 +69,7 @@ you want to verify before adopting:
 ```bash
 .venv/bin/python -m pipeline.build --full --out output/v2/_full_staging \
     --splits pipeline/splits.json
-# verify, then:  mv full full_prev_bak && mv _full_staging full
+# verify, then:  rm -rf full_prev_bak && mv full full_prev_bak && mv _full_staging full
 ```
 
 Worth making the button do this staging-and-swap itself; it is the only reason not to press it
@@ -295,9 +295,9 @@ those rules were confirmed against a 1-section river.
 
 ## 7. Housekeeping notes
 
-* **`output/v2` holds two builds only**: `full` (active) and `full_build19_bak` (rollback).
-  `full_named` and `full_v4` were deleted 2026-08-29 (~17.6 GB). Each build is ~8.8 GB —
-  budget for that before starting one.
+* **`output/v2` holds two builds only**: `full` (active) and `full_prev_bak` (rollback — the
+  build adopted earlier the same day). `full_named`, `full_v4`, and the build-19 backup were
+  deleted 2026-08-29. Each build is ~8.8 GB — budget for that before starting one.
 * **`docs/waterbody-splits.json` is kept deliberately.** Its generator (`hack/build_splits.py`)
   was deleted as a v1 leftover, but the rows are the **provenance** for every curated split —
   the `datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache` notes are
