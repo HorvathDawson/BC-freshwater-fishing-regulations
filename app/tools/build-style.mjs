@@ -208,6 +208,40 @@ for (const l of src.layers ?? []) {
   });
 }
 
+// --- a colour token may not cross semantic families ---
+//
+// Tokens are namespaced by MEANING: `status.*` is regulatory, `flow.*` is hydrological,
+// `water.*` is neutral ("no data expressed") and may be used anywhere. A mode reading the
+// `regs` provider may use status.*; one reading a feed like `gauges` may use flow.*.
+//
+// This exists because the discharge mode declared `missing: color.status.unknown`. About
+// 19,250 of 19,700 waters have no gauge, so nearly the whole Conditions view rendered in
+// the same violet that means "we could not parse this regulation" in the Regulations view
+// — two unrelated unknowns, one colour. The ΔE rule cannot catch it: it is the SAME token,
+// not two similar ones.
+const FAMILY_FOR_PROVIDER = { regs: "status", gauges: "flow" };
+for (const l of src.layers ?? []) {
+  for (const [mode, m] of Object.entries(l.colorModes ?? {})) {
+    const provider = m.data?.provider;
+    const allowed = provider ? FAMILY_FOR_PROVIDER[provider] : null;
+    const refs = [
+      m.color, m.missing,
+      ...Object.values(m.categories ?? {}),
+      ...(m.stops ?? []).map(([, r]) => r),
+    ].filter((r) => r && typeof r === "object" && r.token);
+    for (const { token } of refs) {
+      const fam = token.split(".")[1];
+      if (fam === "water") continue;                    // neutral: always permitted
+      if (allowed && fam !== allowed)
+        err(`layer "${l.id}" mode "${mode}" reads provider "${provider}" but uses ` +
+            `"${token}" — a ${fam}.* token. That colour already means something else in ` +
+            `another view; use a ${allowed}.* token or a neutral water.* one.`);
+      if (!allowed && fam === "flow")
+        err(`layer "${l.id}" mode "${mode}" has no data provider but uses "${token}"`);
+    }
+  }
+}
+
 // --- views must name real layers and real modes; exactly one default ---
 const defaults = (src.views ?? []).filter((v) => v.default);
 if (defaults.length !== 1) err(`exactly one view must be marked default (found ${defaults.length})`);

@@ -34,7 +34,7 @@ from typing import Optional
 import geopandas as gpd
 from shapely.geometry import LineString, Point
 
-from pipeline.models import NodeKind, SplitDef, StreamGraph
+from pipeline.models import WATERBODY_KINDS, NodeKind, SplitDef, StreamGraph
 
 
 def _name_tuples_str(node) -> str:
@@ -42,10 +42,17 @@ def _name_tuples_str(node) -> str:
 
 
 def _mouth_point(geom) -> Optional[Point]:
-    """Representative point for a node = its geometry's mouth (coords[0])."""
+    """Representative point for a node = its geometry's mouth (coords[0]).
+
+    A minted waterbody stands in its own FWA POLYGON, which has no `.coords` — fall back to a
+    guaranteed-inside representative point rather than raising."""
     if geom is None or geom.is_empty:
         return None
-    x, y = geom.coords[0]
+    try:
+        x, y = geom.coords[0]
+    except (AttributeError, NotImplementedError, IndexError):
+        p = geom.representative_point()
+        return Point(p.x, p.y)
     return Point(x, y)
 
 
@@ -69,7 +76,8 @@ def _measure_point(graph: StreamGraph, geoms: dict, blk: str, m: float) -> Optio
 def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
                       splits: Optional[list[SplitDef]] = None,
                       split_points: Optional[list] = None,
-                      obstacles=None, area_polys: Optional[dict] = None) -> None:
+                      obstacles=None, area_polys: Optional[dict] = None,
+                      wbk_polys: Optional[dict] = None) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
     if p.exists():
@@ -77,14 +85,24 @@ def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
 
     downstream = {e.from_node: e.to_node for e in graph.edges}
 
+    wbk_polys = wbk_polys or {}
     stream_rows, lake_rows = [], []
     for n in graph.nodes.values():
         g = geoms.get(n.node_id)
+        if (g is None or g.is_empty) and n.kind in WATERBODY_KINDS and n.wbk:
+            # A MINTED waterbody node (`mint_waterbody_nodes`): a named lake/wetland no stream runs
+            # through, so it has no section geometry in the sidecar. Its OWN FWA polygon stands in —
+            # without this the 309 items minting exists to create draw nothing on the map, which
+            # defeats the point of minting them.
+            g = wbk_polys.get(str(n.wbk))
         if g is None or g.is_empty:
             continue
-        if n.kind == NodeKind.lake:
+        if n.kind in WATERBODY_KINDS:
+            # Wetlands go in `lakes` too. They are waterbodies keyed by wbk, and the `else` branch
+            # writes blk/wsc/stream_order columns a wetland node simply does not have.
             lake_rows.append({
-                "node_id": n.node_id, "wbk": n.wbk, "display_name": n.display_name,
+                "node_id": n.node_id, "wbk": n.wbk, "kind": n.kind.value,
+                "display_name": n.display_name,
                 "through_rivers": ", ".join(n.through_names),
                 "n_inlets": len(graph.up_adj.get(n.node_id, [])),
                 "n_outlets": len(graph.down_adj.get(n.node_id, [])),
@@ -116,7 +134,10 @@ def export_graph_gpkg(graph: StreamGraph, geoms: dict, path: str,
     pts: dict[str, Point] = {}
     node_rows = []
     for n in graph.nodes.values():
-        mp = _mouth_point(geoms.get(n.node_id))
+        _g = geoms.get(n.node_id)
+        if _g is None and n.kind in WATERBODY_KINDS and n.wbk:
+            _g = wbk_polys.get(str(n.wbk))       # minted waterbody: its own polygon
+        mp = _mouth_point(_g)
         if mp is None:
             continue
         pts[n.node_id] = mp

@@ -5425,6 +5425,44 @@
       -117.61186,
       49.0039
      ]
+    },
+    {
+     "id": "pend_d_oreille_river__seven_mile_dam",
+     "label": "Seven Mile Dam",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -117.50383,
+       49.02989
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[manual anchor 2026-08-29] Seven Mile Dam on the Pend d'Oreille. DOWNSTREAM bound of the 'Seven Mile Reservoir' display reach in name_variants.json (blk 356570104, reach from_m 10128.19). That reach was authored 2026-08-17 from split-cut section bounds, but the cuts no longer existed, so the variant painted the whole piece [1654,24649] and the build warned 'not aligned to a split'. Coord derived by interpolating the blk chain at the recorded reach measure and round-tripping (projects back to 10128.69, 0.2 m off the line).",
+     "_coord": [
+      -117.50383,
+      49.02989
+     ]
+    },
+    {
+     "id": "pend_d_oreille_river__seven_mile_reservoir_head",
+     "label": "Seven Mile Reservoir head",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -117.38335,
+       49.02646
+      ],
+      "is_lonlat": true
+     },
+     "note": "",
+     "_note": "[manual anchor 2026-08-29] Upstream head of Seven Mile Reservoir, near the international border. UPSTREAM bound of the 'Seven Mile Reservoir' display reach (blk 356570104, reach to_m 20554.09). Same derivation as pend_d_oreille_river__seven_mile_dam; projects back to 20553.86, 0.5 m off the line. Both bounds are inside the name_variants snap tolerance (_REACH_SNAP_M) so the reach will align once these cuts exist.",
+     "_coord": [
+      -117.38335,
+      49.02646
+     ]
     }
    ]
   },

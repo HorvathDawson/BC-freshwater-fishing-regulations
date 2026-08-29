@@ -1,47 +1,79 @@
-# Next up — not started
+# Next up
 
 ---
 
-## 0. ⚠️ FIRST THING: `output/v2/full_named` exists and is NOT yet safe to switch to
+## 0. The active build — `output/v2/full` (adopted 2026-08-29)
 
-The side-channel naming bug is **fixed** — and it was never a code bug. `output/v2/full`
-was simply **stale**, built before the directional guard in `names.py`. Rebuilding fixes it:
+**Section 0's old warning about `full_named` is resolved and gone.** That build was never
+adopted; it has been deleted along with `full_v4`. The blocker it described — 163 new
+fine-grained `area:` items *replacing* the 4 legacy ones, which would have dangled
+`pitt_river.r1` — was fixed in `pipeline/registry/build.py` by preserving an already-`area:`
+prefixed id instead of re-slugging it:
 
-| | side-channel names | leaked onto a larger water |
+```python
+aid = area if area.startswith("area:") else f"area:{_slug(area)}"
+```
+
+So the adopted build has **167** area items = 4 legacy scoped + 163 blanket. Garibaldi
+survives. **Any build made before that change has 163 and will dangle** — that is the real
+discriminator, not the build's name.
+
+### What the active build measures
+
+| | build 19 (`full_build19_bak`) | active (`full`) |
 |---|---|---|
-| `output/v2/full` (still the active build) | 4,780 | **2,135** |
-| `output/v2/full_named` (new) | 19,739 | **0** |
+| registry items | 19,722 | 19,861 |
+| `area:` items | 4 | **167** |
+| lake/wetland items with **zero sections** | **309** | **0** |
+| wetland items | 46 | 58 |
+| rules bound | — | **2,925 / 3,037 (96.31%)** |
+| `no_sections_for_items` | 14 rules | **0** |
+| `cut_not_on_this_water` | 371 | **0** |
 
-McLennan Creek: 9 sections → 1. Verified by rebuilding the same bbox with current code.
+Unresolved 112 = `no_registry` 93 · `no_extents` 16 · `empty_after_scope` 1 ·
+`cuts_collapsed` 1 · `area_id_dangling` 1.
 
-**But the new build changes far more than names**, and switching blindly would break curation:
+### Why 309 items gained sections
 
+`pipeline/graph/names.py::mint_waterbody_nodes` now mints an **edgeless node** for any named
+waterbody no stream runs through. Two distinct causes had one symptom (empty `section_ids`):
+
+* **isolated lakes** — no stream connection at all, so the graph never noded them;
+* **overlaid wetlands** — a stream passes *through* the polygon, recorded only in
+  `StreamNode.member_wbks`, so the wetland itself was never a node.
+
+Minted nodes carry no geometry; the client draws the FWA polygon by `wbk`.
+
+### ⚠️ Reading a registry diff: 24 `gnis:` items "disappeared"
+
+Streams went 12,000 → 11,976. **This is a fix, not a loss.** All 24 were *lakes* mis-kinded
+as `stream` (Pitt Lake, Sooke Lake, Tahltan Lake, Green Lake, …) because no lake node
+existed, so the registry fell back to a `gnis:` stream item. Each is now a proper `wbk:`
+lake item under the same name. Verified: no name was lost, and **no entry file references
+any of the 24 old ids**. A further 12 items flipped `lake` → `wetland` (curated-wetland
+kinding). Do not "restore" these.
+
+### Which build the review app serves
+
+`config.yaml` → `output.review_build` (currently `"full"`). Both `reuse.py` and the app's
+rebuild button read `project_config.review_build_dir`, so **repointing the app at a newer
+build is a config edit, not a code change.** The rebuild button writes into the same
+directory it serves — for a build you want to verify first, build to a staging dir and swap.
+
+⚠️ **The rebuild button is destructive while it runs.** `export_graph_gpkg` starts with
+`p.unlink()`, so for the ~6 minutes it spends writing, `graph.gpkg` does not exist and every
+map request in the review app fails. `rebuild.py` does call `reuse.invalidate_caches()` on
+completion, so stale artifacts are not a problem — but the in-flight window is. For anything
+you want to verify before adopting:
+
+```bash
+.venv/bin/python -m pipeline.build --full --out output/v2/_full_staging \
+    --splits pipeline/splits.json
+# verify, then:  mv full full_prev_bak && mv _full_staging full
 ```
-items      19,722 -> 19,857   (28 removed, 163 added, 3,295 CHANGED)
-sections   49,639 -> 80,236   (+30,597, +62%)
-```
 
-* **The 4 `area:` items are gone**, replaced by 163 finer-grained ones
-  (`area:ecological_reserves:…`, `area:chilkoot_trail:…`). So `pitt_river.r1`'s
-  `area_id='area:within_garibaldi_park'` no longer resolves — the Garibaldi case we just
-  got working would dangle again.
-* **`cut_not_found` jumps 5 → 364.** The curated splits resolve against the old section
-  geometry; with 62% more sections the boundaries moved. 364 rules lose their binding.
-
-Reach builder against the new build: **2,562 bound / 475 unresolved** (vs 2,866 / 139 today).
-
-### What this needs before adopting — the registry-resync workflow
-
-1. Re-resolve the curated splits against `full_named` and inspect `cut_not_found`
-   (`pipeline/tools/reparse_candidates.py` and the reach builder's `--against` diff both help).
-2. Re-point the two `within(area)` extents at the new area ids.
-3. `prune_remapped` → `backfill_matched` → hand off `parse-missing` (HUMAN-ONLY).
-4. Expect entry ids to remap again, and locks to drop as they did last time — **finish the
-   current curation pass first, or accept another remap.**
-
-`output/v2/full` remains the active build; nothing has been switched. Decide deliberately.
-
-Parked work, with the thinking done so it can start cold.
+Worth making the button do this staging-and-swap itself; it is the only reason not to press it
+mid-session.
 
 ---
 
@@ -56,12 +88,12 @@ geometry-free consumer never pays for shapely"). Geometry lives in a sidecar:
 
 | input | where | size | carries |
 |---|---|---|---|
-| `graph.pkl` | build dir | 636 MB | topology, bounds, names, `out_of_bc` — **no geometry** |
-| `registry.json` | build dir | 12 MB | item → section ids, boundaries, variants |
-| **`geometries.pkl`** | build dir | **2.05 GB** | **the actual lines, by `node_id`** |
-| `graph.gpkg` | build dir | 3.7 GB | the same, queryable — what `reuse` reads for the map |
+| `graph.pkl` | build dir | 647 MB | topology, bounds, names, `out_of_bc` — **no geometry** |
+| `registry.json` | build dir | 13.6 MB | item → section ids, boundaries, variants |
+| **`geometries.pkl`** | build dir | **2.07 GB** | **the actual lines, by `node_id`** |
+| `graph.gpkg` | build dir | 3.77 GB | the same, queryable — what `reuse` reads for the map |
 
-So: **graph + registry + geometries**. All three already exist in `output/v2/full`.
+So: **graph + registry + geometries**. All three exist in `output/v2/full`.
 
 ### It does NOT need the reach builder
 
@@ -90,41 +122,151 @@ hard rule is the manifest pins tiles and data together and the client refuses a 
 - Zoom range and minzoom-per-`stream_order` (v1 assigned minzooms; is that still wanted?).
 - Do `out_of_bc` pieces ship? They are kept in the graph for dotted display but BC regs do
   not apply — they must not be tappable as regulated water.
+- **Minted waterbody nodes have no geometry in `geometries.pkl`** — the packager must pull
+  their polygon from FWA by `wbk` or they silently vanish from the tiles. 309 of them.
 - Lake sections are polygons (`lake:{wbk}`), streams are lines. Same layer or two?
 - Which properties ride along: `section_id` and dense id certainly; `display_name` and
   `stream_order` are useful for labels and line weight but cost bytes on 49.5k features.
 
 ---
 
-## 2. The 27 entries with stale `matched`
+## 2. Entries with empty `matched` — two different problems, don't conflate them
 
-`backfill_matched` stamps **0** of them — it only fixes entries whose original *export* had
-a match. These are `noreg_*` entries where the **live** matcher, with today's registry and
-overrides, finds an item the original export did not (Endako River, Hidden Lake, Little
-Stawamus Creek, Copper River, …).
+Two **disjoint** problems get confused with each other. 52 entries have `matched: []` (all of
+them `noreg_*`); separately, 7 entries have a *non-empty but incomplete* `matched`. Only the
+second group is a migration.
 
-Nothing is broken: `pipeline.reach.covered` falls back to a live re-match, and the builder
-and review app agree exactly. But the entry files stay stale, and attaching an item to a
-`no_registry` entry is a **curation decision**, not a migration. Either curate them through
-the review app's attach-item flow, or write a small tool that stamps from the live match —
-a decision, not a chore.
+### 2a. 7 entries with INCOMPLETE `matched` — `backfill_matched` fixes these, human must run it
+
+These are **combined** rows whose stored `matched` is missing its `also_item_ids`. Dry run
+(2026-08-29, against the active registry) says it would stamp 7:
+
+```
+wbk:329101302                                     -> wbk:329101302, wbk:329101330
+gnis:14097#kootenay_river_downstream_of_idaho_border -> gnis:14097, gnis:39068, gnis:2123
+wbk:328974978                                     -> wbk:328974978, wbk:329262641
+wbk:329262668                                     -> wbk:329262668, wbk:329262653
+wbk:329523072                                     -> wbk:329523072, wbk:329523070
+wbk:329524023#norbury_garbutt_lake                -> wbk:329524023, wbk:329524047
+wbk:329524100                                     -> wbk:329524100, wbk:328989162
+```
+
+```bash
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.parsing.backfill_matched \
+    --registry output/v2/full/registry.json
+```
+
+It replays `batch_exporter` locally — **no credits, no `claude` CLI** — and touches only
+`matched`, so locked entries keep their curated content. It is nonetheless blocked by the
+agent auto-mode classifier (the `pipeline.parsing.*` path matches the parser-run guard), so
+**a human runs this one.**
+
+### 2b. 52 `noreg_*` entries with EMPTY `matched` — `backfill_matched` cannot fix these
+
+`backfill_matched` keys on `entry_id`, and **`entry_id` encodes `item_id`**. A `noreg_*`
+entry that now matches an item would export under a *different* entry id, so the backfill
+never finds it. This is structural, not a bug.
+
+Two of them now resolve against the active build, both unambiguously **by MU overlap**:
+
+| entry | → item | how |
+|---|---|---|
+| `noreg_green_lake_871` (MU 5-1, unlocked) | `wbk:329170743` Green Lake, MU 5-1 | MU overlap, `also: ()` |
+| `noreg_pitt_lake_347` (MU 2-8, unlocked) | `wbk:329291806` Pitt Lake, MU 2-8 | MU overlap, `also: ()` |
+
+Both exist *because* minting created their lake node — they are the payoff of §0. Nothing is
+broken today: `pipeline.reach.covered` falls back to a live re-match and the builder and the
+review app agree exactly. But **attaching an item to a `no_registry` entry is a curation
+decision, not a migration.** Do it through the review app's attach-item flow, or write a
+tool that stamps from the live match — deliberately, not as a chore. Green Lake in
+particular is a name BC reuses heavily; MU overlap is what makes these two safe, and that
+will not hold for every future candidate.
+
+---
 
 ## 3. Tributary walk
 
-547 rules are `tributaries_pending`; **176 of them sit on a BOUNDED extent** ("between A and
+555 rules are `tributaries_pending`; **176 of them sit on a BOUNDED extent** ("between A and
 B, including tributaries"), which is the hard case. Reach-scoped, recursive, barrier-aware,
 validated against a flow walk — never a watershed-code prefix (that over-includes the
 Kootenay by 3,205 km). Design: `13-build-plan.md` step 8.
 
-## 4. Resolver bug — Mitchell River
+---
 
-One confirmed defect: a lake boundary carrying a split id as an **alias** resolves both ids
-to the same measure, collapsing `between` to nothing. Aliases need to carry which *end* they
-mean. Full trace: `RESOLVER-HANDOFF.md` §3.
+## 4. The four remaining unresolved rules (not counting `no_registry`/`no_extents`)
 
-## 5. The 73 locked-entry changes
+Small, specific, and each independently fixable.
+
+### 4a. Mitchell River — `cuts_collapsed` (was "resolver bug", now authorable)
+
+A lake boundary carrying a split id as an **alias** resolves both ids to the same measure,
+collapsing `between` to nothing. Full trace: `RESOLVER-HANDOFF.md` §3.
+
+**This no longer needs a resolver change.** `lake` anchors now honour `offset_m` /
+`offset_dir` (`pipeline/splits/anchors.py`), so the intended cut can simply be authored:
+
+```json
+{"type": "lake", "wbk": 329480767, "offset_m": 100, "offset_dir": "upstream"}
+```
+
+Note the model validation that made this impossible was itself a bug — `offset_m` was
+restricted to `point`/`confluence` and silently dropped 6 splits with only a *warning*.
+`load_split_defs` now reports the real reason. **Read the skipped-split warning in the build
+log**; it sits around line 40 and is easy to scroll past.
+
+### 4b. Wood River — `area_id_dangling`
+
+Entry says `within_hamber_provincial_park`; the registry has `area:hamber_prov_park_boundary`.
+A one-line curation fix. (The sibling Pitt/Garibaldi case is already fixed — see §0.)
+
+### 4c. `empty_after_scope` × 1
+
+The entry scope clips the resolved reach to nothing. Per `RESOLVER-HANDOFF.md` §4 this is
+sometimes the *correct, documented* signal (a rule describing water above the row it lives
+in), so confirm intent before "fixing" it.
+
+---
+
+## 5. Unreviewed buckets — surfaced but never decided
+
+Carried forward from `RESOLVER-HANDOFF.md` §6. These are **unexamined, not cleared.**
+
+* **72 rules with `ambiguous_cut`.** `_cut_at` picks the **lowest** measure and reports the
+  rest. Nobody has checked whether lowest is the right reading. Mitchell proves it can be
+  flat wrong.
+* **113 unclassified (straddling) pieces.** A straddler is currently neither shipped nor
+  dropped. Likely rule-type dependent — include for a closure, exclude for an opening.
+* **Determinism.** `_by_measure` iterates a `set`; `_cut_at` tie-breaks on `(length, blk)`.
+  Byte-identical builds depend on order-independence that has never been proven. Cheap test:
+  resolve N times, compare the digest (`pipeline.reach.cli` prints one).
+* **9 multi-extent rules.** Union semantics assumed, never specified or tested.
+* **`sections_override`** — 0 uses, and `entry_reaches` ignores it entirely.
+
+---
+
+## 6. The 73 locked-entry changes
 
 Investigated and **benign**: Coldwater River went 1 → 12 sections, all named "Coldwater
 River" on separate blue lines — the river's **side channels**, which the added-streams build
 now includes. The registry got more complete, not wrong. Still worth a curator's eye, since
 those rules were confirmed against a 1-section river.
+
+---
+
+## 7. Housekeeping notes
+
+* **`output/v2` holds two builds only**: `full` (active) and `full_build19_bak` (rollback).
+  `full_named` and `full_v4` were deleted 2026-08-29 (~17.6 GB). Each build is ~8.8 GB —
+  budget for that before starting one.
+* **`docs/waterbody-splits.json` is kept deliberately.** Its generator (`hack/build_splits.py`)
+  was deleted as a v1 leftover, but the rows are the **provenance** for every curated split —
+  the `datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache` notes are
+  what made it possible to find two double-offset anchors (Ash, Heber). Don't delete it
+  because its generator is gone.
+* **Two guards died with `build_splits.py`** and would need re-deriving if that workflow ever
+  returns: (1) defer to an explicitly-named anchor type rather than re-anchoring it, and
+  (2) never re-anchor a row that carries its own surveyed coordinate. Both were written
+  after converting the Lardeau and Nahatlatch anchors *wrongly*.
+* **JSON formatting is per-file and diffs explode if you get it wrong.** `pipeline/splits.json`
+  is `indent=1`; entry files are `indent=2`; both are `ensure_ascii=False` with **no trailing
+  newline**. Writing with the wrong settings produces a 45,000-line diff.

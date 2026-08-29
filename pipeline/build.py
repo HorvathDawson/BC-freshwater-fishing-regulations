@@ -634,7 +634,8 @@ def main() -> None:
         print(f"  loaded {len(obstacles)} fish-passage obstacle(s) for the obstacles layer")
     gpkg_path = str(out / "graph.gpkg")
     export_graph_gpkg(graph, geoms, gpkg_path, splits=splits, split_points=applied_splits,
-                      obstacles=obstacles, area_polys=area_polys if splits else None)
+                      obstacles=obstacles, area_polys=area_polys if splits else None,
+                      wbk_polys=wbk_polys)
     _tick("write artifacts + gpkg")
 
     if args.tributaries_of:

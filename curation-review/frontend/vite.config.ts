@@ -7,6 +7,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Bind BOTH stacks. Vite's default `localhost` resolves to ::1 on macOS, so the
+    // `http://127.0.0.1:5173` that run.sh prints was refusing the connection.
+    host: true,
     proxy: {
       "/api": {
         target: "http://127.0.0.1:8787",

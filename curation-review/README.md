@@ -5,7 +5,23 @@ context (original reg text, parsed rules, split bindings, and the stream on a ma
 correct** each one. Confirming sets `locked: true` on the entry so a future re-parse never overwrites
 hand-checked work.
 
-> Status: **planning only.** This folder is a placeholder; nothing is built yet. This doc is the spec.
+> Status: **built and in use.** This doc is both the spec and the reference.
+
+## Run it
+
+```bash
+bash curation-review/run.sh          # backend :8787 + frontend :5173, Ctrl-C stops both
+```
+
+Then open **http://localhost:5173**. Local only — no LLM calls, no credits.
+
+The build it serves is `config.yaml` → `output.review_build` (currently `output/v2/full`);
+`reuse.py` and the in-app rebuild button both read `project_config.review_build_dir`, so
+repointing the app at another build is a config edit, not a code change.
+
+⚠️ **The in-app rebuild button overwrites the build it is serving.** It deletes and rewrites
+`graph.gpkg`, so the map is broken for the several minutes that takes. To verify a build
+before adopting it, build to a staging directory and swap — see `pipeline/docs/NEXT.md` §0.
 
 ---
 
