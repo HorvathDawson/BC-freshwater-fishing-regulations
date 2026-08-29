@@ -65,24 +65,8 @@ def build_reaches(entries, registry, graph, *, build: str = "", covered_fn=None,
 
         for rule in e.get("rules") or []:
             report.n_rules += 1
-            per: list[dict | None] = []
-            clipped = False
-            for ex in rule.get("extents") or []:
-                got = _resolve.resolve_extent(registry, graph, covered, ex)
-                if got is not None and clip is not None:
-                    before = len(got.get("sections") or ())
-                    got = _clip(got, clip)
-                    clipped = clipped or len(got["sections"]) < before
-                per.append(got)
-
-            binding, diags = classify(
-                entry_id, rule, per,
-                registry=registry, covered_ids=covered,
-                scope_clipped=clipped, entry_has_registry=has_registry,
-                tributaries=wants_tributaries(rule, e),
-                tributaries_only=bool(rule.get("tributaries_only")),
-                expand_tributaries=_expander(graph, registry, covered, rule, e),
-            )
+            binding, diags = build_reach(e, rule, registry, graph,
+                                         covered=covered, clip=clip, match=match)
             bindings.append(binding)
             diagnostics.extend(diags)
 
@@ -105,7 +89,47 @@ def build_reaches(entries, registry, graph, *, build: str = "", covered_fn=None,
     return ReachResult(bindings, diagnostics, report)
 
 
-def _expander(graph, registry, covered, rule, entry):
+def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None, clip=None,
+                match=None) -> tuple[RuleBinding, list[Diagnostic]]:
+    """THE public answer to "what does this rule cover" — resolve, clip, classify, expand.
+
+    One call, so no caller has to remember the order, or that tributaries need expanding.
+    The review app got exactly that wrong once: it resolved and classified but never
+    expanded, so a curator confirming "including tributaries" was shown the mainstem alone
+    and would have signed off on a fraction of the real reach.
+
+    The layers underneath stay separately testable — `extent.resolve_extent`,
+    `tributaries.expand`, `classify.classify`. This only removes the chance to skip one.
+    """
+    if covered is None:
+        covered = _covered_ids(entry, registry, match or make_matcher(registry))
+
+    per: list[dict | None] = []
+    clipped = False
+    window = None
+    for ex in rule.get("extents") or []:
+        got = _resolve.resolve_extent(registry, graph, covered, ex)
+        if got is not None:
+            # The measure window the extent actually resolved to, handed straight to the
+            # tributary walk so it never has to re-derive where the reach starts.
+            window = window or got.get("window")
+            if clip is not None:
+                before = len(got.get("sections") or ())
+                got = _clip(got, clip)
+                clipped = clipped or len(got["sections"]) < before
+        per.append(got)
+
+    return classify(
+        entry["entry_id"], rule, per,
+        registry=registry, covered_ids=covered,
+        scope_clipped=clipped, entry_has_registry=bool(covered),
+        tributaries=wants_tributaries(rule, entry),
+        tributaries_only=bool(rule.get("tributaries_only")),
+        expand_tributaries=_expander(graph, registry, covered, rule, entry, window=window),
+    )
+
+
+def _expander(graph, registry, covered, rule, entry, *, window=None):
     """A closure that expands one rule's reach to its tributaries.
 
     Carve-outs come from TWO places and both must apply:
@@ -132,7 +156,7 @@ def _expander(graph, registry, covered, rule, entry):
             excluded |= _tribs.tributaries_of_reach(graph, secs)
 
     def expand(reach, *, only=False):
-        return _tribs.expand(graph, reach, only=only, excluded=excluded)
+        return _tribs.expand(graph, reach, only=only, excluded=excluded, window=window)
 
     return expand
 

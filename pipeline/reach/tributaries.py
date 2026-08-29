@@ -87,6 +87,7 @@ def tributaries_of_reach(
     *,
     blocked: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
+    window: tuple[str, float, float] | None = None,
 ) -> frozenset[str]:
     """Sections draining INTO `reach`, recursively. Excludes `reach` itself.
 
@@ -108,7 +109,7 @@ def tributaries_of_reach(
     # the cut, in which case the walk would never see it and the named water would be
     # missing from the very reach it defines. Rare (51 of 196,596 bounded sections) and
     # entirely concentrated on confluence-anchored cuts, which is where it matters most.
-    for seed in sorted(_mouths_at_lower_bound(graph, reach)):
+    for seed in sorted(_mouths_at_lower_bound(graph, reach, window)):
         if seed not in seen and seed not in blocked:
             n = graph.nodes.get(seed)
             if n is not None and not (guarded and n.is_barrier):
@@ -158,27 +159,50 @@ def tributaries_of_reach(
     return frozenset(out)
 
 
-def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str]) -> set[str]:
+def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
+                           window: tuple[str, float, float] | None = None) -> set[str]:
     """Tributary mouths sitting exactly on the reach's lower cut.
 
     Looked for on the piece BELOW the cut: the confluence is at the same route measure, so
     FWA may hang the mouth on either side of it. Only tributaries are taken — anything on
     the reach's own blue line is the mainstem, not a joining stream.
+
+    `window` is the `(blk, lo, hi)` the extent ACTUALLY resolved to, handed over by
+    `resolve_extent`. Prefer it: re-deriving the cut from node bounds means two places have
+    to agree about where the reach starts, and they can drift. Node bounds remain the
+    fallback for a reach that has no single window (a `whole` extent, or a `between`
+    spanning two blue lines).
     """
     out: set[str] = set()
+    if window is not None:
+        w_blk, w_lo, _w_hi = window
+        for nid in reach:
+            n = graph.nodes.get(nid)
+            if n is None or n.blk != w_blk:
+                continue
+            out |= _mouths_at(graph, nid, n, w_lo, reach)
+        return out
     for nid in reach:
         n = graph.nodes.get(nid)
         if n is None or n.lower_bound is None or not n.blk:
             continue
         m = n.lower_bound.route_measure
-        for ei in graph.down_adj.get(nid, []):          # the piece immediately below
-            below = graph.edges[ei].to_node
-            for fi in graph.up_adj.get(below, []):
-                f = graph.edges[fi]
-                src = graph.nodes.get(f.from_node)
-                if (f.from_node not in reach and src is not None and src.blk != n.blk
-                        and f.kind == "confluence" and abs(f.at_measure - m) < 0.5):
-                    out.add(f.from_node)
+        out |= _mouths_at(graph, nid, n, m, reach)
+    return out
+
+
+def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
+               reach: frozenset[str]) -> set[str]:
+    """Tributary mouths on the piece immediately BELOW `nid`, at route measure `m`."""
+    out: set[str] = set()
+    for ei in graph.down_adj.get(nid, []):
+        below = graph.edges[ei].to_node
+        for fi in graph.up_adj.get(below, []):
+            f = graph.edges[fi]
+            src = graph.nodes.get(f.from_node)
+            if (f.from_node not in reach and src is not None and src.blk != n.blk
+                    and f.kind == "confluence" and abs(f.at_measure - m) < 0.5):
+                out.add(f.from_node)
     return out
 
 
@@ -215,6 +239,7 @@ def expand(
     only: bool = False,
     excluded: set[str] | frozenset[str] = frozenset(),
     guarded: bool = True,
+    window: tuple[str, float, float] | None = None,
 ) -> frozenset[str]:
     """The section set a tributary-scoped rule actually covers.
 
@@ -224,6 +249,7 @@ def expand(
     """
     reach = frozenset(reach)
     excluded = frozenset(excluded)
-    tribs = tributaries_of_reach(graph, reach, blocked=excluded, guarded=guarded)
+    tribs = tributaries_of_reach(graph, reach, blocked=excluded, guarded=guarded,
+                                 window=window)
     base = frozenset() if only else (reach - excluded)
     return base | tribs

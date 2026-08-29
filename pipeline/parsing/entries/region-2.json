@@ -8464,64 +8464,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "noreg_little_stawamus_creek_309",
-      "identity": {
-        "name": "LITTLE STAWAMUS CREEK",
-        "region": "2",
-        "mus": [
-          "2-8"
-        ]
-      },
-      "regs_verbatim": "**No Fishing**",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:41:02+00:00",
-        "issues": []
-      },
-      "matched": [],
-      "reference_only": false,
-      "registry_status": "no_registry",
-      "registry_note": "skip: not_found",
-      "tributaries": {
-        "included": true,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "noreg_little_stawamus_creek_309.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents",
-          "rule_text": "**No Fishing**",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
-          "unresolved_locators": [],
-          "exempts_from": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "noreg_marsh_pond_318",
       "identity": {
         "name": "MARSH POND",
@@ -8570,6 +8512,199 @@
           "location_text": "",
           "exception": "",
           "display_location": "",
+          "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "noreg_pitt_lake_347",
+      "identity": {
+        "name": "PITT LAKE",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "No wild trout over 50 cm, 1 bull trout over 60 cm\nWild trout/char catch and release, single barbless hook north of fishing boundary signs (east and west shores) near the head of the lake",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "reference_only": false,
+      "registry_status": "no_registry",
+      "registry_note": "ambiguous: 2 candidates for 'PITT LAKE'",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_pitt_lake_347.r1",
+          "restriction_type": "harvest",
+          "details": "No wild trout over 50 cm",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "No wild trout over 50 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT"
+          ]
+        },
+        {
+          "rule_id": "noreg_pitt_lake_347.r2",
+          "restriction_type": "harvest",
+          "details": "1 bull trout over 60 cm",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "1 bull trout over 60 cm",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
+          "species": [
+            "BT"
+          ]
+        },
+        {
+          "rule_id": "noreg_pitt_lake_347.r3",
+          "restriction_type": "harvest",
+          "details": "Wild trout/char catch and release",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "Wild trout/char catch and release",
+          "location_text": "",
+          "exception": "",
+          "display_location": "North of fishing boundary signs near the head of the lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
+          "species": [
+            "RB",
+            "CT",
+            "WCT",
+            "CCT",
+            "GB",
+            "GT",
+            "SLV"
+          ]
+        },
+        {
+          "rule_id": "noreg_pitt_lake_347.r4",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "single barbless hook north of fishing boundary signs (east and west shores) near the head of the lake",
+          "location_text": "north of fishing boundary signs (east and west shores) near the head of the lake",
+          "exception": "",
+          "display_location": "North of fishing boundary signs (east and west shores) near the head of the lake",
+          "unresolved_locators": [
+            "north of fishing boundary signs (east and west shores) near the head of the lake"
+          ],
+          "exempts_from": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "noreg_still_creek_379",
+      "identity": {
+        "name": "STILL CREEK",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "reference_only": false,
+      "registry_status": "no_registry",
+      "registry_note": "ambiguous: 2 candidates for 'STILL CREEK'",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_still_creek_379.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
           "unresolved_locators": [],
           "exempts_from": [],
           "species": []
@@ -18019,6 +18154,76 @@
             "ST",
             "SLV"
           ]
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wsc:900-102882-078200",
+      "identity": {
+        "name": "Little Stawamus Creek",
+        "region": "2",
+        "mus": [
+          "2-8"
+        ]
+      },
+      "regs_verbatim": "**No Fishing**",
+      "source_symbols": [
+        "Incl. Tribs"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [
+        "wsc:900-102882-078200"
+      ],
+      "reference_only": false,
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": true,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "wsc:900-102882-078200.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "item_ids": [],
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing**",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole creek",
+          "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
         }
       ],
       "audit_log": []

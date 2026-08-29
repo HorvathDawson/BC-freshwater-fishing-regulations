@@ -218,7 +218,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         _fail("no_sections_for_items", ",".join(scope))
         return None
     if op == "whole":
-        return {"sections": sorted(universe), "unclassified": [], "ambiguous_cut": [],
+        return {"sections": sorted(universe), "unclassified": [], "ambiguous_cut": [], "window": None,
                 "waters": _waters(g, universe)}
     if op == "within":
         # An `area:` registry item already carries every section its polygon covers (the build's
@@ -246,7 +246,13 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             _fail("area_does_not_meet_this_water", aid)
             return None
         return {"sections": sorted(sec), "unclassified": [], "ambiguous_cut": [],
-                "waters": _waters(g, sec)}
+                "waters": _waters(g, sec), "window": None}
+    # The measure window this extent resolved to, as (blk, lo, hi) — None when there isn't
+    # one (a `whole` extent, or a `between` spanning two blue lines). Returned rather than
+    # discarded because the tributary walk needs the reach's lower cut to decide which
+    # mouths sit ON it, and re-deriving that from node bounds is the same "two places must
+    # agree" trap this module exists to avoid.
+    window: tuple[str, float, float] | None = None
     ids = list(ex.get("splits") or [])
     if not ids:
         _fail("no_splits_on_extent", op or "")
@@ -290,6 +296,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         _note(ids[0], at)
         blk, m = at[0], at[1]
         lo, hi = (m, INF) if op == "upstream_of" else (0.0, m)
+        window = (blk, lo, hi)
         sec, braided = _by_measure(g, universe, blk, lo, hi)
     elif op == "between" and len(ids) == 2:
         a = _cut_at(g, _refs(ids[0]), universe)
@@ -310,7 +317,8 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
                 _fail("between_cuts_collapsed", f"{ids[0]} and {ids[1]} both at {a[1]:.1f}"
                       + (f"; alternatives at {a[2]}" if a[2] else ""))
                 return None
-            sec, braided = _by_measure(g, universe, a[0], min(a[1], b[1]), max(a[1], b[1]))
+            window = (a[0], min(a[1], b[1]), max(a[1], b[1]))
+            sec, braided = _by_measure(g, universe, *window)
         else:
             got = _between_across_lines(g, universe, a, b)
             if got is None:
@@ -321,4 +329,4 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         _fail("unsupported_op", str(op))
         return None
     return {"sections": sorted(sec), "unclassified": sorted(braided), "ambiguous_cut": ambiguous,
-            "waters": _waters(g, sec)}
+            "waters": _waters(g, sec), "window": window}

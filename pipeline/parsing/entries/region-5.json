@@ -5714,6 +5714,68 @@
       "audit_log": []
     },
     {
+      "entry_id": "noreg_green_lake_871",
+      "identity": {
+        "name": "GREEN LAKE",
+        "region": "5",
+        "mus": [
+          "5-1"
+        ]
+      },
+      "regs_verbatim": "**No Fishing **northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
+      "source_symbols": [
+        "Stocked"
+      ],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [],
+      "reference_only": false,
+      "registry_status": "no_registry",
+      "registry_note": "ambiguous: 2 candidates for 'GREEN LAKE'",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "noreg_green_lake_871.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [],
+          "dates": [
+            "Mar 1-May 31"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "**No Fishing **northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek, Mar 1-May 31",
+          "location_text": "northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek",
+          "exception": "",
+          "display_location": "Northeast of the boundary signs across the bay at the mouth of Watch Creek",
+          "unresolved_locators": [
+            "northeast of line between boundary signs on opposite shores of the bay at the mouth of Watch Creek"
+          ],
+          "exempts_from": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "noreg_hidden_lake_877",
       "identity": {
         "name": "HIDDEN LAKE",

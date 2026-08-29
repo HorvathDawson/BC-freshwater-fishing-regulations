@@ -2924,64 +2924,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "noreg_hidden_lake_1319",
-      "identity": {
-        "name": "HIDDEN LAKE",
-        "region": "8",
-        "mus": [
-          "8-25"
-        ]
-      },
-      "regs_verbatim": "No towing",
-      "source_symbols": [
-        "Stocked"
-      ],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:55:27+00:00",
-        "issues": []
-      },
-      "matched": [],
-      "reference_only": false,
-      "registry_status": "no_registry",
-      "registry_note": "skip: not_found",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "noreg_hidden_lake_1319.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "No towing",
-          "extents": [],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents",
-          "rule_text": "No towing",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
-          "unresolved_locators": [],
-          "exempts_from": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "noreg_sawmill_lake_1362",
       "identity": {
         "name": "SAWMILL LAKE",

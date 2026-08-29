@@ -28,9 +28,7 @@ from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
 from pipeline.parsing.rows import load_synopsis_rows
 from pipeline.registry import load_registry
-from pipeline.reach.build import _expander as _reach_expander
-from pipeline.reach.classify import classify as _classify
-from pipeline.reach.classify import wants_tributaries as _wants_tributaries
+from pipeline.reach.build import build_reach as _build_reach
 from pipeline.reach import extent as _resolve
 from pipeline.utils.wsc import trim_wsc
 
@@ -587,27 +585,18 @@ def entry_reaches(entry_id: str) -> dict:
             out[r["rule_id"]] = per
             per_rule[r["rule_id"]] = per
 
-        # The builder's verdict on the same inputs — one implementation, not two.
-        # Tributaries are EXPANDED here exactly as the bundle will expand them: a rule
-        # reading "including tributaries" covers far more than its mainstem, and a curator
-        # confirming it against the mainstem alone would be signing off on the wrong reach.
+        # ONE call into the builder — the same function the artifact build uses, so the
+        # app cannot resolve, clip, classify or expand differently from what ships.
         verdict: dict = {}
         for r in e.get("rules") or []:
-            binding, diags = _classify(
-                entry_id, r, per_rule[r["rule_id"]],
-                registry=_registry(), covered_ids=covered,
-                scope_clipped=_scope_clipped(per_rule[r["rule_id"]], clip),
-                entry_has_registry=bool(covered),
-                tributaries=_wants_tributaries(r, e),
-                tributaries_only=bool(r.get("tributaries_only")),
-                expand_tributaries=_reach_expander(_graph(), _registry(), covered, r, e),
-            )
+            binding, diags = _build_reach(e, r, _registry(), _graph(), covered=covered, clip=clip)
             verdict[r["rule_id"]] = {
                 "outcome": binding.outcome.value,
                 "reason": binding.reason.value if binding.reason else None,
                 "detail": binding.detail,
                 "n_sections": len(binding.sections),
                 "sections": list(binding.sections),
+                "tributaries_pending": binding.tributaries_pending,
                 "diagnostics": [{"kind": d.kind, **d.payload} for d in diags],
             }
 

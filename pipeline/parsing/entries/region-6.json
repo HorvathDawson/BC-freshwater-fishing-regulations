@@ -7998,63 +7998,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "noreg_endako_river_1009",
-      "identity": {
-        "name": "ENDAKO RIVER",
-        "region": "6",
-        "mus": [
-          "6-4"
-        ]
-      },
-      "regs_verbatim": "**No Fishing** Nov 15-June 30",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:52:19+00:00",
-        "issues": []
-      },
-      "matched": [],
-      "reference_only": false,
-      "registry_status": "no_registry",
-      "registry_note": "skip: ignored",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "endako_river.r1",
-          "restriction_type": "closure",
-          "details": "No fishing",
-          "extents": [],
-          "dates": [
-            "Nov 15-June 30"
-          ],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents",
-          "rule_text": "**No Fishing** Nov 15-June 30",
-          "location_text": "",
-          "exception": "",
-          "display_location": "",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "noreg_gatcho_lake_1012",
       "identity": {
         "name": "GATCHO LAKE",
