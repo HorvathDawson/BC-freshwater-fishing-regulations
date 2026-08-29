@@ -757,9 +757,21 @@ resolver answering twice.
 - **9.1** All 235 load; the **7 `disabled`** do not ship live.
 - **9.2 (㉒)** Keyed by `base_rule_zone` (regions `1`–`8`, `7A`, `7B` — **225 of 235**) +
   `base_rule_mu` (10). MU by polygon, then MU→zone; no invented expansion.
-- **9.3 (㉑)** `exempt_code` on the ~9 default families; assert **all 81** `exempts_from` values join.
+- **9.3 (㉑)** `exempt_code` on the ~9 default families; assert every `exempts_from` value joins.
   Until this passes, doc 10 §2's `defaults − exemptions` is unimplementable and "is it open" cannot be
   answered.
+
+  ⚠️ **Doc 10 ㉑'s "81 rules, 7 codes" is wrong.** Counted 2026-08-29: **59 rules**, and only
+  **2 of the 7** vocabulary codes are used at all — `spring_closure` (55) and `bait_ban` (5).
+  `single_barbless_hook`, `trout_char_release`, `bull_trout_release`, `summer_closure` and
+  `kokanee_stream_quota` have **zero** uses.
+
+  That is worse than a stale count. The subtraction doc 10 calls *"the only correct way to
+  answer is it open"* has almost no data behind it, and a UI review found the textbook case
+  proving it: the Lardeau River row states both its exemptions **in words** while carrying an
+  empty `exempts_from`, typed as a `note`. So the mechanism cannot fire on the very example
+  it exists for. Building the join (㉑) is necessary but **not sufficient** — the codes have
+  to be stamped during curation too, and 5 of 7 have never been used once.
 - **9.4 (㉝)** Species tags on the 235; assert the **86 zone quota rules** are tagged.
 - **9.5 (⑦)** 14 free-text types → the 6 enums as a table test; an unmapped type is an error.
 
