@@ -29,6 +29,7 @@ synopsis spelling and the FWA gazetteer spelling compare equal. It KEEPS the Lak
 from __future__ import annotations
 
 import json
+import logging
 import re
 import unicodedata
 from collections import defaultdict
@@ -37,6 +38,8 @@ from pathlib import Path
 
 from pipeline.models import RegistryItem
 from pipeline.utils.wsc import trim_wsc
+
+_log = logging.getLogger(__name__)
 
 _MU_RE = re.compile(r"\b(\d+)\s*-\s*(\d+)\b")
 
@@ -111,8 +114,16 @@ def build_name_index(registry: dict[str, RegistryItem]) -> dict[str, list[str]]:
 def build_id_index(registry: dict[str, RegistryItem]) -> dict[str, str]:
     """ref_id (gnis:/wbk:/wsc:/blk:) -> item_id, from every item's `ref_ids`. The bridge that lets a
     curated typed-id override resolve to whatever registry item now owns that FWA id (incl. a lake's
-    GNIS_ID_1/2/3). First writer wins (ref_ids are near-unique; a rare shared code keeps the first)."""
-    idx: dict[str, str] = {}
+    GNIS_ID_1/2/3).
+
+    SELF-IDENTITY WINS, then first writer. A ref is NOT unique: every side channel that inherited the
+    mainstem's name also carries the mainstem's gnis on its name tuples, so `gnis:39325` (the Fraser)
+    appears in the ref_ids of all 15 Fraser-channel items. Plain first-writer-wins then handed
+    `gnis:39325` to whichever item happened to be built first — Annacis Channel, ONE section — so the
+    Fraser overrides pinned the whole river onto a side channel. The item whose OWN id is that ref is
+    always the right answer, so it is claimed up front (5 rivers were misdirected this way: Fraser,
+    Stave, Columbia, Pitt, Nelson Slough)."""
+    idx: dict[str, str] = {iid: iid for iid, it in registry.items() if it.kind != "area"}
     for iid, it in registry.items():
         for r in it.ref_ids:
             idx.setdefault(r, iid)
@@ -149,8 +160,13 @@ def build_override_index(overrides: list[dict]) -> dict[str, list[dict]]:
 
 
 def _pick_override(entries: list[dict], rn: str, row_mus: set[str]) -> dict | None:
-    """The override entry best matching this row's region/MUs. MU overlap > region match > catch-all."""
-    best, best_score = None, -1
+    """The override entry best matching this row's region/MUs. MU overlap > region match > catch-all.
+
+    An override only applies when it POSITIVELY matches the row: MU overlap (3), region match (2), or an
+    intentional catch-all with no region/MU scope (1). A scoped override whose region AND MUs both
+    conflict with the row (0) is a DIFFERENT water — never apply it (that bound Region-1 'White River'
+    to the Region-4 'White River (see also …)' override before this guard)."""
+    best, best_score = None, 0
     for e in entries:
         c = e.get("criteria") or {}
         emus = set(c.get("mus", []))
@@ -166,7 +182,7 @@ def _pick_override(entries: list[dict], rn: str, row_mus: set[str]) -> dict | No
             score = 0
         if score > best_score:
             best, best_score = e, score
-    return best if best_score >= 0 else None
+    return best if best_score >= 1 else None
 
 
 def override_typed_ids(e: dict) -> list[str]:
@@ -184,31 +200,43 @@ def override_typed_ids(e: dict) -> list[str]:
     return ids
 
 
-def _mu_disambiguate(cands: list[str], registry, rn: str, row_mus: set[str]) -> tuple[list[str], str]:
-    """Narrow same-name candidates. Prefer sections whose MUs intersect the reg's MUs; else region num."""
-    if row_mus:
-        narrowed = [c for c in cands if _item_mus(registry[c]) & row_mus]
-        if narrowed:
-            return narrowed, f"MU overlap {sorted(row_mus)}"
-    if rn:
-        narrowed = [c for c in cands if rn in _item_region_nums(registry[c]) or not registry[c].mus]
-        if narrowed:
-            return narrowed, f"region {rn}"
-    return cands, ""
-
-
 def _name_resolve(index: int, water: str, lookup: str, via: str, registry, name_index, rn, row_mus) -> MatchResult:
     cands = list(name_index.get(lookup, []))
     if not cands:
         return MatchResult(index, water, None, "unmatched", "no name/variant match", via=via)
+
+    # MU gate (strict): when the reg row names MU(s), a candidate is only a real match if its own MUs
+    # share one of them. If EVERY same-named candidate has MUs and none intersect the reg's MU, it's a
+    # DIFFERENT water — never guess by region; leave it unmatched so a curator override binds it (e.g.
+    # a stream tagged 1-1/1-2/1-3 can't satisfy a reg that names 1-5). Untagged candidates (empty MU
+    # column) can't be checked; they're only kept when no MU-conflicting sibling exists, so a lone
+    # untagged water still matches. (Haida Gwaii waters printed in Region 1 match by real overlap here
+    # because their MU column literally holds their 6-xx MUs.)
+    how = ""
+    if row_mus:
+        overlap = [c for c in cands if _item_mus(registry[c]) & row_mus]
+        if overlap:
+            cands, how = overlap, f"MU overlap {sorted(row_mus)}"
+        elif all(registry[c].mus for c in cands):
+            return MatchResult(index, water, None, "unmatched",
+                               f"no '{water}' shares MU {sorted(row_mus)} (needs override)", via=via)
+        else:
+            cands = [c for c in cands if not registry[c].mus]  # keep only the uncheckable ones
+            _log.warning("MU gate: '%s' (reg MU %s) matched an item with NO MUs on record %s — "
+                         "can't verify; registry MU data likely incomplete, consider an override",
+                         water, sorted(row_mus), cands)
+
     if len(cands) == 1:
-        return MatchResult(index, water, cands[0], "matched", via=via)
-    narrowed, how = _mu_disambiguate(cands, registry, rn, row_mus)
-    if len(narrowed) == 1:
-        return MatchResult(index, water, narrowed[0], "matched", reason=f"disambiguated by {how}", via=via)
-    return MatchResult(index, water, None, "ambiguous",
-                       f"{len(narrowed)} candidates for '{water}'" + (f" after {how}" if how else ""),
-                       tuple(narrowed), via=via)
+        return MatchResult(index, water, cands[0], "matched", reason=(f"disambiguated by {how}" if how else ""), via=via)
+
+    # Still several same-name candidates (or none had MUs to gate on): fall back to region number.
+    if rn:
+        narrowed = [c for c in cands if rn in _item_region_nums(registry[c]) or not registry[c].mus]
+        if len(narrowed) == 1:
+            return MatchResult(index, water, narrowed[0], "matched", reason=f"disambiguated by region {rn}", via=via)
+        if narrowed:
+            cands = narrowed
+    return MatchResult(index, water, None, "ambiguous", f"{len(cands)} candidates for '{water}'", tuple(cands), via=via)
 
 
 def match_row(index: int, row: dict, registry: dict[str, RegistryItem], name_index: dict[str, list[str]],

@@ -12,10 +12,10 @@ named only in name_variants, not FWA GNIS — is labelled correctly here.
 """
 
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import replace
 
-from pipeline.models import NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
+from pipeline.models import WATERBODY_KINDS, NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
 from pipeline.utils.wsc import trim_wsc
 
 
@@ -28,7 +28,7 @@ def _wsc_gnis_map(graph: StreamGraph) -> dict[str, str]:
     of their own) inherit their stream's gnis and don't fragment the item."""
     m: dict[str, str] = {}
     for n in graph.nodes.values():
-        if n.kind != NodeKind.lake and n.gnis_id and n.wsc:
+        if n.kind not in WATERBODY_KINDS and n.gnis_id and n.wsc:
             m.setdefault(trim_wsc(n.wsc), n.gnis_id)
     return m
 
@@ -46,7 +46,7 @@ def _effective_gnis(n: StreamNode, wsc_gnis: dict[str, str]) -> str:
 
 def item_id(n: StreamNode, wsc_gnis: dict[str, str]) -> str:
     """gnis (own / inherited / WSC's) -> wsc -> blk for streams; wbk for lakes. gnis-first; wsc before blk."""
-    if n.kind == NodeKind.lake:
+    if n.kind in WATERBODY_KINDS:
         return f"wbk:{n.wbk}"
     g = _effective_gnis(n, wsc_gnis)
     if g:
@@ -54,6 +54,61 @@ def item_id(n: StreamNode, wsc_gnis: dict[str, str]) -> str:
     if n.wsc:
         return f"wsc:{trim_wsc(n.wsc)}"
     return f"blk:{n.blk}"
+
+
+def _primary_name(iid: str, nodes) -> str:
+    """The name the item itself goes by: the display name of the nodes that own the item's gnis, else
+    the most common display name (ties -> longest, for determinism)."""
+    g = iid.split(":", 1)[1] if iid.startswith("gnis:") else ""
+    own = [n.display_name for n in nodes if n.display_name and g and n.gnis_id == g]
+    if own:
+        return Counter(own).most_common(1)[0][0]
+    names = Counter(n.display_name for n in nodes if n.display_name)
+    if not names:
+        return ""
+    return max(names.items(), key=lambda kv: (kv[1], len(kv[0])))[0]
+
+
+def split_distinct_names(groups: dict[str, list]) -> dict[str, list]:
+    """Give a differently-NAMED side channel its own item instead of folding it into the mainstem.
+
+    A channel with no GNIS of its own inherits the mainstem's name tuple (and so its gnis), which is
+    what keeps unnamed braids attached to their river — correct. But when curation or the gazetteer
+    gave that channel a name of its OWN, `display_name` already says it is a distinct water, and the
+    synopsis regulates it as one (McArthur Island Slough on the Thompson, Squamish Powerhouse Channel
+    on the Squamish). Folding it in did two kinds of damage: its regulation resolved to the whole
+    mainstem (a no-powered-boats slough rule landing on all 82 sections of the Thompson), and the
+    item took ITS name, because the item name was the longest member name — which is how the Fraser
+    was displayed as 'Seabird Island North Side Channel' and the Squamish as 'Squamish Powerhouse
+    Channel'.
+
+    So: the mainstem keeps the item id and its own name; each other display name moves to its own item
+    keyed by its lowest blk (the form `item_id` already uses for a stream with no gnis), which is also
+    what a curated `blue_line_keys` pin resolves to.
+
+    Only a node with NO gnis of its own moves. A node that OWNS the item's gnis is a gazetted reach of
+    that very river, and curation renaming it ("Sicamous Narrows" for one reach of the Shuswap,
+    '"Diana" Creek' for one of the Kloiya) does not make it a different water — splitting those out
+    would give the river a second item answering to its own name and turn every plain "SHUSWAP RIVER"
+    row ambiguous. Naming is handled for them by `_primary_name` instead."""
+    out: dict[str, list] = {}
+    for iid, nodes in groups.items():
+        g = iid.split(":", 1)[1] if iid.startswith("gnis:") else ""
+        main = _primary_name(iid, nodes)
+        movable = [n for n in nodes
+                   if n.display_name and n.display_name != main and n.gnis_id != g and not n.gnis_id]
+        if not movable:
+            out.setdefault(iid, []).extend(nodes)
+            continue
+        move = set(id(n) for n in movable)
+        out.setdefault(iid, []).extend(n for n in nodes if id(n) not in move)
+        extra: dict[str, list] = defaultdict(list)
+        for n in movable:
+            extra[n.display_name].append(n)
+        for dn, ns in extra.items():
+            blks = sorted(b for b in {n.blk for n in ns} if b)
+            out.setdefault(f"blk:{blks[0]}" if blks else f"{iid}:{_slug(dn)}", []).extend(ns)
+    return out
 
 
 def _ref_ids(nodes) -> tuple[str, ...]:
@@ -71,7 +126,7 @@ def _ref_ids(nodes) -> tuple[str, ...]:
                 ids.add(f"gnis:{g}")
         if n.wbk:
             ids.add(f"wbk:{n.wbk}")
-        if n.kind == NodeKind.lake:
+        if n.kind in WATERBODY_KINDS:
             continue                                     # wsc/blk belong to the through-river, not the lake
         if n.wsc:
             ids.add(f"wsc:{trim_wsc(n.wsc)}")
@@ -94,7 +149,8 @@ def _boundary(b) -> RegistryBoundary | None:
         rid = _slug(b.label) or f"lake_{wbk}"
     else:
         rid = bid or _slug(b.label)     # outlet / headwaters
-    return RegistryBoundary(id=rid, label=b.label or "", kind=b.kind.value, ref=bid, wbk=wbk)
+    return RegistryBoundary(id=rid, label=b.label or "", kind=b.kind.value, ref=bid, wbk=wbk,
+                            aliases=tuple(b.aliases or ()))
 
 
 def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
@@ -113,27 +169,37 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
         groups: dict[str, list[StreamNode]] = defaultdict(list)
         for n in graph.nodes.values():
             groups[item_id(n, wsc_gnis)].append(n)
+        groups = split_distinct_names(groups)      # a NAMED side channel is its own water, not a reach
 
     registry: dict[str, RegistryItem] = {}
     _t_items = time.perf_counter()
     for iid, nodes in groups.items():
-        kind = "lake" if nodes[0].kind == NodeKind.lake else "stream"
-        names = [n.display_name for n in nodes if n.display_name]
-        name = max(names, key=len) if names else ""          # display_names agree within an item; longest wins ties
-        # Searchable variants = the nodes' name-tuple names, EXCEPT a side-channel name borrowed from
-        # a DIFFERENT waterbody (its gnis is not one of this item's own). Blind Slough is a side channel
+        kind = nodes[0].kind.value if nodes[0].kind in WATERBODY_KINDS else "stream"
+        name = _primary_name(iid, nodes)                     # split_distinct_names left one display name per item
+        # Searchable variants = the nodes' name-tuple names, EXCEPT a name borrowed from a DIFFERENT
+        # waterbody (its gnis is not one of this item's own). Blind Slough is a side channel
         # of the Stave, so its nodes carry ('Stave River', side_channel, gnis 14589) — kept on the node
         # (for grouping/relationship) but NOT a searchable alias of Blind Slough, else 'Stave River'
         # would resolve to two items. Own gnis = the item's gnis-key + any member node's own gnis.
+        # Own gnis = the item's gnis-key + any member node's own gnis + every gnis on a GAZETTED
+        # name tuple. That last part matters for lakes: FWA gives a waterbody up to three gazetted
+        # names (GNIS_NAME_1/2/3), each with its own id, so Nation Lakes legitimately answers to
+        # 'Tsayta Lake' (gnis 29218) as well. Those are the feature's OWN names; only an INHERITED
+        # name (side-channel / a name_variants entry keyed to a neighbour's gnis) is borrowed.
         own_gnis = {n.gnis_id for n in nodes if n.gnis_id}
+        own_gnis |= {t.gnis_id for n in nodes for t in n.name_tuples
+                     if t.gnis_id and t.source == NameSource.gazette}
         if iid.startswith("gnis:"):
             own_gnis.add(iid.split(":", 1)[1])
 
-        def _foreign_sc(t) -> bool:
-            return (t.source == NameSource.side_channel and t.gnis_id
-                    and t.gnis_id not in own_gnis)
+        def _foreign(t) -> bool:
+            """A name tagged with SOMEONE ELSE'S gnis is a borrowed neighbour name, whatever attached
+            it. The side-channel inheritance is one path; a name_variants entry keyed to the mainstem's
+            gnis is the other, and it lands on the same inheriting nodes — which is how the reg name
+            'FRASER RIVER' became a searchable alias of all 15 Fraser channel items at once."""
+            return bool(t.gnis_id) and t.gnis_id not in own_gnis
 
-        own_names = {t.name for n in nodes for t in n.name_tuples if t.name and not _foreign_sc(t)}
+        own_names = {t.name for n in nodes for t in n.name_tuples if t.name and not _foreign(t)}
         if own_names:
             variants = tuple(sorted(own_names))              # has its own name — drop borrowed neighbour names
         else:
@@ -147,13 +213,23 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
             continue
         item_slug = _slug(name) or iid.replace(":", "_")
         bmap: dict[str, RegistryBoundary] = {}                # keyed by readable id; disambiguate collisions
-        seen_refs: set[str] = set()
+        seen_refs: dict[str, str] = {}                        # ref -> the rid already minted for it
         for n in nodes:
             for end in (n.lower_bound, n.upper_bound):
                 rb = _boundary(end)
-                if rb is None or rb.ref in seen_refs:
+                if rb is None:
                     continue
-                seen_refs.add(rb.ref)
+                if rb.ref in seen_refs:
+                    # One boundary, two instances: a lake is the UPPER bound of the piece below it and
+                    # the LOWER bound of the piece above, and an alias is recorded on just one of those
+                    # edges. Skipping the repeat outright dropped the alias whenever the un-aliased
+                    # edge happened to be seen first, so merge instead of discarding.
+                    if rb.aliases:
+                        prev = bmap[seen_refs[rb.ref]]
+                        merged = tuple(dict.fromkeys((*prev.aliases, *rb.aliases)))
+                        if merged != prev.aliases:
+                            bmap[seen_refs[rb.ref]] = replace(prev, aliases=merged)
+                    continue
                 # curated split ids are already globally unique + encode context; auto boundaries
                 # (lake/outlet/headwaters) are item-prefixed so a shared lake stays unique per river.
                 base = rb.id if rb.ref.startswith("split:") else f"{item_slug}__{rb.id}"
@@ -161,7 +237,9 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
                 i = 2
                 while rid in bmap:
                     rid = f"{base}_{i}"; i += 1
-                bmap[rid] = RegistryBoundary(id=rid, label=rb.label, kind=rb.kind, ref=rb.ref, wbk=rb.wbk)
+                bmap[rid] = RegistryBoundary(id=rid, label=rb.label, kind=rb.kind, ref=rb.ref,
+                                             wbk=rb.wbk, aliases=rb.aliases)
+                seen_refs[rb.ref] = rid
         registry[iid] = RegistryItem(
             id=iid, name=name, kind=kind, variants=variants,
             section_ids=tuple(n.node_id for n in nodes),
@@ -180,7 +258,9 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
             for area in n.in_areas:
                 area_nodes[area].append(n)
         for area, nodes in area_nodes.items():
-            aid = f"area:{_slug(area)}"
+            # A blanket area is flagged with its catalog id (`area:{kind}:{slug}`) so the id stays
+            # stable and collision-safe; a rule-scoped `area_boundary` split flags a bare label.
+            aid = area if area.startswith("area:") else f"area:{_slug(area)}"
             registry[aid] = RegistryItem(id=aid, name=area, kind="area", variants=(),
                                          section_ids=tuple(n.node_id for n in nodes), boundaries=())
     prof.report("build_registry")
@@ -246,15 +326,20 @@ def add_curated_wbk_items(registry: dict[str, RegistryItem], name_variants: list
 
 
 def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
-                mu_polys: dict) -> dict[str, RegistryItem]:
+                mu_polys: dict, wbk_polys: dict | None = None) -> dict[str, RegistryItem]:
     """Enrich NAMED stream/lake items with the SET of MUs their geometry passes through (line/area ×
     WMU). Only the matcher needs this (to break same-name collisions), and only named items collide,
-    so unnamed streams are skipped. A river spanning several MUs carries all of them. Mutates + returns."""
+    so unnamed streams are skipped. A river spanning several MUs carries all of them.
+
+    Geometry source per item: its graph sections (``section_ids`` -> ``geoms``) when noded; else its own
+    FWA waterbody polygon (``wbk_polys[wbk]``) for isolated lakes/wetlands that never became graph nodes
+    — so EVERY named item gets real MUs, not just the graph-noded ones. Mutates + returns."""
     if not mu_polys:
         return registry
     from shapely.ops import unary_union
     from shapely.strtree import STRtree
 
+    wbk_polys = wbk_polys or {}
     mu_ids = list(mu_polys)
     polys = [mu_polys[m] for m in mu_ids]
     tree = STRtree(polys)
@@ -262,9 +347,13 @@ def add_mu_sets(registry: dict[str, RegistryItem], geoms: dict,
         if it.kind == "area" or not it.name:                 # named streams/lakes only
             continue
         parts = [geoms[nid] for nid in it.section_ids if geoms.get(nid) is not None]
-        if not parts:
-            continue
-        g = unary_union(parts)
+        if parts:
+            g = unary_union(parts)
+        else:                                                # isolated lake/wetland: use its own polygon
+            wbk = iid.split(":", 1)[1] if iid.startswith("wbk:") else ""
+            g = wbk_polys.get(wbk)
+            if g is None:
+                continue
         hits = {mu_ids[i] for i in tree.query(g) if g.intersects(polys[i])}
         if hits:
             registry[iid] = replace(it, mus=tuple(sorted(hits)))

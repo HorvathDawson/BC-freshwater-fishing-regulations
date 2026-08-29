@@ -4510,9 +4510,10 @@
         "2-8"
       ]
     },
-    "note": "Known location in MU 2-8 near Squamish but stream does not exist in FWA mapping data. Would require custom stream segment creation. Reference: DFO Stream Summary Catalogue 'Little Stawamus Creek' https://publications.gc.ca/collections/collection_2014/mpo-dfo/Fs97-6-2282-eng.pdf and https://squamish.ca/assets/Uploads/928c09348e/Camping-Bylaw-Map.pdf",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Absent from FWA, so drawn from the Squamish municipal layer and minted as an added stream (blk -2100000051, wsc 900-102882-078200, name 'Little Stawamus Creek'; see pipeline/added_streams.build.json). Pinned here by blue line key so the reg binds the added stream directly. Reference: DFO Stream Summary Catalogue 'Little Stawamus Creek' https://publications.gc.ca/collections/collection_2014/mpo-dfo/Fs97-6-2282-eng.pdf and https://squamish.ca/assets/Uploads/928c09348e/Camping-Bylaw-Map.pdf",
+    "blue_line_keys": [
+      "-2100000051"
+    ]
   },
   {
     "type": "override",
@@ -7090,6 +7091,20 @@
     "waterbody_keys": [
       "329657333",
       "329657984"
+    ]
+  },
+  {
+    "type": "override",
+    "criteria": {
+      "name_verbatim": "EAGLE CREEK",
+      "region": "REGION 2 - Lower Mainland",
+      "mus": [
+        "2-8"
+      ]
+    },
+    "note": "Two Eagle Creeks in MU 2-8 (both fall 100% inside it, so the MU gate cannot separate them). This is the GAZETTED one in West Vancouver (GNIS 9405, blk 360548981, WSC 900-087856). The other (blk 356206901, Burnaby Lake) is FWA-unnamed — 'Eagle Creek' there is a local name from the City of Burnaby Waterways map (2021), not a regulation source.",
+    "gnis_ids": [
+      "9405"
     ]
   }
 ]

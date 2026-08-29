@@ -1,0 +1,20 @@
+{
+  "name": "dark",
+  "values": {
+    "color.water.regulated": "#4da3e8",
+    "color.water.other": "#3c5a72",
+    "color.highlight": "#ffbe4d",
+    "color.parcel.line": "#c9a86a",
+    "color.status.open": "#48b07a",
+    "color.status.restricted": "#e8a733",
+    "color.status.unknown": "#a78bd0",
+    "color.status.default_only": "#6e6e6e",
+    "color.flow.low": "#e0c04a",
+    "color.flow.normal": "#48b07a",
+    "color.flow.high": "#5a9ad8",
+    "width.stream.base": 1.4,
+    "width.stream.highlight": 3.2,
+    "opacity.overlay": 0.45,
+    "color.status.closed": "#e05a4b"
+  }
+}

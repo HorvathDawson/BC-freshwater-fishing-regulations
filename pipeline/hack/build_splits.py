@@ -234,6 +234,28 @@ def _landmark(row: dict) -> str:
 
 def _to_anchor(r: dict) -> Optional[dict]:
     kind = r.get("anchor_kind"); tgt = r.get("target") or {}; coord = r.get("coord")
+    # A row is LAKE-ANCHORED when its target is a lake, whichever of the two fields says so. The
+    # curation rows carry the intent explicitly — "datum=wbk (lake edge); offset {m,dir} authoritative;
+    # anchor coord is a cache" — but several describe the visible landmark in `anchor_kind` ("the signs
+    # ~600 m below Trout Lake outlet" is authored as a point) while only `target.type` records the
+    # datum. Reading `anchor_kind` alone anchored those on the cached coordinate and threw the lake
+    # away, so the cut stopped moving when the lake did.
+    #
+    # One guard on that: a row may ALSO carry an explicit instruction to author a different anchor
+    # ("600 m downstream of the Mobbs Creek confluence. Author as confluence anchor tributary_wsc=..."
+    # on the Lardeau). There the "split via FWA target lake WBK" tag is a generic marker a batch job
+    # appended, and the named anchor is the specific human intent — so the instruction wins.
+    _LAKEISH = ("lake", "lake_outlet", "lake_io")
+    _notes = r.get("notes") or ""
+    _defers = re.search(r"author as (?:an? )?(confluence|point|line)\b", _notes, re.I)
+    # And the row's own coordinate settles it. When `coord` differs from `offset.anchor`, the row holds
+    # TWO positions: the landmark and the datum it was measured from. That means the landmark itself was
+    # surveyed, so it is the better anchor and the offset is only how it was described — the Nahatlatch
+    # bridge (OSM way 416740411) sits 400 m below Frances Lake, and anchoring it on the lake would throw
+    # the survey away. When the two are the SAME, `coord` is just the datum cached and the offset is the
+    # only thing that locates the cut.
+    _own_coord = (r.get("coord") and off.get("anchor") and list(r["coord"]) != list(off["anchor"]))
+    is_lake = (kind in _LAKEISH or tgt.get("type") in _LAKEISH) and not _defers and not _own_coord
     off = r.get("offset") or {}
     trib_wsc = TRIB_WSC.get(r.get("id")) or tgt.get("wsc")            # corrected WSC wins over the curated one
     # bare-trunk confluence with no known real tributary -> fall back to a point at the curated coord
@@ -246,10 +268,10 @@ def _to_anchor(r: dict) -> Optional[dict]:
         a = {"type": "confluence", "tributary_wsc": trib_wsc}
     elif kind == "confluence" and tgt.get("blk"):
         a = {"type": "confluence", "tributary_blk": str(tgt["blk"])}
-    elif kind in ("lake", "lake_outlet", "lake_io") and off.get("m") and coord:
-        a = {"type": "point", "coord": coord, "is_lonlat": True}   # a lake anchor can't carry an offset
-    elif kind in ("lake", "lake_outlet", "lake_io") and tgt.get("wbk"):
-        a = {"type": "lake", "wbk": str(tgt["wbk"])}
+    elif is_lake and tgt.get("wbk"):
+        a = {"type": "lake", "wbk": str(tgt["wbk"])}                # keeps its offset (see below)
+    elif is_lake and off.get("m") and coord:
+        a = {"type": "point", "coord": coord, "is_lonlat": True}    # offset but no wbk: use the coord
     elif kind == "area_boundary" and tgt.get("area_name"):
         a = {"type": "area_boundary", "area_layer": tgt.get("area_layer", "parks_bc"), "area_name": tgt["area_name"]}
         if tgt.get("wsc_descendants"):
@@ -260,7 +282,7 @@ def _to_anchor(r: dict) -> Optional[dict]:
         a = {"type": "point", "coord": coord, "is_lonlat": True}
     else:
         return None
-    if off.get("m") and a["type"] in ("point", "confluence"):
+    if off.get("m") and a["type"] in ("point", "confluence", "lake"):
         a["offset_m"] = off["m"]; a["offset_dir"] = off.get("dir", "downstream")
     return a
 

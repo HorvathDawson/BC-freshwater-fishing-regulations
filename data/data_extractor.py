@@ -165,17 +165,55 @@ class FWADataAccessor:
         )
         gdf = self._normalize_columns(gdf)
 
-        # Show progress bar as we iterate through the rows (forces load)
-        _ = [
-            row
-            for row in tqdm(
-                gdf.itertuples(),
-                total=len(gdf),
-                desc=f"Loading '{layer_name}'",
-                unit="row",
-            )
-        ]
+        # NO row-by-row pass here. This used to materialise a list of one namedtuple PER ROW --
+        # every column value for every row -- purely to animate a progress bar, then discard it.
+        # On the 4.9M-row `streams` layer that is ~0.7 GB held alongside the GeoDataFrame for no
+        # result, and the full build sits close enough to this machine's memory ceiling that the
+        # kernel took the whole process group during the read. `gpd.read_file` with pyogrio is
+        # already eager, so the "forces load" it claimed to do was not happening either.
+        print(f"  loaded '{layer_name}': {len(gdf):,} rows")
         return gdf
+
+    def iter_layer(
+        self,
+        layer_name: str,
+        columns: Optional[List[str]] = None,
+        bbox: Optional[Tuple[float, float, float, float]] = None,
+        chunk_size: int = 250_000,
+    ):
+        """Yield the layer in row chunks, normalized, so peak memory is one chunk not one layer.
+
+        `get_layer` reads everything at once. With `use_arrow=True` that holds the Arrow table AND
+        the pandas frame during conversion, so peak is roughly twice the final size: the 4.9M-row
+        `streams` layer measures ~16.6 GB loaded, so ~33 GB while converting. On a 48 GB machine
+        that sits close enough to the ceiling that the full build died four times mid-read, taking
+        its own shell with it and still exiting 0.
+
+        Chunked, peak is bounded by `chunk_size` regardless of layer size. A `bbox` read is already
+        small, so it stays a single chunk.
+        """
+        self._check_layer(layer_name)
+        if bbox is not None:
+            yield self.get_layer(layer_name, columns=columns, bbox=bbox)
+            return
+        start, total = 0, 0
+        while True:
+            chunk = gpd.read_file(
+                self.gpkg_path,
+                layer=layer_name,
+                engine="pyogrio",
+                use_arrow=True,
+                columns=columns,
+                rows=slice(start, start + chunk_size),
+            )
+            if len(chunk) == 0:
+                break
+            total += len(chunk)
+            yield self._normalize_columns(chunk)
+            if len(chunk) < chunk_size:
+                break
+            start += chunk_size
+        print(f"  loaded '{layer_name}': {total:,} rows in chunks of {chunk_size:,}")
 
     def get_layers(
         self,

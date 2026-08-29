@@ -15,14 +15,22 @@ from pipeline.models import BlkChain, SplitDef, SplitPoint
 
 
 def _norm_target(applies: dict | None) -> dict:
-    """An ``applies_to`` block -> a flat {gnis_id|blk|wsc} target for SplitDef.from_dict."""
+    """An ``applies_to`` block -> a flat {gnis_id|blk|wsc} target for SplitDef.from_dict.
+
+    A waterbody the synopsis regulates as one water may span several named rivers
+    (``gnis_ids: [8634, 3062, 29662]`` = Chilliwack + Vedder + Vedder Canal). An inherited target
+    resolves to the FIRST, which is the primary water and the one nearly every split sits on. A split
+    that belongs to a different member must say so in its OWN ``applies_to`` — being explicit is what
+    makes it resolvable, because a cut on the wrong member can silently land on that blk's mouth
+    (a natural end, i.e. no cut at all). See the Vedder Crossing Bridge split, which names the Vedder
+    and anchors on the confluence where the Chilliwack meets it."""
     applies = applies or {}
     tgt = {}
     for k in ("gnis_id", "blk", "wsc"):
         if applies.get(k):
             tgt[k] = applies[k]
     if not tgt and applies.get("gnis_ids"):
-        tgt["gnis_id"] = applies["gnis_ids"][0]         # multi-gnis waterbody -> first (rare)
+        tgt["gnis_id"] = applies["gnis_ids"][0]        # primary water; others name themselves
     return tgt
 
 
@@ -74,10 +82,14 @@ def load_split_defs(path: str) -> list[SplitDef]:
         except ValueError as exc:
             skipped.append((e.get("id", "?"), str(exc)))
     if skipped:
+        # Say WHY, per split. This used to report every skip as "needs applies_to", which is only one
+        # of the reasons `SplitDef.from_dict` rejects a row — a lake anchor carrying an offset was
+        # refused by model validation and reported as a targeting problem, so six curated cuts vanished
+        # from a full build behind a warning that pointed at the wrong thing.
         import logging
         logging.getLogger(__name__).warning(
-            "load_split_defs: skipped %d split(s) with no resolvable target (needs applies_to): %s",
-            len(skipped), ", ".join(i for i, _ in skipped[:8]))
+            "load_split_defs: skipped %d split(s):\n%s", len(skipped),
+            "\n".join(f"    - {i}: {why}" for i, why in skipped[:12]))
     ids = [d.id for d in defs]
     dupes = {i for i in ids if ids.count(i) > 1}
     if dupes:

@@ -1,0 +1,20 @@
+{
+  "name": "light",
+  "values": {
+    "color.water.regulated": "#1c6fb5",
+    "color.water.other": "#9dc3e0",
+    "color.highlight": "#f0a020",
+    "color.parcel.line": "#8a6d3b",
+    "color.status.open": "#2e8b57",
+    "color.status.restricted": "#d98c00",
+    "color.status.closed": "#c0392b",
+    "color.status.unknown": "#7d5ba6",
+    "color.status.default_only": "#8a8a8a",
+    "color.flow.low": "#c9a227",
+    "color.flow.normal": "#2e8b57",
+    "color.flow.high": "#2f6fb5",
+    "width.stream.base": 1.4,
+    "width.stream.highlight": 3.2,
+    "opacity.overlay": 0.55
+  }
+}

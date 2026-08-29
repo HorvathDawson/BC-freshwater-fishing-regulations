@@ -10,7 +10,8 @@ registry) and re-exported here, so ``from pipeline.models import X`` keeps worki
 
 from __future__ import annotations
 
-from pipeline.models.enums import AnchorType, BoundaryKind, NameSource, NodeKind
+from pipeline.models.enums import (AnchorType, BoundaryKind, NameSource, NodeKind,
+                                   WATERBODY_KINDS)
 from pipeline.models.names import NameTuple
 from pipeline.models.chains import BlkChain, FidSpan, WaterbodyRun
 from pipeline.models.sections import Section, SectionBoundary
@@ -20,6 +21,7 @@ from pipeline.models.regs import SectionRegs
 from pipeline.models.registry import RegistryBoundary, RegistryItem
 
 __all__ = [
+    "WATERBODY_KINDS",
     # enums
     "NameSource", "NodeKind", "BoundaryKind", "AnchorType",
     # names

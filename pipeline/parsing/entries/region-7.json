@@ -2,90 +2,6 @@
   "region": "7",
   "entries": [
     {
-      "entry_id": "gnis:10494#fraser_river_2",
-      "identity": {
-        "name": "FRASER RIVER",
-        "region": "7",
-        "mus": [
-          "2-4"
-        ]
-      },
-      "regs_verbatim": "Exempt from spring closure; also EXEMPT from bait ban upstream of Cottonwood River",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:53:12+00:00",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "fraser_river.r1",
-          "restriction_type": "note",
-          "details": "Exempt from spring closure",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Exempt from spring closure",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole river",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "fraser_river.r2",
-          "restriction_type": "note",
-          "details": "Exempt from bait ban upstream of Cottonwood River",
-          "extents": [],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": true,
-          "review_reason": "no boundary for the Cottonwood River confluence on this item",
-          "rule_text": "also EXEMPT from bait ban upstream of Cottonwood River",
-          "location_text": "upstream of Cottonwood River",
-          "exception": "",
-          "display_location": "Upstream of the Cottonwood River confluence",
-          "unresolved_locators": [
-            "upstream of Cottonwood River"
-          ],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "gnis:10657",
       "identity": {
         "name": "Burnt River",
@@ -109,7 +25,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:10657"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -145,6 +64,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -173,6 +93,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -203,7 +124,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:11219"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -243,6 +167,7 @@
           "exception": "",
           "display_location": "Above Macleod Creek confluence, including Macleod Creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -270,7 +195,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:11296"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -306,6 +234,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -333,7 +262,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:11722"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -369,6 +301,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -398,7 +331,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:12062"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -436,6 +372,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -465,7 +402,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:14038"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -503,6 +443,7 @@
           "exception": "",
           "display_location": "Below Moberly Lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR"
           ]
@@ -535,6 +476,7 @@
           "exception": "",
           "display_location": "Below Moberly Lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "MW"
           ]
@@ -568,7 +510,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:14619"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -617,6 +562,7 @@
           "exception": "",
           "display_location": "Downstream of boundary signs 1,200 m below the Site C dam",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR"
           ]
@@ -649,6 +595,7 @@
           "exception": "",
           "display_location": "Downstream of boundary signs 1,200 m below the Site C dam",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "KO"
           ]
@@ -682,7 +629,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:14619"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -733,6 +683,7 @@
           "exception": "",
           "display_location": "Hwy. 29 bridge to Site C dam",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "KO"
           ]
@@ -766,6 +717,7 @@
           "exception": "",
           "display_location": "Hwy. 29 bridge to Site C dam, including tributaries",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR",
             "MW"
@@ -800,6 +752,7 @@
           "exception": "",
           "display_location": "Hwy. 29 bridge to Site C dam",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -835,6 +788,7 @@
           "exception": "",
           "display_location": "Halfway River mouth, 5 km upstream to 5 km downstream",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -866,6 +820,7 @@
           "exception": "",
           "display_location": "Between Peace Canyon Dam and Hwy. 29 bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -897,7 +852,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:14619"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -936,6 +894,7 @@
           "exception": "",
           "display_location": "Site C dam to boundary signs 1,200 m downstream",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -969,7 +928,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:15709"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1009,6 +971,7 @@
           "unresolved_locators": [
             "Attichka Creek"
           ],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -1038,7 +1001,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:16236"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1074,6 +1040,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         },
         {
@@ -1104,6 +1073,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -1136,7 +1106,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:16605"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1172,6 +1145,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         },
         {
@@ -1203,6 +1179,7 @@
           "exception": "",
           "display_location": "Cheslatta River confluence to boundary sign 5 km downstream",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -1236,6 +1213,7 @@
           "exception": "",
           "display_location": "Boundary sign to Hwy 27 bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -1268,6 +1246,9 @@
           "exception": "",
           "display_location": "Downstream of Foothills Boulevard Bridge",
           "unresolved_locators": [],
+          "exempts_from": [
+            "bait_ban"
+          ],
           "species": []
         }
       ],
@@ -1295,7 +1276,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:19629"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1345,6 +1329,7 @@
           "exception": "",
           "display_location": "Within 500 m of the Thorne Creek or Kemess Creek confluence",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -1377,7 +1362,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:20525"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1413,6 +1401,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -1447,7 +1438,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:23077"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1485,6 +1479,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -1517,6 +1512,7 @@
           "unresolved_locators": [
             "CNR Bridge in Valemount"
           ],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -1549,7 +1545,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:23217"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1587,6 +1586,7 @@
           "exception": "",
           "display_location": "Above Hasler Road Bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -1614,7 +1614,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:23672"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1650,6 +1653,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -1677,7 +1681,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2463"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1716,6 +1723,7 @@
           "exception": "",
           "display_location": "Kinuseo Falls to signs 2 km downstream",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR"
           ]
@@ -1748,7 +1756,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:25530"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1784,6 +1795,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -1815,7 +1829,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:26104"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1851,6 +1868,7 @@
           "exception": "",
           "display_location": "Tributaries",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB",
             "CT",
@@ -1886,6 +1904,7 @@
           "exception": "",
           "display_location": "Tributaries",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -1914,6 +1933,7 @@
           "exception": "",
           "display_location": "Mainstem (see Region 5)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -1942,7 +1962,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:26399"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1980,6 +2003,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -2007,7 +2031,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:26408"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2046,6 +2073,7 @@
           "exception": "(excluding War Lake)",
           "display_location": "Carp Lake to War Falls (excluding War Lake)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -2075,7 +2103,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:26413"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2111,6 +2142,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -2139,6 +2171,10 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure",
+            "bait_ban"
+          ],
           "species": []
         }
       ],
@@ -2167,7 +2203,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:27021"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2206,6 +2245,7 @@
           "exception": "",
           "display_location": "Falls to Quarry Bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -2235,7 +2275,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2896"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2271,6 +2314,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -2298,7 +2342,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:28983"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2334,6 +2381,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -2361,7 +2411,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:29883"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2400,6 +2453,7 @@
           "exception": "",
           "display_location": "Within 100 m downstream of Swan Lake outlet weir",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -2428,6 +2482,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "WP"
           ]
@@ -2461,7 +2516,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3003"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2497,6 +2555,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         },
         {
@@ -2525,6 +2586,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -2560,7 +2622,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:32114"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2600,6 +2665,7 @@
           "unresolved_locators": [
             "Attichika Creek"
           ],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -2633,7 +2699,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:36111"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2674,6 +2743,7 @@
             "confluence with Peace River",
             "fishing boundary signs approximately 5 km upstream"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -2702,6 +2772,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR"
           ]
@@ -2732,6 +2803,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "MW"
           ]
@@ -2761,7 +2833,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:36188"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2801,12 +2876,13 @@
           "exception": "",
           "display_location": "Downstream (north) of 200 Road Bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
-          "rule_id": "crooked_river.r2",
+          "rule_id": "crooked_river.r2a",
           "restriction_type": "harvest",
-          "details": "Rainbow trout catch and release; exempt from spring closure",
+          "details": "Rainbow trout: catch and release",
           "extents": [
             {
               "op": "upstream_of",
@@ -2833,6 +2909,46 @@
           "exception": "",
           "display_location": "Upstream (south) of 200 Road Bridge",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
+          "species": [
+            "RB"
+          ]
+        },
+        {
+          "rule_id": "crooked_river.r2b",
+          "restriction_type": "note",
+          "details": "Exempt from spring closure",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "crooked_river__200_road_bridge"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Apr 1-June 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Rainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on\npage 62)",
+          "location_text": "upstream (south) of the 200 Road Bridge",
+          "exception": "",
+          "display_location": "Upstream (south) of 200 Road Bridge",
+          "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": [
             "RB"
           ]
@@ -2863,7 +2979,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:39298"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2901,6 +3020,150 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "gnis:39325#fraser_river_2",
+      "identity": {
+        "name": "FRASER RIVER",
+        "region": "7",
+        "mus": [
+          "2-17",
+          "2-18",
+          "2-2",
+          "2-3",
+          "2-4",
+          "2-8",
+          "3-14",
+          "3-15",
+          "3-16",
+          "3-17",
+          "3-31",
+          "3-32",
+          "3-33",
+          "5-13",
+          "5-14",
+          "5-2",
+          "5-3",
+          "7-1",
+          "7-10",
+          "7-15",
+          "7-16",
+          "7-17",
+          "7-2",
+          "7-24",
+          "7-3",
+          "7-4",
+          "7-5",
+          "7-7",
+          "7-8",
+          "7-9"
+        ]
+      },
+      "regs_verbatim": "Exempt from spring closure; also EXEMPT from bait ban upstream of Cottonwood River",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [
+        "gnis:39325"
+      ],
+      "reference_only": false,
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [
+        {
+          "op": "upstream_of",
+          "splits": [
+            "fraser_river__region_5_to_7_boundary"
+          ],
+          "item_id": null,
+          "item_ids": [],
+          "area_id": null,
+          "area_kind": null,
+          "feature_types": []
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "fraser_river_region7.r1",
+          "restriction_type": "note",
+          "details": "Exempt from the regional spring closure",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Exempt from spring closure",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
+          "species": []
+        },
+        {
+          "rule_id": "fraser_river_region7.r2",
+          "restriction_type": "note",
+          "details": "Exempt from the bait ban upstream of the Cottonwood River",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "fraser_river__cottonwood_river_into_fraser_river"
+              ],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "also EXEMPT from bait ban upstream of Cottonwood River",
+          "location_text": "upstream of Cottonwood River",
+          "exception": "",
+          "display_location": "Upstream of the Cottonwood River confluence",
+          "unresolved_locators": [],
+          "exempts_from": [
+            "bait_ban"
+          ],
           "species": []
         }
       ],
@@ -2930,7 +3193,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4944"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2970,6 +3236,7 @@
           "exception": "",
           "display_location": "Above Horseshoe Road Bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -2999,7 +3266,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:7607"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3040,6 +3310,7 @@
           "exception": "",
           "display_location": "Within 500 m of the Upper Anzac bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -3072,6 +3343,7 @@
           "exception": "",
           "display_location": "Above North Anzac River confluence",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3099,7 +3371,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:7628"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3135,6 +3410,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3162,7 +3438,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:7733"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3200,6 +3479,9 @@
           "unresolved_locators": [
             "downstream of fishing boundary signs near its mouth"
           ],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -3233,7 +3515,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:7760"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3269,6 +3554,9 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         },
         {
@@ -3299,6 +3587,9 @@
           "unresolved_locators": [
             "downstream of fishing boundary signs near its mouth"
           ],
+          "exempts_from": [
+            "bait_ban"
+          ],
           "species": []
         }
       ],
@@ -3328,7 +3619,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:7769"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3364,6 +3658,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3400,7 +3695,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:7836"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3438,6 +3736,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -3466,6 +3765,7 @@
           "exception": "",
           "display_location": "Whole river (includes tributaries)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -3494,6 +3794,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -3527,6 +3828,7 @@
           "exception": "",
           "display_location": "Between signs 250 m and 4 km downstream of the François Lake Road bridge",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -3558,6 +3860,7 @@
           "exception": "",
           "display_location": "From François Lake to Stellako falls",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -3586,6 +3889,7 @@
           "exception": "",
           "display_location": "François Lake outlet area",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3621,7 +3925,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:7851"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3657,6 +3964,9 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [
+            "bait_ban"
+          ],
           "species": []
         },
         {
@@ -3685,6 +3995,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3714,7 +4025,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:7862"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3750,6 +4064,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3784,7 +4099,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:7893"
+      ],
+      "reference_only": true,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3820,6 +4138,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -3850,7 +4169,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:8018"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3886,6 +4208,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -3916,7 +4241,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:8127"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3952,6 +4280,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -3985,7 +4316,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:8263"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4023,6 +4357,9 @@
           "unresolved_locators": [
             "signs near its mouth"
           ],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -4050,7 +4387,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:8647"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4086,6 +4426,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         },
         {
@@ -4116,6 +4459,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -4154,7 +4498,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:9100"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4190,6 +4537,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         },
         {
@@ -4218,6 +4568,7 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -4254,6 +4605,7 @@
         ]
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: WEST ROAD (\"Blackwater\") RIVER (variant_of WEST ROAD (\"Blackwater\") RIVER)",
       "tributaries": {
@@ -4280,6 +4632,7 @@
           "exception": "",
           "display_location": "",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -4310,6 +4663,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: CHUNAMUN LAKE (variant_of CHUNAMUN LAKE)",
       "tributaries": {
@@ -4336,6 +4690,7 @@
           "exception": "",
           "display_location": "",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -4370,6 +4725,7 @@
         ]
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -4398,6 +4754,7 @@
           "exception": "",
           "display_location": "",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -4426,6 +4783,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "feature_pin: Regulation specifies 'LIARD RIVER WATERSHED (see map on page 63)' in MU 7-53. FWA NAMED WATERSHED: Named Watershed ID 5, Object ID 6422089. Layer: FWA_NAMED_WORKSHEDS_POLY, ID field: NAMED_WATERSHED_ID.",
       "tributaries": {
@@ -4454,6 +4812,7 @@
           "exception": "",
           "display_location": "",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
@@ -4477,6 +4836,7 @@
           "exception": "",
           "display_location": "",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
@@ -4520,7 +4880,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961697"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4549,6 +4912,7 @@
           "unresolved_locators": [
             "within a 500 m radius of the Davis Forest Service Road Bridge"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -4577,6 +4941,7 @@
           "exception": "",
           "display_location": "Whole bay",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -4618,7 +4983,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961697"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4649,6 +5017,7 @@
           "unresolved_locators": [
             "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -4670,6 +5039,7 @@
           "unresolved_locators": [
             "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road"
           ],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
@@ -4713,7 +5083,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961697"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4749,6 +5122,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone A)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -4774,6 +5148,7 @@
           "unresolved_locators": [
             "500 m upstream and downstream of Causeway Road"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -4802,6 +5177,7 @@
           "exception": "",
           "display_location": "Nation Arm",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -4830,6 +5206,7 @@
           "exception": "",
           "display_location": "Tributaries",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR"
           ]
@@ -4860,6 +5237,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone A)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -4901,7 +5279,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961697"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4937,6 +5318,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone B)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -4967,6 +5349,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone B)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -4995,6 +5378,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone B), including tributaries",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "GR"
           ]
@@ -5027,6 +5411,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone B)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
@@ -5059,6 +5444,7 @@
           "exception": "",
           "display_location": "Whole lake (Zone B)",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -5090,7 +5476,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328979392"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5126,6 +5515,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5161,7 +5551,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:328981666"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5197,6 +5590,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5225,6 +5619,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5254,7 +5649,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328993555"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5292,6 +5690,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5320,14 +5719,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "little_lost_lake.r3",
+          "rule_id": "little_lost_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -5350,6 +5750,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "little_lost_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5379,7 +5809,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328995585"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5417,6 +5850,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5445,14 +5879,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "chunamun_lake.r3",
+          "rule_id": "chunamun_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -5475,6 +5910,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "chunamun_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5504,7 +5969,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329075526"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5542,6 +6010,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5570,14 +6039,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "hobson_lake.r3",
+          "rule_id": "hobson_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -5600,6 +6070,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "hobson_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5629,7 +6129,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329075549"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5667,6 +6170,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5695,14 +6199,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "chief_gray_lake.r3",
+          "rule_id": "chief_gray_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -5725,6 +6230,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "chief_gray_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5752,7 +6287,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329097617"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5788,6 +6326,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5817,7 +6356,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329102565"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5855,6 +6397,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5883,14 +6426,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "hart_lake.r3",
+          "rule_id": "hart_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -5913,6 +6457,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "hart_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -5941,6 +6515,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -5968,7 +6543,10 @@
         "reviewed_at": "",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329102601"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6004,6 +6582,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6033,7 +6612,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329102641"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6069,15 +6651,16 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329102648#square_lake_located_in_crooked_river_provincial",
+      "entry_id": "wbk:329102648",
       "identity": {
-        "name": "SQUARE LAKE (located in Crooked River Provincial Park)",
+        "name": "Square Lake",
         "region": "7",
         "mus": [
           "7-24"
@@ -6093,12 +6676,15 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:54:17+00:00",
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329102648"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6109,7 +6695,7 @@
       "scope": [],
       "rules": [
         {
-          "rule_id": "square_lake_located_in_crooked_river_provincial_park.r1",
+          "rule_id": "wbk:329102648.r1",
           "restriction_type": "vessel_restriction",
           "details": "No powered boats",
           "extents": [
@@ -6134,6 +6720,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6161,7 +6748,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329135993"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6197,6 +6787,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -6226,7 +6817,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329135998"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6262,6 +6856,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6290,7 +6885,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329148308"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6326,6 +6924,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -6356,7 +6955,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329181321"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6394,6 +6996,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -6422,6 +7025,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -6452,6 +7056,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6480,7 +7085,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329181323"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6518,6 +7126,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -6546,6 +7155,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -6576,6 +7186,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6611,7 +7222,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329225635"
+      ],
+      "reference_only": true,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6647,6 +7261,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6676,7 +7291,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329225688"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6712,6 +7330,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6739,7 +7358,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329264876"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6775,6 +7397,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "WP"
           ]
@@ -6805,6 +7428,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "NP"
           ]
@@ -6834,7 +7458,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329264877"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6870,6 +7497,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -6897,7 +7525,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329272362"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6933,6 +7564,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "KO"
           ]
@@ -6962,7 +7594,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329272366"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7000,6 +7635,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -7028,6 +7664,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -7058,6 +7695,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7085,7 +7723,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329272367"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7121,6 +7762,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7148,7 +7790,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329272817"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7184,6 +7829,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7212,7 +7858,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329299081"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7248,6 +7897,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -7278,6 +7928,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7305,7 +7956,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329328382"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7341,6 +7995,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "WP"
           ]
@@ -7370,7 +8025,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329328645"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7406,6 +8064,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7433,7 +8092,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329334762"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7469,6 +8131,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7498,7 +8161,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343254"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7534,6 +8200,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7563,7 +8230,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343262"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7599,6 +8269,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -7630,7 +8301,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343287"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7666,6 +8340,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -7696,6 +8371,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "KO"
           ]
@@ -7727,7 +8403,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343334"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7763,6 +8442,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -7792,7 +8472,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343463"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7828,6 +8511,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -7859,7 +8543,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343476"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7895,6 +8582,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -7922,7 +8610,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343551"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7958,6 +8649,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -7985,7 +8677,11 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329343983",
+        "wbk:329343806"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8021,6 +8717,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -8050,7 +8747,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329353172"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8088,6 +8788,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -8116,6 +8817,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -8146,6 +8848,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8173,7 +8876,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329353173"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8211,6 +8917,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -8239,6 +8946,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -8269,6 +8977,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8291,12 +9000,15 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:53:26+00:00",
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329353216"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8307,7 +9019,7 @@
       "scope": [],
       "rules": [
         {
-          "rule_id": "hart_lake_fort_st_james.r1",
+          "rule_id": "wbk:329353216.r1",
           "restriction_type": "closure",
           "details": "No fishing",
           "extents": [
@@ -8334,12 +9046,13 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
-          "rule_id": "hart_lake_fort_st_james.r2",
+          "rule_id": "wbk:329353216.r2",
           "restriction_type": "harvest",
-          "details": "Catch and release",
+          "details": "Rainbow trout catch and release",
           "extents": [
             {
               "op": "whole",
@@ -8362,14 +9075,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "hart_lake_fort_st_james.r3",
+          "rule_id": "wbk:329353216.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -8392,6 +9106,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "wbk:329353216.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8419,7 +9163,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329361937"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8457,6 +9204,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -8485,6 +9233,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB",
             "CT",
@@ -8496,9 +9245,9 @@
           ]
         },
         {
-          "rule_id": "hedrick_lake.r3",
+          "rule_id": "hedrick_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -8521,6 +9270,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "hedrick_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8548,7 +9327,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329368818"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8586,6 +9368,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -8614,6 +9397,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -8644,6 +9428,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8671,7 +9456,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329368820"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8709,6 +9497,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -8737,6 +9526,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -8767,6 +9557,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8794,7 +9585,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329376649"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8832,6 +9626,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -8860,6 +9655,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -8889,7 +9685,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329382040"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8925,6 +9724,74 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
+      "entry_id": "wbk:329382049",
+      "identity": {
+        "name": "Slim Lake",
+        "region": "7",
+        "mus": [
+          "7-5"
+        ]
+      },
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [
+        "wbk:329382049"
+      ],
+      "reference_only": false,
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "wbk:329382049.r1",
+          "restriction_type": "vessel_restriction",
+          "details": "Electric motor only - max 7.5 kW",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Electric motor only - max 7.5 kW",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -8952,7 +9819,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329382054"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8988,6 +9858,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9015,7 +9886,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329382061"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9051,6 +9925,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9078,7 +9953,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329397725"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9114,14 +9992,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
         },
         {
-          "rule_id": "gwillim_lake.r2",
+          "rule_id": "gwillim_lake.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -9144,6 +10023,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "gwillim_lake.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9171,7 +10080,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329397728"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9209,6 +10121,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9239,14 +10152,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
         },
         {
-          "rule_id": "monkman_lake.r3",
+          "rule_id": "monkman_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -9269,6 +10183,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "monkman_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9296,7 +10240,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329397729"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9334,6 +10281,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9364,14 +10312,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
         },
         {
-          "rule_id": "lower_blue_lake.r3",
+          "rule_id": "lower_blue_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -9394,6 +10343,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "lower_blue_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9421,7 +10400,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424457"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9459,6 +10441,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9487,6 +10470,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -9517,6 +10501,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9544,7 +10529,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424458"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9582,6 +10570,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9610,6 +10599,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -9640,6 +10630,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9667,7 +10658,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424459"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9705,6 +10699,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9733,6 +10728,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -9763,6 +10759,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9790,7 +10787,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424460"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9828,6 +10828,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9856,6 +10857,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -9886,6 +10888,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -9913,7 +10916,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424461"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9951,6 +10957,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -9979,6 +10986,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -10009,6 +11017,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10036,7 +11045,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424462"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10074,6 +11086,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -10102,6 +11115,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -10132,6 +11146,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10159,7 +11174,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424463"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10197,6 +11215,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -10225,6 +11244,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -10255,6 +11275,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10282,7 +11303,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424466"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10320,6 +11344,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -10348,6 +11373,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -10378,6 +11404,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10405,7 +11432,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329424582"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10443,6 +11473,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -10471,14 +11502,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "mt_milligan_lake.r3",
+          "rule_id": "mt_milligan_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -10501,6 +11533,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "mt_milligan_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10529,7 +11591,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329445089"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10565,6 +11630,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -10595,6 +11661,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10624,7 +11691,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329445090"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10664,6 +11734,7 @@
           "unresolved_locators": [
             "a line between fishing boundary signs on lakeshore near mouth of Corkscrew Creek"
           ],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10691,7 +11762,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329465433"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10727,6 +11801,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10756,7 +11831,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329465434"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10792,6 +11870,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10821,7 +11900,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329465445"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10857,6 +11939,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10886,7 +11969,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329465455"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10922,6 +12008,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -10949,7 +12036,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329468810"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10987,6 +12077,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11015,6 +12106,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -11045,6 +12137,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11073,7 +12166,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329468819"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11111,6 +12207,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11139,6 +12236,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -11169,6 +12267,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11196,7 +12295,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329468827"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11234,6 +12336,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11262,6 +12365,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -11292,6 +12396,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11320,6 +12425,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11349,7 +12455,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329468947"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11385,6 +12494,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11412,7 +12522,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329472477"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11450,6 +12563,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11478,6 +12592,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -11508,6 +12623,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11535,7 +12651,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329472485"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11573,6 +12692,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11603,6 +12723,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11636,7 +12757,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329473629"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11672,12 +12796,13 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
-          "rule_id": "simpson_lake.r2",
+          "rule_id": "simpson_lake.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -11700,6 +12825,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "simpson_lake.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11729,7 +12884,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329473630"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11765,6 +12923,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11794,7 +12953,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329473672"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11830,6 +12992,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11865,7 +13028,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329473677"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11901,6 +13067,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -11929,6 +13096,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -11964,7 +13132,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329473810"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12000,6 +13171,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12027,7 +13199,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329525853"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12038,9 +13213,9 @@
       "scope": [],
       "rules": [
         {
-          "rule_id": "wapiti_lake.r1",
+          "rule_id": "wapiti_lake.r1a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -12063,6 +13238,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "wapiti_lake.r1b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12096,7 +13301,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329525854"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12134,6 +13342,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -12162,6 +13371,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12195,7 +13405,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329525856"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12233,6 +13446,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -12261,12 +13475,13 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
-          "rule_id": "cecilia_lake.r3",
+          "rule_id": "cecilia_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -12289,6 +13504,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "cecilia_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12316,7 +13561,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329525860"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12354,6 +13602,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12376,12 +13625,15 @@
       "revisit": false,
       "revisit_note": "",
       "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:55:21+00:00",
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329525862"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12417,6 +13669,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12450,7 +13703,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329525864"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12486,12 +13742,13 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
-          "rule_id": "dimsdale_lake.r2",
+          "rule_id": "dimsdale_lake.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -12514,6 +13771,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "dimsdale_lake.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12547,7 +13834,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329537189"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12583,6 +13873,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12610,7 +13901,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329537190"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12648,6 +13942,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -12676,6 +13971,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -12706,6 +14002,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12733,7 +14030,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329537192"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12771,6 +14071,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -12799,6 +14100,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -12829,6 +14131,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12856,7 +14159,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329537223"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12894,6 +14200,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -12922,6 +14229,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -12952,6 +14260,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -12985,7 +14294,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329537273"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13023,6 +14335,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -13051,6 +14364,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -13081,6 +14395,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -13109,6 +14424,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13138,7 +14454,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329537362"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13174,6 +14493,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -13204,6 +14524,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -13232,6 +14553,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13261,7 +14583,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329539662"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13297,6 +14622,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13326,7 +14652,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329539677"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13362,6 +14691,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -13392,6 +14722,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13421,7 +14752,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329539691"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13457,6 +14791,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -13487,6 +14822,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13516,7 +14852,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329547759"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13552,6 +14891,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13579,7 +14919,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329547767"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13615,6 +14958,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13642,7 +14986,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329552300"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13680,6 +15027,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -13708,6 +15056,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -13738,6 +15087,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13765,7 +15115,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329552301"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13803,6 +15156,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -13831,6 +15185,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -13861,6 +15216,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -13888,7 +15244,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329552303"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13926,6 +15285,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -13954,6 +15314,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -13984,6 +15345,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14011,7 +15373,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329552304"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14049,6 +15414,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -14077,72 +15443,10 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "wbk:329554444#slim_lake_1",
-      "identity": {
-        "name": "SLIM LAKE",
-        "region": "7",
-        "mus": [
-          "5-4"
-        ]
-      },
-      "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "pass",
-        "model": "haiku",
-        "reviewed_at": "2026-08-22T17:54:17+00:00",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "slim_lake.r1",
-          "restriction_type": "vessel_restriction",
-          "details": "Electric motor only - max 7.5 kW",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Electric motor only - max 7.5 kW",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
         }
       ],
       "audit_log": []
@@ -14169,7 +15473,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329576619"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14209,6 +15516,7 @@
           "unresolved_locators": [
             "at outlet"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -14237,14 +15545,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "rainbow_lakes.r3",
+          "rule_id": "rainbow_lakes.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -14267,6 +15576,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "rainbow_lakes.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14294,7 +15633,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329576622"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14334,6 +15676,7 @@
           "unresolved_locators": [
             "fishing boundary sign at outlet"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -14362,14 +15705,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "letain_lake.r3",
+          "rule_id": "letain_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -14392,6 +15736,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "letain_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14419,7 +15793,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329576644"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14459,6 +15836,7 @@
           "unresolved_locators": [
             "at outlet"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -14487,14 +15865,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "wolverine_lake.r3",
+          "rule_id": "wolverine_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -14517,6 +15896,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "wolverine_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14544,7 +15953,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329619004"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14582,6 +15994,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -14610,6 +16023,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -14640,6 +16054,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14669,7 +16084,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329619114"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14705,6 +16123,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "EB"
           ]
@@ -14734,7 +16153,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329625755"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14770,6 +16192,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BT"
           ]
@@ -14799,7 +16222,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329632812"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14835,6 +16261,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14863,7 +16290,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329641627"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -14901,6 +16331,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -14929,6 +16360,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
@@ -14959,6 +16391,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -14986,7 +16419,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329654559"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15024,6 +16460,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15052,6 +16489,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -15082,6 +16520,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15109,7 +16548,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329654564"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15147,6 +16589,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15175,6 +16618,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -15205,6 +16649,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15232,7 +16677,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329654565"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15270,6 +16718,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15297,7 +16746,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329657307"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15335,6 +16787,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15365,6 +16818,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -15406,7 +16860,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329657308"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15447,6 +16904,7 @@
             "the anti-vortex dyke",
             "Peace Canyon Dam"
           ],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15475,6 +16933,7 @@
           "exception": "(bull trout catch and release)",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15503,6 +16962,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15536,7 +16996,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329657328"
+      ],
+      "reference_only": true,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15572,6 +17035,7 @@
           "exception": "",
           "display_location": "Whole lakes",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15599,7 +17063,10 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329657328"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15635,6 +17102,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15663,7 +17131,11 @@
         "reviewed_at": "2026-08-22T17:55:21+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329657333",
+        "wbk:329657984"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15699,6 +17171,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15728,7 +17201,10 @@
         "reviewed_at": "2026-08-22T17:54:27+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329657335"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15764,6 +17240,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15792,6 +17269,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15825,7 +17303,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329665706"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -15863,6 +17344,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15891,6 +17373,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15919,6 +17402,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -15947,6 +17431,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -15974,7 +17459,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677088"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16010,6 +17498,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -16037,7 +17526,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677089"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16073,6 +17565,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "BB"
           ]
@@ -16103,7 +17596,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677090"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16141,6 +17637,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -16169,6 +17666,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "LT"
           ]
@@ -16199,6 +17697,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -16226,7 +17725,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677092"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16262,6 +17764,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -16289,7 +17792,10 @@
         "reviewed_at": "2026-08-22T17:53:26+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677113"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16325,6 +17831,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -16354,7 +17861,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677114"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16392,6 +17902,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         },
         {
@@ -16420,14 +17931,15 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": [
             "RB"
           ]
         },
         {
-          "rule_id": "opatcho_lake.r3",
+          "rule_id": "opatcho_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -16450,6 +17962,36 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
+          "species": []
+        },
+        {
+          "rule_id": "opatcho_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -16477,7 +18019,10 @@
         "reviewed_at": "2026-08-22T17:54:55+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329677206"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16513,6 +18058,7 @@
           "exception": "",
           "display_location": "Whole lake",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],
@@ -16540,7 +18086,10 @@
         "reviewed_at": "2026-08-22T17:54:17+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wsc:100-567134-374775"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16576,6 +18125,9 @@
           "exception": "",
           "display_location": "Whole river",
           "unresolved_locators": [],
+          "exempts_from": [
+            "spring_closure"
+          ],
           "species": []
         }
       ],
@@ -16603,7 +18155,10 @@
         "reviewed_at": "2026-08-22T17:53:12+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wsc:200-948755-936810-110196"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -16639,6 +18194,7 @@
           "exception": "",
           "display_location": "Whole creek",
           "unresolved_locators": [],
+          "exempts_from": [],
           "species": []
         }
       ],

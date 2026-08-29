@@ -1,0 +1,125 @@
+# Rules for agents working in this repo
+
+Decisions already made and paid for. Each line exists because something broke or was
+measured. **Read this before changing anything**; re-deriving these costs a day and
+re-litigating them costs trust.
+
+Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-plan.md`
+(issues ①–㊸), `pipeline/docs/REACH-BUILDER.md`, `pipeline/docs/RESOLVER-HANDOFF.md`.
+
+---
+
+## ⛔ Absolute
+
+1. **Never run the LLM parser.** `pipeline/parsing/run_parse.sh`,
+   `python -m pipeline.parsing.dispatch`, anything that spawns `claude -p`. It spends the
+   user's credits. Hand over the command; the human runs it. This holds even if the user
+   says "run it" — that means *they* will.
+2. **Never write to `pipeline/parsing/entries/*.json` without backing them up first.**
+   They hold in-progress curation that is not committed. `cp` them to the scratchpad, make
+   the change, then diff to prove only what you intended moved. A lock was lost in this
+   repo once; do not be the second time.
+3. **Prefix shell commands with `rtk`.** Token-optimised proxy; passes through when it has
+   no filter.
+4. **Run `graphify query "<question>"` before grepping the codebase.**
+
+---
+
+## The data model
+
+5. **`item_id` is durable (99.88% across a rebuild). `section_id` is not (94%).**
+   Measured, `pipeline/tools/id_churn.py`. Anything crossing a version boundary — live
+   feeds, deep links, saved pins, bathymetry sheets — binds to `item_id`.
+   **`section_id` and `dense_id` must never leave the bundle**: not in a URL, a saved
+   preference, a feed, or an API contract.
+6. **A durable id is not a durable answer.** 15% of surviving items changed their section
+   list in one rebuild. Never cache a resolved section list across bundle versions —
+   re-resolve.
+7. **The exported section id stays `{blk}:{measure}`.** The hash form was measured and
+   buys **one id out of 49,542**. Open decision #1 is closed; do not reopen without a
+   *re-anchoring* build showing >2 points of improvement.
+8. **`rule_id` is unique only WITHIN an entry** — 49 collide corpus-wide. Every table keys
+   on `(entry_id, rule_id)`. Never on `rule_id` alone.
+9. **`includes_tributaries` is three-valued.** `None` inherits `entry.tributaries.included`.
+   Reading only the rule's own field gives 132; the real number is 554 across 264 entries.
+
+## Resolution
+
+10. **The resolver never creates a section.** `pipeline/registry/resolve.py` filters
+    pre-existing graph nodes by route measure. Splitting happens upstream in the
+    sectionizer from `pipeline/splits.json`. If resolution could split, editing a
+    regulation would silently change section geometry.
+11. **Reaches resolve by ROUTE MEASURE on the cut's own blue line, never by a flow walk.**
+    A `between` spanning two blue lines is the intersection of two half-lines. A flow walk
+    was tried and is wrong: `upstream_of` and `downstream_of` the same cut both returned 36
+    of the Chilliwack's 39 sections.
+12. **The builder never decides where a regulation applies.** It reports; the curator
+    decides. An earlier version auto-included "straddling" pieces into closures, reasoning
+    over-closing is safe. Measurement killed it: **all 45 unclassified pieces are DETACHED,
+    none are straddlers**, and it attached a 380 m stub hanging off Cowichan Lake to
+    "No fishing, Cowichan Lake outlet to Greendale Trestle". Silent widening is a defect
+    here (㉗), even in the "safe" direction.
+13. **Never default a rule with no extent to `whole`.** All 12 such matched rules carry
+    `needs_review`; 11 carry `unresolved_locators`. They are real, specific locations
+    ("500 m upstream and downstream of Causeway Road") with no boundary to bind to.
+    Defaulting applies a 500 m closure to an entire lake arm. They need curated splits.
+14. **Every rule ends bound, or unresolved with a typed reason. Never absent, never
+    bound-and-empty, never unresolved-and-unexplained.** Enforced in
+    `RuleBinding.__post_init__` (⑪ + ㊳).
+15. **A rule extending to tributaries is `tributaries_pending`** — the reach-scoped walk
+    does not exist. 547 rules. Nothing downstream may treat such a binding as complete.
+16. **The review app and the builder share one implementation.** `entry_reaches` calls
+    `pipeline.reach.classify`; covered items come from `pipeline.reach.covered`. Verified:
+    **3,038 of 3,038 rules identical**. If you change one, re-run that parity check — the
+    app is where a human signs off, so divergence is invisible until a user hits it.
+
+## Builds and tests
+
+17. **Full builds take ~18 min and ~9 GB.** Never rebuild to test a change. Build to a new
+    `--out` and compare with `pipeline/tools/build_parity.py`. `output/v2/full` and
+    `output/v2/full_new` already exist.
+18. **`pytest.ini` deselects 153 `slow` tests by default** (㊷). Determinism and full-build
+    guards live there, so CI must run `-m slow` explicitly or they never run.
+19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
+    no clocks in output. The reach builder's digest must be identical across runs.
+20. **`pipeline.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an
+    outcome.** A test fails if it goes stale — a cache serving confidently wrong answers is
+    worse than no cache.
+
+## The app (`app/`)
+
+21. **Greenfield. Inherits nothing from `archive/webapp` or `archive/mobile`.** Those are
+    prior art: four shared-logic files there diverged completely (`waterbodyDataService.ts`
+    is 1,157 lines on web, 116 on mobile) because two apps were built independently and
+    neither was ever the shared source.
+22. **`packages/core` has zero React and zero platform imports.** `packages/ui` may import
+    `react` but never `react-dom` or `react-native`. Enforced by
+    `tools/check-boundaries.mjs` — fix your code, never weaken the gate.
+23. **Hooks are shared; components are not.** A hook returns data, so it runs under both
+    renderers. `<div>` and `<View>` do not.
+24. **Logic never lives in a component.** That is what makes desktop's separate component
+    set free. If you want to share a component with desktop *to avoid duplicating logic*,
+    the logic is in the wrong place — move it to a hook.
+25. **Mobile web renders the same `packages/ui-native` components as the native app**, via
+    react-native-web, so the phone experience matches by construction. Desktop gets its own
+    DOM components in `apps/web/src/desktop/`.
+26. **One React version, workspace-wide**, pinned via `pnpm.overrides`. Two Reacts in one
+    bundle is `Invalid hook call`, and it surfaces only at bundle time.
+27. **Map layers are only ever added by editing `packages/map/style/layers.source.json`**
+    then `pnpm style:build`. Colours reference tokens by name; literals are rejected. No app
+    may import a map SDK — that is how the two apps start rendering different maps.
+28. **A categorical colour mode over an enum must colour every member**, and a continuous
+    mode must define `missing`. This is how `unknown` and `default_only` cannot be rendered
+    as something they are not (⑨/㉜ — the one failure with real consequences).
+29. **Every dependency needs a line in `app/deps.md`.** v1 accumulated chart.js + pdf-lib +
+    pdfjs + fuse + suncalc without anyone deciding to.
+30. **`pnpm check` must pass**: boundaries → platform → style → deps → typecheck → test.
+
+## Working style
+
+31. **Measure before asserting.** Every number in the docs is reproducible; several
+    "obvious" designs here were killed by one measurement (the hash id, the straddler
+    policy, parallelism in the reach builder).
+32. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
+33. **Report honestly what you did not verify.** An unverified claim is worse than a known
+    gap. Say "scaffolded, not run" when that is what happened.

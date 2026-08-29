@@ -1,0 +1,18 @@
+{
+  "name": "@app/ui-native",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@app/core": "workspace:*", "@app/data": "workspace:*",
+    "@app/ui": "workspace:*", "@app/map": "workspace:*"
+  },
+  "peerDependencies": { "react": "*", "react-native": "*" },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  }
+}

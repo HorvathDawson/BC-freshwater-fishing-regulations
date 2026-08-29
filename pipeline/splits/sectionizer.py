@@ -6,9 +6,15 @@ first-class graph node: "tributaries of X between A and B" is then a walk over t
 
 Splitting a piece P at route measure M yields P_low = [P.down_m, M] (keeps P's node_id) and
 P_high = [M, P.up_m] (new id "{blk}:{int(M)}"), joined by a **continuation** edge P_high→P_low.
-Incoming tributary edges reattach by their confluence `at_measure` (< M → low, ≥ M → high). Each
-side inherits the other bound of P and gains a structured `SectionBoundary` at M, so
-`location_identifier` and range regulations both work. Per-piece order/magnitude and member_fids
+Incoming tributary edges reattach by their confluence `at_measure` (< M → low, ≥ M → high).
+OUTGOING edges reattach too, but they cannot use `at_measure` — that is measured on the edge's
+`to_node`, so for "mainstem flows into side channel" it is a measure along the SIDE CHANNEL and says
+nothing about where the channel leaves P. They are placed by projecting the confluence coordinate the
+edge carries onto P instead. Missing this pass stranded every outgoing edge on P_low (the piece that
+keeps P's id, nearest the mouth): a braid leaving the river at 19,002 m was recorded as leaving the
+0–11,988 m piece, so its two ends named pieces either side of a cut it is nowhere near, and no reach
+containing it could be resolved. Each side inherits the other bound of P and gains a structured
+`SectionBoundary` at M, so `location_identifier` and range regulations both work. Per-piece order/magnitude and member_fids
 are re-partitioned by measure so the front-end line weight of each piece is correct.
 """
 
@@ -18,6 +24,7 @@ from collections import defaultdict
 from dataclasses import replace
 from typing import Optional
 
+from shapely.geometry import Point
 from shapely.ops import substring
 
 from pipeline.models import (BoundaryKind, FlowEdge, NodeKind, SectionBoundary, SplitPoint,
@@ -113,9 +120,25 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
                 best_m, best_d = m, d
     if best_m is None:
         return False
-    bnd = SectionBoundary(boundary_id=f"split:{sp.split_id}",
+    # Pickup RELABELS the boundary it reuses, so every id that already named this position has to be
+    # carried forward as an alias or it is destroyed. The Region 2/3 MU boundary on the Fraser lands
+    # at exactly the same measure as the Spuzzum Creek confluence — the region boundary follows the
+    # creek — so whichever was cut second silently erased the other, and the rule bound to the loser
+    # ("between Spuzzum Creek and Hell's Gate") resolved to nothing with no indication why.
+    prior: set[str] = set()
+    for nid in blk_nids:
+        n = graph.nodes[nid]
+        if n.kind != NodeKind.stream or n.blk != blk:
+            continue
+        for b in (n.lower_bound, n.upper_bound):
+            if b is not None and abs(b.route_measure - best_m) < 1e-6:
+                prior.add(b.boundary_id)
+                prior.update(b.aliases or ())
+    mine = f"split:{sp.split_id}"
+    bnd = SectionBoundary(boundary_id=mine,
                           kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
-                          route_measure=best_m, label=(sp.label or sp.split_id))
+                          route_measure=best_m, label=(sp.label or sp.split_id),
+                          aliases=tuple(sorted(prior - {mine})))
     for nid in blk_nids:
         n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
@@ -127,7 +150,70 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
     return True
 
 
-def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None) -> bool:
+_ALIAS_MAX_FROM_EDGE_M = 3000.0   # how far into the lake a split may sit and still mean its edge
+
+
+def _alias_onto_lake(graph, blk, sp, by_blk=None) -> tuple[str, float] | None:
+    """Record a curated split that could NOT be cut as an alias on the LAKE it landed in.
+
+    A cut is refused when its measure falls where the blue line has no stream piece, and on this data
+    that means one thing: a LAKE RUN. A dam, weir or "at the outlet" sign sits at the lake's edge and
+    the authored coordinate projects a little way into the water, so the split lands in the gap
+    between the piece below the lake and the piece above it. Duncan Dam, the Mitchell Lake dam and the
+    Babine juvenile counting weir all do this, and all used to vanish, taking the binding of every
+    rule that named them with them.
+
+    Deliberately narrow. It fires ONLY when the measure is inside a gap whose two sides are the SAME
+    lake boundary, and it attaches to whichever edge of that lake is nearer — never to a confluence, a
+    border cut or another split that merely happens to be the closest thing on the blue line. Anything
+    else is left un-aliased and reported, because a split silently attached to the wrong kind of
+    boundary is a worse failure than one that is visibly missing.
+
+    Returns (boundary_id, distance from the lake edge) or None."""
+    want = f"split:{sp.split_id}"
+    M = sp.route_measure
+    nids = list(by_blk.get(blk, ())) if by_blk is not None else list(graph.nodes)
+    pieces = sorted(
+        (graph.nodes[n] for n in nids
+         if graph.nodes.get(n) is not None
+         and graph.nodes[n].kind == NodeKind.stream and graph.nodes[n].blk == blk),
+        key=lambda n: n.down_m)
+    for below, above in zip(pieces, pieces[1:]):
+        if not (below.up_m <= M <= above.down_m):
+            continue                                  # not in this gap
+        lo_b, hi_b = below.upper_bound, above.lower_bound
+        if lo_b is None or hi_b is None:
+            return None
+        if not (str(lo_b.boundary_id).startswith("lake:") and lo_b.boundary_id == hi_b.boundary_id):
+            return None                               # a gap, but not a lake run — leave it alone
+        # attach to the nearer edge: one lake has two bounds, and aliasing both would give the split
+        # two measures and make every reach that uses it ambiguous
+        target, node, end = ((lo_b, below, "upper_bound") if (M - below.up_m) <= (above.down_m - M)
+                             else (hi_b, above, "lower_bound"))
+        dist = abs(M - (target.route_measure if target.route_measure is not None else M))
+        if dist > _ALIAS_MAX_FROM_EDGE_M:
+            return None                               # deep inside the lake: not this edge
+        if want in (target.aliases or ()):
+            return target.boundary_id, dist
+        merged = replace(target, aliases=tuple(target.aliases or ()) + (want,))
+        for other in nids:                            # the bound is shared by the pieces it separates
+            n = graph.nodes.get(other)
+            if n is None:
+                continue
+            patch = {}
+            for e in ("lower_bound", "upper_bound"):
+                b = getattr(n, e)
+                if b is not None and b.boundary_id == target.boundary_id \
+                        and b.route_measure == target.route_measure:
+                    patch[e] = merged
+            if patch:
+                graph.nodes[other] = replace(n, **patch)
+        return target.boundary_id, dist
+    return None
+
+
+def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None,
+               edges_by_from=None) -> bool:
     M = sp.route_measure
     pid = _find_piece(graph, blk, M, by_blk)
     if pid is None:
@@ -180,6 +266,33 @@ def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None) 
         for i, e in enumerate(graph.edges):
             if e.to_node == pid and e.at_measure >= M:
                 graph.edges[i] = replace(e, to_node=hi_id)   # tributary above the cut moves up
+
+    # Outgoing edges leaving ABOVE the cut move up too. `at_measure` is on the to_node and is no use
+    # here, so the edge's confluence coordinate is projected onto P (`g`, still the PRE-split
+    # geometry) to find where along P it actually leaves. An edge with no coordinate is left alone —
+    # guessing would be worse than the known-imperfect placement.
+    if g is not None and not g.is_empty:
+        def _leaves_above(e) -> bool:
+            if not e.x and not e.y:
+                return False
+            return P.down_m + g.project(Point(e.x, e.y)) >= M
+
+        if edges_by_from is not None:
+            from_pid = edges_by_from.get(pid, [])
+            up = [i for i in from_pid if _leaves_above(graph.edges[i])]
+            for i in up:
+                graph.edges[i] = replace(graph.edges[i], from_node=hi_id)
+            if up:
+                us = set(up)
+                edges_by_from[pid] = [i for i in from_pid if i not in us]
+                edges_by_from.setdefault(hi_id, []).extend(up)
+        else:
+            for i, e in enumerate(graph.edges):
+                if e.from_node == pid and _leaves_above(e):
+                    graph.edges[i] = replace(e, from_node=hi_id)
+
+    if edges_by_from is not None:
+        edges_by_from.setdefault(hi_id, []).append(len(graph.edges))   # continuation (from_node=hi_id)
     graph.edges.append(FlowEdge(from_node=hi_id, to_node=pid, at_measure=M,
                                 x=cx, y=cy, kind="continuation"))
     return True
@@ -187,7 +300,7 @@ def _split_one(graph, geoms, blk, sp, fid_index, by_blk=None, edges_by_to=None) 
 
 def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoint],
                    fid_index: Optional[dict] = None, proximity_pickup: bool = False,
-                   applied: Optional[list] = None) -> StreamGraph:
+                   applied: Optional[list] = None, aliased: Optional[list] = None) -> StreamGraph:
     """Subdivide piece nodes at curated ``split_points`` (in place); rebuild adjacency.
 
     Splits on one BLK are applied mouth→source so each lands in the current top piece.
@@ -198,6 +311,8 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
     "Koocanusa Reservoir" curated points snap onto the auto border splits (docs/04).
     ``applied`` (optional): each SplitPoint that landed is appended, with ``picked_up`` set — the
     record the gpkg ``split_points`` layer + ``splits.resolved.json`` consume.
+    ``aliased`` (optional): ``(split_id, boundary_id)`` for each split that could not be cut and was
+    recorded as an ALIAS on an existing boundary instead — see ``_alias_onto_nearest``.
     """
     from dataclasses import replace as _replace
     # Indexes built ONCE (maintained incrementally by _split_one): node ids per blk, and edge ids per
@@ -208,8 +323,10 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
         if n.kind == NodeKind.stream and n.blk:
             node_by_blk[n.blk].append(nid)
     edges_by_to: dict[str, list[int]] = defaultdict(list)
+    edges_by_from: dict[str, list[int]] = defaultdict(list)
     for i, e in enumerate(graph.edges):
         edges_by_to[e.to_node].append(i)
+        edges_by_from[e.from_node].append(i)
 
     sp_by_blk: dict[str, list[SplitPoint]] = defaultdict(list)
     for sp in split_points:
@@ -217,8 +334,19 @@ def split_graph_at(graph: StreamGraph, geoms: dict, split_points: list[SplitPoin
     for blk, sps in sp_by_blk.items():
         for sp in sorted(sps, key=lambda s: s.route_measure):
             picked = _pickup(graph, blk, sp, node_by_blk) if proximity_pickup else False
+            cut = False
             if not picked:
-                _split_one(graph, geoms, blk, sp, fid_index, node_by_blk, edges_by_to)
+                cut = _split_one(graph, geoms, blk, sp, fid_index, node_by_blk, edges_by_to,
+                                 edges_by_from)
+                if not cut and aliased is not None:
+                    # No piece to cut. If it landed in a LAKE RUN, record it as another name for that
+                    # lake's boundary instead of dropping it silently; anything else stays missing.
+                    # Only for a caller that asked (`aliased` given) — the CURATED pass, whose split
+                    # ids rules actually bind. The border pass shares this function but mints
+                    # `border:{blk}:{m}` ids that nothing binds, so aliasing them is pure noise.
+                    got = _alias_onto_lake(graph, blk, sp, node_by_blk)
+                    if got is not None:
+                        aliased.append((sp.split_id, got[0], round(got[1], 1)))
             if applied is not None:
                 applied.append(_replace(sp, picked_up=picked))
     graph.up_adj, graph.down_adj = _rebuild_adj(graph.edges)

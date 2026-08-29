@@ -331,6 +331,10 @@ carries `split_points`, `full_name`/`out_of_bc`/`in_areas` on sections, and an `
 
 ## What's next
 
+> **Stale as of 2026-08.** Items 1 and 2 are done: matching, LLM parsing, the registry and the
+> curation-review app all exist, and the suite is 275 passing / 8 skipped rather than 62/11. Item 3
+> (bundle / tiles / client) is the live gap — see `10-plan.md`.
+
 1. **Match step** (`test_section_regs` un-skips): resolve regulations → section ids using
    `name_tuples` (search) + `location_identifier`/structured bounds (range); MU overlay for base
    regs; tributary expansion via `tributaries_between`/`tributary_node_ids`. See `16-phase5-match-plan`.

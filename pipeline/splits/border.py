@@ -144,36 +144,76 @@ def mark_inside_area(graph: StreamGraph, geoms: dict, poly, area_label: str, blk
     return n
 
 
-def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict) -> int:
-    """Batch membership: flag ``in_areas`` for every stream piece whose midpoint falls inside each
-    polygon, using ONE STRtree over all node midpoints. For each polygon the tree bbox-prefilters to
-    the few midpoints near it, then a precise ``contains`` confirms — turning the old
-    O(polygons·nodes) province-wide sweep into O(polygons·log nodes + hits). Same midpoint-containment
-    semantics as ``mark_inside_area``, just vectorized. Returns the number of flags added."""
+_AREA_MIN_OVERLAP_M = 1.0   # a piece merely TOUCHING the polygon at a cut point overlaps by 0
+
+
+def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
+                      extra: dict | None = None) -> int:
+    """Batch membership: flag ``in_areas`` for every water piece that lies inside — or reaches into —
+    each polygon, using ONE STRtree over the piece geometries. Returns the number of flags added.
+
+    Two passes per polygon, because the cheap test is not the whole answer:
+
+      1. ``covers`` — pieces wholly inside, and the normal case (18,691 of 18,909 province-wide):
+         ``area_splits`` has already cut every stream crossing the polygon, so a cut water is fully in
+         or fully out. It must be ``covers``, NOT ``contains``: the cut puts the piece's ENDPOINT
+         exactly on the polygon boundary, which ``contains`` rejects — 1,453 fully-inside pieces fail
+         that test purely because they were cut correctly.
+      2. ``intersects`` minus pass 1 — the STRADDLERS, 218 streams + 44 lakes. Cutting does not reach
+         everything: ``area_splits`` cuts at first-enter/last-exit only, an ``area_boundary`` split in
+         splits.json is scoped to ONE named water via ``applies_to``, and a lake is never cut at all.
+         Those pieces are flagged too — "within the park" means the water in the park, and dropping a
+         half-inside piece loses real regulated water. Cutting is what makes the flag precise;
+         intersection is what makes it complete.
+
+    The overlap is measured, not merely tested: two pieces cut at the boundary both *touch* the
+    polygon there, so a bare ``intersects`` would flag the outside neighbour of every cut. A shared
+    point has zero length and zero area and is excluded; anything with real extent inside is kept.
+
+    Covers lake and wetland nodes as well as stream pieces. The old midpoint pass tested
+    ``kind == stream`` only, so 1,750 lakes lying wholly inside a park — plus 44 straddling one — were
+    invisible to every ``within(area)`` rule, though a lake inside a park is closed by the same
+    regulation. A MINTED waterbody (isolated lake, marsh) has no sidecar geometry at all, so ``extra``
+    supplies its FWA polygon keyed by node id; without it exactly the waters that most need an area
+    closure — a pond or marsh sitting inside a park — would be the ones the pass could not see.
+    Idempotent (won't double-add).
+    """
     from shapely.strtree import STRtree
 
+    extra = extra or {}
     nids: list = []
-    mids: list = []
+    gs: list = []
     for nid, node in graph.nodes.items():
-        if node.kind != NodeKind.stream:
-            continue
-        mp = _midpoint(geoms.get(nid))
-        if mp is not None:
+        g = geoms.get(nid)
+        if g is None:
+            g = extra.get(nid)          # a minted waterbody: its own FWA polygon stands in
+        if g is not None and not g.is_empty:
             nids.append(nid)
-            mids.append(mp)
-    if not mids or not polys_by_name:
+            gs.append(g)
+    if not gs or not polys_by_name:
         return 0
-    tree = STRtree(mids)
+    tree = STRtree(gs)
     n = 0
+
+    def _flag(nid: str, name: str) -> int:
+        node = graph.nodes[nid]
+        if name in node.in_areas:
+            return 0
+        graph.nodes[nid] = replace(node, in_areas=node.in_areas + (name,))
+        return 1
+
     for name, poly in polys_by_name.items():
         if poly is None or poly.is_empty:
             continue
-        for i in tree.query(poly, predicate="contains"):   # midpoints poly.contains() — bbox-prefiltered
-            nid = nids[i]
-            node = graph.nodes[nid]
-            if name not in node.in_areas:
-                graph.nodes[nid] = replace(node, in_areas=node.in_areas + (name,))
-                n += 1
+        inside = set(tree.query(poly, predicate="covers"))
+        for i in inside:
+            n += _flag(nids[i], name)
+        for i in tree.query(poly, predicate="intersects"):
+            if i in inside:
+                continue
+            part = poly.intersection(gs[i])
+            if not part.is_empty and (part.length > _AREA_MIN_OVERLAP_M or part.area > 0):
+                n += _flag(nids[i], name)
     return n
 
 

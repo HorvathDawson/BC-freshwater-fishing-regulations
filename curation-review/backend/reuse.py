@@ -28,6 +28,11 @@ from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
 from pipeline.parsing.rows import load_synopsis_rows
 from pipeline.registry import load_registry
+from pipeline.reach.build import _expander as _reach_expander
+from pipeline.reach.classify import classify as _classify
+from pipeline.reach.classify import wants_tributaries as _wants_tributaries
+from pipeline.reach import extent as _resolve
+from pipeline.utils.wsc import trim_wsc
 
 _ROOT = Path(__file__).resolve().parents[2]
 ENTRIES_DIR = _ROOT / "pipeline" / "parsing" / "entries"
@@ -35,6 +40,7 @@ REGISTRY_PATH = _ROOT / "output" / "v2" / "full" / "registry.json"
 OVERRIDES_PATH = _ROOT / "pipeline" / "matching" / "overrides.json"
 SPLITS_RESOLVED_PATH = _ROOT / "output" / "v2" / "full" / "splits.resolved.json"
 GRAPH_GPKG_PATH = _ROOT / "output" / "v2" / "full" / "graph.gpkg"
+GRAPH_PKL_PATH = _ROOT / "output" / "v2" / "full" / "graph.pkl"
 BASEMAP_PMTILES = _ROOT / "data" / "bc.pmtiles"          # the webapp's basemap (web-mercator)
 SPLITS_JSON_PATH = _ROOT / "pipeline" / "splits.json"    # THE hand-curated split source (editable here)
 ROW_IMAGES_DIR = _ROOT / "output" / "pipeline" / "extraction" / "row_images"  # source synopsis row crops
@@ -104,11 +110,15 @@ def split_meta(split_id: str) -> dict:
 
 def invalidate_caches() -> None:
     """Drop cached graph-derived data so the next request reads freshly-rebuilt artifacts
-    (registry.json, splits.resolved.json, graph.gpkg split_points). Call after a graph rebuild.
-    item_geojson reads graph.gpkg fresh on every call, so it needs no clearing; the species list
-    and row-image index come from static source, not the build, so they are left warm."""
+    (registry.json, splits.resolved.json, graph.gpkg split_points, graph.pkl). Call after a graph
+    rebuild. item_geojson reads graph.gpkg fresh on every call, so it needs no clearing; the species
+    list and row-image index come from static source, not the build, so they are left warm.
+
+    `_graph` MUST be in here: a rebuild renumbers the piece nodes (`{blk}:{measure}`), so a reach
+    resolved against the pre-rebuild graph names sections the new registry no longer has — the reach
+    silently comes back empty or wrong, with nothing on screen to say the graph is stale."""
     for fn in (_registry, _indices, _splits_meta, _split_points_attrs,
-               _blk_to_item, _tributary_items, item_tributaries):
+               _blk_to_item, _tributary_items, item_tributaries, _graph):
         fn.cache_clear()
 
 
@@ -181,13 +191,57 @@ def _rule_needs_review(e: dict) -> bool:
     return any(r.get("needs_review") or r.get("unresolved_locators") for r in e.get("rules", []))
 
 
-def _item_for_entry(e: dict):
-    """The registry item (RegistryItem) for an entry, resolved via the matcher over its identity."""
+def _match_and_item(e: dict):
+    """(MatchResult, RegistryItem|None) for an entry. The MatchResult is the live re-match — the same
+    logic and overrides the build used, kept so the UI can show WHY a match is ambiguous. The ITEM
+    prefers `entry.matched`, which is authoritative for the same reason `_covered_ids` trusts it.
+
+    This matters most where the live match cannot decide: four separate lakes are all gazetted
+    "Nation Lakes", so re-matching that name returns `ambiguous` with four candidates and no item —
+    but the entry already records WHICH one it is. Reading the item off the live match instead left
+    20 such entries with no item at all: a blank name in the queue and an empty boundary picker, even
+    though the lake was known all along."""
     ident = e.get("identity", {})
     mr = match_identity(ident.get("name", ""), ident.get("region", ""), ident.get("mus", []))
-    if mr.item_id:
-        return _registry().get(mr.item_id)
-    return None
+    reg = _registry()
+    for iid in (*(e.get("matched") or []), mr.item_id):
+        if iid and iid in reg:
+            return mr, reg[iid]
+    return mr, None
+
+
+def _item_for_entry(e: dict):
+    """The registry item (RegistryItem) for an entry, resolved via the matcher over its identity."""
+    return _match_and_item(e)[1]
+
+
+def _covered_ids(e: dict, mr) -> list[str]:
+    """Every registry item this entry covers, primary first.
+
+    `entry.matched` is authoritative — the matcher wrote it against the synopsis row's VERBATIM name,
+    which is what a combined override is keyed on ("CHILLIWACK / VEDDER RIVERS (does not include Sumas
+    River) …"). Re-matching the entry here cannot recover that: the entry only stores the item's name
+    ("Chilliwack River"), which finds the Chilliwack and never learns about the Vedder. So the live
+    match is only a fallback for entries stamped before `matched` was filled."""
+    reg = _registry()
+    stored = [i for i in (e.get("matched") or []) if i in reg]
+    if stored:
+        return stored
+    return [i for i in (mr.item_id, *mr.also) if i and i in reg]
+
+
+def _also_items(e: dict, mr) -> list[dict]:
+    """The OTHER registry items this entry covers — "CHILLIWACK / VEDDER RIVERS" is one synopsis row
+    over the Chilliwack, the Vedder and the Vedder Canal, so the reviewer needs to see all three.
+
+    "Other" means other than the item actually shown as primary, which `_match_and_item` may take from
+    `entry.matched` when the live match is ambiguous. Keying this on `mr.item_id` instead listed the
+    primary a second time whenever those two differed."""
+    reg = _registry()
+    _, item = _match_and_item(e)
+    primary = item.id if item is not None else mr.item_id
+    return [{"id": i, "name": reg[i].name, "kind": reg[i].kind}
+            for i in _covered_ids(e, mr) if i != primary]
 
 
 def _boundaries(item):
@@ -195,7 +249,11 @@ def _boundaries(item):
 
 
 def _boundary_dict(b) -> dict:
+    # `aliases`: other curated split ids this same cut-point answers to (a split that landed inside a
+    # lake run and was recorded on the lake's boundary rather than dropped). Surfaced so the picker can
+    # say what a boundary represents instead of it silently standing for more than its own label.
     return {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk,
+            "aliases": [str(a).split(":", 1)[-1] for a in (getattr(b, "aliases", ()) or ())],
             "curated": str(b.ref or "").startswith("split:")}
 
 
@@ -237,7 +295,7 @@ def _item_split_source(item) -> list[dict]:
         for g in (at.get("gnis_ids") or []):
             keys.add(f"gnis:{g}")
         if at.get("wsc"):
-            keys.add(f"wsc:{at['wsc']}")
+            keys.add(f"wsc:{trim_wsc(str(at['wsc']))}")   # registry ref_ids store the TRIMMED wsc
         if at.get("blk"):
             keys.add(f"blk:{at['blk']}")
         if keys & refs:
@@ -272,8 +330,35 @@ def bindable(item) -> list[dict]:
     return list(out.values())
 
 
+def _combined_bindable(item, e: dict, mr) -> list[dict]:
+    """`bindable` over every item this entry covers, each boundary tagged with the `item_id` it came
+    from. The matched item goes first, so its ids win an id collision."""
+    reg = _registry()
+    items = [item] + [reg[i] for i in _covered_ids(e, mr) if i != item.id]
+    # The REGISTRY says which water a built cut-point is actually on; `bindable` also folds in
+    # splits.json splits, which attach to every item their waterbody's `applies_to` names — so
+    # Vedder Crossing Bridge would otherwise be labelled "on the Chilliwack" when the built cut
+    # lives on the Vedder. Registry ownership wins; splits.json-only ids fall back to first seen.
+    built = {b.id: it.id for it in items for b in it.boundaries}
+    out: dict[str, dict] = {}
+    for it in items:
+        for b in bindable(it):
+            out.setdefault(b["id"], {**b, "item_id": built.get(b["id"], it.id)})
+    return list(out.values())
+
+
 def _bindable_ids(item) -> set[str]:
-    return {b["id"] for b in bindable(item)}
+    """Every id a rule may legally bind on this item — including each boundary's ALIASES.
+
+    An alias is a curated split that could not be cut because its measure landed inside a lake run
+    (a dam at the outlet), recorded as another name for the boundary standing at that place. It is a
+    real, resolvable cut-point, so binding it must validate; without this the id resolves on the map
+    but is rejected on save."""
+    out: set[str] = set()
+    for b in bindable(item):
+        out.add(b["id"])
+        out.update(b.get("aliases") or ())
+    return out
 
 
 def item_bindable(item_id: str) -> list[dict]:
@@ -348,6 +433,208 @@ def item_tributaries(item_id: str) -> list[dict]:
     return sorted(out, key=lambda d: d["name"])
 
 
+# --------------------------------------------------------------------------- #
+# Extent -> sections (the REACH a rule actually selects)
+# --------------------------------------------------------------------------- #
+# Nothing in the pipeline resolves an Extent to sections yet; the ops are recorded intent. The review
+# tool needs the answer NOW, because a curator cannot confirm a reach they cannot see — so this is the
+# reference implementation of the contract documented on `pipeline.parsing.entry_models.Op`:
+#
+#   whole            every section of every covered item (or of `item_id`, if scoped)
+#   upstream_of X    follow the WATER up from X, crossing between covered items
+#   downstream_of X  follow the WATER down from X, crossing between covered items
+#   between A,B      the sections below A and above B (order-insensitive)
+#   within(area)     handled by the area catalog, not here -> returns None (unknown)
+#
+# `item_id` narrows the candidate set to that one item, which is how a reach that stops at a
+# junction is expressed (the Chilliwack ENDS at Vedder Crossing).
+
+
+@lru_cache(maxsize=1)
+def _graph():
+    """The built StreamGraph — node bounds + flow adjacency. Big (~0.7 GB) but loaded once per
+    process and only when a reach is actually requested."""
+    from pipeline.io.serialize import read_artifact
+    return read_artifact(str(GRAPH_PKL_PATH))
+
+
+def resolve_extent(covered_ids: list[str], ex: dict) -> dict | None:
+    """The app's binding of the shared resolver: same code the builder runs, this app's cached pair.
+
+    The implementation lives in `pipeline.reach.extent` so the review app and the artifact builder
+    can never drift. Callers here keep the two-argument form they always had."""
+    return _resolve.resolve_extent(_registry(), _graph(), covered_ids, ex)
+
+
+def _waters(section_ids):
+    return _resolve._waters(_graph(), section_ids)
+
+
+
+
+
+
+
+
+
+
+
+
+def item_tributary_geojson(item_id: str, limit: int = 6000) -> dict:
+    """One level of tributaries: the streams that flow DIRECTLY into this item, as map geometry.
+
+    A rule can extend to tributaries (`includes_tributaries`), and a curator cannot confirm that
+    without seeing them. "One level" = the streams whose mouth joins one of this item's sections —
+    each drawn in full, not just the joining piece — so the shape you see is the shape the flag means.
+    Their own tributaries are NOT followed; that is the next level down and would swamp a big river.
+
+    Features carry `properties.kind = 'tributary'` and the tributary's name, so the map can draw them
+    distinctly from the item itself.
+
+    Capped at `limit` SECTIONS, and the cap is reported rather than hidden. At the old cap of 400 the
+    Fraser drew 125 of its 389 tributaries while still answering "389", so two thirds of them were
+    missing from the map with nothing to say so — indistinguishable from a tributary that had lost its
+    connection. Whole tributaries only: a half-drawn stream is worse than an absent one."""
+    reg = _registry()
+    it = reg.get(item_id)
+    if it is None:
+        return {"type": "FeatureCollection", "features": []}
+    g = _graph()
+    own = set(it.section_ids)
+    mouths = set()
+    for nid in own:                                        # incoming edges = what flows into us
+        for i in g.up_adj.get(nid, []):
+            frm = g.edges[i].from_node
+            if frm not in own:
+                mouths.add(frm)
+    # expand each joining piece to the whole named stream it belongs to
+    by_node: dict[str, str] = {}
+    for iid, item in reg.items():
+        if item.kind != "stream" or iid == item_id:
+            continue
+        for sid in item.section_ids:
+            if sid in mouths:
+                by_node[sid] = iid
+    trib_ids = {by_node[m] for m in mouths if m in by_node}
+    sections: list[str] = []
+    drawn = 0
+    for tid in sorted(trib_ids, key=lambda t: (len(reg[t].section_ids), t)):   # small ones first
+        ids = reg[tid].section_ids
+        if sections and len(sections) + len(ids) > limit:
+            break                                          # never draw half a stream
+        sections.extend(ids)
+        drawn += 1
+    feats = []
+    for i in range(0, len(sections), 400):
+        feats += _read_gpkg_features("streams", _sql_in("node_id", sections[i:i + 400]),
+                                     ["node_id", "display_name"], "tributary")
+    return {"type": "FeatureCollection", "features": feats, "n_tributaries": len(trib_ids),
+            "n_drawn": drawn, "truncated": drawn < len(trib_ids)}
+
+
+def _scope_sections(e: dict, covered: list[str]) -> set[str] | None:
+    """The stretch the ENTRY is about, as node ids — or None when it is about the whole water.
+
+    The synopsis qualifies a row in its NAME: "FRASER RIVER (upstream of the CPR Bridge at Mission)",
+    "ADAMS RIVER (downstream of Adams Lake)". The rules inside such a row are written relative to that
+    stretch and almost never restate it, so a rule reading "whole" means the whole of THIS row, not the
+    whole river. Left unapplied, the two Adams rows — one above the lake, one below — resolved to the
+    same river, and so did the Fraser's four regional rows.
+
+    Multiple scope extents are unioned: the row's own idea of where it applies.
+
+    Returns ``(sections, failed)``. A scope that CANNOT be resolved is reported, not swallowed: the
+    old code returned None both for "this row has no scope" and for "this row's scope is broken", and
+    the caller treated None as "do not clip". A Fraser regional row whose boundary stopped resolving
+    would then silently widen from its region to the entire river — fail-open, in the direction that
+    tells someone a rule applies where it does not. All ten scoped entries resolve today, so this is
+    a latent path, which is exactly when it is cheap to close."""
+    out: set[str] = set()
+    failed: list[dict] = []
+    for sc in e.get("scope") or []:
+        got = resolve_extent(covered, sc)
+        if got is None:
+            failed.append(sc)
+            continue
+        out |= set(got["sections"])
+    return (out or None), failed
+
+
+def entry_reaches(entry_id: str) -> dict:
+    """What each rule selects, for the review UI — AND what the bundle will actually ship.
+
+    The per-extent geometry comes from `pipeline.reach.extent`; the OUTCOME of each
+    rule comes from `pipeline.reach`, the same builder that writes the artifact. That
+    matters: the builder makes decisions the raw resolver does not — a straddling piece is
+    included for a closure and excluded otherwise, an empty reach after the row's scope is
+    a distinct failure from an unresolvable one. If the curator confirmed against the raw
+    resolver instead, they would be signing off on something subtly different from what
+    ships.
+
+    So each rule also carries `outcome`, `reason` and `diagnostics` (doc 10 ㊴).
+    """
+    for _, e in _all_entries():
+        if e["entry_id"] != entry_id:
+            continue
+        mr, item = _match_and_item(e)
+        covered = _covered_ids(e, mr)
+        clip, scope_failed = _scope_sections(e, covered)
+
+        out: dict = {}
+        per_rule: dict[str, list] = {}
+        for r in e.get("rules") or []:
+            per = [_clip(resolve_extent(covered, ex), clip) for ex in (r.get("extents") or [])]
+            out[r["rule_id"]] = per
+            per_rule[r["rule_id"]] = per
+
+        # The builder's verdict on the same inputs — one implementation, not two.
+        # Tributaries are EXPANDED here exactly as the bundle will expand them: a rule
+        # reading "including tributaries" covers far more than its mainstem, and a curator
+        # confirming it against the mainstem alone would be signing off on the wrong reach.
+        verdict: dict = {}
+        for r in e.get("rules") or []:
+            binding, diags = _classify(
+                entry_id, r, per_rule[r["rule_id"]],
+                registry=_registry(), covered_ids=covered,
+                scope_clipped=_scope_clipped(per_rule[r["rule_id"]], clip),
+                entry_has_registry=bool(covered),
+                tributaries=_wants_tributaries(r, e),
+                tributaries_only=bool(r.get("tributaries_only")),
+                expand_tributaries=_reach_expander(_graph(), _registry(), covered, r, e),
+            )
+            verdict[r["rule_id"]] = {
+                "outcome": binding.outcome.value,
+                "reason": binding.reason.value if binding.reason else None,
+                "detail": binding.detail,
+                "n_sections": len(binding.sections),
+                "sections": list(binding.sections),
+                "diagnostics": [{"kind": d.kind, **d.payload} for d in diags],
+            }
+
+        return {"covered": covered, "rules": out, "scope_sections": sorted(clip or ()),
+                "scope_unresolved": scope_failed, "verdict": verdict}
+    return {}
+
+
+def _scope_clipped(per: list, clip: set[str] | None) -> bool:
+    """Did the entry's scope actually remove sections this rule had resolved?"""
+    return bool(clip) and any(g is not None and not g["sections"] for g in per)
+
+
+def _clip(got: dict | None, clip: set[str] | None) -> dict | None:
+    """Cut a resolved reach down to the entry's scope, recomputing the waters it lands on.
+
+    An empty result is kept as an empty reach rather than turned into None: "this rule selects nothing
+    inside this row's stretch" is a real answer and a curation signal, whereas None means the extent
+    could not be resolved at all."""
+    if got is None or clip is None:
+        return got
+    sections = [n for n in got["sections"] if n in clip]
+    return {**got, "sections": sections,
+            "unclassified": [n for n in got["unclassified"] if n in clip],
+            "waters": _waters(sections)}
+
+
 def _referenced_item_ids(entry_dict: dict) -> set[str]:
     """Every other-item id an extent scopes to (rule extents, entry scope, tributary excludes)."""
     ids: set[str] = set()
@@ -356,6 +643,7 @@ def _referenced_item_ids(entry_dict: dict) -> set[str]:
         for ex in extents or []:
             if ex.get("item_id"):
                 ids.add(ex["item_id"])
+            ids.update(ex.get("item_ids") or ())
 
     _scan(entry_dict.get("scope"))
     _scan((entry_dict.get("tributaries") or {}).get("excludes"))
@@ -363,6 +651,45 @@ def _referenced_item_ids(entry_dict: dict) -> set[str]:
         _scan(r.get("extents"))
         _scan(r.get("tributary_excludes"))
     return ids
+
+
+def related_entries(entry_id: str) -> list[dict]:
+    """Other entries covering ANY of the same registry items — the ones to review alongside this one.
+
+    The synopsis splits one regulation across several rows: "CHILLIWACK / VEDDER RIVERS …" carries the
+    rules, and a separate "VEDDER RIVER" row just says *See Chilliwack River*. They are different rows
+    (so different entries, faithful to the synopsis), but they regulate the same water, and reviewing
+    one without the other is how a half-linked entry gets confirmed. Overlap is computed on `matched`,
+    so a combined override's extra items count.
+    """
+    reg = _registry()
+    mine: set[str] = set()
+    for _, e in _all_entries():
+        if e["entry_id"] == entry_id:
+            mr, item = _match_and_item(e)
+            mine = set(_covered_ids(e, mr))
+            break
+    if not mine:
+        return []
+    out: list[dict] = []
+    for reg_id, e in _all_entries():
+        if e["entry_id"] == entry_id:
+            continue
+        mr, _ = _match_and_item(e)
+        shared = mine & set(_covered_ids(e, mr))
+        if not shared:
+            continue
+        out.append({
+            "entry_id": e["entry_id"],
+            "region": reg_id if isinstance(reg_id, str) else e.get("identity", {}).get("region", ""),
+            "name": e.get("identity", {}).get("name", ""),
+            "locked": bool(e.get("locked")),
+            "n_rules": len(e.get("rules", [])),
+            # a pointer row ("See Chilliwack River") is the common case worth calling out
+            "pointer": e.get("regs_verbatim", "").strip().lower().startswith("see "),
+            "shared_items": [{"id": i, "name": reg[i].name} for i in sorted(shared) if i in reg],
+        })
+    return sorted(out, key=lambda r: r["name"])
 
 
 def entry_status(e: dict, item: dict | None) -> str:
@@ -386,7 +713,7 @@ def queue(region: str | None = None, status: str | None = None) -> list[dict]:
     rows = []
     src = [(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for reg_id, e in src:
-        item = _item_for_entry(e)
+        mr, item = _match_and_item(e)
         st = entry_status(e, item)
         if status and st != status:
             continue
@@ -398,10 +725,12 @@ def queue(region: str | None = None, status: str | None = None) -> list[dict]:
             "status": st,
             "locked": bool(e.get("locked")),
             "revisit": bool(e.get("revisit")),
+            "reference_only": bool(e.get("reference_only")),   # "See X" pointer row, no regs of its own
             "registry_status": e.get("registry_status", "matched"),
             "n_rules": len(e.get("rules", [])),
             "matched_item_id": item.id if item else None,
             "matched_item_name": item.name if item else None,
+            "also_item_ids": [a["id"] for a in _also_items(e, mr)],      # combined-override items
             "unused_curated_splits": len(unused_curated_splits(e, item)),
         })
     rows.sort(key=lambda r: (_STATUS_ORDER.get(r["status"], 9), r["name"]))
@@ -412,19 +741,23 @@ def entry_detail(entry_id: str) -> dict | None:
     """Full entry + its resolved item's boundaries/variants + unused curated splits + match info."""
     for reg_id, e in _all_entries():
         if e["entry_id"] == entry_id:
-            ident = e.get("identity", {})
-            mr = match_identity(ident.get("name", ""), ident.get("region", ""), ident.get("mus", []))
-            item = _registry().get(mr.item_id) if mr.item_id else None
+            mr, item = _match_and_item(e)
             return {
                 "entry": e,
                 "region": reg_id,
                 "match": {"item_id": mr.item_id, "status": mr.status, "reason": mr.reason,
-                          "candidates": list(mr.candidates)},
+                          "candidates": list(mr.candidates),
+                          "also": [a["id"] for a in _also_items(e, mr)]},
                 "item": None if not item else {
                     "id": item.id, "name": item.name, "kind": item.kind,
                     "variants": list(item.variants), "mus": list(item.mus),
-                    "boundaries": bindable(item),   # built graph ∪ live splits.json (tagged)
+                    # built graph ∪ live splits.json, over the primary item AND a combined
+                    # override's other items — the same closed set the parser was given, so a
+                    # Vedder rule on the Chilliwack/Vedder entry has a Vedder cut-point to bind.
+                    "boundaries": _combined_bindable(item, e, mr),
                 },
+                "also_items": _also_items(e, mr),      # a combined override's other items (Vedder, …)
+                "related_entries": related_entries(entry_id),   # other rows over the same water
                 "unused_curated_splits": unused_curated_splits(e, item),
                 "source_image": entry_source_image(e),
             }
@@ -504,6 +837,56 @@ def _read_gpkg_features(layer: str, where: str, keep: list[str], kind: str) -> l
     return feats
 
 
+def item_side_channels(item_id: str) -> list[str]:
+    """Registry items that are ANABRANCHES of this one — a channel that leaves the river and rejoins it.
+
+    A named side channel is split into its own item on purpose: folded in, its name became the river's
+    (the Fraser displayed as "Seabird Island North Side Channel") and a rule about the slough resolved
+    to the whole mainstem. But splitting it out then dropped it off the river's map, so the Fraser drew
+    its dozens of ANONYMOUS side channels — those are still its own sections — while Seabird Island
+    North Side Channel, Herrling Island Side Channel and Maria Slough silently vanished.
+
+    Told apart from a tributary by direction, not by name: a side channel both TAKES water from this
+    item and RETURNS it, while a tributary only ever flows in."""
+    reg = _registry()
+    it = reg.get(item_id)
+    if it is None:
+        return []
+    g = _graph()
+    own = set(it.section_ids)
+    takes_from, gives_to = set(), set()
+    for nid in own:
+        for i in g.down_adj.get(nid, []):
+            if (t := g.edges[i].to_node) not in own:
+                takes_from.add(t)                          # water leaves us and enters them
+        for i in g.up_adj.get(nid, []):
+            if (f := g.edges[i].from_node) not in own:
+                gives_to.add(f)                            # water comes back from them
+    owner: dict[str, str] = {}
+    for iid, item in reg.items():
+        if iid == item_id:
+            continue
+        for sid in item.section_ids:
+            owner[sid] = iid
+    a = {owner[n] for n in takes_from if n in owner}
+    b = {owner[n] for n in gives_to if n in owner}
+
+    # An anabranch is the MINOR channel, and "leaves and rejoins" is symmetric: Maria Slough takes
+    # from the Fraser and gives back to it, so without this the Fraser is Maria Slough's side channel
+    # too. Every covered side-channel item then dragged the whole river in behind it and the Fraser
+    # was drawn thirteen times over — 1,996 features for one river. Length breaks the tie: the small
+    # one is the channel.
+    def _len(iid: str) -> float:
+        item = reg.get(iid)
+        if item is None:
+            return 0.0
+        return sum((n.length_m or 0.0) for sid in item.section_ids
+                   if (n := g.nodes.get(sid)) is not None)
+
+    mine = _len(item_id)
+    return sorted(i for i in (a & b) if _len(i) < mine)
+
+
 def item_geojson(item_id: str) -> dict:
     """Stream sections + curated split points for a registry item, as a GeoJSON FeatureCollection in
     EPSG:4326 (lon/lat) so it overlays the web-mercator PMTiles basemap. Streams selected by the item's
@@ -514,12 +897,42 @@ def item_geojson(item_id: str) -> dict:
         return {"type": "FeatureCollection", "features": []}
 
     feats: list[dict] = []
-    section_ids = list(item.section_ids)
+    section_ids = [n for n in item.section_ids if not str(n).startswith("lake:")]
     for i in range(0, len(section_ids), 400):                      # chunk long IN lists
         chunk = section_ids[i:i + 400]
         feats += _read_gpkg_features(
             "streams", _sql_in("node_id", chunk),
             ["node_id", "display_name", "location_identifier"], "stream")
+
+    # Named side channels draw WITH the river. They are separate items so their names and their rules
+    # stay their own, but on the map a river missing its named channels while showing every anonymous
+    # one is just wrong. Tagged `side_channel` so the client can style them apart from the mainstem.
+    reg = _registry()
+    side_ids = [n for sid in item_side_channels(item_id)
+                for n in reg[sid].section_ids if not str(n).startswith("lake:")]
+    for i in range(0, len(side_ids), 400):
+        feats += _read_gpkg_features(
+            "streams", _sql_in("node_id", side_ids[i:i + 400]),
+            ["node_id", "display_name", "location_identifier"], "side_channel")
+
+    # A LAKE/wetland item's sections are `lake:{wbk}` nodes, which live in the `lakes` layer, not
+    # `streams` — without this a lake item draws nothing at all (the Vedder Canal on the combined
+    # Chilliwack/Vedder entry). Its own wbk is included so an isolated lake with no graph node
+    # (minted by add_waterbody_items) still gets its polygon.
+    lake_wbks = {str(n).split(":", 1)[1] for n in item.section_ids if str(n).startswith("lake:")}
+    if item.id.startswith("wbk:"):
+        lake_wbks.add(item.id.split(":", 1)[1])
+    if lake_wbks:
+        lake_feats = _read_gpkg_features(
+            "lakes", _sql_in("wbk", sorted(lake_wbks)), ["wbk", "display_name"], "waterbody")
+        # Stamp the graph node id the same way a stream feature carries it. The reach highlight matches
+        # features on `node_id`, so without this a lake or canal in a rule's reach draws nothing — the
+        # Vedder Canal is `lake:329707189` and is the WHOLE extent of three Chilliwack/Vedder rules.
+        for lf in lake_feats:
+            wbk = str(lf["properties"].get("wbk") or "")
+            if wbk:
+                lf["properties"]["node_id"] = f"lake:{wbk}"
+        feats += lake_feats
 
     split_ids = list(_curated_split_ids(item))
     if split_ids:

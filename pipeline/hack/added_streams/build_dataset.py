@@ -747,12 +747,6 @@ def _bump_wsc(wsc: str, used: dict) -> str:
     return wsc
 
 
-def _central_axis(poly):
-    """The lake's major axis floated off both shores by ``_AXIS_INSET`` at each end — the spine creeks attach to."""
-    ax = _major_axis(poly); L = ax.length
-    return LineString([ax.interpolate(_AXIS_INSET * L), ax.interpolate((1 - _AXIS_INSET) * L)]) if L > 0 else ax
-
-
 def lake_through_spine(line: LineString, approved_lakes) -> Optional[LineString]:
     """If ``line`` is a lake's OUTLET stream — its source (up-end) sits on an approved lake it drains — run it
     THROUGH the lake as the central spine so the many creeks entering around the lake attach at DISTINCT measures

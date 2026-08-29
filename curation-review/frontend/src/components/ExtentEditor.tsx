@@ -8,11 +8,13 @@ interface Props {
   extents: Extent[];
   boundaries: Boundary[];
   onChange: (next: Extent[]) => void;
+  /** registry id -> display name, for showing which waters an extent spans */
+  itemNames?: Record<string, string>;
 }
 
 // Per-rule extent editor: op dropdown + split-id multiselect populated from the
 // item's boundaries. Arity is enforced in the UI (whole=0, up/down=1, between=2).
-export function ExtentEditor({ extents, boundaries, onChange }: Props) {
+export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: Props) {
   // Bindable options: drop curated splits no longer in splits.json (orphans — they vanish on rebuild),
   // keep auto boundaries, and float curated splits (splits.json) to the top.
   const baseOptions = useMemo(
@@ -46,10 +48,27 @@ export function ExtentEditor({ extents, boundaries, onChange }: Props) {
     if (op === "whole") splits = [];
     update(i, { op, splits });
   }
+  // Which registry items the chosen cut-points belong to.
+  function owners(splits: string[]): string[] {
+    const seen = new Set<string>();
+    for (const id of splits) {
+      const b = baseOptions.find((o) => o.id === id);
+      if (b?.item_id) seen.add(b.item_id);
+    }
+    return [...seen];
+  }
+
   function setSplits(i: number, selected: string[]) {
     const arity = splitArity(extents[i].op);
     const splits = arity != null ? selected.slice(0, arity) : selected;
-    update(i, { splits });
+    // A reach whose two ends sit on DIFFERENT waters has to be scoped to both. Scoped to one, the
+    // other end falls outside the scope and the reach cannot resolve at all — which is what happened
+    // to "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge", bounded by a cut on the
+    // Chilliwack and one on the Vedder. So the scope follows the cut-points automatically.
+    const own = owners(splits);
+    update(i, own.length > 1
+      ? { splits, item_ids: own, item_id: null }
+      : { splits, item_ids: [] });
   }
   function add() {
     onChange([...extents, { op: "whole", splits: [] }]);
@@ -115,6 +134,14 @@ export function ExtentEditor({ extents, boundaries, onChange }: Props) {
               <span className="dim">
                 {ex.splits.length}/{arity} split{arity === 1 ? "" : "s"}
                 {ex.splits.length !== arity ? " ⚠" : ""}
+              </span>
+            )}
+            {(ex.item_ids?.length ?? 0) > 1 && (
+              <span
+                className="badge"
+                title="the two cut-points are on different waters, so this extent is scoped to both — scoping it to one would put the other end out of scope"
+              >
+                spans {ex.item_ids!.map((id) => itemNames[id] ?? id).join(" + ")}
               </span>
             )}
             <button className="btn" style={{ padding: "2px 8px" }} onClick={() => remove(i)}>

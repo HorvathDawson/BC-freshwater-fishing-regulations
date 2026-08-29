@@ -116,6 +116,57 @@ def _area_transition_measures(g, poly, boundary) -> list[float]:
     return out
 
 
+_PERP_HALF_M = 1500.0      # half-length of the auto cut line (m) — reaches across a braid plain
+_PERP_WINDOW_M = 50.0      # bearing is averaged over +/- this, so one odd vertex cannot skew the cut
+
+
+def _side(line, pt) -> float:
+    """Which side of ``line`` a point lies on: sign of the 2-D cross product (0 = on the line)."""
+    (ax, ay), (bx, by) = line.coords[0], line.coords[-1]
+    return (bx - ax) * (pt.y - ay) - (by - ay) * (pt.x - ax)
+
+
+def _spans(geom, cut) -> bool:
+    """True only if this channel passes right THROUGH the cut line — its two ends on opposite sides.
+
+    Merely intersecting is not enough. An oxbow or a meander can bulge across the line and come back,
+    touching it twice while both of its ends stay on the same side of the boundary; cutting there
+    would slice a channel the regulation's line never actually separates. A braid that leaves the
+    river below the cut and rejoins above it has its ends genuinely on opposite sides, which is the
+    case we do want to cut."""
+    ends = [geom.interpolate(0.0), geom.interpolate(geom.length)]
+    a, b = (_side(cut, e) for e in ends)
+    return (a > 0 > b) or (a < 0 < b)
+
+
+def perpendicular_cut(geom, m_local: float, half_len: float = _PERP_HALF_M,
+                      window: float = _PERP_WINDOW_M):
+    """A cut line across the channel at ``m_local``, perpendicular to its LOCAL BEARING.
+
+    The bearing is taken from the chord between ``m_local - window`` and ``m_local + window`` rather
+    than from the two vertices either side of the point: a single kinked vertex would otherwise throw
+    the perpendicular off by tens of degrees, and the line has to stay square to the valley to cut the
+    side channels correctly.
+
+    This is what lets a braid be cut by DISTANCE ALONG THE VALLEY instead of straight-line distance
+    from the authored coordinate. A radius cannot tell "a channel 800 m across the braid plain, at the
+    same point on the river" from "a channel 800 m upstream", so on a wide braided river it either
+    missed the channels it should cut or caught ones it should not."""
+    import math
+    from shapely.geometry import LineString
+
+    a = geom.interpolate(max(m_local - window, 0.0))
+    b = geom.interpolate(min(m_local + window, geom.length))
+    dx, dy = b.x - a.x, b.y - a.y
+    n = math.hypot(dx, dy)
+    if n == 0.0:
+        return None
+    ux, uy = -dy / n, dx / n                       # unit normal to the channel
+    c = geom.interpolate(min(max(m_local, 0.0), geom.length))
+    return LineString([(c.x - ux * half_len, c.y - uy * half_len),
+                       (c.x + ux * half_len, c.y + uy * half_len)])
+
+
 def _apply_offset(d: float, length: float, anchor) -> tuple[float, str]:
     """Shift an along-channel distance ``d`` (metres from the mouth) by the anchor's authored
     offset, following the channel. +upstream / -downstream (geometry is mouth->source, so a larger
@@ -159,20 +210,51 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
         a = sd.anchor
         targets = [(blk, by_blk[blk]) for blk in _target_blks(sd, chains) if blk in by_blk]
 
-        if a.type in (AnchorType.point, AnchorType.line):
+        if a.type == AnchorType.point and a.coord is not None:
+            # The authored coordinate names ONE channel — the one it sits on. Cut that channel by
+            # projection (exact), then sweep a perpendicular cut line across the valley and cut every
+            # OTHER target channel it crosses, so a braid is caught by where it sits along the river
+            # rather than by how far it happens to lie from the coordinate.
+            p = _pt(a.coord, a.is_lonlat)
+            host = None
             for blk, c in targets:
                 g = c.geometry
                 if g is None or g.is_empty:
                     continue
-                if a.type == AnchorType.point and a.coord is not None:
-                    p = _pt(a.coord, a.is_lonlat)
-                    d = g.project(p)
-                    if g.interpolate(d).distance(p) <= sd.proximity_m:
-                        m, oc = _apply_offset(d, g.length, a)
-                        _emit(sd, blk, c.mouth_measure + m, concern=oc)
-                elif a.type == AnchorType.line and a.coords:
-                    for p in _points(g.intersection(_line(a.coords, a.is_lonlat))):
-                        _emit(sd, blk, c.mouth_measure + g.project(p))
+                d = g.project(p)
+                dist = g.interpolate(d).distance(p)
+                if dist <= sd.proximity_m and (host is None or dist < host[2]):
+                    host = (blk, c, dist, d)
+            if host is None:
+                continue
+            blk, c, _, d = host
+            m, oc = _apply_offset(d, c.geometry.length, a)
+            _emit(sd, blk, c.mouth_measure + m, concern=oc)
+
+            cut = perpendicular_cut(c.geometry, m)
+            if cut is None:
+                continue
+            for oblk, oc_chain in targets:
+                og = oc_chain.geometry
+                if oblk == blk or og is None or og.is_empty:
+                    continue
+                if not _spans(og, cut):
+                    continue           # only a channel that truly passes from one side to the other
+                hits = _points(og.intersection(cut))
+                if not hits:
+                    continue
+                # a meander can cross the line twice; take the crossing nearest the authored point
+                best = min(hits, key=lambda q: q.distance(p))
+                _emit(sd, oblk, oc_chain.mouth_measure + og.project(best),
+                      concern="braid cut by the perpendicular line at the split")
+
+        elif a.type == AnchorType.line and a.coords:
+            for blk, c in targets:
+                g = c.geometry
+                if g is None or g.is_empty:
+                    continue
+                for p in _points(g.intersection(_line(a.coords, a.is_lonlat))):
+                    _emit(sd, blk, c.mouth_measure + g.project(p))
 
         elif a.type == AnchorType.confluence:
             trib = _tributary_chain(a, by_blk, by_wsc)
@@ -210,12 +292,26 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
         elif a.type == AnchorType.lake:
             for blk, c in targets:
                 # waterbody_runs are per-fid; consolidate to the lake's two boundaries on this
-                # BLK (downstream entry, upstream exit). Both are no-op splits (the lake already
-                # split the BLK) — emitted for matching / completeness.
+                # BLK (downstream entry, upstream exit).
                 runs = [r for r in c.waterbody_runs if str(r.wbk) == a.wbk]
-                if runs:
-                    _emit(sd, blk, min(r.down_m for r in runs))
-                    _emit(sd, blk, max(r.up_m for r in runs))
+                if not runs:
+                    continue
+                enters, leaves = min(r.down_m for r in runs), max(r.up_m for r in runs)
+                if not a.offset_m:
+                    # No offset: both boundaries, as no-op splits (the lake already split the BLK) —
+                    # emitted for matching / completeness.
+                    _emit(sd, blk, enters)
+                    _emit(sd, blk, leaves)
+                    continue
+                # OFFSET: one real cut, measured from the end of the lake the offset runs away from —
+                # "100 m upstream of Mitchell Lake" starts where the river LEAVES the lake, "500 m
+                # downstream" where it enters. This is what makes a cut that travels WITH the lake:
+                # authored as a bare split it landed on the lake boundary itself, `_cut_at` resolved
+                # both ids to that one boundary, and `between(lake, 100m_upstream)` collapsed to an
+                # empty range. Offsetting from the lake keeps the two cuts distinct by construction.
+                base = leaves if a.offset_dir == "upstream" else enters
+                m, concern = _apply_offset(base - c.mouth_measure, c.length_m, a)
+                _emit(sd, blk, c.mouth_measure + m, concern=concern, offset=a.offset_m)
 
         elif a.type == AnchorType.mu_boundary:
             if not mu_polys:

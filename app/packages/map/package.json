@@ -1,0 +1,10 @@
+{
+  "name": "@app/map",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": { "@app/core": "workspace:*", "@app/ui": "workspace:*" },
+  "peerDependencies": { "react": "*" }
+}

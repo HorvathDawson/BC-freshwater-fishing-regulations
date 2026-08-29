@@ -1,4 +1,4 @@
-# 07 — Zone / MU Regulations (revised model)
+# 06 — Zone / MU regulations (revised model)
 
 Supersedes the earlier "zone→reg_set map + render clip" idea. The model below is simpler,
 de-bloats the UI, and keeps section geometry regulation-free and stable.

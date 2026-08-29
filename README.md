@@ -14,10 +14,14 @@ A Python pipeline processes BC's Freshwater Atlas (GeoBC) and provincial regulat
 
 The output gets uploaded to Cloudflare R2 and served through a small worker. The frontend is a React + MapLibre app that renders the tiles and lets you search/click any stream or lake to see its regulations.
 
+> **Note (2026-08): the layout below is v1**, which is live but archived under `archive/pipeline/`.
+> The active pipeline is the v2 *section* build — see [`pipeline/docs/10-plan.md`](pipeline/docs/10-plan.md)
+> for what exists today and the plan to get v2 to the clients. `python -m pipeline` now runs the v2 build, not `--step all`.
+
 ## Project layout
 
 ```
-pipeline/           Python pipeline (atlas → tiles → enrichment)
+pipeline/           Python pipeline (atlas → tiles → enrichment)   [v1, archived]
   atlas/            Stream network graph + waterbody geometry
   tiles/            PMTiles export via tippecanoe
   enrichment/       Regulation matching and index building

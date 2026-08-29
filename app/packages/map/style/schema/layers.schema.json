@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Map layer source",
+  "description": "Editor/documentation schema. SEMANTIC rules (token existence, enum completeness, attribution, missing-value colours) are enforced by tools/build-style.mjs, which JSON Schema cannot express.",
+  "type": "object",
+  "required": ["sources", "groups", "layers", "views"],
+  "properties": {
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "url"],
+        "properties": {
+          "type": { "enum": ["vector", "raster", "geojson"] },
+          "url": { "type": "string" },
+          "external": { "type": "boolean", "description": "not produced by our pipeline" },
+          "attribution": { "type": "string", "description": "REQUIRED when external is true" }
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "description": "The unit an app can toggle. Apps address groups, never layers.",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "toggleable", "defaultVisible"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string", "description": "shown in the layer toggle UI" },
+          "toggleable": { "type": "boolean" },
+          "defaultVisible": { "type": "boolean" }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "group", "source", "geometry", "colorModes"],
+        "properties": {
+          "id": { "type": "string" },
+          "group": { "type": "string" },
+          "source": { "type": "string" },
+          "sourceLayer": { "type": "string" },
+          "geometry": { "enum": ["line", "fill", "circle", "symbol"] },
+          "minzoom": { "type": "number" },
+          "maxzoom": { "type": "number" },
+          "featureIdProperty": {
+            "type": "string",
+            "description": "tile property feature-state keys on. REQUIRED if highlightable."
+          },
+          "highlightable": { "type": "boolean" },
+          "width": { "$ref": "#/$defs/tokenRef" },
+          "colorModes": {
+            "type": "object",
+            "description": "Alternative colourings of the SAME geometry. Exactly one is active at a time, chosen by a view.",
+            "minProperties": 1,
+            "additionalProperties": { "$ref": "#/$defs/colorMode" }
+          }
+        }
+      }
+    },
+    "views": {
+      "type": "array",
+      "description": "A named picture of the map: which colour mode each layer uses. This is what a user switches between.",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "modes"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "default": { "type": "boolean" },
+          "modes": {
+            "type": "object",
+            "description": "layerId -> colorMode name",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "tokenRef": {
+      "type": "object",
+      "required": ["token"],
+      "properties": { "token": { "type": "string" } },
+      "additionalProperties": false,
+      "description": "A reference into tokens.json. Literal colours are rejected."
+    },
+    "colorMode": {
+      "oneOf": [
+        {
+          "title": "static",
+          "type": "object",
+          "required": ["label", "scale", "color"],
+          "properties": {
+            "label": { "type": "string" },
+            "scale": { "const": "static" },
+            "color": { "$ref": "#/$defs/tokenRef" }
+          }
+        },
+        {
+          "title": "categorical",
+          "type": "object",
+          "required": ["label", "scale", "property", "categories"],
+          "properties": {
+            "label": { "type": "string" },
+            "scale": { "const": "categorical" },
+            "property": { "type": "string", "description": "feature-state property driving the colour" },
+            "enum": { "type": "string", "description": "name in tokens.json $enums; EVERY member must be coloured" },
+            "categories": { "type": "object", "additionalProperties": { "$ref": "#/$defs/tokenRef" } },
+            "missing": { "$ref": "#/$defs/tokenRef" }
+          }
+        },
+        {
+          "title": "continuous",
+          "type": "object",
+          "required": ["label", "scale", "property", "stops", "missing"],
+          "properties": {
+            "label": { "type": "string" },
+            "scale": { "const": "continuous" },
+            "property": { "type": "string" },
+            "stops": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "prefixItems": [{ "type": "number" }, { "$ref": "#/$defs/tokenRef" }],
+                "minItems": 2, "maxItems": 2
+              }
+            },
+            "missing": {
+              "$ref": "#/$defs/tokenRef",
+              "description": "REQUIRED. A feature with no value must never inherit a colour that implies one."
+            }
+          }
+        }
+      ]
+    }
+  }
+}

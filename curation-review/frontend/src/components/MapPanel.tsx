@@ -4,9 +4,13 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
 import { layers, LIGHT } from "@protomaps/basemaps";
 import { api } from "../api";
+import type { EntryReaches, ReachIdentity } from "../types";
 
 interface Props {
   itemId: string | null;
+  /** other registry items this entry also covers (a combined override: Chilliwack + Vedder + Canal).
+   *  Their geometry is drawn together with the primary item's, so the map shows the whole water. */
+  alsoItemIds?: string[];
   /** split ids any rule currently binds (green) */
   referencedSplitIds?: string[];
   /** curated split ids no rule uses (amber) */
@@ -19,6 +23,14 @@ interface Props {
   pendingPoint?: { lon: number; lat: number } | null;
   /** bumped after a graph rebuild — refetch geometry even if the item id is unchanged */
   reloadKey?: number;
+  /** fly to just this covered item's geometry (a combined entry's per-water focus) */
+  focusItemId?: string | null;
+  /** per-rule resolved reaches for this entry (GET /api/entries/{id}/reaches) */
+  reaches?: EntryReaches | null;
+  /** the entry's rules, so the map can offer one reach at a time */
+  rules?: { rule_id: string; restriction_type: string; details: string }[];
+  /** rule_id -> the shared reach label the rules list shows, so both call a reach the same thing */
+  reachOf?: Record<string, ReachIdentity>;
 }
 
 // Same basemap the webapp uses: the bc.pmtiles vector source + protomaps LIGHT layers. Served by the
@@ -49,12 +61,23 @@ function fmtDist(m: number): string {
   return m < 1000 ? `${m.toFixed(0)} m` : `${(m / 1000).toFixed(2)} km`;
 }
 
+// A combined entry covers several waters; give each its own line colour so the reviewer can SEE
+// which stream is which instead of one undifferentiated blue blob. Primary keeps the original blue.
+export const ITEM_COLORS = ["#2563eb", "#c2410c", "#7c3aed", "#0f766e", "#b91c1c", "#a16207"];
+
 // Tag each split feature with a `_color` + `_note` so the circle layer can data-drive its colour.
-function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<string>): GeoJSON.FeatureCollection {
+function colorize(fc: GeoJSON.FeatureCollection, ref: Set<string>, unused: Set<string>,
+                  itemColor: Map<string, string>, reach: Set<string>): GeoJSON.FeatureCollection {
   return {
     type: "FeatureCollection",
     features: (fc.features ?? []).map((f) => {
+      // PURE: derive onto a copy, never onto f.properties. Writing `_reach` back into the source
+      // features (which `lastFc` holds across renders) meant a highlight could only ever be ADDED —
+      // switching to another rule left the previous reach lit and painted both.
       const p = { ...(f.properties ?? {}) } as Record<string, unknown>;
+      const own = p.item_id as string | undefined;
+      if (own && itemColor.has(own)) p._line = itemColor.get(own);
+      p._reach = reach.has(String(p.node_id));
       if (p.kind === "split") {
         const id = String(p.split_id ?? "");
         p._color = p.auto ? "#0891b2" : splitColor(id, ref, unused);   // auto lake boundary = teal
@@ -79,9 +102,18 @@ function bounds(fc: GeoJSON.FeatureCollection): maplibregl.LngLatBoundsLike | nu
 }
 
 export function MapPanel({
-  itemId, referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null, onSelectSplit,
-  pendingPoint = null, reloadKey = 0,
+  itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
+  onSelectSplit, pendingPoint = null, reloadKey = 0, focusItemId = null,
+  reaches = null, rules = [], reachOf = {},
 }: Props) {
+  const [showTribs, setShowTribs] = useState(false);
+  const [nTribs, setNTribs] = useState<number | null>(null);
+  const itemColor = useMemo(() => {
+    const m = new Map<string, string>();
+    [itemId, ...alsoItemIds].forEach((id, i) => { if (id) m.set(id, ITEM_COLORS[i % ITEM_COLORS.length]); });
+    return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemId, alsoItemIds.join(",")]);
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const lastFc = useRef<GeoJSON.FeatureCollection | null>(null);
@@ -94,6 +126,44 @@ export function MapPanel({
   measuring.current = measure;
 
   const refSet = useMemo(() => new Set(referencedSplitIds), [referencedSplitIds]);
+  // Which rule's reach is drawn. The map owns this: it is a way of LOOKING at the geometry, so it
+  // belongs with the other view controls rather than scattered down the rules list.
+  const [shownReach, setShownReach] = useState<string | null>(null);
+  useEffect(() => { setShownReach(null); }, [itemId, reloadKey, reaches]);
+
+  const shownExtents = shownReach ? (reaches?.rules?.[shownReach] ?? []) : [];
+  const reachSet = useMemo(
+    () => new Set(shownExtents.flatMap((x) => x?.sections ?? [])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [shownReach, reaches],
+  );
+  const straddling = shownExtents.flatMap((x) => x?.unclassified ?? []).length;
+  const ambiguous = shownExtents.flatMap((x) => x?.ambiguous_cut ?? []);
+
+  // Every OTHER rule that governs the water now highlighted. One reach almost always carries several
+  // rules — the Chilliwack's four gear/harvest rules below Vedder Crossing all cover the same
+  // sections — and the question a curator is really asking of a stretch of river is "what applies
+  // here", not "what does this one rule cover". `all` = the rule covers the whole highlight;
+  // otherwise it overlaps part of it.
+  const appliesHere = useMemo(() => {
+    if (!shownReach || reachSet.size === 0) return [];
+    const out: { rule_id: string; restriction_type: string; details: string; all: boolean }[] = [];
+    for (const r of rules) {
+      if (r.rule_id === shownReach) continue;
+      const secs = (reaches?.rules?.[r.rule_id] ?? []).flatMap((x) => x?.sections ?? []);
+      if (secs.length === 0) continue;
+      const hit = secs.filter((n) => reachSet.has(n)).length;
+      if (hit > 0) out.push({ ...r, all: hit === reachSet.size });
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownReach, reachSet, reaches, rules]);
+
+  // Only rules that actually resolve to geometry are offerable; the rest would highlight nothing.
+  const reachable = rules.filter((r) => {
+    const per = reaches?.rules?.[r.rule_id];
+    return per && per.length > 0 && per.some((x) => x && x.sections.length > 0);
+  });
   const unusedSet = useMemo(() => new Set(unusedSplitIds), [unusedSplitIds]);
 
   // Create the map once.
@@ -108,14 +178,36 @@ export function MapPanel({
         sources: {
           protomaps: { type: "vector", url: BASEMAP_URL, maxzoom: 15 },
           item: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
+          tribs: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           pending: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
           measure: { type: "geojson", data: { type: "FeatureCollection", features: [] } },
         },
         layers: [
           ...layers("protomaps", LIGHT),
+          // A lake/wetland item (Vedder Canal) is a POLYGON, not a line — drawn under the lines so a
+          // stream threading it stays visible on top.
+          { id: "item-fill", type: "fill", source: "item",
+            filter: ["==", ["geometry-type"], "Polygon"],
+            paint: { "fill-color": ["coalesce", ["get", "_line"], "#2563eb"], "fill-opacity": 0.25 } },
+          { id: "item-outline", type: "line", source: "item",
+            filter: ["==", ["geometry-type"], "Polygon"],
+            paint: { "line-color": ["coalesce", ["get", "_line"], "#2563eb"], "line-width": 1.5 } },
+          { id: "trib-lines", type: "line", source: "tribs",
+            paint: { "line-color": "#64748b", "line-width": 1.5, "line-dasharray": [2, 1.5] } },
+          // the reach the selected rule resolves to — drawn UNDER the item lines, wide and bright
+          { id: "reach-lines", type: "line", source: "item",
+            filter: ["==", ["get", "_reach"], true],
+            paint: { "line-color": "#22c55e", "line-width": 9, "line-opacity": 0.55 } },
           { id: "item-lines", type: "line", source: "item",
-            filter: ["==", ["geometry-type"], "LineString"],
-            paint: { "line-color": "#2563eb", "line-width": 3 } },
+            filter: ["all", ["==", ["geometry-type"], "LineString"],
+                     ["!=", ["get", "kind"], "side_channel"]],
+            paint: { "line-color": ["coalesce", ["get", "_line"], "#2563eb"], "line-width": 3 } },
+          // A NAMED side channel belongs to its own item but is drawn with the river, thinner and
+          // lighter: it is part of this water on the map without reading as the mainstem.
+          { id: "item-side-channels", type: "line", source: "item",
+            filter: ["==", ["get", "kind"], "side_channel"],
+            paint: { "line-color": ["coalesce", ["get", "_line"], "#2563eb"], "line-width": 2,
+                     "line-opacity": 0.65 } },
           { id: "item-selected", type: "circle", source: "item",
             filter: ["==", ["get", "split_id"], "__none__"],
             paint: { "circle-radius": 11, "circle-color": "rgba(0,0,0,0)",
@@ -204,24 +296,66 @@ export function MapPanel({
     if (m.isStyleLoaded()) run(); else m.once("load", run);
   }, [pendingPoint]);
 
-  // Load geometry when the item changes.
+  // Load geometry when the item changes. A combined entry covers several registry items, so the
+  // map draws the UNION — otherwise "CHILLIWACK / VEDDER RIVERS" showed only the Chilliwack half.
+  const alsoKey = alsoItemIds.join(",");
   useEffect(() => {
     let cancelled = false;
     if (!itemId) { lastFc.current = null; setCount(null); return; }
-    api.geojson(itemId)
-      .then((gj) => {
+    const ids = [itemId, ...alsoItemIds];
+    // one failing item must not blank the whole map — keep whatever the others returned
+    Promise.all(ids.map((id) =>
+      api.geojson(id).catch(() => ({ type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection))))
+      .then((gjs) => {
         if (cancelled) return;
-        lastFc.current = gj as GeoJSON.FeatureCollection;
-        setCount(lastFc.current.features?.length ?? 0);
+        const features = gjs.flatMap((gj, i) =>
+          ((gj as GeoJSON.FeatureCollection).features ?? []).map((f) => ({
+            ...f, properties: { ...(f.properties ?? {}), item_id: ids[i] },
+          })));
+        lastFc.current = { type: "FeatureCollection", features } as GeoJSON.FeatureCollection;
+        setCount(features.length);
         applyData(true);
       })
       .catch(() => { if (!cancelled) setCount(0); });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemId, reloadKey]);
+  }, [itemId, alsoKey, reloadKey]);
 
   // Recolour when the referenced/unused sets change (rule edits) without refetching.
-  useEffect(() => { applyData(false); /* eslint-disable-next-line */ }, [refSet, unusedSet]);
+  useEffect(() => { applyData(false); /* eslint-disable-next-line */ }, [refSet, unusedSet, itemColor, reachSet]);
+
+  // Tributaries (opt-in): one level up from every covered water.
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const run = () => {
+      const src = m.getSource("tribs") as maplibregl.GeoJSONSource | undefined;
+      if (!src) return;
+      if (!showTribs || !itemId) { src.setData({ type: "FeatureCollection", features: [] }); return; }
+      Promise.all([itemId, ...alsoItemIds].map((id) =>
+        api.tributaryGeojson(id).catch(() => ({ type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection))))
+        .then((gjs) => {
+          const features = gjs.flatMap((g) => (g as GeoJSON.FeatureCollection).features ?? []);
+          setNTribs(gjs.reduce((a, g) => a + ((g as unknown as { n_tributaries?: number }).n_tributaries ?? 0), 0));
+          src.setData({ type: "FeatureCollection", features });
+        });
+    };
+    if (m.isStyleLoaded()) run(); else m.once("load", run);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTribs, itemId, alsoKey, reloadKey]);
+
+  // Focus one of a combined entry's waters: fit to just that item's features.
+  useEffect(() => {
+    const m = map.current, fc = lastFc.current;
+    if (!m || !fc || !focusItemId) return;
+    const only = {
+      type: "FeatureCollection",
+      features: (fc.features ?? []).filter((f) => (f.properties ?? {}).item_id === focusItemId),
+    } as GeoJSON.FeatureCollection;
+    const b = bounds(only);
+    if (b) m.fitBounds(b, { padding: 60, maxZoom: 14, duration: 600 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusItemId]);
 
   // draw the measure points/line + set the crosshair cursor
   useEffect(() => {
@@ -253,7 +387,7 @@ export function MapPanel({
     const run = () => {
       const src = m.getSource("item") as maplibregl.GeoJSONSource | undefined;
       if (!src) return;
-      const colored = colorize(fc, refSet, unusedSet);
+      const colored = colorize(fc, refSet, unusedSet, itemColor, reachSet);
       src.setData(colored);
       if (fit) {
         const b = bounds(colored);
@@ -271,6 +405,57 @@ export function MapPanel({
           : `${count} feature(s) · webapp basemap (bc.pmtiles)`}
       </div>
       <div className="map-tools">
+        {/* One rule's reach at a time. Highlighting several at once would just paint the whole
+            item green — the question a curator asks here is "what does THIS rule cover". */}
+        <label className="reach-pick" title="highlight the water one rule resolves to">
+          <span>reach</span>
+          <select
+            value={shownReach ?? ""}
+            disabled={reachable.length === 0}
+            onChange={(e) => setShownReach(e.target.value || null)}
+          >
+            <option value="">
+              {reachable.length === 0 ? "none resolvable" : "none"}
+            </option>
+            {reachable.map((r) => {
+              const n = new Set(
+                (reaches?.rules?.[r.rule_id] ?? []).flatMap((x) => x?.sections ?? []),
+              ).size;
+              const rid = r.rule_id.split(".").pop() ?? r.rule_id;
+              return (
+                <option key={r.rule_id} value={r.rule_id}>
+                  {`${reachOf[r.rule_id]?.key ?? "?"} · ${rid} · ${r.restriction_type} · ${n} section${n === 1 ? "" : "s"}`}
+                </option>
+              );
+            })}
+          </select>
+        </label>
+        {shownReach && straddling > 0 && (
+          <span
+            className="badge warn"
+            title="side channels that straddle this reach's end — in on one side, out on the other, so they are neither included nor excluded"
+          >
+            {straddling} straddling
+          </span>
+        )}
+        {shownReach && ambiguous.length > 0 && (
+          <span
+            className="badge warn"
+            title={ambiguous
+              .map((a) => `${a.split_id}: used ${a.used} m, also cuts at ${a.also_at.join(", ")} m`)
+              .join("; ")}
+          >
+            ambiguous cut
+          </span>
+        )}
+        <button
+          className={`btn${showTribs ? " primary" : ""}`}
+          style={{ padding: "1px 8px" }}
+          title="draw one level of tributaries — what `includes tributaries` covers"
+          onClick={() => setShowTribs((v) => !v)}
+        >
+          🌿 tributaries{showTribs && nTribs != null ? ` (${nTribs})` : ""}
+        </button>
         <button
           className={`btn${measure ? " primary" : ""}`}
           style={{ padding: "1px 8px" }}
@@ -286,8 +471,28 @@ export function MapPanel({
           </span>
         )}
       </div>
+      {shownReach && (
+        <div className="reach-rules">
+          <span className="k">also applies here</span>
+          {appliesHere.length === 0 ? (
+            <span className="dim">nothing else — this reach is governed by {shownReach.split(".").pop()} alone</span>
+          ) : (
+            appliesHere.map((r) => (
+              <span
+                key={r.rule_id}
+                className={`badge${r.all ? " all" : ""}`}
+                title={`${r.restriction_type}: ${r.details}${r.all ? "" : " (covers part of this reach)"}`}
+              >
+                {r.rule_id.split(".").pop()} · {r.details || r.restriction_type}
+                {r.all ? "" : " (part)"}
+              </span>
+            ))
+          )}
+        </div>
+      )}
       <div ref={container} style={{ width: "100%", height: "100%" }} />
       <div className="map-legend">
+        {shownReach && <span><i style={{ background: "#22c55e", height: 6 }} /> reach</span>}
         <span><i style={{ background: "#16a34a" }} /> bound by a rule</span>
         <span><i style={{ background: "#d97706" }} /> curated · unused</span>
         <span><i style={{ background: "#dc2626" }} /> other split</span>

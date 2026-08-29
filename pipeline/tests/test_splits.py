@@ -74,3 +74,45 @@ def test_duplicate_ids_rejected(tmp_path):
     ]}))
     with pytest.raises(ValueError):
         load_split_defs(str(p))
+
+
+def test_inherited_multi_gnis_target_uses_the_primary_water():
+    """A waterbody spanning several rivers resolves an INHERITED target to the first (primary) one;
+    a split that belongs to another member names it in its own applies_to."""
+    from pipeline.splits.splits import _flatten_waterbodies
+
+    flat, untargeted = _flatten_waterbodies({"waterbodies": [{
+        "name": "CHILLIWACK / VEDDER RIVERS",
+        "applies_to": {"gnis_ids": ["8634", "3062", "29662"]},
+        "splits": [
+            {"id": "tamihi", "kind": "point",
+             "anchor": {"type": "point", "coord": [-121.83788, 49.07184], "is_lonlat": True}},
+            {"id": "vedder_crossing", "kind": "confluence", "applies_to": {"gnis_id": "3062"},
+             "anchor": {"type": "confluence", "tributary_blk": "380887781"}},
+        ],
+    }]})
+    assert untargeted == []
+    by = {d["id"]: d for d in flat}
+    assert by["tamihi"]["gnis_id"] == "8634", "inherited -> primary water"
+    assert by["vedder_crossing"]["gnis_id"] == "3062", "explicit target wins"
+
+
+def test_lake_anchor_accepts_an_offset():
+    """A lake anchor CAN carry an along-channel offset — "100 m downstream of the lake outlet" is a
+    cut that must travel with the lake. Model validation used to refuse it, and `load_split_defs`
+    downgraded that refusal to a warning about targeting, so six curated cuts silently vanished from a
+    full build."""
+    from pipeline.models import AnchorType, SplitAnchor
+
+    a = SplitAnchor.from_dict({"type": "lake", "wbk": "329216614",
+                               "offset_m": 1500, "offset_dir": "downstream"})
+    assert a.type == AnchorType.lake and a.wbk == "329216614"
+    assert a.offset_m == 1500 and a.offset_dir == "downstream"
+
+
+def test_lake_anchor_offset_still_needs_a_direction():
+    import pytest as _pytest
+    from pipeline.models import SplitAnchor
+
+    with _pytest.raises(ValueError, match="offset_dir"):
+        SplitAnchor.from_dict({"type": "lake", "wbk": "1", "offset_m": 100})

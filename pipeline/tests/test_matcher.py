@@ -50,6 +50,56 @@ def test_mu_disambiguation():
     assert amb.item_id is None and amb.status == "ambiguous"
 
 
+def test_lone_candidate_cross_region_not_matched():
+    # Only "White River" in the registry is the Region 4 one (MU 4-24). A Region 1 row (MU 1-10) must
+    # NOT bind to it: its MU shares nothing with 4-24, so it needs a curator override.
+    reg = {"g:r4": _it("g:r4", "White River", mus=("4-24",))}
+    r = match_rows([{"water": "White River", "region": "REGION 1", "mu": "1-10"}], reg)[0]
+    assert r.item_id is None and r.status == "unmatched"
+    # But when the row's MU matches the item, it resolves.
+    same = match_rows([{"water": "White River", "region": "REGION 4", "mu": "4-24"}], reg)[0]
+    assert same.item_id == "g:r4" and same.status == "matched"
+
+
+def test_mu_gate_requires_shared_mu_when_ambiguous():
+    # Two same-name streams (both region 1) in different MUs. A reg needing 1-5 shares neither -> can't
+    # disambiguate -> needs an override (unmatched). A reg needing 1-3 overlaps g:a -> matches.
+    reg = {"g:a": _it("g:a", "Alpha Creek", mus=("1-1", "1-2", "1-3")),
+           "g:b": _it("g:b", "Alpha Creek", mus=("1-7",))}
+    miss = match_rows([{"water": "Alpha Creek", "region": "REGION 1", "mu": "1-5"}], reg)[0]
+    assert miss.item_id is None and miss.status == "unmatched"
+    hit = match_rows([{"water": "Alpha Creek", "region": "REGION 1", "mu": "1-3"}], reg)[0]
+    assert hit.item_id == "g:a" and hit.status == "matched"
+
+
+def test_mu_gate_strict_lone_candidate_no_overlap_unmatched():
+    # STRICT: even the ONLY same-name item must share the reg's MU. A row needing 1-5 against an item
+    # tagged 1-1/1-2/1-3 does not overlap -> unmatched (needs override). A row needing 1-3 -> matches.
+    reg = {"g:a": _it("g:a", "Alpha Creek", mus=("1-1", "1-2", "1-3"))}
+    miss = match_rows([{"water": "Alpha Creek", "region": "REGION 1", "mu": "1-5"}], reg)[0]
+    assert miss.item_id is None and miss.status == "unmatched"
+    hit = match_rows([{"water": "Alpha Creek", "region": "REGION 1", "mu": "1-3"}], reg)[0]
+    assert hit.item_id == "g:a" and hit.status == "matched"
+
+
+def test_mu_gate_item_without_mus_matches_but_warns(caplog):
+    # A lone item with no MUs on record can't be gated, so it still matches a row that names an MU,
+    # but the matcher must warn — a missing MU column signals incomplete registry data.
+    reg = {"g:x": _it("g:x", "Nomu Lake")}
+    with caplog.at_level("WARNING"):
+        r = match_rows([{"water": "Nomu Lake", "region": "REGION 2", "mu": "2-9"}], reg)[0]
+    assert r.item_id == "g:x" and r.status == "matched"
+    assert any("NO MUs on record" in rec.message for rec in caplog.records)
+
+
+def test_lone_candidate_haida_gwaii_mu_overlap_still_matches():
+    # Haida Gwaii waters are printed in the Region 1 synopsis but carry Region 6 MUs. The row MU
+    # overlaps the item MU, so the cross-region guard must NOT block the match.
+    reg = {"g:hg": _it("g:hg", "Yakoun River", mus=("6-13",))}
+    r = match_rows([{"water": "Yakoun River", "region": "REGION 1", "mu": "6-13"}], reg)[0]
+    assert r.item_id == "g:hg" and r.status == "matched"
+
+
 def test_override_typed_id_skip_and_variant_alias():
     # gnis override resolves via the id_index (ref_ids bridge); variant_of (no skip) resolves the
     # CORRECTED name by name; skip drops the row.
@@ -104,3 +154,22 @@ def test_override_nameless_oxbow_pins_are_feature_pins():
                   "fwa_watershed_codes": ["300-432687-461418", "300-432687-463105"]}]
     r = match_rows([{"water": "Okanagan River Oxbows", "region": "REGION 8", "mu": "8-9"}], reg, overrides)[0]
     assert r.status == "feature_pin" and len(r.unresolved_ids) == 2
+
+
+def test_id_index_self_identity_beats_an_inherited_ref():
+    """Every Fraser side channel carries the mainstem's gnis on its name tuples, so `gnis:39325`
+    appears in 15 items' ref_ids. Plain first-writer-wins handed it to whichever was built first
+    (Annacis Channel, ONE section), so the Fraser overrides pinned the river onto a side channel."""
+    from pipeline.matching.matcher import build_id_index
+    from pipeline.models import RegistryItem
+
+    reg = {
+        "gnis:10494": RegistryItem(id="gnis:10494", name="Annacis Channel", kind="stream",
+                                   section_ids=("a",), ref_ids=("gnis:10494", "gnis:39325")),
+        "gnis:39325": RegistryItem(id="gnis:39325", name="Fraser River", kind="stream",
+                                   section_ids=tuple(f"f{i}" for i in range(9)),
+                                   ref_ids=("gnis:39325",)),
+    }
+    idx = build_id_index(reg)
+    assert idx["gnis:39325"] == "gnis:39325"
+    assert idx["gnis:10494"] == "gnis:10494"

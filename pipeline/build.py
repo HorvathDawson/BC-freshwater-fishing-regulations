@@ -166,9 +166,9 @@ def resolve_node(graph, key: str):
 
 
 def summarize(chains, graph, fids, pruned_fids=None) -> str:
-    from pipeline.models import NodeKind
+    from pipeline.models import WATERBODY_KINDS, NodeKind
     streams = [n for n in graph.nodes.values() if n.kind == NodeKind.stream]
-    lakes = [n for n in graph.nodes.values() if n.kind == NodeKind.lake]
+    lakes = [n for n in graph.nodes.values() if n.kind in WATERBODY_KINDS]
     named = sum(1 for n in graph.nodes.values() if n.name_tuples)
     roots = [nid for nid in graph.nodes if not graph.down_adj.get(nid)]
     in_deg = {nid: len(graph.up_adj.get(nid, [])) for nid in graph.nodes}
@@ -258,6 +258,14 @@ def _added_name_variant_entries(variants: list[dict]) -> list[dict]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--gpkg", default=_DEFAULT_GPKG)
+    # ON by default: an unnamed anabranch is not a water any regulation names, and leaving the loops
+    # in is what makes a big braided river a hairball of 330 channels all displaying as one name.
+    # A NAMED channel and a dead-end channel are never removed either way.
+    ap.add_argument("--no-simplify-braids", dest="simplify_braids", action="store_false",
+                    help="keep braid loops that a TRIBUTARY flows into. By default they are removed "
+                         "and the tributary's mouth is re-homed onto the loop's downstream exit, "
+                         "trading ~16k anabranch pieces for ~10k approximate confluences.")
+    ap.set_defaults(simplify_braids=True)
     ap.add_argument("--bbox", nargs=4, type=float, metavar=("MINX", "MINY", "MAXX", "MAXY"))
     ap.add_argument("--gnis", help="comma-separated GNIS_NAME(s); bbox derived from them")
     ap.add_argument("--full", action="store_true", help="whole province (no bbox; heavy)")
@@ -347,10 +355,82 @@ def main() -> None:
     # Braid loops carry no tributary, no name and no possible regulation; they only make a reach
     # ambiguous ("is this channel above or below the cut" has no answer when it is attached at both
     # ends). Pruned BEFORE the border/split stages so nothing is ever cut onto a piece we then drop.
+    # NAME FIRST, then prune. The prune decides what to keep by asking whether a channel carries a
+    # name of its own, so it has to be asked AFTER the names exist. Running the variants late meant it
+    # was asked too early: a curated channel still looked anonymous and was deleted before it could be
+    # named — which is how all four blue lines of Seabird Island North Side Channel once vanished. The
+    # fix for that was `protected_blks`, a list of blks the prune must not touch: a patch over the
+    # ordering rather than the ordering.
+    #
+    # Only 7 of 3,663 variants actually need the splits (they name a REACH by measure and must land on
+    # a section boundary). The other 3,656 name a whole blk, waterbody, gnis or watershed code and can
+    # be applied the moment the graph exists. So the pass is split in two, and `protected_blks` goes.
+    from pipeline.graph.names import apply_name_variants, load_name_variants
+    _nv_path = args.name_variants or (Path(__file__).resolve().parent / "name_variants.json")
+    _nv_all = load_name_variants(_nv_path) + _added_name_variant_entries(add_nv)
+    _nv_reach = [e for e in _nv_all if e.get("reach") or (e.get("target") or {}).get("reach")]
+    _nv_now = [e for e in _nv_all if e not in _nv_reach]
+    if _nv_now:
+        n = apply_name_variants(graph, _nv_now)
+        print(f"  named {len(_nv_now)} variant entries before the prune -> {n} node attachments")
+    # A waterbody becomes a graph node because stream fids pass THROUGH it. Two kinds of named,
+    # regulated water therefore never got one: ISOLATED waters with no stream connection at all
+    # (Frazer Lake, Hall Road Pond, Kinglet Lake) and OVERLAID ones where a stream crosses the polygon
+    # but the polygon is a wetland/marsh, so the fids record it in `member_wbks` and the waterbody
+    # itself is never noded (Cheam Lake, Minnekhada Marsh). Both left their registry item with an empty
+    # `section_ids`, so `op=whole` resolved against an empty universe and the rule silently bound
+    # nothing — on waters people fish, several of them closures.
+    #
+    # Mint here, once the curated names are known (they are what makes an FWA-unnamed water matchable
+    # at all). Gazetted lakes/manmade + gazetted wetlands + curation-only names, in that precedence:
+    # a wbk already noded, or already minted by an earlier source, is skipped.
+    from pipeline.graph.names import mint_waterbody_nodes
+    from pipeline.models import NameSource
+    wetland_names = get_wetland_names(fwa, bbox)
+    _curated = {}
+    for _e in _nv_all:                            # curation-only names on FWA-unnamed lake polygons
+        _nm = next((n.get("name") for n in (_e.get("names") or []) if n.get("name")), "")
+        for _w in ((_e.get("target") or {}).get("wbks") or []):
+            if _nm and str(_w) in lake_kind:
+                _curated.setdefault(str(_w), ((_nm, ""),))
+    from pipeline.models import NodeKind as _NK
+    _iso = (mint_waterbody_nodes(graph, lake_names, NameSource.gazette)
+            + mint_waterbody_nodes(graph, wetland_names, NameSource.gazette, _NK.wetland)
+            + mint_waterbody_nodes(graph, _curated, NameSource.override))
+    if _iso:
+        print(f"  minted {_iso} named waterbody node(s) — no stream runs through them")
+    _tick("name variants (whole-feature)")
+
+    _moved_tribs: list = []
+    _nests: list = []
     from pipeline.graph.prune import prune_mainstem_loops
     print("pruning pure braid loops off mainstems ...")
-    graph, n_pruned, pruned_fids = prune_mainstem_loops(graph, geoms)
+    graph, n_pruned, pruned_fids = prune_mainstem_loops(
+        graph, geoms, reconnect_tributaries=args.simplify_braids,
+        moved=_moved_tribs, kept_out=_nests)
     print(f"  {n_pruned} loop piece(s) removed -> {len(graph.nodes)} nodes")
+    if _moved_tribs:
+        # A re-homed mouth that moves a long way means the "braid" was not the small anabranch this
+        # assumes. The MEDIAN is not the number to watch — most mouths do not move at all, because the
+        # braid and its exit share an endpoint — so print the tail, where a bad case would hide.
+        worst = sorted(_moved_tribs, key=lambda t: -t[3])
+        d = sorted(t[3] for t in _moved_tribs)
+        far = sum(1 for x in d if x > 500)
+        print(f"  re-homed {len(_moved_tribs)} confluence(s) off removed braids "
+              f"(median {d[len(d) // 2]:.0f} m, p99 {d[int(len(d) * .99)]:.0f} m, "
+              f"max {d[-1]:.0f} m; {far} over 500 m = {100 * far / len(d):.2f}%)")
+        for src, old_t, new_t, dist in worst[:10]:
+            print(f"      {src} : {old_t} -> {new_t}  ({dist:.0f} m)")
+    if _nests:
+        # Each nest is reduced to the channels that carry something, not kept or dropped whole.
+        was = sum(a for a, _b, _c in _nests)
+        now = sum(b for _a, b, _c in _nests)
+        spare = sum(c for _a, _b, c in _nests)
+        print(f"  {len(_nests)} braid nest(s): {was} channels -> {now} "
+              f"({spare} route(s) already reachable another way)")
+    _orphans = sum(1 for nid in graph.nodes if not graph.down_adj.get(nid)
+                   and graph.up_adj.get(nid))
+    print(f"  fed-but-no-outlet nodes after prune: {_orphans}")
     _tick("prune braid loops")
 
     fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
@@ -431,18 +511,46 @@ def main() -> None:
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
             else:
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), membership-only (no cut)")
-        # LAZY membership (DECISION 2026-08-16): NO eager `mark_inside_areas` pass. Membership
-        # (intersects + feature_types) is computed at RESOLVE time for the few areas a reg references.
-        # Cutting above stays at build (geometry). The catalog (polygons only) is written below.
         _tick("blanket area splits (cut only)")
 
-    # Attach compiled name variations (docs/13) to nodes — AFTER splits so reach targets hit pieces.
-    from pipeline.graph.names import apply_name_variants, load_name_variants
-    nv_path = args.name_variants or (Path(__file__).resolve().parent / "name_variants.json")
-    nv = load_name_variants(nv_path) + _added_name_variant_entries(add_nv)   # + municipal aliases from the artifact
-    if nv:
-        n = apply_name_variants(graph, nv)
-        print(f"  applied {len(nv)} name-variant entries -> {n} node attachments")
+    # AREA MEMBERSHIP (supersedes the 2026-08-16 "lazy at resolve time" decision). Membership is
+    # computed HERE, for every catalog area, because resolve time cannot afford it: testing a polygon
+    # against sections needs the 2 GB geometry sidecar, which the review app does not load and should
+    # not have to. Doing it once at build costs one STRtree pass and turns every area into an `area:`
+    # registry item carrying its sections — after which `within(area)` is a set intersection needing no
+    # geometry at all.
+    #
+    # It also collapses two divergent paths into one. A rule-scoped `area_boundary` split (splits.json,
+    # scoped to one water by `applies_to`) already flagged `in_areas` eagerly; blanket areas from
+    # areas.json were cut but never flagged, so a `within(ecological reserve)` rule had no item to
+    # resolve against and simply failed. Both now produce the same kind of item, and the resolver
+    # applies one rule to both (see resolve_extent: intersect with the rule's items, or take the whole
+    # area when the rule names no water).
+    wbk_polys: dict = {}
+    if catalog_polys:
+        from pipeline.models import WATERBODY_KINDS
+        from pipeline.splits.area_catalog import area_id as _area_id
+        from pipeline.splits.border import mark_inside_areas
+        _polys = {_area_id(ad.get("kind", ad["id"]), nm): pl
+                  for ad in area_defs for nm, pl in (catalog_polys.get(ad["id"], {}) or {}).items()}
+        # A minted waterbody (isolated lake, marsh, reservoir) has no line geometry, so the membership
+        # test has nothing to measure — and those are exactly the waters an area closure most often
+        # names. Load their FWA polygons and key them by node id. Loaded ONCE here and reused for the
+        # MU pass below, which needs the same polygons for the same reason.
+        _nogeom = {n.wbk for n in graph.nodes.values()
+                   if n.kind in WATERBODY_KINDS and n.wbk and geoms.get(n.node_id) is None}
+        wbk_polys = get_waterbody_polys(fwa, _nogeom, bbox)
+        _flags = mark_inside_areas(graph, geoms, _polys,
+                                   extra={f"lake:{w}": pl for w, pl in wbk_polys.items()})
+        print(f"  area membership: {_flags} flag(s) across {len(_polys)} area(s) "
+              f"({len(wbk_polys)} minted waterbody polygon(s) included)")
+        _tick("area membership")
+
+    # The REACH-qualified variants only: these name a measure range and must land on a section
+    # boundary, so they wait for the splits. Everything else was applied before the prune, above.
+    if _nv_reach:
+        n = apply_name_variants(graph, _nv_reach)
+        print(f"  applied {len(_nv_reach)} reach-qualified variant entries -> {n} node attachments")
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -462,20 +570,26 @@ def main() -> None:
     n0 = len(registry)
     registry = add_waterbody_items(registry, lake_names, "lake")
     n_lakes = len(registry) - n0
-    registry = add_waterbody_items(registry, get_wetland_names(fwa, bbox), "wetland")
+    registry = add_waterbody_items(registry, wetland_names, "wetland")
     print(f"  + {n_lakes} isolated named lake item(s) + {len(registry) - n0 - n_lakes} named wetland item(s)")
     # Waterbodies named ONLY by curation (name_variants wbk target on an isolated FWA-unnamed lake) —
     # add them so the curated name is matchable (e.g. Redstart Lake's 2nd polygon).
     n1 = len(registry)
-    registry = add_curated_wbk_items(registry, nv)
+    registry = add_curated_wbk_items(registry, _nv_all)
     print(f"  + {len(registry) - n1} curated-only wbk item(s) (named via name_variants)")
     _tick("build_registry")
-    # Isolated lakes/wetlands are minted from FWA layers with no graph geometry; load their own wbk
-    # polygons so add_mu_sets can compute the MUs they intersect (every named item gets real MUs).
+    # Isolated/overlaid waterbodies have a node but NO sidecar geometry (the client draws them from the
+    # FWA polygon layer), so load their own wbk polygon for add_mu_sets. Select on missing GEOMETRY,
+    # not on missing sections: since these waters are minted as nodes their items do have a section,
+    # and keying off `not section_ids` would silently leave every one of them with no MUs.
     nogeom_wbks = {iid.split(":", 1)[1] for iid, it in registry.items()
-                   if it.kind in ("lake", "wetland") and not it.section_ids and iid.startswith("wbk:")}
-    wbk_polys = get_waterbody_polys(fwa, nogeom_wbks, bbox)
-    print(f"  loaded {len(wbk_polys)} isolated waterbody polygon(s) for MU calc ({len(nogeom_wbks)} needed)")
+                   if it.kind in ("lake", "wetland") and iid.startswith("wbk:")
+                   and not any(geoms.get(nid) is not None for nid in it.section_ids)}
+    _missing = nogeom_wbks - set(wbk_polys)          # already loaded for the area pass; top up any rest
+    if _missing:
+        wbk_polys = {**wbk_polys, **get_waterbody_polys(fwa, _missing, bbox)}
+    print(f"  {len(wbk_polys)} isolated waterbody polygon(s) for MU calc ({len(nogeom_wbks)} needed, "
+          f"{len(_missing)} newly loaded)")
     registry = add_mu_sets(registry, geoms, get_mu_polys(fwa), wbk_polys)
     _tick("add_mu_sets")
     write_registry(registry, out / "registry.json")

@@ -15,6 +15,12 @@ class SectionBoundary:
     kind: BoundaryKind
     route_measure: Optional[float] = None
     label: str = ""
+    # Other boundary_ids this one ALSO represents. A curated split whose measure lands inside a lake
+    # run has no stream piece to cut — a dam or weir at a lake outlet projects a little way into the
+    # lake — and used to be dropped silently, leaving every rule that bound it dangling. It is
+    # recorded here instead, on the boundary that stands at the same place, so the split id still
+    # resolves and the boundary can say everything it represents.
+    aliases: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

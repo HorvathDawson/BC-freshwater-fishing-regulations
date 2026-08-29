@@ -37,7 +37,8 @@ def render_review_prompt(batch_items: list[dict], results_by_index: dict[int, di
         entry = results_by_index.get(idx, {})
         # Prefer the full boundary menu (id — label [kind]); fall back to bare ids for old batch files.
         boundaries = it.get("boundaries") or [[b, b, ""] for b in it.get("bindable_ids", [])]
-        menu = "\n".join(render_boundary_menu(boundaries))
+        menu = "\n".join(render_boundary_menu(
+            boundaries, list((it.get("bindable_by_item") or {}).items()) or None))
         trib = entry.get("tributaries") or {}
         trib_line = (f"included={trib.get('included')} only={trib.get('only')} "
                      f"excludes={len(trib.get('excludes') or [])}")

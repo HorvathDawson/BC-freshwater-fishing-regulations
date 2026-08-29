@@ -100,6 +100,18 @@ def item_geojson(item_id: str):
     return reuse.item_geojson(item_id)
 
 
+@app.get("/api/items/{item_id}/tributaries/geojson")
+def item_tributary_geojson(item_id: str, limit: int = 400):
+    """One level of tributaries as map geometry — what `includes_tributaries` actually covers."""
+    return reuse.item_tributary_geojson(item_id, limit)
+
+
+@app.get("/api/entries/{entry_id}/reaches")
+def entry_reaches(entry_id: str):
+    """Per-rule, per-extent section ids — the REACH each rule selects, for map highlighting."""
+    return reuse.entry_reaches(entry_id)
+
+
 @app.get("/api/splits/{split_id}")
 def get_split(split_id: str):
     d = reuse.get_split(split_id)

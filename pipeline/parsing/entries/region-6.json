@@ -23,7 +23,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:10123"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -146,7 +149,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:10765"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -251,7 +257,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:11267"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -376,7 +385,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:11623"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -441,7 +453,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:12586"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -571,7 +586,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:12684"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -693,7 +711,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:13033"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -787,7 +808,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:14170"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -889,7 +913,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:14918"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1177,7 +1204,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:15535"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1240,7 +1270,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:16492"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1284,6 +1317,75 @@
       "audit_log": []
     },
     {
+      "entry_id": "gnis:17338",
+      "identity": {
+        "name": "Endako River",
+        "region": "6",
+        "mus": [
+          "6-4",
+          "6-5"
+        ]
+      },
+      "regs_verbatim": "**No Fishing** Nov 15-June 30",
+      "source_symbols": [],
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "revisit": false,
+      "revisit_note": "",
+      "parse_review": {
+        "verdict": "",
+        "model": "",
+        "reviewed_at": "",
+        "issues": []
+      },
+      "matched": [
+        "gnis:17338"
+      ],
+      "reference_only": false,
+      "registry_status": "matched",
+      "registry_note": "",
+      "tributaries": {
+        "included": false,
+        "only": false,
+        "excludes": []
+      },
+      "scope": [],
+      "rules": [
+        {
+          "rule_id": "gnis:17338.r1",
+          "restriction_type": "closure",
+          "details": "No fishing",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [
+            "Nov 15-June 30"
+          ],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "**No Fishing** Nov 15-June 30",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole river",
+          "unresolved_locators": [],
+          "species": []
+        }
+      ],
+      "audit_log": []
+    },
+    {
       "entry_id": "gnis:17687",
       "identity": {
         "name": "Babine River",
@@ -1309,7 +1411,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:17687"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1595,7 +1700,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:18182"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1688,7 +1796,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:20356"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1754,7 +1865,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:21084"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1817,7 +1931,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:21180"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -1887,7 +2004,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2195"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2140,7 +2260,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:2308"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2328,7 +2451,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:23163"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2423,7 +2549,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:23229"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2522,7 +2651,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2343"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2615,7 +2747,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2404"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2743,7 +2878,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2439"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2870,7 +3008,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:24733"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -2997,7 +3138,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:25386"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3122,7 +3266,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:25405"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3192,7 +3339,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:26104"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3238,9 +3388,37 @@
           ]
         },
         {
-          "rule_id": "west_road_blackwater_rivers_tributaries.r2",
+          "rule_id": "west_road_blackwater_rivers_tributaries.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Artificial fly only; bait ban",
+          "details": "Artificial fly only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "artificial fly only, bait ban",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Tributaries",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "west_road_blackwater_rivers_tributaries.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -3327,7 +3505,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:2637"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3456,7 +3637,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:2728"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3582,7 +3766,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:28108"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3690,7 +3877,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2936"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3766,7 +3956,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:2936"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -3917,7 +4110,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:30327"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4045,7 +4241,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:31345"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4141,7 +4340,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3137"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4432,7 +4634,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3206"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4542,7 +4747,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:3225"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4760,7 +4968,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3227"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4883,7 +5094,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3480"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -4984,7 +5198,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3508"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5105,7 +5322,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3608"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5170,7 +5390,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:36404"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5263,7 +5486,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3674"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5326,7 +5552,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3696"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5344,8 +5573,8 @@
             {
               "op": "between",
               "splits": [
-                "diana_creek__diana_lake",
-                "diana_creek__prudhomme_lake"
+                "kloiya_river__diana_lake",
+                "kloiya_river__prudhomme_lake"
               ],
               "item_id": null,
               "area_id": null,
@@ -5377,8 +5606,8 @@
             {
               "op": "between",
               "splits": [
-                "diana_creek__diana_lake",
-                "diana_creek__prudhomme_lake"
+                "kloiya_river__diana_lake",
+                "kloiya_river__prudhomme_lake"
               ],
               "item_id": null,
               "area_id": null,
@@ -5453,7 +5682,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3696"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5546,7 +5778,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3723"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5611,7 +5846,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:37312"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5733,7 +5971,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3815"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5832,7 +6073,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3828"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -5931,7 +6175,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3942"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6083,7 +6330,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3983"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6149,7 +6399,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:3986"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6268,7 +6521,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4069"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6363,7 +6619,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4074"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6426,7 +6685,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4089"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6491,7 +6753,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4152"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6585,7 +6850,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4674"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6708,7 +6976,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4688"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6804,7 +7075,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:4791"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -6906,7 +7180,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:4903"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7122,7 +7399,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:7114"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7224,7 +7504,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "gnis:7836"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7439,7 +7722,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "gnis:8573"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -7505,6 +7791,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -7560,9 +7847,28 @@
           ]
         },
         {
-          "rule_id": "noreg_basalt_lake_984.r3",
+          "rule_id": "noreg_basalt_lake_984.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single barbless hook",
+          "details": "Bait ban",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "noreg_basalt_lake_984.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
@@ -7604,6 +7910,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "feature_pin: Synopsis lists 'CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS' in Region 6 MU 6-28. Applies to all streams and lakes within the Chilkoot Trail National Historic Site. Layer: HIST_HERITAGE_WRECK_SVW, ID field: SITE_ID.",
       "tributaries": {
@@ -7658,6 +7965,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: ZYMOETZ (Copper) RIVER (variant_of ZYMOETZ (Copper) RIVER)",
       "tributaries": {
@@ -7712,6 +8020,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -7768,6 +8077,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -7797,9 +8107,28 @@
           "species": []
         },
         {
-          "rule_id": "gatcho_lake.r2",
+          "rule_id": "gatcho_lake.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "gatcho_lake.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
@@ -7841,6 +8170,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI HLGINX RIVER (formerly Ishkheenickh River) (variant_of KSI HLGINX RIVER (formerly Ishkheenickh River))",
       "tributaries": {
@@ -7904,6 +8234,7 @@
         ]
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI X'ANMAS RIVER (formerly Kwinamass River) (variant_of KSI X'ANMAS RIVER (formerly Kwinamass River))",
       "tributaries": {
@@ -7960,6 +8291,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: HEVENOR (\"McQueen\") CREEK (variant_of HEVENOR (\"McQueen\") CREEK)",
       "tributaries": {
@@ -8014,6 +8346,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -8043,9 +8376,28 @@
           "species": []
         },
         {
-          "rule_id": "noreg_naglico_lake_1057.r2",
+          "rule_id": "noreg_naglico_lake_1057.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "Bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "noreg_naglico_lake_1057.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
@@ -8087,6 +8439,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -8116,9 +8469,28 @@
           "species": []
         },
         {
-          "rule_id": "noreg_pettry_lake_1067.r2",
+          "rule_id": "noreg_pettry_lake_1067.r2a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "noreg_pettry_lake_1067.r2b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [],
           "dates": [],
           "includes_tributaries": null,
@@ -8160,6 +8532,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI SGASGINIST CREEK (formerly Seaskinnish Creek) (variant_of KSI SGASGINIST CREEK (formerly Seaskinnish Creek))",
       "tributaries": {
@@ -8214,6 +8587,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "unmatched: no name/variant match",
       "tributaries": {
@@ -8268,6 +8642,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "skip: ignored",
       "tributaries": {
@@ -8367,6 +8742,7 @@
         "issues": []
       },
       "matched": [],
+      "reference_only": true,
       "registry_status": "no_registry",
       "registry_note": "skip: Name variant of: KSI SII AKS RIVER (formerly Tseax River) (variant_of KSI SII AKS RIVER (formerly Tseax River))",
       "tributaries": {
@@ -8420,7 +8796,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961703"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8603,7 +8982,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961727"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8787,7 +9169,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961732"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -8970,7 +9355,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961735"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9153,7 +9541,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961747"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9337,7 +9728,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:328961756"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9524,7 +9918,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329026676"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9649,7 +10046,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329026685"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9660,9 +10060,37 @@
       "scope": [],
       "rules": [
         {
-          "rule_id": "nilkitkwa_lake.r1",
+          "rule_id": "nilkitkwa_lake.r1a",
           "restriction_type": "gear_restriction",
-          "details": "Fly fishing only, bait ban",
+          "details": "Fly fishing only",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Fly fishing only, bait ban (EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations)",
+          "location_text": "",
+          "exception": "EXCEPT dead fin fish may be used as bait when set lining; see page 8 in the Provincial Regulations",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "nilkitkwa_lake.r1b",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban",
           "extents": [
             {
               "op": "whole",
@@ -9740,7 +10168,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329026689"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9807,7 +10238,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329026691"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9876,9 +10310,37 @@
           ]
         },
         {
-          "rule_id": "ogston_lake.r3",
+          "rule_id": "ogston_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "ogston_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [
             {
               "op": "whole",
@@ -9928,7 +10390,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329026695"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -9993,7 +10458,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329064459"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10058,7 +10526,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329064473"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10121,7 +10592,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329064478"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10186,7 +10660,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329064512"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10251,7 +10728,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329064543"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10314,7 +10794,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329075502"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10413,7 +10896,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329075503"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10491,223 +10977,6 @@
       "audit_log": []
     },
     {
-      "entry_id": "wbk:329126712",
-      "identity": {
-        "name": "Toms Lake",
-        "region": "6",
-        "mus": [
-          "6-1"
-        ]
-      },
-      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "toms_lake.r1",
-          "restriction_type": "harvest",
-          "details": "Trout daily quota = 2",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout daily quota = 2",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": [
-            "RB",
-            "CT",
-            "WCT",
-            "CCT",
-            "GB",
-            "GT"
-          ]
-        },
-        {
-          "rule_id": "toms_lake.r2",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "toms_lake.r3",
-          "restriction_type": "gear_restriction",
-          "details": "Single barbless hook",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "single barbless hook",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
-      "entry_id": "wbk:329126718",
-      "identity": {
-        "name": "Chipmunk Lake",
-        "region": "6",
-        "mus": [
-          "6-1"
-        ]
-      },
-      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
-      "source_symbols": [],
-      "locked": false,
-      "reviewed_by": "",
-      "reviewed_at": "",
-      "revisit": false,
-      "revisit_note": "",
-      "parse_review": {
-        "verdict": "",
-        "model": "",
-        "reviewed_at": "",
-        "issues": []
-      },
-      "matched": [],
-      "registry_status": "matched",
-      "registry_note": "",
-      "tributaries": {
-        "included": false,
-        "only": false,
-        "excludes": []
-      },
-      "scope": [],
-      "rules": [
-        {
-          "rule_id": "chipmunk_lake.r1",
-          "restriction_type": "harvest",
-          "details": "Daily quota 2",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "Trout daily quota = 2",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        },
-        {
-          "rule_id": "chipmunk_lake.r2",
-          "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
-          "extents": [
-            {
-              "op": "whole",
-              "splits": [],
-              "item_id": null,
-              "area_id": null,
-              "area_kind": null,
-              "feature_types": []
-            }
-          ],
-          "dates": [],
-          "includes_tributaries": null,
-          "tributaries_only": false,
-          "tributary_excludes": [],
-          "sections_override": null,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_text": "bait ban, single barbless hook",
-          "location_text": "",
-          "exception": "",
-          "display_location": "Whole lake",
-          "unresolved_locators": [],
-          "species": []
-        }
-      ],
-      "audit_log": []
-    },
-    {
       "entry_id": "wbk:329148307",
       "identity": {
         "name": "François Lake",
@@ -10729,7 +10998,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329148307"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -10940,7 +11212,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329148309"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11039,7 +11314,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329148317"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11106,7 +11384,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329148379"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11169,7 +11450,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329148423"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11180,9 +11464,37 @@
       "scope": [],
       "rules": [
         {
-          "rule_id": "casey_lake.r1",
+          "rule_id": "casey_lake.r1a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "Bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "casey_lake.r1b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [
             {
               "op": "whole",
@@ -11260,7 +11572,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329201816"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11331,9 +11646,37 @@
           ]
         },
         {
-          "rule_id": "buckley_lake.r3",
+          "rule_id": "buckley_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "buckley_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [
             {
               "op": "whole",
@@ -11383,7 +11726,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329229736"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11444,7 +11790,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329242402"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11507,7 +11856,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329310750"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11578,7 +11930,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329318485"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11761,7 +12116,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329385453"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11834,7 +12192,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329529450"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -11905,9 +12266,37 @@
           "species": []
         },
         {
-          "rule_id": "buckinghorse_lake.r3",
+          "rule_id": "buckinghorse_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single hook",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "buckinghorse_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single hook",
           "extents": [
             {
               "op": "whole",
@@ -11963,7 +12352,10 @@
           }
         ]
       },
-      "matched": [],
+      "matched": [
+        "wbk:329529467"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12042,9 +12434,37 @@
           ]
         },
         {
-          "rule_id": "klahowya_lake.r3",
+          "rule_id": "klahowya_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban; single hook only",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "klahowya_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single hook",
           "extents": [
             {
               "op": "whole",
@@ -12094,7 +12514,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329542437"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12157,7 +12580,10 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329542439"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12220,7 +12646,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329591352"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12285,7 +12714,10 @@
         "reviewed_at": "2026-08-22T17:53:36+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329613022"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12350,7 +12782,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329626889"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12441,7 +12876,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329679837"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12510,9 +12948,37 @@
           "species": []
         },
         {
-          "rule_id": "prudhomme_lake.r3",
+          "rule_id": "prudhomme_lake.r3a",
           "restriction_type": "gear_restriction",
-          "details": "Bait ban, single barbless hook",
+          "details": "Bait ban",
+          "extents": [
+            {
+              "op": "whole",
+              "splits": [],
+              "item_id": null,
+              "area_id": null,
+              "area_kind": null,
+              "feature_types": []
+            }
+          ],
+          "dates": [],
+          "includes_tributaries": null,
+          "tributaries_only": false,
+          "tributary_excludes": [],
+          "sections_override": null,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_text": "bait ban, single barbless hook",
+          "location_text": "",
+          "exception": "",
+          "display_location": "Whole lake",
+          "unresolved_locators": [],
+          "species": []
+        },
+        {
+          "rule_id": "prudhomme_lake.r3b",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook",
           "extents": [
             {
               "op": "whole",
@@ -12562,7 +13028,11 @@
         "reviewed_at": "2026-08-22T17:51:52+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329682393",
+        "wbk:329075564"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12627,7 +13097,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329682395"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12692,7 +13165,10 @@
         "reviewed_at": "2026-08-22T17:50:59+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:329682397"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12757,7 +13233,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wsc:400-426207-245962"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12848,7 +13327,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wsc:400-431358-585806-708951-288577"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -12941,7 +13423,10 @@
         "reviewed_at": "2026-08-22T17:52:19+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wsc:915-679587-924307"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {
@@ -13032,7 +13517,10 @@
         "reviewed_at": "2026-08-22T17:52:31+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wsc:915-755598-329884-406409"
+      ],
+      "reference_only": false,
       "registry_status": "matched",
       "registry_note": "",
       "tributaries": {

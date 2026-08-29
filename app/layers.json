@@ -1,0 +1,114 @@
+{
+  "$comment": "The layering contract. tools/check-boundaries.mjs enforces this in CI. Edit deliberately.",
+  "layers": {
+    "packages/core": {
+      "purpose": "Domain logic. Pure TypeScript.",
+      "mayImport": [],
+      "banned": [
+        "react",
+        "react-dom",
+        "react-native",
+        "expo",
+        "maplibre-gl",
+        "@maplibre/maplibre-react-native",
+        "node:fs",
+        "node:path"
+      ],
+      "why": "core must run identically on device, in a browser, and in a test with no platform at all."
+    },
+    "packages/data": {
+      "purpose": "RegsSource interface + per-platform implementations.",
+      "mayImport": [
+        "@app/core"
+      ],
+      "banned": [
+        "react",
+        "react-dom",
+        "react-native"
+      ],
+      "why": "data is a query layer, not a view layer. Hooks belong in ui/."
+    },
+    "packages/ui": {
+      "purpose": "Headless React hooks. Renderer-agnostic.",
+      "mayImport": [
+        "@app/core",
+        "@app/data",
+        "react"
+      ],
+      "banned": [
+        "react-dom",
+        "react-native",
+        "maplibre-gl",
+        "@maplibre/maplibre-react-native"
+      ],
+      "why": "hooks run under BOTH renderers. Importing either one forks this package."
+    },
+    "packages/map": {
+      "purpose": "One <Map> interface; the per-platform adapters live behind it.",
+      "mayImport": [
+        "@app/core",
+        "@app/ui",
+        "react"
+      ],
+      "banned": [],
+      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ."
+    },
+    "apps/mobile": {
+      "purpose": "RN app shell. Views only.",
+      "mayImport": [
+        "@app/core",
+        "@app/data",
+        "@app/ui",
+        "@app/map",
+        "react",
+        "react-native",
+        "expo",
+        "@app/ui-native"
+      ],
+      "banned": [
+        "maplibre-gl",
+        "@maplibre/maplibre-react-native"
+      ],
+      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map."
+    },
+    "apps/web": {
+      "purpose": "Web app shell. Views only.",
+      "mayImport": [
+        "@app/core",
+        "@app/data",
+        "@app/ui",
+        "@app/map",
+        "@app/ui-native",
+        "react",
+        "react-dom",
+        "react-native"
+      ],
+      "banned": [
+        "maplibre-gl",
+        "@maplibre/maplibre-react-native"
+      ],
+      "why": "web hosts BOTH form factors: mobile web renders @app/ui-native via react-native-web, desktop renders its own DOM components. Layer definitions still live in the generated style, never in an app."
+    },
+    "packages/ui-native": {
+      "purpose": "Phone components (RN primitives). Shared by the native app AND mobile web.",
+      "mayImport": [
+        "@app/core",
+        "@app/data",
+        "@app/ui",
+        "@app/map",
+        "react",
+        "react-native"
+      ],
+      "banned": [
+        "react-dom",
+        "maplibre-gl",
+        "@maplibre/maplibre-react-native"
+      ],
+      "why": "must render under react-native AND react-native-web. Touching react-dom breaks the native app; touching a map SDK bypasses @app/map."
+    }
+  },
+  "testOnlyImports": [
+    "vitest"
+  ],
+  "$comment2": "testOnlyImports are permitted in *.test.ts / *.spec.ts ONLY. Test files are not shipped, but they are still boundary-checked: a test importing react-native into core is the same architectural smell as source doing it."
+}

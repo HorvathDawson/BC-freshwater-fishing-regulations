@@ -37,9 +37,11 @@ class ParseContext:
     region: str = ""
     mus: tuple[str, ...] = ()
     item_id: str = ""
+    also_item_ids: tuple[str, ...] = ()               # a combined override's OTHER items (see below)
     item_kind: str = ""
     variants: tuple[str, ...] = ()
     boundaries: tuple[tuple[str, str, str], ...] = ()    # (id, label, kind) — the bindable cut-points
+    boundaries_by_item: tuple[tuple[str, tuple[str, ...]], ...] = ()   # item_id -> its own cut-point ids
     raw_regs: str = ""
     symbols: tuple[str, ...] = ()                        # synopsis row symbols (e.g. 'Incl. Tribs')
     review_hints: tuple[str, ...] = ()                    # prior reviewer findings (a REPASS re-parse)
@@ -55,23 +57,40 @@ class ParseContext:
 
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
                         region: str = "", row_index: int = -1, name: str = "",
-                        symbols: tuple[str, ...] = (), review_hints: tuple[str, ...] = ()) -> ParseContext:
+                        symbols: tuple[str, ...] = (), review_hints: tuple[str, ...] = (),
+                        also_items: tuple[RegistryItem, ...] = ()) -> ParseContext:
     """Assemble the constrained menu for one item: its bindable boundaries + identity. Area `within`
     targets are intentionally excluded — area scoping is a curation step (see module docstring).
 
     `name` overrides the displayed identity name — used when several synopsis rows share one registry
     item (reach splits like "Elk River (downstream of Elko Dam)"): each row becomes its OWN entry that
-    keeps its reach-qualified name, so the reach is visible and can scope the whole entry."""
+    keeps its reach-qualified name, so the reach is visible and can scope the whole entry.
+
+    `also_items` = the OTHER items a combined override pinned (`MatchResult.also`). One synopsis row can
+    name several registry items — "CHILLIWACK / VEDDER RIVERS" is one row over Chilliwack River + Vedder
+    River + Vedder Canal, and "FRASER RIVER (upstream of the CPR Bridge at Mission)" is the mainstem plus
+    twelve named channels and sloughs. The curator already spelled those out in `gnis_ids`, but only the
+    first pin used to survive, so the entry covered the Chilliwack without the Vedder and the Fraser
+    without its channels. They are merged here: the entry stays keyed on the primary item, and every
+    pinned item contributes its boundaries to the menu, its MUs, and its names."""
+    items = (item, *also_items)
+    bmap: dict[str, tuple[str, str, str]] = {}
+    for it in items:                                   # union, primary first (its ids win a collision)
+        for b in it.boundaries:
+            bmap.setdefault(b.id, (b.id, b.label, b.kind))
+    by_item = tuple((it.id, tuple(b.id for b in it.boundaries)) for it in items)
     return ParseContext(
         entry_id=entry_id or item.id,
         row_index=row_index,
         name=name or item.name,
         region=region,
-        mus=item.mus,
+        mus=tuple(sorted({m for it in items for m in it.mus})),
         item_id=item.id,
+        also_item_ids=tuple(it.id for it in also_items),
         item_kind=item.kind,
-        variants=item.variants,
-        boundaries=tuple((b.id, b.label, b.kind) for b in item.boundaries),
+        variants=tuple(sorted({v for it in items for v in it.variants} | {it.name for it in items if it.name})),
+        boundaries=tuple(bmap.values()),
+        boundaries_by_item=by_item,
         raw_regs=raw_regs,
         symbols=tuple(symbols),
         review_hints=tuple(review_hints),
@@ -106,13 +125,19 @@ def load_system_prompt() -> str:
     return _PROMPT.read_text(encoding="utf-8")
 
 
-def render_boundary_menu(boundaries) -> list[str]:
+def render_boundary_menu(boundaries, owners=None) -> list[str]:
     """The bindable-boundary menu lines shared by the PARSE and REVIEW prompts: `id — label [kind]`.
     `boundaries` is an iterable of (id, label, kind) (tuples from ParseContext, or lists from a batch
-    item). Empty -> a single 'no cut-points' line."""
+    item). Empty -> a single 'no cut-points' line.
+
+    `owners` ((item_id, (split ids,)) pairs) annotates each line with the water it belongs to — only
+    meaningful for a COMBINED entry, where an `item_id`-scoped extent must bind a cut-point on the
+    item it names."""
     if not boundaries:
         return ["- (none) — this item has no cut-points; only op:whole is bindable."]
-    return [f"- `{bid}`  — {label}  [{kind}]" for bid, label, kind in boundaries]
+    owner = {bid: iid for iid, ids in (owners or ()) for bid in ids}
+    return [f"- `{bid}`  — {label}  [{kind}]" + (f"  (on {owner[bid]})" if bid in owner else "")
+            for bid, label, kind in boundaries]
 
 
 def render_user_message(ctx: ParseContext) -> str:
@@ -122,6 +147,11 @@ def render_user_message(ctx: ParseContext) -> str:
     header = f"## Waterbody: {ctx.name or '(unnamed)'}"
     header += f"  [NO REGISTRY MATCH]" if ctx.no_registry else f"  [{ctx.item_id}, kind={ctx.item_kind}]"
     lines.append(header)
+    if ctx.also_item_ids:
+        lines.append(f"Combined entry — these regs cover {len(ctx.also_item_ids) + 1} registry items: "
+                     f"{ctx.item_id}, {', '.join(ctx.also_item_ids)}. The boundary menu below is their "
+                     f"union; bind each rule to whichever cut-point its text names, or scope it to one "
+                     f"water with `item_id` (see 'Combined entries' in the instructions).")
     if ctx.region or ctx.mus:
         lines.append(f"Region {ctx.region or '?'} · MUs: {', '.join(ctx.mus) or '?'}")
     if ctx.variants:
@@ -148,7 +178,9 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append("")
     else:
         lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")
-        lines.extend(render_boundary_menu(ctx.boundaries))
+        # owners only for a combined entry — a single-item menu has nothing to disambiguate
+        lines.extend(render_boundary_menu(
+            ctx.boundaries, ctx.boundaries_by_item if ctx.also_item_ids else None))
         lines.append("")
 
     lines.append("### Species codes (leave rule.species empty = ALL species; else pick from these)")

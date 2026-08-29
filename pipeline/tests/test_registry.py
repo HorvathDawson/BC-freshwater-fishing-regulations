@@ -66,6 +66,18 @@ def test_add_mu_sets():
     assert set(reg["gnis:1"].mus) == {"2-1", "2-2"}          # river spans both MUs
 
 
+def test_add_mu_sets_isolated_lake_uses_own_polygon():
+    # An isolated lake (no graph node -> no section geometry) still gets its MUs, computed from its
+    # OWN wbk polygon rather than skipped. This is the source-level fix for no-MU lakes/wetlands.
+    reg = _reg()
+    add_waterbody_items(reg, {"329459820": (("Frazer Lake", "12484"),)}, "lake")
+    assert reg["wbk:329459820"].section_ids == ()           # isolated: no section geometry
+    mu_polys = {"5-4": box(0, 0, 10, 10), "5-5": box(10, 0, 20, 10)}
+    wbk_polys = {"329459820": box(8, 2, 12, 6)}             # straddles both MUs
+    add_mu_sets(reg, {}, mu_polys, wbk_polys)
+    assert set(reg["wbk:329459820"].mus) == {"5-4", "5-5"}
+
+
 def test_variants_exclude_foreign_side_channel_name():
     # A side channel (Blind Slough) carries the mainstem's name as a side-channel tuple whose gnis
     # (14589) is FOREIGN to this item (13674). That borrowed name must NOT become a searchable variant
@@ -145,3 +157,138 @@ def test_add_waterbody_items_isolated_lake():
     item = reg["wbk:329459820"]
     assert item.kind == "lake" and item.name == "Frazer Lake"
     assert set(item.ref_ids) == {"wbk:329459820", "gnis:12484"}
+
+
+# --------------------------------------------------------------------------- #
+# A NAMED side channel is its own water, not a reach of the mainstem
+# (McArthur Island Slough was folded into the Thompson and took its name)
+# --------------------------------------------------------------------------- #
+
+def _named_channel_graph():
+    """River X, plus a channel that has NO gnis of its own but a curated name, plus a gazetted reach
+    of River X that curation renamed — the two cases `split_distinct_names` must tell apart."""
+    g = StreamGraph()
+    tx = (NameTuple("River X", NameSource.gazette, gnis_id="1"),)
+    g.nodes["m1"] = _node("m1", blk="M", wsc="100", gnis="1", name="River X", tuples=tx)
+    g.nodes["m2"] = _node("m2", blk="M", wsc="100", gnis="1", name="River X", tuples=tx)
+    # inherits River X's gnis off a side-channel tuple, but curation gave it its OWN name
+    g.nodes["c1"] = _node("c1", blk="C", wsc="100", name="Quiet Slough",
+                          tuples=(NameTuple("River X", NameSource.side_channel, gnis_id="1"),
+                                  NameTuple("Quiet Slough", NameSource.regulation)))
+    # a gazetted reach of River X (owns gnis 1) that curation renamed — NOT a separate water
+    g.nodes["r1"] = _node("r1", blk="M", wsc="100", gnis="1", name="The Narrows",
+                          tuples=tx + (NameTuple("The Narrows", NameSource.regulation),))
+    return build_registry(g)
+
+
+def test_named_channel_without_own_gnis_becomes_its_own_item():
+    reg = _named_channel_graph()
+    assert "blk:C" in reg, "a curated-named channel must not be folded into the mainstem"
+    ch = reg["blk:C"]
+    assert ch.name == "Quiet Slough" and set(ch.section_ids) == {"c1"}
+    assert "River X" not in ch.variants, "the borrowed mainstem name must not alias the channel"
+    assert "c1" not in reg["gnis:1"].section_ids
+
+
+def test_renamed_reach_that_owns_the_gnis_stays_on_the_mainstem():
+    reg = _named_channel_graph()
+    item = reg["gnis:1"]
+    assert set(item.section_ids) == {"m1", "m2", "r1"}
+    assert item.name == "River X", "the mainstem keeps its own name, not a longer member's"
+    assert "The Narrows" in item.variants, "the renamed reach stays searchable on the river"
+
+
+def test_item_name_is_not_the_longest_member_name():
+    """The Fraser was displayed as 'Seabird Island North Side Channel' because the item name was the
+    longest display name of any member node."""
+    g = StreamGraph()
+    tx = (NameTuple("River X", NameSource.gazette, gnis_id="1"),)
+    g.nodes["m1"] = _node("m1", blk="M", wsc="100", gnis="1", name="River X", tuples=tx)
+    g.nodes["r1"] = _node("r1", blk="M", wsc="100", gnis="1", name="A Very Long Reach Name", tuples=tx)
+    assert build_registry(g)["gnis:1"].name == "River X"
+
+
+def test_foreign_gnis_name_is_not_a_searchable_alias():
+    """A reg name attached by a name_variants entry keyed to the MAINSTEM's gnis lands on every
+    inheriting side channel too — 'FRASER RIVER' aliased all 15 Fraser channel items."""
+    g = StreamGraph()
+    g.nodes["m1"] = _node("m1", blk="M", wsc="100", gnis="1", name="River X",
+                          tuples=(NameTuple("River X", NameSource.gazette, gnis_id="1"),
+                                  NameTuple("RIVER X", NameSource.regulation, gnis_id="1")))
+    # a side channel WITH its own gnis, carrying the mainstem's reg name off the same variant entry
+    g.nodes["s1"] = _node("s1", blk="S", wsc="100", gnis="2", name="Side Channel",
+                          tuples=(NameTuple("Side Channel", NameSource.gazette, gnis_id="2"),
+                                  NameTuple("RIVER X", NameSource.regulation, gnis_id="1")))
+    reg = build_registry(g)
+    assert "RIVER X" in reg["gnis:1"].variants
+    assert "RIVER X" not in reg["gnis:2"].variants
+
+
+def test_a_lakes_other_gazetted_name_stays_searchable():
+    """FWA gives a waterbody up to three gazetted names (GNIS_NAME_1/2/3), each with its own id —
+    Nation Lakes also answers to 'Tsayta Lake'. Those are the lake's OWN names, not borrowed ones."""
+    g = StreamGraph()
+    g.nodes["l1"] = _node("l1", kind=NodeKind.lake, wbk="W9", name="Nation Lakes",
+                          tuples=(NameTuple("Nation Lakes", NameSource.gazette, gnis_id="16576"),
+                                  NameTuple("Tsayta Lake", NameSource.gazette, gnis_id="29218")))
+    item = build_registry(g)["wbk:W9"]
+    assert set(item.variants) == {"Nation Lakes", "Tsayta Lake"}
+    assert "gnis:29218" in item.ref_ids
+
+
+def test_boundary_aliases_survive_the_registry_round_trip(tmp_path):
+    """The alias is minted in the graph but consumed by the review app through registry.json. Leaving
+    it out of the serializer meant the split resolved in the build and was still dangling in the app."""
+    from pipeline.models.registry import RegistryBoundary, RegistryItem
+    from pipeline.registry.io import load_registry, write_registry
+
+    item = RegistryItem(
+        id="gnis:1", name="Duncan River", kind="stream",
+        section_ids=("10:0",),
+        boundaries=(
+            RegistryBoundary(id="duncan_river__duncan_lake", label="Duncan Lake", kind="lake",
+                             ref="lake:329120714", wbk="329120714",
+                             aliases=("split:duncan_river__duncan_dam",)),
+            RegistryBoundary(id="plain", label="Plain", kind="split", ref="split:plain"),
+        ),
+    )
+    path = write_registry({"gnis:1": item}, tmp_path / "registry.json")
+    back = load_registry(path)["gnis:1"]
+    assert back.boundaries[0].aliases == ("split:duncan_river__duncan_dam",)
+    assert back.boundaries[1].aliases == (), "a boundary with no alias round-trips as empty"
+
+    import json
+    raw = json.loads(path.read_text())["items"][0]["boundaries"]
+    assert "aliases" not in raw[1], "empty aliases must not bloat the file"
+
+
+def test_an_alias_on_either_edge_of_a_lake_reaches_the_registry():
+    """A lake is the UPPER bound of the piece below it and the LOWER bound of the piece above, so it
+    reaches build_registry twice — but the alias sits on only ONE of those two instances. Keeping the
+    first and skipping the rest dropped the alias whenever the un-aliased edge came first, which is
+    how Duncan Dam, the Mitchell dam and the Babine weir stayed dangling after being aliased."""
+    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.registry.build import build_registry
+
+    def graph_with_alias_on(which: str) -> StreamGraph:
+        plain = SectionBoundary(boundary_id="lake:99", kind=BoundaryKind.lake, route_measure=1000.0,
+                                label="Duncan Lake")
+        aliased = SectionBoundary(boundary_id="lake:99", kind=BoundaryKind.lake, route_measure=5000.0,
+                                  label="Duncan Lake", aliases=("split:duncan_river__duncan_dam",))
+        lower, upper = (aliased, plain) if which == "lower" else (plain, aliased)
+        below = StreamNode(node_id="10:0", kind=NodeKind.stream, blk="10", wsc="100", gnis_id="1",
+                           display_name="Duncan River", down_m=0.0, up_m=1000.0, length_m=1000.0,
+                           upper_bound=lower)
+        above = StreamNode(node_id="10:5000", kind=NodeKind.stream, blk="10", wsc="100", gnis_id="1",
+                           display_name="Duncan River", down_m=5000.0, up_m=6000.0, length_m=1000.0,
+                           lower_bound=upper)
+        g = StreamGraph()
+        g.nodes = {n.node_id: n for n in (below, above)}
+        g.edges, g.up_adj, g.down_adj = [], {}, {}
+        return g
+
+    for which in ("lower", "upper"):                 # the alias must survive from EITHER side
+        reg = build_registry(graph_with_alias_on(which))
+        item = next(it for it in reg.values() if it.kind == "stream")
+        lake = next(b for b in item.boundaries if b.ref == "lake:99")
+        assert lake.aliases == ("split:duncan_river__duncan_dam",), f"lost when alias was on {which}"

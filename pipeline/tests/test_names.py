@@ -35,3 +35,57 @@ def test_unnamed_side_channel_still_inherits():
     by_blk = {c.blk: c for c in resolve_names([main, braid])}
     tup = [t for t in by_blk["X"].name_tuples if t.source == NameSource.side_channel]
     assert tup and tup[0].name == "Pitt River" and tup[0].gnis_id == "7551"
+
+
+# --- minting nodes for waterbodies the graph never nodes -------------------------------------------
+
+def test_mint_waterbody_nodes_gives_an_unnoded_water_a_section():
+    """A waterbody is only noded when stream fids run THROUGH it, so an isolated lake (nothing flows
+    in or out) and an overlaid wetland (the fids record it in member_wbks, not as a node) both ended
+    up with an EMPTY section_ids — `op=whole` then resolved against an empty universe and the rule
+    silently bound nothing. Minting gives the item exactly one section to answer with."""
+    from pipeline.graph.names import mint_waterbody_nodes
+    from pipeline.models import NameSource, NodeKind, StreamGraph
+
+    g = StreamGraph()
+    n = mint_waterbody_nodes(g, {"111": (("Frazer Lake", "27804"),)}, NameSource.gazette)
+    assert n == 1
+    node = g.nodes["lake:111"]
+    assert node.kind == NodeKind.lake and node.wbk == "111"
+    assert node.display_name == "Frazer Lake"
+    assert node.name_tuples[0].gnis_id == "27804"      # so the item's ref_ids keep the gnis
+    assert not g.up_adj.get("lake:111") and not g.down_adj.get("lake:111")   # edgeless by design
+
+
+def test_mint_waterbody_nodes_never_overwrites_a_real_node():
+    from pipeline.graph.names import mint_waterbody_nodes
+    from pipeline.models import NameSource, NodeKind, StreamGraph, StreamNode
+
+    g = StreamGraph()
+    g.nodes["lake:111"] = StreamNode(node_id="lake:111", kind=NodeKind.lake, wbk="111",
+                                     display_name="Real Lake")
+    assert mint_waterbody_nodes(g, {"111": (("Other Name", ""),)}, NameSource.gazette) == 0
+    assert g.nodes["lake:111"].display_name == "Real Lake"
+
+
+def test_mint_waterbody_nodes_skips_the_unnamed():
+    """The name is the whole point — a nameless polygon can never be targeted by a regulation, and
+    minting one would just add an unmatchable item."""
+    from pipeline.graph.names import mint_waterbody_nodes
+    from pipeline.models import NameSource, StreamGraph
+
+    g = StreamGraph()
+    assert mint_waterbody_nodes(g, {"222": (("", "999"),)}, NameSource.gazette) == 0
+    assert not g.nodes
+
+
+def test_mint_waterbody_nodes_takes_the_longest_gazetted_name():
+    """Matches what add_waterbody_items put on the item, so no display name churns when the water
+    becomes a node instead."""
+    from pipeline.graph.names import mint_waterbody_nodes
+    from pipeline.models import NameSource, StreamGraph
+
+    g = StreamGraph()
+    mint_waterbody_nodes(g, {"333": (("Tsayta", "1"), ("Nation Lakes", "2"))}, NameSource.gazette)
+    assert g.nodes["lake:333"].display_name == "Nation Lakes"
+    assert {t.name for t in g.nodes["lake:333"].name_tuples} == {"Tsayta", "Nation Lakes"}

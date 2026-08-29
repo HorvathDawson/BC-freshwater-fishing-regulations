@@ -1,0 +1,64 @@
+"""    python -m pipeline.reach.cli --build output/v2/full --out output/reaches/full
+       python -m pipeline.reach.cli --build output/v2/full_new --out output/reaches/full_new \
+                                    --against output/reaches/full
+
+Resolves every rule against one build, writes the tables, and (with `--against`) reports
+which rules now cover different water than they did — confirmed entries first.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+from pipeline.io.serialize import read_artifact
+from pipeline.parsing import io as parse_io
+from pipeline.reach.build import build_reaches
+from pipeline.reach.diff import diff_runs
+from pipeline.reach.io import digest, write_run
+from pipeline.registry import load_registry
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--build", required=True, help="a build dir (registry.json + graph.pkl)")
+    ap.add_argument("--out", help="where to write the tables; omit for a dry run")
+    ap.add_argument("--against", help="a previous --out dir to diff against")
+    ap.add_argument("--entries", help="entries dir (default: the checked-in one)")
+    args = ap.parse_args()
+
+    build = Path(args.build)
+    registry = load_registry(str(build / "registry.json"))
+    graph = read_artifact(str(build / "graph.pkl"))
+    entries = parse_io.read_entries_dir(
+        Path(args.entries) if args.entries else parse_io.entries_dir())
+
+    result = build_reaches(entries, registry, graph, build=build.name)
+    r = result.report
+    print(f"{r.n_entries:,} entries · {r.n_rules:,} rules · {r.seconds}s")
+    for k, v in sorted(r.outcomes.items()):
+        print(f"  {k:<12} {v:,}")
+    for k, v in sorted(r.reasons.items(), key=lambda kv: -kv[1]):
+        print(f"      {k:<24} {v:,}")
+    for k, v in sorted(r.diagnostics.items()):
+        print(f"  {k:<12} {v:,}")
+    print(f"  digest       {digest(result)}")
+    if r.needs_backfill:
+        print(f"\n  {len(r.needs_backfill)} entries resolved only via a live re-match "
+              f"(stale `matched`); run pipeline.parsing.backfill_matched")
+
+    if args.out:
+        counts = write_run(args.out, result, entries)
+        print(f"\nwrote {args.out}: " + " · ".join(f"{k} {v:,}" for k, v in counts.items()))
+
+    if args.against:
+        locked = {e["entry_id"] for e in entries.values() if e.get("locked")}
+        print("\n" + "=" * 72)
+        print(diff_runs(args.against, result, locked).summary())
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -56,12 +56,14 @@ def _item_payload(index: int, ctx) -> dict:
         "index": index,
         "entry_id": ctx.entry_id,
         "item_id": ctx.item_id or None,
+        "also_item_ids": list(ctx.also_item_ids),      # combined override -> extra registry items
         "name": ctx.name,
         "region": ctx.region,
         "mus": list(ctx.mus),
         "raw_regs": ctx.raw_regs,
         "bindable_ids": sorted(ctx.bindable_ids),
         "boundaries": [list(b) for b in ctx.boundaries],   # (id,label,kind) — the review prompt's menu
+        "bindable_by_item": {i: list(ids) for i, ids in ctx.boundaries_by_item},  # for item_id scoping
         "no_registry": ctx.no_registry,
         "registry_note": ctx.registry_note,
         "symbols": list(ctx.symbols),
@@ -138,11 +140,17 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
                 name = m.water                          # keep the reach-qualified name
             else:
                 eid = m.item_id
-                name = ""                               # -> item.name (unchanged single-row entries)
+                # A COMBINED entry keeps the synopsis's own wording too. Its row names several waters
+                # ("CHILLIWACK / VEDDER RIVERS (does not include Sumas River)"), while the item name is
+                # just the first one — so falling back to it labelled the whole combined regulation
+                # "Chilliwack River", and the Vedder row "Vedder Canal". The verbatim name is what the
+                # synopsis calls the regulation and what a reviewer is looking for.
+                name = m.water if m.also else ""        # else -> item.name (unchanged single-row entries)
             ctx = build_parse_context(registry[m.item_id], raw_regs=raw, entry_id=eid,
                                       region=region_num(row), row_index=m.index, name=name,
                                       symbols=tuple(row.get("symbols", [])),
-                                      review_hints=tuple((review_hints or {}).get(eid, ())))
+                                      review_hints=tuple((review_hints or {}).get(eid, ())),
+                                      also_items=tuple(registry[i] for i in m.also if i in registry))
             is_noreg = False
 
         if flagged_ids is not None and eid not in flagged_ids:

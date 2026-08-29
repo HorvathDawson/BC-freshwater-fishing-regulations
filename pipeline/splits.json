@@ -137,14 +137,14 @@
      "anchor": {
       "type": "point",
       "coord": [
-       -125.00873,
-       49.38739
+       -125.00961,
+       49.38907
       ],
       "is_lonlat": true,
       "offset_m": 200,
       "offset_dir": "downstream"
      },
-     "note": "",
+     "note": "anchor moved onto Lanterman Falls itself (FISS 49.38907N,125.00961W). The coord had been the ALREADY-offset signs position 197 m below the falls, so the 200 m offset was applied a second time and the cut landed ~400 m below. Matches ash_river__dickson_falls_30_m_downstream, which anchors on its falls.",
      "_note": "here: https://www.worldwaterfalldatabase.com/waterfall/Lanterman-Falls-1897 ... FISS Database: survey_id 16550 - OBJECTID: 71745289 -- Lat: 49.38907° N, Lon: 125.00961° W which then puts (Lat: 49.38739° N, Lon: 125.00873° W) approximately 200m downstream. — coord = signs (200 m downstream of Lanterman Falls @ 49.38907N,125.00961W); other boundary is Dickson Lake.",
      "_coord": [
       -125.00873,
@@ -835,14 +835,14 @@
      "anchor": {
       "type": "point",
       "coord": [
-       -126.04194,
-       49.78249
+       -126.05226,
+       49.77371
       ],
       "is_lonlat": true,
       "offset_m": 1300,
       "offset_dir": "upstream"
      },
-     "note": "",
+     "note": "anchor moved onto the Heber-Gold confluence, the datum its own note names (\"base=Heber-Gold confluence, +1300m up the Heber\"). The coord had been the already-offset point 1226 m up, so the 1300 m was applied twice.",
      "_note": "[curated 2026-08-08 manual-review batch=heber-1-9] [base=Heber-Gold confluence, +1300m up the Heber; canyon not cleanly mappable, use distance ref]",
      "_coord": [
       -126.04194,
@@ -2210,19 +2210,17 @@
    "splits": [
     {
      "id": "yakoun_river__yakoun_lake_14533_m_downstream",
-     "label": "Yakoun Lake (14533 m downstream)",
+     "label": "fishing boundary signs (Yakoun Guardian Program survey)",
      "kind": "lake",
      "anchor": {
       "type": "point",
       "coord": [
-       -132.25451,
-       53.34094
+       -132.27866,
+       53.43396
       ],
-      "is_lonlat": true,
-      "offset_m": 14533,
-      "offset_dir": "downstream"
+      "is_lonlat": true
      },
-     "note": "",
+     "note": "point at the surveyed sign position from the Yakoun Guardian Program 2021-22 report (53.43396,-132.27866); no offset — the coordinate IS the landmark.",
      "_note": "[lake-class: lake_split] Yakoun Lake outlet + offset downstream. — [lake-bound-auto] OFFSET: Yakoun Lake outlet is auto; the downstream offset point needs authoring. [coord=temp reference; split via FWA target lake WBK] datum=wbk (lake edge); offset {m,dir} authoritative; anchor coord is a cache — resolver derives datum from wbk, dir-aware for multi-poly [2026-08-12 ground-truth: Yakoun Guardian Program 2021-22 https://a100.gov.bc.ca/pub/acat/documents/r59755/Yakoun_River_Guardian_Program_2021_to_2022_1658515143855_91B155D8B6.pdf places the boundary signs at 53.43396,-132.27866 = 14.53 km d/s of the lake outlet (snapped). Reg says \"~13 km\" but real is 14.5 km; the round-number 13 km offset landed 1.26 km short — m corrected 13000->14533.]",
      "_coord": [
       -132.25451,
@@ -2569,8 +2567,8 @@
    "_entry_id": "2f3fea39",
    "splits": [
     {
-     "id": "chilliwack_vedder_rivers__upstream_from_a_line_between_two_fishing_boundary_signs_on_either_side_of_the_chilliwack_river_100_m_downstream",
-     "label": "upstream from a line between two fishing boundary signs on either side of the Chilliwack River (100 m downstream)",
+     "id": "chilliwack_vedder_rivers__boundary_signs_below_slesse_creek",
+     "label": "fishing boundary signs 100 m below the Slesse Creek confluence",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -2582,16 +2580,13 @@
       "offset_m": 100,
       "offset_dir": "downstream"
      },
-     "note": "",
+     "note": "the signs are on the CHILLIWACK, 100 m below where Slesse Creek joins. The split had its own applies_to naming Slesse's watershed code (100-064535-057628-998041-282809), so the 100 m ran down SLESSE and clamped at its mouth — no cut. Inherits the Chilliwack now.",
      "_note": "[curated 2026-08-07 manual-review batch=chilliwack] [line 100m d/s Slesse confluence] line→point (cross-channel line = single mainstem cut)",
      "_coord": [
       -121.70928,
       49.0785
      ],
-     "_offset_m": 100,
-     "applies_to": {
-      "wsc": "100-064535-057628-998041-282809"
-     }
+     "_offset_m": 100
     },
     {
      "id": "chilliwack_vedder_rivers__tamihi_rapids_bridge",
@@ -2624,12 +2619,15 @@
       ],
       "is_lonlat": true
      },
-     "note": "",
+     "note": "targets the VEDDER (gnis 3062), not the waterbody's primary Chilliwack (8634). Vedder Crossing is where the Chilliwack becomes the Vedder, so on the Chilliwack blue line it falls at measure 0 — the natural mouth, where a boundary already exists — and the cut silently did nothing. On the Vedder it is interior (12925 of 12950) and cuts.",
      "_note": "[auto-proposal L] Tamihi Rapids Bridge & Vedder Crossing Bridge on Chilliwack/Vedder River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Confirm Tamihi (Rapids) Bridge and Vedder Crossing Bridge on the Chilliwack/Vedder; both well-known -> review.. Reach between two named road bridges near Chilliwack (MU 2-?). Both are public bridges (not FWA). The FSR crossings found (CENTRE/RADIUM at 37-47 km) are far upstream in the Chilliwack valley, not these lower bridges. [structural-split 2026-08-05 from “downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge”] boundary=Vedder Crossing Bridge [curated 2026-08-07 manual-review batch=chilliwack] [Vedder Crossing Bridge]",
      "_coord": [
       -121.9646,
       49.09739
-     ]
+     ],
+     "applies_to": {
+      "gnis_id": "3062"
+     }
     }
    ]
   },
@@ -3106,12 +3104,8 @@
      "label": "Ruby Lake to fishing boundary signs (100 m downstream)",
      "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -123.97475,
-       49.71037
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "329197064",
       "offset_m": 100,
       "offset_dir": "downstream"
      },
@@ -3343,8 +3337,8 @@
    "_entry_id": "a86d90f9",
    "splits": [
     {
-     "id": "adams_river__signs_near_salmon_viewing_platforms",
-     "label": "signs near salmon-viewing platforms",
+     "id": "adams_river__signs_200_m_downstream_of_salmon_viewing_platforms",
+     "label": "signs 200 m downstream of the salmon-viewing platforms",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -3352,7 +3346,30 @@
        -119.57374,
        50.90038
       ],
-      "is_lonlat": true
+      "is_lonlat": true,
+      "offset_m": 200,
+      "offset_dir": "downstream"
+     },
+     "note": "",
+     "_note": "[curated 2026-08-09 park-pins] [user pin; public salmon-viewing platforms, Tsutswecw Prov Park]",
+     "_coord": [
+      -119.57374,
+      50.90038
+     ]
+    },
+    {
+     "id": "adams_river__signs_200_m_upstream_of_salmon_viewing_platforms",
+     "label": "signs 200 m upstream of the salmon-viewing platforms",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -119.57374,
+       50.90038
+      ],
+      "is_lonlat": true,
+      "offset_m": 200,
+      "offset_dir": "upstream"
      },
      "note": "",
      "_note": "[curated 2026-08-09 park-pins] [user pin; public salmon-viewing platforms, Tsutswecw Prov Park]",
@@ -3866,28 +3883,6 @@
    },
    "_entry_id": "921224bf",
    "splits": [
-    {
-     "id": "nahatlatch_river__frances_lake_400_m_downstream",
-     "label": "Frances Lake (400 m downstream)",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -121.64208,
-       50.00715
-      ],
-      "is_lonlat": true,
-      "offset_m": 400,
-      "offset_dir": "downstream"
-     },
-     "note": "",
-     "_note": "[auto-proposal L] logging bridge ~400 m below Frances Lake outlet on Nahatlatch River. No FWA coord (public road/rail bridge — map/OSM-confirmable). Verify: Locate Frances Lake on the Nahatlatch, then the logging bridge ~400 m downstream with fishing boundary signs; map.. Reach = 'Frances Lake downstream ~400 m to signs at the logging bridge'. Needs the Frances Lake outlet located first (upstream chain of lakes on the Nahatlatch); the bridge is just below it. Map/OSM-confirmable. [structural-split 2026-08-05 from “from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge”] boundary=Frances Lake downstream approximately 400 m [human-review 2026-08-05] anchor=Frances Lake (wbk 329154768); offset_m=400 offset_dir=downstream (sectionizer auto-calcs). [coord=temp reference; split via FWA target lake WBK] [curated 2026-08-09 bridge+confl batch] [OSM way 416740411; = signs ~400m below Frances Lk]",
-     "_coord": [
-      -121.64208,
-      50.00715
-     ],
-     "_offset_m": 400
-    },
     {
      "id": "nahatlatch_river__signs_at_logging_bridge",
      "label": "signs at logging bridge",
@@ -4845,12 +4840,8 @@
      "label": "Connor Lake (3000 m downstream)",
      "kind": "lake_outlet",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -115.07534,
-       50.29795
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "329123411",
       "offset_m": 3000,
       "offset_dir": "downstream"
      },
@@ -5208,8 +5199,8 @@
    "_entry_id": "57a2bb4f",
    "splits": [
     {
-     "id": "lardeau_river__fishing_boundary_signs_at_trout_lake_outlet_to_fishing_boundary_signs_600_m_downstream",
-     "label": "fishing boundary signs at Trout Lake outlet, to fishing boundary signs (600 m downstream)",
+     "id": "lardeau_river__fishing_boundary_signs_near_mobbs_creek",
+     "label": "fishing boundary signs near the Mobbs Creek confluence (600 m below Trout Lake outlet)",
      "kind": "point",
      "anchor": {
       "type": "point",
@@ -7249,12 +7240,8 @@
      "label": "fishing boundary signs near outlet of Morice Lake (2000 m downstream)",
      "kind": "point",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -127.42966,
-       54.11275
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "329385412",
       "offset_m": 2000,
       "offset_dir": "downstream"
      },
@@ -7720,12 +7707,8 @@
      "label": "McDonell Lake (3000 m downstream)",
      "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -127.63541,
-       54.78145
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "329682393",
       "offset_m": 3000,
       "offset_dir": "downstream"
      },
@@ -8820,12 +8803,8 @@
      "label": "Jewel Lake (1500 m downstream)",
      "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -118.62266,
-       49.16284
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "329216614",
       "offset_m": 1500,
       "offset_dir": "downstream"
      },

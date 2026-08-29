@@ -1,0 +1,180 @@
+{
+  "$schema": "./schema/layers.schema.json",
+  "$comment": "AUTHORED \u2014 the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads.",
+  "sources": {
+    "waters": {
+      "type": "vector",
+      "url": "pmtiles://waters",
+      "$comment": "our pipeline's regulable-water tiles"
+    },
+    "parcels": {
+      "type": "vector",
+      "url": "pmtiles://parcels",
+      "external": true,
+      "attribution": "TODO: name the provider and licence before this ships"
+    }
+  },
+  "groups": [
+    {
+      "id": "water",
+      "label": "Water",
+      "toggleable": false,
+      "defaultVisible": true
+    },
+    {
+      "id": "parcels",
+      "label": "Private parcels",
+      "toggleable": true,
+      "defaultVisible": false
+    }
+  ],
+  "layers": [
+    {
+      "id": "streams",
+      "group": "water",
+      "source": "waters",
+      "sourceLayer": "sections",
+      "geometry": "line",
+      "featureIdProperty": "section_id",
+      "highlightable": true,
+      "width": {
+        "token": "width.stream.base"
+      },
+      "$comment": "ONE geometry, MANY colourings. Exactly one mode is active at a time; the user picks via a view (below). Each mode names the runtime feature-state property that drives it.",
+      "colorModes": {
+        "plain": {
+          "label": "Plain",
+          "scale": "static",
+          "color": {
+            "token": "color.water.regulated"
+          }
+        },
+        "closure": {
+          "label": "Open / closed",
+          "scale": "categorical",
+          "property": "status",
+          "enum": "reg_status",
+          "categories": {
+            "open": {
+              "token": "color.status.open"
+            },
+            "restricted": {
+              "token": "color.status.restricted"
+            },
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "unknown": {
+              "token": "color.status.unknown"
+            },
+            "default_only": {
+              "token": "color.status.default_only"
+            }
+          },
+          "data": {
+            "provider": "regs",
+            "field": "status",
+            "params": [
+              "date"
+            ]
+          },
+          "missing": {
+            "token": "color.status.default_only"
+          }
+        },
+        "discharge": {
+          "label": "Water level",
+          "scale": "continuous",
+          "property": "discharge_pct",
+          "stops": [
+            [
+              0,
+              {
+                "token": "color.flow.low"
+              }
+            ],
+            [
+              50,
+              {
+                "token": "color.flow.normal"
+              }
+            ],
+            [
+              100,
+              {
+                "token": "color.flow.high"
+              }
+            ]
+          ],
+          "missing": {
+            "token": "color.status.unknown"
+          },
+          "data": {
+            "provider": "gauges",
+            "field": "discharge_pct"
+          }
+        }
+      }
+    },
+    {
+      "id": "parcel-lines",
+      "group": "parcels",
+      "source": "parcels",
+      "sourceLayer": "parcels",
+      "geometry": "line",
+      "width": {
+        "token": "width.stream.base"
+      },
+      "colorModes": {
+        "plain": {
+          "label": "Plain",
+          "scale": "static",
+          "color": {
+            "token": "color.parcel.line"
+          }
+        }
+      }
+    }
+  ],
+  "views": [
+    {
+      "id": "regulations",
+      "label": "Regulations",
+      "default": true,
+      "modes": {
+        "streams": "closure"
+      }
+    },
+    {
+      "id": "conditions",
+      "label": "Conditions",
+      "modes": {
+        "streams": "discharge"
+      }
+    },
+    {
+      "id": "plain",
+      "label": "Plain map",
+      "modes": {
+        "streams": "plain"
+      }
+    }
+  ],
+  "providers": {
+    "$comment": "Where a colour mode's values come from. Tiles carry IDENTITY (section_id) and almost nothing else \u2014 status and discharge live in the bundle and the live feed. The app fetches per visible feature and pushes feature-state; the tiles never change.",
+    "regs": {
+      "kind": "bundle",
+      "key": "section_id",
+      "freshness": "bundle",
+      "$comment": "computed from rules + the selected date. Present for the 2.4% with an assessed rule; everything else is default_only."
+    },
+    "gauges": {
+      "kind": "feed",
+      "key": "item_id",
+      "fanout": "item_to_sections",
+      "freshness": "live",
+      "staleAfterMs": 5400000,
+      "$comment": "450 stations, 30-min refresh. Binds to item_id (durable), so it must fan out to that item's sections to colour a line."
+    }
+  }
+}

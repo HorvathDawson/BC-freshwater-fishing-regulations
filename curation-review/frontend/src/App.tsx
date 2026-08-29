@@ -170,6 +170,7 @@ export default function App() {
             curator={curator}
             speciesOptions={species}
             onSaved={onSaved}
+            onNavigate={setSelected}
             onConfirmed={onConfirmed}
             reloadKey={reloadKey}
           />

@@ -1,0 +1,264 @@
+{
+  "$comment": "GENERATED. The runtime reads this to build the layer/view UI and apply themes.",
+  "groups": [
+    {
+      "id": "water",
+      "label": "Water",
+      "toggleable": false,
+      "defaultVisible": true
+    },
+    {
+      "id": "parcels",
+      "label": "Private parcels",
+      "toggleable": true,
+      "defaultVisible": false
+    }
+  ],
+  "views": [
+    {
+      "id": "regulations",
+      "label": "Regulations",
+      "default": true,
+      "modes": {
+        "streams": "closure"
+      }
+    },
+    {
+      "id": "conditions",
+      "label": "Conditions",
+      "modes": {
+        "streams": "discharge"
+      }
+    },
+    {
+      "id": "plain",
+      "label": "Plain map",
+      "modes": {
+        "streams": "plain"
+      }
+    }
+  ],
+  "providers": {
+    "regs": {
+      "kind": "bundle",
+      "key": "section_id",
+      "freshness": "bundle",
+      "$comment": "computed from rules + the selected date. Present for the 2.4% with an assessed rule; everything else is default_only."
+    },
+    "gauges": {
+      "kind": "feed",
+      "key": "item_id",
+      "fanout": "item_to_sections",
+      "freshness": "live",
+      "staleAfterMs": 5400000,
+      "$comment": "450 stations, 30-min refresh. Binds to item_id (durable), so it must fan out to that item's sections to colour a line."
+    }
+  },
+  "layerGroup": {
+    "streams": "water",
+    "parcel-lines": "parcels"
+  },
+  "highlightable": [
+    {
+      "id": "streams",
+      "featureIdProperty": "section_id"
+    }
+  ],
+  "colorModes": {
+    "streams": {
+      "plain": {
+        "label": "Plain",
+        "scale": "static",
+        "color": {
+          "token": "color.water.regulated"
+        }
+      },
+      "closure": {
+        "label": "Open / closed",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "reg_status",
+        "categories": {
+          "open": {
+            "token": "color.status.open"
+          },
+          "restricted": {
+            "token": "color.status.restricted"
+          },
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "unknown": {
+            "token": "color.status.unknown"
+          },
+          "default_only": {
+            "token": "color.status.default_only"
+          }
+        },
+        "data": {
+          "provider": "regs",
+          "field": "status",
+          "params": [
+            "date"
+          ]
+        },
+        "missing": {
+          "token": "color.status.default_only"
+        }
+      },
+      "discharge": {
+        "label": "Water level",
+        "scale": "continuous",
+        "property": "discharge_pct",
+        "stops": [
+          [
+            0,
+            {
+              "token": "color.flow.low"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.normal"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.high"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.status.unknown"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "discharge_pct"
+        }
+      }
+    },
+    "parcel-lines": {
+      "plain": {
+        "label": "Plain",
+        "scale": "static",
+        "color": {
+          "token": "color.parcel.line"
+        }
+      }
+    }
+  },
+  "widths": {
+    "streams": "width.stream.base",
+    "parcel-lines": "width.stream.base"
+  },
+  "themes": {
+    "dark": {
+      "color.water.regulated": "#4da3e8",
+      "color.water.other": "#3c5a72",
+      "color.highlight": "#ffbe4d",
+      "color.parcel.line": "#c9a86a",
+      "color.status.open": "#48b07a",
+      "color.status.restricted": "#e8a733",
+      "color.status.unknown": "#a78bd0",
+      "color.status.default_only": "#6e6e6e",
+      "color.flow.low": "#e0c04a",
+      "color.flow.normal": "#48b07a",
+      "color.flow.high": "#5a9ad8",
+      "width.stream.base": 1.4,
+      "width.stream.highlight": 3.2,
+      "opacity.overlay": 0.45,
+      "color.status.closed": "#e05a4b"
+    },
+    "light": {
+      "color.water.regulated": "#1c6fb5",
+      "color.water.other": "#9dc3e0",
+      "color.highlight": "#f0a020",
+      "color.parcel.line": "#8a6d3b",
+      "color.status.open": "#2e8b57",
+      "color.status.restricted": "#d98c00",
+      "color.status.closed": "#c0392b",
+      "color.status.unknown": "#7d5ba6",
+      "color.status.default_only": "#8a8a8a",
+      "color.flow.low": "#c9a227",
+      "color.flow.normal": "#2e8b57",
+      "color.flow.high": "#2f6fb5",
+      "width.stream.base": 1.4,
+      "width.stream.highlight": 3.2,
+      "opacity.overlay": 0.55
+    }
+  },
+  "tokens": {
+    "color.water.regulated": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.water.other": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.highlight": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.parcel.line": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.status.open": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.status.restricted": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.status.closed": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.status.unknown": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.status.default_only": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.flow.low": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.flow.normal": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.flow.high": {
+      "type": "color",
+      "themeable": true
+    },
+    "width.stream.base": {
+      "type": "number",
+      "themeable": false
+    },
+    "width.stream.highlight": {
+      "type": "number",
+      "themeable": false
+    },
+    "opacity.overlay": {
+      "type": "number",
+      "themeable": true
+    }
+  },
+  "enums": {
+    "$comment": "Vocabularies a categorical colour mode can be declared over. A mode bound to an enum MUST colour every member — that is how `unknown` and `default_only` cannot be silently forgotten (doc 10 ⑨ / ㉜).",
+    "reg_status": [
+      "open",
+      "restricted",
+      "closed",
+      "unknown",
+      "default_only"
+    ]
+  }
+}

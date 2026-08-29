@@ -14,6 +14,7 @@ class RegistryBoundary:
     kind: str                    # BoundaryKind value: split | confluence | lake | outlet | headwaters | mu | border
     ref: str = ""                # the graph boundary_id (stable): "split:{id}" | "lake:{wbk}" | "outlet" | "headwaters"
     wbk: str = ""                # robust key for lake boundaries
+    aliases: tuple[str, ...] = ()  # other ids this same cut-point answers to (see SectionBoundary)
 
 
 @dataclass(frozen=True)

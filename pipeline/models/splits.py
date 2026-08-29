@@ -21,7 +21,7 @@ class SplitAnchor:
     - mu_boundary : the shared boundary line between mu_a and mu_b (needs BOTH).
     - confluence  : an auto cut line where tributary_blk meets the target mainstem.
 
-    A ``point``/``confluence`` anchor may carry an ALONG-CHANNEL offset: the cut lands
+    A ``point``/``confluence``/``lake`` anchor may carry an ALONG-CHANNEL offset: the cut lands
     ``offset_m`` metres ``offset_dir`` ("upstream"|"downstream") from the projected coord/mouth,
     following the channel (not straight-line). Lets a reg like "100 m downstream of the falls" be
     authored from the falls point alone; clamped to the channel ends (with a concern if clamped).
@@ -62,8 +62,8 @@ class SplitAnchor:
         if offset_m < 0:
             raise ValueError("offset_m must be >= 0 (give the direction via offset_dir)")
         if offset_m:
-            if t not in (AnchorType.point, AnchorType.confluence):
-                raise ValueError(f"offset_m only valid on point/confluence anchors, not {t.value}")
+            if t not in (AnchorType.point, AnchorType.confluence, AnchorType.lake):
+                raise ValueError(f"offset_m only valid on point/confluence/lake anchors, not {t.value}")
             if offset_dir not in ("upstream", "downstream"):
                 raise ValueError("offset_m requires offset_dir 'upstream' or 'downstream'")
         return cls(

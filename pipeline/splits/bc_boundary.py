@@ -23,6 +23,7 @@ BOUNDARY_FILENAME = "bc_boundary.geojson"
 _INPUT_SIMPLIFY = 50.0     # per-WMU vertex thinning before the union (m)
 _GAP_BUFFER = 1.0          # tiny overlap so simplified neighbours never leave a sliver gap (m)
 _RESULT_SIMPLIFY = 100.0   # final outline thinning (m)
+_MAX_SLIVER_HOLE = 5_000_000.0   # interior rings smaller than this (m^2) are simplification slivers
 
 
 def boundary_path(gpkg_path: str | Path) -> Path:
@@ -43,7 +44,34 @@ def load_cached_boundary(gpkg_path: str | Path):
         return None
     import shapely
 
-    return shapely.union_all(geoms) if len(geoms) > 1 else geoms[0]
+    outline = shapely.union_all(geoms) if len(geoms) > 1 else geoms[0]
+    return fill_sliver_holes(outline)        # also heal an older cache built before the sliver fix
+
+
+def fill_sliver_holes(outline, max_area: float = _MAX_SLIVER_HOLE):
+    """Drop interior rings smaller than ``max_area`` — the simplification slivers, not real enclaves.
+
+    ``_INPUT_SIMPLIFY`` thins each WMU by 50 m BEFORE the union, so two units that share a boundary
+    (very often a river's own course) no longer trace the same line: their simplified edges diverge by
+    tens of metres and the 1 m ``_GAP_BUFFER`` cannot close the gap. The union therefore comes out
+    riddled with hairline interior rings running *along the rivers*, and every one of them reads to
+    ``border.py`` as a provincial boundary — 4,594 of them in the pre-fix cache, giving the Thompson 50
+    fake 'BC boundary' splits and the Fraser 235, plus reaches wrongly flagged ``out_of_bc``.
+
+    BC has no enclaves, so any interior ring is a sliver; the threshold is only a guard in case the WMU
+    layer ever leaves a genuine (and much larger) void. Filling them costs nothing at border scale —
+    streams cross the REAL boundary by kilometres."""
+    import shapely
+    from shapely.geometry import MultiPolygon, Polygon
+
+    if outline is None:
+        return None
+    polys = list(outline.geoms) if outline.geom_type == "MultiPolygon" else [outline]
+    out = []
+    for p in polys:
+        keep = [r for r in p.interiors if Polygon(r).area >= max_area]
+        out.append(Polygon(p.exterior, keep) if len(keep) != len(p.interiors) else p)
+    return out[0] if len(out) == 1 else MultiPolygon(out)
 
 
 def fast_wmu_union(fwa):
@@ -64,7 +92,8 @@ def fast_wmu_union(fwa):
     outline = shapely.union_all(prepped)
     if _RESULT_SIMPLIFY:
         outline = outline.simplify(_RESULT_SIMPLIFY, preserve_topology=True)
-    return outline, (getattr(gdf, "crs", None) or "EPSG:3005")
+    outline = fill_sliver_holes(outline)      # see fill_sliver_holes: 50 m input simplify opens
+    return outline, (getattr(gdf, "crs", None) or "EPSG:3005")   # hairline gaps along shared river edges
 
 
 def build_boundary(fwa, out_path: Path) -> object:

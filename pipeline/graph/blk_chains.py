@@ -26,9 +26,12 @@ _STREAM_COLUMNS = [
 _SENTINEL_WSC = "999-999999"
 
 
-@dataclass
+@dataclass(slots=True)
 class FidRow:
-    """One FWA linear feature, build-time only (carries geometry + topology fields)."""
+    """One FWA linear feature, build-time only (carries geometry + topology fields).
+
+    `slots=True` is not decoration: the full build makes ~4.9M of these, and a per-instance
+    `__dict__` costs 344 bytes against 144 with slots -- 1.6 GB versus 0.7 GB."""
     fid: str
     blk: str
     wsc: str            # trim_wsc'd
@@ -49,25 +52,26 @@ def load_stream_fids(gpkg_path: str, bbox: Optional[tuple] = None,
                      streams_layer: str = "streams") -> list[FidRow]:
     """Read stream fids into FidRow records. Skips sentinel WSC and degenerate geometry."""
     fwa = FWADataAccessor(gpkg_path)
-    gdf = fwa.get_layer(streams_layer, columns=_STREAM_COLUMNS, bbox=bbox)
     rows: list[FidRow] = []
-    for r in gdf.itertuples():
-        wsc_raw = r.FWA_WATERSHED_CODE or ""
-        if wsc_raw.startswith(_SENTINEL_WSC):
-            continue
-        down_node, up_node = cutting.blk_endpoints(r.geometry)
-        if down_node is None or up_node is None:
-            continue
-        down_m = float(r.DOWNSTREAM_ROUTE_MEASURE)
-        up_m = float(r.UPSTREAM_ROUTE_MEASURE)
-        rows.append(FidRow(
-            fid=r.LINEAR_FEATURE_ID, blk=r.BLUE_LINE_KEY, wsc=trim_wsc(wsc_raw),
-            edge_type=r.EDGE_TYPE or "", wbk=r.WATERBODY_KEY or "",
-            gnis_id=r.GNIS_ID or "", gnis_name=r.GNIS_NAME or "",
-            stream_order=r.STREAM_ORDER, stream_magnitude=r.STREAM_MAGNITUDE,
-            down_m=down_m, up_m=up_m, geometry=r.geometry,
-            down_node=down_node, up_node=up_node,
-        ))
+    # Chunked: the whole layer at once peaks near this machine's memory ceiling (see iter_layer).
+    for gdf in fwa.iter_layer(streams_layer, columns=_STREAM_COLUMNS, bbox=bbox):
+        for r in gdf.itertuples():
+            wsc_raw = r.FWA_WATERSHED_CODE or ""
+            if wsc_raw.startswith(_SENTINEL_WSC):
+                continue
+            down_node, up_node = cutting.blk_endpoints(r.geometry)
+            if down_node is None or up_node is None:
+                continue
+            down_m = float(r.DOWNSTREAM_ROUTE_MEASURE)
+            up_m = float(r.UPSTREAM_ROUTE_MEASURE)
+            rows.append(FidRow(
+                fid=r.LINEAR_FEATURE_ID, blk=r.BLUE_LINE_KEY, wsc=trim_wsc(wsc_raw),
+                edge_type=r.EDGE_TYPE or "", wbk=r.WATERBODY_KEY or "",
+                gnis_id=r.GNIS_ID or "", gnis_name=r.GNIS_NAME or "",
+                stream_order=r.STREAM_ORDER, stream_magnitude=r.STREAM_MAGNITUDE,
+                down_m=down_m, up_m=up_m, geometry=r.geometry,
+                down_node=down_node, up_node=up_node,
+            ))
     return rows
 
 

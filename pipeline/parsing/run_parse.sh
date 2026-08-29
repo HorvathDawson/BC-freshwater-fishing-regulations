@@ -2,11 +2,14 @@
 # THE single entry point for the parse pipeline. Every workflow is a subcommand here — the Python
 # modules are building blocks it calls (see pipeline/parsing/README.md for the dataflow).
 #
-# ⛔ HUMAN-ONLY (credits): `parse`, `review`, `repass` dispatch batches to the `claude` CLI and spend the
-#    user's credits. Claude/agents must NOT run those — only hand the user the command. `prune` and
-#    `status` are local (no credits) and safe for anyone to run.
+# ⛔ HUMAN-ONLY (credits): `parse`, `parse-missing`, `review`, `repass` dispatch batches to the `claude`
+#    CLI and spend the user's credits. Claude/agents must NOT run those — only hand the user the command.
+#    `prune` and `status` are local (no credits) and safe for anyone to run.
 #
-#   bash pipeline/parsing/run_parse.sh <parse|review|repass|prune|status> [rereview]
+#   `parse`          full cascade: parse missing + escalate + review + review-escalate + ingest.
+#   `parse-missing`  parse ONLY missing rows + escalate invalid + ingest. NO review (saves credits).
+#
+#   bash pipeline/parsing/run_parse.sh <parse|parse-missing|review|repass|prune|status> [rereview]
 #
 # Env knobs: REGISTRY, BATCH_SIZE, MODEL (parse), REVIEW_MODEL, ESCALATE_MODEL, CONCURRENCY, CLAUDE_BIN.
 set -euo pipefail
@@ -59,6 +62,16 @@ case "$CMD" in
     echo "== validate + apply =="; _apply_ingest
     ;;
 
+  parse-missing)   # parse ONLY rows missing from EntryFiles, then ingest. NO review (saves credits).
+    echo "== parse-missing: preflight =="; _need_claude; _need_registry
+    echo "  parse=$MODEL escalate=$ESCALATE_MODEL (review SKIPPED — run 'review' later)"
+    echo "== export (resume: only rows missing from EntryFiles) =="; "${EXPORT[@]}" --skip-existing
+    echo "== parse ($MODEL, single-shot) ==";                "${DISPATCH[@]}" --model "$MODEL"
+    echo "== escalate validation failures ($ESCALATE_MODEL) =="; "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-invalid
+    echo "== validate + apply =="; _apply_ingest
+    echo "  ✓ parse-missing done (no review run). Review later: bash pipeline/parsing/run_parse.sh review"
+    ;;
+
   review)  # review EVERY current entry in place (locked + not); stamp parse_review. No re-parse.
     echo "== review: preflight =="; _need_claude; _need_registry
     RR=""
@@ -109,7 +122,8 @@ PYEOF
     ;;
 
   *)
-    echo "usage: bash pipeline/parsing/run_parse.sh <parse|review|repass|prune|status>"
+    echo "usage: bash pipeline/parsing/run_parse.sh <parse|parse-missing|review|repass|prune|status>"
+    echo "  parse-missing             parse ONLY missing rows + ingest, NO review (saves credits)"
     echo "  review [rereview|clean]   rereview = re-review even reviewed batches;"
     echo "                            clean    = wipe ALL prior reviews (files + parse_review) then rereview"
     exit 1

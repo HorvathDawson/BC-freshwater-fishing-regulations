@@ -20,7 +20,7 @@ validates each `extent.splits` against the waterbody's `splits.json` — see `va
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -67,20 +67,46 @@ _FEATURE_TYPES = frozenset({"stream", "lake", "wetland"})
 
 
 class Op(str, Enum):
-    """How a rule/scope selects sections from the matched item's reach."""
+    """How a rule/scope selects sections from the entry's reach.
 
-    WHOLE = "whole"                 # the whole matched item (no split refs)
-    UPSTREAM_OF = "upstream_of"     # sections above split s        (1 split)
-    DOWNSTREAM_OF = "downstream_of" # sections below split s        (1 split)
-    BETWEEN = "between"             # sections between a and b       (2 splits)
+    THE REACH IS `entry.matched` — a LIST. One synopsis row can cover several registry items
+    ("CHILLIWACK / VEDDER RIVERS" = the Chilliwack + the Vedder + the Vedder Canal), so "the matched
+    item" is not a single water and the ops must be defined across all of them:
+
+    - `whole` = every section of every covered item.
+    - The directional ops FOLLOW THE WATER, not the item boundary: `downstream_of X` is every covered
+      section downstream of X in the flow graph, crossing from one covered item into the next. That is
+      what the synopsis means — "from the Brilliant Dam to the confluence with the Columbia River"
+      runs to the Kootenay's mouth regardless of which blue line carries it — and it is why a
+      name-change junction (Chilliwack -> Vedder) needs no special case.
+    - `item_id` NARROWS an extent to one covered item, and is how a reach that stops at a junction is
+      expressed: "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge" is
+      `downstream_of tamihi` + `item_id=<Chilliwack>`, because the Chilliwack ENDS at Vedder Crossing.
+      A split named by an `item_id`-scoped extent must be a cut-point on that item (enforced by
+      `validate_entry_splits`).
+
+    NOTE: nothing resolves these ops to sections yet — they are recorded intent. This docstring is the
+    contract that resolver must implement.
+    """
+
+    WHOLE = "whole"                 # every section of every covered item (no split refs)
+    UPSTREAM_OF = "upstream_of"     # sections above split s, following the water  (1 split)
+    DOWNSTREAM_OF = "downstream_of" # sections below split s, following the water  (1 split)
+    BETWEEN = "between"             # sections between a and b                     (2 splits)
     WITHIN = "within"              # sections inside an area/polygon (area, not splits)
 
 
 class Extent(BaseModel):
     """One `op + split ids` binding. A rule's `extents` is a list → UNION (covers "A plus B").
 
-    `item_id` scopes this extent to a *different* registry item than the entry's `matched`
-    (covers "…plus Tenas Lake" or a named side channel). `area_id`/`area_kind` carry a `within(area)`.
+    `item_id` scopes this extent to ONE registry item — either one of the several the entry covers
+    (`entry.matched`), or a different item entirely ("…plus Tenas Lake", a named side channel).
+    `item_ids` is the same thing over SEVERAL items, for a reach whose two ends sit on different
+    waters: "downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge" is bounded by a cut on the
+    Chilliwack and a cut on the Vedder, so scoping it to either one alone puts the other end out of
+    scope and the reach cannot be resolved at all. Set one or the other, never both.
+    Without either, a directional op follows the water across every covered item; see `Op`.
+    `area_id`/`area_kind` carry a `within(area)`.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -88,6 +114,11 @@ class Extent(BaseModel):
     op: Op
     splits: List[str] = Field(default_factory=list, description="curated split ids this extent binds to")
     item_id: Optional[str] = Field(default=None, description="registry id, if this extent scopes a different item")
+    item_ids: List[str] = Field(
+        default_factory=list,
+        description="registry ids, when this extent spans SEVERAL items (a reach whose two cut-points "
+        "sit on different waters). Mutually exclusive with item_id.",
+    )
     area_id: Optional[str] = Field(default=None, description="area id (op=within), e.g. 'area:watershed:liard_river'")
     area_kind: Optional[str] = Field(default=None, description="admin area kind (op=within), e.g. 'park'")
     feature_types: List[str] = Field(
@@ -96,9 +127,20 @@ class Extent(BaseModel):
         "(subset of stream/lake/wetland); empty = all features inside the area",
     )
 
+    @property
+    def scope_ids(self) -> List[str]:
+        """The registry items this extent is scoped to — [] meaning "every item the entry covers"."""
+        if self.item_ids:
+            return list(self.item_ids)
+        return [self.item_id] if self.item_id else []
+
     @model_validator(mode="after")
     def _check_arity(self) -> "Extent":
         n = len(self.splits)
+        if self.item_id and self.item_ids:
+            raise ValueError("set item_id or item_ids, not both")
+        if len(set(self.item_ids)) != len(self.item_ids):
+            raise ValueError(f"item_ids has duplicates: {self.item_ids}")
         if self.op in (Op.UPSTREAM_OF, Op.DOWNSTREAM_OF) and n != 1:
             raise ValueError(f"op {self.op.value} needs exactly 1 split id, got {n}")
         if self.op == Op.BETWEEN and n != 2:
@@ -179,6 +221,15 @@ class Rule(BaseModel):
         "'the outlet', 'signs 500 m below the falls'). Non-empty forces needs_review — the hand-curation "
         "queue maps each to a curated split id. A rule still parses (restriction + display_location); the "
         "unbound locator is recorded here, never silently dropped.",
+    )
+    exempts_from: List[str] = Field(
+        default_factory=list,
+        description="normalized ids of the DEFAULT restrictions this rule lifts, e.g. "
+        "['spring_closure']. A regional closure applies unless a water is exempted from it, so "
+        "'is this river open?' cannot be answered from the closure rules alone — the exemption has to "
+        "be machine-readable, not a sentence in `details`. Vocabulary: spring_closure, summer_closure, "
+        "trout_char_release, bull_trout_release, bait_ban, single_barbless_hook, kokanee_stream_quota. "
+        "Empty on a rule that exempts from a NAMED water's own closure (recorded in `details` only).",
     )
     species: List[str] = Field(
         default_factory=list,
@@ -331,6 +382,13 @@ class Entry(BaseModel):
     revisit_note: str = Field(default="", description="why it should be revisited (free text; set alongside revisit)")
     parse_review: ParseReview = Field(default_factory=ParseReview, description="durable agent-review pass state (verdict/issues), persisted by ingest")
     matched: List[str] = Field(default_factory=list, description="registry ids — written by the matcher, [] from the parser")
+    reference_only: bool = Field(
+        default=False,
+        description="this row does not carry its own regulations — it is the synopsis pointing at "
+        "another entry under a different name ('VEDDER RIVER: See Chilliwack River'). It stays a real "
+        "entry so a search for that name finds something; the flag tells the review queue and the app "
+        "not to treat it as unregulated or as a second, conflicting set of rules.",
+    )
     registry_status: str = Field(
         default="matched",
         description="'matched' (a registry item + its boundaries were available) or 'no_registry' "
@@ -419,17 +477,39 @@ class EntryFile(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def validate_entry_splits(entry: Entry, allowed_split_ids: set[str]) -> List[str]:
+def validate_entry_splits(entry: Entry, allowed_split_ids: set[str],
+                          allowed_by_item: Optional[Mapping[str, set]] = None) -> List[str]:
     """Every id referenced by an extent (entry scope + each rule) must exist in the waterbody's
     curated splits. Returns error strings (empty = clean). `sections_override` is NOT checked here
-    (section ids only exist after the graph build)."""
+    (section ids only exist after the graph build).
+
+    `allowed_by_item` ({item_id: split ids}) tightens the check for a COMBINED entry, where the flat
+    `allowed_split_ids` is the union over several waters. An extent that names one of them via
+    `item_id` must bind a cut-point ON THAT WATER — otherwise a reach can be scoped to the Atnarko
+    while bounded by a confluence that only exists on the Bella Coola, which the union check happily
+    accepts and which is exactly the wrong-but-confident binding the parser is told to avoid."""
     errors: List[str] = []
 
     def _check(extents: List[Extent], where: str) -> None:
         for ex in extents:
+            # A multi-item scope allows a cut on ANY of the named items — that is the point of it:
+            # the two ends of the reach are on different waters, and each end is checked against the
+            # union so neither is rejected for living on the other's blue line.
+            ids = ex.scope_ids
+            scoped = None
+            if ids and allowed_by_item is not None:
+                scoped = set()
+                for i in ids:
+                    scoped |= set(allowed_by_item.get(i) or ())
             for sid in ex.splits:
                 if sid not in allowed_split_ids:
                     errors.append(f"{where}: extent op={ex.op.value} references unknown split id '{sid}'")
+                elif scoped is not None and sid not in scoped:
+                    named = ex.item_id or ", ".join(ids)
+                    errors.append(
+                        f"{where}: extent op={ex.op.value} is scoped to '{named}' but "
+                        f"'{sid}' is not a cut-point on it (drop the scope, add the item that "
+                        f"carries '{sid}', or bind a cut-point that is on that water)")
 
     _check(entry.scope, f"entry {entry.entry_id} scope")
     _check(entry.tributaries.excludes, f"entry {entry.entry_id} tributaries.excludes")

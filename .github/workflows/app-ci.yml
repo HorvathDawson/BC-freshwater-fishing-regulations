@@ -1,0 +1,54 @@
+name: app
+
+on:
+  push:
+    paths: ["app/**", ".github/workflows/app-ci.yml"]
+  pull_request:
+    paths: ["app/**", ".github/workflows/app-ci.yml"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm, cache-dependency-path: app/pnpm-lock.yaml }
+
+      - run: pnpm install --frozen-lockfile
+
+      # Layer boundaries FIRST: it is the cheapest check and the one whose failure
+      # means the architecture is being violated, not merely that a test broke.
+      - name: Layer boundaries (layers.json)
+        run: pnpm run boundaries
+
+      - name: Platform parity (variant sets complete, shared code portable)
+        run: pnpm run platform
+
+      - name: Map style is generated, current, and identical for both platforms
+        run: pnpm run style
+
+      - name: Every dependency is justified in deps.md
+        run: pnpm run deps
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Tests + conformance suite
+        run: pnpm run test
+
+      # Nothing above bundles anything. Metro's monorepo resolution, the react-native-web
+      # aliasing and the single-React pin are exactly the things that break silently and
+      # are only observable in a bundle — a workspace link can typecheck and still fail to
+      # resolve at bundle time. This builds the web output the phone UI actually ships as.
+      - name: Web bundle builds (Expo + react-native-web)
+        run: pnpm --filter @app/mobile run export:web
+
+      # Same tree through the native transform + Hermes. Catches a web-only API reaching
+      # shared code, which check-platform only catches for the cases it knows by name.
+      - name: Native bundles build (iOS + Android JS)
+        run: pnpm --filter @app/mobile exec expo export --platform android --platform ios

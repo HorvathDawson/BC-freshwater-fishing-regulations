@@ -46,3 +46,7 @@ venv/
 CLAUDE.md
 .rtk/
 graphify-out/
+# app workspace
+app/**/node_modules/
+app/**/dist/
+app/**/*.tsbuildinfo

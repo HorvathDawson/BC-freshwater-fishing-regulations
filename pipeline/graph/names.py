@@ -17,7 +17,8 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Optional
 
-from pipeline.models import BlkChain, NameSource, NameTuple, NodeKind, StreamGraph
+from pipeline.models import (WATERBODY_KINDS, BlkChain, NameSource, NameTuple, NodeKind,
+                             StreamGraph)
 
 # Display priority = the NameSource declaration order (override highest). Derived so it can
 # never drift out of sync with the enum (a missing source used to KeyError in _sorted_unique).
@@ -148,7 +149,7 @@ def _node_matches(node, target: dict, reach: Optional[dict]) -> bool:
     if wbks:
         # a lake NODE by its wbk, OR a stream piece OVERLAID by a wetland/river wbk (member_wbks
         # — the wetland is not a node/split/barrier; the name rides on the through-stream piece).
-        if node.kind == NodeKind.lake and node.wbk in wbks:
+        if node.kind in WATERBODY_KINDS and node.wbk in wbks:
             return True
         if node.kind == NodeKind.stream and any(w in node.member_wbks for w in wbks):
             return True
@@ -173,7 +174,7 @@ def _build_target_index(graph: StreamGraph) -> dict[str, dict]:
                 idx["blk"][node.blk].append(nid)
             for w in node.member_wbks:                # wetland/river overlay rides on the stream piece
                 idx["wbk"][w].append(nid)
-        elif node.kind == NodeKind.lake and node.wbk:
+        elif node.kind in WATERBODY_KINDS and node.wbk:
             idx["wbk"][node.wbk].append(nid)
         for g in {node.gnis_id, *(t.gnis_id for t in node.name_tuples)}:
             if g:
@@ -257,3 +258,48 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
         for w in unaligned[:15]:
             print(f"    - {w}")
     return applied
+
+
+def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: NameSource,
+                         kind: NodeKind = NodeKind.lake) -> int:
+    """Mint an edgeless ``lake:{wbk}`` node for every NAMED waterbody in ``names`` that the graph does
+    not already node. Returns the count minted.
+
+    A waterbody only becomes a node when stream fids run THROUGH it. Two kinds of named, regulated
+    water therefore never got one:
+
+      - **isolated** — nothing flows in or out (Frazer Lake, Hall Road Pond, Kinglet Lake);
+      - **overlaid** — a stream crosses the polygon but the polygon is a wetland/marsh, so the fids
+        record it in ``member_wbks`` and no node is built for the waterbody itself (Cheam Lake,
+        Minnekhada Marsh).
+
+    Both cases produce a registry item with an EMPTY ``section_ids``, so ``op=whole`` resolves against
+    an empty universe and the rule silently binds nothing — on waters people fish, several of them
+    closures. Minting gives the item exactly one section to answer with.
+
+    The node carries no edges (nothing flows through it, and for an overlay the stream keeps its own
+    run) and no sidecar geometry — the client draws these from the FWA polygon layer by wbk, and
+    ``add_mu_sets`` falls back to that same polygon. ``names`` is ``{wbk: ((name, gnis_id), ...)}`` as
+    returned by ``get_lake_names`` / ``get_wetland_names``; the display name is the longest gazetted
+    name, matching what ``add_waterbody_items`` used to put on the item so no name churns. ``kind``
+    types the node and, through it, the registry item: ``NodeKind.wetland`` for the wetlands layer,
+    ``lake`` otherwise.
+    """
+    from pipeline.models import StreamNode
+
+    minted = 0
+    for wbk, pairs in names.items():
+        wbk = str(wbk)
+        nid = f"lake:{wbk}"
+        if nid in graph.nodes:
+            continue
+        nms = [nm for nm, _ in pairs if nm]
+        if not nms:
+            continue                                   # unnamed: nothing could ever target it
+        graph.nodes[nid] = StreamNode(
+            node_id=nid, kind=kind, wbk=wbk,
+            display_name=max(nms, key=len),
+            name_tuples=tuple(NameTuple(nm, source, "", gid or "") for nm, gid in pairs if nm),
+        )
+        minted += 1
+    return minted

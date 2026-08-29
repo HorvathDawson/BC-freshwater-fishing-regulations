@@ -786,6 +786,3 @@ def dem_flow(features: list[dict], sampler: "ElevationSampler", tol_m: float = 2
     return out, bridge_feats, markers
 
 
-def orient_by_elevation(features: list[dict], sampler: "ElevationSampler") -> dict[int, list]:
-    """Back-compat thin wrapper: just the oriented coords from :func:`dem_flow`."""
-    return {i: v["coords"] for i, v in dem_flow(features, sampler)[0].items()}

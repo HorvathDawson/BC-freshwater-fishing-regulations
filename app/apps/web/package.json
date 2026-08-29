@@ -1,0 +1,10 @@
+{
+  "name": "@app/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@app/core": "workspace:*", "@app/data": "workspace:*",
+    "@app/ui": "workspace:*", "@app/map": "workspace:*"
+  }
+}

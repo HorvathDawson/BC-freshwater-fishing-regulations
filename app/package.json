@@ -1,0 +1,35 @@
+{
+  "name": "canifishthis",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run deps && pnpm run typecheck && pnpm run test",
+    "dev:web": "pnpm --filter @app/mobile run web",
+    "dev:android": "pnpm --filter @app/mobile run android",
+    "dev:ios": "pnpm --filter @app/mobile run ios",
+    "boundaries": "node tools/check-boundaries.mjs",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "style": "node tools/build-style.mjs && node tools/check-style.mjs && git diff --exit-code packages/map/style/",
+    "style:build": "node tools/build-style.mjs",
+    "deps": "node tools/check-deps.mjs",
+    "platform": "node tools/check-platform.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 57 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone.",
+    "overrides": {
+      "react": "19.2.3",
+      "react-dom": "19.2.3",
+      "react-native": "0.86.3"
+    }
+  }
+}

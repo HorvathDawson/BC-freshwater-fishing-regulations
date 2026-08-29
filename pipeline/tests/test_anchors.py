@@ -147,6 +147,42 @@ def test_lake_anchor_resolves_to_run_boundary():
     assert sorted(round(p.route_measure) for p in pts) == [100, 200]
 
 
+def _lake_chain():
+    """X threads lake W over [100,200]: enters at 100, leaves at 200."""
+    fids = [_fid("X1", "X", "100", [(0, 0), (100, 0)], 0, 100, gnis_name="X River"),
+            _fid("X2", "X", "100", [(100, 0), (200, 0)], 100, 200, wbk="W", gnis_name="X River"),
+            _fid("X3", "X", "100", [(200, 0), (300, 0)], 200, 300, gnis_name="X River")]
+    return build_blk_chains(fids, {"W": "lake"})
+
+
+def test_lake_anchor_offset_upstream_measures_from_where_the_river_LEAVES():
+    # "100 m upstream of the lake" starts at the lake's upstream exit (200), not its entry.
+    sd = SplitDef(id="lk", blk="X", anchor=SplitAnchor(
+        type=AnchorType.lake, wbk="W", offset_m=100.0, offset_dir="upstream"))
+    pts = resolve_split_defs([sd], _lake_chain())
+    assert [round(p.route_measure) for p in pts] == [300]
+
+
+def test_lake_anchor_offset_downstream_measures_from_where_the_river_ENTERS():
+    sd = SplitDef(id="lk", blk="X", anchor=SplitAnchor(
+        type=AnchorType.lake, wbk="W", offset_m=60.0, offset_dir="downstream"))
+    pts = resolve_split_defs([sd], _lake_chain())
+    assert [round(p.route_measure) for p in pts] == [40]
+
+
+def test_lake_anchor_offset_is_a_DISTINCT_cut_from_the_lake_boundary():
+    """The Mitchell bug: authored as a bare split the cut landed ON the lake boundary, so
+    `between(lake, 100m_upstream)` collapsed to an empty range. Offsetting from the lake keeps the
+    two cuts distinct by construction, so the range between them is real."""
+    lake = SplitDef(id="lake", blk="X", anchor=SplitAnchor(type=AnchorType.lake, wbk="W"))
+    off = SplitDef(id="up100", blk="X", anchor=SplitAnchor(
+        type=AnchorType.lake, wbk="W", offset_m=100.0, offset_dir="upstream"))
+    ms = {p.split_id: round(p.route_measure) for p in resolve_split_defs([off], _lake_chain())}
+    lake_ms = {round(p.route_measure) for p in resolve_split_defs([lake], _lake_chain())}
+    assert ms["up100"] not in lake_ms          # the whole point: it does NOT collapse onto the lake
+    assert ms["up100"] > max(lake_ms)          # and it sits above the lake, not below it
+
+
 def test_mu_boundary_anchor_splits_where_shared_edge_crosses():
     chains, _ = _mainstem_chain()
     # two adjacent MUs sharing the vertical edge x=180; X crosses it there.
@@ -243,3 +279,37 @@ def test_real_splits_json_resolves_on_bella_coola_extract():
     bb = [p for p in pts if p.blk == "360883785"]
     assert bb, "Sitkatapa confluence did not resolve on Burnt Bridge Creek (blk 360883785)"
     assert all("WSC check failed" not in p.concern for p in bb)
+
+
+# --------------------------------------------------------------------------- #
+# A point split sweeps a perpendicular line across the braid plain
+# --------------------------------------------------------------------------- #
+
+def test_perpendicular_cut_uses_the_averaged_bearing():
+    """One kinked vertex at the cut must not throw the line off square to the valley."""
+    from shapely.geometry import LineString
+    from pipeline.splits.anchors import perpendicular_cut
+
+    straight = LineString([(0, 0), (500, 0), (1000, 0)])
+    kinked = LineString([(0, 0), (490, 0), (500, 18), (510, 0), (1000, 0)])
+    a = perpendicular_cut(straight, 500.0, half_len=100.0)
+    b = perpendicular_cut(kinked, kinked.project(__import__("shapely").geometry.Point(500, 18)),
+                          half_len=100.0)
+    # both should run roughly north-south (perpendicular to an east-west channel)
+    for line in (a, b):
+        (x0, _), (x1, _) = line.coords[0], line.coords[-1]
+        assert abs(x1 - x0) < 40, f"cut line is not square to the channel: dx={x1 - x0:.0f}"
+
+
+def test_only_a_channel_crossing_the_line_is_cut():
+    """A side channel passing from one side to the other spans it; an oxbow bulging across and
+    returning does not."""
+    from shapely.geometry import LineString
+    from pipeline.splits.anchors import _spans, perpendicular_cut
+
+    main = LineString([(0, 0), (1000, 0)])
+    cut = perpendicular_cut(main, 500.0, half_len=400.0)
+    crosses = LineString([(400, -200), (500, -210), (600, 200)])   # ends on opposite sides
+    oxbow = LineString([(300, 150), (520, 260), (350, 50)])        # bulges across, both ends west
+    assert _spans(crosses, cut) is True
+    assert _spans(oxbow, cut) is False

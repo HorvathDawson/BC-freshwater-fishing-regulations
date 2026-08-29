@@ -27,7 +27,10 @@ def _item_to_dict(it: RegistryItem) -> dict:
         "section_ids": list(it.section_ids),
         "ref_ids": list(it.ref_ids),
         "boundaries": [
-            {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk}
+            # `aliases` is omitted when empty so the file stays diff-clean for the 99% of
+            # boundaries that have none.
+            {"id": b.id, "label": b.label, "kind": b.kind, "ref": b.ref, "wbk": b.wbk,
+             **({"aliases": list(b.aliases)} if b.aliases else {})}
             for b in it.boundaries
         ],
     }
@@ -44,7 +47,8 @@ def _item_from_dict(d: dict) -> RegistryItem:
         ref_ids=tuple(d.get("ref_ids", [])),
         boundaries=tuple(
             RegistryBoundary(id=b["id"], label=b.get("label", ""), kind=b.get("kind", ""),
-                             ref=b.get("ref", ""), wbk=b.get("wbk", ""))
+                             ref=b.get("ref", ""), wbk=b.get("wbk", ""),
+                             aliases=tuple(b.get("aliases", ())))
             for b in d.get("boundaries", [])
         ),
     )

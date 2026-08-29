@@ -7407,11 +7407,6 @@
     "note": "Matched via base name: SHUSWAP LAKE; REGION 3 - Thompson-Nicola; MU 3-26"
    },
    {
-    "name": "LOON LAKE",
-    "source": "bathymetry",
-    "note": ""
-   },
-   {
     "name": "SHUSWAP LAKE",
     "source": "bathymetry",
     "note": ""
@@ -72161,6 +72156,130 @@
     "name": "BLACKWATER RIVER",
     "source": "regulation",
     "note": "variant_of WEST ROAD (\"Blackwater\") RIVER; overrides.json skip; REGION 5 - Cariboo; MU 5-13"
+   },
+   {
+    "name": "WEST ROAD RIVER",
+    "source": "regulation",
+    "note": "GNIS name for the reg's 'Blackwater River' (gnis:26104, Cariboo, MU 5-13)."
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356101591"
+   ]
+  },
+  "names": [
+   {
+    "name": "Third Beach Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Tributary in the Deer Lake area (flows to Deer Lake). Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356116640"
+   ]
+  },
+  "names": [
+   {
+    "name": "Second Beach Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Tributary in the Deer Lake area (flows to Deer Lake). Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356311092"
+   ]
+  },
+  "names": [
+   {
+    "name": "Ramsay Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Burnaby Lake area. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356206901"
+   ]
+  },
+  "names": [
+   {
+    "name": "Eagle Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Burnaby Lake area. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356216839"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cranberry Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356093488"
+   ]
+  },
+  "names": [
+   {
+    "name": "Beecher Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356189846"
+   ]
+  },
+  "names": [
+   {
+    "name": "Chub Creek",
+    "source": "alias",
+    "note": "City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf",
+    "display": true
+   }
+  ]
+ },
+ {
+  "target": {
+   "gnis_ids": [
+    "37503"
+   ]
+  },
+  "names": [
+   {
+    "name": "LOST CREEK",
+    "source": "alias",
+    "note": "variant_of AUSTIN CREEK (gnis 37503); City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. City of Burnaby map labels this reach 'Lost Creek'. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf"
    }
   ]
  }

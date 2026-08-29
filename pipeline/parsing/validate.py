@@ -45,6 +45,9 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
         data["tributaries"] = tribs
     if item.get("entry_id"):                              # authoritative id/status — never trusted from the model
         data["entry_id"] = item["entry_id"]
+    if item.get("item_id"):                               # registry ids this entry covers: the matched
+        data["matched"] = [item["item_id"], *item.get("also_item_ids", [])]   # item + a combined
+                                                          # override's other items (Chilliwack+Vedder)
     if item.get("no_registry"):
         data["registry_status"] = "no_registry"
         data["registry_note"] = item.get("registry_note", "")
@@ -56,7 +59,8 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
     except Exception as e:                                 # noqa: BLE001
         return None, [f"schema: {e}"], []
     allowed = set(item.get("bindable_ids", []))
-    split_errs = validate_entry_splits(entry, allowed)
+    by_item = {k: set(v) for k, v in (item.get("bindable_by_item") or {}).items()}
+    split_errs = validate_entry_splits(entry, allowed, by_item)
     if split_errs:
         return None, split_errs, []
     return entry, [], unused_splits(entry, allowed)

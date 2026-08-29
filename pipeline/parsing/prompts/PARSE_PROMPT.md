@@ -22,13 +22,49 @@ Each rule has `extents`: a list of `{op, splits}` bindings, UNIONed (use several
 `op` values and their required `splits` count:
 
 - `whole` — the entire waterbody. `splits: []`. A whole-reach rule MUST be explicit: `[{ "op": "whole" }]`.
-- `upstream_of` — above one boundary. `splits: [id]`.
-- `downstream_of` — below one boundary. `splits: [id]`.
+- `upstream_of` — above one boundary, FOLLOWING THE WATER. `splits: [id]`.
+- `downstream_of` — below one boundary, FOLLOWING THE WATER. `splits: [id]`.
 - `between` — between two boundaries. `splits: [a, b]`.
 - `within` — inside an area (park/closure). `area_id: "<area_id>"`, no splits.
 
 **`splits` ids MUST come from the "Bindable boundaries" list. `area_id` MUST come from "Reachable areas".**
 Never write an id that is not in those lists.
+
+### Combined entries — scoping a rule to ONE of the waters (`item_id`)
+
+Some entries are marked **"Combined entry — these regs cover N registry items"**. One synopsis row
+covers several registry items ("CHILLIWACK / VEDDER RIVERS" = the Chilliwack, the Vedder River and the
+Vedder Canal), and the boundary menu is their union.
+
+- Default: `op:whole` with no `item_id` means **all** the listed items.
+- To scope a rule to ONE of them, add **`item_id: "<one of the listed ids>"`** to the extent.
+
+This is how you bind a reach whose endpoint is where one water BECOMES another. "Downstream of Vedder
+Crossing Bridge" is the whole Vedder River plus the whole Vedder Canal — the bridge is the point where
+the Chilliwack ends and the Vedder begins, so there is no cut-point for it and `downstream_of` cannot
+be used. Write it as two extents instead:
+
+```
+"extents": [
+  { "op": "whole", "item_id": "gnis:3062" },
+  { "op": "whole", "item_id": "wbk:329707189" }
+]
+```
+
+Rules for `item_id`:
+
+- It MUST be one of the ids named in the "Combined entry" line. Do not use it on a normal entry.
+- Any `splits` in that extent MUST be cut-points **on that water**. The boundary menu lists each
+  cut-point's owning item; binding one from a different item is rejected.
+- A reach that SPANS the junction between two of the waters must NOT be scoped. "Between Goat Creek
+  and the Talchako confluence" runs up one river and down the other, so it stays unscoped and simply
+  names the two cut-points. Only scope when the rule really applies to one water alone.
+- `upstream_of`/`downstream_of` follow the WATER, so on a combined entry they carry on into the next
+  covered water by default: "downstream of the Brilliant Dam to the Columbia confluence" needs no
+  `item_id` — it simply runs to the river's mouth.
+- Use `item_id` when the reach STOPS at a junction. "Downstream of Tamihi Rapids Bridge to Vedder
+  Crossing Bridge" is `downstream_of tamihi` + `item_id` of the Chilliwack, because the Chilliwack
+  ends at Vedder Crossing — that is the whole reach, with no cut-point needed for the far end.
 
 ### When you cannot bind a locator — DO NOT GUESS
 

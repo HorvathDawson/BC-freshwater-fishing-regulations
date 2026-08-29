@@ -25,6 +25,16 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
         >
           <div className="name">
             {r.name}
+            {r.also_item_ids?.length > 0 && (
+              <span className="badge" title={`combined entry — also covers ${r.also_item_ids.join(", ")}`}>
+                +{r.also_item_ids.length} water{r.also_item_ids.length === 1 ? "" : "s"}
+              </span>
+            )}
+            {r.reference_only && (
+              <span className="badge" title="pointer row — the synopsis names this water but sends you to another entry">
+                ↪ reference
+              </span>
+            )}
             {r.locked && <span className="badge lock">🔒 locked</span>}
             {r.revisit && <span className="badge revisit" title="conditionally accepted — revisit later">↻ revisit</span>}
           </div>

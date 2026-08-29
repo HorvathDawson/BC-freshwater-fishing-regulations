@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "canifishthis",
+    "slug": "canifishthis",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "canifishthis",
+    "platforms": ["ios", "android", "web"],
+    "ios": {
+      "bundleIdentifier": "ca.canifishthis.app",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "ca.canifishthis.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}

@@ -44,3 +44,28 @@ def test_bc_outline_uses_cache(tmp_path):
 
 def test_bc_outline_no_cache_no_wmu_returns_none(tmp_path):
     assert border.bc_outline(_Fwa(tmp_path / "bc.gpkg")) is None
+
+
+def test_sliver_holes_are_filled_but_a_real_void_survives():
+    """The 50 m per-WMU simplify makes two units that share a river boundary trace different lines, so
+    the union comes out with hairline interior rings running ALONG the rivers — 4,594 of them, every
+    one read by border.py as a provincial boundary (50 fake 'BC boundary' splits on the Thompson, 235
+    on the Fraser, plus reaches wrongly flagged out_of_bc)."""
+    from shapely.geometry import Polygon
+    from pipeline.splits.bc_boundary import fill_sliver_holes
+
+    outer = [(0, 0), (10000, 0), (10000, 10000), (0, 10000)]
+    sliver = [(100, 100), (9000, 101), (9000, 100.5)]          # hairline: ~ a few m^2
+    real_void = [(2000, 2000), (6000, 2000), (6000, 6000), (2000, 6000)]   # 16 km^2
+    filled = fill_sliver_holes(Polygon(outer, [sliver, real_void]))
+
+    assert len(filled.interiors) == 1
+    assert Polygon(filled.interiors[0]).area == Polygon(real_void).area
+
+
+def test_fill_sliver_holes_leaves_a_hole_free_polygon_alone():
+    from shapely.geometry import Polygon
+    from pipeline.splits.bc_boundary import fill_sliver_holes
+
+    p = Polygon([(0, 0), (1000, 0), (1000, 1000), (0, 1000)])
+    assert fill_sliver_holes(p).equals(p)

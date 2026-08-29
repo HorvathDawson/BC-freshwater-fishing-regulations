@@ -26,6 +26,9 @@ export interface Extent {
   op: Op;
   splits: string[];
   item_id?: string | null;
+  /** several registry ids, when a reach's two cut-points sit on different waters. Mutually
+   *  exclusive with item_id — scoping such a reach to one water puts the other end out of scope. */
+  item_ids?: string[];
   area_id?: string | null;
   area_kind?: string | null;
   feature_types?: string[];
@@ -48,8 +51,23 @@ export interface Rule {
   exception: string;
   display_location: string;
   unresolved_locators: string[];
+  /** normalized ids of the DEFAULT restrictions this rule lifts (spring_closure, bait_ban, ...).
+   *  A regional closure applies unless a water is exempted, so this has to be machine-readable —
+   *  "is this river open?" cannot be answered from the closure rules alone. */
+  exempts_from: string[];
   species: string[];
 }
+
+/** The controlled vocabulary for Rule.exempts_from — mirrors entry_models.Rule.exempts_from. */
+export const EXEMPTS_FROM_VOCAB = [
+  "spring_closure",
+  "summer_closure",
+  "trout_char_release",
+  "bull_trout_release",
+  "bait_ban",
+  "single_barbless_hook",
+  "kokanee_stream_quota",
+] as const;
 
 export interface Identity {
   name: string;
@@ -112,10 +130,13 @@ export interface QueueRow {
   status: Status;
   locked: boolean;
   revisit?: boolean;
+  /** a "See X" pointer row — carries no regulations of its own */
+  reference_only?: boolean;
   registry_status: string;
   n_rules: number;
   matched_item_id: string | null;
   matched_item_name: string | null;
+  also_item_ids: string[]; // a combined override's OTHER items (Chilliwack/Vedder, Fraser + channels)
   unused_curated_splits: number;
 }
 
@@ -126,6 +147,7 @@ export interface Boundary {
   ref: string;
   wbk: string;
   curated: boolean;
+  item_id?: string; // which registry item this cut-point belongs to (combined entries)
   meta?: Record<string, unknown> | null; // AS-BUILT split metadata (anchor_type, route_measure, blk, …)
   in_graph?: boolean; // baked into the current graph build
   in_splits?: boolean; // present in the live splits.json source
@@ -160,6 +182,25 @@ export interface MatchInfo {
   status: string;
   reason: string;
   candidates: unknown[];
+  also: string[]; // other registry items a combined override pinned for this row
+}
+
+export interface AlsoItem {
+  id: string;
+  name: string;
+  kind: string;
+}
+
+/** another synopsis row covering the same water — review it alongside this one */
+export interface RelatedEntry {
+  entry_id: string;
+  region: string;
+  name: string;
+  locked: boolean;
+  n_rules: number;
+  /** its regs are just a cross-reference ("See Chilliwack River") */
+  pointer: boolean;
+  shared_items: { id: string; name: string }[];
 }
 
 export interface UnusedSplit {
@@ -172,9 +213,44 @@ export interface EntryDetail {
   entry: Entry;
   region: string;
   match: MatchInfo;
-  item: Item | null;
+  item: Item | null; // `boundaries` is the union over the item AND `also_items`
+  also_items: AlsoItem[]; // a combined override's other items — the entry covers these too
+  related_entries: RelatedEntry[]; // other synopsis rows over the same water
   unused_curated_splits: UnusedSplit[];
   source_image: string | null; // synopsis row-crop image filename, if found
+}
+
+/** One split whose cut lands at more than one measure on the same blue line, so the reach shown is
+ *  one of two honest readings (an area boundary the stream crosses twice). */
+export interface AmbiguousCut {
+  split_id: string;
+  used: number;
+  also_at: number[];
+}
+
+/** What one extent actually selects on the map. `unclassified` = pieces that genuinely straddle the
+ *  reach's end, surfaced rather than silently included or dropped. */
+export interface ResolvedExtent {
+  sections: string[];
+  unclassified: string[];
+  ambiguous_cut: AmbiguousCut[];
+  /** the named waters this reach actually lands on, biggest share first */
+  waters: string[];
+}
+
+/** A distinct reach within one entry, shared by every rule that resolves to the same sections.
+ *  `key` is a short stable label (A, B, C…) so the rules list and the map agree on what to call it. */
+export interface ReachIdentity {
+  key: string;
+  color: string;
+  waters: string[];
+  n: number;
+}
+
+/** GET /api/entries/{id}/reaches — per rule, one entry per extent (null = not determinable). */
+export interface EntryReaches {
+  covered: string[];
+  rules: Record<string, (ResolvedExtent | null)[]>;
 }
 
 export interface ItemSearchResult {

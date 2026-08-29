@@ -1,0 +1,7 @@
+# Continuous Native Generation: android/ and ios/ are OUTPUT of `expo prebuild`, derived
+# from app.json. Committing them re-creates v1's problem where a config change had to be
+# hand-applied twice. Regenerate them; do not edit them.
+/android
+/ios
+/.expo
+/dist

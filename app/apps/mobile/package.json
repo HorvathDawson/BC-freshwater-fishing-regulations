@@ -1,0 +1,28 @@
+{
+  "name": "@app/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "web": "expo start --web",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild --clean",
+    "export:web": "expo export --platform web"
+  },
+  "dependencies": {
+    "@app/core": "workspace:*", "@app/data": "workspace:*",
+    "@app/ui": "workspace:*", "@app/map": "workspace:*",
+    "@app/ui-native": "workspace:*",
+    "@expo/metro-runtime": "~57.0.14",
+    "expo": "~57.0.18",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-web": "~0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "babel-preset-expo": "~57.0.9"
+  }
+}

@@ -4,6 +4,7 @@
 import type {
   Boundary,
   EntryDetail,
+  EntryReaches,
   Entry,
   GeoJSON,
   ItemSearchResult,
@@ -82,8 +83,15 @@ export const api = {
 
   species: () => getJSON<SpeciesOption[]>("/api/species"),
 
+  /** per-rule, per-extent resolved reach — what to highlight on the map */
+  reaches: (entryId: string) =>
+    getJSON<EntryReaches>(`/api/entries/${encodeURIComponent(entryId)}/reaches`),
+
   geojson: (itemId: string) =>
     getJSON<GeoJSON>(`/api/items/${encodeURIComponent(itemId)}/geojson`),
+  /** one level of tributaries — what `includes_tributaries` actually covers */
+  tributaryGeojson: (itemId: string) =>
+    getJSON<GeoJSON>(`/api/items/${encodeURIComponent(itemId)}/tributaries/geojson`),
 
   save: (entryId: string, region: string, entry: Entry) =>
     writeEntry(`/api/entries/${encodeURIComponent(entryId)}`, { region, entry }),

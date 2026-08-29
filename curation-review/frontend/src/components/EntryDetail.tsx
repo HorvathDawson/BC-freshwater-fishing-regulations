@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Boundary, Entry, EntryDetail as EntryDetailT, ItemSearchResult, Rule, SpeciesOption } from "../types";
+import type { Boundary, Entry, EntryDetail as EntryDetailT, EntryReaches, ItemSearchResult, Rule, SpeciesOption } from "../types";
+import { EXEMPTS_FROM_VOCAB } from "../types";
 import { api, type ValidationError } from "../api";
-import { humanExtent, rawExtent } from "../format";
+import { humanExtent, rawExtent, reachIdentities } from "../format";
 import { ExtentEditor } from "./ExtentEditor";
 import { SpeciesPicker } from "./SpeciesPicker";
 import { AttachItem } from "./AttachItem";
-import { MapPanel } from "./MapPanel";
+import { ITEM_COLORS, MapPanel } from "./MapPanel";
 import { SplitEditor } from "./SplitEditor";
 import { ExcludesEditor } from "./ExcludesEditor";
 
@@ -14,6 +15,8 @@ interface Props {
   curator: string;
   speciesOptions: SpeciesOption[];
   onSaved: () => void;
+  /** jump to another entry (a related row over the same water) */
+  onNavigate?: (entryId: string) => void;
   /** after a successful confirm+lock — parent advances to the next unlocked entry in the region */
   onConfirmed?: () => void;
   /** bumped after a graph rebuild — forces the map to refetch geometry for the same item */
@@ -37,8 +40,10 @@ function boundaryState(b: Boundary): { cls: string; text: string; title: string 
   return null;
 }
 
-export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfirmed, reloadKey = 0 }: Props) {
+export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfirmed, onNavigate,
+                              reloadKey = 0 }: Props) {
   const { item, unused_curated_splits, match, source_image } = detail;
+  const related = detail.related_entries ?? [];
   const boundaries = item?.boundaries ?? [];
   const speciesName = useMemo(
     () => Object.fromEntries(speciesOptions.map((o) => [o.code, o.name])),
@@ -46,12 +51,47 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
   );
 
   // Editable working copy of the entry, reset whenever a new entry loads.
+  // A combined override puts several registry items behind ONE synopsis row ("CHILLIWACK / VEDDER
+  // RIVERS"; the Fraser plus its named channels) — the boundary menu below is their union.
+  const alsoItems = detail.also_items ?? [];
+  // Every water this entry covers, primary first — a combined entry must be reviewable as a whole
+  // AND water-by-water, so each is clickable to focus the map on just that body.
+  const coveredItems = item ? [{ id: item.id, name: item.name, kind: item.kind }, ...alsoItems] : [];
+  const [focusItemId, setFocusItemId] = useState<string | null>(null);
   const [entry, setEntry] = useState<Entry>(() => structuredClone(detail.entry));
   const [errors, setErrors] = useState<string[]>([]);
   const [toast, setToast] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [selBoundary, setSelBoundary] = useState<string | null>(null); // clicked split -> map highlight + info
   const [pendingPoint, setPendingPoint] = useState<{ lon: number; lat: number } | null>(null); // live coord "show on map"
+  const [reaches, setReaches] = useState<EntryReaches | null>(null); // resolved reach per rule/extent
+
+  // Which distinct reach each rule lands on. Several rules almost always share one, and the authored
+  // extent text ("downstream of Vedder Crossing Bridge") does not reveal which WATER that is.
+  const reachOf = useMemo(
+    () => reachIdentities(reaches, entry.rules.map((r) => r.rule_id)),
+    [reaches, entry.rules],
+  );
+
+  // registry id -> name, over every water this entry covers, so an extent can say which it spans
+  const itemNames = useMemo(() => {
+    const m: Record<string, string> = {};
+    if (detail.item) m[detail.item.id] = detail.item.name;
+    for (const a of detail.also_items ?? []) m[a.id] = a.name;
+    return m;
+  }, [detail]);
+
+  // The resolved reach is derived from the SAVED entry + the built graph, so it is refetched when the
+  // entry changes or a rebuild lands — not on every keystroke. Editing an extent therefore shows its
+  // new reach after Save, which is also when the binding has actually been validated.
+  useEffect(() => {
+    let live = true;
+    api.reaches(detail.entry.entry_id)
+      .then((r) => { if (live) setReaches(r); })
+      .catch(() => { if (live) setReaches(null); });
+    return () => { live = false; };
+  }, [detail.entry.entry_id, reloadKey]);
+
 
   useEffect(() => {
     setEntry(structuredClone(detail.entry));
@@ -97,6 +137,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         includes_tributaries: null,
         tributaries_only: false,
         tributary_excludes: [],
+        exempts_from: [],
         sections_override: null,
         needs_review: true,
         review_reason: "manually added — set rule_text + details, then bind",
@@ -177,7 +218,29 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
           </span>
           {item ? (
             <span className="dim">
-              item: {item.name} ({item.id})
+              item:{" "}
+              {coveredItems.map((ci, i) => (
+                <span key={ci.id}>
+                  {i > 0 && " + "}
+                  <a
+                    href="#"
+                    title={`${ci.id} — click to focus the map on this water`}
+                    style={{ borderBottom: `2px solid ${ITEM_COLORS[i % ITEM_COLORS.length]}` }}
+                    onClick={(ev) => {
+                      ev.preventDefault();
+                      setFocusItemId((cur) => (cur === ci.id ? null : ci.id));
+                    }}
+                  >
+                    {ci.name}
+                  </a>
+                </span>
+              ))}
+              {focusItemId && (
+                <button className="btn" style={{ padding: "0 6px", marginLeft: 6 }}
+                        onClick={() => setFocusItemId(null)}>
+                  show all
+                </button>
+              )}
             </span>
           ) : (
             <span className="dim">
@@ -190,6 +253,25 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
             </span>
           )}
         </div>
+        {related.length > 0 && (
+          <div className="dim" style={{ marginTop: 4 }}>
+            Same water, reviewed separately:{" "}
+            {related.map((r, i) => (
+              <span key={r.entry_id}>
+                {i > 0 && ", "}
+                <a
+                  href="#"
+                  onClick={(ev) => { ev.preventDefault(); onNavigate?.(r.entry_id); }}
+                  title={`covers ${r.shared_items.map((x) => x.name).join(", ")} — ${r.n_rules} rule(s)`}
+                >
+                  {r.name}
+                </a>
+                {r.pointer && <span className="badge"> ↪ pointer</span>}
+                {r.locked && <span className="badge lock"> 🔒</span>}
+              </span>
+            ))}
+          </div>
+        )}
         {entry.registry_note && (
           <div className="dim" style={{ marginTop: 4 }}>
             {entry.registry_note}
@@ -268,6 +350,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         <ExtentEditor
           extents={entry.scope}
           boundaries={boundaries}
+          itemNames={itemNames}
           onChange={(next) => setEntry((s) => ({ ...s, scope: next }))}
         />
       </div>
@@ -295,6 +378,26 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                 <div className="rule-head">
                   <span className="badge">{rule.restriction_type}</span>
                   <span className="rule-id">{rule.rule_id}</span>
+                  {(() => {
+                    const rc = reachOf[rule.rule_id];
+                    if (!rc) {
+                      return reaches ? (
+                        <span className="badge warn" title="this rule's extent does not resolve to any geometry — an area scope, an unbound locator, or a cut that is not on this water">
+                          no reach
+                        </span>
+                      ) : null;
+                    }
+                    return (
+                      <span
+                        className="reach-tag"
+                        style={{ borderColor: rc.color, color: rc.color }}
+                        title={`reach ${rc.key}: ${rc.n} section${rc.n === 1 ? "" : "s"} on ${rc.waters.join(", ")}. Rules sharing this tag cover the same water; pick reach ${rc.key} on the map to see it.`}
+                      >
+                        <i style={{ background: rc.color }} />
+                        {rc.key} · {rc.waters.join(", ") || "—"} · {rc.n}
+                      </span>
+                    );
+                  })()}
                   <button
                     className="btn"
                     style={{ marginLeft: "auto", padding: "1px 8px" }}
@@ -323,6 +426,34 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                     {rule.dates.join("; ")}
                   </div>
                 )}
+
+                {/* Which DEFAULT restriction this rule lifts. A regional closure applies unless a
+                    water is exempted from it, so "is this river open?" is unanswerable from the
+                    closure rules alone — the exemption has to be a code, not a sentence. */}
+                <div className="field">
+                  <span className="k">exempts from</span>
+                  <span className="exempts">
+                    {EXEMPTS_FROM_VOCAB.map((v) => {
+                      const on = (rule.exempts_from ?? []).includes(v);
+                      return (
+                        <button
+                          key={v}
+                          className={`chip${on ? " on" : ""}`}
+                          title={on ? `remove ${v}` : `this rule lifts the default ${v}`}
+                          onClick={() =>
+                            patchRule(idx, {
+                              exempts_from: on
+                                ? (rule.exempts_from ?? []).filter((x) => x !== v)
+                                : [...(rule.exempts_from ?? []), v],
+                            })
+                          }
+                        >
+                          {v.replace(/_/g, " ")}
+                        </button>
+                      );
+                    })}
+                  </span>
+                </div>
 
                 {/* Binding: human + raw */}
                 <div className="field">
@@ -401,6 +532,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                       <ExtentEditor
                         extents={rule.extents}
                         boundaries={boundaries}
+                        itemNames={itemNames}
                         onChange={(next) => patchRule(idx, { extents: next })}
                       />
                     </div>
@@ -495,7 +627,10 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
 
       {/* Bindable boundaries */}
       <div className="section">
-        <h3>Bindable boundaries {item ? `(${item.name})` : ""}</h3>
+        <h3>
+          Bindable boundaries{" "}
+          {item ? `(${[item.name, ...alsoItems.map((a) => a.name)].join(" + ")})` : ""}
+        </h3>
         {boundaries.length === 0 ? (
           <div className="dim">No boundaries (no matched item / auto-only).</div>
         ) : (
@@ -513,6 +648,16 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                   {(b.live?.label ?? b.label) || b.id}
                 </span>
                 <span className="anchor">{b.kind}</span>
+                {alsoItems.length > 0 && b.item_id && (
+                  <span
+                    className="anchor"
+                    title={`this cut-point is on ${b.item_id} — an item_id-scoped extent may only bind cut-points on its own water`}
+                    style={{ color: ITEM_COLORS[
+                      Math.max(0, coveredItems.findIndex((c) => c.id === b.item_id)) % ITEM_COLORS.length] }}
+                  >
+                    {coveredItems.find((c) => c.id === b.item_id)?.name ?? b.item_id}
+                  </span>
+                )}
                 {(() => {
                   const st = boundaryState(b);
                   return st ? <span className={`chip-tag ${st.cls}`} title={st.title}>{st.text}</span> : null;
@@ -656,11 +801,20 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         <div className="detail-map">
           <MapPanel
             itemId={mapItemId}
+            alsoItemIds={alsoItems.map((a) => a.id)}
+            focusItemId={focusItemId}
             referencedSplitIds={entry.rules.flatMap((r) => r.extents.flatMap((ex) => ex.splits))}
             unusedSplitIds={unused_curated_splits.map((u) => u.id)}
             selectedSplitId={selBoundary}
             onSelectSplit={setSelBoundary}
             pendingPoint={pendingPoint}
+            reaches={reaches}
+            rules={entry.rules.map((r) => ({
+              rule_id: r.rule_id,
+              restriction_type: r.restriction_type,
+              details: r.details,
+            }))}
+            reachOf={reachOf}
             reloadKey={reloadKey}
           />
         </div>
