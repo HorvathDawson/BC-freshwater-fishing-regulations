@@ -296,6 +296,61 @@ in), so confirm intent before "fixing" it.
 
 ---
 
+## 4b. Split binding — three left open (2026-08-29)
+
+`python -m pipeline.tools.audit_split_binding` checks the invariant that makes a split usable:
+**some registry item must carry it as a boundary**, because that is the menu an extent is
+authored against. A split can resolve to a perfectly good cut and still be unreachable, with
+nothing in the build saying so — the resolver reports success, the sectionizer drops it, and
+the rule that needed it is left with an unresolved locator instead.
+
+372 of 386 are `ok`. Already fixed: the Atnarko campsite pin (mis-scoped to an unnamed ditch),
+8 redundant splits deleted, and 3 Williston Lake tributaries re-anchored. **Three remain, and
+each needs a decision rather than a fix.**
+
+### Whiteswan outlet — needs a NAME, not a new split
+
+`whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls` is **correct**: Whiteswan Lake
+(`lake:329247790`) has exactly one outlet edge, to `356560775:599`, and the cut sits on it.
+
+It is unbindable because blk `356560775` has no `display_name`, no `gnis_id` and no name tuples
+— unnamed in FWA — and **the registry only keeps NAMED items**. Grouping would give it
+`wsc:300-625474-814939-312002`; it is dropped for having no name.
+
+One `name_variants.json` entry targeting that blk creates the item and the split binds
+immediately. It would also give `noreg_whiteswan_lake_s_inlet_outlet_streams_783` something to
+match. **Open question:** that row is "INLET & OUTLET STREAMS" and the lake has **15 inlet
+edges** plus the one outlet, so naming the outlet alone covers half the row.
+
+### Dutch Creek — mis-modelled as a river confluence
+
+`dutch_creek__dutch_creek_into_columbia_river` resolves to blk 356570372 @ 1,937,914 — inside a
+**Columbia Lake** waterbody run (1,936,482 → 1,938,757). Dutch Creek enters Columbia *Lake*,
+not the Columbia River, so a `confluence` anchor has no stream piece to cut. It wants a lake
+boundary on Columbia Lake instead. Same shape as the Williston fix, different lake.
+
+### Burton Creek Hwy 6 bridge — needs a real coordinate
+
+`burton_creek__hwy_6_bridge` resolves to measure 0, inside the unnamed pond at the creek's mouth
+(`burton_trout_creek__lake_329263034`). The bridge is a genuine, distinct place — it is not
+redundant and it is not mis-scoped, it simply has no pin. Matching unresolved locator on
+`gnis:37939`: `'Hwy 6 bridge'`.
+
+### What "not needed" looked like, for next time
+
+Two patterns accounted for the 8 deletions, and both are worth recognising early:
+
+* **confluence at the water's OWN mouth** — measure 0 is already the first piece's start, so
+  the cut is a no-op (Babine→Skeena, Kemess→Attichika, Kootenay→Columbia, Thorne→Attichika,
+  Dean tidal);
+* **a curated split duplicating a boundary the build already makes** — an auto lake boundary at
+  a lake outlet, or the auto BC border cut. `morice_river__signs_at_morice_lake_outlet` was
+  `morice_river__morice_lake`; `okanagan_river__okanagan_lake_dam` was
+  `okanagan_river__okanagan_lake` (the dam IS the outlet); `kootenay_river__montana_border` sat
+  152 m from `border:356570348:1`.
+
+---
+
 ## 5. Unreviewed buckets — surfaced but never decided
 
 Carried forward from `RESOLVER-HANDOFF.md` §6. These are **unexamined, not cleared.**

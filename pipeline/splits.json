@@ -5075,25 +5075,6 @@
       -117.62009,
       49.32481
      ]
-    },
-    {
-     "id": "kootenay_river__kootenay_river_into_columbia_river",
-     "label": "Kootenay River → Columbia River",
-     "kind": "confluence",
-     "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "300-625474",
-      "_name": "Kootenay River"
-     },
-     "note": "",
-     "_note": "[auto-proposal M] Brilliant Dam (run-of-river, lower Kootenay River) on Kootenay River (Brilliant Dam -> Columbia confluence). Candidate coord [-117.59864, 49.33662]. OSM: https://www.openstreetmap.org/?mlat=49.33662&mlon=-117.59864#map=15/49.33662/-117.59864. Verify: Confirm Brilliant Dam location on the lower Kootenay near Castlegar; candidate is the nearest Kootenay blue-line point.. Brilliant Dam is a run-of-river dam on the lower Kootenay River near its Columbia confluence (Castlegar). No named reservoir polygon; candidate = Kootenay River blue-line point nearest the known dam site. Reach runs to the Columbia confluence. [structural-split 2026-08-05 from \"from the Brilliant Dam to the confluence with the Columbia R\"] boundary=confluence with the Columbia River [human-review 2026-08-05 FWA-confluence] mouth of Columbia River (0 m validated); target blk/wsc set.",
-     "_coord": [
-      -117.6533,
-      49.316
-     ],
-     "applies_to": {
-      "wsc": "300-625474"
-     }
     }
    ]
   },
@@ -5121,25 +5102,6 @@
      "_coord": [
       -115.18181,
       49.00001
-     ]
-    },
-    {
-     "id": "kootenay_river__montana_border",
-     "label": "Montana border",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -115.18167,
-       49.00095
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [49th parallel x Kootenay; COINCIDES with Koocanusa Reservoir u/s end (user)]",
-     "_coord": [
-      -115.18167,
-      49.00095
      ]
     },
     {
@@ -6259,25 +6221,6 @@
      "_offset_m": 100
     },
     {
-     "id": "dean_river__tidal_boundary",
-     "label": "tidal boundary",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -126.96861,
-       52.80523
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "Tidal boundary = Dean River outlet at Dean Channel (blk 360883982). Likely a no-op split (coincides with the stream outlet). OSM: https://www.openstreetmap.org/?mlat=52.80523&mlon=-126.96861#map=15/52.80523/-126.96861",
-     "_coord": [
-      -126.96861,
-      52.80523
-     ]
-    },
-    {
      "id": "dean_river__signs_3_5_km_above_the_canyon_3500_m_upstream",
      "label": "signs ~3.5 km above the canyon (3500 m upstream)",
      "kind": "point",
@@ -6752,25 +6695,6 @@
       55.42603
      ],
      "_offset_m": 80
-    },
-    {
-     "id": "babine_river__babine_river_into_skeena_river",
-     "label": "Babine River → Skeena River",
-     "kind": "confluence",
-     "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "400-536025",
-      "_name": "Babine River"
-     },
-     "note": "",
-     "_note": "[auto-proposal M] Juvenile fish counting weir at Nilkitkwa Lake outlet on Babine River (Nilkitkwa outlet -> Nilkitkwa R confluence). Candidate coord [-126.68407, 55.41439]. OSM: https://www.openstreetmap.org/?mlat=55.41439&mlon=-126.68407#map=15/55.41439/-126.68407. Verify: Same weir as babine-river-8f73d2; confirm weir at lake outlet.. Duplicate structure of babine-river-8f73d2 (juvenile weir at Nilkitkwa Lake outlet); reach runs down to the Babine's confluence with the Nilkitkwa River. Coord = FWA Nilkitkwa Lake outlet. [structural-split 2026-08-05 from \"from the juvenile fish counting weir located at the outlet o\"] boundary=Babine River's confluence [curated 2026-08-08 manual-review batch=babine-6-8] [= Skeena confluence, same as fdcd21-b]",
-     "_coord": [
-      -127.69458,
-      55.69813
-     ],
-     "applies_to": {
-      "wsc": "400-536025"
-     }
     },
     {
      "id": "babine_river__adult_counting_fence",
@@ -7254,25 +7178,6 @@
    },
    "_entry_id": "9db3580a",
    "splits": [
-    {
-     "id": "morice_river__signs_at_morice_lake_outlet",
-     "label": "signs at Morice Lake outlet",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -127.43141,
-       54.11241
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "UTM zone 9 602539.02E/5997165.96N (near Morice Lake outlet).",
-     "_coord": [
-      -127.43141,
-      54.11241
-     ]
-    },
     {
      "id": "morice_river__fishing_boundary_signs_near_outlet_of_morice_lake_2000_m_downstream",
      "label": "fishing boundary signs near outlet of Morice Lake (2000 m downstream)",
@@ -7996,19 +7901,15 @@
     {
      "id": "chichouyenily_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream",
      "label": "fishing boundary signs near its mouth (400 m upstream)",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -123.21401,
-       55.33908
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "328961697",
       "offset_m": 400,
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.34138,-123.20916; closure d/s to mouth]",
+     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.34138,-123.20916; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance.",
      "_coord": [
       -123.21401,
       55.33908
@@ -8083,19 +7984,15 @@
     {
      "id": "gagnon_creek__fishing_boundary_signs_near_its_mouth_400_m_upstream",
      "label": "fishing boundary signs near its mouth (400 m upstream)",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -123.16404,
-       55.26994
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "328961697",
       "offset_m": 400,
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth]",
+     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.27125,-123.15816; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance.",
      "_coord": [
       -123.16404,
       55.26994
@@ -8139,25 +8036,6 @@
    },
    "_entry_id": "d128b1fb",
    "splits": [
-    {
-     "id": "kemess_creek__kemess_creek_into_attichika_creek",
-     "label": "Kemess Creek → Attichika Creek",
-     "kind": "confluence",
-     "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "200-948755-999851-889551-178842",
-      "_name": "Kemess Creek"
-     },
-     "note": "",
-     "_note": "[structural-split 2026-08-05 from \"from Attichka Creek to a point 500 m upstream\"] boundary=Attichka Creek [human-review 2026-08-05 FWA-confluence] mouth of Attichika Creek (0 m validated); target blk/wsc set.",
-     "_coord": [
-      -126.78252,
-      56.97681
-     ],
-     "applies_to": {
-      "wsc": "200-948755-999851-889551-178842"
-     }
-    },
     {
      "id": "kemess_creek__point_500_m_upstream_of_attichka_creek",
      "label": "point 500 m upstream of Attichka Creek",
@@ -8400,28 +8278,6 @@
    "_entry_id": "15e07584",
    "splits": [
     {
-     "id": "thorn_creek__attichika_creek",
-     "label": "Attichika Creek",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -126.68256,
-       56.92636
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[structural-split 2026-08-05 from \"from Attichika Creek to a point 500 m upstream\"] boundary=Attichika Creek [curated 2026-08-10 needs-pin batch2] [FWA GNIS \"Thorne Creek\" blk 359557375; mouth=Attichika confl, matches user 56.92634,-126.68255] [audit-fix 2026-08-11 (2-reviewer agreement)] [target: Thorne Ck mouth into Attichika, blk 359557375]",
-     "_coord": [
-      -126.68256,
-      56.92636
-     ],
-     "applies_to": {
-      "wsc": "200-948755-999851-889551-445636"
-     }
-    },
-    {
      "id": "thorn_creek__point",
      "label": "point",
      "kind": "point",
@@ -8452,19 +8308,15 @@
     {
      "id": "weston_creek__signs_near_its_mouth_400_m_upstream",
      "label": "signs near its mouth (400 m upstream)",
-     "kind": "point",
+     "kind": "lake",
      "anchor": {
-      "type": "point",
-      "coord": [
-       -123.76351,
-       55.80768
-      ],
-      "is_lonlat": true,
+      "type": "lake",
+      "wbk": "328961697",
       "offset_m": 400,
       "offset_dir": "upstream"
      },
      "note": "",
-     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.80973,-123.75827; closure d/s to mouth]",
+     "_note": "[curated 2026-08-10 signs/other batch] [base=mouth +400m u/s -> 55.80973,-123.75827; closure d/s to mouth] [datum-fix 2026-08-29] Was a point anchor on the curated 'mouth' coord + 400 m upstream. That coord sits at the FWA line's measure-0 end, which for a Williston Lake tributary is inside the LAKE — the line runs on through the lake, and the creek only leaves the shoreline thousands of metres up. The cut therefore landed in open water with no stream piece to cut, was dropped, and no item ever carried the boundary; the rule's locator stayed unresolved. Re-anchored to the Williston Lake polygon boundary + 400 m upstream, which is what 'signs near its mouth' means. Old coord kept in _coord as provenance.",
      "_coord": [
       -123.76351,
       55.80768
@@ -8919,25 +8771,6 @@
    },
    "_entry_id": "52c291bb",
    "splits": [
-    {
-     "id": "okanagan_river__okanagan_lake_dam",
-     "label": "Okanagan Lake Dam",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -119.61343,
-       49.50127
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[auto-proposal M] Okanagan Lake Dam (Penticton) + McIntyre Dam + Drop Structure No.1 on Okanagan River (channelized, Penticton -> Vaseux). Candidate coord [-119.61346, 49.50123]. OSM: https://www.openstreetmap.org/?mlat=49.50123&mlon=-119.61346#map=15/49.50123/-119.61346. Verify: Multi-structure reg. Candidate = Okanagan Lake Dam (upper bound, Penticton). Also locate McIntyre Dam ~[-119.574,49.357] and Drop Structure No.1 (channelized river S of Oliver) on a map.. Okanagan Lake Dam controls the Okanagan River at Penticton (coord = FWA Okanagan River exit from Okanagan Lake polygon). The reg also references McIntyre Dam and Drop Structure No.1 further down the channelized river - those are separate small structures needing map confirmation. [structural-split 2026-08-05 from \"from Okanagan Lake Dam downstream to McIntyre Dam and downst\"] boundary=Okanagan Lake Dam [hint-fix 2026-08-06 lake_reach->dam_weir_fence] [curated 2026-08-09 verify-batch] [lake outlet dam]",
-     "_coord": [
-      -119.61343,
-      49.50127
-     ]
-    },
     {
      "id": "okanagan_river__mcintyre_dam",
      "label": "McIntyre Dam",
