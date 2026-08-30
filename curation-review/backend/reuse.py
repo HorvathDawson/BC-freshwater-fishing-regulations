@@ -888,9 +888,19 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
     total = set(binding.sections)
     added = sorted(total - direct)
 
-    carve_rows, blocked = resolve_carve_outs(entry, rule, reg, graph, covered)
-    for row in carve_rows:                      # the UI wants counts, not 3,000 ids
-        row["n_sections"] = len(row.pop("sections"))
+    # Carve-outs only bite where the rule actually expands to tributaries — `classify` calls the
+    # expander only then, so on a mainstem-only rule the builder never applies them. Reporting
+    # them anyway said "out 1,466" on rules the EXCEPT does not touch (Atnarko r4/r7, both
+    # "Bella Coola River mainstem only"), which reads as water removed from a reach that never
+    # contained it. `carve_outs_apply` keeps the distinction visible instead of just hiding them.
+    wants = bool(_wants_tributaries(rule, entry))
+    carve_rows, blocked = ([], set())
+    if wants:
+        carve_rows, blocked = resolve_carve_outs(entry, rule, reg, graph, covered)
+        for row in carve_rows:                  # the UI wants counts, not 3,000 ids
+            row["n_sections"] = len(row.pop("sections"))
+    n_authored = len(((entry.get("tributaries") or {}).get("excludes") or [])
+                     + (rule.get("tributary_excludes") or []))
 
     # Geometry for everything the item layer does NOT already carry, plus the exclusions.
     own: set[str] = set()
@@ -909,7 +919,10 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
     return _json_safe({
         "entry_id": entry_id, "rule_id": rule_id,
         "outcome": binding.outcome.value,
-        "wants_tributaries": bool(_wants_tributaries(rule, entry)),
+        "wants_tributaries": wants,
+        # the entry/rule AUTHORS this many carve-outs; they apply only to a tributary rule
+        "n_carve_outs_authored": n_authored,
+        "carve_outs_apply": wants and n_authored > 0,
         "tributaries_only": bool(rule.get("tributaries_only")),
         "within_area": any((ex or {}).get("op") == "within" for ex in rule.get("extents") or []),
         "n_direct": len(direct), "n_added": len(added), "n_total": len(total),

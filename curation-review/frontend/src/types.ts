@@ -283,6 +283,11 @@ export interface RuleResolved {
   wants_tributaries: boolean;
   tributaries_only: boolean;
   within_area: boolean;
+  /** how many EXCEPT carve-outs the entry/rule authors */
+  n_carve_outs_authored: number;
+  /** ...and whether they bite on THIS rule. They only apply where tributaries are expanded,
+   *  so a mainstem-only rule authors them but is not narrowed by them. */
+  carve_outs_apply: boolean;
   /** the extents alone, before tributary/area expansion */
   n_direct: number;
   /** what the builder ADDED — tributaries, or an area's other waters */

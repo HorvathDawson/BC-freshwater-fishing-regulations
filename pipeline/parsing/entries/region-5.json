@@ -217,7 +217,8 @@
       },
       "matched": [
         "gnis:11611",
-        "gnis:17209"
+        "gnis:17209",
+        "gnis:29411"
       ],
       "reference_only": false,
       "registry_status": "matched",
@@ -597,7 +598,9 @@
           "species": []
         }
       ],
-      "audit_log": []
+      "audit_log": [
+        "2026-08-29 claude: matched += gnis:29411 (South Atnarko River). Tenas Lake is on the South Atnarko, so south_atnarko_river__tenas_lake is a boundary on that item; without it in scope, r1 could not bind 'plus Tenas Lake' and r2 ('Tenas Lake to signs near Atnarko Park campsite') had no extents at all. Mirrored in matching/overrides.json so a re-parse keeps it."
+      ]
     },
     {
       "entry_id": "gnis:11611#bella_coola_river",

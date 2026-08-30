@@ -485,12 +485,17 @@ export function MapPanel({
               tribInfo.n_excluded
                 ? `OUT: ${tribInfo.n_excluded} section(s) removed by ${tribInfo.carve_outs.length} `
                   + "EXCEPT carve-out(s) — drawn red"
-                : "OUT: no carve-outs on this rule",
+                : tribInfo.n_carve_outs_authored > 0
+                  ? `OUT: none. This row authors ${tribInfo.n_carve_outs_authored} EXCEPT carve-out(s), `
+                    + "but they only narrow rules that include tributaries — this one does not."
+                  : "OUT: no carve-outs on this rule",
               tribInfo.truncated ? `TRUNCATED: only the first ${tribInfo.limit} are drawn` : "",
             ].filter(Boolean).join("\n")}
           >
             in {tribInfo.n_total}
             {tribInfo.n_excluded > 0 ? ` · out ${tribInfo.n_excluded}` : ""}
+            {!tribInfo.carve_outs_apply && tribInfo.n_carve_outs_authored > 0
+              ? ` · ${tribInfo.n_carve_outs_authored} except n/a` : ""}
             {tribInfo.truncated ? " (truncated)" : ""}
           </span>
         )}

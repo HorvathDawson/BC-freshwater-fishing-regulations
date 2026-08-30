@@ -5888,13 +5888,13 @@
       "is_lonlat": true
      },
      "note": "",
-     "_note": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring. — [manual] boundary signs near Atnarko Park campsite (no distance given) — locate the campsite by map. [curated 2026-08-09 park-pins] [user pin; reach = Tenas Lake (52.16039,-125.71141) -> these campsite signs]",
+     "_note": "[lake-class: lake_split] Tenas Lake edge (up) + boundary signs (down) — lake anchor + point. — [lake-bound-auto] MIXED: Tenas Lake edge is auto; the downstream boundary-signs point needs authoring. — [manual] boundary signs near Atnarko Park campsite (no distance given) — locate the campsite by map. [curated 2026-08-09 park-pins] [user pin; reach = Tenas Lake (52.16039,-125.71141) -> these campsite signs] [scope-fix 2026-08-29] applies_to was blk 360836756 — an UNNAMED order-1 creek 249 m long that merely happens to be the nearest blue line to the pin (50 m, vs 280 m to the Atnarko). The cut landed on that ditch, so no registry item carried the boundary and both rules naming the campsite signs stayed unbound. Re-scoped to the Atnarko River (gnis 17209): the point anchor cuts the nearest Atnarko channel exactly and sweeps a perpendicular across the valley to cut the braids too, which is what a reach boundary has to do — mainstem is blk 360879335 (order 7, magnitude 4234, 72 km).",
      "_coord": [
       -125.91077,
       52.40597
      ],
      "applies_to": {
-      "blk": "360836756"
+      "gnis_id": "17209"
      }
     },
     {
