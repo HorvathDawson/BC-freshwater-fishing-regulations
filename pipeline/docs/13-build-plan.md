@@ -729,7 +729,16 @@ resolver answering twice.
   sections · 25,800 variants in search · 1,392 `regs_verbatim` · 2,907 `display_location` · 10
   `entry_scope` · 305 `needs_review` · 176 locators. These are the fields doc 10's census caught the
   first draft **dropping**.
-- **7.5 (㊸)** 0 of 3,038 `rule_text` are not a substring of their `regs_verbatim`.
+- **7.5 (㊸)** `rule_text` is a substring of its `regs_verbatim` **after whitespace
+  normalisation** — 0 of 3,038 fail. ⚠️ **Doc 10 ㊸'s "0 of 3,038" is wrong as stated**:
+  measured 2026-08-29, **4 fail as RAW substrings** (Whiteswan Lake inlet/outlet, and three
+  Upper Arrow Lake drawdown rules), because `regs_verbatim` preserves the printed column's
+  hard line-wraps — **410 entries contain a newline** — while `rule_text` collapses them.
+
+  This is not pedantry. A client that highlights the source span with `indexOf(rule_text)`
+  fails silently on those 4. **Store the span `[start, end]` at extraction instead of
+  recomputing it**, which removes the class of bug entirely and survives any later
+  normalisation.
 - **7.6 (㉙)** `sections_override` has a column and is honoured (**0 uses today**).
 - **7.7 (㊱)** `publishable` ≠ `confirmed`: locked **and** no unresolved locators **and** every rule ≥1
   section. Report the count over the 108 locked entries.

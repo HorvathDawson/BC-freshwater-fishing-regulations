@@ -224,6 +224,35 @@ for p in glob.glob("pipeline/parsing/entries/region-*.json"):
                 print(e["entry_id"], r["rule_id"], (r.get("details") or "")[:60])
 ```
 
+## 2.6 The source-image link is guessed, and often wrong (㉟)
+
+`entry.source_image` is **empty on all 1,403 entries**. The 1,393 row-crop PNGs exist on
+disk, and the review app finds one by matching `regs_verbatim` at read time
+(`reuse.py:_row_image_index`). All 1,403 "resolve" — but the join key is the verbatim text,
+which is frequently **not unique**:
+
+```
+116 rows share the literal text  "**No Fishing**"
+109 rows share                    "Electric motor only - max 7.5 kW"
+ 49 rows share                    "No powered boats"
+```
+
+Only 674 of the index's keys have a single candidate. A name tiebreak rescues most, but a
+review measured **111 entries falling through to `cands[0]`** — an arbitrary pick. South
+Englishman River resolves to *Browns River, page 16*.
+
+So the trust surface — "here is the scan this rule came from" — currently shows the **wrong
+page for roughly 1 entry in 13**, which is worse than showing none: it manufactures false
+confidence in exactly the screen that exists to earn trust.
+
+**Fix: store the link at extraction time**, not derive it. `entry.source_row {page, row,
+image, bbox}` plus `rule.span [start, end]` (see build-plan 7.5) — under 200 KB for the
+whole edition, and it also makes the whitespace-normalisation fix safe, which the derived
+join currently blocks because normalising the key destroys it.
+
+Crops measured: 1,393 files, 47.7 MB PNG, median 28.7 KB. Greyscale WebP q72 ≈ 27 MB —
+shippable as one evictable pack pinned to the bundle version.
+
 ## 3. Tributary walk
 
 555 rules are `tributaries_pending`; **176 of them sit on a BOUNDED extent** ("between A and

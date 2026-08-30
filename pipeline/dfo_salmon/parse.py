@@ -47,7 +47,7 @@ from typing import Dict, List, Optional, Tuple
 
 from bs4 import BeautifulSoup, NavigableString, Tag
 
-from pipeline.dfo_salmon.fetch import DEFAULT_CACHE, REGIONS, load_cached
+from pipeline.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, load_cached, normalize_slug
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,9 @@ _RE_SECTION = re.compile(
 _RE_CATCHALL = re.compile(
     r"^\s*(all\s+(waters|lakes|streams)|all\s+region\b|all\s+other\b)", re.I
 )
+
+#: DFO tidal Areas named in a scope: "Areas 3, 4, 5, and 6", "tidal water Area 5".
+_RE_AREAS = re.compile(r"\bareas?\s+" r"(\d{1,2}(?:(?:\s*[,&]\s*|\s+and\s+)+\d{1,2})*)", re.I)
 
 #: "Dewdney Slough - See Nicomen Slough" / "Colonial River - see Cayeghle River"
 _RE_SEE_ALSO = re.compile(r"^(?P<name>.+?)\s*[-–—]?\s*see\s+(?P<target>.+?)\s*$", re.I)
@@ -127,16 +130,19 @@ class RegRow:
 
     `precedence` is how a lookup picks a winner for (water, species, date):
 
-        2  named water        — a specific waterbody/stream row inside a section
-        1  section catch-all  — "All waters in section B(i) ... unless otherwise stated below"
-        0  region default     — Region 6 section A, "All Region 6 waters"
+        3  named water         — a specific waterbody/stream row inside a section
+        2  area catch-all      — "All streams flowing into tidal water Area 5"
+        1  section catch-all   — "All waters in section B(i) ... unless otherwise stated"
+        0  region default      — Region 6 section A, "All Region 6 waters"
 
     Highest precedence with a matching species and date window wins; ties inside a
-    rank are the source's own ordering. Regions 1-5, 7, 8 have no sections, so every
-    row there is rank 2 and the cascade is a no-op.
+    rank are the source's own ordering. Region 6 section E is the only place all four
+    ranks are live at once. Regions 1-5, 7 and 8 publish no sections, so every row
+    there is rank 3 and the cascade is a no-op.
     """
 
-    region: int
+    region: str          # slug: "1" ... "5a" ... "8"
+    region_number: int
     region_name: str
     row_index: int
     section_key: Optional[str]
@@ -149,10 +155,16 @@ class RegRow:
     dates: str
     limits_gear: str
     precedence: int
+    #: DFO tidal Areas this row's scope names, if any (section E scopes by Area).
+    areas: List[int] = field(default_factory=list)
     #: FN#### fishery notices cited by this row — an in-season variation order.
     fishery_notices: List[Dict[str, str]] = field(default_factory=list)
     #: "Dewdney Slough — see Nicomen Slough": a pointer row, not a rule.
     see_also: Optional[str] = None
+    #: "table" for a real `<tr>`; "section_banner" for a rule synthesised from a
+    #: banner that states its restriction in prose and publishes no rows beneath it
+    #: (Region 6 section F). Prose-only rules are invisible to a resolver otherwise.
+    source: str = "table"
     #: Derived, best-effort flags. The source text is always kept verbatim above.
     no_fishing: bool = False
     non_retention: bool = False
@@ -167,25 +179,37 @@ class RegRow:
 
 @dataclass
 class ParsedRegion:
-    region: int
+    region: str
+    region_number: int
+    part: Optional[str]
     region_name: str
     url: str
     date_modified: Optional[str]
     preamble: List[str]
     sections: List[Section]
     rows: List[RegRow]
-    notes: List[str] = field(default_factory=list)
+    #: Free-standing table text that is not a rule, tagged with the section it sat in.
+    notes: List[Dict[str, str]] = field(default_factory=list)
+    #: "Dewdney Slough -> Nicomen Slough" pointers, which carry no rule of their own.
+    cross_references: List[Dict[str, str]] = field(default_factory=list)
+    #: False for Region 5, which publishes prose only. Distinguishes "no table" from
+    #: "table present but parsed to nothing" — the latter is a parser bug.
+    table_found: bool = True
 
     def to_dict(self) -> dict:
         return {
             "region": self.region,
+            "region_number": self.region_number,
+            "part": self.part,
             "region_name": self.region_name,
             "url": self.url,
             "date_modified": self.date_modified,
+            "table_found": self.table_found,
             "preamble": self.preamble,
             "sections": [asdict(s) for s in self.sections],
-            "rows": [r.to_dict() for r in self.rows],
+            "cross_references": self.cross_references,
             "notes": self.notes,
+            "rows": [r.to_dict() for r in self.rows],
         }
 
 
@@ -308,6 +332,16 @@ def _flags(limits: str) -> dict:
     }
 
 
+def _areas_in(text: str) -> List[int]:
+    """Tidal Area numbers named in a scope string, e.g. 'Areas 3, 4, 5, and 6'."""
+    out: List[int] = []
+    for m in _RE_AREAS.finditer(text):
+        for n in re.findall(r"\d{1,2}", m.group(1)):
+            if int(n) not in out:
+                out.append(int(n))
+    return out
+
+
 def _parse_section(text: str) -> Optional[Section]:
     m = _RE_SECTION.match(text)
     if not m:
@@ -331,25 +365,53 @@ def _parse_section(text: str) -> Optional[Section]:
 # ---------------------------------------------------------------------------
 
 
+def _strip_comments(fragment: str) -> str:
+    """Remove balanced comments, then everything after any unterminated `<!--`.
+
+    That trailing cut is what a browser does with an unclosed comment, and it keeps
+    DFO's commented-out site-maintenance banners out of the preamble.
+    """
+    fragment = _RE_COMMENT.sub(" ", fragment)
+    return _RE_ORPHAN_COMMENT.sub(" ", fragment)
+
+
+def _content_slice(html: str, table_start: Optional[int]) -> str:
+    """The page prose: from the <h1> content anchor down to the table (or footer)."""
+    h1 = _RE_H1.search(html)
+    lo = h1.end() if h1 else 0
+    if table_start is not None:
+        hi = table_start
+    else:
+        tail = _RE_PAGE_TAIL.search(html, lo)
+        hi = tail.start() if tail else len(html)
+    return _strip_comments(html[lo:hi]) if hi > lo else ""
+
+
 def parse_region(
     html: str,
-    region: int,
+    region,
     *,
     url: str = "",
 ) -> ParsedRegion:
-    """Parse one region page into sections + precedence-ranked rows."""
-    soup = BeautifulSoup(html, "html.parser")
-    main = soup.find("main") or soup
+    """Parse one region page into sections + precedence-ranked rows.
 
-    tm = main.find("time", property="dateModified")
-    date_modified = _norm(tm.get_text()) if tm else None
+    Works off the raw source, not a whole-document DOM: see the module docstring for
+    the unterminated-comment defect in Regions 4 and 7 that makes the DOM lossy.
+    """
+    slug = normalize_slug(region)
+    page = PAGES[slug]
+    if not url:
+        url = f"https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region{slug}-eng.html"
 
-    table = main.find("table")
+    dm = _RE_DATE_MOD.search(html)
+    date_modified = dm.group(1) if dm else None
 
-    # Preamble: the prose above the table (limits, size definitions, closures).
+    tm = _RE_TABLE.search(html)
+
     preamble: List[str] = []
-    for node in main.find_all(["p", "li"]):
-        if table is not None and table in node.parents:
+    slice_soup = BeautifulSoup(_content_slice(html, tm.start() if tm else None), "html.parser")
+    for node in slice_soup.find_all(["p", "li"]):
+        if node.find(["p", "li"]):  # keep leaves only; a parent repeats its children
             continue
         t = _norm(node.get_text(" ", strip=True))
         if t and len(t) > 2 and t not in preamble:
@@ -357,65 +419,96 @@ def parse_region(
 
     sections: List[Section] = []
     rows: List[RegRow] = []
-    notes: List[str] = []
+    notes: List[Dict[str, str]] = []
+    cross_refs: List[Dict[str, str]] = []
 
-    if table is None:
-        return ParsedRegion(region, REGIONS.get(region, "?"), url, date_modified,
-                            preamble, sections, rows,
-                            notes=["no regulation table published on this page"])
+    if tm is None:
+        return ParsedRegion(slug, page.region, page.part, page.name, url, date_modified,
+                            preamble, sections, rows, notes, cross_refs,
+                            table_found=False)
+
+    table = BeautifulSoup(_strip_comments(tm.group(0)), "html.parser").find("table")
 
     current: Optional[Section] = None
     idx = 0
 
+    def _note(text: str) -> None:
+        notes.append({"section": current.key if current else "", "text": text})
+
+    def _crossref(text: str) -> bool:
+        m = _RE_SEE_ALSO.match(text)
+        if not m:
+            return False
+        cross_refs.append({
+            "from": _norm(m.group("name")),
+            "to": _norm(m.group("target")),
+            "section": current.key if current else "",
+        })
+        return True
+
     for grid_row in _expand_grid(table):
-        # Banner: either a section header or a free-standing note.
+        # A full-width banner: a lettered section, a cross-reference, or a note.
         if len(grid_row) == 1:
             text = grid_row[0].text
             if not text:
                 continue
             sec = _parse_section(text)
             if sec:
-                # "B. Part (i)" refines "B"; keep both, the part becomes current.
                 sections.append(sec)
                 current = sec
-            else:
-                notes.append(text)
+            elif not _crossref(text):
+                _note(text)
             continue
 
         waters, area, species, dates, limits = grid_row
 
-        # Species/dates/limits all blank => the row carries no rule.
+        # Region 6 opens section A from the Waters column, not from a banner:
+        # <th id="a" rowspan="3">A. All Region 6 waters</th>. Detect it, then strip
+        # the letter so the water name reads normally.
+        sec = _parse_section(waters.text) if waters.text else None
+        if sec and _RE_CATCHALL.match(sec.title.split(".", 1)[-1].strip() or ""):
+            if not any(x.key == sec.key for x in sections):
+                sections.append(sec)
+            current = sec
+            waters = Cell(text=_norm(sec.title.split(".", 1)[-1]),
+                          bullets=waters.bullets, links=waters.links)
+
         if not (species.text or dates.text or limits.text):
             joined = " ".join(c.text for c in grid_row if c.text)
-            if joined:
-                notes.append(joined)
+            if joined and not _crossref(joined):
+                _note(joined)
             continue
 
         see = None
-        m = _RE_SEE_ALSO.match(waters.text)
-        if m and not species.text:
-            see = _norm(m.group("target"))
+        if not species.text:
+            m = _RE_SEE_ALSO.match(waters.text)
+            if m:
+                see = _norm(m.group("target"))
 
-        scope_text = f"{waters.text} {area.text}"
+        scope_text = waters.text or area.text or ""
+        areas = _areas_in(scope_text)
         if current and current.letter == "A":
             precedence = 0
-        elif _RE_CATCHALL.match(waters.text or "") or (
-            not waters.text and _RE_CATCHALL.match(area.text or "")
-        ):
-            precedence = 1
+        elif _RE_CATCHALL.match(scope_text):
+            # A catch-all that names tidal Areas is narrower than the section-wide
+            # one it sits under — section E stacks both.
+            precedence = 2 if areas else 1
         else:
-            precedence = 2
+            precedence = 3
+            areas = []  # a named water's Area mention is descriptive, not a scope
 
         fns: List[Dict[str, str]] = []
         for cell in (limits, dates, area):
             for link in cell.links:
                 if _RE_FN.search(link["text"]) or "notices.dfo-mpo.gc.ca" in link["href"]:
-                    fns.append(link)
+                    if link not in fns:
+                        fns.append(link)
 
         rows.append(
             RegRow(
-                region=region,
-                region_name=REGIONS.get(region, "?"),
+                region=slug,
+                region_number=page.region,
+                region_name=page.name,
                 row_index=idx,
                 section_key=current.key if current else None,
                 section_title=current.title if current else None,
@@ -427,6 +520,7 @@ def parse_region(
                 dates=dates.text,
                 limits_gear=limits.text,
                 precedence=precedence,
+                areas=areas,
                 fishery_notices=fns,
                 see_also=see,
                 **_flags(limits.text),
@@ -434,14 +528,43 @@ def parse_region(
         )
         idx += 1
 
-    return ParsedRegion(region, REGIONS.get(region, "?"), url, date_modified,
-                        preamble, sections, rows, notes)
+    # A banner that states a restriction and publishes no rows under it would be
+    # invisible to anything reading `rows` — Region 6 section F closes the whole
+    # Fraser watershed that way. Synthesise it, flagged as banner-derived.
+    for sec in sections:
+        if any(r.section_key == sec.key for r in rows):
+            continue
+        if not re.search(r"\bno fishing\b|\bnon[- ]retention\b|\bclosed\b", sec.title, re.I):
+            continue
+        rows.append(
+            RegRow(
+                region=slug,
+                region_number=page.region,
+                region_name=page.name,
+                row_index=idx,
+                section_key=sec.key,
+                section_title=sec.title,
+                waters=_norm(sec.title.split(".", 1)[-1].split("-", 1)[0]),
+                waters_bullets=[],
+                specific_area=sec.title,
+                specific_area_bullets=[],
+                species="All",
+                dates="",
+                limits_gear=sec.title,
+                precedence=1,
+                source="section_banner",
+                **_flags(sec.title),
+            )
+        )
+        idx += 1
+
+    return ParsedRegion(slug, page.region, page.part, page.name, url, date_modified,
+                        preamble, sections, rows, notes, cross_refs, table_found=True)
 
 
-def parse_cached(region: int, cache_dir: Path = DEFAULT_CACHE) -> ParsedRegion:
-    from pipeline.dfo_salmon.fetch import _BASE
-
-    return parse_region(load_cached(region, cache_dir), region, url=_BASE.format(n=region))
+def parse_cached(region, cache_dir: Path = DEFAULT_CACHE) -> ParsedRegion:
+    slug = normalize_slug(region)
+    return parse_region(load_cached(slug, cache_dir), slug)
 
 
 # ---------------------------------------------------------------------------
@@ -451,14 +574,14 @@ def parse_cached(region: int, cache_dir: Path = DEFAULT_CACHE) -> ParsedRegion:
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--regions", type=int, nargs="+", choices=sorted(REGIONS), help="default: all cached")
+    ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS, help="default: all real pages")
     ap.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
     ap.add_argument("--out", type=Path, default=Path("output/dfo_salmon"))
     ap.add_argument("--print", dest="do_print", action="store_true", help="print rows instead of writing")
     args = ap.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    todo = args.regions or sorted(REGIONS)
+    todo = args.regions or [s for s in ALL_SLUGS if not PAGES[s].is_stub]
     args.out.mkdir(parents=True, exist_ok=True)
 
     all_rows = 0
@@ -466,11 +589,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         try:
             parsed = parse_cached(region, args.cache_dir)
         except FileNotFoundError:
-            logger.warning("region %d: no snapshot; run pipeline.dfo_salmon.fetch first", region)
+            logger.warning("region %s: no snapshot; run pipeline.dfo_salmon.fetch first", region)
             continue
         all_rows += len(parsed.rows)
         print(
-            f"region {region:<2} {parsed.region_name:<16} "
+            f"region {region:<3} {parsed.region_name:<38} "
             f"rows={len(parsed.rows):<4} sections={len(parsed.sections):<3} "
             f"notes={len(parsed.notes):<3} mod={parsed.date_modified}"
         )

@@ -43,20 +43,53 @@ logger = logging.getLogger(__name__)
 # Source
 # ---------------------------------------------------------------------------
 
-_BASE = "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region{n}-eng.html"
+_BASE = "https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/fresh-douce/region{slug}-eng.html"
 
-#: Region number -> the name DFO gives it. Region 5 (Cariboo) publishes no table;
-#: it is fetched anyway so that the day it grows one, the manifest diff shows it.
-REGIONS: Dict[int, str] = {
-    1: "Vancouver Island",
-    2: "Lower Mainland",
-    3: "Thompson-Nicola",
-    4: "Kootenays",
-    5: "Cariboo",
-    6: "Skeena",
-    7: "Omineca-Peace",
-    8: "Okanagan",
+
+@dataclass(frozen=True)
+class RegionPage:
+    """One published page. Keyed by `slug`, not by region number.
+
+    Region 5 is why: DFO splits the Cariboo across `region5a-eng.html` (Fraser
+    watershed) and `region5b-eng.html` (coastal watershed), and `region5-eng.html`
+    is a 2016 stub that only announces the split. Three pages, one region number.
+    """
+
+    slug: str
+    region: int
+    part: Optional[str]      # "A" / "B" for the Cariboo pages, else None
+    name: str
+    is_stub: bool = False    # publishes no table by design; not a parse failure
+
+
+#: Slug -> page. Every DFO freshwater region page, in publication order.
+PAGES: Dict[str, RegionPage] = {
+    "1": RegionPage("1", 1, None, "Vancouver Island"),
+    "2": RegionPage("2", 2, None, "Lower Mainland"),
+    "3": RegionPage("3", 3, None, "Thompson-Nicola"),
+    "4": RegionPage("4", 4, None, "Kootenays"),
+    "5": RegionPage("5", 5, None, "Cariboo (index)", is_stub=True),
+    "5a": RegionPage("5a", 5, "A", "Cariboo Part A, Fraser River Watershed"),
+    "5b": RegionPage("5b", 5, "B", "Cariboo Part B, Coastal Watershed"),
+    "6": RegionPage("6", 6, None, "Skeena"),
+    "7": RegionPage("7", 7, None, "Omineca-Peace"),
+    "8": RegionPage("8", 8, None, "Okanagan"),
 }
+
+#: Slug -> display name. Kept as a plain map for callers that only want the label.
+REGIONS: Dict[str, str] = {k: v.name for k, v in PAGES.items()}
+
+#: Sorted slugs, numeric-then-letter so "5" < "5a" < "5b" < "6".
+ALL_SLUGS: List[str] = sorted(PAGES, key=lambda s: (int(s.rstrip("ab") or 0), s))
+
+
+def normalize_slug(value) -> str:
+    """Accept 6, "6", "5A" and return the canonical slug."""
+    slug = str(value).strip().lower()
+    if slug not in PAGES:
+        raise ValueError(f"unknown region {value!r}; known: {ALL_SLUGS}")
+    return slug
+
 
 DEFAULT_CACHE = Path("cache/dfo_salmon")
 
@@ -98,7 +131,9 @@ class FetchError(RuntimeError):
 class RegionSnapshot:
     """One region's raw page plus everything needed to detect that it moved."""
 
-    region: int
+    region: str          # slug: "1" ... "5a" ... "8"
+    region_number: int   # 5 for both "5a" and "5b"
+    part: Optional[str]  # "A" / "B" for the Cariboo pages
     region_name: str
     url: str
     fetched_at: str
@@ -162,7 +197,7 @@ def _sleep_backoff(attempt: int, retry_after: Optional[float] = None) -> None:
 
 
 def fetch_region(
-    region: int,
+    region,
     *,
     cache_dir: Path = DEFAULT_CACHE,
     force: bool = False,
@@ -175,10 +210,9 @@ def fetch_region(
     Raises `FetchError` if every attempt fails validation or transport. An existing
     good snapshot on disk is left untouched in that case.
     """
-    if region not in REGIONS:
-        raise ValueError(f"unknown region {region!r}; known: {sorted(REGIONS)}")
-
-    url = _BASE.format(n=region)
+    slug = normalize_slug(region)
+    page = PAGES[slug]
+    url = _BASE.format(slug=slug)
     session, extra = _session()
     headers = {
         "User-Agent": _USER_AGENT,
@@ -204,7 +238,7 @@ def fetch_region(
                 if attempt < max_attempts:
                     _sleep_backoff(attempt, retry_after)
                     continue
-                raise FetchError(f"region {region}: HTTP {status} after {attempt} attempts")
+                raise FetchError(f"region {slug}: HTTP {status} after {attempt} attempts")
             resp.raise_for_status()
 
             candidate = resp.text
@@ -214,7 +248,7 @@ def fetch_region(
                 if attempt < max_attempts:
                     _sleep_backoff(attempt)
                     continue
-                raise FetchError(f"region {region}: {reason} (after {attempt} attempts)")
+                raise FetchError(f"region {slug}: {reason} (after {attempt} attempts)")
 
             body = candidate
             break
@@ -224,7 +258,7 @@ def fetch_region(
         except Exception as exc:  # transport: timeout, reset, DNS, TLS
             warnings.append(f"attempt {attempt}: {type(exc).__name__}: {exc}")
             if attempt >= max_attempts:
-                raise FetchError(f"region {region}: {type(exc).__name__}: {exc}") from exc
+                raise FetchError(f"region {slug}: {type(exc).__name__}: {exc}") from exc
             _sleep_backoff(attempt)
 
     assert body is not None
@@ -235,8 +269,10 @@ def fetch_region(
     title = _RE_TITLE.search(body)
 
     snap = RegionSnapshot(
-        region=region,
-        region_name=REGIONS[region],
+        region=slug,
+        region_number=page.region,
+        part=page.part,
+        region_name=page.name,
         url=url,
         fetched_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
         http_status=status,
@@ -254,10 +290,10 @@ def fetch_region(
         cache_dir = Path(cache_dir)
         raw_dir = cache_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
-        dest = raw_dir / f"region{region}-eng.html"
+        dest = raw_dir / f"region{slug}-eng.html"
         snap.path = str(dest)
 
-        prev = _load_manifest(cache_dir).get(str(region))
+        prev = _load_manifest(cache_dir).get(slug)
         snap.changed = force or not dest.exists() or (prev or {}).get("sha256") != digest
         if snap.changed:
             tmp = dest.with_suffix(".tmp")
@@ -275,7 +311,8 @@ def fetch_all(
     throttle: float = _THROTTLE,
 ) -> List[RegionSnapshot]:
     """Fetch every region, throttled. One region's failure does not abort the rest."""
-    todo = sorted(regions) if regions is not None else sorted(REGIONS)
+    todo = ([normalize_slug(r) for r in regions] if regions is not None
+            else [s for s in ALL_SLUGS if not PAGES[s].is_stub])
     cache_dir = Path(cache_dir)
     manifest = _load_manifest(cache_dir)
     out: List[RegionSnapshot] = []
@@ -290,11 +327,11 @@ def fetch_all(
             continue
         flag = "changed" if snap.changed else "same"
         logger.info(
-            "region %d %-16s %6d B  mod=%s  %s  %.2fs",
+            "region %-3s %-38s %6d B  mod=%s  %-7s %.2fs",
             snap.region, snap.region_name, snap.bytes,
             snap.date_modified, flag, snap.elapsed_s,
         )
-        manifest[str(region)] = snap.to_dict()
+        manifest[region] = snap.to_dict()
         out.append(snap)
 
     _write_manifest(cache_dir, manifest)
@@ -329,9 +366,9 @@ def _write_manifest(cache_dir: Path, manifest: dict) -> None:
     os.replace(tmp, p)
 
 
-def load_cached(region: int, cache_dir: Path = DEFAULT_CACHE) -> str:
+def load_cached(region, cache_dir: Path = DEFAULT_CACHE) -> str:
     """Read a region's cached HTML. Raises FileNotFoundError if never fetched."""
-    p = Path(cache_dir) / "raw" / f"region{region}-eng.html"
+    p = Path(cache_dir) / "raw" / f"region{normalize_slug(region)}-eng.html"
     return p.read_text(encoding="utf-8")
 
 
@@ -342,7 +379,8 @@ def load_cached(region: int, cache_dir: Path = DEFAULT_CACHE) -> str:
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--regions", type=int, nargs="+", choices=sorted(REGIONS), help="default: all")
+    ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS,
+                    help="default: all real pages (the region 5 stub is skipped)")
     ap.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
     ap.add_argument("--force", action="store_true", help="rewrite snapshots even if unchanged")
     ap.add_argument("--throttle", type=float, default=_THROTTLE, help="seconds between regions")
@@ -351,7 +389,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     snaps = fetch_all(args.regions, cache_dir=args.cache_dir, force=args.force, throttle=args.throttle)
 
-    want = len(args.regions) if args.regions else len(REGIONS)
+    want = len(args.regions) if args.regions else sum(1 for p in PAGES.values() if not p.is_stub)
     changed = sum(1 for s in snaps if s.changed)
     print(f"\n{len(snaps)}/{want} regions fetched, {changed} changed -> {args.cache_dir}")
     return 0 if len(snaps) == want else 1

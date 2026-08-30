@@ -42,6 +42,7 @@ google-genai
 
 # HTTP (browser-impersonating client for in-season scraper)
 curl_cffi
+beautifulsoup4  # HTML table parsing (pipeline/dfo_salmon); already an implicit dep of the archived in-season scraper
 
 # Progress
 tqdm
