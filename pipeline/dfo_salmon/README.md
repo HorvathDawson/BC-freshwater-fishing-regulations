@@ -12,33 +12,53 @@ regions from `pac.dfo-mpo.gc.ca`.
 > overrides the other.
 
 ```bash
-.venv/bin/python -m pipeline.dfo_salmon.fetch                 # snapshot -> cache/dfo_salmon/
-.venv/bin/python -m pipeline.dfo_salmon.parse                 # -> output/dfo_salmon/regionN.json
+.venv/bin/python -m pipeline.dfo_salmon.fetch                    # snapshot -> cache/dfo_salmon/
+.venv/bin/python -m pipeline.dfo_salmon.parse                    # faithful rows -> output/dfo_salmon/
+.venv/bin/python -m pipeline.dfo_salmon.untangle --regions 6 --print   # waters -> reaches -> rules
 .venv/bin/python -m pipeline.dfo_salmon.stability --burst --compare-clients
 .venv/bin/python -m pytest pipeline/tests/test_dfo_salmon.py
 ```
+
+Three stages, deliberately separate:
+
+| module | job |
+|---|---|
+| `fetch.py` | snapshot the page, validate it, hash it, never overwrite good with bad |
+| `parse.py` | faithful transcription — every `<tr>` becomes one row, nothing merged |
+| `untangle.py` | regroup into waters → reaches → rules + the defaults, for consumption |
+
+`parse.py` output is what you store; `untangle.py` output is what you read and what a
+resolver should bind to. `untangle.verify()` asserts every parsed row lands in exactly
+one rule, so the readable view can never quietly lose a rule the transcription had.
 
 ---
 
 ## What's there (snapshot 2026-08-29)
 
-| Region | Name | `dateModified` | Rows | Sections |
-|---|---|---|---:|---:|
-| 1 | Vancouver Island | 2026-08-25 | 78 | — |
-| 2 | Lower Mainland | 2026-04-01 | 56 | — |
-| 3 | Thompson-Nicola | 2026-08-14 | 20 | — |
-| 4 | Kootenays | 2025-04-01 | 1 | — |
-| 5 | Cariboo | 2016-10-18 | 0 | — |
-| 6 | **Skeena** | 2026-08-28 | 236 | **8** |
-| 7 | Omineca-Peace | 2026-04-01 | 2 | — |
-| 8 | Okanagan | 2025-04-01 | 5 | — |
+Pages are keyed by **slug**, not region number, because Region 5 is three pages:
 
-Region 5 publishes **no table** — the page is a 2016 stub that only states the 5A/5B
-split. That is a real absence, not a parse failure: `table_found: false` says which.
-Region 8 exists and is included even though it was not in the original ask.
+| Slug | Name | `dateModified` | Rows | Sections | Waters | Reaches |
+|---|---|---|---:|---:|---:|---:|
+| `1` | Vancouver Island | 2026-08-25 | 78 | — | 27 | 55 |
+| `2` | Lower Mainland | 2026-04-01 | 56 | — | 22 | 26 |
+| `3` | Thompson-Nicola | 2026-08-14 | 20 | — | 6 | 7 |
+| `4` | Kootenays | 2025-04-01 | 1 | — | 0 | 0 |
+| `5` | Cariboo (index) | 2016-10-18 | — | — | — | — |
+| `5a` | Cariboo Part A, Fraser River Watershed | 2026-04-01 | 3 | — | 2 | 2 |
+| `5b` | Cariboo Part B, Coastal Watershed | 2025-08-11 | 38 | — | 9 | 13 |
+| `6` | **Skeena** | 2026-08-28 | 236 | **8** | 77 | 128 |
+| `7` | Omineca-Peace | 2026-04-01 | 2 | — | 1 | 1 |
+| `8` | Okanagan | 2025-04-01 | 5 | — | 3 | 5 |
 
-Regions 4 and 7 are near-total closures expressed in one or two rows; the real content
-is Regions 1, 2, 6 and the tails of 3 and 8.
+**`region5-eng.html` is a 2016 stub** carrying no table — it exists only to announce
+that the Cariboo is split into **5A** (Fraser watershed, MUs 5-1…5-5 and 5-12…5-16) and
+**5B** (coastal watershed, MUs 5-6…5-11). The rules live on `region5a-eng.html` and
+`region5b-eng.html`, which the stub does not link prominently. Both are fetched; the
+stub is marked `is_stub` and skipped by default. Three slugs, one `region_number: 5`.
+Region 8 (Okanagan) also exists and is included.
+
+Region 4 is a single blanket non-retention row; Region 7 is two rows on the Nechako.
+The real content is Regions 1, 2, 5b and 6.
 
 ---
 
@@ -46,7 +66,7 @@ is Regions 1, 2, 6 and the tails of 3 and 8.
 
 Measured by `stability.py`, 2026-08-29 — 3 polite rounds + 1 burst round × 8 regions:
 
-* **32/32 requests OK (100%)**, mean 0.46 s, zero retries.
+* **32/32 requests OK (100%)**, mean 0.46 s, zero retries (8 pages; 5a/5b added after).
 * **Byte-identical bodies across rounds** for all 8 regions, so `sha256` is a sound
   change signal. (It has to be: the server is IIS and sends **no `ETag` and no
   `Last-Modified`**, so conditional GET has nothing to bind to.)
@@ -75,8 +95,9 @@ Regions 4 and 7 carry an **unterminated `<!--`** above the table (18 opens, 17 c
 `BeautifulSoup(page).find("table")` therefore returns `None` — the comment swallows the
 rest of the document. **No exception, no warning, just zero rows.** Both regions parsed
 empty until the table was sliced out of the raw HTML by regex instead.
-`test_dfo_salmon.py` pins Region 4 and 7 row counts and asserts the fixtures still
+`test_dfo_salmon.py` pins Region 4, 7 and 5a row counts and asserts the fixtures still
 contain the unbalanced comment, so a future rewrite can't quietly reopen the hole.
+(Region 5a has it too — 18 opens, 17 closes.)
 
 ---
 
@@ -146,6 +167,90 @@ is a no-op — the same resolver works for all eight regions.
 * **`colspan="6"` on a five-column table.** The B(i) banner is authored wrong. The grid
   builder clamps spans to the real width; trusting the attribute shifts every later
   column by one.
+
+---
+
+## The untangled view (`untangle.py`)
+
+`parse.py` is faithful; that makes it unreadable. Region 6's 236 rows are one river
+repeated across eight reaches and four scope widths. `untangle.py` regroups them:
+
+```
+defaults                 what applies where nothing more specific matches
+  [A]     region         the Region 6 baseline
+  [B(i)]  section        "All waters in section B(i) ... unless otherwise stated"
+  [E]     area           "All streams flowing into tidal water Area 5"   → falls back E → A
+  [F]     closure        banner-only: the Fraser portion, closed outright
+
+waters                   one entry per named waterbody, per section
+  name, aliases[], name_note, tributaries
+  inherits: B(i) → B → A
+  reaches[]              the distinct spatial scopes on that water, in source order
+    scope, kind, anchors[], excludes[], mainstem_only, tributaries
+    rules[]              species × dates × limits binding on that reach
+```
+
+Read it as text with `--print`; `--out` writes both `.json` and a `.txt` render:
+
+```
+Bulkley River
+    inherits: B(i) -> B -> A
+    · reach 1 [downstream_of] downstream of the Morice River confluence excluding tributaries.
+        anchor downstream_of: the Morice River confluence
+        Chinook     Apr 1 to Mar 31    No fishing for chinook
+        Pink        Jun 16 to Oct 15   2 per day
+        Coho        Jul 15 to Oct 15   4 per day, only 2 over 50 cm.
+    · reach 3 [sign_bounded_zone] Bulkley and Morice River waters within the four white
+                                   triangular boundary signs at "the Forks" ...
+        All         Jun 16 to Aug 15   No fishing for salmon
+```
+
+### Reach kinds
+
+`kind` says what the `specific_area` sentence is *doing*, which decides how it becomes
+geometry later:
+
+| kind | meaning |
+|---|---|
+| `whole_water` | no scope given — the rule binds to the whole waterbody |
+| `tributaries_only` | "including / excluding tributaries" and nothing else |
+| `whole_water_excluding` | whole water minus listed tributaries or creek mouths (Babine Lake) |
+| `upstream_of` / `downstream_of` | a single directional cut at one anchor |
+| `between` | two anchors, "from X to Y" |
+| `sign_bounded_zone` | a closure polygon inside boundary signs, usually at a confluence |
+| `tributary_set` | "all tributaries of the Bulkley other than Morice, Suskwa and Two Mile" |
+| `named_tributaries` | the scope names tributaries directly (Tatshenshini's Blanchard Creek) |
+| `described` | anything else — read the sentence |
+
+`anchors` keep the boundary phrase **verbatim** (`{"relation": "upstream_of", "phrase":
+"Highway #16 bridge"}`). Turning those into geometry is `pipeline/splits/anchors.py`'s
+job; a half-normalised anchor is worse than the sentence it came from.
+
+### Name untangling
+
+One Waters cell can glue four things together, and all four had to be separated before
+grouping worked:
+
+| source | name | alias | note | scope |
+|---|---|---|---|---|
+| `Zymoetz (Copper) River — Note: The section of river from Hwy 16 bridge…` | Zymoetz River | Copper River | ✔ | — |
+| `Zymagotitz River [also known as Zymachord River] (including tributaries)` | Zymagotitz River | Zymachord River | — | +tribs |
+| `Kitsumkalum River (including tpinributaries) Note: The mouth is…` *(sic)* | Kitsumkalum River | — | ✔ | +tribs |
+| `Tatshenshini River (upstream of the BC/Yukon border)` | Tatshenshini River | — | — | **a reach** |
+| `Tseax R.` | Tseax River | — | — | — |
+
+Grouping is on the **cleaned** name, so `Morice River` and `Morice River (including
+tributaries)` become one river with all 8 of its reaches, and the two Tatshenshini
+entries become one river with an upstream and a downstream reach. The parenthetical in
+`Tatshenshini River (upstream of…)` is a scope, not an alias, and moves down onto the
+reach — getting that wrong splits one river into two.
+
+### What is deliberately *not* merged
+
+The **Skeena River appears twice**, once in B(i) and once in B(ii), and stays twice.
+The section boundary — the CNR Railway Bridge at Terrace — is a real cut in the river
+with different rules on each side. Waters are keyed on `(section, name)` for exactly
+this reason.
 
 ---
 

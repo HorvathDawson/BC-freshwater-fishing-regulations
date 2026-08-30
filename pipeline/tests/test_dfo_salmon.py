@@ -268,3 +268,133 @@ def test_region5_stub_has_no_table():
 
     assert PAGES["5"].is_stub is True
     assert PAGES["5a"].region == PAGES["5b"].region == 5
+
+
+# ---------------------------------------------------------------------------
+# untangle: waters -> reaches -> rules, plus the defaults
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def u6(r6):
+    from pipeline.dfo_salmon.untangle import untangle
+
+    return untangle(r6)
+
+
+def test_untangle_loses_nothing(r6, u6):
+    """Every parsed row must land in exactly one rule — no drops, no duplicates."""
+    from pipeline.dfo_salmon.untangle import verify
+
+    verify(r6, u6)
+
+
+@pytest.mark.parametrize("slug", ["4", "5a", "5b", "6", "7", "8"])
+def test_untangle_round_trips_every_region(slug):
+    from pipeline.dfo_salmon.untangle import untangle, verify
+
+    parsed = parse_region(_load(slug), slug)
+    verify(parsed, untangle(parsed))
+
+
+def test_defaults_are_separated_from_waters(u6):
+    kinds = {d.kind for d in u6.defaults}
+    assert kinds == {"region", "section", "area", "closure"}
+    region = [d for d in u6.defaults if d.kind == "region"]
+    assert len(region) == 1 and region[0].key == "A"
+    assert all("All Region 6" not in w.name for w in u6.waters)
+
+
+def test_area_default_falls_back_through_its_section(u6):
+    """An Area default sits inside section E, so E fills its gaps before A does."""
+    area5 = next(d for d in u6.defaults if d.kind == "area" and d.areas == [5])
+    assert area5.falls_back_to == ["E", "A"]
+    section_e = next(d for d in u6.defaults if d.kind == "section" and d.key == "E")
+    assert section_e.falls_back_to == ["A"]
+
+
+def test_inheritance_chain(u6):
+    babine = next(w for w in u6.waters if w.name == "Babine Lake")
+    assert babine.inherits == ["B(i)", "B", "A"]
+    nass = next(w for w in u6.waters if w.name == "Nass River")
+    assert nass.inherits == ["C", "A"]
+
+
+def test_skeena_is_split_by_the_section_boundary(u6):
+    """The CNR bridge at Terrace is a real cut: one river, two sections, different
+    reaches and different rules on each side."""
+    skeenas = [w for w in u6.waters if w.name == "Skeena River"]
+    assert {w.section for w in skeenas} == {"B(i)", "B(ii)"}
+    upper = next(w for w in skeenas if w.section == "B(i)")
+    lower = next(w for w in skeenas if w.section == "B(ii)")
+    assert len(upper.reaches) > len(lower.reaches)
+
+
+def test_reaches_are_distinct_scopes_in_source_order(u6):
+    """Morice River is published under two names — bare, and "(including
+    tributaries)" — which merge into one water carrying all 8 of its scopes."""
+    morice = next(w for w in u6.waters if w.name == "Morice River")
+    scopes = [r.scope for r in morice.reaches]
+    assert len(scopes) == len(set(scopes)) == 8
+    assert [r.index for r in morice.reaches] == list(range(8))
+    assert any(r.kind == "between" for r in morice.reaches)
+    assert morice.tributaries is True
+
+
+def test_babine_lake_reach_kinds(u6):
+    babine = next(w for w in u6.waters if w.name == "Babine Lake")
+    assert "tributaries_only" in [r.kind for r in babine.reaches]
+    excl = next(r for r in babine.reaches if r.kind == "whole_water_excluding")
+    assert len(excl.excludes) == 12
+    assert [r.species for r in excl.rules] == ["Sockeye"] * 3
+
+
+def test_confluence_closure_is_not_a_directional_cut(u6):
+    """'waters within the four boundary signs at the Forks' is a closure polygon,
+    not an upstream/downstream cut."""
+    bulkley = next(w for w in u6.waters if w.name == "Bulkley River")
+    forks = next(r for r in bulkley.reaches if "the Forks" in r.scope)
+    assert forks.kind == "sign_bounded_zone"
+
+
+@pytest.mark.parametrize("raw,name,aliases,tribs", [
+    ("Zymoetz (Copper) River — Note: The section of river from Hwy 16 bridge "
+     "downstream to the Zymotz-Skeena confluence is the Zymotz River.",
+     "Zymoetz River", ["Copper River"], None),
+    ("Zymagotitz River [also known as Zymachord River] (including tributaries)",
+     "Zymagotitz River", ["Zymachord River"], True),
+    ("Kispiox River (including tributaries)", "Kispiox River", [], True),
+    ("Meziadin Lake", "Meziadin Lake", [], None),
+])
+def test_split_name(raw, name, aliases, tribs):
+    from pipeline.dfo_salmon.untangle import split_name
+
+    got_name, got_aliases, _, got_tribs, _ = split_name(raw)
+    assert (got_name, got_aliases, got_tribs) == (name, aliases, tribs)
+
+
+def test_abbreviated_name_keeps_its_word(u6):
+    """A blanket `.rstrip(".")` turned 'Tseax R.' into 'Tseax R'."""
+    assert any(w.name == "Tseax River" for w in u6.waters)
+    assert not any(w.name.endswith(" R") for w in u6.waters)
+
+
+def test_name_embedded_scope_becomes_a_reach(u6):
+    """'Tatshenshini River (upstream of the BC/Yukon border)' and '(downstream of ...)'
+    are one river with two scopes, not two rivers."""
+    tats = [w for w in u6.waters if w.name == "Tatshenshini River"]
+    assert len(tats) == 1
+    assert {"upstream_of", "downstream_of"} <= {r.kind for r in tats[0].reaches}
+
+
+def test_appended_note_is_split_off_the_name(u6):
+    kits = next(w for w in u6.waters if w.name.startswith("Kitsumkalum River"))
+    assert kits.name == "Kitsumkalum River"
+    assert kits.name_note and "designated by fishing boundary signs" in kits.name_note
+    assert kits.tributaries is True  # from "(including tpinributaries)" — sic
+
+
+def test_anchors_are_captured_verbatim(u6):
+    zym = next(w for w in u6.waters if w.name == "Zymagotitz River")
+    reach = next(r for r in zym.reaches if r.kind == "upstream_of")
+    assert reach.anchors == [{"relation": "upstream_of", "phrase": "Highway #16 bridge"}]

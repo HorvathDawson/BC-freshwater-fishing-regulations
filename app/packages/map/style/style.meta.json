@@ -79,7 +79,7 @@
         "label": "Plain",
         "scale": "static",
         "color": {
-          "token": "color.water.regulated"
+          "token": "color.water.mapped"
         }
       },
       "closure": {
@@ -140,7 +140,7 @@
           ]
         ],
         "missing": {
-          "token": "color.water.regulated"
+          "token": "color.water.mapped"
         },
         "data": {
           "provider": "gauges",
@@ -155,8 +155,8 @@
   },
   "themes": {
     "dark": {
-      "color.water.regulated": "#8a8f93",
-      "color.water.other": "#333d47",
+      "color.water.mapped": "#8a8f93",
+      "color.water.unmapped": "#333d47",
       "color.highlight": "#ff77b8",
       "color.parcel.line": "#c9a86a",
       "color.status.open": "#48b07a",
@@ -172,8 +172,8 @@
       "color.status.closed": "#e05a4b"
     },
     "light": {
-      "color.water.regulated": "#4a5c6e",
-      "color.water.other": "#d2dae2",
+      "color.water.mapped": "#4a5c6e",
+      "color.water.unmapped": "#d2dae2",
       "color.highlight": "#c2187a",
       "color.parcel.line": "#8a6d3b",
       "color.status.open": "#2e8b57",
@@ -190,11 +190,11 @@
     }
   },
   "tokens": {
-    "color.water.regulated": {
+    "color.water.mapped": {
       "type": "color",
       "themeable": true
     },
-    "color.water.other": {
+    "color.water.unmapped": {
       "type": "color",
       "themeable": true
     },

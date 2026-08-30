@@ -51,7 +51,7 @@ for (const t of themes)
 //
 // Threshold is ΔE76 >= 12 between tokens from DIFFERENT families. The target is 20; it is
 // 12 today because the dark theme cannot reach 20 while `status.default_only` is a grey
-// LINE colour competing with `water.regulated`. That is not a palette problem — it is the
+// LINE colour competing with `water.mapped`. That is not a palette problem — it is the
 // outcome/provenance conflation recorded in 13-build-plan §2.1. Raise this to 20 when
 // default_only becomes a provenance chip.
 //

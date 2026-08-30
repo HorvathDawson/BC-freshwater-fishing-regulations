@@ -1,8 +1,8 @@
 {
   "name": "dark",
   "values": {
-    "color.water.regulated": "#8a8f93",
-    "color.water.other": "#333d47",
+    "color.water.mapped": "#8a8f93",
+    "color.water.unmapped": "#333d47",
     "color.highlight": "#ff77b8",
     "color.parcel.line": "#c9a86a",
     "color.status.open": "#48b07a",

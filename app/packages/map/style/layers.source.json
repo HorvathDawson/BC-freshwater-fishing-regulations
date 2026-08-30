@@ -34,7 +34,7 @@
           "label": "Plain",
           "scale": "static",
           "color": {
-            "token": "color.water.regulated"
+            "token": "color.water.mapped"
           }
         },
         "closure": {
@@ -95,7 +95,7 @@
             ]
           ],
           "missing": {
-            "token": "color.water.regulated"
+            "token": "color.water.mapped"
           },
           "data": {
             "provider": "gauges",

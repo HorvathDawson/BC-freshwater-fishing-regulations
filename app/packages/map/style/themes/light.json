@@ -1,8 +1,8 @@
 {
   "name": "light",
   "values": {
-    "color.water.regulated": "#4a5c6e",
-    "color.water.other": "#d2dae2",
+    "color.water.mapped": "#4a5c6e",
+    "color.water.unmapped": "#d2dae2",
     "color.highlight": "#c2187a",
     "color.parcel.line": "#8a6d3b",
     "color.status.open": "#2e8b57",
