@@ -87,6 +87,38 @@ for (const t of themes) {
   }
 }
 
+// --- every status colour must be legible as TEXT on its own theme's panel ---
+//
+// `status.restricted` shipped at #d98c00: 2.73:1 on white, which fails WCAG AA *and*
+// AA-large, while being used as a pill fill under white text and as a 10pt status word.
+// A density review caught it; nobody had run the numbers on the palette we ship.
+//
+// 3.0 is the AA-large floor and the minimum for a status WORD, which is what carries the
+// answer once texture is ruled out as an instrument (see 13-build-plan §2.1).
+const PANEL = { light: "#ffffff", dark: "#181d24" };
+const MIN_CONTRAST = 3.0;
+const _lum = (hex) => {
+  const h = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const contrast = (a, b) => {
+  const [x, y] = [_lum(a), _lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+};
+for (const t of themes) {
+  const panel = PANEL[t.name];
+  if (!panel) continue;
+  for (const [name, value] of Object.entries(t.values)) {
+    if (!name.startsWith("color.status.") || typeof value !== "string") continue;
+    const c = contrast(value, panel);
+    if (c < MIN_CONTRAST)
+      err(`theme "${t.name}": ${name} (${value}) is ${c.toFixed(2)}:1 on the panel ` +
+          `${panel} — under ${MIN_CONTRAST}:1 it is not legible as a status word.`);
+  }
+}
+
 // --- no two colour tokens may share a value ---
 // Each token exists to mean a DIFFERENT thing, so an identical hex is a semantic collision.
 // It hid here for real: `color.status.open` and `color.flow.normal` were both #2e8b57, so the

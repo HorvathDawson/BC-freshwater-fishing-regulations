@@ -177,7 +177,7 @@
       "color.highlight": "#c2187a",
       "color.parcel.line": "#8a6d3b",
       "color.status.open": "#2e8b57",
-      "color.status.restricted": "#d98c00",
+      "color.status.restricted": "#8f5c00",
       "color.status.closed": "#c0392b",
       "color.status.unknown": "#7d5ba6",
       "color.status.default_only": "#8a8a8a",
