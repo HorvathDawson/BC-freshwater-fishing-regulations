@@ -7,12 +7,6 @@
       "type": "vector",
       "url": "pmtiles://waters",
       "$comment": "our pipeline's regulable-water tiles"
-    },
-    "parcels": {
-      "type": "vector",
-      "url": "pmtiles://parcels",
-      "external": true,
-      "attribution": "TODO: name the provider and licence before this ships"
     }
   },
   "layers": [
@@ -23,15 +17,6 @@
       "source-layer": "sections",
       "layout": {
         "visibility": "visible"
-      }
-    },
-    {
-      "id": "parcel-lines",
-      "type": "line",
-      "source": "parcels",
-      "source-layer": "parcels",
-      "layout": {
-        "visibility": "none"
       }
     }
   ]

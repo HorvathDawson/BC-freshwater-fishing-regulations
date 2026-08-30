@@ -6,12 +6,6 @@
       "type": "vector",
       "url": "pmtiles://waters",
       "$comment": "our pipeline's regulable-water tiles"
-    },
-    "parcels": {
-      "type": "vector",
-      "url": "pmtiles://parcels",
-      "external": true,
-      "attribution": "TODO: name the provider and licence before this ships"
     }
   },
   "groups": [
@@ -20,12 +14,6 @@
       "label": "Water",
       "toggleable": false,
       "defaultVisible": true
-    },
-    {
-      "id": "parcels",
-      "label": "Private parcels",
-      "toggleable": true,
-      "defaultVisible": false
     }
   ],
   "layers": [
@@ -116,25 +104,6 @@
           "$comment": "`missing` is the NEUTRAL plain-water colour, not status.unknown. About 19,250 of 19,700 waters have no gauge, so this paints most of the map: using the regulatory-unknown violet here would mean 'we could not parse the rule' and 'there is no gauge' were the same colour."
         }
       }
-    },
-    {
-      "id": "parcel-lines",
-      "group": "parcels",
-      "source": "parcels",
-      "sourceLayer": "parcels",
-      "geometry": "line",
-      "width": {
-        "token": "width.stream.base"
-      },
-      "colorModes": {
-        "plain": {
-          "label": "Plain",
-          "scale": "static",
-          "color": {
-            "token": "color.parcel.line"
-          }
-        }
-      }
     }
   ],
   "views": [
@@ -176,6 +145,23 @@
       "freshness": "live",
       "staleAfterMs": 5400000,
       "$comment": "450 stations, 30-min refresh. Binds to item_id (durable), so it must fan out to that item's sections to colour a line."
+    },
+    "stocking": {
+      "kind": "feed",
+      "key": "item_id",
+      "fanout": "item_to_sections",
+      "freshness": "live",
+      "staleAfterMs": 1209600000,
+      "$comment": "per-waterbody release records, refreshed weekly. Two weeks is the stale threshold: one missed run is normal, two means the job is broken. Bound to item_id \u2014 stocking is INTO a lake, not onto a reach."
+    },
+    "in_season": {
+      "kind": "feed",
+      "key": "item_id",
+      "fanout": "item_to_sections",
+      "freshness": "live",
+      "staleAfterMs": 43200000,
+      "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold \u2014 two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
     }
-  }
+  },
+  "$toggleable_groups": "No third-party overlay ships yet. Private parcels was drafted here and REMOVED: its attribution was the string 'TODO', which the old guard accepted because it only checked the field was non-empty. A licensed layer must not reach a store on a placeholder. To add one: declare the source with external:true and a real provider + licence, add a toggleable group, add a layer whose colorModes use water.* or a family matching its provider. The build will refuse anything less."
 }

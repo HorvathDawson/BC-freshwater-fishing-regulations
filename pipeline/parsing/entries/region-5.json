@@ -225,7 +225,41 @@
       "tributaries": {
         "included": true,
         "only": false,
-        "excludes": []
+        "excludes": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "burnt_bridge_creek__sitkatapa_confluence"
+            ],
+            "item_id": "gnis:2100",
+            "item_ids": [],
+            "area_id": null,
+            "area_kind": null,
+            "feature_types": []
+          },
+          {
+            "op": "upstream_of",
+            "splits": [
+              "hunlen_creek__hunlen_falls"
+            ],
+            "item_id": "gnis:22290",
+            "item_ids": [],
+            "area_id": null,
+            "area_kind": null,
+            "feature_types": []
+          },
+          {
+            "op": "upstream_of",
+            "splits": [
+              "young_creek__young_hwy20"
+            ],
+            "item_id": "gnis:1914",
+            "item_ids": [],
+            "area_id": null,
+            "area_kind": null,
+            "feature_types": []
+          }
+        ]
       },
       "scope": [],
       "rules": [

@@ -107,8 +107,15 @@ for (const t of themes) {
 
 // --- external sources must be attributed ---
 for (const [id, s] of Object.entries(src.sources ?? {}))
-  if (s.external && !s.attribution)
+  if (s.external && !s.attribution) {
     err(`source "${id}" is external but has no attribution — third-party tiles carry licence terms ours do not`);
+  } else if (s.external && /\b(TODO|TBD|FIXME|XXX|placeholder)\b/i.test(s.attribution)) {
+    // Presence was not enough: the parcels source shipped `attribution: "TODO: name the
+    // provider and licence before this ships"` and passed, because the guard only checked
+    // that the field was non-empty. A placeholder is how a licensed layer reaches a store.
+    err(`source "${id}" attribution is still a placeholder (${JSON.stringify(s.attribution)}) ` +
+        `— name the provider and licence, or set external:false if it is ours`);
+  }
 
 // --- providers: where a colour mode's VALUES come from (not the tiles) ---
 const providers = Object.fromEntries(

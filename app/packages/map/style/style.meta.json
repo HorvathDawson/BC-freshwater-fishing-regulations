@@ -6,12 +6,6 @@
       "label": "Water",
       "toggleable": false,
       "defaultVisible": true
-    },
-    {
-      "id": "parcels",
-      "label": "Private parcels",
-      "toggleable": true,
-      "defaultVisible": false
     }
   ],
   "views": [
@@ -52,11 +46,26 @@
       "freshness": "live",
       "staleAfterMs": 5400000,
       "$comment": "450 stations, 30-min refresh. Binds to item_id (durable), so it must fan out to that item's sections to colour a line."
+    },
+    "stocking": {
+      "kind": "feed",
+      "key": "item_id",
+      "fanout": "item_to_sections",
+      "freshness": "live",
+      "staleAfterMs": 1209600000,
+      "$comment": "per-waterbody release records, refreshed weekly. Two weeks is the stale threshold: one missed run is normal, two means the job is broken. Bound to item_id — stocking is INTO a lake, not onto a reach."
+    },
+    "in_season": {
+      "kind": "feed",
+      "key": "item_id",
+      "fanout": "item_to_sections",
+      "freshness": "live",
+      "staleAfterMs": 43200000,
+      "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold — two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
     }
   },
   "layerGroup": {
-    "streams": "water",
-    "parcel-lines": "parcels"
+    "streams": "water"
   },
   "highlightable": [
     {
@@ -139,20 +148,10 @@
         },
         "$comment": "`missing` is the NEUTRAL plain-water colour, not status.unknown. About 19,250 of 19,700 waters have no gauge, so this paints most of the map: using the regulatory-unknown violet here would mean 'we could not parse the rule' and 'there is no gauge' were the same colour."
       }
-    },
-    "parcel-lines": {
-      "plain": {
-        "label": "Plain",
-        "scale": "static",
-        "color": {
-          "token": "color.parcel.line"
-        }
-      }
     }
   },
   "widths": {
-    "streams": "width.stream.base",
-    "parcel-lines": "width.stream.base"
+    "streams": "width.stream.base"
   },
   "themes": {
     "dark": {
