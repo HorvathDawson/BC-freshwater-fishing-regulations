@@ -72282,5 +72282,24 @@
     "note": "variant_of AUSTIN CREEK (gnis 37503); City of Burnaby — Waterways of Burnaby map (2021). Unnamed in FWA (no GNIS); local name. City of Burnaby map labels this reach 'Lost Creek'. Source: https://www.burnaby.ca/sites/default/files/acquiadam/2021-07/Waterways%20of%20Burnaby.pdf"
    }
   ]
+ },
+ {
+  "target": {
+   "blks": [
+    "356560775"
+   ]
+  },
+  "reach": {
+   "from_m": 0.0,
+   "to_m": 3023.5
+  },
+  "names": [
+   {
+    "name": "Whiteswan Lake outlet stream",
+    "source": "override",
+    "note": "Unnamed in FWA, so the registry — which keeps only NAMED items — had no item for it, and `whiteswan_lake_s_inlet_outlet_streams__whiteswan_outlet_falls` was carried by nothing and could never be bound. Verified as the outlet: lake:329247790 has exactly ONE lake_out edge, to 356560775:599. The reach stops at 3023.5 (the lake edge) on purpose — 356560775:8623 is the SAME blue line continuing ABOVE the lake and is an INLET (lake_in), so it must not be called the outlet. Within the reach: 599.2->3023.5 is the 2,424 m between lake and falls, which is the reg's 'falls 2.4 km downstream of Whiteswan Lake'; 0->599.2 is the outlet stream BELOW the falls, the EXCEPT. [curated 2026-08-29]",
+    "display": true
+   }
+  ]
  }
 ]
