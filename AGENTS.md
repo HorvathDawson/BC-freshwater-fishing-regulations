@@ -95,31 +95,38 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 22. **`packages/core` has zero React and zero platform imports.** `packages/ui` may import
     `react` but never `react-dom` or `react-native`. Enforced by
     `tools/check-boundaries.mjs` — fix your code, never weaken the gate.
-23. **Hooks are shared; components are not.** A hook returns data, so it runs under both
+23. **Status is rendered by ONE function in `core/`, never re-implemented per surface.**
+    A coherence review counted **nine status surfaces across four vocabularies** in five
+    parallel design decks — map line, tap card, search row, rule line, gauge strip, and more,
+    each inventing its own wording for the same five states. That is the §0.5 drift failure
+    (1,203 diverged lines) reproducing itself in a new layer before a line of app code exists.
+    Navigation may legitimately differ between mobile and desktop — `README.md` sanctions a
+    sheet on one and a page on the other — but the *answer* may not.
+24. **Hooks are shared; components are not.** A hook returns data, so it runs under both
     renderers. `<div>` and `<View>` do not.
-24. **Logic never lives in a component.** That is what makes desktop's separate component
+25. **Logic never lives in a component.** That is what makes desktop's separate component
     set free. If you want to share a component with desktop *to avoid duplicating logic*,
     the logic is in the wrong place — move it to a hook.
-25. **Mobile web renders the same `packages/ui-native` components as the native app**, via
+26. **Mobile web renders the same `packages/ui-native` components as the native app**, via
     react-native-web, so the phone experience matches by construction. Desktop gets its own
     DOM components in `apps/web/src/desktop/`.
-26. **One React version, workspace-wide**, pinned via `pnpm.overrides`. Two Reacts in one
+27. **One React version, workspace-wide**, pinned via `pnpm.overrides`. Two Reacts in one
     bundle is `Invalid hook call`, and it surfaces only at bundle time.
-27. **Map layers are only ever added by editing `packages/map/style/layers.source.json`**
+28. **Map layers are only ever added by editing `packages/map/style/layers.source.json`**
     then `pnpm style:build`. Colours reference tokens by name; literals are rejected. No app
     may import a map SDK — that is how the two apps start rendering different maps.
-28. **A categorical colour mode over an enum must colour every member**, and a continuous
+29. **A categorical colour mode over an enum must colour every member**, and a continuous
     mode must define `missing`. This is how `unknown` and `default_only` cannot be rendered
     as something they are not (⑨/㉜ — the one failure with real consequences).
-29. **Every dependency needs a line in `app/deps.md`.** v1 accumulated chart.js + pdf-lib +
+30. **Every dependency needs a line in `app/deps.md`.** v1 accumulated chart.js + pdf-lib +
     pdfjs + fuse + suncalc without anyone deciding to.
-30. **`pnpm check` must pass**: boundaries → platform → style → deps → typecheck → test.
+31. **`pnpm check` must pass**: boundaries → platform → style → deps → typecheck → test.
 
 ## Working style
 
-31. **Measure before asserting.** Every number in the docs is reproducible; several
+32. **Measure before asserting.** Every number in the docs is reproducible; several
     "obvious" designs here were killed by one measurement (the hash id, the straddler
     policy, parallelism in the reach builder).
-32. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
-33. **Report honestly what you did not verify.** An unverified claim is worse than a known
+33. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
+34. **Report honestly what you did not verify.** An unverified claim is worse than a known
     gap. Say "scaffolded, not run" when that is what happened.
