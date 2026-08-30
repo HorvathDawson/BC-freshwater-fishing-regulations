@@ -15,6 +15,7 @@ import type {
   SpeciesOption,
   SplitRef,
   Status,
+  RuleTributaries,
 } from "./types";
 
 async function getJSON<T>(url: string): Promise<T> {
@@ -89,7 +90,13 @@ export const api = {
 
   geojson: (itemId: string) =>
     getJSON<GeoJSON>(`/api/items/${encodeURIComponent(itemId)}/geojson`),
-  /** one level of tributaries — what `includes_tributaries` actually covers */
+  /** the REACH-SCOPED tributary expansion for one rule, carve-outs applied — the real answer.
+   *  Slow enough to be button-driven: the walk is cheap, its geometry is not. */
+  ruleTributaries: (entryId: string, ruleId: string) =>
+    getJSON<RuleTributaries>(
+      `/api/entries/${encodeURIComponent(entryId)}/rules/${encodeURIComponent(ruleId)}/tributaries`),
+
+  /** one level of tributaries, scoped to the whole ITEM — the fallback when no rule is selected */
   tributaryGeojson: (itemId: string) =>
     getJSON<GeoJSON>(`/api/items/${encodeURIComponent(itemId)}/tributaries/geojson`),
 

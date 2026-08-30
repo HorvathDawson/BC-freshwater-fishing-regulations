@@ -251,6 +251,46 @@ export interface ReachIdentity {
 export interface EntryReaches {
   covered: string[];
   rules: Record<string, (ResolvedExtent | null)[]>;
+  /** the BUILDER's answer per rule — outcome + the sections that actually ship, tributaries
+   *  already expanded. `rules` above is the raw per-extent resolve and has no tributaries. */
+  verdict?: Record<string, RuleVerdict>;
+}
+
+export interface RuleVerdict {
+  outcome: string;
+  reason: string | null;
+  detail: string;
+  n_sections: number;
+  sections: string[];
+  tributaries_pending: boolean;
+  diagnostics: { kind: string; [k: string]: unknown }[];
+}
+
+/** One EXCEPT clause and what it removed. `above` is everything upstream of the named water,
+ *  which a carve-out always takes with it. */
+export interface CarveOut {
+  extent: unknown;
+  resolved: boolean;
+  n_sections: number;
+  above: number;
+}
+
+export interface RuleTributaries {
+  entry_id: string;
+  rule_id: string;
+  wants_tributaries: boolean;
+  tributaries_only: boolean;
+  pending: boolean;
+  n_direct: number;
+  n_tributary: number;
+  n_total: number;
+  n_excluded: number;
+  carve_outs: CarveOut[];
+  sections: string[];
+  truncated: boolean;
+  limit: number;
+  geojson: GeoJSON;
+  error?: string;
 }
 
 export interface ItemSearchResult {

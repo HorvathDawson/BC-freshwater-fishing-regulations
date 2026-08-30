@@ -815,6 +815,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
               details: r.details,
             }))}
             reachOf={reachOf}
+            entryId={entry.entry_id}
             reloadKey={reloadKey}
           />
         </div>

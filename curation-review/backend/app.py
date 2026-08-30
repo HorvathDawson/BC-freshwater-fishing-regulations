@@ -106,6 +106,17 @@ def item_tributary_geojson(item_id: str, limit: int = 400):
     return reuse.item_tributary_geojson(item_id, limit)
 
 
+@app.get("/api/entries/{entry_id}/rules/{rule_id}/tributaries")
+def rule_tributaries(entry_id: str, rule_id: str, limit: int = 6000):
+    """The REACH-SCOPED tributary expansion for one rule, with carve-outs applied.
+
+    Deliberately its own endpoint, and driven by a button: the walk is cheap (median 0.04s)
+    but the geometry is not — the biggest rule expands to ~3,100 sections, 4s and 13 MB. Not
+    something to pay on every entry open.
+    """
+    return reuse.rule_tributary_reach(entry_id, rule_id, limit=limit)
+
+
 @app.get("/api/entries/{entry_id}/reaches")
 def entry_reaches(entry_id: str):
     """Per-rule, per-extent section ids — the REACH each rule selects, for map highlighting."""

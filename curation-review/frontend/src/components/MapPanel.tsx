@@ -4,7 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Protocol } from "pmtiles";
 import { layers, LIGHT } from "@protomaps/basemaps";
 import { api } from "../api";
-import type { EntryReaches, ReachIdentity } from "../types";
+import type { EntryReaches, ReachIdentity, RuleTributaries } from "../types";
 
 interface Props {
   itemId: string | null;
@@ -31,6 +31,8 @@ interface Props {
   rules?: { rule_id: string; restriction_type: string; details: string }[];
   /** rule_id -> the shared reach label the rules list shows, so both call a reach the same thing */
   reachOf?: Record<string, ReachIdentity>;
+  /** the entry being reviewed — needed to ask for a RULE's tributary expansion */
+  entryId?: string | null;
 }
 
 // Same basemap the webapp uses: the bc.pmtiles vector source + protomaps LIGHT layers. Served by the
@@ -104,10 +106,14 @@ function bounds(fc: GeoJSON.FeatureCollection): maplibregl.LngLatBoundsLike | nu
 export function MapPanel({
   itemId, alsoItemIds = [], referencedSplitIds = [], unusedSplitIds = [], selectedSplitId = null,
   onSelectSplit, pendingPoint = null, reloadKey = 0, focusItemId = null,
-  reaches = null, rules = [], reachOf = {},
+  reaches = null, rules = [], reachOf = {}, entryId = null,
 }: Props) {
   const [showTribs, setShowTribs] = useState(false);
   const [nTribs, setNTribs] = useState<number | null>(null);
+  // The reach-scoped expansion for the rule currently shown, or null when we fell back to the
+  // item-level one-level view (no rule selected).
+  const [tribInfo, setTribInfo] = useState<RuleTributaries | null>(null);
+  const [tribBusy, setTribBusy] = useState(false);
   const itemColor = useMemo(() => {
     const m = new Map<string, string>();
     [itemId, ...alsoItemIds].forEach((id, i) => { if (id) m.set(id, ITEM_COLORS[i % ITEM_COLORS.length]); });
@@ -192,8 +198,13 @@ export function MapPanel({
           { id: "item-outline", type: "line", source: "item",
             filter: ["==", ["geometry-type"], "Polygon"],
             paint: { "line-color": ["coalesce", ["get", "_line"], "#2563eb"], "line-width": 1.5 } },
+          // Grey dashed = the item-level "one level down" fallback. Green dashed = this RULE's
+          // own tributaries, which are part of the reach being confirmed, so they read as reach.
           { id: "trib-lines", type: "line", source: "tribs",
-            paint: { "line-color": "#64748b", "line-width": 1.5, "line-dasharray": [2, 1.5] } },
+            paint: {
+              "line-color": ["case", ["==", ["get", "kind"], "reach_tributary"], "#16a34a", "#64748b"],
+              "line-width": 1.5, "line-dasharray": [2, 1.5],
+            } },
           // the reach the selected rule resolves to — drawn UNDER the item lines, wide and bright
           { id: "reach-lines", type: "line", source: "item",
             filter: ["==", ["get", "_reach"], true],
@@ -331,7 +342,26 @@ export function MapPanel({
     const run = () => {
       const src = m.getSource("tribs") as maplibregl.GeoJSONSource | undefined;
       if (!src) return;
-      if (!showTribs || !itemId) { src.setData({ type: "FeatureCollection", features: [] }); return; }
+      const clear = () => { src.setData({ type: "FeatureCollection", features: [] }); setTribInfo(null); };
+      if (!showTribs || !itemId) { clear(); return; }
+
+      // A rule is selected -> show what THAT RULE covers: reach-scoped, recursive, carve-outs
+      // applied. This is the set that ships. The item-level call below is only a fallback for
+      // "no rule selected", and is one level over the whole named water — a different question.
+      if (shownReach && entryId) {
+        setTribBusy(true);
+        api.ruleTributaries(entryId, shownReach)
+          .then((info) => {
+            setTribInfo(info);
+            setNTribs(info.n_tributary);
+            src.setData(info.geojson as unknown as GeoJSON.FeatureCollection);
+          })
+          .catch(() => clear())
+          .finally(() => setTribBusy(false));
+        return;
+      }
+
+      setTribInfo(null);
       Promise.all([itemId, ...alsoItemIds].map((id) =>
         api.tributaryGeojson(id).catch(() => ({ type: "FeatureCollection", features: [] } as GeoJSON.FeatureCollection))))
         .then((gjs) => {
@@ -342,7 +372,7 @@ export function MapPanel({
     };
     if (m.isStyleLoaded()) run(); else m.once("load", run);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTribs, itemId, alsoKey, reloadKey]);
+  }, [showTribs, itemId, alsoKey, reloadKey, shownReach, entryId]);
 
   // Focus one of a combined entry's waters: fit to just that item's features.
   useEffect(() => {
@@ -430,6 +460,27 @@ export function MapPanel({
             })}
           </select>
         </label>
+        {tribInfo && showTribs && (
+          <span
+            className={`badge${tribInfo.truncated ? " warn" : ""}`}
+            title={[
+              `direct reach: ${tribInfo.n_direct} section(s)`,
+              `+ tributaries of that reach: ${tribInfo.n_tributary}`,
+              `= ${tribInfo.n_total} total`,
+              tribInfo.n_excluded
+                ? `EXCEPT ${tribInfo.carve_outs.length} carve-out(s) blocking ${tribInfo.n_excluded} `
+                  + "section(s) — the named water AND everything upstream of it"
+                : "no carve-outs on this rule",
+              tribInfo.truncated
+                ? `TRUNCATED: only the first ${tribInfo.limit} are drawn`
+                : "",
+            ].filter(Boolean).join("\n")}
+          >
+            {tribInfo.n_direct} + {tribInfo.n_tributary} trib
+            {tribInfo.n_excluded > 0 ? ` − ${tribInfo.n_excluded} except` : ""}
+            {tribInfo.truncated ? " (truncated)" : ""}
+          </span>
+        )}
         {shownReach && straddling > 0 && (
           <span
             className="badge warn"
@@ -451,10 +502,15 @@ export function MapPanel({
         <button
           className={`btn${showTribs ? " primary" : ""}`}
           style={{ padding: "1px 8px" }}
-          title="draw one level of tributaries — what `includes tributaries` covers"
+          title={shownReach
+            ? `draw what ${shownReach} actually covers: tributaries of THIS REACH, followed all the `
+              + "way up, with its EXCEPT carve-outs removed"
+            : "draw one level of tributaries for the whole water — select a rule first to see what "
+              + "that RULE resolves to"}
           onClick={() => setShowTribs((v) => !v)}
         >
-          🌿 tributaries{showTribs && nTribs != null ? ` (${nTribs})` : ""}
+          🌿 {shownReach ? "reach tributaries" : "tributaries"}
+          {tribBusy ? " …" : showTribs && nTribs != null ? ` (${nTribs})` : ""}
         </button>
         <button
           className={`btn${measure ? " primary" : ""}`}

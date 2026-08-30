@@ -129,6 +129,37 @@ def build_reach(entry: dict, rule: dict, registry, graph, *, covered=None, clip=
     )
 
 
+def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
+                       covered) -> tuple[list[dict], set[str]]:
+    """The rule's tributary carve-outs, and every section they block.
+
+    Returns ``(per_carve_out, blocked)``. Each entry of `per_carve_out` is the authored
+    extent plus what it actually resolved to, so a caller can SHOW a curator which streams
+    an EXCEPT clause removed instead of only the net section count. `blocked` is the union,
+    which is what the walk is given.
+
+    Public because the review app has to display exactly what the builder excluded; if it
+    recomputed this itself the two could drift, and a curator would confirm a reach that is
+    not the one that ships.
+    """
+    blocked: set[str] = set()
+    detail: list[dict] = []
+    carve_outs = list((entry.get("tributaries") or {}).get("excludes") or [])
+    carve_outs += list(rule.get("tributary_excludes") or [])
+    for ex in carve_outs:
+        got = _resolve.resolve_extent(registry, graph, covered, ex)
+        row = {"extent": ex, "resolved": got is not None,
+               "sections": [], "above": 0}
+        if got is not None:
+            secs = set(got.get("sections") or ())
+            above = _tribs.tributaries_of_reach(graph, secs)
+            blocked |= secs | above
+            row["sections"] = sorted(secs)
+            row["above"] = len(above)          # "and everything upstream of it"
+        detail.append(row)
+    return detail, blocked
+
+
 def _expander(graph, registry, covered, rule, entry, *, window=None):
     """A closure that expands one rule's reach to its tributaries.
 
@@ -145,15 +176,7 @@ def _expander(graph, registry, covered, rule, entry, *, window=None):
     also stops the walk descending through excluded water into catchments that drain only
     through it.
     """
-    excluded: set[str] = set()
-    carve_outs = list((entry.get("tributaries") or {}).get("excludes") or [])
-    carve_outs += list(rule.get("tributary_excludes") or [])
-    for ex in carve_outs:
-        got = _resolve.resolve_extent(registry, graph, covered, ex)
-        if got is not None:
-            secs = set(got.get("sections") or ())
-            excluded |= secs
-            excluded |= _tribs.tributaries_of_reach(graph, secs)
+    _, excluded = resolve_carve_outs(entry, rule, registry, graph, covered)
 
     def expand(reach, *, only=False):
         return _tribs.expand(graph, reach, only=only, excluded=excluded, window=window)

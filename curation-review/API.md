@@ -163,6 +163,38 @@ and only whole tributaries are drawn — a half-drawn stream looks exactly like 
 connection to the river. At the old cap of 400 the Fraser drew 125 of its 389 tributaries while still
 reporting 389, so two thirds were missing with nothing to say so.
 
+### GET /api/entries/{entry_id}/rules/{rule_id}/tributaries?limit=6000
+**What that RULE actually covers** once tributaries are expanded and its EXCEPT carve-outs applied —
+from `pipeline.reach.build.build_reach`, the same call the artifact build makes.
+
+Distinct from `/api/items/{id}/tributaries/geojson` above, which answers a *different question*: one
+level, scoped to the whole named water. Tributary scope is relative to the RULE'S EXTENT (doc 10 ③) —
+"between A and B, including tributaries" means the streams joining *that stretch*, followed all the
+way up. The item-level view is too shallow on the recursion, too wide on the reach, and silent about
+carve-outs; it remains the fallback for when no rule is selected.
+
+```jsonc
+{
+  "wants_tributaries": true, "tributaries_only": false, "pending": false,
+  "n_direct": 15,        // the reach without tributaries — already drawn as the mainstem highlight
+  "n_tributary": 19,     // what the walk ADDED: the thing being confirmed
+  "n_total": 34,
+  "n_excluded": 209,     // sections the carve-outs blocked
+  "carve_outs": [ { "extent": {...}, "resolved": true, "n_sections": 12, "above": 197 } ],
+  "sections": ["..."],   // the tributary section ids
+  "truncated": false, "limit": 6000,
+  "geojson": { "type": "FeatureCollection", "features": [ /* kind: "reach_tributary" */ ] }
+}
+```
+
+`above` is everything upstream of the water the carve-out names, which an EXCEPT always takes with
+it. Note the block walk will **not** cross a `continuation` edge out of the excepted stretch — the
+same reach-boundary rule the main walk uses, and what makes a partial carve-out mean what it says.
+
+**Button-driven on purpose.** The walk is cheap (median 0.04 s, max 0.90 s over the corpus); its
+geometry is not — the largest rule expands to 3,215 tributary sections, ~3.7 s and ~12 MB. Not
+something to pay on every entry open. `truncated` is reported, never hidden.
+
 ### GET /api/row-image/{filename}
 The source synopsis row-crop PNG (`output/pipeline/extraction/row_images/`). Filename must match
 `[A-Za-z0-9_]+\.png`.

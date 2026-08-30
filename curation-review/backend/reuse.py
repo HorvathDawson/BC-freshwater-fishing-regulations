@@ -29,7 +29,8 @@ from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_s
 from pipeline.parsing.rows import load_synopsis_rows
 from project_config import get_config
 from pipeline.registry import load_registry
-from pipeline.reach.build import build_reach as _build_reach
+from pipeline.reach.build import build_reach as _build_reach, resolve_carve_outs
+from pipeline.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.reach import extent as _resolve
 from pipeline.utils.wsc import trim_wsc
 
@@ -805,6 +806,90 @@ def _rep_point(geom: dict | None) -> list[float] | None:
     while isinstance(c, list) and c and isinstance(c[0], list):
         c = c[0]
     return c if isinstance(c, list) and len(c) >= 2 and isinstance(c[0], (int, float)) else None
+
+
+
+def rule_tributary_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
+    """What ONE rule actually covers once tributaries are expanded and carve-outs applied.
+
+    The 🌿 button used to draw `item_tributary_geojson` — ONE level, scoped to the whole named
+    item. That is not what a tributary rule means. Tributary scope is relative to the RULE'S
+    EXTENT (doc 10 ③): "no fishing between A and B, including tributaries" covers the streams
+    joining *that stretch*, recursively, minus any EXCEPT carve-out. So the map was showing a
+    curator a different set from the one the rule ships with — too shallow on the recursion,
+    too wide on the reach, and silent about the carve-outs entirely.
+
+    This returns the real answer, from `pipeline.reach.build.build_reach` — the same call the
+    artifact build makes — split into the parts a curator needs to see separately:
+
+    * ``direct``      the reach without tributaries (what the mainstem highlight already shows)
+    * ``tributary``   what the walk ADDED, which is the thing being confirmed
+    * ``carve_outs``  each EXCEPT clause and what it removed, so "except Hunlen Creek above the
+                      falls" is visible as a named exclusion rather than a smaller total
+
+    Geometry is returned for the tributary sections only; the direct reach is already drawn.
+    Capped at ``limit`` sections, and the cap is REPORTED (`truncated`) — the same rule as
+    `item_tributary_geojson`: a silently half-drawn set is worse than an absent one.
+    """
+    entry = next((e for _, e in _all_entries() if e["entry_id"] == entry_id), None)
+    if entry is None:
+        return {"error": f"no entry {entry_id}"}
+    rule = next((r for r in entry.get("rules") or [] if r.get("rule_id") == rule_id), None)
+    if rule is None:
+        return {"error": f"no rule {rule_id} on {entry_id}"}
+
+    reg, graph = _registry(), _graph()
+    mr, _item = _match_and_item(entry)
+    covered = _covered_ids(entry, mr)
+    clip, _scope_failed = _scope_sections(entry, covered)
+
+    # DIRECT = resolve + clip, no expansion. Same path entry_reaches uses for the raw view, so
+    # the two panels cannot disagree about where the mainstem reach ends.
+    direct: set[str] = set()
+    for ex in rule.get("extents") or []:
+        got = _clip(_resolve.resolve_extent(reg, graph, covered, ex), clip)
+        if got:
+            direct |= set(got.get("sections") or ())
+
+    binding, _diags = _build_reach(entry, rule, reg, graph, covered=covered, clip=clip)
+    total = set(binding.sections)
+    added = sorted(total - direct)
+
+    carve_rows, blocked = resolve_carve_outs(entry, rule, reg, graph, covered)
+    for row in carve_rows:                      # the UI wants counts, not 3,000 ids
+        row["n_sections"] = len(row.pop("sections"))
+
+    truncated = len(added) > limit
+    draw = added[:limit]
+    feats: list[dict] = []
+    streams = [n for n in draw if not str(n).startswith("lake:")]
+    for i in range(0, len(streams), 400):                       # chunk long IN lists
+        feats += _read_gpkg_features(
+            "streams", _sql_in("node_id", streams[i:i + 400]),
+            ["node_id", "display_name"], "reach_tributary")
+    wbks = [str(n).split(":", 1)[1] for n in draw if str(n).startswith("lake:")]
+    for i in range(0, len(wbks), 400):
+        for lf in _read_gpkg_features("lakes", _sql_in("wbk", wbks[i:i + 400]),
+                                      ["wbk", "display_name"], "reach_tributary"):
+            wbk = str(lf["properties"].get("wbk") or "")
+            if wbk:
+                lf["properties"]["node_id"] = f"lake:{wbk}"     # highlight matches on node_id
+            feats.append(lf)
+
+    return {
+        "entry_id": entry_id, "rule_id": rule_id,
+        # The canonical predicate, not "did anything get added" — a rule can legitimately want
+        # tributaries and have none, and the UI must say that rather than look like a no-op.
+        "wants_tributaries": bool(_wants_tributaries(rule, entry)),
+        "tributaries_only": bool(rule.get("tributaries_only")),
+        "pending": bool(binding.tributaries_pending),
+        "n_direct": len(direct), "n_tributary": len(added), "n_total": len(total),
+        "n_excluded": len(blocked),
+        "carve_outs": carve_rows,
+        "sections": added,
+        "truncated": truncated, "limit": limit,
+        "geojson": {"type": "FeatureCollection", "features": feats},
+    }
 
 
 def _read_gpkg_features(layer: str, where: str, keep: list[str], kind: str) -> list[dict]:
