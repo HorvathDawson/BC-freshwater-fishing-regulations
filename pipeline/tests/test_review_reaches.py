@@ -297,3 +297,38 @@ def test_a_broken_scope_is_reported_not_swallowed(braided, monkeypatch):
 
     got = reuse.entry_reaches("gnis:1#r3")
     assert got["scope_unresolved"], "a scope that cannot resolve must be surfaced"
+
+
+# --------------------------------------------------------------------------- #
+# The payload has to survive JSON. `upstream_of` has no upper bound.
+# --------------------------------------------------------------------------- #
+
+def test_an_unbounded_window_survives_json():
+    """`resolve_extent` reports the measure window an extent resolved to, and `upstream_of`'s
+    upper bound is `INF`. `json.dumps` refuses non-finite floats, so the whole /reaches payload
+    raised `ValueError: Out of range float values are not JSON compliant` — a bare 500 that took
+    out the map for **82 entries**, every rule with an `upstream_of` extent.
+
+    `null` carries the same meaning ("unbounded on that side") and serialises."""
+    import json
+    import math
+
+    payload = {"rules": {"r1": [{"sections": ["a:0"], "window": ["blk", 100.0, math.inf]}]}}
+    with pytest.raises(ValueError):
+        json.dumps(payload, allow_nan=False)          # the bug, verbatim
+
+    safe = reuse._json_safe(payload)
+    json.dumps(safe, allow_nan=False)                 # must not raise
+    assert safe["rules"]["r1"][0]["window"] == ["blk", 100.0, None]
+
+
+def test_json_safe_leaves_ordinary_values_alone():
+    """It must not become a general-purpose mangler: only non-finite floats change."""
+    src = {"a": 1, "b": 2.5, "c": "x", "d": None, "e": [1, {"f": 0.0}], "g": True}
+    assert reuse._json_safe(src) == {"a": 1, "b": 2.5, "c": "x", "d": None,
+                                     "e": [1, {"f": 0.0}], "g": True}
+
+
+def test_nan_is_also_stripped():
+    import math
+    assert reuse._json_safe({"x": math.nan}) == {"x": None}

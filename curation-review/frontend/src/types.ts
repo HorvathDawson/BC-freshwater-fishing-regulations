@@ -275,16 +275,23 @@ export interface CarveOut {
   above: number;
 }
 
-export interface RuleTributaries {
+/** What one rule resolves to: IN (`sections`) and OUT (`n_excluded` + the drawn exclusions). */
+export interface RuleResolved {
   entry_id: string;
   rule_id: string;
+  outcome: string;
   wants_tributaries: boolean;
   tributaries_only: boolean;
-  pending: boolean;
+  within_area: boolean;
+  /** the extents alone, before tributary/area expansion */
   n_direct: number;
-  n_tributary: number;
+  /** what the builder ADDED — tributaries, or an area's other waters */
+  n_added: number;
   n_total: number;
+  /** sections the EXCEPT carve-outs removed */
   n_excluded: number;
+  /** bound sections the item layer never had, so they exist only in this payload */
+  n_offitem: number;
   carve_outs: CarveOut[];
   sections: string[];
   truncated: boolean;

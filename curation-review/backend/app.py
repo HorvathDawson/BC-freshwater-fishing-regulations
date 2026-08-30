@@ -106,15 +106,17 @@ def item_tributary_geojson(item_id: str, limit: int = 400):
     return reuse.item_tributary_geojson(item_id, limit)
 
 
-@app.get("/api/entries/{entry_id}/rules/{rule_id}/tributaries")
-def rule_tributaries(entry_id: str, rule_id: str, limit: int = 6000):
-    """The REACH-SCOPED tributary expansion for one rule, with carve-outs applied.
+@app.get("/api/entries/{entry_id}/rules/{rule_id}/resolved")
+def rule_resolved(entry_id: str, rule_id: str, limit: int = 6000):
+    """What this rule covers and what it excepts — the reach builder's own answer, as geometry.
 
-    Deliberately its own endpoint, and driven by a button: the walk is cheap (median 0.04s)
-    but the geometry is not — the biggest rule expands to ~3,100 sections, 4s and 13 MB. Not
-    something to pay on every entry open.
+    Covers the two shapes the item layer cannot draw: tributary expansion, and `within(area)`
+    (Pitt River in Garibaldi binds 466 sections, 18 of them the Pitt's own).
+
+    Button-driven: the resolve is cheap, the geometry is not — the largest rule is ~3,200
+    sections, ~4s and ~12 MB. Not something to pay on every entry open.
     """
-    return reuse.rule_tributary_reach(entry_id, rule_id, limit=limit)
+    return reuse.rule_resolved_reach(entry_id, rule_id, limit=limit)
 
 
 @app.get("/api/entries/{entry_id}/reaches")
