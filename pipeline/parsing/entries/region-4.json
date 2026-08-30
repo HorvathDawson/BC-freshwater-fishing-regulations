@@ -16106,11 +16106,7 @@
         }
       ],
       "audit_log": [
-        {
-          "at": "2026-08-29",
-          "by": "claude",
-          "what": "backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
-        }
+        "2026-08-29 claude: backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
       ]
     },
     {
@@ -22155,11 +22151,7 @@
         }
       ],
       "audit_log": [
-        {
-          "at": "2026-08-29",
-          "by": "claude",
-          "what": "backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
-        }
+        "2026-08-29 claude: backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
       ]
     },
     {
@@ -24433,11 +24425,7 @@
         }
       ],
       "audit_log": [
-        {
-          "at": "2026-08-29",
-          "by": "claude",
-          "what": "backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
-        }
+        "2026-08-29 claude: backfilled matched=[<entry_id's item>]; it was empty, so every rule on this entry resolved against an empty scope and bound nothing. The entry_id encodes the item, and 1304/1304 entries that already had matched contain their own item, so the value is determined, not guessed. Locked entries repaired on explicit instruction; lock kept."
       ]
     },
     {
