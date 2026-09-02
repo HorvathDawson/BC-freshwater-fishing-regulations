@@ -20,7 +20,8 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
       {rows.map((r) => (
         <div
           key={r.entry_id}
-          className={`queue-row${selected === r.entry_id ? " selected" : ""}`}
+          className={`queue-row${selected === r.entry_id ? " selected" : ""}` +
+            (r.reference_only ? " is-reference" : "")}
           onClick={() => onSelect(r.entry_id)}
         >
           <div className="name">
@@ -31,8 +32,8 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
               </span>
             )}
             {r.reference_only && (
-              <span className="badge" title="pointer row — the synopsis names this water but sends you to another entry">
-                ↪ reference
+              <span className="badge reference" title="pointer row — carries no regulations of its own; it sends you to another entry">
+                ↪ reference only
               </span>
             )}
             {r.locked && <span className="badge lock">🔒 locked</span>}

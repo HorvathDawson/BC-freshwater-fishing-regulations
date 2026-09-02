@@ -104,6 +104,10 @@ export interface Entry {
   reviewed_at: string;
   revisit: boolean;
   revisit_note: string;
+  /** This row carries no regulations of its own — it points at another entry under a different
+   *  name ("BEAR LAKE: See Cowichan Lake"). The backend has always saved it; the type omitted it,
+   *  so every read of `entry.reference_only` in EntryDetail was a typecheck error. */
+  reference_only: boolean;
   parse_review: ParseReview;
   matched: string[];
   registry_status: RegistryStatus;

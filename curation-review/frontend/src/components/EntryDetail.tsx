@@ -194,14 +194,46 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
     }
   }
 
+  // "See Cowichan Lake" -> "Cowichan Lake". The curator can override it in registry_note; this is
+  // just so the banner can NAME the target instead of saying "another entry".
+  const pointerTarget =
+    (entry.registry_note || "").trim() ||
+    (/^\s*see\s+(.+?)\s*$/im.exec((entry.regs_verbatim || "").split("\n")[0] || "")?.[1] ?? "");
+
   return (
     <div className="detail">
       <div className="detail-cols">
         <div className="detail-content">
+      {/* Reference-only banner. A pointer row LOOKS like a normal entry — same name, same shape,
+          a rule or two parsed out of "See Cowichan Lake" — so the only thing separating it from a
+          real regulation was a checkbox at the bottom of the page. Curators confirmed pointer rows
+          as if they carried rules. State it at the top, before anything else is read. */}
+      {entry.reference_only && (
+        <div className="reference-banner">
+          <span className="reference-banner-icon">↪</span>
+          <div>
+            <strong>Reference only — this row carries no regulations of its own.</strong>
+            <div className="reference-banner-sub">
+              The synopsis lists this water here only to send you somewhere else
+              {pointerTarget ? (
+                <> — see <b>{pointerTarget}</b></>
+              ) : null}
+              . Nothing below is a rule that applies to it; don&rsquo;t bind extents or confirm it as
+              a regulation. It stays an entry so a search for this name still finds something.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Identity header */}
-      <div className="identity">
+      <div className={`identity${entry.reference_only ? " is-reference" : ""}`}>
         <h2>
           {entry.identity.name}{" "}
+          {entry.reference_only && (
+            <span className="badge reference" title="pointer row — carries no regulations of its own">
+              ↪ reference only
+            </span>
+          )}
           {entry.locked && <span className="badge lock">🔒 locked</span>}
           {entry.revisit && <span className="badge revisit">↻ revisit later</span>}
         </h2>
@@ -764,6 +796,34 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
 
       {/* Actions */}
       <div className="actions">
+        <label
+          className="revisit"
+          title={
+            "This row carries no regulations of its own \u2014 it points at another entry " +
+            "under a different name (\u201cVEDDER RIVER: See Chilliwack River\u201d), or the " +
+            "same water under an older name. It stays searchable, but the app must not " +
+            "treat it as a second, conflicting set of rules."
+          }
+        >
+          <input
+            type="checkbox"
+            checked={!!entry.reference_only}
+            onChange={(e) =>
+              setEntry((s) => ({ ...s, reference_only: e.target.checked }))
+            }
+          />{" "}
+          reference only
+          <input
+            type="text"
+            className="revisit-note"
+            placeholder="points at which entry? (recorded in registry_note)"
+            value={entry.registry_note ?? ""}
+            disabled={!entry.reference_only}
+            onChange={(e) =>
+              setEntry((s) => ({ ...s, registry_note: e.target.value }))
+            }
+          />
+        </label>
         <label className="revisit" title="Conditionally accept: confirm now but flag it to revisit later">
           <input
             type="checkbox"

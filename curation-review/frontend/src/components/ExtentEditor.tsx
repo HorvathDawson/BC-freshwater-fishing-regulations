@@ -46,7 +46,10 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
     let splits = extents[i].splits;
     if (arity != null && splits.length > arity) splits = splits.slice(0, arity);
     if (op === "whole") splits = [];
-    update(i, { op, splits });
+    // `item_ids` is derived from the CUT-POINTS' owners, so it is meaningless once there are no
+    // cuts; leaving it set would scope a whole-water extent to whatever the previous op happened to
+    // bind. `item_id` is the curator's own choice and survives.
+    update(i, op === "whole" ? { op, splits, item_ids: [] } : { op, splits });
   }
   // Which registry items the chosen cut-points belong to.
   function owners(splits: string[]): string[] {
@@ -122,6 +125,28 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
                   <span className="dim">no bindable splits on matched item</span>
                 );
               })()}
+            {/* Which water this extent selects from. A whole-water extent on a MULTI-WATER entry is
+                how a rule includes one member on its own — the Sumas River polygon inside DFO's
+                Chilliwack/Vedder row, or a reservoir polygon beside its river. Extents are UNIONed,
+                so "the river above the lake, plus the lake" is two extents, and without this control
+                the second one could not be expressed in the app at all. Hidden on a single-water
+                entry, where there is nothing to choose. */}
+            {ex.op === "whole" && Object.keys(itemNames).length > 1 && (
+              <select
+                value={ex.item_id ?? ""}
+                title="which of this entry's waters this extent selects — default is all of them"
+                onChange={(e) =>
+                  update(i, { item_id: e.target.value || null, item_ids: [] })
+                }
+              >
+                <option value="">every water this entry covers</option>
+                {Object.entries(itemNames).map(([id, nm]) => (
+                  <option key={id} value={id}>
+                    only {nm} — {id}
+                  </option>
+                ))}
+              </select>
+            )}
             {ex.op === "within" && (
               <input
                 type="text"
@@ -134,6 +159,11 @@ export function ExtentEditor({ extents, boundaries, onChange, itemNames = {} }: 
               <span className="dim">
                 {ex.splits.length}/{arity} split{arity === 1 ? "" : "s"}
                 {ex.splits.length !== arity ? " ⚠" : ""}
+              </span>
+            )}
+            {ex.item_id && (
+              <span className="badge" title="this extent selects from one of the entry's waters only">
+                only {itemNames[ex.item_id] ?? ex.item_id}
               </span>
             )}
             {(ex.item_ids?.length ?? 0) > 1 && (
