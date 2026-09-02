@@ -1549,19 +1549,43 @@ def test_grouping_is_idempotent():
     assert propose_groups(ef) == []
 
 
-def test_real_groupings_never_pair_different_ops():
+def test_automatic_groupings_never_pair_different_ops():
+    """The AUTOMATIC grouper buckets on (water, section, op, tributaries) and must not cross any of
+    them — two scopes differing on the op are not the same reach as far as text can tell.
+
+    A CURATOR-CONFIRMED grouping is exempt, and has to be: the Somass's island reach parses
+    `upstream_of` ("200 metres above and 150 metres below the island") while its live replacement
+    parses `between` ("from the northern boundary of Somass Park downstream to the southern"), and
+    they are the same 660 m of river — measured at 661 m and 663 m, two metres apart. The op is a
+    property of the WORDING; the reach is a property of the geometry. Only a human (or a resolved
+    section comparison) can see past that, which is exactly what `duplicate_confirmed` records.
+    """
     from pipeline.dfo_salmon.entries import load
 
+    checked = 0
     for slug in ("1", "2", "6", "8"):
         ef = load(slug)
         by_id = {l.location_id: l for l in ef.locations}
         for loc in ef.locations:
-            if not loc.is_variant:
-                continue
+            if not loc.is_variant or loc.duplicate_confirmed:
+                continue                      # curator-confirmed groupings may cross ops
             primary = by_id[loc.duplicate_of]
+            checked += 1
             assert loc.source_text.get("op") == primary.source_text.get("op"), loc.location_id
             assert loc.binding.tributaries == primary.binding.tributaries, loc.location_id
             assert loc.section == primary.section, loc.location_id
+    assert checked, "expected at least one automatic grouping to check"
+
+
+def test_a_curator_confirmed_grouping_records_why_it_crossed_an_op():
+    """An exemption that carries no reasoning is indistinguishable from a mistake."""
+    from pipeline.dfo_salmon.entries import load
+
+    for slug in ("1", "2", "5b", "6"):
+        for loc in load(slug).locations:
+            if not (loc.is_variant and loc.duplicate_confirmed):
+                continue
+            assert loc.binding.notes, "%s: confirmed grouping with no note" % loc.location_id
 
 
 # ---------------------------------------------------------------------------

@@ -2962,7 +2962,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "splits": []
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -3011,12 +3016,19 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "splits": []
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "'Except in those areas and times listed below' is a RESIDUAL scope, not a place: the whole river minus the reaches carved out beneath it. Bound as `whole`; the carve-outs are the sibling locations, and precedence resolves the overlap."
+        ],
         "spatial_caveat": false
       }
     },
@@ -3077,12 +3089,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "somass_river__tidal_boundary_at_papermill_dam",
+              "somass_river__boundary_signs_1km_u_s"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Same reach as the live '...to the northeast corner of Collins Farm' locator, reworded. DFO's 0.5 km is loose: the curated upstream cut resolves 1,304 m above the dam."
+        ],
         "spatial_caveat": false
       }
     },
@@ -3128,20 +3150,30 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": null,
-      "duplicate_score": null,
-      "duplicate_confirmed": null,
+      "duplicate_of": "1:somass-river:from-the-northern-boundary-of-soma",
+      "duplicate_score": 1.0,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "somass_river__somass_park_south",
+              "somass_river__somass_park_north"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "SAME REACH as the live Somass Park locator, reworded — curator-confirmed. DFO described it in 2023-24 as '200 m above and 150 m below the island near the boat launch', and from 2024 on as 'from the northern boundary of Somass Park downstream to the southern boundary'. Measured: the island wording (curator pins 49.286879/-124.868498 top, 49.284243/-124.867080 bottom, 4 m and 11 m off the centreline) gives 7,024.0..7,685.5 = 661 m; the park wording gives 7,136.8..7,799.5 = 663 m. Two metres apart in length, offset a consistent ~113 m at both ends. Bound to the PARK cuts rather than minting a near-duplicate pair: DFO's '200 m / 150 m' is approximate and the reach is the same water."
+        ],
         "spatial_caveat": false
       }
     },
@@ -3939,12 +3971,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "somass_river__tidal_boundary_at_papermill_dam",
+              "somass_river__boundary_signs_1km_u_s"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "Same reach as the live Paper Mill Dam -> Collins Farm locator, reworded."
+        ],
         "spatial_caveat": false
       }
     },
@@ -4156,7 +4198,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "somass_river__tidal_boundary_at_papermill_dam",
+              "somass_river__boundary_signs_1km_u_s"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4216,7 +4266,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "somass_river__somass_park_south",
+              "somass_river__somass_park_north"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -4939,7 +4997,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "somass_river__west_coast_river_lodge_east",
+              "somass_river__boundary_signs_1km_u_s"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],

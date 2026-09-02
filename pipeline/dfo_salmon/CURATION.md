@@ -1,5 +1,9 @@
 # What is manual, what is not, and how to do the manual part
 
+> **Running a curation sitting?** This document is the *design*. The *operating manual* —
+> exact commands, the per-water loop, current counts, and the traps — is
+> [`pipeline/docs/HANDOFF-dfo-curation.md`](../docs/HANDOFF-dfo-curation.md).
+
 **Every number here is measured** from the 346 seeded locations and 438 scraped rules.
 Reproduce with `pipeline.dfo_salmon.locations`, `… entries seed --history`, and the
 registry at `output/v2/full/registry.json`.

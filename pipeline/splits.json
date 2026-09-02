@@ -1787,10 +1787,67 @@
             "is_lonlat": true
           },
           "note": "",
-          "_note": "[manual anchor 2026-08-09] upstream end of the Somass No-Fishing reach; southern end of Collins Farm/Arrow Vale Campground on Hector Rd (user pin); ~1km u/s of Paper Mill Dam.",
+          "_note": "[manual anchor 2026-08-09] upstream end of the Somass No-Fishing reach; southern end of Collins Farm/Arrow Vale Campground on Hector Rd (user pin); ~1km u/s of Paper Mill Dam. [dfo-salmon 2026-09-02] THE POINT IS CORRECT — do not move it. DFO has reworded this same boundary three times and its stated distance disagrees with the pin; that is wording and measurement drift, not a different feature. Archived region-1 pages: 20230215 'white triangular fishing boundary signs approximately 0.5 km upstream (Falls Road Gravel Pit and the southernmost end of Collins Farm/Arrow Vale Campground-Hector Road)'; 20231003 and 20240124 a bare 'approximately 0.5 km upstream'; 20240624 onward including the live page 'approximately 0.5km to the northeast corner of Collins Farm'. The pin resolves 1,304 m above the Papermill Dam cut, so DFO's '0.5 km' is loose and its 'southernmost end' / 'northeast corner' name two corners of one farm. Recorded so the next reader does not re-open it.",
           "_coord": [
             -124.86386,
             49.28193
+          ]
+        },
+        {
+          "id": "somass_river__somass_park_north",
+          "label": "northern boundary of Somass Park",
+          "kind": "point",
+          "anchor": {
+            "type": "point",
+            "coord": [
+              -124.8697847,
+              49.2896493
+            ],
+            "is_lonlat": true
+          },
+          "note": "",
+          "_note": "[dfo-salmon 2026-09-02] DFO r1 (live): 'from the northern boundary of Somass Park (off Service Road) downstream to the southern boundary of Somass Park.' Somass Park is OSM way/1340481943 (leisure=park, 6315 Service Road, 11.22 ha). The park does NOT touch the river — only 2 of its 21 vertices are within 60 m of the water, the rest 152-216 m inland — so 'boundary' means the river alongside it, and the anchor is the park's river-facing NORTH vertex (v1, 50.6 m off the centreline), which resolves to measure 7,799.5. Using the polygon's northernmost vertex instead would have been right by accident: v0 is 216 m inland and happens to project 6.5 m away.",
+          "_coord": [
+            -124.8697847,
+            49.2896493
+          ]
+        },
+        {
+          "id": "somass_river__somass_park_south",
+          "label": "southern boundary of Somass Park",
+          "kind": "point",
+          "anchor": {
+            "type": "point",
+            "coord": [
+              -124.8672393,
+              49.2838312
+            ],
+            "is_lonlat": true
+          },
+          "note": "",
+          "_note": "[dfo-salmon 2026-09-02] DFO r1 (live): the downstream end of the Somass Park reach. Park's river-facing SOUTH vertex (v3, 40.0 m off the centreline), resolving to measure 7,136.8. CROSS-CHECK: the 2023-24 DFO wording for what is evidently the same reach — '200 metres above and 150 metres below the island near the boat launch at Somass Park' (curator-pinned island 49.286879/-124.868498 and 49.284243/-124.867080, 4 m and 11 m off the centreline) — gives 7,024.0..7,685.5, i.e. 661 m against this reach's 663 m, offset a consistent ~113 m upstream. Two independently-worded DFO reaches two years apart agreeing on length to 2 m.",
+          "_coord": [
+            -124.8672393,
+            49.2838312
+          ]
+        },
+        {
+          "id": "somass_river__west_coast_river_lodge_east",
+          "label": "eastern boundary of West Coast River Lodge (Rincon Road)",
+          "kind": "point",
+          "anchor": {
+            "type": "point",
+            "coord": [
+              -124.88019013049504,
+              49.294008200245344
+            ],
+            "is_lonlat": true
+          },
+          "note": "",
+          "_note": "[dfo-salmon 2026-09-02] DFO r1: 'from the eastern boundary of West Coast River Lodge on Rincon Road downstream to the northeast corner of Collins Farm, approximately 0.5km upstream from the tidal boundary signs at the top of the rapids at Paper Mill Dam.' Seen only on the 20260116 archived page and NOT on the live one — written anyway, because a dormant locator is one a regulation update can reintroduce, and a pin costs nothing until a rule binds to it. Curator-supplied coordinate, 15 m off the centreline, resolving to measure 9,198.5. NOT an alias of the river's head: the Somass is 9,513 m and ends where the Stamp joins (wsc 930-139262-993282, a child of the Somass's 930-139262), so this sits 314 m below that natural end — a real interior point.",
+          "_coord": [
+            -124.88019013049504,
+            49.294008200245344
           ]
         }
       ]
