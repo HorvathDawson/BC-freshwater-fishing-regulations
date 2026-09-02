@@ -12,6 +12,7 @@ from pathlib import Path
 from pipeline.parsing.parse_context import render_boundary_menu
 
 _REVIEW_PROMPT = Path(__file__).resolve().parent / "prompts" / "REVIEW_PROMPT.md"
+_STANDARDS = Path(__file__).resolve().parent / "prompts" / "RULE_STANDARDS.md"
 
 _ENVELOPE = """\
 ---
@@ -31,6 +32,8 @@ model should re-parse; `low` for nits. Judge from the material shown — do not 
 def render_review_prompt(batch_items: list[dict], results_by_index: dict[int, dict]) -> str:
     """`batch_items` = the batch file's items; `results_by_index` = index -> produced entry dict."""
     parts = [_REVIEW_PROMPT.read_text(encoding="utf-8"),
+             "\n\n---\n\n",
+             _STANDARDS.read_text(encoding="utf-8"),   # findings 8 and 9 cite it by name
              "\n\n---\n\n# REVIEW THESE ROWS\n"]
     for it in batch_items:
         idx = it["index"]
