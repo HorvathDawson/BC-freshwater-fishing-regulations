@@ -51,7 +51,12 @@ def blk_endpoints(geom: Any) -> tuple[Optional[str], Optional[str]]:
 
 
 def merge_ordered(geoms: list[Any]) -> LineString:
-    """Stitch geometries already sorted mouth->source into one 2D LineString."""
+    """Stitch geometries already sorted mouth->source into one 2D LineString.
+
+    Assumes the pieces are CONTIGUOUS — a single blue line cut into fids. Where that holds
+    it is exactly right; where it does not, see `merge_runs` below, which is what lake
+    geometry needs.
+    """
     coords: list[tuple[float, float]] = []
     for g in geoms:
         gc = line_coords_2d(g)
@@ -62,6 +67,35 @@ def merge_ordered(geoms: list[Any]) -> LineString:
         else:
             coords.extend(gc)
     return LineString(coords) if len(coords) >= 2 else LineString()
+
+
+def merge_runs(geoms: list[Any]):
+    """Join what actually touches; keep the rest apart. Returns a Multi/LineString.
+
+    THE BUG THIS EXISTS FOR. `merge_ordered` extends its coordinate list whether or not the
+    next piece begins where the last one ended — so two disjoint under-lake lines became one
+    LineString with a straight segment drawn between them. A lake fed by several tributaries
+    has several through-lines, and stitching them produced a single self-crossing polyline
+    running clean off the far side of the water it supposedly crossed. Measured against each
+    waterbody's own outline, the worst was 293 times longer than the lake.
+
+    A route through a lake is not one line, and pretending otherwise draws a connection that
+    does not exist. Contiguous pieces still join — a chain of lakes still reads as one river
+    where the data says it is one — and everything else stays separate.
+    """
+    runs: list[list[tuple[float, float]]] = []
+    for g in geoms:
+        gc = line_coords_2d(g)
+        if not gc:
+            continue
+        if runs and runs[-1][-1] == gc[0]:
+            runs[-1].extend(gc[1:])
+        else:
+            runs.append(list(gc))
+    parts = [LineString(r) for r in runs if len(r) >= 2]
+    if not parts:
+        return LineString()
+    return parts[0] if len(parts) == 1 else MultiLineString(parts)
 
 
 def substring_cut(geometry: Any, mouth_measure: float, start_m: float, end_m: float) -> Any:

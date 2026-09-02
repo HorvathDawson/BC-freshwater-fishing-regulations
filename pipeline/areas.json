@@ -6,21 +6,29 @@
       "layer": "parks_nat",
       "name_field": "ENGLISH_NAME",
       "which": "all",
-      "note": "All national parks (102) — closures apply to all waters within."
+      "note": "All national parks (102) — closures apply to all waters within.",
+      "cut": true,
+      "tile_layer": "park",
+      "tile_kind": "national"
     },
     {
       "id": "ecological_reserves",
       "layer": "parks_bc",
       "name_field": "PROTECTED_LANDS_NAME",
       "where": "PROTECTED_LANDS_DESIGNATION = 'ECOLOGICAL RESERVE'",
-      "note": "All ecological reserves (a designation within parks_bc)."
+      "note": "All ecological reserves (a designation within parks_bc).",
+      "cut": true,
+      "tile_layer": "eco_reserve"
     },
     {
       "id": "chilkoot_trail",
       "layer": "historic_sites",
       "name_field": "COMMON_SITE_NAME",
       "where": "SITE_ID = '4af28ce2-bda0-47bf-8e64-664b1be54922'",
-      "note": "Chilkoot Trail National Historic Site (Region 6, MU 6-28). Single feature."
+      "note": "Chilkoot Trail National Historic Site (Region 6, MU 6-28). Single feature.",
+      "cut": true,
+      "tile_layer": "park",
+      "tile_kind": "historic"
     },
     {
       "id": "restricted_land_access",
@@ -30,7 +38,52 @@
       "per_feature": true,
       "label_default": "Restricted-access land",
       "where": "restriction_level = 'closed'",
-      "note": "OSM land the public cannot enter — access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers)."
+      "note": "OSM land the public cannot enter — access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers).",
+      "cut": true,
+      "tile_layer": "no_access"
+    },
+    {
+      "id": "provincial_parks",
+      "kind": "park",
+      "layer": "parks_bc",
+      "name_field": "PROTECTED_LANDS_NAME",
+      "where": "PROTECTED_LANDS_DESIGNATION <> 'ECOLOGICAL RESERVE'",
+      "cut": false,
+      "note": "BC provincial parks, protected areas and recreation areas (782). Regs name these directly — STRATHCONA PARK WATERS, KIKOMUN CREEK PARK, BOWRON LAKE Park, Garibaldi, Hamber — and every one of those entries is currently no_registry because the area does not exist to bind to. Membership-only: a park boundary is not a drainage divide, but these are advisories and gear rules rather than the blanket closures that need an exact inside/outside edge.",
+      "tile_layer": "park",
+      "tile_kind": "provincial"
+    },
+    {
+      "id": "wildlife_management_areas",
+      "kind": "wma",
+      "layer": "wma",
+      "name_field": "WILDLIFE_MANAGEMENT_AREA_NAME",
+      "which": "all",
+      "cut": false,
+      "note": "35 WMAs. CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS is a Region 4 entry with unlimited bass and yellow perch quotas and no area to attach to; the archived base regs also targeted this layer for zone_r4_creston_valley_wma_permit.",
+      "tile_layer": "wma"
+    },
+    {
+      "id": "watersheds",
+      "kind": "watershed",
+      "layer": "watersheds",
+      "name_field": "GNIS_NAME",
+      "where": "GNIS_NAME = 'Liard River'",
+      "cut": false,
+      "note": "FWA named watersheds, filtered to the ones a regulation actually names. LIARD RIVER WATERSHED (bull trout catch-and-release, Aug 15 - Oct 15) is the entry; the polygon is 142,173 km2 and intersects 322,626 sections, 15.7% of the atlas. NEVER cut: a watershed boundary is a drainage divide, so water does not cross it, and cutting 322k sections would buy nothing. Add further watersheds to the `where` as regs name them.",
+      "tile_layer": "watershed"
+    },
+    {
+      "id": "aboriginal_lands",
+      "kind": "indigenous_land",
+      "layer": "aboriginal_lands",
+      "name_field": "name",
+      "which": "all",
+      "cut": false,
+      "note": "929 reserves and treaty lands. PROV_ABORIGINAL_LANDS_ADVISORY in the archived base regs targets this layer: an advisory about access and permission, not a fishing closure. Membership-only and never cut.",
+      "tile_layer": "indigenous_land"
     }
-  ]
+  ],
+  "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut.",
+  "_tile_note": "`tile_layer` names the vector-tile layer this area's POLYGONS are drawn in (pipeline/tiles/layers.py). It is here, not in the tile exporter, so a selector is written once: the graph build uses it to stamp `in_areas` and the exporter uses the same def to draw the boundary. Two copies of a selector is two things that can disagree about what a park is."
 }

@@ -45,6 +45,16 @@ class StreamNode:
                                                 # blk, split at the provincial outline). Geometry is
                                                 # KEPT (unlike under-lake) for dotted display; NOT a
                                                 # barrier — BC regs simply don't apply here.
+    mus: tuple[str, ...] = ()                    # wildlife management units this piece TOUCHES
+                                                # ("2-8", "2-9"). Administrative geography, not a
+                                                # regulation: every square metre of BC is in an MU
+                                                # whether or not anything is regulated there, which
+                                                # is why this may ride on a tile feature while
+                                                # `in_areas` (regulated areas only) may not.
+                                                # 99.14% of sections touch exactly one; 16,505 touch
+                                                # two; 196 touch three or more. Zone regs resolve
+                                                # through this — without it an unnamed stream has no
+                                                # MU and no zone rule can reach it.
     in_areas: tuple[str, ...] = ()               # admin/park polygons (by label) this piece falls
                                                 # INSIDE, set by an `area_boundary` split's inside-flag
                                                 # pass. A geometric fact only (rule-agnostic); Phase-5
@@ -100,3 +110,13 @@ class StreamGraph:
     edges: list[FlowEdge] = field(default_factory=list)
     up_adj: dict[str, list[int]] = field(default_factory=dict)    # to_node -> edge indices (tributaries in)
     down_adj: dict[str, list[int]] = field(default_factory=dict)  # from_node -> edge indices (flows out)
+
+
+# Which edges continue the SAME water, rather than joining another to it.
+#
+# One definition, in the module both walkers already import. It was declared twice — in
+# `pipeline/graph/tributaries.py` and `pipeline/reach/tributaries.py` — for two genuinely
+# different algorithms (a set subtraction for one section, a refusing walk over a reach).
+# The algorithms should differ; what counts as "still the same river" must not, or the two
+# disagree about which water a rule reaches.
+MAINSTEM_EDGE_KINDS = frozenset({"continuation", "lake_out"})

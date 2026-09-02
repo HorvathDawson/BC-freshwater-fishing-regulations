@@ -55,7 +55,8 @@ from pipeline.models import NodeKind, StreamGraph
 
 #: Edges by which a river continues into its own next piece. Crossing one of these OUT of
 #: the reach means leaving onto the mainstem above, which is not a tributary.
-MAINSTEM_EDGE_KINDS = frozenset({"continuation", "lake_out"})
+# Imported, not redeclared — see pipeline/models/graph.py.
+from pipeline.models.graph import MAINSTEM_EDGE_KINDS
 
 
 def _through_blks(graph: StreamGraph, node_id: str) -> frozenset[str]:

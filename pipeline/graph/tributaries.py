@@ -18,7 +18,8 @@ from __future__ import annotations
 from pipeline.graph.graph import ancestors  # noqa: F401  (re-export the guarded closure)
 from pipeline.models import NodeKind, StreamGraph
 
-_MAINSTEM_EDGE_KINDS = frozenset({"continuation", "lake_out"})
+# Imported, not redeclared — see pipeline/models/graph.py.
+from pipeline.models.graph import MAINSTEM_EDGE_KINDS as _MAINSTEM_EDGE_KINDS
 
 
 def tributary_node_ids(graph: StreamGraph, node_id: str, guarded: bool = True) -> frozenset[str]:

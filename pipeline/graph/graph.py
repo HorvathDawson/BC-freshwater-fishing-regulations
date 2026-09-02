@@ -278,7 +278,10 @@ def build_section_geometries(chains: list[BlkChain], fid_rows: list[FidRow],
                                              frs[0].down_m, frs[-1].up_m)
     for owner, frs in lake_fids.items():
         frs.sort(key=lambda r: r.down_m)
-        geoms[owner] = cutting.merge_ordered([r.geometry for r in frs])
+        # `merge_runs`, NOT `merge_ordered`: a lake's under-lake fids are several separate
+        # through-lines, one per tributary, and stitching them into one LineString drew a
+        # straight jump between every pair. See cutting.merge_runs.
+        geoms[owner] = cutting.merge_runs([r.geometry for r in frs])
     return geoms
 
 

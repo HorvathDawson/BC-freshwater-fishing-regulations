@@ -104,18 +104,41 @@ export function LegendCount({ palette, colour, n, label }:
  * The Conditions legend: a continuous ramp, because flow against the record is continuous.
  * Discrete swatches would imply buckets the data does not have.
  */
-export function LegendRamp({ palette, stops, low, high }: {
+export function LegendRamp({ palette, stops, low, high, marks, mid }: {
   palette: Palette; stops: readonly string[]; low: string; high: string;
+  /**
+   * Where the gauges currently on screen sit on this scale, 0–1.
+   *
+   * This is what turns a legend from a key into a READING. Without them the ramp says
+   * "there is a scale"; with them it says "and the rivers you are looking at are down
+   * here" — which is the whole question a person opened this view to ask.
+   */
+  marks?: readonly number[];
+  /** Optional centre label, e.g. "normal". */
+  mid?: string;
 }) {
   return (
     <View style={{ flex: 1, gap: 4, minWidth: 240 }}>
-      <View style={{ flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden" }}>
-        {stops.map((c, i) => (
-          <View key={i} style={{ flex: 1, backgroundColor: c }} />
+      <View style={{ height: 9, justifyContent: "center" }}>
+        <View style={{ flexDirection: "row", height: 7, borderRadius: 4,
+                       overflow: "hidden" }}>
+          {stops.map((c, i) => (
+            <View key={i} style={{ flex: 1, backgroundColor: c }} />
+          ))}
+        </View>
+        {(marks ?? []).map((m, i) => (
+          <View key={i} accessibilityLabel={`gauge at ${Math.round(m * 100)}%`}
+                style={{ position: "absolute", left: `${Math.min(99, Math.max(0, m * 100))}%`,
+                         width: 2.5, height: 11, marginLeft: -1.25, borderRadius: 1.5,
+                         backgroundColor: palette.ink,
+                         borderWidth: 1, borderColor: palette.card }} />
         ))}
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>{low}</Text>
+        {mid && (
+          <Text style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>{mid}</Text>
+        )}
         <Text style={{ ...TYPE.small, fontSize: 10.5, color: palette.faint }}>{high}</Text>
       </View>
     </View>

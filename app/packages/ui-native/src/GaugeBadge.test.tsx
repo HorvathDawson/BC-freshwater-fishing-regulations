@@ -5,8 +5,8 @@
  * that closed in 2004, or for one measuring a river forty times the size. Every test here
  * checks that the four states stay four.
  */
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render } from "@testing-library/react";
 import { GaugeBadge } from "./GaugeBadge";
 import type { GaugeLink } from "@app/data";
 import { LIGHT } from "./theme";
@@ -120,5 +120,33 @@ describe("<GaugeBadge> record length", () => {
                   record={{ fromYear: 1913, toYear: 2026, years: 97 }} />);
     expect(getByText(/describes this water/)).toBeTruthy();
     expect(getByText(/97 years/)).toBeTruthy();
+  });
+});
+
+describe("<ConditionsScreen>", () => {
+  const src = (over: Record<string, unknown> = {}) => ({
+    gaugeForSection: async () => null,
+    gaugeNow: async () => null,
+    gaugeSeries: async () => null,
+    traceToGauge: async () => [],
+    ...over,
+  } as never);
+
+  it("says WHY there is no reading, rather than showing a blank", async () => {
+    const { ConditionsScreen } = await import("./ConditionsScreen");
+    const { findByText } = render(
+      <ConditionsScreen source={src()} section={"1:0" as never} palette={LIGHT}
+                        onBack={() => {}} />);
+    expect(await findByText(/No gauge is entitled to speak/)).toBeTruthy();
+  });
+
+  it("offers a way back, because it is a detail view not a tab", async () => {
+    const { ConditionsScreen } = await import("./ConditionsScreen");
+    const onBack = vi.fn();
+    const { findByLabelText } = render(
+      <ConditionsScreen source={src()} section={"1:0" as never} palette={LIGHT}
+                        onBack={onBack} />);
+    fireEvent.click(await findByLabelText("Back"));
+    expect(onBack).toHaveBeenCalled();
   });
 });

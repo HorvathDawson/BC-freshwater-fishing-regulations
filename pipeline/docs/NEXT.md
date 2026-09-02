@@ -2,6 +2,57 @@
 
 ---
 
+## 0a. PARKED — a reach's rules should reach the named side channels inside it
+
+**Not urgent. Recorded so it is not rediscovered from scratch.**
+
+`fraser_river_region2.r4` closes "the Jesperson's Side Channel, Herrling Side Channel, and
+Seabird Island north Side Channel" from May 15 to Jul 31. It resolves to nothing, and the
+reason is only a naming gap — all three ARE in the atlas:
+
+| the regulation says | the atlas has |
+|---|---|
+| the Jesperson's Side Channel | `Jeperson Side Channel` |
+| Herrling Side Channel | `Herrling Island Side Channel` |
+| Seabird Island north Side Channel | `Seabird Island North Side Channel` (case only) |
+
+Three `name_variants` entries would bind it. **But that is only half the problem, and the
+other half is the interesting one.**
+
+### The general question
+
+A side channel is *inside* a reach of the Fraser. Two different things are true of it at once:
+
+1. rules written **about the side channel by name** apply to it — the r4 closure above;
+2. rules written **about the stretch of Fraser it sits in** should apply to it too, because
+   it is that river. A closure on "the Fraser upstream of the CPR Bridge" does not stop
+   applying because you waded into a side channel of it.
+
+Today only (1) can ever happen, and only when the name matches. Nothing distributes a
+parent reach's rules down to the named channels that branch off it.
+
+This is not specific to the Fraser. It is the general shape of **a named feature contained
+within another named feature** — side channels, sloughs, back-eddies, a named pool on a
+named river — and it wants a real answer rather than three name variants:
+
+- containment has to be derived (geometry? the graph's own topology, since a side channel
+  rejoins the parent?), not curated one at a time;
+- inheritance has to be **directional** — the parent's rules flow down, the child's do not
+  flow up to the whole river;
+- and a child rule must be able to *override* an inherited one, or a side channel could
+  never be closed while the mainstem stays open, which is exactly what r4 does.
+
+### Why it is parked and not done
+
+The name-variant fix alone would make r4 bind and look solved, while leaving every side
+channel silently missing the parent's rules — a worse failure than the visible one, because
+`unknown` at least says it does not know. Do the mechanism, or leave the flag showing.
+
+Until then the app does the honest thing: those reaches read **unknown**, the rule text and
+its locators are shown on their sheets, and nothing is applied.
+
+---
+
 ## 0. The active build — `output/v2/full` (adopted 2026-08-29)
 
 **Section 0's old warning about `full_named` is resolved and gone.** That build was never

@@ -152,9 +152,21 @@ describe("the flow ramp's units", () => {
     const mode = STYLE_META.colorModes.stream!.standing! as
       { scale: string; stops: [number, unknown][] };
     expect(mode.scale).toBe("continuous");
-    const ats = mode.stops.map(([at]) => at);
+    const ats = mode.stops.map(([at]) => at).filter((a) => a >= 0);
     expect(Math.max(...ats)).toBe(100);
     expect(Math.min(...ats)).toBe(0);
+  });
+
+  it("reserves a stop below the scale for 'gauged, but no history'", () => {
+    // 8 of BC's reporting stations have a working gauge and no record to compare today
+    // against. Before this they painted identically to water nobody measures — the wrong
+    // claim in the other direction. -1 is a sentinel, never a percentile: real values are
+    // 0..100, so nothing interpolates across the gap.
+    const mode = STYLE_META.colorModes.stream!.standing! as
+      { stops: [number, { token: string }][] };
+    const sentinel = mode.stops.filter(([at]) => at < 0);
+    expect(sentinel).toHaveLength(1);
+    expect(sentinel[0]![1].token).toBe("color.flow.nobaseline");
   });
 
   it("reads the value from feature-state, not from the tile", () => {

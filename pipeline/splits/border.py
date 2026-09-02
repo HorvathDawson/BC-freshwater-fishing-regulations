@@ -217,6 +217,133 @@ def mark_inside_areas(graph: StreamGraph, geoms: dict, polys_by_name: dict,
     return n
 
 
+def mark_mus(graph: StreamGraph, geoms: dict, mu_polys: dict,
+             extra: dict | None = None) -> int:
+    """Stamp ``mus`` on every water piece from the wildlife-management-unit polygons.
+
+    The mirror of ``mark_inside_areas``, and deliberately a separate function because the two
+    mean different things. ``in_areas`` is membership of a REGULATED area — a park, a reserve,
+    a watershed a rule names — and exists only where somebody wrote a regulation. ``mus`` is
+    administrative geography: every square metre of BC is in a management unit whether or not
+    anything there is regulated.
+
+    That distinction is load-bearing downstream. `mus` may ride on a public tile feature (it
+    leaks nothing); `in_areas` may not, because we only carry the areas that are regulated, so
+    "this section is in area 7" would be a regulation fact wearing a geometry costume.
+
+    Zone regulations ("in MU 4-5, no bait") resolve through this and nothing else. Before it
+    existed, MU came from the synopsis entry, so only named REGULATED water knew its MU —
+    precisely the water that does not need a zone rule, since it has its own. Every unnamed
+    stream had no MU at all and no zone rule could reach it.
+
+    ``intersects``, not ``covers``: a section is not cut at MU boundaries (they are drawn by a
+    ministry and get redrawn; baking one into the geometry would re-cut the atlas on every
+    revision), so a section that straddles legitimately belongs to both. Measured province-wide:
+    99.14% touch exactly one MU, 16,505 touch two, 196 touch three or more, coverage is 100%.
+    Where they disagree the app shows the most restrictive and says so.
+    """
+    from shapely.strtree import STRtree
+
+    extra = extra or {}
+    nids: list = []
+    gs: list = []
+    for nid, node in graph.nodes.items():
+        g = geoms.get(nid)
+        if g is None:
+            g = extra.get(nid)
+        if g is not None and not g.is_empty:
+            nids.append(nid)
+            gs.append(g)
+    if not gs or not mu_polys:
+        return 0
+    tree = STRtree(gs)
+    n = 0
+    for mu, poly in mu_polys.items():
+        if poly is None or poly.is_empty:
+            continue
+        for i in tree.query(poly, predicate="intersects"):
+            nid = nids[i]
+            node = graph.nodes[nid]
+            if mu in node.mus:
+                continue
+            graph.nodes[nid] = replace(node, mus=node.mus + (mu,))
+            n += 1
+    return n
+
+
+def load_mu_polys(gpkg: str, bbox=None) -> dict:
+    """{"2-8": (Multi)Polygon} from the wmu layer. 225 units province-wide."""
+    import geopandas as gpd
+    kw: dict = {"engine": "pyogrio"}
+    if bbox is not None:
+        kw["bbox"] = tuple(bbox)
+    g = gpd.read_file(gpkg, layer="wmu", **kw)
+    out: dict = {}
+    for _, row in g.iterrows():
+        mu = str(row.get("WILDLIFE_MGMT_UNIT_ID") or "").strip()
+        geom = row.geometry
+        if mu and geom is not None and not geom.is_empty:
+            out[mu] = geom.union(out[mu]) if mu in out else geom
+    return out
+
+
+def stamp_waterbody_membership(gpkg: str, mu_polys: dict, area_polys: dict,
+                               bbox=None) -> dict:
+    """MU and area membership for EVERY waterbody polygon, node or not.
+
+    A lake becomes a graph node when a stream is routed through it, and a wetland only when
+    something names it. Measured province-wide, that leaves **417,111 waterbodies with no
+    node at all**: 333,468 of 333,526 wetlands, 82,201 lakes and 1,442 reservoirs. They are
+    real water, they are fishable, and a zone regulation ("in MU 4-5 the trout quota is 2")
+    applies to every one of them — but with no node they carry no MU, so no zone rule can
+    reach them and they would silently read as unregulated.
+
+    Returns {wbk: {"mus": [...], "areas": [...]}} keyed by WATERBODY_KEY, which is the same
+    key the tile exporter joins polygons on. Written as a build artifact so membership is
+    computed exactly once, in the build, like everything else.
+    """
+    import geopandas as gpd
+    from shapely.strtree import STRtree
+
+    keys: list[str] = []
+    geoms: list = []
+    for layer in ("lakes", "manmade", "wetlands"):
+        kw: dict = {"engine": "pyogrio", "columns": ["WATERBODY_KEY"]}
+        if bbox is not None:
+            kw["bbox"] = tuple(bbox)
+        try:
+            gdf = gpd.read_file(gpkg, layer=layer, **kw)
+        except Exception:
+            continue
+        for k, geom in zip(gdf["WATERBODY_KEY"], gdf.geometry):
+            if k is None or geom is None or geom.is_empty:
+                continue
+            keys.append(str(int(k)))
+            geoms.append(geom)
+    if not geoms:
+        return {}
+
+    tree = STRtree(geoms)
+    out: dict[str, dict[str, list[str]]] = {}
+
+    def _add(i: int, field: str, value: str) -> None:
+        rec = out.setdefault(keys[i], {"mus": [], "areas": []})
+        if value not in rec[field]:
+            rec[field].append(value)
+
+    for mu, poly in mu_polys.items():
+        if poly is None or poly.is_empty:
+            continue
+        for i in tree.query(poly, predicate="intersects"):
+            _add(int(i), "mus", mu)
+    for area, poly in area_polys.items():
+        if poly is None or poly.is_empty:
+            continue
+        for i in tree.query(poly, predicate="intersects"):
+            _add(int(i), "areas", area)
+    return out
+
+
 def apply_border(fwa, graph: StreamGraph, geoms: dict, chains: list[BlkChain],
                  fid_index: Optional[dict] = None, prof=None) -> tuple[int, int]:
     """Full border pass: outline -> split cross-border BLKs -> flag out-of-BC pieces.

@@ -20,6 +20,7 @@ import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
 import { SpotsScreen } from "./SpotsScreen";
 import { SpotCapture } from "./SpotCapture";
+import { ConditionsScreen } from "./ConditionsScreen";
 import { SpotScreen } from "./SpotScreen";
 import { TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
@@ -80,6 +81,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   // The reaches the map currently has rendered. Only the Conditions view needs them, so
   // nothing is queried while the map is showing regulations.
   const [visible, setVisible] = useState<readonly SectionId[]>([]);
+  // The reach tapped while in Conditions. A tap there asks "what is THIS water doing",
+  // which is a different question from the regulations sheet a tap on the Map tab opens.
+  const [condSection, setCondSection] = useState<SectionId | null>(null);
   // Percentiles for what is on screen. Empty while the feed is unreachable, which paints
   // nothing rather than painting every reach as a drought.
   // STABLE IDENTITY MATTERS HERE. As an inline arrow this changed every render, so the
@@ -91,6 +95,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
     (ids: readonly string[]) => setVisible(ids as readonly SectionId[]), []);
   const standings = useStandings(source, feed, visible);
   const gauges = useGaugeGeoJSON(source, feed, tab === "conditions");
+  // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
+  // "gauged but no history") are excluded: they are a state, not a point on the scale.
+  const visibleMarks = useMemo(
+    () => [...standings.values()].filter((p) => p >= 0).sort((a, b) => a - b),
+    [standings]);
   // Into the map's OWN per-feature channel — `setData` already pushes these to
   // feature-state. A second mechanism beside it would be two ways to colour one map.
   //
@@ -103,6 +112,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   // else has to know about.
   const conditionData = useMemo(
     () => ({ stream: Object.fromEntries(
+      // × 100 for the ramp's percentage scale — but the -0.01 sentinel ("gauged, no
+      // history") scales to -1, which is exactly the stop the style reserves for it.
       [...standings].map(([section, p]) => [section, { standing: p * 100 }])) }),
     [standings]);
   // Streams and lakes carry their own colouring, as the design has it — Rules on the
@@ -186,7 +197,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
                       refreshing={refreshing} />
         </View>
         <TabBar active={tab} palette={palette}
-                onChange={(k) => { close(); setItem(null); setTab(k); }} />
+                onChange={(k) => { close(); setItem(null); setCondSection(null);
+                                   setTab(k); }} />
       </View>
     );
   }
@@ -205,6 +217,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} onPick={setItem} total={waters}
                       tiles={tiles} theme={theme} />
+      : tab === "conditions" && condSection
+        ? <ConditionsScreen source={source} section={condSection} palette={palette}
+                            onBack={() => setCondSection(null)} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
                      camera={camera.current}
@@ -215,7 +230,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
                      onMoved={(at) => { camera.current = at; }}
                      view="plain" modes={modes} groups={activeGroups}
                      onLayers={() => setLayersOpen(true)}
-                     onPressFeature={onPressFeature}
+                     onPressFeature={tab === "conditions"
+                       ? (_l, id) => setCondSection(id as SectionId)
+                       : onPressFeature}
                      onError={(e) => console.error("map:", e.message)} />
         : <SpotsScreen palette={palette} spots={spots}
                        onOpen={setOpenSpot}
@@ -234,8 +251,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
             // written out here while the map's own ramp resolved to three shades of one
             // blue — so the legend promised red-through-cyan and the map drew a wash of
             // blue. A legend that disagrees with its map is worse than no legend.
-            <LegendRamp palette={palette} low="low for the date" high="high"
-                        stops={flowRamp(theme)} />
+            <LegendRamp palette={palette} low="low for the date" mid="normal" high="high"
+                        stops={flowRamp(theme)} marks={visibleMarks} />
           ) : layers.lake === "stocked" ? (
             palette.stock.map((c, i) => (
               <LegendCount key={c} palette={palette} colour={c}

@@ -202,8 +202,16 @@ export function useWaterGauge(
  * Scoped to the sections passed in — whatever the map currently has rendered — because the
  * full table is 558,746 rows and the question is about a few hundred features.
  *
- * A reach with no gauge is ABSENT from the result, never zero. Zero is the bottom of the
- * scale and would paint every ungauged creek as a river in drought.
+ * THREE OUTCOMES, and the middle one is easy to lose:
+ *
+ *   absent   no gauge speaks for this reach -> the map paints it as unmeasured water
+ *   -1       a gauge reports here, but there is no record to compare today against
+ *   0..1     a real percentile
+ *
+ * A reach with no gauge is ABSENT, never zero: zero is the bottom of the scale and would
+ * paint every ungauged creek as a river in drought. And a reach whose gauge works but has
+ * no history is NOT the same as an ungauged one — saying nothing about it implies nobody
+ * is measuring it, when somebody is.
  */
 export function useStandings(
   source: RegsSource,
@@ -222,8 +230,9 @@ export function useStandings(
       ]);
       if (!idx) return out;              // offline: colour nothing rather than colour wrong
       for (const [section, station] of stations) {
-        const p = idx.stations[station]?.percentile;
-        if (typeof p === "number") out.set(section, p);
+        const row = idx.stations[station];
+        if (!row) continue;                       // not transmitting: say nothing
+        out.set(section, typeof row.percentile === "number" ? row.percentile : -0.01);
       }
       return out;
     },

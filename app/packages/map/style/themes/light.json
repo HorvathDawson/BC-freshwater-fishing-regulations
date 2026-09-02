@@ -47,6 +47,7 @@
     "color.flow.f5": "#C9BD9A",
     "color.flow.f6": "#3E6FB5",
     "color.flow.f7": "#1B3F8F",
-    "color.gauge.dot": "#0A1116"
+    "color.gauge.dot": "#0A1116",
+    "color.flow.nobaseline": "#7B4FBF"
   }
 }

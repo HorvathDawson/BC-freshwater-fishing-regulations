@@ -56,7 +56,9 @@ describe("the flow ramp is one definition", () => {
       const v = resolveTheme(theme) as Record<string, string>;
       const mode = STYLE_META.colorModes.stream!.standing! as
         { stops: [number, { token: string }][] };
-      expect(flowRamp(theme)).toEqual(mode.stops.map(([, r]) => v[r.token]));
+      // Positive stops only: the -1 sentinel is a state, not a point on the scale.
+      expect(flowRamp(theme)).toEqual(
+        mode.stops.filter(([at]) => at >= 0).map(([, r]) => v[r.token]));
     }
   });
 

@@ -84,5 +84,8 @@ export function outcomeDash(outcome: OutcomeKey): readonly number[] | undefined 
  */
 export function flowRamp(theme: string): readonly string[] {
   const v = resolveTheme(theme) as Record<string, string>;
+  // f1..f7 only. The style also carries a stop at -1 for "gauged, but no history to
+  // compare against", and that is a STATE rather than a point on the scale — putting it on
+  // the legend would imply purple sits below "low", which is not what it means.
   return [1, 2, 3, 4, 5, 6, 7].map((i) => v[`color.flow.f${i}`]!);
 }

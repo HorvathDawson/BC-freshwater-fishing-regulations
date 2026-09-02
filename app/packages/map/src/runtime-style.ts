@@ -47,6 +47,23 @@ export interface TileEndpoints {
 
 const PM_ASSETS = "https://protomaps.github.io/basemaps-assets";
 
+/**
+ * The flow ramp, as an expression over a feature's own `percentile` property.
+ *
+ * Shares the stream layer's stops by construction — read from the same style metadata —
+ * so a gauge dot and the river under it are painted from one scale. Two ramps would drift.
+ */
+function rampExpression(theme: string): unknown {
+  const t = resolveTheme(theme) as Record<string, string>;
+  const mode = STYLE_META.colorModes.stream?.standing as
+    { stops?: [number, { token: string }][] } | undefined;
+  const stops = mode?.stops ?? [];
+  const out: unknown[] = ["interpolate", ["linear"],
+                          ["*", ["coalesce", ["get", "percentile"], -0.01], 100]];
+  for (const [at, ref] of stops) out.push(at, t[ref.token]);
+  return out;
+}
+
 export function runtimeStyle(at: TileEndpoints, theme: string,
                              modes: Record<string, string> = {}) {
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
@@ -126,11 +143,15 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       // map already uses for ground outside the province. A second near-white token would
       // only ever hold the same value, and two names for one meaning is how a palette drifts.
       ...(at.gauges ? [
+        // THE DOT IS THE SAME COLOUR AS ITS RIVER. It reads the percentile off the
+        // feature and runs it through the same ramp the stream layer uses, so a gauge and
+        // the water it measures can never disagree on screen. A dot in a colour of its own
+        // would be a second scale the reader has to learn.
         { id: "gauge-dot", type: "circle" as const, source: "gauges",
           paint: {
-            "circle-radius": 4.5,
-            "circle-color": resolveTheme(theme)["color.gauge.dot"] as string,
-            "circle-stroke-width": 1.5,
+            "circle-radius": 5,
+            "circle-color": rampExpression(theme),
+            "circle-stroke-width": 2,
             "circle-stroke-color": paper,
           } },
         { id: "gauge-label", type: "symbol" as const, source: "gauges",
@@ -146,8 +167,12 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           },
           paint: {
             "text-color": resolveTheme(theme)["color.gauge.dot"] as string,
+            // A wide halo rather than a drawn pill: it gives the label the same sitting-on-
+            // paper look without a sprite, and it degrades to plain text if the font is
+            // missing instead of leaving an empty box.
             "text-halo-color": paper,
-            "text-halo-width": 1.6,
+            "text-halo-width": 2.4,
+            "text-halo-blur": 0.4,
           } },
       ] : []),
       ...MAP_STYLE.layers.map((l) => {
