@@ -1,0 +1,1063 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
+<title>One Interface, Two Storages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#FBFAF7; --card:#FFFFFF; --wash:#F3F2ED; --line:#E3E1DA; --line-2:#CFCDC4;
+  --ink:#16181A; --sub:#5C6167; --faint:#8B9097;
+  --accent:#0E6B68; --accent-soft:#E3F0EF;
+  --warn:#9A5B00; --warn-soft:#FBF0DC; --bad:#A81D18; --bad-soft:#FBE9E7;
+  --good:#126B3F; --good-soft:#E4F2E9;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0D0F11; --card:#15181B; --wash:#101315; --line:#242A2E; --line-2:#333A40;
+  --ink:#EDEFEF; --sub:#98A0A6; --faint:#6E767C;
+  --accent:#4ED6CE; --accent-soft:#0E2B2B;
+  --warn:#FFB454; --warn-soft:#2B2013; --bad:#FF6A5C; --bad-soft:#2B1512;
+  --good:#4BD98A; --good-soft:#0F2618;
+}}
+:root[data-theme="dark"]{
+  --paper:#0D0F11; --card:#15181B; --wash:#101315; --line:#242A2E; --line-2:#333A40;
+  --ink:#EDEFEF; --sub:#98A0A6; --faint:#6E767C;
+  --accent:#4ED6CE; --accent-soft:#0E2B2B;
+  --warn:#FFB454; --warn-soft:#2B2013; --bad:#FF6A5C; --bad-soft:#2B1512;
+  --good:#4BD98A; --good-soft:#0F2618;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:Newsreader,Georgia,serif;font-size:18.5px;line-height:1.62;
+  -webkit-font-smoothing:antialiased}
+.page{max-width:940px;margin:0 auto;padding:72px 32px 140px}
+@media (max-width:700px){.page{padding:44px 20px 90px} body{font-size:17.5px}}
+
+h1,h2,h3,h4,.ui{font-family:"IBM Plex Sans",system-ui,sans-serif}
+h1{font-size:clamp(38px,5.6vw,58px);line-height:1.03;letter-spacing:-.03em;font-weight:600;
+  margin:0 0 14px;max-width:18ch}
+.dek{font-size:clamp(19px,2.2vw,22px);line-height:1.5;color:var(--sub);margin:0 0 8px;max-width:60ch}
+.meta{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.05em;color:var(--faint);
+  margin:26px 0 0;text-transform:uppercase}
+h2{font-size:27px;font-weight:600;letter-spacing:-.02em;margin:64px 0 6px;padding-top:22px;
+  border-top:1px solid var(--line-2)}
+h2 .n{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--accent);
+  display:block;margin-bottom:9px;letter-spacing:.1em}
+h3{font-size:19px;font-weight:600;margin:34px 0 8px;letter-spacing:-.01em}
+h4{font-size:12px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--faint);margin:26px 0 8px}
+p{margin:0 0 15px;max-width:66ch}
+ul,ol{max-width:66ch;padding-left:22px;margin:0 0 15px}
+li{margin:0 0 7px}
+b,strong{font-weight:600}
+code{font-family:"IBM Plex Mono",monospace;font-size:.83em;background:var(--wash);
+  padding:1px 5px;border-radius:4px;border:1px solid var(--line)}
+a{color:var(--accent)}
+.lede-rule{height:3px;background:var(--accent);width:64px;margin:30px 0 0}
+
+pre{font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.62;background:var(--card);
+  border:1px solid var(--line-2);border-radius:10px;padding:18px 20px;overflow-x:auto;
+  margin:18px 0 20px}
+pre .c{color:var(--faint)}
+pre .k{color:var(--accent);font-weight:500}
+pre b{color:var(--ink);font-weight:600}
+
+.tbl{border:1px solid var(--line-2);border-radius:10px;overflow:hidden;margin:20px 0 24px;
+  background:var(--card)}
+table{width:100%;border-collapse:collapse;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px}
+th{text-align:left;padding:11px 14px;background:var(--wash);font-weight:600;font-size:11.5px;
+  letter-spacing:.09em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line-2)}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.45}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap}
+.wrap-x{overflow-x:auto}
+
+.note{border-left:3px solid var(--accent);background:var(--accent-soft);padding:14px 18px;
+  border-radius:0 9px 9px 0;margin:20px 0 22px;font-size:16.5px;line-height:1.55}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note.bad{border-color:var(--bad);background:var(--bad-soft)}
+.note p:last-child{margin-bottom:0}
+.note h4{margin-top:0;color:inherit;opacity:.75}
+
+.measured{display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;border:1px solid currentColor;
+  border-radius:999px;padding:2px 8px;vertical-align:2px;margin-left:8px}
+.m-yes{color:var(--good)} .m-est{color:var(--warn)} .m-open{color:var(--bad)}
+
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+  background:var(--line-2);border:1px solid var(--line-2);border-radius:10px;overflow:hidden;
+  margin:24px 0 26px}
+.big div{background:var(--card);padding:16px 16px 14px}
+.big b{display:block;font-family:"IBM Plex Sans",sans-serif;font-size:28px;font-weight:600;
+  letter-spacing:-.025em;line-height:1;font-variant-numeric:tabular-nums}
+.big span{display:block;font-family:"IBM Plex Sans",sans-serif;font-size:12px;color:var(--sub);
+  margin-top:7px;line-height:1.35}
+
+.flow{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.75;background:var(--card);
+  border:1px solid var(--line-2);border-radius:10px;padding:20px;overflow-x:auto;white-space:pre;
+  margin:22px 0 24px;color:var(--sub)}
+.flow b{color:var(--ink)}
+.q{font-family:"IBM Plex Mono",monospace;font-size:13px}
+.toc{background:var(--card);border:1px solid var(--line-2);border-radius:10px;padding:18px 22px;
+  margin:34px 0 0;font-family:"IBM Plex Sans",sans-serif;font-size:14.5px}
+.toc ol{margin:0;padding-left:20px;columns:2;column-gap:34px}
+@media (max-width:640px){.toc ol{columns:1}}
+.toc li{margin:0 0 6px;break-inside:avoid}
+.toc a{text-decoration:none;color:var(--ink)}
+.toc a:hover{color:var(--accent)}
+</style>
+
+<div class="page">
+
+<h1>One interface, two storages.</h1>
+<p class="dek">How the regulations, the geometry, the gauges and the stocking get to a phone with
+no signal and to a browser that must answer in one round trip — measured against the real build,
+not estimated from the shape of the problem.</p>
+<div class="lede-rule"></div>
+<p class="meta">Written against build 54ea0bb4 · 2 053 299 sections · 19 862 registry items · 30 Aug 2026</p>
+
+<div class="note">
+<h4>The whole thing in six lines</h4>
+<p><b>Tiles</b> hold the shapes of rivers and their names. Nothing else.<br>
+<b>The bundle</b> is one small database holding every rule, every name, and the few things only the
+build can work out.<br>
+<b>Feeds</b> are tiny files that change often — gauge readings, stocking, closures — and they join
+to the bundle by one id.<br>
+<b>The phone</b> keeps all of it. <b>The browser</b> keeps none of it and reads pieces on demand.<br>
+Both go through <b>the same set of functions</b>, so they cannot answer differently.<br>
+Everything below is the evidence for those five sentences.</p>
+</div>
+
+<div class="toc"><ol>
+<li><a href="#s1">What the screens actually ask</a></li>
+<li><a href="#s2">Four artifacts, two version domains</a></li>
+<li><a href="#s3">The tile contract</a></li>
+<li><a href="#s4">The bundle</a></li>
+<li><a href="#s5">Live feeds</a></li>
+<li><a href="#s6">What must be precomputed</a></li>
+<li><a href="#s7">The interface</a></li>
+<li><a href="#s8">Two packagings of one format</a></li>
+<li><a href="#s9">Freshness and precedence</a></li>
+<li><a href="#s10">Decisions, and what is still open</a></li>
+</ol></div>
+
+<h2 id="s1"><span class="n">01</span>What the screens actually ask</h2>
+<p>The prototype is not a mockup; it runs on real build output, so every screen in it is a
+query census. This is the whole design input — the schema is derived from these fourteen
+questions and nothing else.</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Where</th><th>Question</th><th>Answered from</th><th class="num">Shape</th></tr></thead>
+<tbody>
+<tr><td>Map</td><td>Draw the water here</td><td>tiles</td><td class="num">geometry</td></tr>
+<tr><td>Map</td><td>What colour is this reach today?</td><td>bundle <b>+ 2 feeds</b></td><td class="num">status by <code>item_id</code> × date, overridden</td></tr>
+<tr><td>Map</td><td>Name this river</td><td>tiles</td><td class="num">label</td></tr>
+<tr><td>Tap</td><td>Which reach did I hit?</td><td>tiles</td><td class="num">feature id</td></tr>
+<tr><td>Sheet</td><td>Every rule for this water</td><td>bundle</td><td class="num">rules by <code>item_id</code></td></tr>
+<tr><td>Sheet</td><td><b>Which stretch am I on?</b> A river has several</td><td>bundle</td><td class="num">ordered segments + landmarks</td></tr>
+<tr><td>Sheet</td><td><b>What are the general rules here?</b></td><td>bundle</td><td class="num">base regs by region</td></tr>
+<tr><td>Sheet</td><td>The paragraph it came from</td><td>bundle</td><td class="num">entry verbatim</td></tr>
+<tr><td>Sheet</td><td>Which gauge speaks for this reach?</td><td><b>precomputed</b></td><td class="num">section → station, quality</td></tr>
+<tr><td>Sheet</td><td>What is that gauge reading now?</td><td>feed</td><td class="num">1 row / station</td></tr>
+<tr><td>Sheet</td><td>Is that high or low for the date?</td><td>bundle</td><td class="num">climatology</td></tr>
+<tr><td>Sheet</td><td>72 h and the whole year</td><td>feed</td><td class="num">series on tap</td></tr>
+<tr><td>Sheet</td><td>How does this spot reach the gauge?</td><td><b>precomputed</b></td><td class="num">downstream pointer</td></tr>
+<tr><td>Search</td><td>Find a name, or any of its aliases</td><td>index</td><td class="num">20 609 strings</td></tr>
+<tr><td>Search</td><td>Water near this town</td><td><b>precomputed</b></td><td class="num">place → <b>named</b> items, km</td></tr>
+<tr><td>Lakes</td><td>When was it last stocked?</td><td>feed</td><td class="num">1 row / waterbody</td></tr>
+<tr><td>Lakes</td><td><b>Is there a depth chart for it?</b></td><td>bundle</td><td class="num">sheet list + kind</td></tr>
+<tr><td>Map</td><td><b>Has an in-season notice changed this?</b></td><td>feed</td><td class="num">override by <code>item_id</code></td></tr>
+<tr><td>Map</td><td><b>What do DFO salmon rules say here?</b></td><td>feed</td><td class="num">override by <code>item_id</code></td></tr>
+</tbody></table></div></div>
+
+<p>Three of the eighteen cannot be computed on a device at query time. All three need the whole
+2-million-node graph, which is the one thing that must never ship. That is the entire argument for
+a precompute stage, and §6 lists exactly what it produces.</p>
+
+<h2 id="s2"><span class="n">02</span>Four artifacts, two version domains</h2>
+<p>Doc 13 §1.1 established three data classes. Delivering them takes four artifacts, because
+geometry and regulations change on the same clock but have byte budgets three orders of magnitude
+apart.</p>
+
+<div class="big">
+  <div><b>2,053,299</b><span>sections in the graph</span></div>
+  <div><b>84,420</b><span>carry a registry item — <b>4.1%</b></span></div>
+  <div><b>7,614</b><span>rule → section bindings province-wide</span></div>
+  <div><b>60,173</b><span>named sections — <b>2.9%</b></span></div>
+</div>
+
+<p>That first pair of numbers is the load-bearing measurement in this document. <b>Regulation data
+is tiny and geometry is enormous.</b> 96% of the atlas will never have a rule written about it; it
+exists so the map looks like the country. Any design that carries regulations inside the geometry
+pays the 2-million-row cost to deliver a 7,614-row fact.</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Artifact</th><th>Holds</th><th>Version domain</th><th>Changes</th></tr></thead>
+<tbody>
+<tr><td><b>Tiles</b> <code>waters.pmtiles</code></td><td>geometry, names, aliases, order, magnitude</td><td>bundle</td><td>per full build</td></tr>
+<tr><td><b>Bundle</b> <code>regs.sqlite</code></td><td>items, rules, entries, verbatim, climatology, precomputes</td><td>bundle</td><td>per build + per edition</td></tr>
+<tr><td><b>Feeds</b> <code>feed/*</code></td><td>gauge, stocking, <b>in-season notices</b>, <b>DFO salmon</b></td><td>one per feed</td><td>30 min – weekly</td></tr>
+<tr><td><b>Blobs</b></td><td>bathymetric sheets, synopsis page images</td><td>immutable URL</td><td>never</td></tr>
+</tbody></table></div></div>
+
+<div class="note">
+<h4>The rule that keeps the two domains apart</h4>
+<p>Tiles and bundle are content-addressed and pinned to each other; the client refuses a mixed
+pair. Feeds are versioned independently and join to the bundle by <code>item_id</code> or
+<code>station_id</code> — never by <code>section_id</code>, never by a build-time match table.
+A 30-minute gauge tick must not re-version anything a client has cached.</p>
+</div>
+
+<h2 id="s3"><span class="n">03</span>The tile contract</h2>
+<p>Tiles carry geometry and identity. Nothing else — no regulation, no reading, no stocking date,
+no colour. This is not tidiness: it is what makes the map free to recolour.</p>
+
+<h3>Two tile sets, named for what they are</h3>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>File</th><th>Holds</th><th>Built from</th><th>Rebuilt</th></tr></thead>
+<tbody>
+<tr><td><code>atlas.pmtiles</code><br><span style="opacity:.6">was waters.pmtiles</span></td>
+    <td>streams, lakes, wetlands, <b>digitised depth contours</b>, park / ecological-reserve /
+        no-access / private-land boundaries</td>
+    <td>our pipeline</td><td>per full build (months)</td></tr>
+<tr><td><code>base.pmtiles</code><br><span style="opacity:.6">was bc.pmtiles, 4.36 GB</span></td>
+    <td>roads, trails, bridges, powerlines, rail, place labels, terrain</td>
+    <td><b>rebuilt from an OSM extract with only these layers</b> — not the stock Protomaps
+        build, which is mostly buildings, POIs, land use and address points we never draw</td>
+    <td>quarterly</td></tr>
+</tbody></table></div></div>
+
+<pre><span class="c">// atlas.pmtiles — the complete property set, per feature</span>
+<b>sections</b>   <span class="c">(line)</span>
+  <span class="k">id</span>     uint32   <span class="c">section id — stable while the geometry is stable</span>
+  <span class="k">item</span>   uint32   <span class="c">item index, 0 = not regulable (96% of features)</span>
+  <span class="k">name</span>   string   <span class="c">DISPLAY name — normalised title case. This is what the map draws.</span>
+  <span class="k">alt</span>    string   <span class="c">search haystack: lowercased, deduped, "|"-separated.</span>
+                  <span class="c">"wahleach lake|jones lake|jones|wahleach"  — omitted when it</span>
+                  <span class="c">adds nothing beyond the lowercased display name</span>
+  <span class="k">mag</span>    uint32   <span class="c">FWA magnitude — drives width, the zoom cut, and gauge trust</span>
+  <span class="k">ord</span>    uint8    <span class="c">Strahler order — width only</span>
+
+<b>lakes</b>      <span class="c">(polygon)  id, item, name, alt, area_m2</span>
+<b>wetlands</b>   <span class="c">(polygon)  id, item, name, area_m2</span>
+<b>contours</b>   <span class="c">(line)     item, depth_m, index  — digitised bathymetry</span>
+<b>admin</b>      <span class="c">(polygon)  kind, name  — park | ecological_reserve | no_access | private</span>
+</pre>
+
+<div class="note">
+<h4>Two name fields, not one</h4>
+<p><code>name</code> is for the map and must look right: <b>Wahleach Lake</b>. <code>alt</code> is
+for search and must match anything a person types. Fusing them gives you either an ugly map or a
+search that misses. The build normalises case, strips the registry's
+<code>"EAST WHITE RIVER"</code>/<code>"East White River"</code> duplicates, and only emits
+<code>alt</code> when it carries something the name does not.</p>
+</div>
+
+<h3>Zoom buckets come from magnitude, not Strahler order</h3>
+<p><b>Corrected.</b> Strahler order jumps in big steps — 578 features, then 10,767, then 48,107 —
+so a zoom ladder built on it either shows almost nothing or almost everything. Magnitude (the count
+of headwater streams above a reach) is nearly continuous, so the ladder is smooth and it drops
+small tributaries while keeping whole big rivers, which is what v1's atlas tiles did and why they
+looked right.</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Zoom</th><th>Include</th><th class="num">Features</th><th class="num">Share</th><th class="num">Named kept</th></tr></thead>
+<tbody>
+<tr><td>z4</td><td>mag ≥ 20 000</td><td class="num">101</td><td class="num">0.005%</td><td class="num">—</td></tr>
+<tr><td>z5–6</td><td>mag ≥ 1 000</td><td class="num">1,122</td><td class="num">0.05%</td><td class="num">—</td></tr>
+<tr><td>z7</td><td>mag ≥ 250</td><td class="num">4,569</td><td class="num">0.22%</td><td class="num">—</td></tr>
+<tr><td>z8</td><td>mag ≥ 100</td><td class="num">11,947</td><td class="num">0.58%</td><td class="num">7,315</td></tr>
+<tr><td>z9</td><td>mag ≥ 50</td><td class="num">24,049</td><td class="num">1.17%</td><td class="num">—</td></tr>
+<tr><td>z10</td><td>mag ≥ 20</td><td class="num">59,906</td><td class="num">2.92%</td><td class="num">19,220</td></tr>
+<tr><td>z11</td><td>mag ≥ 10</td><td class="num">114,251</td><td class="num">5.56%</td><td class="num">—</td></tr>
+<tr><td>z12</td><td>mag ≥ 5</td><td class="num">217,568</td><td class="num">10.6%</td><td class="num">33,648</td></tr>
+<tr><td>z13</td><td>mag ≥ 2</td><td class="num">597,596</td><td class="num">29.1%</td><td class="num">—</td></tr>
+<tr><td>z14+</td><td>everything</td><td class="num">2,053,299</td><td class="num">100%</td><td class="num">60,173</td></tr>
+</tbody></table></div></div>
+
+<p><b>Correction: named water is not exempt.</b> Drawing every named creek at z6 would look
+terrible and defeats the point of a ladder. Searchability does not need the geometry rendered —
+the 90 KB name index in §8 covers every named water at every zoom, and tapping a result flies the
+map to it. <b>Names respect the same magnitude cut as everything else.</b></p>
+
+<div class="note">
+<h4>Unnamed headwaters are the whole cost</h4>
+<p>1,993,126 of the 2,053,299 sections have no name. They exist so the map looks like the country,
+and they only appear at z14. If the tile build comes in too large, this is the dial: cutting
+unnamed water at z14 to mag ≥ 2 removes <b>1.45 million features</b> and nothing a person can
+search for.</p>
+</div>
+
+<h3>Polygons need their own ladder</h3>
+<p>Magnitude is a line attribute. Lakes, wetlands and admin boundaries cut on <b>area</b>, and
+depth contours on their own index interval — a 1 m contour is z14 detail, a 10 m contour belongs
+several zooms earlier. Contours also cut out entirely below the zoom where a lake is bigger than a
+few pixels.</p>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Layer</th><th>Cut on</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>lakes, wetlands</td><td>area</td><td>thresholds <span class="measured m-est">to measure</span> against the FWA area histogram</td></tr>
+<tr><td>admin boundaries</td><td>area, floor at z8</td><td>a park closure must be visible before you are standing in it</td></tr>
+<tr><td>contours</td><td>index interval, floor at z12</td><td>10 m first, then 5 m, then 1 m</td></tr>
+</tbody></table></div></div>
+
+<h3>Colour comes from feature-state, never from the tile</h3>
+<p>This is already the contract in <code>packages/map/src/style.ts</code>: every non-static colour
+mode reads <code>["feature-state", property]</code>. The client sets state for the features in view
+from the bundle and the feeds. Switching from Regulations to Conditions, changing the date, or
+flipping theme therefore <b>never refetches a tile</b>.</p>
+
+<pre><span class="c">// the join, in three lines</span>
+tile feature  →  <span class="k">f.id</span>        <span class="c">dense section index</span>
+bundle        →  <span class="k">status(item, date)</span>  <span class="c">→ 'closed' | 'limited' | 'open' | 'unknown'</span>
+map.setFeatureState({ source:'waters', id:f.id }, { <span class="k">status</span>, <span class="k">standing</span> })
+</pre>
+
+<div class="note warn">
+<h4>The one thing dense ids cost</h4>
+<p>A dense index renumbers on every build, so tiles + spine precomputes must re-ship whole. That is
+fine — they re-ship anyway. It is the <b>regulatory</b> layer that needs deltas, and it keys on
+<code>item_id</code>, which doc 13 §0.1 measured at 99.88% stable across a rebuild. The dense id
+never leaves the tile/precompute pair; it is a packing detail, exactly as doc 13 §3 requires.</p>
+</div>
+
+<h2 id="s4"><span class="n">04</span>The bundle</h2>
+<p>Entities and relations, never per-screen payloads. The test doc 13 §1.3 sets — adding a layer
+must need a new table and no edit to an existing one — is met here.</p>
+
+<pre><span class="c">-- identity ------------------------------------------------------------</span>
+<b>item</b>          (item_id PK, kind, name, mu, tile_idx)
+<b>item_alias</b>    (item_id, alias)                       <span class="c">25,769 rows</span>
+<b>item_section</b>  (item_id, section_idx, <b>seq</b>, <b>lo_label</b>, <b>hi_label</b>)
+               <span class="c">85,464 rows — seq orders a river mouth→source so the sheet can</span>
+               <span class="c">draw its stretches in order; the labels are the landmarks that</span>
+               <span class="c">bound them ("Vedder Crossing Bridge", "Slesse Creek")</span>
+<b>tombstone</b>     (old_item_id PK, reason, replaced_by)
+
+<span class="c">-- regulatory (per edition) --------------------------------------------</span>
+<b>edition</b>       (edition_id PK, label, valid_from, valid_until)
+<b>entry</b>         (entry_id PK, edition_id, name, region, mus, verbatim, page)
+<b>rule</b>          (rule_id PK, entry_id, kind, detail, dates, species, location_text,
+               clause_start, clause_len)          <span class="c">3,038 rows</span>
+<b>rule_section</b>  (rule_id, section_idx)                 <span class="c">7,614 rows</span>
+<b>rule_unplaced</b> (rule_id, reason, locators)            <span class="c">the ones we refuse to guess</span>
+
+<span class="c">-- the other two tiers of rule (see below) ------------------------------</span>
+<b>base_reg</b>      (reg_id PK, source, kind, detail, dates, species,
+               admin_layer, buffer_m, text)       <span class="c">235 rows, 92 KB — already built</span>
+<b>base_reg_mu</b>   (reg_id, mu)                          <span class="c">which MUs a zone reg covers</span>
+<b>item_mu</b>       (item_id, mu)                         <span class="c">which MU a water sits in</span>
+
+<span class="c">-- spine precomputes (§6) ----------------------------------------------</span>
+<b>section_down</b>  (section_idx PK, next_idx)             <span class="c">2,024,654 rows</span>
+<b>section_gauge</b> (section_idx PK, station_idx, quality) <span class="c">only quality != none</span>
+<b>place</b>         (place_id PK, name, kind, lon, lat)    <span class="c">1,624 rows</span>
+<b>place_water</b>   (place_id, item_id, km)                <span class="c">everything within 25 km</span>
+
+<span class="c">-- reference ------------------------------------------------------------</span>
+<b>gauge</b>         (station_idx PK, station_id, name, item_id, section_idx,
+               lon, lat, area_km2, mag)           <span class="c">~450 rows</span>
+<b>gauge_clim</b>    (station_idx, pentad, p10,p25,p50,p75,p90)  <span class="c">int16, §5</span>
+<b>lake_sheet</b>    (item_id, sheet_no, title, scale, drafted, url, bytes)
+<b>stock_water</b>   (waterbody_id PK, item_id, name)
+</pre>
+
+<h3>Three tiers of rule, and the UI has to show all three</h3>
+<p>The prototype only ever showed the first one. That is a hole, and
+<code>pipeline/docs/archive/06-zone-regulations.md</code> already worked out the model:</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Tier</th><th>Example</th><th>Resolved by</th><th class="num">Rows</th></tr></thead>
+<tbody>
+<tr><td><b>1. This water</b></td><td>"Chilliwack River, no fishing June 1–30"</td>
+    <td><code>rule_section</code></td><td class="num">3,038 rules</td></tr>
+<tr><td><b>2. This zone</b></td><td>"In MU 4-5, no bait"</td>
+    <td>the water's MU</td><td class="num" rowspan="2">235 base regs<br>92 KB total</td></tr>
+<tr><td><b>3. Province-wide</b></td><td>"Fishing prohibited in National Parks"</td>
+    <td>a polygon in the <code>admin</code> tile layer, with a buffer</td></tr>
+</tbody></table></div></div>
+
+<div class="note bad">
+<h4>I had v1's bloat wrong</h4>
+<p>I said admin boundaries caused it. They did not — <b>only 25,245 of 2,053,299 sections sit inside
+any admin area at all</b> (1.2%), across 167 areas, and only <b>9</b> sit in two. The largest is
+Gwaii Haanas at 4,207 sections.</p>
+<p>The bloat came from <b>zone regulations giving every stream a regulation automatically</b>. That
+is a different problem and it needs a different fix. (Buffers are gone; the Liard watershed case is
+a single regulation over a large area, which the mechanism below handles as one row.)</p>
+</div>
+
+<h3>How a zone rule reaches two million streams without being written down two million times</h3>
+<p>The whole trick is that the <b>scope</b> is a property of the geometry, not of the rule. Three
+small integers on the tile feature, and three small tables in the bundle:</p>
+
+<pre><span class="c">// on the tile feature — administrative GEOGRAPHY, true regardless of any rule</span>
+  <span class="k">mus</span>   uint16[]  <span class="c">every management unit this section touches. Usually one.</span>
+
+<span class="c">// in the BUNDLE — membership of a REGULATED area is regulation data, not geography</span>
+<b>section_area</b>(section_id, area_id)         <span class="c">25,245 rows today</span>
+
+<span class="c">// in the bundle — the ENTIRE regulation index, three columns</span>
+<b>reg_index</b>(<span class="k">scope_kind</span>, <span class="k">scope_id</span>, <span class="k">rule_id</span>)
+   scope_kind = <b>section</b>   scope_id = section id   <span class="c">7,614 rows</span>
+              | <b>mu</b>        scope_id = mu number    <span class="c">a few hundred rows</span>
+              | <b>area</b>      scope_id = area id      <span class="c">a few dozen rows</span>
+</pre>
+
+<div class="note">
+<h4>Why <code>mus</code> is on the tile and <code>area</code> is not</h4>
+<p><b>Corrected.</b> A management unit is administrative geography — every square metre of BC is in
+one, whether or not anybody regulates it. Putting it on the feature leaks nothing.</p>
+<p>A regulated area is different: <b>we only carry the areas that are regulated</b>, so
+"this section is in area 7" <em>is</em> a regulation fact wearing a geometry costume. It belongs in
+the bundle. It is also cheap there — 25,245 rows, about 150 KB.</p>
+<p>The park and reserve <b>polygons</b> still belong in the tile, because a park boundary is useful
+cartography on its own. Draw more of them than we regulate and the leak disappears entirely: the
+layer stops being "the regulated ones" and becomes "protected land".</p>
+</div>
+
+<h4>A section can touch more than one MU, so <code>mus</code> is a list</h4>
+<p>And that raises the real question: what colour is a stretch that runs through two management
+units with different rules?</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Option</th><th>Cost</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><b>Split every stream at every MU boundary</b></td>
+    <td>more sections; and geometry now depends on an administrative line</td>
+    <td><b>No</b> — see below</td></tr>
+<tr><td><b>Colour the most restrictive MU it touches, and say so</b></td>
+    <td>one extra sentence in the sheet</td><td><b>Yes</b></td></tr>
+<tr><td>Split only where the MUs actually disagree this edition</td>
+    <td>geometry would depend on regulations</td>
+    <td>No — that is the coupling this whole document exists to avoid</td></tr>
+</tbody></table></div></div>
+
+<p><b>Why not split.</b> Two reasons, and the measurement settles the first.</p>
+<p><b>It is 0.8% of the atlas.</b> Re-cutting two million sections to fix 16,701 of them is not a
+trade — it is a rounding error paid for with the whole geometry.</p>
+<p><b>And MU boundaries get redrawn.</b> Bake them into geometry and a ministry revision re-cuts the
+atlas and renumbers every section downstream, invalidating the tiles, the precomputes and every
+saved pin. Keep MU as an attribute and the same revision is a <b>re-stamp</b>: same geometry, same
+ids, one column rewritten.</p>
+
+<p><b>What the sheet says</b> when they disagree — and it must, because the map can only show one
+colour:</p>
+<pre>  This stretch runs through <b>MU 2-2</b> and <b>MU 2-3</b>.
+  In 2-2 it is <b>closed</b> until 15 June. In 2-3 it is open.
+  <span class="c">The map shows the stricter one.</span>
+</pre>
+
+<p>Colouring a feature is then: look up its <code>section</code> rules, the rules for each MU in
+its <code>mus</code> list, and its <code>area</code> rules; evaluate each against the date and the
+species group in <code>core/</code>; take the most restrictive. <b>A spring closure covering all of
+MU 4-5 is one row.</b> It colours 60,000 streams because 60,000 features carry <code>45</code> in
+their <code>mus</code> list, not because anyone wrote 60,000 rows.</p>
+
+<h4>The Liard is the worst case, and it is the right thing to benchmark against</h4>
+<p>It is the largest regulated area in the province, it is <b>not yet built</b>, and it is exactly
+the stress test this mechanism needs. The <code>watersheds</code> layer already has it:</p>
+<div class="big">
+  <div><b>142,173 km²</b><span>Liard River watershed</span></div>
+  <div><b>322,626</b><span>sections inside it — <b>15.7%</b> of the atlas</span></div>
+  <div><b>1.58 MB</b><span>of <code>section_area</code> rows</span></div>
+  <div><b>1</b><span>row in <code>reg_index</code> — the rule itself</span></div>
+</div>
+<p>So no, it does not blow it up — and that is now measured rather than hoped. Total
+<code>section_area</code> goes from 25,245 rows to about 348,000, under 2 MB inside a ~10 MB
+bundle. <b>Adding it gives the bundle a realistic worst case to be sized against</b>, which is
+worth more than the 1.58 MB costs.</p>
+
+<h3>Some areas cut the streams that cross them; some do not. The switch already exists.</h3>
+<p><code>pipeline/build.py</code>, in the blanket-area pass:</p>
+<pre>if ad.get(<span class="k">"cut"</span>, True):        <span class="c"># `cut` flag is the SOLE cut trigger (default on)</span>
+    apts = resolve_area_splits(polys, chains)
+    split_graph_at(...)
+else:
+    print(f"  area '{ad['id']}': membership-only (no cut)")
+</pre>
+<p>So adding the Liard costs <b>zero extra sections</b>: one entry in <code>areas.json</code> with
+<code>"cut": false</code>.</p>
+<p><b>And cutting would buy nothing there.</b> A park boundary is an arbitrary line that streams
+cross constantly, so cutting is what makes "inside the park" precise. A watershed boundary is a
+<b>drainage divide</b> — by definition water does not cross it. The few exceptions (canals, and
+where the polygon follows the provincial border) are already covered:
+<code>mark_inside_areas</code> runs two passes, <code>covers</code> for the clean case and
+<code>intersects</code> for straddlers. <b>Membership never needed the cut</b>; the cut is only
+what makes the first pass exact.
+
+<div class="note">
+<h4>Format now, contents later</h4>
+<p>Those three columns are the contract. <b>What goes in them, and how the pipeline decides, is
+deliberately not settled here</b> — zone regs need cleaning up first, and area regs need a rule for
+how they reach unnamed streams. The client does not care: it reads three columns and evaluates
+dates. Anything the pipeline learns later slots in without a schema change.</p>
+</div>
+
+<div class="note">
+<h4>We already have the polygons — I was wrong</h4>
+<p>I said MU came only from the synopsis entry and that we would have to go and fetch boundaries.
+<code>data/fetch_data.py</code> already pulls them: <b><code>wmu</code>, 225 polygons</b>, keyed
+<code>1-15</code>, <code>2-8</code> and so on, sitting in <code>data/bc_fisheries_data.gpkg</code>
+beside a <code>watersheds</code> layer of 11,580 named basins. Stamping is a build step, not a
+data-acquisition problem.</p>
+</div>
+
+<h4>Measured: what MU stamping costs</h4>
+<div class="big">
+  <div><b>2,069,296</b><span>(section, MU) rows for 2,053,306 sections</span></div>
+  <div><b>99.14%</b><span>touch exactly one MU</span></div>
+  <div><b>16,505</b><span>touch two — 0.80% of the atlas</span></div>
+  <div><b>196</b><span>touch three or more</span></div>
+</div>
+<p>Coverage is 100% — every section lands in an MU. And because 99.14% have exactly one, the tile
+field is a single <code>uint16</code> for almost every feature, with a short list only for the
+16,701 that straddle.</p>
+
+<p><b>Where they sit in the sheet:</b> one stack, most-specific first, each tier labelled in the
+reader's language — <span class="q">Written for this water</span>, then
+<span class="q">Everywhere in MU 2-2</span>, then <span class="q">Everywhere in BC</span>. A person
+should never have to wonder whether they have seen all of it, and the tiers are never merged into
+one undifferentiated list.</p>
+
+<h3>Two field names worth explaining plainly</h3>
+<ul>
+<li><b><code>tombstone</code></b> — when a rebuild deletes or merges a registry item, its old id
+    must not just vanish. A saved spot pointing at it should say <i>"this water is now part of
+    Chilliwack River"</i>, not fail silently or, worse, show the wrong water. The row is
+    <code>(old_id → reason, replaced_by)</code> and it is the difference between a rebuild being
+    safe and a rebuild quietly breaking people's pins.</li>
+<li><b><code>clause_start</code>, <code>clause_len</code></b> — the character range inside the
+    synopsis paragraph that a rule was parsed out of, so the app can highlight it. The prototype
+    re-finds it at runtime with a whitespace-tolerant regex, which works 49 times out of 49 today
+    and is a silent failure waiting to happen. The parser already knows the offset; write it down.</li>
+</ul>
+
+<div class="note">
+<h4>Magnitude and order are not in the bundle</h4>
+<p><b>Corrected.</b> They live on the tile feature, which the client already has when you tap. The
+only build-time use for magnitude is computing gauge representativeness, and that result is stored
+in <code>section_gauge</code>. Nothing needs a second copy.</p>
+</div>
+
+<h3>Byte budget</h3>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Table</th><th class="num">Rows</th><th class="num">Est. bytes</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>item + alias</td><td class="num">45,631</td><td class="num">~2.2 MB</td><td>names dominate</td></tr>
+<tr><td>item_section</td><td class="num">85,464</td><td class="num">~680 KB</td><td>two uint32</td></tr>
+<tr><td>entry (with verbatim)</td><td class="num">1,392</td><td class="num">~1.4 MB</td><td>the synopsis text itself</td></tr>
+<tr><td>rule + rule_section</td><td class="num">10,652</td><td class="num">~900 KB</td><td></td></tr>
+<tr><td>section_down <span class="measured m-yes">cut</span></td><td class="num">~300,000</td><td class="num">~1.2 MB</td><td>only inside a gauge shed — see §6</td></tr>
+<tr><td>section_gauge</td><td class="num">~300,000</td><td class="num">~1.8 MB</td><td>estimated from §6</td></tr>
+<tr><td>place_water</td><td class="num">~100,000</td><td class="num">~1.2 MB</td><td>estimated at 25 km</td></tr>
+<tr><td>gauge_clim</td><td class="num">33,300</td><td class="num"><b>325 KB</b></td><td><b>measured</b>, §5</td></tr>
+<tr><td colspan="2"><b>Total, uncompressed</b></td><td class="num"><b>~10 MB</b></td><td>before page compression</td></tr>
+</tbody></table></div></div>
+
+<div class="note">
+<p>Ten megabytes of regulations and precomputes against hundreds of megabytes of tiles.
+The bundle is not the storage problem; the geometry is. Which is why the geometry is the artifact
+with range requests and zoom-based decimation built into its format, and the bundle is the artifact
+that gets to be simple.</p>
+</div>
+
+<h2 id="s5"><span class="n">05</span>Live feeds</h2>
+
+<h3>Gauges — one index, one file per station</h3>
+<p><b>Corrected.</b> The current reading belongs in the same file as the series it belongs to.
+Splitting them meant a station's panel needed two fetches for one story. There are exactly two
+gauge artifacts:</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Artifact</th><th>Holds</th><th>Cadence</th><th class="num">Size</th><th>Fetched</th></tr></thead>
+<tbody>
+<tr><td><code>gauge/index.json</code></td>
+    <td>every station: current q, level, percentile, standing, time</td>
+    <td>30 min</td><td class="num">~30 KB</td><td>on load — it colours the map</td></tr>
+<tr><td><code>gauge/{station}.json</code></td>
+    <td><b>now</b> + 72 h + 14 d + this year daily + last year daily + the station's own
+        percentile envelope + <b>forecast runs</b></td>
+    <td>30 min</td><td class="num">~40 KB</td><td>on tap, cached</td></tr>
+</tbody></table></div></div>
+
+<pre><span class="c">gauge/08MH001.json</span>
+{
+  <span class="k">station</span>: "08MH001", <span class="k">name</span>: "Chilliwack River at Vedder Crossing",
+  <span class="k">now</span>:  { <b>q</b>: 15.7, <b>level</b>: 1.487, <b>at</b>: "2026-08-30T07:00Z",
+           <b>pctile</b>: 0.038, <b>standing</b>: "much-below" },
+  <span class="k">recent</span>: { <b>step</b>: "1h", <b>from</b>: "...", <b>q</b>: [15.9, 15.8, ...] },   <span class="c">14 days</span>
+  <span class="k">daily</span>:  { <b>y2026</b>: [[doy,q], ...], <b>y2025</b>: [[doy,q], ...] },
+  <span class="k">clim</span>:   { <b>pentad</b>: [[p10,p25,p50,p75,p90] × 74], <b>years</b>: [1911, 2026] },
+  <span class="k">forecast</span>: { <b>CLEVER</b>: [[t,lo,mid,hi], ...], <b>COFFEE</b>: [...], <b>ELF</b>: [...] },
+  <span class="k">attribution</span>: "...", <span class="k">forecast_attribution</span>: "..."
+}
+</pre>
+
+<p>The station's own envelope rides in its file, so opening a gauge is <b>one fetch</b>. The bundle
+still carries <code>gauge_clim</code> for all 450 stations because the map needs a percentile for
+water it has not opened — but that copy is the compressed pentad form below, and the per-station
+file carries the fuller one.</p>
+
+<p>Putting <code>pctile</code> and <code>standing</code> <em>in</em> the index — not just discharge
+— is what lets the map colour every watershed without loading any climatology. The publisher
+computes it once; every client agrees by construction.</p>
+
+<h3>The climatology compresses, and by exactly how much is measurable</h3>
+<p>A full day-of-year envelope is 366 days × 7 percentiles × 450 stations. Stored naïvely that is
+4.5 MB. Percentile-versus-day curves are smooth, so they sample:</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Scheme</th><th class="num">Size</th><th class="num">Mean error</th><th class="num">Worst</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>Daily, float32, p0–p100</td><td class="num">4,503 KB</td><td class="num">—</td><td class="num">—</td><td>baseline</td></tr>
+<tr><td>Pentad, p0–p100</td><td class="num">455 KB</td><td class="num">1.02%</td><td class="num"><b>82%</b></td><td>rejected</td></tr>
+<tr><td>Pentad, <b>p10–p90 only</b></td><td class="num"><b>325 KB</b></td><td class="num"><b>0.44%</b></td><td class="num"><b>5.6%</b></td><td><b>ship this</b></td></tr>
+<tr><td>Weekly, p10–p90</td><td class="num">232 KB</td><td class="num">1.00%</td><td class="num">11.1%</td><td>too coarse</td></tr>
+</tbody></table></div></div>
+
+<div class="note">
+<h4>Where the 82% came from, and why it decided the schema</h4>
+<p>Every worst case was <code>p100</code> — the single wettest day ever recorded for that date. A
+record maximum is one storm; it is not a smooth function of day-of-year and it does not
+interpolate. <b>p10–p90 are smooth and compress to 0.44% mean error; the two extremes are not and
+must not be sampled.</b> They are cosmetic (the outer band of the seasonal chart), so they ship
+per-day for the ~40 stations a client actually opens, or not at all. This is the kind of thing you
+only find by measuring, and it is a schema decision, not a tuning one.</p>
+</div>
+
+<h3>Stocking</h3>
+<p>Two artifacts for the same reason as gauges: the map needs one number per lake, the sheet needs
+a history, and the history is 200× larger.</p>
+
+<pre><span class="c">feed/stocking/last.json      </span>  <span class="c">one row per stocked waterbody, weekly</span>
+  { <span class="k">wb</span>: "00394CRYL", <span class="k">item</span>: 4821, <span class="k">d</span>: "2026-04-02", <span class="k">sp</span>: 3, <span class="k">q</span>: 500, <span class="k">st</span>: 2 }
+  <span class="c">~1,000 BC waterbodies × ~28 B  ≈  28 KB   — always resident</span>
+
+<span class="c">feed/stocking/{waterbody}.json</span>  <span class="c">full release history, on tap</span>
+  <span class="c">Deka Lake alone has 179 releases; the province has ~200,000</span>
+</pre>
+
+<p>The map layer wants recency, so <code>last.json</code> carries the date and the client derives
+the band. Species and life-stage are small integer codes against a dictionary in the bundle —
+<code>"Rainbow Trout"</code> repeated 200,000 times is 3.4 MB of the same string.</p>
+
+<h3>Bathymetric charts — a list, not a layer</h3>
+<p>Two kinds, and the difference matters to a person standing at a lake:</p>
+<pre><b>lake_sheet</b>(item_id, sheet_no, title, scale, drafted, <b>kind</b>, url, bytes)
+  <span class="k">kind = "scan"</span>    a PDF of the 1974–1996 survey sheet — 738 MB province-wide, stays remote
+  <span class="k">kind = "vector"</span>  a digitised contour set — becomes a tile layer, ships with the map
+</pre>
+<p>The <b>list</b> is in the bundle, so the map can mark which lakes have a chart at all (2,744
+province-wide) without holding a byte of the charts. Digitised contours live in
+<code>atlas.pmtiles</code> and grow as more get vectorised, with no schema change — doc 13 §1.3's
+test passing.</p>
+
+<h4>The scans are downloadable, and the map says which you have</h4>
+<p>A PDF is useless on a lake with no signal, so they are downloadable — one lake at a time, or a
+whole region in one go. The depth layer then has <b>three states</b>, and that is the layer's whole
+job:</p>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>State</th><th>Drawn as</th><th>Means</th></tr></thead>
+<tbody>
+<tr><td><b>Digitised</b></td><td>contours drawn on the lake</td><td>full depth detail, always offline</td></tr>
+<tr><td><b>On device</b></td><td>solid fill, chart badge</td><td>the scan is downloaded — tap opens it with no signal</td></tr>
+<tr><td><b>Available</b></td><td>outlined, hollow badge</td><td>a scan exists; tap to download (size shown)</td></tr>
+<tr><td><b>None</b></td><td>plain lake</td><td>nobody has surveyed it</td></tr>
+</tbody></table></div></div>
+<p>Which is on device is client state, not bundle state — it is the one thing in this document
+that differs per install.</p>
+
+<h3>In-season notices, and DFO salmon — which is a different thing entirely</h3>
+<p><b>Corrected, and this one matters.</b> I put DFO salmon in the precedence chain. It does not
+belong there. The provincial synopsis governs trout, char, whitefish, coarse fish; <b>DFO governs
+salmon</b>. They are two authorities over two different sets of species, so a DFO closure does not
+override a provincial rule — <b>it answers a question the provincial rule never asked</b>.</p>
+<p>A river can be open for rainbow trout under BC rules and closed for coho under DFO rules on the
+same afternoon. Rendering that as one colour is how somebody gets fined.</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Feed</th><th>Cadence</th><th>Governs</th><th>Relationship</th></tr></thead>
+<tbody>
+<tr><td><code>feed/inseason.json</code></td><td>6 h</td><td>the same species the synopsis does</td>
+    <td><b>overrides</b> — it amends a rule already shipped</td></tr>
+<tr><td><code>feed/dfo.json</code></td><td>daily</td><td><b>salmon only</b></td>
+    <td><b>parallel</b> — a second answer, never merged with the first</td></tr>
+</tbody></table></div></div>
+
+<h3>Precedence, corrected</h3>
+<p>Two independent stacks, both evaluated by one function in <code>@app/core</code>:</p>
+<pre><span class="c">// non-salmon species — trout, char, whitefish, coarse fish</span>
+provincial base_reg  &lt;  zone reg (MU)  &lt;  entry rule  &lt;  <b>in-season notice</b>
+
+<span class="c">// salmon — an entirely separate authority</span>
+<b>DFO opening/closure</b>
+</pre>
+<p>So <code>status()</code> takes a species group and returns one answer per stack. On the map that
+means <b>a species selector, not a blended colour</b>: the default view colours by the provincial
+stack, and a Salmon view colours by DFO. Rule 23 in <code>AGENTS.md</code> already forbids two
+surfaces inventing different vocabularies for the same state; this makes sure they are not
+answering different questions either.</p>
+
+<h4>These override reaches, not whole waters</h4>
+<p>A notice says "the Chilliwack downstream of Vedder Crossing", which is a stretch, not a river.
+But a feed must never depend on the graph. So the <b>publisher</b> resolves the extent — it runs
+the same resolver the pipeline does, in about a tenth of a second for the whole corpus — and
+publishes <code>item_id + the section list it resolved against + the bundle version</code>. If a
+client is on a different build, it falls back to the whole item and says so. Conservative, never
+silently wrong, and the publisher still does not need to be clever.</p>
+
+<h2 id="s6"><span class="n">06</span>What must be precomputed</h2>
+<p>The test is simple: can a client compute this from what it holds, in the time a tap allows? If
+it needs the graph, the answer is no, and the build must do it.</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Precompute</th><th>Why not on device</th><th class="num">Rows</th><th>Class</th></tr></thead>
+<tbody>
+<tr><td><b>section_gauge</b><br>which station speaks for a reach, and how well</td>
+    <td>upstream closure over 2M nodes per station, then a magnitude-ratio test</td>
+    <td class="num">~300k</td><td>spine</td></tr>
+<tr><td><b>section_down</b><br>one downstream step</td>
+    <td>needs the edge list; the client only has geometry.<br>
+        <b>Stored only for sections inside a gauge shed</b> — see below</td>
+    <td class="num">~300k<br><span style="text-decoration:line-through;opacity:.5">2,024,654</span></td><td>spine</td></tr>
+<tr><td><b>place_water</b><br><b>named</b> water within 25 km of a town</td>
+    <td>1,624 places × 2M sections of nearest-vertex distance.<br>
+        Sharded one file per place on web; one table on mobile</td>
+    <td class="num">~100k</td><td>spine</td></tr>
+<tr><td><b>alias haystack</b><br>every name a water answers to</td>
+    <td>needs the registry, which the tile does not carry</td>
+    <td class="num">25,769</td><td>spine → tile</td></tr>
+<tr><td><b>gauge_clim</b><br>day-of-year percentiles</td>
+    <td>97 years × 450 stations of daily archive</td>
+    <td class="num">33,300</td><td>yearly</td></tr>
+<tr><td><b>magnitude, order</b></td><td>FWA attributes; propagate through the registry</td>
+    <td class="num">2,053,299</td><td>spine → tile</td></tr>
+<tr><td><b>clause offsets</b></td><td>the parser knows them; the client should not re-derive</td>
+    <td class="num">3,038</td><td>edition</td></tr>
+</tbody></table></div></div>
+
+<div class="note">
+<h4>section_down: you were right, cut it</h4>
+<p>The only thing it does is trace a tap down to its gauge. Every reach on that path is, by
+definition, inside the same gauge's watershed — so storing the pointer for shed members alone is
+not a compromise, it is <b>complete</b>. That is ~300k rows instead of 2.02 million: <b>8.1 MB → 1.2
+MB</b>, and nothing is lost. There is no second use for the other 1.7 million pointers.</p>
+</div>
+
+<div class="note">
+<h4>place_water: my arithmetic was wrong, and you were right to just compute it</h4>
+<p>I said 1,624 × 2 million and called it too big. That is the wrong second number. You do not
+measure to every <b>section</b>, you measure to every <b>named waterbody</b> — and after
+deduplication there are about <b>20,000</b> of those. <b>1,624 × 20,000 = 32.5 million</b> distance
+tests, which is seconds of work, not a reason to approximate.</p>
+<p>So: compute the full matrix, keep everything within 25 km, sorted by distance. The result is
+small because most towns have nothing near them — a few hundred thousand rows province-wide. Web
+shards it one small file per town, fetched when that town is tapped; mobile keeps one table. Same
+interface either way, which is what §7 is for.</p>
+</div>
+
+<h3>The gauge-representativeness rule, in full</h3>
+<p>A station on the Fraser at Hope drains 216,600 km². Without a limit it "describes" every creek
+in the valley. The test is the ratio of FWA stream magnitude at the reach to magnitude at the
+gauge:</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Band</th><th class="num">Ratio</th><th>Rendered as</th><th>The sheet says</th></tr></thead>
+<tbody>
+<tr><td>good</td><td class="num">≥ 0.10</td><td>solid, full colour</td><td>describes this water</td></tr>
+<tr><td>fair</td><td class="num">≥ 0.01</td><td>solid</td><td>a major branch of it</td></tr>
+<tr><td>weak</td><td class="num">≥ 0.001</td><td>thin, 55% opacity</td><td>the trend, not the level</td></tr>
+<tr><td><b>none</b></td><td class="num">&lt; 0.001</td><td><b>grey dotted — as if ungauged</b></td><td>no station speaks for this</td></tr>
+</tbody></table></div></div>
+
+<p>Measured on the Chilliwack valley window: this takes Fraser-at-Hope from claiming <b>601</b>
+reaches to <b>4</b>, and drops 1,785 of 2,822 assignments province-window-wide. Only rows above
+<code>none</code> are stored, which is what keeps <code>section_gauge</code> at ~300k rows instead
+of millions.</p>
+
+<h3>What the colours mean, and an option for people who cannot see them</h3>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Colour</th><th>Outcome</th><th>Covers</th></tr></thead>
+<tbody>
+<tr><td><b>Red</b></td><td><code>closed</code></td><td>no fishing at all, on this date, for this species group</td></tr>
+<tr><td><b>Amber</b></td><td><code>restricted</code></td><td>partial closure (some species, part of the day) <b>or</b> gear, bait and quota limits</td></tr>
+<tr><td><b>Green</b></td><td><code>open</code></td><td>a rule exists here and none of it stops you today</td></tr>
+<tr><td><b>Violet</b></td><td><code>unknown</code></td><td>we could not place a rule, or could not reach a feed — never rendered as open</td></tr>
+<tr><td><b>Hairline</b></td><td>provenance, not outcome</td><td>nobody wrote a rule about this water; the zone and provincial rules are all there is</td></tr>
+</tbody></table></div></div>
+<p><b>Colour-blind mode is a theme, not a special case.</b> The style system already resolves colours
+from named tokens per theme (<code>resolveTheme</code>), so a <code>cvd</code> theme swaps the
+red/green pair for blue/orange and nothing else changes. Two further rules make it work without
+relying on hue at all: outcome also carries a <b>dash pattern</b> (solid, dashed, dotted), and the
+sheet always states the outcome <b>as a word</b>. Rule 29 already forbids a colour mode that leaves
+an enum member uncoloured, so <code>unknown</code> cannot be dropped from the CVD theme by
+accident.</p>
+
+<h3>Two resident indexes are what colour the map</h3>
+<p>The gauge colouring already works this way and the regulation colouring should be its twin:
+one small table that lives in memory, so <b>panning and zooming issues no queries at all</b>.</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Index</th><th>Rows</th><th class="num">Size</th><th>Colours</th><th>Refreshed</th></tr></thead>
+<tbody>
+<tr><td><code>gauge/index.json</code></td><td>450 stations, each with q + percentile</td>
+    <td class="num">~30 KB</td><td>Conditions view</td><td>every 30 min</td></tr>
+<tr><td><b><code>reg_index</code></b> (bundle)</td>
+    <td>7,614 section rows + a few hundred MU rows + a few dozen area rows,
+        and 3,038 rules with their date windows</td>
+    <td class="num">~130 KB</td><td>Regulations view</td><td>per edition</td></tr>
+<tr><td><code>feed/inseason</code>, <code>feed/dfo</code></td><td>a few hundred overrides</td>
+    <td class="num">~20 KB</td><td>both, on top</td><td>6 h / daily</td></tr>
+</tbody></table></div></div>
+
+<p>The client evaluates the date and the species group in <code>core/</code> and calls
+<code>setFeatureState</code> for the features in view. Changing the date recolours instantly and
+fetches nothing — <b>including a zone-wide spring closure</b>, because that is one row read against
+a <code>mu</code> number the feature already carries. A reach matched by no scope at all is
+<i>general rules only</i>, which needs no storage because it is the absence of a row.</p>
+
+<h2 id="s7"><span class="n">07</span>The interface</h2>
+<p><code>packages/data/src/index.ts</code> says the query shapes are placeholders and must not be
+guessed. They are no longer guesses — §1 is the evidence. Every method below appears because a
+screen asks for it, and every one goes into the conformance suite in the same commit.</p>
+
+<pre><span class="c">/** Durable across rebuilds. The only id that crosses an artifact boundary. */</span>
+type <b>ItemId</b>   = string &amp; { readonly __brand: "ItemId" };
+<span class="c">/** Dense, per-build. Valid only against the tile set it shipped with. */</span>
+type <b>SectionIx</b> = number &amp; { readonly __brand: "SectionIx" };
+
+interface <b>RegsSource</b> {
+  info(): Promise&lt;BundleInfo&gt;;
+
+  <span class="c">// ---- identity -------------------------------------------------------</span>
+  itemExists(id: ItemId): Promise&lt;boolean&gt;;
+  itemForSection(ix: SectionIx): Promise&lt;ItemId | null&gt;;
+
+  <span class="c">// ---- regulations ----------------------------------------------------</span>
+  <span class="c">/** Everything the sheet shows. One call, one round trip. */</span>
+  <span class="k">regsForItem</span>(id: ItemId, on: PlainDate): Promise&lt;ItemRegs | null&gt;;
+  <span class="c">/** Map colouring. Species group is required — there is no "overall" answer. */</span>
+  <span class="k">statusFor</span>(ids: SectionIx[], on: PlainDate,
+            group: <b>"provincial" | "salmon"</b>): Promise&lt;Map&lt;SectionIx, Status&gt;&gt;;
+  <span class="c">/** Tier 2 and 3: the zone and provincial rules that apply where you tapped. */</span>
+  <span class="k">areaRules</span>(at: LngLat, mu: string, on: PlainDate): Promise&lt;AreaRule[]&gt;;
+
+  <span class="c">// ---- search ---------------------------------------------------------</span>
+  <span class="k">searchNames</span>(q: string, limit: number): Promise&lt;NameHit[]&gt;;
+  <span class="k">searchPlaces</span>(q: string, limit: number): Promise&lt;PlaceHit[]&gt;;
+  <span class="k">watersNear</span>(place: PlaceId): Promise&lt;NearHit[]&gt;;      <span class="c">// precomputed, 25 km</span>
+
+  <span class="c">// ---- conditions -----------------------------------------------------</span>
+  <span class="k">gaugeForSection</span>(ix: SectionIx): Promise&lt;GaugeLink | null&gt;;
+  <span class="k">gaugeNow</span>(station: StationId): Promise&lt;Reading | null&gt;;   <span class="c">// carries age</span>
+  <span class="k">gaugeSeries</span>(station: StationId, span: "72h" | "year"): Promise&lt;Series&gt;;
+  <span class="k">traceToGauge</span>(from: SectionIx): Promise&lt;SectionIx[]&gt;;     <span class="c">// via section_down</span>
+
+  <span class="c">// ---- lakes ----------------------------------------------------------</span>
+  <span class="k">lakeInfo</span>(id: ItemId): Promise&lt;LakeInfo | null&gt;;          <span class="c">// sheets + stocking last</span>
+  <span class="k">stockingHistory</span>(id: ItemId): Promise&lt;Release[]&gt;;
+  <span class="k">chartState</span>(id: ItemId): Promise&lt;"digitised"|"on-device"|"available"|"none"&gt;;
+}
+
+<span class="c">/** Every live value is wrapped. There is no way to read one without its age. */</span>
+type <b>Reading</b> = { value: number; unit: "m3s" | "m"; at: string;
+                  pctile: number | null; standing: Standing } &amp; { <b>freshness</b>: Freshness };
+</pre>
+
+<div class="note">
+<h4>Two shapes carry the whole design</h4>
+<p><code>regsForItem</code> returns the sheet in one call — the client never assembles a screen
+from six queries, because on a phone that is six page faults and on the web it is six round trips.
+<code>statusFor</code> takes an <em>array</em> of section indices, because the map colours a
+viewport, not a feature. Everything else is a leaf.</p>
+</div>
+
+<h2 id="s8"><span class="n">08</span>Two packagings of one format</h2>
+<p>Doc 13 §1.2 predicted "one base format, two packagings, gated on measurement". The measurement
+in §2 supports it: 17 MB of bundle is small enough to ship whole to a phone and small enough to
+range-read from a browser.</p>
+
+<div class="flow">                    <b>content store</b>  (app-agnostic, one resolver)
+                            │
+             ┌──────────────┴──────────────┐
+             ▼                             ▼
+    <b>MOBILE PACKAGER</b>                <b>WEB PACKAGER</b>
+    regs.sqlite  resident         regs.sqlite  on R2, immutable URL
+    waters.pmtiles by region      waters.pmtiles on R2
+    feeds cached + age-stamped    feeds fetched on demand
+             │                             │
+             ▼                             ▼
+    SqliteSource                   HttpRangeSource
+             └──────────────┬──────────────┘
+                            ▼
+                   <b>ONE CONFORMANCE SUITE</b>
+              both must answer §7 identically
+</div>
+
+<h3>Web: what the first paint costs</h3>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Fetched</th><th>When</th><th class="num">Bytes</th></tr></thead>
+<tbody>
+<tr><td>App shell</td><td>load</td><td class="num">~180 KB</td></tr>
+<tr><td>PMTiles header + root directory</td><td>load, 1 range request</td><td class="num">~16 KB</td></tr>
+<tr><td>Tiles for the opening viewport</td><td>load</td><td class="num">~120 KB</td></tr>
+<tr><td>SQLite header + page index</td><td>load, 1 range request</td><td class="num">~64 KB</td></tr>
+<tr><td><code>gauge/now.json</code> + <code>stocking/last.json</code></td><td>load</td><td class="num">~56 KB</td></tr>
+<tr><td colspan="2"><b>First interactive</b></td><td class="num"><b>~440 KB</b></td></tr>
+<tr><td>A tapped reach's rules</td><td>on tap, 2–4 range requests</td><td class="num">~24 KB</td></tr>
+<tr><td>Search index</td><td>first keystroke, once</td><td class="num"><b>~90 KB</b> gzipped</td></tr>
+</tbody></table></div></div>
+
+<p><span class="measured m-yes">measured</span> The search index is the one that surprised me.
+15,023 distinct water names plus 20,241 registry names and aliases dedupe to <b>20,609 strings,
+270 KB raw</b>. That is small enough to ship whole on first keystroke — no server-side search, no
+FTS shard, no prefix-trie protocol. The tiles also carry <code>hay</code>, so search inside the
+viewport works before the index arrives.</p>
+
+<h3>Mobile: what sits on the device</h3>
+<p>The whole province ships. v1 already built these tiles, so this is not a guess any more:</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>v1 artifact</th><th class="num">Actual</th><th>What we do about it</th></tr></thead>
+<tbody>
+<tr><td><code>bc.pmtiles</code> — OSM basemap</td><td class="num"><b>4.36 GB</b></td>
+    <td>Never ships whole. Most of it is layers a fishing app has no use for — buildings,
+        POIs, land-use polygons, address points. Cut to water, roads, contours, place labels
+        and it is a fraction of that.</td></tr>
+<tr><td><code>freshwater_atlas.pmtiles</code> — the streams</td><td class="num"><b>807 MB</b></td>
+    <td>Built before pruning and before reaches. Sections are now longer (fewer features per
+        km of river), braids are gone, and the magnitude ladder in §3 drops 1.45 M unnamed
+        headwaters above z13.</td></tr>
+</tbody></table></div></div>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>Artifact</th><th class="num">Size</th><th>Update unit</th></tr></thead>
+<tbody>
+<tr><td>regs.sqlite</td><td class="num">~10 MB → <b>~4 MB</b> compressed</td><td>delta by <code>item_id</code></td></tr>
+<tr><td>waters.pmtiles, province</td><td class="num"><span class="measured m-est">to measure</span> — target under 250 MB</td><td>whole file per build</td></tr>
+<tr><td>basemap.pmtiles, province, trimmed</td><td class="num"><span class="measured m-est">to measure</span></td><td>whole file per build</td></tr>
+<tr><td>Feeds, last known</td><td class="num">~120 KB</td><td>overwrite</td></tr>
+</tbody></table></div></div>
+
+<h3>How an installed app stays current</h3>
+<p>Three different problems wearing one word. Separating them is what stops "update" meaning
+"download 800 MB on cellular".</p>
+
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th>What</th><th>When</th><th class="num">Bytes</th><th>Asks permission?</th></tr></thead>
+<tbody>
+<tr><td><b>Feeds</b> — gauges, stocking, in-season, DFO</td>
+    <td>on app open, then every 30 min while connected and foregrounded</td>
+    <td class="num">~120 KB</td><td>no</td></tr>
+<tr><td><b>Regulatory delta</b> — an edition amendment</td>
+    <td>on app open, when <code>bundle.version</code> moved</td>
+    <td class="num">tens of KB</td><td>no</td></tr>
+<tr><td><b>Spine</b> — a new build: tiles + precomputes</td>
+    <td>when the app is told the build changed</td>
+    <td class="num">hundreds of MB</td><td><b>yes — and only on wifi by default</b></td></tr>
+</tbody></table></div></div>
+
+<h3>Deltas over R2, without inventing a protocol</h3>
+<p>R2 speaks HTTP range requests, which is enough for all three:</p>
+<ul>
+<li><b>Feeds</b> are whole small files. <code>If-None-Match</code> on the ETag; a 304 costs nothing.
+    No delta needed.</li>
+<li><b>Regulatory</b> deltas key on <code>item_id</code>, which doc 13 measured at 99.88% stable.
+    Publish <code>delta/{from}-{to}.json</code> — the rows that changed. If the client's version is
+    too old to have a delta path, it refetches the whole 4 MB, which is fine.</li>
+<li><b>Tiles</b> are the hard case, and the honest answer is <b>do not delta them</b>. PMTiles is a
+    sorted immutable file; a new build reshuffles it. But a build happens rarely (months), it is
+    already a deliberate, permissioned, wifi-only download, and the client can keep serving the old
+    tiles until the new set is fully in place. <b>Atomic swap, never a partial state.</b></li>
+</ul>
+<p>The one refinement worth building: publish tiles <b>per region</b> as well as whole. Not to make
+the initial install smaller — the province ships — but so a rebuild that only touched Region 2 can
+re-download one region instead of all eight.</p>
+
+<h2 id="s9"><span class="n">09</span>Freshness and precedence</h2>
+<p><code>@app/core</code> already has <code>freshness()</code>, and its comment states the rule
+correctly: a stale answer must never render as a live one. Two extensions make it complete.</p>
+
+<pre><span class="c">/** Distinguishing these three is a correctness requirement, not a nicety. */</span>
+type <b>Status</b> =
+  | { outcome: "closed" | "limited" | "open"; provenance: <b>Provenance</b> }
+  | { outcome: <b>"unknown"</b>; because: "unplaceable" | "near-name" | "feed-unreachable" };
+
+type <b>Provenance</b> = "written-for-this-water" | "general-rules-only";
+</pre>
+
+<p>Splitting outcome from provenance is doc 13 §2.1's <code>default_only</code> fix, and the
+prototype proves it renders: <b>colour is the outcome, weight is the provenance</b>. A water with
+no rule of its own is <em>open</em> and drawn as a hairline; it is never a fourth colour.</p>
+
+<p>The three <code>unknown</code> reasons are separate because they need separate words. "A rule
+names something spelled almost like this water" and "we could not reach the notice feed" are both
+unknown, and telling a person which one is the difference between a useful app and a shrug.</p>
+
+<h2 id="s10"><span class="n">10</span>Decisions, and the one thing still open</h2>
+
+<h3>Range-read SQLite, or a purpose-built format?</h3>
+<p><b>SQLite, range-read.</b> The measurement in §4 settles it: the bundle is ~10 MB, and a
+purpose-built page format only earns its keep when the file is far larger than that. What you get
+for free is worth more than the bytes a bespoke format would save — one file for both platforms, a
+real query planner, indexes, and a format the mobile side needs anyway. A hand-rolled format means
+writing and testing two readers, and doc 13 §0.5 is a page of evidence about what happens when
+there are two of something.</p>
+<p>The thing to get right is not the format, it is the <b>page layout</b>. Range-reading is fast when
+the rows a query wants sit in adjacent pages. So the web packager writes tables in the order the
+queries read them: <code>rule</code> and <code>rule_section</code> clustered by <code>item_id</code>,
+so one reach's rules land in one or two 64 KB reads. If <code>regsForItem</code> needs more than
+about four range requests, the layout is wrong — not the format.</p>
+
+<h3>One data type or two?</h3>
+<p><b>Two, and that is fine.</b> They optimise for opposite things and they are both cheap to
+produce because they are pure functions of the same content store:</p>
+<div class="wrap-x"><div class="tbl"><table>
+<thead><tr><th></th><th>Mobile</th><th>Web</th></tr></thead>
+<tbody>
+<tr><td>Optimises</td><td>total bytes on disk</td><td>bytes to the first answer</td></tr>
+<tr><td>Bundle</td><td>one SQLite, resident, compressed</td><td>same SQLite, range-read, clustered for locality</td></tr>
+<tr><td><code>place_water</code></td><td>one table</td><td>one small file per place</td></tr>
+<tr><td>Search index</td><td>resident</td><td>one 90 KB fetch on first keystroke</td></tr>
+<tr><td>Gauge series</td><td>cached after first open</td><td>fetched on tap</td></tr>
+</tbody></table></div></div>
+<p>The conformance suite is what makes two packagings safe: both must answer §7 identically or CI
+fails. Divergence in <em>logic</em> is the thing to fear, and neither packager contains any.</p>
+
+<h3>Charting</h3>
+<p><b>No charting library. <code>react-native-svg</code> and draw it ourselves.</b></p>
+<ul>
+<li>It must render under react-native, react-native-web <em>and</em> desktop DOM. That rules out
+    anything canvas-based, which is most of them — the archived hydrograph needed chart.js plus a
+    date adapter plus a zoom plugin, three dependencies for one chart.</li>
+<li><code>react-native-svg</code> is in the Expo SDK 57 bundle, so <code>expo install</code> manages
+    its version — the thing <code>deps.md</code> says to care about.</li>
+<li>The hydrograph is the only chart in the app, and it is an unusual one: a percentile envelope, a
+    log axis, two year traces and forecast ribbons. Generic chart APIs fight all four.</li>
+<li>Rule 25 keeps it honest — the scales, ticks and paths are computed in a hook in
+    <code>@app/ui</code>; the component only draws the shapes it is handed. So the desktop version
+    is a different renderer over the same arithmetic, not a second chart.</li>
+</ul>
+
+<div class="note warn">
+<h4>The one measurement still outstanding</h4>
+<p><b>How big is the trimmed tile set?</b> v1's numbers give the ceiling — 807 MB of streams,
+4.36 GB of basemap — but neither was built with the magnitude ladder, the pruned reaches, or a
+trimmed basemap layer list. Everything in §8 assumes the province fits comfortably on a phone.
+Build the two tile sets for Region 2 at the §3 ladder and extrapolate; it is a day's work and it is
+the only number left that could change the shape of the answer.</p>
+</div>
+
+<div class="note bad">
+<h4>What this document deliberately does not decide</h4>
+<p>Shard boundaries, page size, bitmap encoding, exact tile zoom cut-points and search ranking are
+<b>packager decisions</b> (doc 13 §3). Putting them here would leak packing into the content model
+— the mistake that made v1's dense ids renumber the whole file on every build. They belong in the
+two packagers, behind the interface in §7, tested by the one conformance suite.</p>
+</div>
+
+</div>
+
+</body></html>

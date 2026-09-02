@@ -48,10 +48,14 @@
       "mayImport": [
         "@app/core",
         "@app/ui",
-        "react"
+        "react",
+        "maplibre-gl",
+        "pmtiles",
+        "@protomaps/basemaps",
+        "react-native"
       ],
       "banned": [],
-      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ."
+      "why": "the ONLY package allowed to know that maplibre-gl and maplibre-react-native differ. react-native is listed because the NATIVE half of this package renders native views; the web half renders a div. That split is the reason this package exists, so both platform imports belong here and nowhere else."
     },
     "apps/mobile": {
       "purpose": "RN app shell. Views only.",
@@ -63,13 +67,17 @@
         "react",
         "react-native",
         "expo",
-        "@app/ui-native"
+        "@app/ui-native",
+        "expo-font",
+        "@expo-google-fonts/bricolage-grotesque",
+        "@expo-google-fonts/archivo",
+        "@expo-google-fonts/jetbrains-mono"
       ],
       "banned": [
         "maplibre-gl",
         "@maplibre/maplibre-react-native"
       ],
-      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map."
+      "why": "an app that imports a map SDK directly can define its own layers, and the two apps drift apart visually. Go through @app/map. Font loading is listed here on purpose: expo-font is an asset loader, and the app shell is the only layer that may register assets. @app/ui-native NAMES the faces (type.ts) and must not load them, or it would need a platform asset pipeline and stop being drawable by anything else."
     },
     "apps/web": {
       "purpose": "Web app shell. Views only.",
@@ -97,18 +105,53 @@
         "@app/ui",
         "@app/map",
         "react",
-        "react-native"
+        "react-native",
+        "react-native-svg"
       ],
       "banned": [
         "react-dom",
         "maplibre-gl",
         "@maplibre/maplibre-react-native"
       ],
-      "why": "must render under react-native AND react-native-web. Touching react-dom breaks the native app; touching a map SDK bypasses @app/map."
+      "why": "must render under react-native AND react-native-web. Touching react-dom breaks the native app; touching a map SDK bypasses @app/map. react-native-svg is allowed HERE and nowhere else: it is a drawing primitive that renders under both, and it is the reason there is no charting library. It is deliberately NOT granted to packages/ui \u2014 a hook that could reach for a drawing primitive would start returning elements, and the desktop component set stops being free the moment that happens."
+    },
+    "packages/data/src/bundle/drivers": {
+      "purpose": "The only place a platform database may be named.",
+      "mayImport": [
+        "@app/core",
+        "node:sqlite",
+        "node:fs",
+        "node:url",
+        "node:path",
+        "expo-sqlite",
+        "sql.js"
+      ],
+      "banned": [
+        "react",
+        "react-native",
+        "react-dom"
+      ],
+      "why": "A driver satisfies `Db` \u2014 four methods \u2014 and nothing above it knows which one it got. That is what lets one query layer serve node:sqlite in tests, a wasm build range-reading R2 on the web, and expo-sqlite on the phone. `packages/data` itself must never name a database: the moment a query reaches for a driver directly, the other two platforms stop being possible."
+    },
+    "packages/data/src/spots": {
+      "purpose": "The user's own records, and the only writable store in the app.",
+      "mayImport": [
+        "@app/core",
+        "expo-file-system"
+      ],
+      "banned": [
+        "react",
+        "react-native",
+        "react-dom",
+        "node:sqlite",
+        "sql.js"
+      ],
+      "why": "A spot is the one thing here that cannot be re-downloaded, and it lives in a store of its own because the regulation bundle is replaced wholesale on every update. This layer may name a FILE system (that is its job) and may never touch the bundle's database \u2014 the two must not be able to share a file by accident."
     }
   },
   "testOnlyImports": [
-    "vitest"
+    "vitest",
+    "@testing-library/react"
   ],
-  "$comment2": "testOnlyImports are permitted in *.test.ts / *.spec.ts ONLY. Test files are not shipped, but they are still boundary-checked: a test importing react-native into core is the same architectural smell as source doing it."
+  "$comment2": "testOnlyImports are permitted in *.test.ts / *.test.tsx ONLY. Test files are not shipped, but they are still boundary-checked: a test importing react-native into core is the same architectural smell as source doing it. @testing-library/react is here because it is the only way to MOUNT a ui-native component \u2014 it renders through react-native-web, which is the mobile-web target. It pulls react-dom, which ui-native source may never touch; that is precisely why it is test-only and not in mayImport."
 }

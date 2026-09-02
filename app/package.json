@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run deps && pnpm run typecheck && pnpm run test",
+    "check": "pnpm run boundaries && pnpm run platform && pnpm run style && pnpm run spinner && pnpm run fixture && pnpm run deps && pnpm run typecheck && pnpm run test",
     "dev:web": "pnpm --filter @app/mobile run web",
     "dev:android": "pnpm --filter @app/mobile run android",
     "dev:ios": "pnpm --filter @app/mobile run ios",
@@ -13,9 +13,17 @@
     "style": "node tools/build-style.mjs && node tools/check-style.mjs && git diff --exit-code packages/map/style/",
     "style:build": "node tools/build-style.mjs",
     "deps": "node tools/check-deps.mjs",
-    "platform": "node tools/check-platform.mjs"
+    "platform": "node tools/check-platform.mjs",
+    "spinner": "node tools/build-spinner.mjs && git diff --exit-code packages/ui-native/src/fish-sprite.generated.ts design/fish-sprite.png design/fish-sprite.html",
+    "spinner:build": "node tools/build-spinner.mjs",
+    "spinner:view": "node tools/build-spinner.mjs && open design/fish-sprite.html",
+    "tiles": "node tools/serve-tiles.mjs",
+    "fixture": "node tools/build-fixture.mjs && git diff --exit-code packages/data/dev",
+    "fixture:build": "node tools/build-fixture.mjs"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "jsdom": "^30.0.1",
     "typescript": "~5.9.3",
     "vitest": "^3.2.4"
   },
@@ -25,11 +33,12 @@
     "pnpm": ">=9"
   },
   "pnpm": {
-    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 57 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone.",
+    "$comment": "ONE React for the whole workspace. packages/ui and packages/map declare react as a peer with range '*'; pnpm's auto-install-peers happily satisfied that with a DIFFERENT patch than the one Expo SDK 57 pins, which puts two Reacts in one bundle ('Invalid hook call'). These overrides make the pin structural rather than a convention. Bump them together with the Expo SDK, never alone. react-native-svg is pinned here for the same reason: it ships native code that Expo SDK 57 builds against, and two copies in one bundle is a silent render failure rather than an error.",
     "overrides": {
       "react": "19.2.3",
       "react-dom": "19.2.3",
-      "react-native": "0.86.3"
+      "react-native": "0.86.3",
+      "react-native-svg": "15.15.4"
     }
   }
 }
