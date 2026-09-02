@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formFactorFor } from "./index.js";
+import { formFactorFor } from "./index";
 
 describe("formFactorFor", () => {
   it("is decided in exactly one place", () => {

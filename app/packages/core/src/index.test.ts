@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { freshness } from "./index.js";
+import { freshness } from "./index";
 
 describe("freshness", () => {
   it("never reports a never-fetched value as live", () => {

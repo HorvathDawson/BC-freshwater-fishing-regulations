@@ -9,4 +9,12 @@
  * Keep this surface small: camera, tap, feature-state highlight. Everything the
  * style spec can express belongs in the style, not here.
  */
-export {};
+export { Map } from "./Map";
+export type { MapProps, Camera } from "./map-props";
+export { runtimeStyle, type TileEndpoints } from "./runtime-style";
+export { baseAdapter, DEFAULT_VIEW, type MapAdapter, type MapHandle } from "./adapters/contract";
+/** The catalogue a Layers menu is built from. Groups and views come from the generated
+ *  style, never from a hand-written list in a component — that is how the two apps end up
+ *  offering different layers. */
+export { toggleableGroups, views, STYLE_META, resolveTheme, themeNames,
+         type LayerGroup, type MapView, type Tokens } from "./style";

@@ -16,6 +16,20 @@
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 
+/**
+ * Our geometry vocabulary -> MapLibre's LAYER TYPE vocabulary. They are not the same words.
+ *
+ * `layers.source.json` says what a layer IS ("polygon"); a style says how it is DRAWN
+ * ("fill"). Emitting our word straight into the style produced a style MapLibre refuses to
+ * load at all — and, more quietly, one the adapter mis-painted: `baseAdapter` picks
+ * `fill-color` for type "fill" and fell through to `circle-color` for every "polygon",
+ * so administrative areas were being handed a paint property they do not have.
+ *
+ * Neither the tile-contract test nor the palette check could see this, because both compare
+ * the style to OUR artifacts. Nothing compared it to the renderer's spec until it was run.
+ */
+const MAPLIBRE_TYPE = { line: "line", polygon: "fill", point: "circle" };
+
 const dir = new URL("../packages/map/style/", import.meta.url).pathname;
 const src = JSON.parse(readFileSync(dir + "layers.source.json", "utf8"));
 const tok = JSON.parse(readFileSync(dir + "tokens.json", "utf8"));
@@ -163,6 +177,8 @@ for (const [id, p] of Object.entries(providers)) {
 const groups = new Map((src.groups ?? []).map((g) => [g.id, g]));
 const layersById = new Map();
 const outLayers = [];
+/** Generated companion line layers: edge layer id -> the polygon layer it outlines. */
+const edges = new Map();
 
 for (const l of src.layers ?? []) {
   const where = `layer "${l.id}"`;
@@ -234,18 +250,50 @@ for (const l of src.layers ?? []) {
       err(`${w}: unknown scale "${m.scale}"`);
     }
   }
-  if (l.width) tokenValue(l.width, `${where} width`);
+  if (l.opacity) tokenValue(l.opacity, `${where} opacity`);
+  if (l.dash) tokenValue(l.dash, `${where} dash`);
+  if (l.width) {
+    tokenValue(l.width, `${where} width`);
+    // A fill has no width in MapLibre. Declaring one produced a style that threw on load
+    // and took the entire recolouring pass down with it, so NOTHING on the map got its
+    // colours — from one line of source that looked perfectly reasonable.
+    if (l.geometry === "polygon")
+      err(`${where}: a polygon has no width. MapLibre fills cannot be stroked; an outline ` +
+           `needs a companion line layer over the same source-layer.`);
+  }
   layersById.set(l.id, l);
 
   const g = groups.get(l.group);
-  outLayers.push({
-    id: l.id, type: l.geometry, source: l.source,
+  const geom = {
+    source: l.source,
     ...(l.sourceLayer ? { "source-layer": l.sourceLayer } : {}),
     ...(l.minzoom !== undefined ? { minzoom: l.minzoom } : {}),
     ...(l.maxzoom !== undefined ? { maxzoom: l.maxzoom } : {}),
     layout: { visibility: g?.defaultVisible ? "visible" : "none" },
-  });
+  };
+  outLayers.push({ id: l.id, type: MAPLIBRE_TYPE[l.geometry], ...geom });
+
+  /**
+   * A COMPANION LINE LAYER over the same source-layer.
+   *
+   * MapLibre fills cannot be stroked, so a polygon that wants an edge needs a second layer
+   * — which is exactly what v1 did for lakes and for every admin area
+   * (`archive/webapp/src/map/styles.ts`: a `-fill` and a `-line` for each). Without it a
+   * lake is a flat blob with no shoreline and a management unit has no visible boundary at
+   * all, which is most of why the map read as unfinished.
+   *
+   * Generated rather than authored so the edge cannot drift from the fill it belongs to:
+   * same source-layer, same zooms, same group, and it appears in every view.
+   */
+  if (l.outline) {
+    const id = `${l.id}__edge`;
+    tokenValue(l.outline.color, `${where} outline colour`);
+    if (l.outline.width) tokenValue({ token: l.outline.width.token }, `${where} outline width`);
+    outLayers.push({ id, type: "line", ...geom });
+    edges.set(id, l);
+  }
 }
+
 
 // --- a colour token may not cross semantic families ---
 //
@@ -284,6 +332,19 @@ for (const l of src.layers ?? []) {
 // --- views must name real layers and real modes; exactly one default ---
 const defaults = (src.views ?? []).filter((v) => v.default);
 if (defaults.length !== 1) err(`exactly one view must be marked default (found ${defaults.length})`);
+/**
+ * Fill in everything a generated edge layer needs, so it is a first-class layer rather
+ * than something the runtime has to special-case: one static colour mode, an entry in
+ * every view, and the same group as the fill it outlines (so one toggle moves both).
+ */
+for (const [id, l] of edges) {
+  layersById.set(id, {
+    ...l, id, geometry: "line",
+    colorModes: { plain: { label: `${l.id} outline`, scale: "static", color: l.outline.color } },
+  });
+  for (const v of src.views ?? []) v.modes[id] = "plain";
+}
+
 for (const v of src.views ?? [])
   for (const [layerId, mode] of Object.entries(v.modes ?? {})) {
     const l = layersById.get(layerId);
@@ -306,11 +367,45 @@ const meta = {
   groups: src.groups ?? [],
   views: src.views ?? [],
   providers,
-  layerGroup: Object.fromEntries((src.layers ?? []).map((l) => [l.id, l.group])),
+  layerGroup: Object.fromEntries([
+    ...(src.layers ?? []).map((l) => [l.id, l.group]),
+    // an edge belongs to the group of the fill it outlines, so one toggle moves both
+    ...[...edges].map(([id, l]) => [id, l.group]),
+  ]),
   highlightable: (src.layers ?? []).filter((l) => l.highlightable)
     .map((l) => ({ id: l.id, featureIdProperty: l.featureIdProperty })),
-  colorModes: Object.fromEntries((src.layers ?? []).map((l) => [l.id, l.colorModes])),
-  widths: Object.fromEntries((src.layers ?? []).filter((l) => l.width).map((l) => [l.id, l.width.token])),
+  colorModes: Object.fromEntries([
+    ...(src.layers ?? []).map((l) => [l.id, l.colorModes]),
+    ...[...edges].map(([id]) => [id, layersById.get(id).colorModes]),
+  ]),
+  // WHICH PROPERTY carries the feature id, per layer. The style knew a property had been
+  // named; nothing knew which one, so nothing could tell MapLibre to promote it.
+  featureIds: Object.fromEntries((src.layers ?? [])
+    .filter((l) => l.featureIdProperty)
+    .map((l) => [l.id, l.featureIdProperty])),
+  widths: Object.fromEntries([
+    ...(src.layers ?? []).filter((l) => l.width)
+      .map((l) => [l.id, l.width.by
+        ? { token: l.width.token, by: l.width.by, mode: l.width.mode ?? "linear",
+            ramp: l.width.ramp }
+        : l.width.token]),
+    ...[...edges].filter(([, l]) => l.outline.width)
+      .map(([id, l]) => [id, l.outline.width.by
+        ? { token: l.outline.width.token, by: l.outline.width.by,
+            mode: l.outline.width.mode ?? "linear", ramp: l.outline.width.ramp }
+        : l.outline.width.token]),
+  ]),
+  // Opacity rides the same rail as width: a token, applied at runtime, themeable. It is
+  // NOT baked into the style's paint because a theme may want a different value — and
+  // because wetland at full opacity buried every other layer on the map, which is the
+  // failure that made this necessary.
+  opacities: Object.fromEntries((src.layers ?? []).filter((l) => l.opacity)
+    .map((l) => [l.id, l.opacity.token])),
+  // A dash pattern. The under-lake layer's comment said "drawn dotted" for months while
+  // the style had no way to express a dash, so it drew solid — and 303,932 solid routes
+  // over every lake in the province is a spider web.
+  dashes: Object.fromEntries((src.layers ?? []).filter((l) => l.dash)
+    .map((l) => [l.id, l.dash.token])),
   themes: Object.fromEntries(themes.map((t) => [t.name, t.values])),
   tokens, enums,
 };

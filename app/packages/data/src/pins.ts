@@ -15,7 +15,7 @@
  * No cross-device sync (decided). But "no sync" is not "no backup": losing a phone must
  * not silently lose years of notes, so export/import is a requirement, not a nicety.
  */
-import type { ItemId } from "./index.js";
+import type { ItemId } from "./index";
 
 export interface Pin {
   id: string;

@@ -4,25 +4,36 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "web": "expo start --web",
+    "web": "expo start --web --port 39218",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "prebuild": "expo prebuild --clean",
     "export:web": "expo export --platform web"
   },
   "dependencies": {
-    "@app/core": "workspace:*", "@app/data": "workspace:*",
-    "@app/ui": "workspace:*", "@app/map": "workspace:*",
+    "@app/core": "workspace:*",
+    "@app/data": "workspace:*",
+    "@app/map": "workspace:*",
+    "@app/ui": "workspace:*",
     "@app/ui-native": "workspace:*",
+    "@expo-google-fonts/archivo": "^0.4.2",
+    "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/metro-runtime": "~57.0.14",
     "expo": "~57.0.18",
+    "expo-file-system": "^57.0.6",
+    "expo-font": "^57.0.2",
+    "expo-sqlite": "^57.0.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-web": "~0.21.2"
+    "react-native-svg": "15.15.4",
+    "react-native-web": "~0.21.2",
+    "sql.js": "^1.14.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "@types/sql.js": "^1.4.11",
     "babel-preset-expo": "~57.0.9"
   }
 }

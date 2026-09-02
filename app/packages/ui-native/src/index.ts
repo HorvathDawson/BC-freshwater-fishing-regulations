@@ -1,14 +1,32 @@
 /**
- * @app/ui-native — the PHONE component set, written once in React Native primitives.
+ * @app/ui-native — the PHONE components.
  *
- * Rendered by BOTH the native app and the mobile web view (via react-native-web), so
- * the phone experience is identical on device and in a mobile browser by construction
- * rather than by discipline.
- *
- * Desktop does NOT use these — it has its own components in apps/web. That costs
- * nothing, because these components hold no logic: behaviour lives in @app/ui hooks,
- * which desktop calls too. If you find yourself wanting to share a component with
- * desktop to avoid duplicating logic, the logic is in the wrong place — move it to a
- * hook.
+ * Rendered by the native app AND by mobile web through react-native-web, so the two match
+ * by construction rather than by discipline. Desktop gets its own DOM components in
+ * apps/web; that split is free precisely because there is no logic in here to duplicate —
+ * every one of these takes data from a hook and draws it.
  */
 export { PlaceholderScreen } from "./PlaceholderScreen";
+export { WaterScreen } from "./WaterScreen";
+export { Shell } from "./Shell";
+export { SearchScreen } from "./SearchScreen";
+export { MapScreen } from "./MapScreen";
+export { SpotsScreen } from "./SpotsScreen";
+export { SpotCapture, type SpotCaptureProps } from "./SpotCapture";
+export { SpotScreen } from "./SpotScreen";
+export { GaugeBadge } from "./GaugeBadge";
+export { TabBar, TABS, type TabKey } from "./TabBar";
+export { Pill, ButtonStack, LegendStrip, LegendCount, LegendRamp } from "./Chrome";
+export { Sheet, Row, Choice } from "./Sheet";
+export { LayersSheet, STOCK_BANDS, streamChoices, lakeChoices,
+         type LayersState, type LayerChoice } from "./LayersSheet";
+export { OptionRow, type Option } from "./OptionRow";
+export { MiniMap } from "./MiniMap";
+export { Chip, ReadingChip, ordinal } from "./StatusChip";
+export { Icon, LayersIcon, SatelliteIcon, type IconName } from "./icons";
+export * from "./type";
+export { StatusPill } from "./StatusPill";
+export { Hydrograph } from "./Hydrograph";
+export { GaugeTrace } from "./GaugeTrace";
+export { FishSpinner } from "./FishSpinner";
+export * from "./theme";

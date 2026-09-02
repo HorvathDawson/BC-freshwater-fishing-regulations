@@ -1,11 +1,11 @@
 {
   "$schema": "./schema/layers.schema.json",
-  "$comment": "AUTHORED \u2014 the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads.",
+  "$comment": "AUTHORED \u2014 the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads. Source layer names and featureIdProperty must match pipeline/tiles/layers.py exactly \u2014 they did not, and a mismatch draws nothing while erroring nowhere.",
   "sources": {
-    "waters": {
+    "atlas": {
       "type": "vector",
-      "url": "pmtiles://waters",
-      "$comment": "our pipeline's regulable-water tiles"
+      "url": "pmtiles://atlas",
+      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data \u2014 see pipeline/tiles/layers.py."
     }
   },
   "groups": [
@@ -14,21 +14,460 @@
       "label": "Water",
       "toggleable": false,
       "defaultVisible": true
+    },
+    {
+      "id": "depth",
+      "label": "Lake depth",
+      "toggleable": true,
+      "defaultVisible": false
+    },
+    {
+      "id": "protected",
+      "label": "Parks and reserves",
+      "toggleable": true,
+      "defaultVisible": false,
+      "$comment": "Off by default. Parks and ecological reserves are large opaque areas and they buried the water they sit around \u2014 the map's job is to say which water is open, and an overlay that hides the water fails at it. Behind Layers."
+    },
+    {
+      "id": "access",
+      "label": "Land access",
+      "toggleable": true,
+      "defaultVisible": false,
+      "$comment": "Off by default, for the same reason as `protected`: these are big fills, and the answer is the water. A user who needs to know where they may not go turns it on, and then it is the point of the screen rather than noise on it."
+    },
+    {
+      "id": "admin",
+      "label": "Management units",
+      "toggleable": true,
+      "defaultVisible": false
     }
   ],
   "layers": [
     {
-      "id": "streams",
+      "id": "mu",
+      "group": "admin",
+      "source": "atlas",
+      "sourceLayer": "mu",
+      "geometry": "polygon",
+      "featureIdProperty": "mu_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Management units",
+          "scale": "static",
+          "color": {
+            "token": "color.mu.edge"
+          }
+        }
+      },
+      "$comment": "Drawn as a filled area. An OUTLINE would need a companion line layer over the same source-layer \u2014 MapLibre fills cannot be stroked, and declaring a width here produced a style that threw on load and killed the whole recolouring pass.",
+      "outline": {
+        "color": {
+          "token": "color.mu.edge"
+        },
+        "width": {
+          "token": "width.admin.edge"
+        },
+        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+      }
+    },
+    {
+      "id": "indigenous_land",
+      "group": "access",
+      "source": "atlas",
+      "sourceLayer": "indigenous_land",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Reserves and treaty land",
+          "scale": "static",
+          "color": {
+            "token": "color.indigenous.edge"
+          }
+        }
+      },
+      "$comment": "Drawn as a filled area. An OUTLINE would need a companion line layer over the same source-layer \u2014 MapLibre fills cannot be stroked, and declaring a width here produced a style that threw on load and killed the whole recolouring pass.",
+      "outline": {
+        "color": {
+          "token": "color.indigenous.edge"
+        },
+        "width": {
+          "token": "width.admin.edge"
+        },
+        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+      }
+    },
+    {
+      "id": "no_access",
+      "group": "access",
+      "source": "atlas",
+      "sourceLayer": "no_access",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "No public access",
+          "scale": "static",
+          "color": {
+            "token": "color.noaccess.fill"
+          }
+        }
+      },
+      "outline": {
+        "color": {
+          "token": "color.noaccess.fill"
+        },
+        "width": {
+          "token": "width.admin.edge"
+        },
+        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+      }
+    },
+    {
+      "id": "eco_reserve",
+      "group": "protected",
+      "source": "atlas",
+      "sourceLayer": "eco_reserve",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Ecological reserves",
+          "scale": "static",
+          "color": {
+            "token": "color.reserve.fill"
+          }
+        }
+      },
+      "$comment": "Its own layer, not a park variant: it is a blanket closure and must never be styled like somewhere you may fish.",
+      "outline": {
+        "color": {
+          "token": "color.park.edge"
+        },
+        "width": {
+          "token": "width.admin.edge"
+        },
+        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+      }
+    },
+    {
+      "id": "park",
+      "group": "protected",
+      "source": "atlas",
+      "sourceLayer": "park",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Parks",
+          "scale": "static",
+          "color": {
+            "token": "color.park.fill"
+          }
+        }
+      },
+      "outline": {
+        "color": {
+          "token": "color.park.edge"
+        },
+        "width": {
+          "token": "width.admin.edge"
+        },
+        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+      }
+    },
+    {
+      "id": "wetland",
       "group": "water",
-      "source": "waters",
-      "sourceLayer": "sections",
+      "source": "atlas",
+      "sourceLayer": "wetland",
+      "geometry": "polygon",
+      "featureIdProperty": "section_id",
+      "highlightable": true,
+      "colorModes": {
+        "plain": {
+          "label": "Plain",
+          "scale": "static",
+          "color": {
+            "token": "color.wetland.fill"
+          }
+        },
+        "closure": {
+          "label": "Open / closed",
+          "scale": "categorical",
+          "property": "status",
+          "enum": "reg_status",
+          "categories": {
+            "open": {
+              "token": "color.status.open"
+            },
+            "restricted": {
+              "token": "color.status.restricted"
+            },
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "unknown": {
+              "token": "color.status.unknown"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "regs",
+            "field": "status",
+            "params": [
+              "date",
+              "species"
+            ]
+          },
+          "$comment": "`missing` is the colour of water the app has said NOTHING about \u2014 no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+        }
+      },
+      "opacity": {
+        "token": "opacity.wetland"
+      },
+      "$comment": "Wetland is the largest layer by area in the province and it is CONTEXT, not an answer \u2014 at full opacity it painted over every river it surrounds. It is always translucent."
+    },
+    {
+      "id": "lake",
+      "group": "water",
+      "source": "atlas",
+      "sourceLayer": "lake",
+      "geometry": "polygon",
+      "featureIdProperty": "section_id",
+      "highlightable": true,
+      "colorModes": {
+        "plain": {
+          "label": "Plain",
+          "scale": "static",
+          "color": {
+            "token": "color.lake.fill"
+          }
+        },
+        "closure": {
+          "label": "Open / closed",
+          "scale": "categorical",
+          "property": "status",
+          "enum": "reg_status",
+          "categories": {
+            "open": {
+              "token": "color.status.open"
+            },
+            "restricted": {
+              "token": "color.status.restricted"
+            },
+            "closed": {
+              "token": "color.status.closed"
+            },
+            "unknown": {
+              "token": "color.status.unknown"
+            }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
+          },
+          "data": {
+            "provider": "regs",
+            "field": "status",
+            "params": [
+              "date",
+              "species"
+            ]
+          },
+          "$comment": "`missing` is the colour of water the app has said NOTHING about \u2014 no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+        },
+        "stocked": {
+          "label": "Last stocked",
+          "scale": "categorical",
+          "property": "stocked",
+          "enum": "stock_recency",
+          "categories": {
+            "season": {
+              "token": "color.stock.fresh"
+            },
+            "year": {
+              "token": "color.stock.recent"
+            },
+            "recent": {
+              "token": "color.stock.recent"
+            },
+            "old": {
+              "token": "color.stock.old"
+            },
+            "never": {
+              "token": "color.lake.fill"
+            }
+          },
+          "missing": {
+            "token": "color.lake.fill"
+          },
+          "data": {
+            "provider": "stocking",
+            "field": "recency"
+          }
+        },
+        "surveyed": {
+          "label": "Depth",
+          "scale": "categorical",
+          "property": "survey",
+          "enum": "survey_state",
+          "$comment": "Depth is about which lakes have been SURVEYED, not only which have digitised contours. 2,741 bathymetric sheets exist and only a fraction were ever traced into vector contours \u2014 colouring by contours alone shows a near-empty map and tells a reader the province was never surveyed, which is the opposite of true.",
+          "categories": {
+            "digitised": {
+              "token": "color.survey.digitised"
+            },
+            "sheet": {
+              "token": "color.survey.sheet"
+            }
+          },
+          "missing": {
+            "token": "color.lake.fill"
+          },
+          "data": {
+            "provider": "lakes",
+            "field": "survey"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.lake"
+      },
+      "outline": {
+        "color": {
+          "token": "color.water.mapped"
+        },
+        "width": {
+          "token": "width.stream.base",
+          "by": "area_m2",
+          "mode": "sqrt",
+          "ramp": [
+            [
+              4,
+              0.5,
+              5e-05,
+              1.5
+            ],
+            [
+              8,
+              0.6,
+              8e-05,
+              2.0
+            ],
+            [
+              12,
+              0.8,
+              0.0002,
+              3.0
+            ],
+            [
+              16,
+              1.0,
+              0.0003,
+              4.0
+            ]
+          ]
+        },
+        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area \u2014 area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible."
+      }
+    },
+    {
+      "id": "contour",
+      "group": "depth",
+      "source": "atlas",
+      "sourceLayer": "contour",
+      "geometry": "line",
+      "featureIdProperty": "item",
+      "highlightable": false,
+      "width": {
+        "token": "width.lake.edge"
+      },
+      "colorModes": {
+        "plain": {
+          "label": "Depth",
+          "scale": "static",
+          "color": {
+            "token": "color.contour.line"
+          }
+        }
+      }
+    },
+    {
+      "id": "under_lake",
+      "group": "water",
+      "source": "atlas",
+      "sourceLayer": "under_lake",
+      "geometry": "line",
+      "featureIdProperty": "section_id",
+      "highlightable": false,
+      "width": {
+        "token": "width.underlake"
+      },
+      "colorModes": {
+        "plain": {
+          "label": "Route through a lake",
+          "scale": "static",
+          "color": {
+            "token": "color.water.route"
+          }
+        }
+      },
+      "$comment": "The route a river takes THROUGH a lake \u2014 connectivity, not water you can fish. A lake with several inflows has a route from each, so at full weight the layer reads as a spider web over every lake in the province. It has to be the thinnest, faintest thing on the map: a dotted hairline that says 'the river continues' and nothing more.",
+      "dash": {
+        "token": "dash.route"
+      }
+    },
+    {
+      "id": "stream",
+      "group": "water",
+      "source": "atlas",
+      "sourceLayer": "stream",
       "geometry": "line",
       "featureIdProperty": "section_id",
       "highlightable": true,
       "width": {
-        "token": "width.stream.base"
+        "token": "width.stream.base",
+        "by": "ord",
+        "$comment": "v1's formula, from archive/webapp/src/map/styles.ts. Width is LINEAR in Strahler order \u2014 base + order x slope \u2014 and both move with zoom. The shape is the point: at z4 order barely matters (0.1 per order), so a zoomed-out province reads as a uniform hairline network; by z14 order dominates (1.5 per order) and the Fraser is obviously the Fraser. Two attempts at a piecewise ramp over order got the magnitudes into range and the SHAPE wrong \u2014 everything was differentiated at every zoom, so the low-zoom map was a mess of competing weights.",
+        "ramp": [
+          [
+            4,
+            0.5,
+            0.1
+          ],
+          [
+            8,
+            0.6,
+            0.15
+          ],
+          [
+            11,
+            0.75,
+            0.75
+          ],
+          [
+            12,
+            1.0,
+            1.0
+          ],
+          [
+            14,
+            1.5,
+            1.5
+          ],
+          [
+            16,
+            2.0,
+            2.0
+          ]
+        ]
       },
-      "$comment": "ONE geometry, MANY colourings. Exactly one mode is active at a time; the user picks via a view (below). Each mode names the runtime feature-state property that drives it.",
       "colorModes": {
         "plain": {
           "label": "Plain",
@@ -54,54 +493,77 @@
             },
             "unknown": {
               "token": "color.status.unknown"
-            },
-            "default_only": {
-              "token": "color.status.default_only"
             }
+          },
+          "missing": {
+            "token": "color.water.unmapped"
           },
           "data": {
             "provider": "regs",
             "field": "status",
             "params": [
-              "date"
+              "date",
+              "species"
             ]
           },
-          "missing": {
-            "token": "color.status.default_only"
-          }
+          "$comment": "`missing` is the colour of water the app has said NOTHING about \u2014 no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
         },
-        "discharge": {
-          "label": "Water level",
+        "standing": {
+          "label": "Flow for the date",
           "scale": "continuous",
-          "property": "discharge_pct",
+          "property": "standing",
           "stops": [
             [
-              0,
+              0.0,
               {
-                "token": "color.flow.low"
+                "token": "color.flow.f1"
               }
             ],
             [
-              50,
+              16.7,
               {
-                "token": "color.flow.normal"
+                "token": "color.flow.f2"
               }
             ],
             [
-              100,
+              33.3,
               {
-                "token": "color.flow.high"
+                "token": "color.flow.f3"
+              }
+            ],
+            [
+              50.0,
+              {
+                "token": "color.flow.f4"
+              }
+            ],
+            [
+              66.7,
+              {
+                "token": "color.flow.f5"
+              }
+            ],
+            [
+              83.3,
+              {
+                "token": "color.flow.f6"
+              }
+            ],
+            [
+              100.0,
+              {
+                "token": "color.flow.f7"
               }
             ]
           ],
           "missing": {
-            "token": "color.water.mapped"
+            "token": "color.water.unmapped"
           },
           "data": {
             "provider": "gauges",
-            "field": "discharge_pct"
+            "field": "standing"
           },
-          "$comment": "`missing` is the NEUTRAL plain-water colour, not status.unknown. About 19,250 of 19,700 waters have no gauge, so this paints most of the map: using the regulatory-unknown violet here would mean 'we could not parse the rule' and 'there is no gauge' were the same colour."
+          "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another. `missing` is neutral water, never status.unknown \u2014 most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse.  SEVEN STOPS, and they ARE the legend's: the ramp was three tokens that all resolved to shades of one blue while the legend beside it drew red through cyan \u2014 two definitions of one scale (AGENTS rule 23). The legend now reads these tokens.  MISSING is `water.unmapped`, the pale grey, NOT `water.mapped`, which is a saturated teal darker than the low-flow end and made ungauged water read as more prominent than measured water. 97.6% of BC has no gauge: it must stay visible and stay quiet."
         }
       }
     }
@@ -112,21 +574,65 @@
       "label": "Regulations",
       "default": true,
       "modes": {
-        "streams": "closure"
-      }
+        "stream": "closure",
+        "under_lake": "plain",
+        "lake": "closure",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain"
+      },
+      "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
     },
     {
       "id": "conditions",
       "label": "Conditions",
       "modes": {
-        "streams": "discharge"
+        "stream": "standing",
+        "under_lake": "plain",
+        "lake": "plain",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain"
+      }
+    },
+    {
+      "id": "stocked",
+      "label": "Stocked lakes",
+      "modes": {
+        "stream": "plain",
+        "under_lake": "plain",
+        "lake": "stocked",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain"
       }
     },
     {
       "id": "plain",
       "label": "Plain map",
       "modes": {
-        "streams": "plain"
+        "stream": "plain",
+        "under_lake": "plain",
+        "lake": "plain",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain"
       }
     }
   ],
@@ -136,15 +642,15 @@
       "kind": "bundle",
       "key": "section_id",
       "freshness": "bundle",
-      "$comment": "computed from rules + the selected date. Present for the 2.4% with an assessed rule; everything else is default_only."
+      "$comment": "Status per section for a date AND a species group. Two parallel stacks: the provincial synopsis governs trout, char and coarse fish; DFO governs salmon. There is no blended answer, so the view carries the group."
     },
     "gauges": {
       "kind": "feed",
-      "key": "item_id",
-      "fanout": "item_to_sections",
+      "key": "section_id",
+      "fanout": "section_to_station",
       "freshness": "live",
       "staleAfterMs": 5400000,
-      "$comment": "450 stations, 30-min refresh. Binds to item_id (durable), so it must fan out to that item's sections to colour a line."
+      "$comment": "450 stations, 30-min refresh. Keyed by SECTION, bridged to a station by the build's `section_gauge` precompute \u2014 and only where the magnitude ratio says that station can speak for the reach. Below the floor the section has no link at all and reports no gauge rather than borrowing a big river's number. It was declared `item_id`/`item_to_sections`, which is how stocking works, not this."
     },
     "stocking": {
       "kind": "feed",
@@ -161,7 +667,15 @@
       "freshness": "live",
       "staleAfterMs": 43200000,
       "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold \u2014 two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
+    },
+    "lakes": {
+      "kind": "bundle",
+      "key": "section_id",
+      "fanout": "section_to_item",
+      "freshness": "bundle",
+      "$comment": "Per-lake facts from the bundle: whether the lake was surveyed, and when it was last stocked. Keyed by section because that is what the tile carries; the fanout resolves it to the item the fact belongs to."
     }
   },
-  "$toggleable_groups": "No third-party overlay ships yet. Private parcels was drafted here and REMOVED: its attribution was the string 'TODO', which the old guard accepted because it only checked the field was non-empty. A licensed layer must not reach a store on a placeholder. To add one: declare the source with external:true and a real provider + licence, add a toggleable group, add a layer whose colorModes use water.* or a family matching its provider. The build will refuse anything less."
+  "$toggleable_groups": "No third-party overlay ships yet. Private parcels was drafted here and REMOVED: its attribution was the string 'TODO', which the old guard accepted because it only checked the field was non-empty. A licensed layer must not reach a store on a placeholder. To add one: declare the source with external:true and a real provider + licence, add a toggleable group, add a layer whose colorModes use water.* or a family matching its provider. The build will refuse anything less.",
+  "$comment_order": "Layer order IS the draw order, bottom to top. Generated edge layers are emitted immediately after the fill they outline."
 }

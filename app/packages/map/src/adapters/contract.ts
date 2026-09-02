@@ -8,7 +8,7 @@
  */
 import {
   MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, type Tokens,
-} from "../style.js";
+} from "../style";
 
 /** The thin platform-specific part each adapter supplies. */
 export interface MapHandle {
@@ -26,6 +26,15 @@ export interface MapAdapter {
   setGroupVisible(h: MapHandle, groupId: string, visible: boolean): void;
   /** Switch the whole picture: which colouring each layer uses. */
   applyView(h: MapHandle, viewId: string, themeName: string, overrides?: Tokens): void;
+  /**
+   * One layer's colouring, without touching the others.
+   *
+   * A view is a preset; this is the control the design actually offers. Riffle lets you
+   * hold streams on Rules while lakes show Stocked, because they answer different
+   * questions — forcing both through a single "view" was my invention, not the design's.
+   */
+  setLayerMode(h: MapHandle, layerId: string, mode: string, themeName: string,
+               overrides?: Tokens): void;
   /** Re-apply colours after a theme or user-palette change, keeping the current view. */
   applyTheme(h: MapHandle, viewId: string, themeName: string, overrides?: Tokens): void;
   /** Highlight by id via feature-state — never by mutating paint. */
@@ -34,22 +43,84 @@ export interface MapAdapter {
   setData(h: MapHandle, layerId: string, values: Record<string, Record<string, unknown>>): void;
 }
 
-export function baseAdapter(platform: "native" | "web"): MapAdapter {
-  const paintProp = (layerId: string) => {
-    const l = MAP_STYLE.layers.find((x) => x.id === layerId) as { type?: string } | undefined;
-    return l?.type === "line" ? "line-color" : l?.type === "fill" ? "fill-color" : "circle-color";
+/** The MapLibre paint property that carries colour, per layer type. */
+export function colourPropFor(type: string | undefined): string {
+  return type === "line" ? "line-color" : type === "fill" ? "fill-color" : "circle-color";
+}
+
+/**
+ * Everything painted on one layer for one mode: colour, width, opacity.
+ *
+ * Shared by the runtime style and the adapter ON PURPOSE. The style used to ship with no
+ * paint at all and the adapter applied it on `load`, so every map showed a frame or two of
+ * MapLibre's defaults — black lines over the basemap — before snapping to the palette.
+ * One function means the first frame and every frame after it are painted the same way.
+ */
+export function paintFor(layerId: string, mode: string, tokens: Tokens):
+    Record<string, unknown> {
+  const type = (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)
+    ?.type;
+  const out: Record<string, unknown> = {
+    [colourPropFor(type)]: colorExpression(layerId, mode, tokens),
   };
+
+  const spec = STYLE_META.widths[layerId];
+  const widthKey = type === "line" ? "line-width" : type === "circle" ? "circle-radius" : null;
+  if (spec !== undefined && widthKey !== null) {
+    if (typeof spec === "string") {
+      const w = tokens[spec];
+      if (w !== undefined) out[widthKey] = w;
+    } else {
+      // v1's formula: width is LINEAR in the attribute, and both the intercept and the
+      // slope move with zoom. Not a ramp over the attribute — that shape differentiates
+      // every stream at every zoom, and the low-zoom province becomes noise.
+      //
+      // `["get", ...]` and not `["feature-state", ...]`: stream order ships in the tile and
+      // never changes, so line weight must not wait on the app pushing anything.
+      const scale = Number(tokens[spec.token] ?? 1);
+      const z: unknown[] = ["interpolate", ["linear"], ["zoom"]];
+      if (spec.mode === "sqrt") {
+        // v1's lake/area outline: base + k * sqrt(area), clamped. Square-rooted because
+        // area grows as the square of a shoreline, so a linear ramp makes one big lake
+        // enormous and every small one invisible. MapLibre has no clamp, hence max(min()).
+        const attr = ["coalesce", ["to-number", ["get", spec.by]], 10000];
+        for (const [at, base, k, max] of spec.ramp)
+          z.push(at, ["*", scale,
+            ["max", ["min", ["+", base, ["*", k, ["sqrt", attr]]], max ?? base], base]]);
+      } else {
+        const attr = ["coalesce", ["to-number", ["get", spec.by]], 1];
+        for (const [at, base, slope] of spec.ramp)
+          z.push(at, ["*", scale, ["+", base, ["*", attr, slope]]]);
+      }
+      out[widthKey] = z;
+    }
+  }
+
+  const dash = (STYLE_META.dashes ?? {})[layerId];
+  if (dash !== undefined && type === "line") {
+    const pattern = tokens[dash];
+    if (Array.isArray(pattern)) out["line-dasharray"] = pattern;
+  }
+
+  const opacity = (STYLE_META.opacities ?? {})[layerId];
+  if (opacity !== undefined && type) {
+    const o = tokens[opacity];
+    if (o !== undefined) out[`${type}-opacity`] = o;
+  }
+  return out;
+}
+
+export function baseAdapter(platform: "native" | "web"): MapAdapter {
+  const typeOf = (layerId: string) =>
+    (MAP_STYLE.layers.find((x) => x.id === layerId) as { type?: string } | undefined)?.type;
 
   const apply = (h: MapHandle, viewId: string, themeName: string, overrides: Tokens = {}) => {
     const view = STYLE_META.views.find((v) => v.id === viewId);
     if (!view) throw new Error(`unknown view "${viewId}"`);
     const tokens = resolveTheme(themeName, overrides);
     for (const [layerId, mode] of Object.entries(view.modes))
-      h.setPaint(layerId, paintProp(layerId), colorExpression(layerId, mode, tokens));
-    for (const [layerId, token] of Object.entries(STYLE_META.widths)) {
-      const w = tokens[token];
-      if (w !== undefined) h.setPaint(layerId, paintProp(layerId).replace("-color", "-width"), w);
-    }
+      for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
+        h.setPaint(layerId, prop, value);
   };
 
   return {
@@ -67,6 +138,17 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
 
     applyView: apply,
     applyTheme: apply,
+
+    setLayerMode(h, layerId, mode, themeName, overrides = {}) {
+      const modes = STYLE_META.colorModes[layerId];
+      if (!modes) throw new Error(`unknown layer "${layerId}"`);
+      if (!modes[mode])
+        throw new Error(`layer "${layerId}" has no colour mode "${mode}" ` +
+                        `(has ${Object.keys(modes).join(", ")})`);
+      const tokens = resolveTheme(themeName, overrides);
+      for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
+        h.setPaint(layerId, prop, value);
+    },
 
     highlight(h, featureIds) {
       for (const { id } of STYLE_META.highlightable) {

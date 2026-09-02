@@ -1,4 +1,9 @@
 import os
+import collections
+import csv
+import tempfile
+import re
+import io
 import json
 import argparse
 import logging
@@ -1111,74 +1116,411 @@ def fetch_bathymetry_pdfs(
             print(f"       … and {len(failures) - 20} more.")
 
 
+# What a person types into a search box when they mean "near here".
+#
+# The first four are settlements. `locality` is the one that matters most in BC and was
+# missing: OSM uses it for a named place with no permanent population, which is most of the
+# province's fishing country — Tamihi, Slesse Park, Skagit Bluffs. Leaving it out meant a
+# gazetteer of towns, not of places people go.
+#
+# Rank orders search results and thins map labels by zoom. It is NOT importance in the
+# world; it is "how likely is this the thing they meant".
+_PLACE_KINDS = {
+    "city": 0, "town": 1, "village": 2,
+    "suburb": 3, "borough": 3,
+    "hamlet": 4, "neighbourhood": 4, "quarter": 4,
+    "locality": 5,
+}
+# Deliberately absent: isolated_dwelling and farm. Both are real OSM place tags and both are
+# single buildings — thousands of them, none of which anyone searches for.
+
+
+def _overpass_places_in(bbox: tuple, kinds: str, depth: int = 0) -> list:
+    """Every place element in one bbox, splitting the box when Overpass gives up.
+
+    A single BC-wide query for nine place kinds returns 504: the province is 950,000 km²
+    and the Lower Mainland alone carries thousands of named neighbourhoods. Rather than
+    guess a grid fine enough to always work — which is either too many requests on empty
+    country or too few over the coast — this asks for the whole box and quarters it only
+    where the server actually refuses. Dense areas subdivide; the Muskwa-Kechika takes one
+    request.
+
+    `depth` guards against a box that fails for a reason splitting cannot fix.
+    """
+    south, west, north, east = bbox
+    query = (f"[out:json][timeout:180];\n"
+             f'(nwr["place"~"^({kinds})$"]["name"]({south},{west},{north},{east}););\n'
+             f"out center tags qt;\n")
+    try:
+        return _overpass_query(query, f"OSM places {bbox}", timeout=240, retries=2) \
+            .get("elements", [])
+    except RuntimeError:
+        if depth >= 4:
+            raise
+        midlat, midlon = (south + north) / 2, (west + east) / 2
+        print(f"    ...splitting {south:.1f},{west:.1f} - {north:.1f},{east:.1f}")
+        out = []
+        for quad in ((south, west, midlat, midlon), (south, midlon, midlat, east),
+                     (midlat, west, north, midlon), (midlat, midlon, north, east)):
+            out.extend(_overpass_places_in(quad, kinds, depth + 1))
+            time.sleep(2)          # a public instance, shared with everyone else
+        return out
+
+
+_HYDRO_STATIONS_API = "https://api.weather.gc.ca/collections/hydrometric-stations/items"
+_HYDRO_REALTIME_CSV = (
+    "https://dd.weather.gc.ca/today/hydrometric/doc/hydrometric_StationList.csv"
+)
+
+
+_HYDAT_DIR = "https://collaboration.cmc.ec.gc.ca/cmc/hydrometrics/www/"
+_HYDAT_RE = re.compile(r"Hydat_sqlite3_(\d{8})\.zip")
+
+
+def hydat_latest_release() -> "str | None":
+    """The date of the newest HYDAT release, from the directory listing. No download.
+
+    A cheap HTTP GET of one HTML page. This is what makes the 266 MB pull avoidable: the
+    30-minute feed job compares this against the release its envelope was built from and
+    only asks for the archive when it has actually moved.
+    """
+    try:
+        req = urllib.request.Request(_HYDAT_DIR, headers={"User-Agent": _DOWNLOAD_USER_AGENT})
+        with urllib.request.urlopen(req, timeout=60) as fh:
+            html = fh.read().decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    found = sorted(set(_HYDAT_RE.findall(html)))
+    return found[-1] if found else None
+
+
+_BATHY_WFS = "https://openmaps.gov.bc.ca/geo/pub/WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW/ows"
+
+
+def fetch_bathymetry_sheets(short_name: str, dest_path: Path) -> None:
+    """Bathymetry survey sheets from the WFS layer — the SECOND source.
+
+    THERE ARE TWO, AND NEITHER IS COMPLETE. `wsa_bathymetry_maps.csv` is the WSA reference
+    table; this is `WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW`. v1 confirmed live that a sheet can
+    be in one and not the other — Harrison Lake (`00081HARR`) is in this layer and missing
+    from the CSV export. So they are kept as two sources and reconciled, never merged blind.
+
+    Three things this has that the CSV does not:
+
+      · `MAP_TITLE` — often the more specific name. The sheet the CSV calls "BURNIE LAKES"
+        is titled "SOUTH BURNIE L." here, which is what actually disambiguates it.
+      · `VECTORIZED_FLAG` — whether a digitised contour set exists, which is the difference
+        between the depth layer drawing contours and offering a PDF.
+      · `NEW_WATERSHED_CODE` — this layer's own coding, kept for provenance only.
+
+    Idempotent: an existing non-empty file is left alone.
+    """
+    if dest_path.exists() and dest_path.stat().st_size > 0:
+        print(f"  ✓ {short_name}: already present ({dest_path.name})")
+        return
+
+    # ONE REQUEST, NO PAGING. This endpoint rejects `startIndex` outright (400) whatever
+    # else is sent with it, so the usual page-through does not work here. The layer is a
+    # few thousand sheets, which comes back comfortably in a single response.
+    q = urllib.parse.urlencode({
+        "service": "WFS", "version": "2.0.0", "request": "GetFeature",
+        "typeNames": "pub:WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW",
+        "outputFormat": "application/json", "count": 100000,
+    })
+    req = urllib.request.Request(f"{_BATHY_WFS}?{q}",
+                                 headers={"User-Agent": _DOWNLOAD_USER_AGENT})
+    with urllib.request.urlopen(req, timeout=300) as fh:
+        page = json.load(fh)
+
+    out = []
+    for f in page.get("features") or []:
+        p = f.get("properties") or {}
+        if p.get("WATERBODY_IDENTIFIER"):
+            out.append({k.lower(): p.get(k) for k in (
+                "WATERBODY_IDENTIFIER", "GAZETTED_NAME", "MAP_TITLE", "SHEET_NO",
+                "DRAFT_DATE", "MAP_SCALE", "VECTORIZED_FLAG", "MAP_IMAGE_FILENAME",
+                "NEW_WATERSHED_CODE", "LAKE_ID")})
+
+    out.sort(key=lambda r: (r["waterbody_identifier"] or "", str(r["sheet_no"] or "")))
+    dest_path.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+    vec = sum(1 for r in out if (r.get("vectorized_flag") or "").upper() == "Y")
+    ids = len({r["waterbody_identifier"] for r in out})
+    print(f"  ✓ {short_name}: {len(out):,} sheets over {ids:,} waters ({vec:,} digitised)")
+
+
+def fetch_hydat(short_name: str, dest_path: Path) -> None:
+    """Fetch the HYDAT national archive — 97 years of daily flows, ~266 MB zipped.
+
+    WHY THIS BELONGS IN fetch_data RATHER THAN IN A CRON. It is a bulk reference download on
+    a yearly clock, exactly like the FWA GeoPackage sitting beside it: big, rarely changed,
+    and needed by a BUILD rather than by a tick. The 30-minute feed job never downloads it —
+    it only compares `hydat_latest_release()` against the release stamped into the envelope
+    it already has, and says so when they differ.
+
+    Writes the extracted sqlite next to a `.release` marker naming the release date, so
+    everything downstream can state which archive its numbers came from. A percentile with
+    no stated provenance is a number claiming more authority than it has.
+
+    Idempotent: an existing extract for the current release is left alone.
+    """
+    release = hydat_latest_release()
+    marker = dest_path.with_suffix(".release")
+    if not release:
+        print(f"  ⚠️  {short_name}: could not read the HYDAT listing; leaving what is here")
+        return
+    if dest_path.exists() and marker.exists() and marker.read_text().strip() == release:
+        print(f"  ✓ {short_name}: already at release {release}")
+        return
+
+    url = f"{_HYDAT_DIR}Hydat_sqlite3_{release}.zip"
+    with tempfile.TemporaryDirectory() as tmp:
+        zip_path = Path(tmp) / "hydat.zip"
+        _download_with_progress(url, zip_path, desc=f"HYDAT {release}")
+        with zipfile.ZipFile(zip_path) as zf:
+            inner = next((n for n in zf.namelist() if n.lower().endswith(".sqlite3")), None)
+            if not inner:
+                print(f"  ❌ {short_name}: no .sqlite3 inside {url}")
+                return
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(inner) as src, dest_path.open("wb") as out:
+                shutil.copyfileobj(src, out)
+    marker.write_text(release, encoding="utf-8")
+    print(f"  ✓ {short_name}: HYDAT {release} -> {dest_path.name} "
+          f"({dest_path.stat().st_size / 1e6:.0f} MB)")
+
+
+def fetch_hydrometric_stations(short_name: str, dest_path: Path) -> None:
+    """Fetch BC's hydrometric gauge roster from ECCC.
+
+    Writes ``[{"station", "name", "lat", "lon", "realtime", "active", "area_km2"}, …]``.
+
+    TWO SOURCES, because neither alone answers the question the app asks.
+
+    The OGC API knows every station BC has ever had — 2,324 of them — along with
+    ``DRAINAGE_AREA_GROSS``, which is the only *measured* statement of how much country a
+    gauge drains. Nothing else in this pipeline knows that number, and it is what makes
+    "this gauge speaks for that water" a claim rather than a guess.
+
+    The real-time CSV is the roster of stations actually transmitting today, ~440 of them.
+    It carries no drainage area. A station can be flagged ``REAL_TIME`` in the metadata and
+    still not appear here, having quietly stopped years ago; the app must not offer a live
+    reading from one of those.
+
+    So: take the API for what a station IS, take the CSV for whether it is SPEAKING, and
+    keep both flags separately rather than collapsing them into one "has a gauge". A
+    discontinued gauge with 40 years of record is still worth a climatology; it is just not
+    worth a "right now".
+
+    Idempotent: an existing non-empty file is left untouched. Delete it to re-fetch.
+    """
+    if dest_path.exists() and dest_path.stat().st_size > 0:
+        print(f"  ✓ {short_name}: already present ({dest_path.name})")
+        return
+
+    speaking: set[str] = set()
+    try:
+        req = urllib.request.Request(
+            _HYDRO_REALTIME_CSV, headers={"User-Agent": _DOWNLOAD_USER_AGENT}
+        )
+        with urllib.request.urlopen(req, timeout=120) as fh:
+            text = fh.read().decode("utf-8-sig", errors="replace")
+        for row in csv.DictReader(io.StringIO(text)):
+            if (row.get("Prov/Terr") or "").strip() == "BC":
+                speaking.add((row.get("ID") or "").strip())
+        print(f"  … {len(speaking)} BC stations transmitting today")
+    except Exception as e:                                   # the API half still stands
+        print(f"  ⚠️  real-time roster unavailable ({e}); no station marked live")
+
+    out: list[dict] = []
+    offset, limit = 0, 500
+    while True:
+        url = (
+            f"{_HYDRO_STATIONS_API}?f=json&limit={limit}&offset={offset}"
+            "&PROV_TERR_STATE_LOC=BC"
+        )
+        req = urllib.request.Request(url, headers={"User-Agent": _DOWNLOAD_USER_AGENT})
+        with urllib.request.urlopen(req, timeout=180) as fh:
+            page = json.load(fh)
+        feats = page.get("features") or []
+        for f in feats:
+            p = f.get("properties") or {}
+            geom = f.get("geometry") or {}
+            coords = geom.get("coordinates") or []
+            if len(coords) < 2:
+                continue                    # a station with no location cannot be matched
+            sid = (p.get("STATION_NUMBER") or "").strip()
+            if not sid:
+                continue
+            out.append({
+                "station": sid,
+                "name": (p.get("STATION_NAME") or "").strip(),
+                "lon": float(coords[0]),
+                "lat": float(coords[1]),
+                # Transmitting today — not merely flagged real-time in the metadata.
+                "realtime": sid in speaking,
+                "active": (p.get("STATUS_EN") or "") == "Active",
+                "area_km2": p.get("DRAINAGE_AREA_GROSS"),
+            })
+        if len(feats) < limit:
+            break
+        offset += limit
+
+    out.sort(key=lambda r: r["station"])            # deterministic; AGENTS rule 19
+    dest_path.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+    live = sum(1 for r in out if r["realtime"])
+    area = sum(1 for r in out if r["area_km2"])
+    print(f"  ✓ {short_name}: {len(out)} stations ({live} live, {area} with drainage area)")
+
+
 def fetch_osm_places(short_name: str, dest_path: Path) -> None:
-    """Fetch BC populated places (city/town/village/hamlet) from OSM Overpass.
+    """Fetch every BC place a person might search by, from OSM Overpass.
 
-    Writes a compact JSON list ``[{"name", "lat", "lon", "place"}, …]`` to
-    ``dest_path``.  This is the town gazetteer used by the enrichment step to
-    tag every named waterbody with its nearest towns, so the web-app search can
-    surface a lake when a user searches the town beside it.
+    Writes ``[{"name", "lat", "lon", "place", "rank", "pop", "alt"}, …]`` to the data
+    folder — one point per place, INCORPORATED AND UNINCORPORATED.
 
-    Uses the same Overpass endpoint + BC bounding box as
-    :func:`fetch_overpass_aboriginal_lands`.  Border towns just outside BC are
-    harmless (a BC lake genuinely closest to one is a valid nearest town).
+    That distinction is the whole point of the kind list. A gazetteer of incorporated
+    municipalities is a list of about 160 names; the places people actually fish beside are
+    mostly unincorporated — hamlets, and above all localities, which is what OSM calls a
+    named place with no permanent population.
 
-    Idempotent: an existing non-empty file is left untouched so re-running the
-    fetch does not re-query Overpass.
+    THREE THINGS THIS DOES THAT THE FIRST VERSION DID NOT, each of which was losing
+    places a user would reasonably type:
+
+    1. ``locality``, ``suburb`` and ``neighbourhood`` are included. The old query asked
+       only for city/town/village/hamlet and returned 1,624 places for all of British
+       Columbia — near enough the incorporated municipalities, when most fishing happens
+       at unincorporated spots that have never had a population.
+
+    2. ``nwr`` rather than ``node``. A great many places are mapped as an area (a
+       municipal boundary, a reserve, a subdivision) and carry no node at all — those
+       were simply missing before. ``out center`` gives each one a point, which is all
+       this is for: locating a search result and answering "what water is near here".
+
+    3. Alternative names are kept. BC place names are frequently dual — Sts'a'í:les /
+       Sts'ailes, Sq'ewqéyl / Skowkale — and a person may type either. Every ``name:*``,
+       ``alt_name``, ``old_name`` and ``official_name`` becomes a searchable alias rather
+       than being thrown away, which is what made "Vedder" fail to find the Chilliwack.
+
+    Border towns just outside BC are harmless: a BC lake genuinely closest to one is a
+    valid nearest place.
+
+    Idempotent: an existing non-empty file is left untouched. Delete it to re-query.
     """
     if dest_path.exists() and dest_path.stat().st_size > 0:
         print(f"\n[OSM] Places already present -> {dest_path} (skipping)")
         return
 
-    print(f"\n[OSM] Fetching BC populated places (towns) from Overpass...")
+    print("\n[OSM] Fetching BC places from Overpass...")
 
-    # BC bounding box (lat/lon): south, west, north, east
-    bbox = "48.2,-139.1,60.0,-114.0"
-    query = f"""
-[out:json][timeout:180];
-(
-  node["place"~"^(city|town|village|hamlet)$"]["name"]({bbox});
-);
-out qt;
-"""
+    # BC bounding box: south, west, north, east
+    bbox = (48.2, -139.1, 60.0, -114.0)
+    kinds = "|".join(_PLACE_KINDS)
 
-    print("  -> Querying Overpass API (this may take a minute)...")
-    raw = _overpass_query(query, "OSM places")
+    print(f"  -> {len(_PLACE_KINDS)} place kinds over BC (several minutes)...")
+    elements = _overpass_places_in(bbox, kinds)
+    print(f"  -> {len(elements):,} raw elements")
+    raw = {"elements": elements}
 
-    places = []
-    seen = set()
+    # Alias tags worth searching. `name:*` covers Indigenous-language and French forms.
+    def aliases(tags: dict) -> list:
+        out = []
+        for k, v in tags.items():
+            if k == "name" or not v:
+                continue
+            if k.startswith("name:") or k in ("alt_name", "old_name", "official_name",
+                                              "short_name", "loc_name"):
+                # a few are semicolon-separated lists
+                out.extend(x.strip() for x in str(v).split(";") if x.strip())
+        # preserve order, drop repeats and anything identical to the display name
+        seen_a, uniq = set(), []
+        for a in out:
+            if a != tags.get("name") and a not in seen_a:
+                seen_a.add(a)
+                uniq.append(a)
+        return uniq
+
+    places, seen = [], set()
     for el in raw.get("elements", []):
-        if el.get("type") != "node":
-            continue
         tags = el.get("tags", {})
         name = (tags.get("name") or "").strip()
-        lat, lon = el.get("lat"), el.get("lon")
-        if not name or lat is None or lon is None:
+        kind = tags.get("place", "")
+        if not name or kind not in _PLACE_KINDS:
             continue
-        # Dedup exact (name, rounded coord) duplicates.
-        key = (name, round(float(lat), 5), round(float(lon), 5))
+
+        # A node carries its own coordinates; a way or relation gets one from `out center`.
+        centre = el.get("center") or el
+        lat, lon = centre.get("lat"), centre.get("lon")
+        if lat is None or lon is None:
+            continue
+        key = (name, round(float(lat), 4), round(float(lon), 4))
         if key in seen:
             continue
         seen.add(key)
-        places.append(
-            {
-                "name": name,
-                "lat": float(lat),
-                "lon": float(lon),
-                "place": tags.get("place", ""),
-            }
-        )
+
+        pop = tags.get("population")
+        try:
+            pop = int(str(pop).replace(",", "").strip()) if pop else None
+        except ValueError:
+            pop = None
+
+        places.append({
+            "name": name,
+            "lat": round(float(lat), 6),
+            "lon": round(float(lon), 6),
+            "place": kind,
+            "rank": _PLACE_KINDS[kind],
+            "pop": pop,
+            "alt": aliases(tags),
+        })
 
     if not places:
         raise RuntimeError(
-            "Overpass returned no populated places for BC — refusing to write an "
-            "empty gazetteer (check the query / Overpass availability)."
+            "Overpass returned no places for BC — refusing to write an empty gazetteer "
+            "(check the query / Overpass availability)."
         )
+
+    # CLIPPED HERE, not later. The Overpass query is a bounding box whose corners are
+    # Alberta, Alaska, Washington and the Pacific; about 40% of what it returns is not in
+    # British Columbia. Filtering downstream meant every consumer had to remember to do it,
+    # and the one that forgot put Calgary in the tile labels and resolved "Hope" to a hamlet
+    # in Idaho. The file on disk should simply be right.
+    boundary = Path(__file__).resolve().parents[1] / "data" / "bc_boundary.geojson"
+    if boundary.exists():
+        import geopandas as gpd
+        from shapely.geometry import Point
+        from shapely.prepared import prep
+
+        bc = prep(gpd.read_file(boundary).to_crs(4326).geometry.union_all())
+        before = len(places)
+        places = [p for p in places if bc.contains(Point(p["lon"], p["lat"]))]
+        print(f"  clipped to British Columbia: {before:,} -> {len(places):,} "
+              f"({before - len(places):,} outside the province dropped)")
+    else:
+        print(f"  ⚠️  {boundary.name} not found — gazetteer NOT clipped to BC")
+    # A regression guard, not a style preference: the first version of this returned 1,624
+    # and looked like it had worked. If a query change silently narrows the result, the
+    # number is the only thing that shows it.
+    if len(places) < 3000:
+        raise RuntimeError(
+            f"Overpass returned only {len(places):,} BC places. The settlement-only query "
+            f"returned 1,624; adding localities and areas should return several times that. "
+            f"Refusing to overwrite the gazetteer with a suspiciously small result."
+        )
+
+    # Most searchable first, so a prefix match can stop early and a label layer can thin
+    # by taking a prefix of the list.
+    places.sort(key=lambda p: (p["rank"], -(p["pop"] or 0), p["name"]))
 
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, "w", encoding="utf-8") as fh:
         json.dump(places, fh, ensure_ascii=False)
-    print(f"  ✅ '{short_name}': {len(places)} places saved -> {dest_path}")
+    by_kind = collections.Counter(p["place"] for p in places)
+    named = sum(1 for p in places if p["alt"])
+    print(f"  ✅ '{short_name}': {len(places):,} places "
+          f"({named:,} with an alternative name) -> {dest_path}")
+    for k in _PLACE_KINDS:
+        if by_kind[k]:
+            print(f"       {k:<14} {by_kind[k]:>6,}")
 
 
 def fetch_r2_gpkg_layer(short_name, r2_url, source_layer, gpkg_path):
@@ -1396,12 +1738,47 @@ def main():
             "type": "WFS",
             "source": "WHSE_FISH.BATH_SURVEY_MAP_SHEETS_SVW",
         },
-        # OSM populated places (city/town/village/hamlet) gazetteer.  Saved to
-        # data/bc_places.json and used by the enrichment step to tag every named
-        # waterbody with its nearest towns (search-index only).
+        # DIGITISED bathymetry — the georeferenced depth CONTOUR polygons, one
+        # per depth band per lake (WHSE_FISH.BATH_LAKE_BATHYMETRIC_SP).  This is a
+        # different dataset from `bathymetry_polygons`, which is only the survey
+        # SHEET footprints: that one tells you a paper map exists, this one is the
+        # depth data itself.  Becomes the `contours` layer in the atlas tiles, so a
+        # digitised lake shows real depth offline instead of a PDF you have to
+        # download.  Catalogue: 493fb840-1909-489e-91c8-1c9ce9ccee9c
+        "bathymetry_contours": {
+            "type": "WFS",
+            "source": "WHSE_FISH.BATH_LAKE_BATHYMETRIC_SP",
+        },
+        # The OSM gazetteer: everywhere a person might type when they mean "near here",
+        # incorporated and unincorporated. Saved to data/bc_places.json, WHICH IS CHECKED
+        # IN — the Overpass query walks the province in quarters and takes minutes, so it
+        # runs once and the result travels with the repo. Delete the file to re-query.
+        #
+        # Two consumers: the `place` tile layer (labels) and the bundler's place_water
+        # precompute (what water is near this town).
         "osm_places": {
             "type": "OSM_PLACES",
             "dest": "bc_places.json",
+        },
+        # OUT — ECCC's gauge roster. Cheap (two requests) but it travels with the repo so
+        # a build is reproducible offline. Consumer: the bundler's gauge-shed pass, which
+        # decides which water can be told what its flow is.
+        "hydrometric_stations": {
+            "type": "HYDRO_STATIONS",
+            "dest": "bc_hydrometric_stations.json",
+        },
+        # OUT — the national daily-flow archive. Yearly, ~266 MB, and the ONLY source of
+        # the percentile envelope. Gated on the release date so a rebuild does not re-pull
+        # it; see fetch_hydat.
+        "hydat": {
+            "type": "HYDAT",
+            "dest": "hydat.sqlite3",
+        },
+        # OUT — the SECOND bathymetry source. Neither it nor wsa_bathymetry_maps.csv is
+        # complete on its own; see fetch_bathymetry_sheets.
+        "bathymetry_sheets": {
+            "type": "BATHY_SHEETS",
+            "dest": "bc_bathymetry_sheets.json",
         },
     }
     parser = argparse.ArgumentParser(description="BC Fresh Water Data Fetcher")
@@ -1502,6 +1879,12 @@ def main():
                 fetch_overpass_waterfalls(name, gpkg_out)
             elif cfg["type"] == "OSM_PLACES":
                 fetch_osm_places(name, gpkg_out.parent / cfg["dest"])
+            elif cfg["type"] == "HYDRO_STATIONS":
+                fetch_hydrometric_stations(name, gpkg_out.parent / cfg["dest"])
+            elif cfg["type"] == "HYDAT":
+                fetch_hydat(name, gpkg_out.parent / cfg["dest"])
+            elif cfg["type"] == "BATHY_SHEETS":
+                fetch_bathymetry_sheets(name, gpkg_out.parent / cfg["dest"])
         except Exception as e:
             print(f"❌ Error on {name}: {e}")
 

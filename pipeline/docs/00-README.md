@@ -24,6 +24,7 @@ in-season) versioned apart from the bundle, bathymetry, and ordered steps with a
 | [RESOLVER-HANDOFF](RESOLVER-HANDOFF.md) | Everything found about `resolve_extent`, for whoever is in it |
 | [12-testing](12-testing.md) | Test strategy, spikes S1–S4, sanity gates |
 | [14-waterbody-split-curation](14-waterbody-split-curation.md) | Curating splits |
+| [15-live-data-flow](15-live-data-flow.md) | Gauges + stocking: bundle vs feed, who computes the percentile |
 | [DESIGN-regs-to-sections](DESIGN-regs-to-sections.md) | Long-form design of regs → sections |
 
 Numbering has gaps because superseded docs moved to `archive/`; the remaining numbers are unchanged

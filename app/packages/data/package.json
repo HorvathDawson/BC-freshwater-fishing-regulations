@@ -5,5 +5,25 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "dependencies": { "@app/core": "workspace:*" }
+  "dependencies": {
+    "@app/core": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixture": "./src/fixture.ts",
+    "./bundle": "./src/bundle/source.ts",
+    "./bundle/node": "./src/bundle/drivers/node.ts",
+    "./bundle/open": "./src/bundle/drivers/open.ts",
+    "./spots": "./src/spots/index.ts"
+  },
+  "peerDependencies": {
+    "expo-sqlite": "*",
+    "sql.js": "*",
+    "expo-file-system": "*"
+  },
+  "devDependencies": {
+    "expo-sqlite": "57.0.2",
+    "sql.js": "^1.14.2"
+  },
+  "$comment_exports": "./bundle/open names a concrete file; the platform split is on the RELATIVE import inside it. A package exports target is not subject to platform extension resolution \u2014 naming open.web.ts there does nothing, and naming open.ts there means the web build silently gets the native driver."
 }

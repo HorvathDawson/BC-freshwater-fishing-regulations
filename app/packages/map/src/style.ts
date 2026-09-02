@@ -21,7 +21,8 @@ export type ColorMode =
       categories: Record<string, TokenRef>; missing?: TokenRef }
   | { label: string; scale: "continuous"; property: string;
       stops: [number, TokenRef][]; missing: TokenRef };
-export type Tokens = Record<string, string | number>;
+/** A token is a colour, a number, or a dash pattern (an array of line-width multiples). */
+export type Tokens = Record<string, string | number | number[]>;
 
 export const MAP_STYLE = style as unknown as {
   version: number; sources: Record<string, unknown>; layers: { id: string }[];
@@ -32,7 +33,23 @@ export const STYLE_META = meta as unknown as {
   layerGroup: Record<string, string>;
   highlightable: { id: string; featureIdProperty: string }[];
   colorModes: Record<string, Record<string, ColorMode>>;
-  widths: Record<string, string>;
+  /** A plain token, or a ramp over a tile ATTRIBUTE (not feature-state). */
+  /** layer id -> the tile property MapLibre must promote into `feature.id`. */
+  featureIds: Record<string, string>;
+  widths: Record<string, string | {
+    token: string;
+    /** The tile attribute the width is linear in — Strahler order, for streams. */
+    by: string;
+    /**
+     * "linear": width = base + attr * slope        (streams, by Strahler order)
+     * "sqrt":   width = clamp(base + k*sqrt(attr)) (lakes and areas, by area)
+     */
+    mode?: "linear" | "sqrt";
+    /** [zoom, base px, slope-or-k, max px for sqrt]. Scaled by the token. */
+    ramp: [number, number, number, number?][];
+  }>;
+  opacities: Record<string, string>;
+  dashes: Record<string, string>;
   themes: Record<string, Tokens>;
   tokens: Record<string, { type: string; themeable: boolean }>;
   enums: Record<string, string[]>;
@@ -48,6 +65,9 @@ export const defaultView = (): MapView => {
 };
 
 /** A theme by name, merged with a user's colour overrides. */
+/** Every theme the generated style defines. The app must not hardcode this list. */
+export const themeNames = (): string[] => Object.keys(STYLE_META.themes);
+
 export function resolveTheme(name: string, overrides: Tokens = {}): Tokens {
   const base = STYLE_META.themes[name];
   if (!base) throw new Error(`unknown theme "${name}"`);

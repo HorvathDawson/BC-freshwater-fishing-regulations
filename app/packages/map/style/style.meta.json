@@ -6,6 +6,32 @@
       "label": "Water",
       "toggleable": false,
       "defaultVisible": true
+    },
+    {
+      "id": "depth",
+      "label": "Lake depth",
+      "toggleable": true,
+      "defaultVisible": false
+    },
+    {
+      "id": "protected",
+      "label": "Parks and reserves",
+      "toggleable": true,
+      "defaultVisible": false,
+      "$comment": "Off by default. Parks and ecological reserves are large opaque areas and they buried the water they sit around — the map's job is to say which water is open, and an overlay that hides the water fails at it. Behind Layers."
+    },
+    {
+      "id": "access",
+      "label": "Land access",
+      "toggleable": true,
+      "defaultVisible": false,
+      "$comment": "Off by default, for the same reason as `protected`: these are big fills, and the answer is the water. A user who needs to know where they may not go turns it on, and then it is the point of the screen rather than noise on it."
+    },
+    {
+      "id": "admin",
+      "label": "Management units",
+      "toggleable": true,
+      "defaultVisible": false
     }
   ],
   "views": [
@@ -14,21 +40,89 @@
       "label": "Regulations",
       "default": true,
       "modes": {
-        "streams": "closure"
-      }
+        "stream": "closure",
+        "under_lake": "plain",
+        "lake": "closure",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__edge": "plain",
+        "no_access__edge": "plain",
+        "eco_reserve__edge": "plain",
+        "park__edge": "plain",
+        "lake__edge": "plain"
+      },
+      "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
     },
     {
       "id": "conditions",
       "label": "Conditions",
       "modes": {
-        "streams": "discharge"
+        "stream": "standing",
+        "under_lake": "plain",
+        "lake": "plain",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__edge": "plain",
+        "no_access__edge": "plain",
+        "eco_reserve__edge": "plain",
+        "park__edge": "plain",
+        "lake__edge": "plain"
+      }
+    },
+    {
+      "id": "stocked",
+      "label": "Stocked lakes",
+      "modes": {
+        "stream": "plain",
+        "under_lake": "plain",
+        "lake": "stocked",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__edge": "plain",
+        "no_access__edge": "plain",
+        "eco_reserve__edge": "plain",
+        "park__edge": "plain",
+        "lake__edge": "plain"
       }
     },
     {
       "id": "plain",
       "label": "Plain map",
       "modes": {
-        "streams": "plain"
+        "stream": "plain",
+        "under_lake": "plain",
+        "lake": "plain",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__edge": "plain",
+        "no_access__edge": "plain",
+        "eco_reserve__edge": "plain",
+        "park__edge": "plain",
+        "lake__edge": "plain"
       }
     }
   ],
@@ -37,15 +131,15 @@
       "kind": "bundle",
       "key": "section_id",
       "freshness": "bundle",
-      "$comment": "computed from rules + the selected date. Present for the 2.4% with an assessed rule; everything else is default_only."
+      "$comment": "Status per section for a date AND a species group. Two parallel stacks: the provincial synopsis governs trout, char and coarse fish; DFO governs salmon. There is no blended answer, so the view carries the group."
     },
     "gauges": {
       "kind": "feed",
-      "key": "item_id",
-      "fanout": "item_to_sections",
+      "key": "section_id",
+      "fanout": "section_to_station",
       "freshness": "live",
       "staleAfterMs": 5400000,
-      "$comment": "450 stations, 30-min refresh. Binds to item_id (durable), so it must fan out to that item's sections to colour a line."
+      "$comment": "450 stations, 30-min refresh. Keyed by SECTION, bridged to a station by the build's `section_gauge` precompute — and only where the magnitude ratio says that station can speak for the reach. Below the floor the section has no link at all and reports no gauge rather than borrowing a big river's number. It was declared `item_id`/`item_to_sections`, which is how stocking works, not this."
     },
     "stocking": {
       "kind": "feed",
@@ -62,19 +156,246 @@
       "freshness": "live",
       "staleAfterMs": 43200000,
       "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold — two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
+    },
+    "lakes": {
+      "kind": "bundle",
+      "key": "section_id",
+      "fanout": "section_to_item",
+      "freshness": "bundle",
+      "$comment": "Per-lake facts from the bundle: whether the lake was surveyed, and when it was last stocked. Keyed by section because that is what the tile carries; the fanout resolves it to the item the fact belongs to."
     }
   },
   "layerGroup": {
-    "streams": "water"
+    "mu": "admin",
+    "indigenous_land": "access",
+    "no_access": "access",
+    "eco_reserve": "protected",
+    "park": "protected",
+    "wetland": "water",
+    "lake": "water",
+    "contour": "depth",
+    "under_lake": "water",
+    "stream": "water",
+    "mu__edge": "admin",
+    "indigenous_land__edge": "access",
+    "no_access__edge": "access",
+    "eco_reserve__edge": "protected",
+    "park__edge": "protected",
+    "lake__edge": "water"
   },
   "highlightable": [
     {
-      "id": "streams",
+      "id": "wetland",
+      "featureIdProperty": "section_id"
+    },
+    {
+      "id": "lake",
+      "featureIdProperty": "section_id"
+    },
+    {
+      "id": "stream",
       "featureIdProperty": "section_id"
     }
   ],
   "colorModes": {
-    "streams": {
+    "mu": {
+      "plain": {
+        "label": "Management units",
+        "scale": "static",
+        "color": {
+          "token": "color.mu.edge"
+        }
+      }
+    },
+    "indigenous_land": {
+      "plain": {
+        "label": "Reserves and treaty land",
+        "scale": "static",
+        "color": {
+          "token": "color.indigenous.edge"
+        }
+      }
+    },
+    "no_access": {
+      "plain": {
+        "label": "No public access",
+        "scale": "static",
+        "color": {
+          "token": "color.noaccess.fill"
+        }
+      }
+    },
+    "eco_reserve": {
+      "plain": {
+        "label": "Ecological reserves",
+        "scale": "static",
+        "color": {
+          "token": "color.reserve.fill"
+        }
+      }
+    },
+    "park": {
+      "plain": {
+        "label": "Parks",
+        "scale": "static",
+        "color": {
+          "token": "color.park.fill"
+        }
+      }
+    },
+    "wetland": {
+      "plain": {
+        "label": "Plain",
+        "scale": "static",
+        "color": {
+          "token": "color.wetland.fill"
+        }
+      },
+      "closure": {
+        "label": "Open / closed",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "reg_status",
+        "categories": {
+          "open": {
+            "token": "color.status.open"
+          },
+          "restricted": {
+            "token": "color.status.restricted"
+          },
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "unknown": {
+            "token": "color.status.unknown"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "regs",
+          "field": "status",
+          "params": [
+            "date",
+            "species"
+          ]
+        },
+        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+      }
+    },
+    "lake": {
+      "plain": {
+        "label": "Plain",
+        "scale": "static",
+        "color": {
+          "token": "color.lake.fill"
+        }
+      },
+      "closure": {
+        "label": "Open / closed",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "reg_status",
+        "categories": {
+          "open": {
+            "token": "color.status.open"
+          },
+          "restricted": {
+            "token": "color.status.restricted"
+          },
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "unknown": {
+            "token": "color.status.unknown"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "regs",
+          "field": "status",
+          "params": [
+            "date",
+            "species"
+          ]
+        },
+        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+      },
+      "stocked": {
+        "label": "Last stocked",
+        "scale": "categorical",
+        "property": "stocked",
+        "enum": "stock_recency",
+        "categories": {
+          "season": {
+            "token": "color.stock.fresh"
+          },
+          "year": {
+            "token": "color.stock.recent"
+          },
+          "recent": {
+            "token": "color.stock.recent"
+          },
+          "old": {
+            "token": "color.stock.old"
+          },
+          "never": {
+            "token": "color.lake.fill"
+          }
+        },
+        "missing": {
+          "token": "color.lake.fill"
+        },
+        "data": {
+          "provider": "stocking",
+          "field": "recency"
+        }
+      },
+      "surveyed": {
+        "label": "Depth",
+        "scale": "categorical",
+        "property": "survey",
+        "enum": "survey_state",
+        "$comment": "Depth is about which lakes have been SURVEYED, not only which have digitised contours. 2,741 bathymetric sheets exist and only a fraction were ever traced into vector contours — colouring by contours alone shows a near-empty map and tells a reader the province was never surveyed, which is the opposite of true.",
+        "categories": {
+          "digitised": {
+            "token": "color.survey.digitised"
+          },
+          "sheet": {
+            "token": "color.survey.sheet"
+          }
+        },
+        "missing": {
+          "token": "color.lake.fill"
+        },
+        "data": {
+          "provider": "lakes",
+          "field": "survey"
+        }
+      }
+    },
+    "contour": {
+      "plain": {
+        "label": "Depth",
+        "scale": "static",
+        "color": {
+          "token": "color.contour.line"
+        }
+      }
+    },
+    "under_lake": {
+      "plain": {
+        "label": "Route through a lake",
+        "scale": "static",
+        "color": {
+          "token": "color.water.route"
+        }
+      }
+    },
+    "stream": {
       "plain": {
         "label": "Plain",
         "scale": "static",
@@ -99,94 +420,377 @@
           },
           "unknown": {
             "token": "color.status.unknown"
-          },
-          "default_only": {
-            "token": "color.status.default_only"
           }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
         },
         "data": {
           "provider": "regs",
           "field": "status",
           "params": [
-            "date"
+            "date",
+            "species"
           ]
         },
-        "missing": {
-          "token": "color.status.default_only"
-        }
+        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
       },
-      "discharge": {
-        "label": "Water level",
+      "standing": {
+        "label": "Flow for the date",
         "scale": "continuous",
-        "property": "discharge_pct",
+        "property": "standing",
         "stops": [
           [
             0,
             {
-              "token": "color.flow.low"
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            16.7,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            33.3,
+            {
+              "token": "color.flow.f3"
             }
           ],
           [
             50,
             {
-              "token": "color.flow.normal"
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            66.7,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            83.3,
+            {
+              "token": "color.flow.f6"
             }
           ],
           [
             100,
             {
-              "token": "color.flow.high"
+              "token": "color.flow.f7"
             }
           ]
         ],
         "missing": {
-          "token": "color.water.mapped"
+          "token": "color.water.unmapped"
         },
         "data": {
           "provider": "gauges",
-          "field": "discharge_pct"
+          "field": "standing"
         },
-        "$comment": "`missing` is the NEUTRAL plain-water colour, not status.unknown. About 19,250 of 19,700 waters have no gauge, so this paints most of the map: using the regulatory-unknown violet here would mean 'we could not parse the rule' and 'there is no gauge' were the same colour."
+        "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another. `missing` is neutral water, never status.unknown — most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse.  SEVEN STOPS, and they ARE the legend's: the ramp was three tokens that all resolved to shades of one blue while the legend beside it drew red through cyan — two definitions of one scale (AGENTS rule 23). The legend now reads these tokens.  MISSING is `water.unmapped`, the pale grey, NOT `water.mapped`, which is a saturated teal darker than the low-flow end and made ungauged water read as more prominent than measured water. 97.6% of BC has no gauge: it must stay visible and stay quiet."
+      }
+    },
+    "mu__edge": {
+      "plain": {
+        "label": "mu outline",
+        "scale": "static",
+        "color": {
+          "token": "color.mu.edge"
+        }
+      }
+    },
+    "indigenous_land__edge": {
+      "plain": {
+        "label": "indigenous_land outline",
+        "scale": "static",
+        "color": {
+          "token": "color.indigenous.edge"
+        }
+      }
+    },
+    "no_access__edge": {
+      "plain": {
+        "label": "no_access outline",
+        "scale": "static",
+        "color": {
+          "token": "color.noaccess.fill"
+        }
+      }
+    },
+    "eco_reserve__edge": {
+      "plain": {
+        "label": "eco_reserve outline",
+        "scale": "static",
+        "color": {
+          "token": "color.park.edge"
+        }
+      }
+    },
+    "park__edge": {
+      "plain": {
+        "label": "park outline",
+        "scale": "static",
+        "color": {
+          "token": "color.park.edge"
+        }
+      }
+    },
+    "lake__edge": {
+      "plain": {
+        "label": "lake outline",
+        "scale": "static",
+        "color": {
+          "token": "color.water.mapped"
+        }
       }
     }
   },
+  "featureIds": {
+    "mu": "mu_id",
+    "indigenous_land": "area_id",
+    "no_access": "area_id",
+    "eco_reserve": "area_id",
+    "park": "area_id",
+    "wetland": "section_id",
+    "lake": "section_id",
+    "contour": "item",
+    "under_lake": "section_id",
+    "stream": "section_id"
+  },
   "widths": {
-    "streams": "width.stream.base"
+    "contour": "width.lake.edge",
+    "under_lake": "width.underlake",
+    "stream": {
+      "token": "width.stream.base",
+      "by": "ord",
+      "mode": "linear",
+      "ramp": [
+        [
+          4,
+          0.5,
+          0.1
+        ],
+        [
+          8,
+          0.6,
+          0.15
+        ],
+        [
+          11,
+          0.75,
+          0.75
+        ],
+        [
+          12,
+          1,
+          1
+        ],
+        [
+          14,
+          1.5,
+          1.5
+        ],
+        [
+          16,
+          2,
+          2
+        ]
+      ]
+    },
+    "mu__edge": "width.admin.edge",
+    "indigenous_land__edge": "width.admin.edge",
+    "no_access__edge": "width.admin.edge",
+    "eco_reserve__edge": "width.admin.edge",
+    "park__edge": "width.admin.edge",
+    "lake__edge": {
+      "token": "width.stream.base",
+      "by": "area_m2",
+      "mode": "sqrt",
+      "ramp": [
+        [
+          4,
+          0.5,
+          0.00005,
+          1.5
+        ],
+        [
+          8,
+          0.6,
+          0.00008,
+          2
+        ],
+        [
+          12,
+          0.8,
+          0.0002,
+          3
+        ],
+        [
+          16,
+          1,
+          0.0003,
+          4
+        ]
+      ]
+    }
+  },
+  "opacities": {
+    "wetland": "opacity.wetland",
+    "lake": "opacity.lake"
+  },
+  "dashes": {
+    "under_lake": "dash.route"
   },
   "themes": {
+    "cvd": {
+      "color.water.mapped": "#0B6987",
+      "color.water.unmapped": "#7F8C99",
+      "color.highlight": "#c2187a",
+      "color.parcel.line": "#8a6d3b",
+      "color.status.open": "#0B6BB0",
+      "color.status.restricted": "#D98C00",
+      "color.status.closed": "#B03A00",
+      "color.status.unknown": "#5F26E0",
+      "width.stream.base": 1,
+      "width.stream.highlight": 3.2,
+      "opacity.overlay": 0.55,
+      "color.water.route": "#A3AEB4",
+      "color.lake.fill": "#94C9E0",
+      "color.lake.edge": "#4E88A6",
+      "color.wetland.fill": "#75AE8C",
+      "color.contour.line": "#2FA9C9",
+      "color.park.fill": "#cfe3b4",
+      "color.park.edge": "#7d9c5c",
+      "color.reserve.fill": "#e0b48c",
+      "color.noaccess.fill": "#d2a2a2",
+      "color.indigenous.edge": "#6B4E71",
+      "color.mu.edge": "#8A7A62",
+      "color.stock.fresh": "#12873f",
+      "color.stock.recent": "#5e9b12",
+      "color.stock.old": "#88A492",
+      "color.label.place": "#3a4043",
+      "width.lake.edge": 0.8,
+      "width.admin.edge": 1.2,
+      "opacity.wetland": 0.3,
+      "opacity.lake": 0.9,
+      "width.underlake": 0.5,
+      "dash.route": [
+        1,
+        2.5
+      ],
+      "color.survey.digitised": "#0E7C86",
+      "color.survey.sheet": "#7BA4B8",
+      "color.outside": "#F8F8F2",
+      "opacity.outside": 0.72,
+      "color.flow.f1": "#8C3B00",
+      "color.flow.f2": "#C46A10",
+      "color.flow.f3": "#F2C266",
+      "color.flow.f4": "#EBD9A8",
+      "color.flow.f5": "#C9BE93",
+      "color.flow.f6": "#5A8FD6",
+      "color.flow.f7": "#1F4FA8",
+      "color.gauge.dot": "#0A1116"
+    },
     "dark": {
-      "color.water.mapped": "#8a8f93",
-      "color.water.unmapped": "#333d47",
+      "color.water.mapped": "#38B6DE",
+      "color.water.unmapped": "#93A0AB",
       "color.highlight": "#ff77b8",
       "color.parcel.line": "#c9a86a",
       "color.status.open": "#48b07a",
       "color.status.restricted": "#e8a733",
       "color.status.unknown": "#a78bd0",
-      "color.status.default_only": "#6e6e6e",
-      "color.flow.low": "#43769f",
-      "color.flow.normal": "#6fb3e5",
-      "color.flow.high": "#a9d8f5",
-      "width.stream.base": 1.4,
+      "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "opacity.overlay": 0.45,
-      "color.status.closed": "#e05a4b"
+      "color.status.closed": "#e05a4b",
+      "color.water.route": "#3F5C6B",
+      "color.lake.fill": "#205579",
+      "color.lake.edge": "#6FA8C4",
+      "color.wetland.fill": "#3F7759",
+      "color.contour.line": "#4FD0E8",
+      "color.park.fill": "#22371f",
+      "color.park.edge": "#4e7a44",
+      "color.reserve.fill": "#4d3320",
+      "color.noaccess.fill": "#4a2a2a",
+      "color.indigenous.edge": "#C58A4A",
+      "color.mu.edge": "#A6947A",
+      "color.stock.fresh": "#2ed573",
+      "color.stock.recent": "#94d82d",
+      "color.stock.old": "#5E7A68",
+      "color.label.place": "#cfd5d8",
+      "width.lake.edge": 0.8,
+      "width.admin.edge": 1.2,
+      "opacity.wetland": 0.28,
+      "opacity.lake": 0.85,
+      "width.underlake": 0.5,
+      "dash.route": [
+        1,
+        2.5
+      ],
+      "color.survey.digitised": "#30D0D4",
+      "color.survey.sheet": "#617C8C",
+      "color.outside": "#0A0B0D",
+      "opacity.outside": 0.7,
+      "color.flow.f1": "#D4557E",
+      "color.flow.f2": "#E8845F",
+      "color.flow.f3": "#E7BE3C",
+      "color.flow.f4": "#D2DC55",
+      "color.flow.f5": "#C8BE9C",
+      "color.flow.f6": "#7FA8E8",
+      "color.flow.f7": "#9FBFFF",
+      "color.gauge.dot": "#F4F8F5"
     },
     "light": {
-      "color.water.mapped": "#4a5c6e",
-      "color.water.unmapped": "#d2dae2",
+      "color.water.mapped": "#0B6987",
+      "color.water.unmapped": "#7F8C99",
       "color.highlight": "#c2187a",
       "color.parcel.line": "#8a6d3b",
       "color.status.open": "#2e8b57",
       "color.status.restricted": "#8f5c00",
       "color.status.closed": "#c0392b",
       "color.status.unknown": "#7d5ba6",
-      "color.status.default_only": "#8a8a8a",
-      "color.flow.low": "#7fb3dd",
-      "color.flow.normal": "#2f6f9f",
-      "color.flow.high": "#0d3350",
-      "width.stream.base": 1.4,
+      "width.stream.base": 1,
       "width.stream.highlight": 3.2,
-      "opacity.overlay": 0.55
+      "opacity.overlay": 0.55,
+      "color.water.route": "#A3AEB4",
+      "color.lake.fill": "#94C9E0",
+      "color.lake.edge": "#4E88A6",
+      "color.wetland.fill": "#75AE8C",
+      "color.contour.line": "#2FA9C9",
+      "color.park.fill": "#cfe3b4",
+      "color.park.edge": "#7d9c5c",
+      "color.reserve.fill": "#e0b48c",
+      "color.noaccess.fill": "#d2a2a2",
+      "color.indigenous.edge": "#6B4E71",
+      "color.mu.edge": "#8A7A62",
+      "color.stock.fresh": "#12873f",
+      "color.stock.recent": "#5e9b12",
+      "color.stock.old": "#88A492",
+      "color.label.place": "#3a4043",
+      "width.lake.edge": 0.8,
+      "width.admin.edge": 1.2,
+      "opacity.wetland": 0.3,
+      "opacity.lake": 0.9,
+      "width.underlake": 0.5,
+      "dash.route": [
+        1,
+        2.5
+      ],
+      "color.survey.digitised": "#0E7C86",
+      "color.survey.sheet": "#7BA4B8",
+      "color.outside": "#F8F8F2",
+      "opacity.outside": 0.72,
+      "color.flow.f1": "#6E3A12",
+      "color.flow.f2": "#B5651B",
+      "color.flow.f3": "#D9A400",
+      "color.flow.f4": "#B9C233",
+      "color.flow.f5": "#C9BD9A",
+      "color.flow.f6": "#3E6FB5",
+      "color.flow.f7": "#1B3F8F",
+      "color.gauge.dot": "#0A1116"
     }
   },
   "tokens": {
@@ -222,19 +826,31 @@
       "type": "color",
       "themeable": true
     },
-    "color.status.default_only": {
+    "color.flow.f1": {
       "type": "color",
       "themeable": true
     },
-    "color.flow.low": {
+    "color.flow.f2": {
       "type": "color",
       "themeable": true
     },
-    "color.flow.normal": {
+    "color.flow.f3": {
       "type": "color",
       "themeable": true
     },
-    "color.flow.high": {
+    "color.flow.f4": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.flow.f5": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.flow.f6": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.flow.f7": {
       "type": "color",
       "themeable": true
     },
@@ -249,16 +865,151 @@
     "opacity.overlay": {
       "type": "number",
       "themeable": true
+    },
+    "color.water.route": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "the under-lake route a river takes through a lake — drawn, never fishable"
+    },
+    "color.lake.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "standing water"
+    },
+    "color.lake.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "its outline"
+    },
+    "color.wetland.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "marsh and swamp"
+    },
+    "color.contour.line": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "digitised depth contours"
+    },
+    "color.park.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "provincial and national parks"
+    },
+    "color.park.edge": {
+      "type": "color",
+      "themeable": true
+    },
+    "color.reserve.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "ecological reserves — a blanket closure, styled so it cannot read as a park you may fish"
+    },
+    "color.noaccess.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "land the public may not enter"
+    },
+    "color.indigenous.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "reserves and treaty land — an access advisory, never a fishing closure"
+    },
+    "color.mu.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "management unit boundaries"
+    },
+    "color.stock.fresh": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked this season"
+    },
+    "color.stock.recent": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked this year"
+    },
+    "color.stock.old": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "stocked over ten years ago"
+    },
+    "color.label.place": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "settlement labels"
+    },
+    "width.lake.edge": {
+      "type": "number",
+      "themeable": false
+    },
+    "width.admin.edge": {
+      "type": "number",
+      "themeable": false
+    },
+    "opacity.wetland": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "Wetland is the largest layer by area in the province and it is CONTEXT, not an answer. At full opacity it painted over every river it surrounds."
+    },
+    "opacity.lake": {
+      "type": "number",
+      "themeable": true
+    },
+    "width.underlake": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "Thinner than a 1st-order stream on purpose: it is not a stream."
+    },
+    "dash.route": {
+      "type": "dash",
+      "themeable": false,
+      "$comment": "Dash pattern, in line widths. A route through a lake is dotted so it reads as connectivity rather than as another river."
+    },
+    "color.survey.digitised": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "Contours are in the tiles: you can see the shape of the bottom."
+    },
+    "color.survey.sheet": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "A scanned sheet exists but was never traced. Still a surveyed lake."
+    },
+    "color.outside": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "Read by runtimeStyle() for two things: the ground under the basemap, and the outside-BC mask fill. Not referenced by any layer in layers.source.json because the mask is a GeoJSON source composed at runtime, not a tile layer."
+    },
+    "opacity.outside": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "The mask is a WASH, not a blank. You should still be able to see that the river continues into Washington — only that we stop answering there."
+    },
+    "color.gauge.dot": {
+      "type": "color",
+      "themeable": true
     }
   },
   "enums": {
-    "$comment": "Vocabularies a categorical colour mode can be declared over. A mode bound to an enum MUST colour every member — that is how `unknown` and `default_only` cannot be silently forgotten (doc 10 ⑨ / ㉜).",
+    "$comment": "Vocabularies a categorical colour mode can be declared over. A mode bound to an enum MUST colour every member — that is how `unknown` cannot be silently forgotten (doc 10 ⑨/㉜). `default_only` is GONE: it fused what is allowed with where we learned it. Outcome is the colour (reg_status); provenance is line WEIGHT, so water nobody wrote a rule about is `open` drawn as a hairline, not a fifth colour.",
     "reg_status": [
       "open",
       "restricted",
       "closed",
-      "unknown",
-      "default_only"
+      "unknown"
+    ],
+    "stock_recency": [
+      "season",
+      "year",
+      "recent",
+      "old",
+      "never"
+    ],
+    "survey_state": [
+      "digitised",
+      "sheet"
     ]
   }
 }

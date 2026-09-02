@@ -1,0 +1,55 @@
+/*
+ * MapLibre's controls, wearing the app's clothes.
+ *
+ * The behaviour is the renderer's — zoom easing, compass bearing, a scale that recomputes
+ * mid-pinch. Only the appearance is ours, and it is expressed as a restyle rather than a
+ * reimplementation for the obvious reason: a hand-written zoom button is a button that has
+ * to be wired to something, and mine were not.
+ *
+ * Values come from `design/riffle.html`: 36px controls, radius 12, hairline borders.
+ */
+
+.maplibregl-ctrl-group {
+  border-radius: 12px;
+  border: 1px solid var(--map-line, #D3D5CF);
+  box-shadow: 0 4px 14px rgba(21, 24, 28, 0.10);
+  background: var(--map-card, #FFFFFF);
+  overflow: hidden;
+}
+.maplibregl-ctrl-group button {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+}
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--map-hairline, #E5E6E1);
+}
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  /* MapLibre's icons are near-black; the design wants map furniture quieter than the map */
+  opacity: 0.62;
+}
+.maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon { opacity: 1; }
+
+/* The scale bar: a bracket with the distance under it, as the design draws it. */
+.maplibregl-ctrl-scale {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid var(--map-sub, #6C737A);
+  border-left: 1.5px solid var(--map-sub, #6C737A);
+  border-right: 1.5px solid var(--map-sub, #6C737A);
+  border-top: 0;
+  border-radius: 0;
+  color: var(--map-sub, #6C737A);
+  font: 600 10px/1 Archivo, system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  padding: 0 0 3px;
+  margin: 0;
+  text-align: left;
+  opacity: 0.92;
+  /* the label sits UNDER the bracket, so the bracket has to have height of its own */
+  height: 9px;
+  box-sizing: content-box;
+}
+
+/* Attribution stays, but quietly: it is a legal requirement, not a feature. */
+.maplibregl-ctrl-attrib { font-size: 10.5px; }

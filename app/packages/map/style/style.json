@@ -3,18 +3,153 @@
   "version": 8,
   "name": "canifishthis",
   "sources": {
-    "waters": {
+    "atlas": {
       "type": "vector",
-      "url": "pmtiles://waters",
-      "$comment": "our pipeline's regulable-water tiles"
+      "url": "pmtiles://atlas",
+      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data — see pipeline/tiles/layers.py."
     }
   },
   "layers": [
     {
-      "id": "streams",
+      "id": "mu",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "mu",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "mu__edge",
       "type": "line",
-      "source": "waters",
-      "source-layer": "sections",
+      "source": "atlas",
+      "source-layer": "mu",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "indigenous_land",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "indigenous_land",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "indigenous_land__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "indigenous_land",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "no_access",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "no_access",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "no_access__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "no_access",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "eco_reserve",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "eco_reserve",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "eco_reserve__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "eco_reserve",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "park",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "park",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "park__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "park",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "wetland",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "wetland",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "lake",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "lake",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "lake__edge",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "lake",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "contour",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "contour",
+      "layout": {
+        "visibility": "none"
+      }
+    },
+    {
+      "id": "under_lake",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "under_lake",
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "stream",
+      "type": "line",
+      "source": "atlas",
+      "source-layer": "stream",
       "layout": {
         "visibility": "visible"
       }

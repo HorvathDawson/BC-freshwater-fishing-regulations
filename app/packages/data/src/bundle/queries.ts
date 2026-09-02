@@ -1,0 +1,183 @@
+/**
+ * Every query the client makes, in one file.
+ *
+ * Written against `pipeline/bundle/schema.sql` and nothing else. The SQL lives here rather
+ * than in the source implementation so that the shape of a read — how many statements, in
+ * what order, over which indexes — is reviewable in one place. That matters more than it
+ * looks: on the web each of these is a range request, and `regsForItem` is budgeted at
+ * two to four (data contract §10). A query added in a component is a round trip nobody
+ * counted.
+ */
+
+/** A water's sheet, in as few statements as the schema allows. */
+export const ITEM = "SELECT item_id, name, kind FROM item WHERE item_id = ?";
+
+export const SECTIONS_FOR_ITEM =
+  "SELECT section_id FROM item_section WHERE item_id = ? ORDER BY section_id";
+
+export const ITEM_FOR_SECTION =
+  "SELECT item_id FROM item_section WHERE section_id = ? LIMIT 1";
+
+export const ENTRY_FOR_ITEM =
+  "SELECT entry_id, name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
+
+export const RULES_FOR_ENTRY =
+  "SELECT entry_id, rule_id, kind, windows, species, subject, uncertain, text, location " +
+  "FROM rule WHERE entry_id = ? ORDER BY rule_id";
+
+/**
+ * Which rules bind to these sections.
+ *
+ * Scope is a property of the geometry, so this asks by scope and lets the caller supply
+ * section ids, MU ids or area ids — one query serves all three tiers.
+ */
+export const rulesForScopes = (kind: string, n: number) =>
+  "SELECT rs.scope_id, r.entry_id, r.rule_id, r.kind, r.windows, r.species, r.subject, " +
+  "       r.uncertain, r.text, r.location " +
+  "FROM rule_section rs " +
+  "JOIN rule r ON r.entry_id = rs.entry_id AND r.rule_id = rs.rule_id " +
+  `WHERE rs.scope_kind = '${kind}' AND rs.scope_id IN (${placeholders(n)})`;
+
+/**
+ * Name search.
+ *
+ * Prefix-anchored, then contains, because "chil" should offer Chilliwack River before
+ * Upper Chilliwack, and a plain LIKE '%q%' orders by rowid — which is to say, at random.
+ * Aliases come back with the name they belong to so a row can say "also VEDDER RIVER"
+ * instead of looking like the wrong water.
+ */
+export const SEARCH =
+  // The union is wrapped because SQLite will not ORDER a compound SELECT by an expression
+  // — only by a result column. Ordering outside also keeps the ranking in one place.
+  "SELECT * FROM ( " +
+  "  SELECT i.item_id, i.name, i.kind, NULL AS matched_as, " +
+  "         (CASE WHEN i.name LIKE ?1 || '%' THEN 0 ELSE 1 END) AS rank " +
+  "  FROM item i WHERE i.name LIKE '%' || ?1 || '%' " +
+  "  UNION ALL " +
+  "  SELECT i.item_id, i.name, i.kind, a.alias AS matched_as, " +
+  "         (CASE WHEN a.alias LIKE ?1 || '%' THEN 2 ELSE 3 END) AS rank " +
+  "  FROM alias a JOIN item i USING(item_id) WHERE a.alias LIKE '%' || ?1 || '%' " +
+  ") ORDER BY rank, length(name), name LIMIT ?2";
+
+export const PIECES =
+  "SELECT item_id, count(*) AS n FROM item_section " +
+  `WHERE item_id IN (%IDS%) GROUP BY item_id`;
+
+export const SEARCH_PLACES =
+  // Biggest first among equally good matches: someone typing "vic" means Victoria, not a
+  // hamlet of forty people that happens to sort earlier.
+  "SELECT place_id, name, kind FROM place WHERE name LIKE '%' || ?1 || '%' " +
+  "ORDER BY (CASE WHEN name LIKE ?1 || '%' THEN 0 ELSE 1 END), " +
+  "         -COALESCE(pop, 0), length(name) LIMIT ?2";
+
+/**
+ * Joined on item_id, not on the display name.
+ *
+ * The precompute used to carry the name and be joined back by it — the classic silent
+ * mismatch, and when it missed the source MINTED an ItemId out of the name, producing an
+ * id that fails `itemExists` and routes a tap nowhere.
+ */
+export const WATERS_NEAR =
+  "SELECT i.item_id, i.name, i.kind, pw.km FROM place_water pw " +
+  "JOIN item i USING(item_id) " +
+  "WHERE pw.place_id = ? ORDER BY pw.km LIMIT ?";
+
+// ---- conditions ------------------------------------------------------------------
+/**
+ * The gauge for one reach, with the station itself.
+ *
+ * Joined rather than fetched in two steps because this runs on tap: on the web every
+ * statement is a range request, and the station's name is not optional context — a sheet
+ * that says "08MH016" and nothing else has told the reader nothing.
+ */
+export const GAUGE_FOR_SECTION =
+  "SELECT sg.station, sg.trust, sg.mag AS reach_mag, g.name, g.lon, g.lat, g.area_km2, " +
+  "       g.mag, g.section_id AS gauge_section " +
+  "FROM section_gauge sg LEFT JOIN gauge g USING(station) " +
+  "WHERE sg.section_id = ?";
+
+/**
+ * A station ON this lake — a LEVEL, not a discharge.
+ *
+ * Separate accessor because it is a separate measurement. Folding lake stations into
+ * `section_gauge` had 11,049 stream sections being told a reservoir's level.
+ */
+/** Every station with a position — a few hundred rows, for drawing them on the map. */
+export const GAUGE_POINTS =
+  "SELECT station, name, lon, lat FROM gauge WHERE lon IS NOT NULL AND lat IS NOT NULL";
+
+export const LAKE_GAUGES =
+  "SELECT lg.station, g.name, g.lon, g.lat, g.area_km2, g.mag " +
+  "FROM lake_gauge lg LEFT JOIN gauge g USING(station) " +
+  "WHERE lg.item_id = ? ORDER BY lg.station";
+
+/**
+ * Does this WATER have a gauge — the question a person actually asks.
+ *
+ * A water is many reaches and they do not agree: the lower Chilliwack is gauged well and
+ * its headwaters barely at all. So this returns the BEST reach, not an average and not the
+ * first one found, and hands back which reach it was — the answer "yes, 8 km downstream of
+ * where you are looking" is true, and "yes" alone is not.
+ *
+ * Ordering is explicit rather than by a trust string, which would sort fair < good < weak.
+ *
+ * THE ORDER IS band, then TRANSMITTING, then the biggest reach. Each clause fixes a real
+ * wrong answer on the province bundle:
+ *
+ *   band first     — never trade representativeness for anything else.
+ *   NOT liveness   — the bundle holds no such column. The Thompson picking a closed
+ *                    station over a working one is a real problem, but it is the FEED's
+ *                    to solve: this returns several candidates and the caller prefers one
+ *                    the feed index contains. A boolean baked in here would be right in
+ *                    March and wrong by November.
+ *   biggest reach  — ordering on the band alone gave the Cowichan River a station on a
+ *                    13 km2 creek that clipped one of its sections. `good` spans a tenth
+ *                    of a watershed to all of it, so the band cannot break its own ties;
+ *                    the water's largest reach is what a person means by "this river".
+ * A reach now holds exactly one station — the build already picked the one that most
+ * nearly IS that water — so the ordering only has to choose between REACHES. The biggest
+ * one is what a person means by "this river". This returns several candidates rather than
+ * one so the caller can prefer a station the feed says is transmitting.
+ *
+ * A water whose only stations have closed still answers — with a record-only gauge, which
+ * `GaugeLink.live` marks and the UI says out loud.
+ */
+export const GAUGE_FOR_ITEM =
+  "SELECT sg.section_id, sg.station, sg.trust, sg.mag AS reach_mag, " +
+  "       g.name, g.lon, g.lat, g.area_km2, g.mag " +
+  "FROM item_section it " +
+  "JOIN section_gauge sg ON sg.section_id = it.section_id " +
+  "LEFT JOIN gauge g USING(station) " +
+  "WHERE it.item_id = ? " +
+  "ORDER BY (CASE sg.trust WHEN 'good' THEN 0 WHEN 'fair' THEN 1 ELSE 2 END), " +
+  "         COALESCE(sg.mag, 0) DESC, sg.station LIMIT 8";
+
+/**
+ * The station for each of these reaches, in one statement.
+ *
+ * Called with whatever the map currently has on screen, so it is bounded by the viewport
+ * rather than by the province. The alternative — holding all 558,746 rows client-side to
+ * colour a map — is most of the bundle in memory to answer a question about 300 features.
+ */
+export const gaugesForSections = (n: number) =>
+  `SELECT section_id, station, trust FROM section_gauge WHERE section_id IN (${placeholders(n)})`;
+
+export const CLIMATOLOGY =
+  "SELECT pentad, p10, p25, p50, p75, p90 FROM gauge_clim WHERE station = ? ORDER BY pentad";
+
+export const DOWN_FROM = "SELECT down_id FROM section_down WHERE section_id = ?";
+
+// ---- lakes -----------------------------------------------------------------------
+export const CHARTS_FOR_ITEM =
+  "SELECT chart_id, title, kind, drafted, scale, area_km2, pdf FROM chart WHERE item_id = ?";
+
+export const RELEASES_FOR_NAME =
+  "SELECT date, species, count, stage FROM release WHERE name = ? ORDER BY date DESC";
+
+export const META = "SELECT k, v FROM meta";
+
+/** `?,?,?` — SQLite has no array binding, and string interpolation of ids is injection. */
+export function placeholders(n: number): string {
+  if (n < 1) throw new Error("placeholders(0): the caller should skip the query entirely");
+  return new Array(n).fill("?").join(",");
+}

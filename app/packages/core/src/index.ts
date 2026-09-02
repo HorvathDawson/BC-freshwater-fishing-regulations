@@ -12,6 +12,11 @@
  * a live one (13-build-plan §5).
  */
 
+export * from "./dates";
+export * from "./status";
+export * from "./flow";
+export * from "./trace";
+
 export type Freshness =
   | { state: "live"; ageMs: number }
   | { state: "stale"; ageMs: number }

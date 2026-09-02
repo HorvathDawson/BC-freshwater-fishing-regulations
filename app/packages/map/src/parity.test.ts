@@ -4,12 +4,12 @@
  * nobody opens both at once.
  */
 import { describe, expect, it } from "vitest";
-import { nativeAdapter } from "./adapters/native.js";
-import { webAdapter } from "./adapters/web.js";
-import type { MapHandle } from "./adapters/contract.js";
+import { nativeAdapter } from "./adapters/native";
+import { webAdapter } from "./adapters/web";
+import type { MapHandle } from "./adapters/contract";
 import {
   MAP_STYLE, STYLE_META, colorExpression, layerIds, resolveTheme, toggleableGroups,
-} from "./style.js";
+} from "./style";
 
 /** Records every call, so two adapters can be compared on what they DO. */
 function recorder() {
@@ -74,8 +74,8 @@ describe("map parity", () => {
   it("feature data pushes identically on both", () => {
     const a = recorder(), b = recorder();
     const v = { "380887781:11988": { status: "closed" } };
-    native.setData(a.h, "streams", v);
-    web.setData(b.h, "streams", v);
+    native.setData(a.h, "stream", v);
+    web.setData(b.h, "stream", v);
     expect(a.calls).toEqual(b.calls);
   });
 
@@ -137,8 +137,42 @@ describe("theme + toggle rules", () => {
 
   it("colour expressions read feature-state, so a view switch refetches nothing", () => {
     const t = resolveTheme("light");
-    const expr = JSON.stringify(colorExpression("streams", "closure", t));
+    const expr = JSON.stringify(colorExpression("stream", "closure", t));
     expect(expr).toContain("feature-state");
     expect(expr).toContain("status");
+  });
+});
+
+describe("the flow ramp's units", () => {
+  it("is a PERCENTAGE scale, so callers must not feed it 0-1", () => {
+    // The bug this pins: percentiles are 0-1 everywhere in the app (`@app/core`'s
+    // `standing()`, the feed, a saved spot) but this ramp stops at 0/50/100. Feeding 0.05
+    // put every river on the bottom one percent of the scale — one flat colour, which
+    // looks exactly like data that never arrived rather than like a unit mismatch.
+    const mode = STYLE_META.colorModes.stream!.standing! as
+      { scale: string; stops: [number, unknown][] };
+    expect(mode.scale).toBe("continuous");
+    const ats = mode.stops.map(([at]) => at);
+    expect(Math.max(...ats)).toBe(100);
+    expect(Math.min(...ats)).toBe(0);
+  });
+
+  it("reads the value from feature-state, not from the tile", () => {
+    // It changes every half hour; the tiles change once a build.
+    const expr = JSON.stringify(colorExpression("stream", "standing", resolveTheme("light")));
+    expect(expr).toContain('["feature-state","standing"]');
+    expect(expr).not.toContain('["get","standing"]');
+  });
+
+  it("paints a reach with no reading as PALE water — visible, and quiet", () => {
+    // 97.6% of BC has no gauge, so this is the colour most of the map wears. It used to be
+    // `water.mapped`, a saturated teal DARKER than the low-flow end of the ramp, which
+    // made ungauged water read as more prominent than measured water. It must stay
+    // visible and stay quiet — and it must never be mistaken for "low for the date".
+    const t = resolveTheme("light");
+    const expr = colorExpression("stream", "standing", t) as unknown[];
+    expect(expr[0]).toBe("case");
+    expect(expr[2]).toBe(t["color.water.unmapped"]);
+    expect(expr[2]).not.toBe(t["color.flow.f1"]);
   });
 });
