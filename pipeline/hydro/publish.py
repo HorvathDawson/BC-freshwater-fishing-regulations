@@ -136,6 +136,57 @@ def pentad_of(when: datetime) -> int:
     return min(72, (when.timetuple().tm_yday - 1) // 5)
 
 
+# The 30-day archive ECCC keeps beside the 2-day hourly file. Read ONCE per station, to
+# start that station's daily record off with a month rather than with today.
+_DAILY = f"{BASE}/daily/BC_{{station}}_daily_hydrometric.csv"
+
+
+def daily_means(text: str) -> dict[str, tuple[float | None, float | None]]:
+    """`{YYYY-MM-DD: (level, discharge)}` — the mean of every reading on each day.
+
+    A DAILY MEAN, not the reading that happened to be last. A river can fall 20% between
+    dawn and dusk, so "the value at 23:55" and "what the river did that day" are different
+    numbers, and the envelope this gets compared against is built from HYDAT daily MEANS.
+    Mixing the two would put an instantaneous value on a mean's scale.
+    """
+    acc: dict[str, list[list[float]]] = {}
+    for r in csv.DictReader(io.StringIO(text)):
+        day = (r.get("Date") or "")[:10]
+        if not day:
+            continue
+        lv, q = _num(r.get(_LEVEL)), _num(r.get(_FLOW))
+        cell = acc.setdefault(day, [[], []])
+        if lv is not None:
+            cell[0].append(lv)
+        if q is not None:
+            cell[1].append(q)
+    return {d: (round(sum(a) / len(a), 4) if a else None,
+                round(sum(b) / len(b), 4) if b else None)
+            for d, (a, b) in acc.items()}
+
+
+def merge_daily(previous: list[list], fresh: dict[str, tuple[float | None, float | None]],
+                year: int) -> list[list]:
+    """This calendar year's daily record, grown one publish at a time.
+
+    THE FEED IS ITS OWN ARCHIVE, and it has to be: HYDAT is the only published daily record
+    and it lags a year, so the seasonal chart had an envelope built from decades and nothing
+    at all for the year you are standing in. ECCC's own 30-day file backfills the first run;
+    every run after that contributes the days it can see, and the file keeps them.
+
+    Bounded to the calendar year on purpose. It resets in January rather than growing without
+    limit, and "where this year sits against the record" is the question the chart asks.
+    """
+    have = {str(row[0]): row for row in previous or [] if str(row[0]).startswith(str(year))}
+    for day, (lv, q) in fresh.items():
+        if not day.startswith(str(year)):
+            continue
+        # The freshest reading of a day wins: a day still in progress is re-averaged on
+        # every tick until it is over, so the last write of the day is the complete one.
+        have[day] = [day, lv, q]
+    return [have[d] for d in sorted(have)]
+
+
 def publish(out: Path, stations: list[str], clim: dict | None = None,
             forecast: dict | None = None, latest_release: str | None = None) -> dict:
     """Fetch every station and write the feed. Returns a small summary for the caller."""
@@ -149,6 +200,33 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
 
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         got = [r for r in pool.map(fetch_station, sorted(stations)) if r]
+
+    # WHAT THIS FEED ALREADY KNOWS. The per-station files are the archive of the current
+    # year's daily record (see `merge_daily`), so a publish reads them before it overwrites
+    # them. A missing or unreadable file is simply a station starting from nothing.
+    def previous(station: str) -> dict:
+        f = out / f"{station}.json"
+        if not f.exists():
+            return {}
+        try:
+            return json.loads(f.read_text(encoding="utf-8"))
+        except Exception:                              # noqa: BLE001
+            return {}
+
+    prior = {r["station"]: previous(r["station"]) for r in got}
+
+    # Backfill a month for any station whose record is empty — first run, or a new station.
+    # One request each, and only ever once: after this its own `daily` is non-empty.
+    cold = [r["station"] for r in got if not (prior.get(r["station"], {}).get("daily"))]
+    backfill: dict[str, dict] = {}
+    if cold:
+        def grab(st: str) -> tuple[str, dict]:
+            text = _get(_DAILY.format(station=st))
+            return st, (daily_means(text) if text else {})
+        with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+            backfill = dict(pool.map(grab, sorted(cold)))
+        print(f"  daily    backfilled {sum(1 for v in backfill.values() if v)} "
+              f"of {len(cold)} station records from ECCC's 30-day archive")
 
     index: dict[str, dict] = {}
     for r in got:
@@ -168,13 +246,41 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
                  else "discharge")
         band = (have.get(param) or {}).get(str(pent))
         observed = r["level"] if param == "level" else r["discharge"]
+        # BOTH PERCENTILES WHERE THERE ARE BOTH, each against its own envelope.
+        #
+        # The map can be coloured by flow or by level and they are different questions: a
+        # regulated river can sit at its normal STAGE while its discharge is in the bottom
+        # tenth, because the dam is holding the pond and letting nothing through. One
+        # number per station made that switch impossible to offer honestly — the client
+        # would have been recolouring the same value under two labels.
+        per = {}
+        for q in ("discharge", "level"):
+            v = r["level"] if q == "level" else r["discharge"]
+            b = (have.get(q) or {}).get(str(pent))
+            p_ = percentile_of(v, b)
+            if p_ is not None:
+                per[q] = p_
         index[r["station"]] = {
             "percentile": percentile_of(observed, band),
+            # Which quantity `percentile` above is about — the station's own default.
+            "parameter": param,
+            **per,
             "observedAt": r["at"],
-            # Three days of CLEVER, already as percentiles — see the docs for why the
-            # publisher rather than the client turns a discharge into a colour.
-            "forecast": forecast.get(r["station"]),
+            # WHETHER there is a forecast, not the forecast itself. This file is fetched to
+            # paint the map before anything is tapped, and the full model series is ~15 KB a
+            # station — 6 MB to answer a question the map does not ask. The series lives in
+            # the per-station file, which is opened on a tap.
+            "forecast": bool((forecast.get(r["station"]) or {}).get("series")),
         }
+        # This year's daily record: whatever the file already held, plus every day the
+        # 2-hour window can see, plus the one-time 30-day backfill.
+        seen = daily_means("\n".join(
+            [f"Date,{_LEVEL},{_FLOW}"] +
+            [f"{t},{'' if lv is None else lv},{'' if q is None else q}"
+             for t, lv, q in r["recent"]]))
+        seen.update(backfill.get(r["station"]) or {})
+        daily = merge_daily(prior.get(r["station"], {}).get("daily") or [], seen, now.year)
+
         (out / f"{r['station']}.json").write_text(json.dumps({
             "fetchedAt": now.isoformat(timespec="seconds").replace("+00:00", "Z"),
             "station": r["station"],
@@ -185,6 +291,10 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
                     # claim the data does not make.
                     "parameter": param},
             "recent": r["recent"],
+            # `[day, level, discharge]` for THIS CALENDAR YEAR, as daily means — the line the
+            # seasonal chart draws across its envelope. Grown by this feed rather than read
+            # from anywhere: HYDAT is the only published daily record and it lags a year.
+            "daily": daily,
             "forecast": forecast.get(r["station"]),
         }, separators=(",", ":")), encoding="utf-8")
 
@@ -255,6 +365,21 @@ def main() -> None:
         try:
             from pipeline.hydro import forecast as _forecast   # noqa: PLC0415
             fcast = _forecast.fetch()
+            # THE SERIES, not just the summary. One number per station drawn on a chart is a
+            # single point, and a single point joined to today's reading is a triangle —
+            # which is exactly what it looked like. Fetched only where the issue time has
+            # moved since the last publish, so the steady state costs nothing.
+            have = {}
+            for st in fcast:
+                f = args.out / f"{st}.json"
+                if f.exists():
+                    try:
+                        prev = json.loads(f.read_text(encoding="utf-8")).get("forecast") or {}
+                        if prev.get("series"):
+                            have[st] = prev.get("issuedAt") or ""
+                    except Exception:                           # noqa: BLE001
+                        pass
+            fcast = _forecast.with_series(fcast, stations=set(ids), keep=have)
         except Exception as exc:                                # noqa: BLE001
             print(f"  forecast unavailable: {exc}", file=sys.stderr)
 

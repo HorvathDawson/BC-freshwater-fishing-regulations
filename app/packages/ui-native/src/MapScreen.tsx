@@ -23,7 +23,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
   modes?: Record<string, string>;
-  onPressFeature?: (layerId: string, featureId: string) => void;
+  onPressFeature?: (layerId: string, featureId: string,
+                    lat?: number, lon?: number) => void;
   onMoved?: (at: Camera) => void;
   /** A raw tapped coordinate — for picking a PLACE rather than a feature. */
   onMapPoint?: (lat: number, lon: number) => void;

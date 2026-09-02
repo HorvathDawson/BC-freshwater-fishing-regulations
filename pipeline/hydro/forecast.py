@@ -64,6 +64,8 @@ MODELS: dict[str, dict] = {
         "service": "CLM_MapHub_forecast", "horizon_days": 10, "rep": "max",
         "obs": "Latest_Reading", "issued": "Issued_at",
         "fmax": "Forecast_maximum_in_5_days",
+        "csv": "https://bcrfc.env.gov.bc.ca/freshet/clever/{s}.CSV",
+        "shape": "clever", "step": "1h",
     },
     "COFFEE": {
         "service": "coffee_MapHub_forecast", "horizon_days": 5, "rep": "max",
@@ -71,6 +73,8 @@ MODELS: dict[str, dict] = {
         "fmin": "Forecast_minimum_in_5_days",
         "fave": "Forecast_average_in_5_days",
         "fmax": "Forecast_maximum_in_5_days",
+        "csv": "https://bcrfc.env.gov.bc.ca/fallfloods/coffee/COFFEE_{s}.CSV",
+        "shape": "clever", "step": "1d",
     },
     "ELF": {
         "service": "MapHub_ELF_Forecast", "horizon_days": 30, "rep": "min",
@@ -78,8 +82,15 @@ MODELS: dict[str, dict] = {
         "fmin": "Qfor_MIN_30_Days_m3_s_",
         "fave": "Qfor_AVE_30_Days_m3_s_",
         "fmax": "Qfor_MAX_30_Days_m3_s_",
+        "csv": "https://bcrfc.env.gov.bc.ca/lowflow/elf/csv/{s}_elf_forecast.csv",
+        "shape": "elf", "step": "1d",
     },
 }
+
+# The Centre's own words, carried out of the CSV headers verbatim. Required wherever a
+# forecast appears — this is the sentence, not a paraphrase of it.
+CSV_DISCLAIMER = ("USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE AND "
+                  "INTERPRETATION.")
 
 
 def _num(v) -> float | None:
@@ -188,6 +199,132 @@ def fetch(models: list[str] | None = None) -> dict[str, dict]:
             kept += 1
         print(f"  {name:7} {kept:>4} station forecasts")
     return out
+
+
+def _csv_rows(text: str) -> tuple[list[str], list[list[str]]]:
+    """The header row and the data rows of a BCRFC CSV.
+
+    Their files open with a disclaimer, a link, a title, the station, the units and an issue
+    time before the actual header — a plain `csv.reader` reads those as data. The header is
+    the first line that starts with DATE.
+    """
+    lines = [ln for ln in text.splitlines() if ln.strip()]
+    for i, ln in enumerate(lines):
+        if ln.upper().startswith("DATE"):
+            head = [c.strip().upper() for c in ln.split(",")]
+            return head, [r.split(",") for r in lines[i + 1:]]
+    return [], []
+
+
+def _f(v: str | None) -> float | None:
+    try:
+        return float(v) if v not in (None, "") else None
+    except ValueError:
+        return None
+
+
+def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
+    """The forecast as a SERIES — every step the model published, with its bounds.
+
+    WHY THIS EXISTS AND THE SUMMARY LAYER DOES NOT REPLACE IT. The ArcGIS summary carries
+    one number per station: the forecast minimum, average and maximum over the whole
+    horizon. Drawn on a chart that is a single point, and a single point joined to today's
+    reading is a triangle — which is what it looked like, because that is all it was. The
+    per-station CSV is the actual model output: hourly for ten days (CLEVER) or daily for
+    thirty (ELF), each step with a lower and upper bound.
+
+    THE COST IS WHY THIS IS NOT FETCHED EVERY TICK. One request per station, and the app
+    carries ~440 of them, against a provincial endpoint the observations do not even come
+    from. But a forecast is ISSUED once or twice a day, not every thirty minutes — so the
+    publisher re-fetches a station's series only when the issue time on the summary has
+    moved. In the steady state that is zero requests.
+
+    ELF publishes water level beside discharge (HOBS/HFOR), so a level chart can carry a
+    forecast too. CLEVER publishes discharge only.
+    """
+    cfg = MODELS.get(model)
+    if not cfg or not cfg.get("csv"):
+        return None
+    url = str(cfg["csv"]).format(s=station)
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": _UA})
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            text = r.read().decode("utf-8", "replace")
+    except Exception:                                  # noqa: BLE001 — 404 = not in season
+        return None
+    head, rows = _csv_rows(text)
+    if not head or not rows:
+        return None
+    ix = {name: i for i, name in enumerate(head)}
+
+    def col(row: list[str], name: str) -> float | None:
+        i = ix.get(name)
+        return _f(row[i]) if i is not None and i < len(row) else None
+
+    out: dict[str, list] = {"at": [], "mid": [], "lo": [], "hi": [],
+                            "level_mid": [], "level_lo": [], "level_hi": [],
+                            "observed": [], "level_observed": []}
+    for row in rows:
+        if not row or not row[0].strip():
+            continue
+        when = row[0].strip()
+        if cfg["shape"] == "clever":
+            hour = row[ix["HOUR"]].strip() if "HOUR" in ix and len(row) > ix["HOUR"] else "00"
+            out["at"].append(f"{when}T{hour.zfill(2)}:00:00")
+            out["mid"].append(col(row, "FORECAST_DISCHARGE"))
+            out["lo"].append(col(row, "LOWER_BOUND"))
+            out["hi"].append(col(row, "UPPER_BOUND"))
+            out["observed"].append(None)
+            out["level_mid"].append(None)
+            out["level_lo"].append(None)
+            out["level_hi"].append(None)
+            out["level_observed"].append(None)
+        else:                                           # ELF
+            out["at"].append(when)
+            out["mid"].append(col(row, "QFOR_AVE"))
+            out["lo"].append(col(row, "QFOR_MIN"))
+            out["hi"].append(col(row, "QFOR_MAX"))
+            out["observed"].append(col(row, "QOBS"))
+            out["level_mid"].append(col(row, "HFOR_AVE"))
+            out["level_lo"].append(col(row, "HFOR_MIN"))
+            out["level_hi"].append(col(row, "HFOR_MAX"))
+            out["level_observed"].append(col(row, "HOBS"))
+    if not out["at"]:
+        return None
+    # A CSV whose forecast columns are entirely empty is a station the model did not run
+    # for, served as a file rather than as a 404. Drawing it would be an empty ribbon.
+    if not any(v is not None for v in out["mid"] + out["level_mid"]):
+        return None
+    out["step"] = cfg["step"]
+    out["disclaimer"] = CSV_DISCLAIMER
+    return out
+
+
+def with_series(summary: dict[str, dict], stations: set[str] | None = None,
+                keep: dict[str, str] | None = None, workers: int = 8) -> dict[str, dict]:
+    """Attach the per-station series, skipping every station whose run has not moved.
+
+    ``keep`` maps station -> the issue time already on disk. A station whose summary still
+    names that issue time keeps what it has and costs no request; in the steady state that
+    is every station, and this whole pass is free.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    want = [st for st, row in summary.items()
+            if (stations is None or st in stations)
+            and (keep or {}).get(st) != (row.get("issuedAt") or "")]
+    if not want:
+        print(f"  series   0 fetched ({len(summary)} already current)")
+        return summary
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        got = list(pool.map(lambda st: (st, series(st, summary[st]["model"])), sorted(want)))
+    n = 0
+    for st, ser in got:
+        if ser:
+            summary[st]["series"] = ser
+            n += 1
+    print(f"  series   {n} fetched of {len(want)} asked ({len(summary) - len(want)} current)")
+    return summary
 
 
 def main() -> None:

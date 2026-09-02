@@ -48,12 +48,14 @@ export interface Envelope {
  * low-flow one), and `at` is where the observations stop and the model starts.
  */
 export interface ForecastShape {
+  /** The model's published bounds, as a filled ribbon. Empty when it published none. */
   band: string;
+  /** The forecast trace itself — every step, never two points. */
   line: string;
   /** x of the boundary between what happened and what is expected. */
   at: number;
-  /** The headline value's y, for the label. */
-  y: number;
+  /** The last forecast point, for a label at the end of the ribbon. */
+  end: { x: number; y: number } | null;
 }
 
 export interface Hydrograph {
@@ -127,14 +129,23 @@ export interface BuildInput {
    */
   nowValue?: number | null;
   /**
-   * A forecast to draw past the observations, in the same units.
+   * The model run, as a SERIES on its own time axis.
    *
-   * `days` sets how far right it reaches, scaled against how long the observed span is, so
-   * a 30-day outlook on a 3-day chart does not pretend to the same resolution as the line
-   * beside it.
+   * `at` here are the same kind of stamps as the observations', so the two are laid out
+   * against one clock rather than against each other's index — which is what lets an
+   * hourly ten-day CLEVER run and a daily thirty-day ELF run share the frame with a
+   * half-hourly observation series without either being stretched.
+   *
+   * Steps at or before the last observation are DROPPED, not drawn: both models publish
+   * their own hindcast, and a model's opinion about yesterday laid over the measurement of
+   * yesterday is two lines claiming the same thing.
    */
-  forecast?: { lo: number | null; mid: number; hi: number | null;
-               days: number; spanDays: number } | null;
+  forecast?: { at: readonly string[];
+               mid: readonly (number | null)[];
+               lo: readonly (number | null)[];
+               hi: readonly (number | null)[] } | null;
+  /** Observation stamps, for laying the forecast on the same clock. */
+  at?: readonly string[];
   log?: boolean;
   box?: Box;
 }
@@ -155,7 +166,23 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const bands = input.bands;
   const log = input.log ?? false;
 
-  const fc = input.forecast ?? null;
+  // THE TWO SERIES SHARE ONE CLOCK. Observations run from the first stamp to the last;
+  // the forecast continues past it. Everything below positions on time, not on index.
+  const stamps = (input.at ?? []).map((t) => Date.parse(t));
+  const t0 = stamps.length && Number.isFinite(stamps[0]!) ? stamps[0]! : 0;
+  const t1 = stamps.length && Number.isFinite(stamps[stamps.length - 1]!)
+    ? stamps[stamps.length - 1]! : t0 + 1;
+
+  // A model's own hindcast is dropped: it overlaps the record, and two lines claiming
+  // yesterday is one more than there is evidence for.
+  const rawFc = input.forecast ?? null;
+  const ahead = rawFc
+    ? rawFc.at.map((t, i) => ({ t: Date.parse(t), mid: rawFc.mid[i] ?? null,
+                                lo: rawFc.lo[i] ?? null, hi: rawFc.hi[i] ?? null }))
+        .filter((p) => Number.isFinite(p.t) && p.t > t1 && p.mid !== null)
+    : [];
+  const fc = ahead.length ? ahead : null;
+  const tEnd = fc ? fc[fc.length - 1]!.t : t1;
 
   let lo = Infinity;
   let hi = -Infinity;
@@ -163,10 +190,9 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   // THE FORECAST IS INSIDE THE SCALE. A flood outlook that runs off the top of the frame is
   // the one case where the chart most needs to be readable, and clipping it would show a
   // line leaving the picture with no indication of where it was going.
-  if (fc) {
-    for (const v of [fc.lo, fc.mid, fc.hi])
+  for (const p of fc ?? [])
+    for (const v of [p.lo, p.mid, p.hi])
       if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
-  }
   if (input.nowValue !== null && input.nowValue !== undefined && Number.isFinite(input.nowValue)) {
     lo = Math.min(lo, input.nowValue); hi = Math.max(hi, input.nowValue);
   }
@@ -189,15 +215,16 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const L1 = log ? Math.log10(hi) : hi;
   const y = (v: number): number =>
     padTop + innerH - (((log ? Math.log10(Math.max(v, 10 ** L0)) : v) - L0) / (L1 - L0)) * innerH;
-  // How much of the width the observations get. A forecast takes the rest, in proportion to
-  // how far ahead it looks — a 30-day outlook beside 3 days of record is mostly forecast,
-  // and drawing it as a narrow tail on the right would understate what it is claiming.
-  const share = fc && fc.spanDays > 0
-    ? Math.max(0.35, Math.min(0.85, fc.spanDays / (fc.spanDays + fc.days)))
-    : 1;
-  const obsW = innerW * share;
+  // TIME IS THE X AXIS, so an hourly forecast and a daily record land where they belong.
+  // Falls back to index when the caller passed no stamps, which keeps every existing chart
+  // laid out exactly as it was.
+  const span = Math.max(1, tEnd - t0);
+  const xAt = (t: number): number => padLeft + ((t - t0) / span) * innerW;
+  const obsW = tEnd > t1 ? xAt(t1) - padLeft : innerW;
   const x = (i: number): number =>
-    padLeft + (vals.length > 1 ? (i / (vals.length - 1)) * obsW : obsW / 2);
+    stamps.length === vals.length && vals.length > 1
+      ? xAt(stamps[i] ?? t0)
+      : padLeft + (vals.length > 1 ? (i / (vals.length - 1)) * obsW : obsW / 2);
 
   const pt = (i: number, v: number): string => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;
 
@@ -233,24 +260,35 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const nowIndex = input.nowIndex ?? vals.length - 1;
   const nowValue = input.nowValue ?? (nowIndex >= 0 ? vals[nowIndex] ?? null : null);
 
-  // The forecast occupies the strip to the right of the observations, from the boundary to
-  // the frame edge. A band when the model published a range; a line always, because a
-  // model with a single number still has one thing to say.
-  const edge = padLeft + innerW;
+  /**
+   * The forecast, drawn as the model published it.
+   *
+   * It used to be one point: the summary layer carries a single value per station, so the
+   * "ribbon" was a straight line from today to a dot at the frame edge and the band a
+   * TRIANGLE. This is the model's own output — 240 hourly steps for a CLEVER run, 30 daily
+   * ones for ELF — laid on the same clock as the record, so the shape on screen is the
+   * shape the Centre published.
+   *
+   * The ribbon starts at the last OBSERVATION rather than at the first forecast step, so
+   * there is no gap between what happened and what is expected.
+   */
   const forecast: ForecastShape | null = fc ? (() => {
-    const x0 = padLeft + obsW;
-    const yMid = y(fc.mid);
-    const yLo = fc.lo !== null ? y(fc.lo) : yMid;
-    const yHi = fc.hi !== null ? y(fc.hi) : yMid;
-    const y0 = nowValue !== null ? y(nowValue) : yMid;
+    const x0 = xAt(t1);
+    const y0 = nowValue !== null ? y(nowValue) : y(fc[0]!.mid!);
+    const line = [`${x0.toFixed(1)},${y0.toFixed(1)}`,
+                  ...fc.map((p) => `${xAt(p.t).toFixed(1)},${y(p.mid!).toFixed(1)}`)];
+    const withBounds = fc.filter((p) => p.lo !== null && p.hi !== null);
+    const top = withBounds.map((p) => `${xAt(p.t).toFixed(1)},${y(p.hi!).toFixed(1)}`);
+    const bottom = withBounds.map((p) => `${xAt(p.t).toFixed(1)},${y(p.lo!).toFixed(1)}`);
+    const lastPoint = fc[fc.length - 1]!;
     return {
-      band: fc.lo !== null && fc.hi !== null
-        ? `M${x0.toFixed(1)},${y0.toFixed(1)}L${edge.toFixed(1)},${yHi.toFixed(1)}` +
-          `L${edge.toFixed(1)},${yLo.toFixed(1)}Z`
+      band: top.length > 1
+        ? `M${x0.toFixed(1)},${y0.toFixed(1)}L${top.join("L")}` +
+          `L${[...bottom].reverse().join("L")}Z`
         : "",
-      line: `M${x0.toFixed(1)},${y0.toFixed(1)}L${edge.toFixed(1)},${yMid.toFixed(1)}`,
+      line: `M${line.join("L")}`,
       at: x0,
-      y: yMid,
+      end: { x: xAt(lastPoint.t), y: y(lastPoint.mid!) },
     };
   })() : null;
 
@@ -260,9 +298,12 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     envelopes,
     median: medianPts.length > 1 ? `M${medianPts.join("L")}` : "",
     yTicks: yValues.map((v) => ({ value: v, at: y(v), label: fmt(v) })),
+    // Spread across the WHOLE frame when a forecast extends it, so the last label is not
+    // stranded halfway with a third of the chart unlabelled to its right.
     xTicks: input.xLabels.map((label, i) => ({
       value: i,
-      at: padLeft + (input.xLabels.length > 1 ? (i / (input.xLabels.length - 1)) * obsW : 0),
+      at: padLeft + (input.xLabels.length > 1
+        ? (i / (input.xLabels.length - 1)) * innerW : 0),
       label,
     })),
     now: nowValue !== null ? { x: x(nowIndex), y: y(nowValue) } : null,

@@ -21,8 +21,10 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 export function GaugeTrace({ trace, palette, title = "How this spot reaches the gauge",
-                             at, theme }:
+                             at, theme, from }:
   { trace: Trace; palette: Palette; title?: string;
+    /** Where the person actually is — the tapped point, or a saved spot's coordinate. */
+    from?: { lat: number; lon: number } | null;
     /**
      * The tiles, when the caller has them — then the route is DRAWN as well as described.
      *
@@ -31,9 +33,12 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
      * route to draw. The words are the panel; the map is an addition to them.
      */
     at?: TileEndpoints; theme?: string }) {
-  // Centred on the station, zoomed by hop count — see `routeCamera` for why it is not
-  // fitted to the path (nothing client-side knows where a reach is).
-  const camera = routeCamera(trace);
+  // BOTH ENDS ON SCREEN when we know both. `routeCamera` centres on the station and picks
+  // a zoom from the hop count, which is all that is possible when the reach has no
+  // coordinate; given the tapped point as well, the camera goes to the midpoint and the
+  // zoom comes from the actual separation. Nothing is invented either way — the second
+  // case simply has more to work with.
+  const camera = routeCamera(trace, from ?? null);
   const facts: [string, string | null][] = [
     ["distance", onTheReach(trace) ? "on the reach" : distanceWord(trace.metres)],
     ["this reach", trace.reachMagnitude === null ? null : `magnitude ${trace.reachMagnitude}`],
@@ -60,10 +65,27 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
           reaches between here and the station are highlighted, so the chain the facts below
           are counting is the chain you can see. */}
       {at && theme && camera && (
-        <MiniMap at={at} palette={palette} theme={theme} camera={camera} height={168}
+        <MiniMap at={at} palette={palette} theme={theme} camera={camera} height={190}
                  view="plain" highlight={trace.path}
+                 pins={[
+                   // TWO ENDS, TWO COLOURS, and each says which it is when tapped. One
+                   // marker on a route map is worse than none: the reader cannot tell
+                   // whether the dot is where they are or where the gauge is.
+                   ...(from ? [{ lat: from.lat, lon: from.lon, tone: palette.accent,
+                                 title: "you are here" }] : []),
+                   ...(trace.lat !== null && trace.lon !== null
+                     ? [{ lat: trace.lat, lon: trace.lon, tone: palette.live,
+                          title: trace.stationName ?? trace.station ?? "the gauge" }]
+                     : []),
+                 ]}
                  hint={`${trace.station} · ${trace.path.length} ` +
                        `${trace.path.length === 1 ? "reach" : "reaches"}`} />
+      )}
+      {at && theme && camera && (
+        <View style={{ flexDirection: "row", gap: 16, marginTop: -4 }}>
+          {from && <Dot palette={palette} tone={palette.accent} label="you are here" />}
+          <Dot palette={palette} tone={palette.live} label="the gauge" />
+        </View>
       )}
 
       <View>
@@ -89,6 +111,17 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
       <Text style={{ ...TYPE.small, fontSize: 11.5, lineHeight: 17, color: palette.faint }}>
         {traceSentence(trace)}
       </Text>
+    </View>
+  );
+}
+
+
+/** One entry in the route map's key — a coloured dot and what it means. */
+function Dot({ palette, tone, label }: { palette: Palette; tone: string; label: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
+      <Text style={{ ...TYPE.micro, fontSize: 10, color: palette.faint }}>{label}</Text>
     </View>
   );
 }

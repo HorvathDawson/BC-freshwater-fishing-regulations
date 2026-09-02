@@ -22,6 +22,19 @@
 import { standing } from "@app/core";
 import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 
+/** The forecast exactly as the publisher writes it — both quantities, unpicked. */
+interface RawForecast extends Omit<Forecast, "series" | "disclaimer"> {
+  series?: {
+    step: "1h" | "1d";
+    at: string[];
+    mid: (number | null)[]; lo: (number | null)[]; hi: (number | null)[];
+    level_mid: (number | null)[];
+    level_lo: (number | null)[];
+    level_hi: (number | null)[];
+    disclaimer?: string;
+  } | null;
+}
+
 /** How long a fetched file is reused. The publisher runs every 30 minutes. */
 const TTL_MS = 5 * 60_000;
 
@@ -51,7 +64,9 @@ interface StationFile {
   /** `[timestamp, level, discharge]`, thinned to 30-minute steps by the publisher. */
   recent?: [string, number | null, number | null][];
   /** A BC River Forecast Centre run, or null outside every model's season. */
-  forecast?: Forecast | null;
+  forecast?: RawForecast | null;
+  /** `[day, level, discharge]` daily means for the current year, grown by the feed. */
+  daily?: [string, number | null, number | null][];
 }
 
 /**
@@ -72,7 +87,46 @@ export interface Observations {
   at: readonly string[];
   discharge: readonly (number | null)[];
   level: readonly (number | null)[];
-  forecast: Forecast | null;
+  /** This calendar year's daily means: `[day, level, discharge]`, oldest first. */
+  daily: readonly [string, number | null, number | null][];
+  /**
+   * The run, with BOTH quantities still in it.
+   *
+   * Picked apart by the source, not here, for the same reason `discharge` and `level` both
+   * come back: the feed does not know which chart is being drawn, and ELF publishes a level
+   * forecast beside its discharge one. Choosing here would throw away the other half.
+   */
+  forecast: RawForecast | null;
+}
+
+/**
+ * The forecast in ONE quantity, ready for a chart.
+ *
+ * Kept out of the feed and applied by the source, because the answer depends on which
+ * chart is being drawn. CLEVER publishes discharge only; ELF publishes both. A level chart
+ * asking CLEVER gets null, which is correct — its outlook is in m3/s.
+ */
+export function forecastFor(raw: RawForecast | null | undefined,
+                            parameter: Parameter): Forecast | null {
+  if (!raw) return null;
+  const s = raw.series ?? null;
+  const level = parameter === "level";
+  const mid = level ? s?.level_mid : s?.mid;
+  const lo = level ? s?.level_lo : s?.lo;
+  const hi = level ? s?.level_hi : s?.hi;
+  const has = (mid ?? []).some((v) => v !== null && Number.isFinite(v));
+  // The HEADLINE number is discharge in every model, so a level chart keeps the ribbon and
+  // drops the summary rather than printing "8.2 m" over a run measured in m3/s.
+  return {
+    ...raw,
+    value: level ? Number.NaN : raw.value,
+    min: level ? null : raw.min, ave: level ? null : raw.ave, max: level ? null : raw.max,
+    unit: level ? "m" : raw.unit,
+    series: s && has
+      ? { step: s.step, at: s.at, mid: mid!, lo: lo ?? [], hi: hi ?? [] }
+      : null,
+    disclaimer: s?.disclaimer ?? null,
+  };
 }
 
 export interface GaugeFeed {
@@ -172,6 +226,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
         at: rows.map((r) => r[0]),
         level: rows.map((r) => r[1]),
         discharge: rows.map((r) => r[2]),
+        daily: f?.daily ?? [],
         forecast: f?.forecast ?? null,
       };
     },

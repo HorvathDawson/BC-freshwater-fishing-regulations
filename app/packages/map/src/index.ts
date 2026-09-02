@@ -18,3 +18,4 @@ export { baseAdapter, DEFAULT_VIEW, type MapAdapter, type MapHandle } from "./ad
  *  offering different layers. */
 export { toggleableGroups, views, STYLE_META, resolveTheme, themeNames,
          type LayerGroup, type MapView, type Tokens } from "./style";
+export { pillImage, type PillImage } from "./pill";

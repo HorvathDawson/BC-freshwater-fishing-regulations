@@ -89,6 +89,8 @@ export interface Series {
   step: "1h" | "1d" | "5d";
   from: string;
   parameter: Parameter;
+  /** ISO timestamp per sample, so an axis can be labelled with real dates. */
+  at: readonly string[];
   /** Observations. A null is a gap in the record, never a zero. */
   values: readonly (number | null)[];
   /** Percentile envelope aligned to `values`, from the bundle's climatology. */
@@ -116,12 +118,36 @@ export interface Forecast {
   model: string;
   issuedAt: string | null;
   horizonDays: number;
+  /** The headline number, and which end of the range it is. */
   value: number;
   extreme: "min" | "ave" | "max";
   min: number | null;
   ave: number | null;
   max: number | null;
   unit: string;
+  /**
+   * EVERY STEP THE MODEL PUBLISHED, not one number.
+   *
+   * The summary layer carries a single forecast value per station; drawn on a chart that
+   * is one point, and one point joined to today's reading is a triangle — which is exactly
+   * what it looked like, because that is all it was. This is the model's own output:
+   * hourly for ten days (CLEVER) or daily for thirty (ELF), each step with bounds.
+   *
+   * Null when the per-station file has not been fetched for this run yet. The headline
+   * number above still works; there is simply no ribbon to draw.
+   */
+  series: ForecastSeries | null;
+  /** The Centre's own words out of the CSV header. Shown verbatim beside the chart. */
+  disclaimer: string | null;
+}
+
+export interface ForecastSeries {
+  step: "1h" | "1d";
+  at: readonly string[];
+  /** The forecast trace and its published bounds, in the series' own quantity. */
+  mid: readonly (number | null)[];
+  lo: readonly (number | null)[];
+  hi: readonly (number | null)[];
 }
 
 /** One water's whole sheet. Assembled by the source, never by the client. */

@@ -183,19 +183,36 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       const value = level ? GAUGE.level : GAUGE.discharge;
       // The year axis is 73 pentads of envelope with today marked on it — no observations,
       // exactly as the bundle source builds it.
-      const n = span === "72h" ? 72 : 73;
+      // A day per point on the year axis, mirroring the bundle source: the envelope is
+      // five-day but the line across it is daily.
+      const n = span === "72h" ? 72 : 365;
       return {
         fetchedAt: now,
         value: {
-          step: span === "72h" ? "1h" : "5d",
+          step: span === "72h" ? "1h" : "1d",
           from: span === "72h" ? "2026-08-27T07:00:00Z" : "2026-01-01",
           parameter: param,
+          at: Array.from({ length: n }, (_, i) => span === "72h"
+            ? new Date(Date.UTC(2026, 7, 27, 7 + i)).toISOString()
+            : new Date(Date.UTC(2026, 0, 1 + i)).toISOString().slice(0, 10)),
           values: Array.from({ length: n }, () => (span === "72h" ? value : null)),
           band: Array.from({ length: n }, () => band),
-          now: { index: span === "72h" ? n - 1 : 48, value },
+          now: { index: span === "72h" ? n - 1 : 241, value },
+          // A REAL SERIES, thirty daily steps with bounds — not one number. A fixture
+          // carrying a single point could not have caught the triangle the chart drew.
           forecast: level ? null : {
             model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30,
             value: 9.4, extreme: "min", min: 9.4, ave: 12.1, max: 16.8, unit: "m3/s",
+            disclaimer: "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE " +
+                        "AND INTERPRETATION.",
+            series: {
+              step: "1d",
+              at: Array.from({ length: 30 }, (_, i) =>
+                new Date(Date.UTC(2026, 7, 30 + i)).toISOString().slice(0, 10)),
+              mid: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.2),
+              lo: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.28),
+              hi: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.1),
+            },
           },
         },
       };

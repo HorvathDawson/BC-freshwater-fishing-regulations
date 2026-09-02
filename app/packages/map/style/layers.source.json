@@ -526,13 +526,13 @@
               }
             ],
             [
-              16.7,
+              10.0,
               {
                 "token": "color.flow.f2"
               }
             ],
             [
-              33.3,
+              25.0,
               {
                 "token": "color.flow.f3"
               }
@@ -544,13 +544,13 @@
               }
             ],
             [
-              66.7,
+              75.0,
               {
                 "token": "color.flow.f5"
               }
             ],
             [
-              83.3,
+              90.0,
               {
                 "token": "color.flow.f6"
               }
@@ -563,13 +563,13 @@
             ]
           ],
           "missing": {
-            "token": "color.water.unmapped"
+            "token": "color.water.ungauged"
           },
           "data": {
             "provider": "gauges",
             "field": "standing"
           },
-          "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another. `missing` is neutral water, never status.unknown \u2014 most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse.  SEVEN STOPS, and they ARE the legend's: the ramp was three tokens that all resolved to shades of one blue while the legend beside it drew red through cyan \u2014 two definitions of one scale (AGENTS rule 23). The legend now reads these tokens.  MISSING is `water.unmapped`, the pale grey, NOT `water.mapped`, which is a saturated teal darker than the low-flow end and made ungauged water read as more prominent than measured water. 97.6% of BC has no gauge: it must stay visible and stay quiet.  A STOP AT -1 IS A SENTINEL. It means the reach HAS a working gauge but no historical record to compare today against \u2014 8 of BC's reporting stations, and before it existed they painted identically to water nobody measures, which is the wrong claim in the other direction. Real percentiles are 0..100, so nothing ever interpolates across the gap between -1 and 0."
+          "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' \u2014 the middle half of the record \u2014 into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement."
         }
       }
     }

@@ -36,7 +36,14 @@ export interface MapProps {
   initial: Camera;
   /** Per-feature values the active colour mode reads, by layer then feature id. */
   data?: Record<string, Record<string, Record<string, unknown>>>;
-  onPressFeature?: (layerId: string, featureId: string) => void;
+  /**
+   * A tapped feature, and WHERE on it the tap landed.
+   *
+   * The coordinate is the second half of the answer on a long river: "the Fraser" is 1,375
+   * km and "how does this spot reach the gauge" is a question about a point on it.
+   */
+  onPressFeature?: (layerId: string, featureId: string,
+                    lat?: number, lon?: number) => void;
   /**
    * Renderer failures. Not optional in spirit: an empty map and a map whose tiles failed
    * to load look identical, and this app's whole argument is that "we do not know" must
@@ -69,6 +76,16 @@ export interface MapProps {
    * banner is not the same as a dot on the water.
    */
   marker?: { lat: number; lon: number } | null;
+  /**
+   * Several marked points at once, each with its own colour and label.
+   *
+   * `marker` answers "where did I tap"; this answers "where are the ENDS of the thing I am
+   * looking at". The route panel needs both ends on screen — the reach you are standing on
+   * and the station that speaks for it — and one marker cannot say which of two dots is
+   * which. Separate from `marker` because they have different lifetimes: a tap marker is
+   * cleared when you pan away, these belong to whatever the panel is describing.
+   */
+  pins?: readonly { lat: number; lon: number; tone?: string; title?: string }[];
   /**
    * Where the camera ended up, whenever the user stops moving it.
    *

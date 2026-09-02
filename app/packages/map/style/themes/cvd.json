@@ -41,14 +41,15 @@
     "color.survey.sheet": "#7BA4B8",
     "color.outside": "#F8F8F2",
     "opacity.outside": 0.72,
-    "color.flow.f1": "#8C3B00",
-    "color.flow.f2": "#C46A10",
-    "color.flow.f3": "#F2C266",
-    "color.flow.f4": "#EBD9A8",
-    "color.flow.f5": "#C9BE93",
-    "color.flow.f6": "#5A8FD6",
-    "color.flow.f7": "#1F4FA8",
+    "color.flow.f1": "#5E2A00",
+    "color.flow.f2": "#9A5A12",
+    "color.flow.f3": "#E0A83C",
+    "color.flow.f4": "#AE9A74",
+    "color.flow.f5": "#5E8FC7",
+    "color.flow.f6": "#2A3F8F",
+    "color.flow.f7": "#101E4D",
     "color.gauge.dot": "#0A1116",
-    "color.flow.nobaseline": "#7B4FBF"
+    "color.flow.nobaseline": "#7B4FBF",
+    "color.water.ungauged": "#D5D5D5"
   }
 }

@@ -104,47 +104,70 @@ describe("everything the component needs is a number or a string", () => {
  * arithmetic keeps them structurally apart, and these hold it there.
  */
 describe("the forecast", () => {
+  // Three hourly observations, then a run continuing past them on the same clock.
+  const at = ["2026-09-01T00:00:00Z", "2026-09-01T01:00:00Z", "2026-09-01T02:00:00Z"];
   const base = {
     values: [10, 11, 12] as (number | null)[],
     bands: [null, null, null],
     xLabels: ["a", "b", "c"],
+    at,
   };
+  const run = (n: number, mid: (i: number) => number,
+               bounds = true) => ({
+    at: Array.from({ length: n }, (_, i) =>
+      new Date(Date.UTC(2026, 8, 1, 3 + i)).toISOString()),
+    mid: Array.from({ length: n }, (_, i) => mid(i)),
+    lo: bounds ? Array.from({ length: n }, (_, i) => mid(i) - 2) : [],
+    hi: bounds ? Array.from({ length: n }, (_, i) => mid(i) + 2) : [],
+  });
 
   it("is absent when no model is running", () => {
     expect(buildHydrograph(base).forecast).toBeNull();
   });
 
+  it("draws every step the model published, not two points", () => {
+    // THE BUG THIS EXISTS FOR. The summary layer carries one number per station, so the
+    // ribbon was a straight line to the frame edge and the band a triangle. A 24-step run
+    // has to produce a path with 24 vertices in it.
+    const h = buildHydrograph({ ...base, forecast: run(24, (i) => 12 + i) });
+    const vertices = (h.forecast!.line.match(/L/g) ?? []).length;
+    expect(vertices).toBeGreaterThanOrEqual(24);
+  });
+
   it("starts where the observations stop, never before", () => {
-    const h = buildHydrograph({
-      ...base,
-      forecast: { lo: 6, mid: 8, hi: 14, days: 30, spanDays: 3 },
-    });
-    const lastObserved = h.xTicks[h.xTicks.length - 1]!.at;
-    expect(h.forecast!.at).toBeGreaterThanOrEqual(lastObserved - 0.01);
+    const h = buildHydrograph({ ...base, forecast: run(10, () => 12) });
+    // The boundary is the last OBSERVATION, so there is no gap and no overlap.
+    expect(h.forecast!.at).toBeGreaterThan(h.box.padLeft);
+    expect(h.forecast!.at).toBeLessThan(h.box.width - h.box.padRight);
+  });
+
+  it("drops the model's own hindcast", () => {
+    // Both models publish steps for days already measured. Drawn, that is two lines
+    // claiming yesterday — and only one of them is a measurement.
+    const withPast = {
+      at: ["2026-08-31T00:00:00Z", "2026-09-01T01:00:00Z", "2026-09-01T06:00:00Z"],
+      mid: [99, 98, 20], lo: [90, 90, 18], hi: [110, 110, 22],
+    };
+    const h = buildHydrograph({ ...base, forecast: withPast });
+    // Only the one step past the last observation survives, so the 99 never scales the axis.
+    expect(Math.max(...h.yTicks.map((t) => t.value))).toBeLessThan(90);
   });
 
   it("keeps its own extremes inside the frame", () => {
     // A flood outlook that runs off the top is the one case where the chart most needs to
     // be readable. The y scale has to include the forecast, not just the record.
-    const h = buildHydrograph({
-      ...base,
-      forecast: { lo: 6, mid: 900, hi: 1200, days: 10, spanDays: 3 },
-    });
-    expect(h.yTicks[0]!.value).toBeLessThanOrEqual(1200);
+    const h = buildHydrograph({ ...base, forecast: run(6, () => 900) });
     expect(Math.max(...h.yTicks.map((t) => t.value))).toBeGreaterThan(100);
   });
 
   it("gives a longer outlook more of the width", () => {
-    const short = buildHydrograph({ ...base,
-      forecast: { lo: 9, mid: 10, hi: 11, days: 5, spanDays: 3 } });
-    const long = buildHydrograph({ ...base,
-      forecast: { lo: 9, mid: 10, hi: 11, days: 30, spanDays: 3 } });
+    const short = buildHydrograph({ ...base, forecast: run(4, () => 10) });
+    const long = buildHydrograph({ ...base, forecast: run(60, () => 10) });
     expect(long.forecast!.at).toBeLessThan(short.forecast!.at);
   });
 
-  it("draws a line but no band when the model published only one number", () => {
-    const h = buildHydrograph({ ...base,
-      forecast: { lo: null, mid: 10, hi: null, days: 5, spanDays: 3 } });
+  it("draws a line but no band when the model published no bounds", () => {
+    const h = buildHydrograph({ ...base, forecast: run(8, () => 10, false) });
     expect(h.forecast!.line).not.toBe("");
     expect(h.forecast!.band).toBe("");
   });
@@ -152,17 +175,17 @@ describe("the forecast", () => {
 
 describe("marking today", () => {
   it("uses the reading it was given, not the last cell of the array", () => {
-    // The seasonal chart is 73 pentads of envelope with NO observations. Reading the marker
-    // out of the series there would put today on New Year's Eve.
+    // The seasonal chart is a year of envelope with almost every observation cell null.
+    // Reading the marker out of the series there would put today on New Year's Eve.
     const h = buildHydrograph({
-      values: Array.from({ length: 73 }, () => null),
-      bands: Array.from({ length: 73 }, () => [1, 2, 3, 4, 5] as const),
+      values: Array.from({ length: 365 }, () => null),
+      bands: Array.from({ length: 365 }, () => [1, 2, 3, 4, 5] as const),
       xLabels: ["Jan", "Apr", "Jul", "Oct"],
-      nowIndex: 20,
+      nowIndex: 100,
       nowValue: 2.5,
     });
     expect(h.now).not.toBeNull();
-    // A fifth of the way along the year, not at the right-hand edge.
+    // Just over a quarter of the way along the year, not at the right-hand edge.
     expect(h.now!.x).toBeLessThan(h.box.width / 2);
   });
 });

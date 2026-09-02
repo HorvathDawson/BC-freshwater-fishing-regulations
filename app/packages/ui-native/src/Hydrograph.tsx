@@ -8,12 +8,18 @@
 import type { Hydrograph as Shape } from "@app/ui";
 import { Text, View } from "react-native";
 import Svg, { G, Line, Path, Circle, Text as SvgText } from "react-native-svg";
+import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-export function Hydrograph({ shape, palette, colour, label, caption, unit }:
+export function Hydrograph({ shape, palette, colour, label, caption, unit,
+                             disclaimer, forecastLabel }:
   { shape: Shape; palette: Palette; colour: string; label?: string;
     /** What this chart is actually showing. Never a fixed sentence — see below. */
-    caption?: string; unit?: string }) {
+    caption?: string; unit?: string;
+    /** The forecast provider's own disclaimer, verbatim. Shown only with a forecast. */
+    disclaimer?: string | null;
+    /** e.g. "ELF · 30 days" — which model is drawing the dashes. */
+    forecastLabel?: string }) {
   const { box } = shape;
   return (
     <View accessibilityRole="image"
@@ -46,14 +52,22 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit }:
             observation is the worst thing this chart could do. */}
         {shape.forecast && (
           <G>
+            {/* TODAY. The one line on this chart that separates measurement from model —
+                everything left of it happened, everything right of it is an opinion. */}
             <Line x1={shape.forecast.at} y1={box.padTop}
                   x2={shape.forecast.at} y2={box.height - box.padBottom}
-                  stroke={palette.line} strokeWidth={1} strokeDasharray="2,3" />
+                  stroke={palette.sub} strokeWidth={1} strokeDasharray="2,3" />
+            <SvgText x={shape.forecast.at + 3} y={box.padTop + 8}
+                     fontSize={8.5} fill={palette.faint}>TODAY</SvgText>
             {shape.forecast.band !== "" && (
               <Path d={shape.forecast.band} fill={colour} fillOpacity={0.13} />
             )}
             <Path d={shape.forecast.line} fill="none" stroke={colour} strokeWidth={1.8}
-                  strokeDasharray="4,3" strokeLinecap="round" />
+                  strokeDasharray="4,3" strokeLinecap="round" strokeLinejoin="round" />
+            {shape.forecast.end && (
+              <Circle cx={shape.forecast.end.x} cy={shape.forecast.end.y} r={2.6}
+                      fill={palette.card} stroke={colour} strokeWidth={1.6} />
+            )}
           </G>
         )}
         {shape.now && (
@@ -75,20 +89,78 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit }:
           ))}
         </G>
       </Svg>
+      {/* A KEY, because four things share one frame and only one of them is a measurement.
+          Drawn from the same palette and the same `colour` the paths use, so a swatch
+          cannot end up describing a line of a different shade. */}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 14, rowGap: 5,
+                     marginTop: 8 }}>
+        <Key palette={palette} label="reading" swatch="line" colour={colour} />
+        {shape.envelopes.length > 0 && (
+          <>
+            <Key palette={palette} label="middle half" swatch="fill" colour={palette.ink} />
+            <Key palette={palette} label="10th–90th" swatch="faintfill"
+                 colour={palette.ink} />
+            <Key palette={palette} label="median" swatch="dash" colour={palette.sub} />
+          </>
+        )}
+        {shape.forecast && (
+          <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash"
+               colour={colour} />
+        )}
+      </View>
+
       {/* THE CAPTION IS PART OF THE CHART. It used to be one fixed sentence about the
           middle half, printed under a chart that might have had no envelope at all — so a
           station with too thin a record to build one was captioned as though it had. What
           is on screen decides what this says. */}
-      <Text style={{ fontSize: 11.5, color: palette.sub, marginTop: 6 }}>
+      <Text style={{ fontSize: 11.5, color: palette.sub, marginTop: 6, lineHeight: 17 }}>
         {caption ?? (shape.envelopes.length
           ? "Shaded is the middle half of everything this station has recorded for these " +
             "days; the dashed line is the median."
           : "No envelope: this station's record is too short to say what is normal here.")}
         {shape.forecast
-          ? " Past the dotted rule is a forecast, not a reading."
+          ? " Past TODAY is a model forecast, not a reading."
           : ""}
         {unit ? ` Values in ${unit}.` : ""}
       </Text>
+
+      {/* THE CENTRE'S OWN WORDS, verbatim, out of the CSV header — required wherever a
+          forecast appears and not ours to paraphrase. Shown only when one is on screen. */}
+      {shape.forecast && disclaimer && (
+        <Text style={{ fontSize: 10.5, color: palette.faint, marginTop: 6, lineHeight: 15 }}>
+          {disclaimer}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+
+/**
+ * One entry in the chart's key.
+ *
+ * A LEGEND, not a caption, because the frame carries four different kinds of mark and three
+ * of them are shades of the same colour. Without it "shaded" and "faintly shaded" are two
+ * things a reader has to guess the difference between — and the difference is the middle
+ * half of the record against the tenth-to-ninetieth, which is the whole point of drawing
+ * both.
+ */
+function Key({ palette, label, swatch, colour }: {
+  palette: Palette; label: string; colour: string;
+  swatch: "line" | "dash" | "fill" | "faintfill";
+}) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+      <View style={{ width: 16, height: 9, justifyContent: "center" }}>
+        {swatch === "fill" || swatch === "faintfill" ? (
+          <View style={{ height: 9, borderRadius: 2, backgroundColor: colour,
+                         opacity: swatch === "fill" ? 0.11 : 0.06 }} />
+        ) : (
+          <View style={{ height: 0, borderTopWidth: 2, borderTopColor: colour,
+                         borderStyle: swatch === "dash" ? "dashed" : "solid" }} />
+        )}
+      </View>
+      <Text style={{ ...TYPE.micro, fontSize: 10, color: palette.faint }}>{label}</Text>
     </View>
   );
 }

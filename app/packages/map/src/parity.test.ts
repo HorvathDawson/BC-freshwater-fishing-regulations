@@ -184,7 +184,12 @@ describe("the flow ramp's units", () => {
     const t = resolveTheme("light");
     const expr = colorExpression("stream", "standing", t) as unknown[];
     expect(expr[0]).toBe("case");
-    expect(expr[2]).toBe(t["color.water.unmapped"]);
+    // `water.ungauged`, NOT `water.unmapped`. They were one grey and they are two claims:
+    // unmapped is about the atlas ("we hold no record of this water"), ungauged is about
+    // measurement ("nothing is entitled to speak for this water"), and most of the province
+    // is the second while very little is the first.
+    expect(expr[2]).toBe(t["color.water.ungauged"]);
     expect(expr[2]).not.toBe(t["color.flow.f1"]);
+    expect(expr[2]).not.toBe(t["color.water.unmapped"]);
   });
 });

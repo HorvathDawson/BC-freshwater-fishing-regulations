@@ -10,8 +10,9 @@
  * It decides nothing. Every outcome comes from `evaluate()` in core; this assembles the
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
-import { evaluate, gaugeTrust, type Band, type PlainDate, type Rule, type RuleKind,
-         type SpeciesGroup, type Status, type Window } from "@app/core";
+import { bandAt, evaluate, gaugeTrust, type Band, type PlainDate, type Rule,
+         type RuleKind, type SpeciesGroup, type Status, type Window } from "@app/core";
+import { forecastFor, type Observations } from "../feed/http";
 import type {
   Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
   PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
@@ -45,13 +46,7 @@ export interface BundleSourceOptions {
   feed?: {
     now(station: StationId): Promise<Aged<Reading> | null>;
     /** Raw observations, with no envelope — this source supplies the other half. */
-    observations?(station: StationId): Promise<{
-      fetchedAt: number; from: string; parameter: Parameter;
-      at: readonly string[];
-      discharge: readonly (number | null)[];
-      level: readonly (number | null)[];
-      forecast: Series["forecast"];
-    } | null>;
+    observations?(station: StationId): Promise<Observations | null>;
     /**
      * The stations transmitting right now — membership IS the answer.
      *
@@ -257,44 +252,59 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
                         Number(r.p75), Number(r.p90)] as Band;
       }
       const hasClim = pentads.some((b) => b !== null);
-      // THE FORECAST IS IN CUBIC METRES A SECOND, ALWAYS. The BC River Forecast Centre
-      // models discharge; a station like the Fraser at Mission reports STAGE, so pinning
-      // its 3,157 m3/s outlook onto a chart of metres would put two units on one axis and
-      // draw a forecast a hundred times off the frame. Only offered where the chart is
-      // already in the forecast's own unit.
-      const outlook = (p: Parameter, f: Series["forecast"]) => (p === "discharge" ? f : null);
+      // The run, narrowed to the quantity this chart is in. CLEVER publishes discharge
+      // only; ELF publishes both, so a level chart can still carry a ribbon.
+      const outlook = forecastFor(obs?.forecast, param);
 
       if (span === "year") {
         if (!hasClim) return null;      // a year chart with no envelope has nothing to draw
+        /**
+         * ONE POINT PER DAY, not per pentad.
+         *
+         * The envelope is sampled every five days because percentiles are noisy at daily
+         * resolution, but the LINE across it is this year's own daily record and belongs at
+         * its own resolution — on 73 buckets a river's whole autumn is fourteen points.
+         * `bandAt` interpolates the envelope between pentads, which is what it is for.
+         */
         const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date();
+        const year = at.getUTCFullYear();
+        const days = daysInYear(year);
+        const values: (number | null)[] = Array.from({ length: days }, () => null);
+        const stamps: string[] = Array.from({ length: days }, (_, i) => dayStamp(year, i));
+        for (const [day, lv, q] of obs?.daily ?? []) {
+          const i = dayOfYear(day) - 1;
+          if (i < 0 || i >= days) continue;
+          const v = param === "level" ? lv : q;
+          if (v !== null && Number.isFinite(v)) values[i] = v;
+        }
+        const band = Array.from({ length: days }, (_, i) => bandAt(pentads, i + 1));
         const reading = obs
           ? last(param === "level" ? obs.level : obs.discharge) : null;
+        const today = dayOfYear(at.toISOString().slice(0, 10)) - 1;
         return {
           fetchedAt: obs?.fetchedAt ?? Date.now(),
           value: {
-            step: "5d", from: `${at.getUTCFullYear()}-01-01`, parameter: param,
-            // No observations on this axis — see the doc comment. Nulls, not zeros.
-            values: pentads.map(() => null),
-            band: pentads,
-            now: reading === null ? null : { index: pentadOf(at), value: reading },
-            forecast: outlook(param, obs?.forecast ?? null),
+            step: "1d", from: `${year}-01-01`, parameter: param,
+            at: stamps, values, band,
+            now: reading === null ? null : { index: today, value: reading },
+            forecast: outlook,
           },
         };
       }
 
       if (!obs) return null;
       const values = param === "level" ? obs.level : obs.discharge;
-      // The envelope is sampled every five days; each observation takes the band for the
-      // pentad its own timestamp falls in, so a series spanning a month bends with it.
-      const band = obs.at.map((t: string) => pentads[pentadOf(new Date(t))] ?? null);
+      // Each observation takes the envelope for the day its own timestamp falls in,
+      // interpolated between pentads, so a series spanning weeks bends rather than steps.
+      const band = obs.at.map((t: string) => bandAt(pentads, dayOfYear(t)));
       const idx = lastIndex(values);
       return {
         fetchedAt: obs.fetchedAt,
         value: {
           step: "1h", from: obs.from, parameter: param,
-          values, band,
+          at: obs.at, values, band,
           now: idx < 0 ? null : { index: idx, value: values[idx]! },
-          forecast: outlook(param, obs.forecast),
+          forecast: outlook,
         },
       };
     },
@@ -381,22 +391,21 @@ function link(r: Row | undefined, section: SectionId | null,
 export { gaugeTrust };
 
 
-/**
- * Which five-day bucket of the year a moment falls in, 0..72.
- *
- * The envelope is sampled every five days rather than every day because the percentiles
- * themselves are noisy at daily resolution — the p90 of one calendar date across 40 years is
- * 40 numbers, and the 366 of them do not form a smooth curve. Pooling five days is what
- * makes the band read as a season instead of as static.
- *
- * 29 February shares the bucket before it, so the ladder does not shift by a day every four
- * years and a leap-year reading is not compared against the wrong week.
- */
-function pentadOf(when: Date): number {
-  const start = Date.UTC(when.getUTCFullYear(), 0, 1);
-  const day = Math.floor((Date.UTC(when.getUTCFullYear(), when.getUTCMonth(),
-                                   when.getUTCDate()) - start) / 86_400_000);
-  return Math.min(72, Math.floor(day / 5));
+/** 1..366 for an ISO date or timestamp. The axis of every seasonal question here. */
+function dayOfYear(iso: string): number {
+  const y = Number(iso.slice(0, 4));
+  const m = Number(iso.slice(5, 7));
+  const d = Number(iso.slice(8, 10));
+  if (!y || !m || !d) return 1;
+  return Math.round((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86_400_000) + 1;
+}
+
+function daysInYear(year: number): number {
+  return (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1)) / 86_400_000;
+}
+
+function dayStamp(year: number, index: number): string {
+  return new Date(Date.UTC(year, 0, 1 + index)).toISOString().slice(0, 10);
 }
 
 /** The last value that is actually a number, or null. A trailing gap is not a reading. */

@@ -9,10 +9,11 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
-import type { ItemId, RegsSource, SectionId } from "@app/data";
+import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import { useGaugeGeoJSON, useStandings } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { toggleableGroups, type Camera, type TileEndpoints } from "@app/map";
+import { ChartControls } from "./ChartControls";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
 import { LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
          type LayersState } from "./LayersSheet";
@@ -84,6 +85,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   // The reach tapped while in Conditions. A tap there asks "what is THIS water doing",
   // which is a different question from the regulations sheet a tap on the Map tab opens.
   const [condSection, setCondSection] = useState<SectionId | null>(null);
+  /** Where on that reach the tap landed — the "you are here" end of the route map. */
+  const [condAt, setCondAt] = useState<{ lat: number; lon: number } | null>(null);
   // Percentiles for what is on screen. Empty while the feed is unreachable, which paints
   // nothing rather than painting every reach as a drought.
   // STABLE IDENTITY MATTERS HERE. As an inline arrow this changed every render, so the
@@ -93,7 +96,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   // empty, and every reach painted as `missing`.
   const noteVisible = useCallback(
     (ids: readonly string[]) => setVisible(ids as readonly SectionId[]), []);
-  const standings = useStandings(source, feed, visible);
+  // Which quantity the Conditions map is coloured by. Held here rather than in the map,
+  // because the sheet a tap opens has to be about the same thing the map is showing.
+  const [flowParam, setFlowParam] = useState<Parameter>("discharge");
+  const standings = useStandings(source, feed, visible, flowParam);
   const gauges = useGaugeGeoJSON(source, feed, tab === "conditions");
   // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
   // "gauged but no history") are excluded: they are a state, not a point on the scale.
@@ -225,6 +231,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
       : tab === "conditions" && condSection
         ? <ConditionsScreen source={source} section={condSection} palette={palette}
                             tiles={tiles} theme={theme}
+                            parameter={flowParam} onParameter={setFlowParam}
+                            from={condAt}
                             onBack={() => setCondSection(null)} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
@@ -237,7 +245,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
                      view="plain" modes={modes} groups={activeGroups}
                      onLayers={() => setLayersOpen(true)}
                      onPressFeature={tab === "conditions"
-                       ? (_l, id) => setCondSection(id as SectionId)
+                       // The COORDINATE too: "how does this spot reach the gauge" is a
+                       // question about a point on a river, not about the river.
+                       ? (_l, id, lat, lon) => {
+                           setCondSection(id as SectionId);
+                           setCondAt(lat !== undefined && lon !== undefined
+                             ? { lat, lon } : null);
+                         }
                        : onPressFeature}
                      onError={(e) => console.error("map:", e.message)} />
         : <SpotsScreen palette={palette} spots={spots}
@@ -250,6 +264,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flex: 1 }}>{body}</View>
+      {/* WHICH QUANTITY THE MAP IS ABOUT, on the map. It was only ever offered inside a
+          reach's sheet, so the colours on screen were discharge and there was no way to
+          ask the other question without opening something first. Sits above the legend
+          because it is what the legend is measuring. */}
+      {showLegend && tab === "conditions" && (
+        <View style={{ position: "absolute", right: 14, bottom: 74 }}>
+          <ChartControls<Parameter> palette={palette} value={flowParam} label="Colour by"
+                                    onPick={setFlowParam}
+                                    options={[["discharge", "Flow"],
+                                              ["level", "Level"]] as const} />
+        </View>
+      )}
       {showLegend && (
         <LegendStrip palette={palette}>
           {tab === "conditions" ? (
@@ -257,7 +283,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
             // written out here while the map's own ramp resolved to three shades of one
             // blue — so the legend promised red-through-cyan and the map drew a wash of
             // blue. A legend that disagrees with its map is worse than no legend.
-            <LegendRamp palette={palette} low="low for the date" mid="normal" high="high"
+            <LegendRamp palette={palette}
+                        low={flowParam === "level" ? "low stage for the date" : "low for the date"}
+                        mid="normal" high="high"
                         stops={flowRamp(theme)} marks={visibleMarks} />
           ) : layers.lake === "stocked" ? (
             palette.stock.map((c, i) => (

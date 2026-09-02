@@ -150,12 +150,14 @@ export function runConformance(name: string, make: () => Promise<RegsSource>) {
   T("the year span is an envelope with today on it, not a relabelled 72 hours", async (s) => {
     const g = await s.gaugeForSection(LOWER_REACH);
     const year = await s.gaugeSeries(g!.station, "year");
-    // 73 five-day buckets. A "year" that came back the length of the fine series would be
-    // the 72-hour chart with a different axis label — a chart lying about its own span.
-    expect(year!.value.band.length).toBe(73);
-    expect(year!.value.step).toBe("5d");
-    // No observations on this axis, and the marker is therefore explicit.
-    expect(year!.value.values.every((v) => v === null)).toBe(true);
+    // A POINT PER DAY. The envelope is sampled every five days because percentiles are
+    // noisy at daily resolution, but the line across it is this year's own record and
+    // belongs at its own resolution — on 73 buckets a whole autumn is fourteen points.
+    expect(year!.value.band.length).toBeGreaterThanOrEqual(365);
+    expect(year!.value.step).toBe("1d");
+    expect(year!.value.at.length).toBe(year!.value.values.length);
+    // The marker is explicit rather than "the last value": most of the year's cells are
+    // null, and taking the last would put today on New Year's Eve.
     expect(year!.value.now).not.toBeNull();
   });
 

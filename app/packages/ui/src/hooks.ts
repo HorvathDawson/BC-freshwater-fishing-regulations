@@ -6,8 +6,8 @@ import { useMemo } from "react";
 import type { GaugeTrace, PlainDate, SpeciesGroup, Status } from "@app/core";
 import { statusWord } from "@app/core";
 import type {
-  GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, Parameter, PlaceHit, PlaceId, RegsSource,
-  SectionId, StationId,
+  Forecast, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, Parameter, PlaceHit, PlaceId,
+  RegsSource, SectionId, StationId,
 } from "@app/data";
 import { useAsync, useDebounced, type Async } from "./async";
 
@@ -91,6 +91,11 @@ export interface Conditions {
   trust: string | null;
   /** Age of the reading. A stale value must never render as a live one. */
   fetchedAt: number | null;
+  /**
+   * The model run behind the chart's ribbon — for the issue time, the model's name and its
+   * provider's disclaimer, none of which belong to the reading beside it.
+   */
+  forecast: Forecast | null;
   /** The reaches between here and the station that measures it. */
   trace: readonly SectionId[];
 }
@@ -100,16 +105,19 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
     async (): Promise<Conditions> => {
       const empty: Conditions = {
         station: null, stationName: null, discharge: null, level: null, percentile: null,
-        standing: null, trust: null, fetchedAt: null, trace: [],
+        standing: null, trust: null, fetchedAt: null, trace: [], forecast: null,
       };
       if (!section) return empty;
       const link = await source.gaugeForSection(section);
       // "none" means the station drains far too much to describe this water. Returning its
       // number anyway is the failure this whole path exists to prevent.
       if (!link || link.trust === "none") return empty;
-      const [now, trace] = await Promise.all([
+      const [now, trace, series] = await Promise.all([
         source.gaugeNow(link.station),
         source.traceToGauge(section),
+        // Asked for the STATION's own quantity, because this is about the run rather than
+        // about a chart: which model, issued when, under whose disclaimer.
+        source.gaugeSeries(link.station, "72h"),
       ]);
       return {
         station: link.station, stationName: link.name, trust: link.trust, trace,
@@ -118,6 +126,7 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
         percentile: now?.value.percentile ?? null,
         standing: now?.value.standing ?? null,
         fetchedAt: now?.fetchedAt ?? null,
+        forecast: series?.value.forecast ?? null,
       };
     },
     `conditions:${section}`,
@@ -220,11 +229,23 @@ export function useWaterGauge(
  */
 export function useStandings(
   source: RegsSource,
-  feed: { index(): Promise<{ stations: Record<string, { percentile: number | null }> } | null> }
+  feed: { index(): Promise<{ stations: Record<string, {
+            percentile: number | null; discharge?: number; level?: number }> } | null> }
         | undefined,
   sections: readonly SectionId[],
+  /**
+   * Which quantity the MAP is coloured by.
+   *
+   * Not cosmetic and not the same question twice: a regulated river can sit at a perfectly
+   * normal stage while its discharge is in the bottom tenth, because the dam is holding
+   * the pond and letting nothing through. Undefined means each station's own default,
+   * which is what it was before the switch existed.
+   */
+  parameter?: Parameter,
 ): ReadonlyMap<SectionId, number> {
-  const key = sections.length ? `${sections.length}:${sections[0]}:${sections[sections.length - 1]}` : "";
+  const key = (sections.length
+    ? `${sections.length}:${sections[0]}:${sections[sections.length - 1]}` : "")
+    + `:${parameter ?? "auto"}`;
   const got = useAsync(
     async (): Promise<ReadonlyMap<SectionId, number>> => {
       const out = new Map<SectionId, number>();
@@ -237,7 +258,13 @@ export function useStandings(
       for (const [section, station] of stations) {
         const row = idx.stations[station];
         if (!row) continue;                       // not transmitting: say nothing
-        out.set(section, typeof row.percentile === "number" ? row.percentile : -0.01);
+        // NO FALLING BACK TO THE OTHER QUANTITY. A station asked for a level it does not
+        // measure gets the same answer as one with no record at all — the sentinel that
+        // paints "there is a gauge here, and it cannot tell you this" — because quietly
+        // answering a level question with a discharge puts two different claims under one
+        // legend, and nothing on screen would say which one you were looking at.
+        const p = parameter ? row[parameter] : row.percentile;
+        out.set(section, typeof p === "number" ? p : -0.01);
       }
       return out;
     },
@@ -313,19 +340,22 @@ export function useHydrograph(
     const bands = v.band.length === n
       ? v.band
       : Array.from({ length: n }, () => v.band[0] ?? null);
-    const spanDays = span === "72h" ? 3 : 365;
+    // REAL DATES on the axis. The seasonal chart used to say Jan/Apr/Jul/Oct whatever year
+    // it was showing, and the 72-hour one said "3d ago" — neither of which tells a reader
+    // where the forecast they are looking at ends.
+    const labels = axisLabels(v.at, v.forecast?.series?.at ?? [], span);
     return {
       state: "ready",
       value: buildHydrograph({
         values: v.values,
         bands,
-        xLabels: span === "72h" ? ["3d ago", "2d", "1d", "now"]
-                                : ["Jan", "Apr", "Jul", "Oct"],
+        at: v.at,
+        xLabels: labels,
         nowIndex: v.now?.index ?? -1,
         nowValue: v.now?.value ?? null,
-        forecast: v.forecast
-          ? { lo: v.forecast.min, mid: v.forecast.value, hi: v.forecast.max,
-              days: v.forecast.horizonDays, spanDays }
+        forecast: v.forecast?.series
+          ? { at: v.forecast.series.at, mid: v.forecast.series.mid,
+              lo: v.forecast.series.lo, hi: v.forecast.series.hi }
           : null,
         // A YEAR OF FLOW SPANS TWO ORDERS OF MAGNITUDE and a linear axis spends nine tenths
         // of its height on the freshet, flattening the summer — which is the half of the
@@ -359,3 +389,34 @@ export function useLake(source: RegsSource, item: ItemId | null): Async<LakeInfo
 
 /** The word every surface shows. Never re-worded locally (AGENTS.md rule 23). */
 export { statusWord };
+
+
+/**
+ * Five labels across whatever the chart actually spans, as real dates.
+ *
+ * "3d ago / 2d / 1d / now" was fine while the frame ended at now. It stopped being fine the
+ * moment a ten-day forecast extended it: the reader could see a ribbon reaching to the
+ * right-hand edge and had no way to tell whether that edge was Thursday or a month away.
+ *
+ * The seasonal axis gets months, because a year labelled by date is unreadable; everything
+ * shorter gets day-and-month, with the hour when the whole span is under three days.
+ */
+function axisLabels(at: readonly string[], ahead: readonly string[],
+                    span: "72h" | "year"): string[] {
+  const all = [...at, ...ahead].map((t) => Date.parse(t)).filter(Number.isFinite);
+  if (all.length < 2) return [];
+  const t0 = Math.min(...all);
+  const t1 = Math.max(...all);
+  if (span === "year")
+    return ["Jan", "Mar", "May", "Jul", "Sep", "Nov"];
+  const hours = (t1 - t0) / 3_600_000;
+  const fmt = (t: number): string => {
+    const d = new Date(t);
+    const day = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+    return hours <= 72 ? `${day} ${String(d.getUTCHours()).padStart(2, "0")}h` : day;
+  };
+  return [0, 0.25, 0.5, 0.75, 1].map((f) => fmt(t0 + (t1 - t0) * f));
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

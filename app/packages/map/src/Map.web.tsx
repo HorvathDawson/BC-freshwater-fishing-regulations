@@ -18,6 +18,8 @@ import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { baseAdapter } from "./adapters/contract";
+import { pillImage } from "./pill";
+import { resolveTheme } from "./style";
 import { runtimeStyle } from "./runtime-style";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
@@ -38,11 +40,34 @@ function registerPMTiles() {
 
 export function Map({ at, theme, view, modes, groups, initial, data, onPressFeature,
                       onError, onMoved, onMapPoint, highlight, marker, style,
-                      gauges, onVisible }: MapProps) {
+                      gauges, onVisible, pins }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const adapter = useRef(baseAdapter("web"));
   const pin = useRef<maplibregl.Marker | null>(null);
+  const pinned = useRef<maplibregl.Marker[]>([]);
+
+  /**
+   * The gauge label's pill, as pixels.
+   *
+   * Added imperatively because `addImage` is the only way in: a style cannot declare a
+   * generated image, and the alternative was forking the basemap's sprite sheet to add one
+   * rounded rectangle. Re-added on a theme change, since its fill is the theme's paper —
+   * a light pill under dark text on a dark map is the failure this replaces a halo to avoid.
+   */
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    const t = resolveTheme(theme) as Record<string, string>;
+    const add = () => {
+      const img = pillImage(t["color.outside"] ?? "#FFFFFF", t["color.line"] ?? "#D9D9D2");
+      if (m.hasImage("gauge-pill")) m.removeImage("gauge-pill");
+      m.addImage("gauge-pill", img as unknown as ImageData,
+                 { pixelRatio: img.pixelRatio, stretchX: img.stretchX,
+                   stretchY: img.stretchY, content: img.content });
+    };
+    if (m.isStyleLoaded()) add(); else m.once("styledata", add);
+  }, [theme]);
 
   useEffect(() => {
     if (!host.current) return;
@@ -118,6 +143,13 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       // effect — which unmounts the tree and shows a blank screen. Report it and keep the
       // map alive: a map still showing the previous colouring is recoverable, a white
       // screen is not.
+      // THE WASH follows the stream layer's mode: the Conditions ramp needs a quiet
+      // ground, the regulations view wants the map legible as a map. 0.58 was chosen
+      // against the ramp's own darkest and lightest stops — enough that roads and
+      // landcover stop competing, little enough that you can still tell where you are.
+      if (m.getLayer("basemap-wash"))
+        m.setPaintProperty("basemap-wash", "background-opacity",
+                           (modes ?? {}).stream === "standing" ? 0.58 : 0);
       for (const [id, mode] of Object.entries(modes ?? {})) {
         if (!m.getLayer(id)) continue;
         try { adapter.current.setLayerMode(handle, id, mode, theme); }
@@ -162,6 +194,28 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     return () => { pin.current?.remove(); pin.current = null; };
   }, [marker?.lat, marker?.lon]);
 
+  /**
+   * The named points a panel is describing — both ends of a route, typically.
+   *
+   * Rebuilt wholesale rather than diffed: there are two or three of them and they all move
+   * together when the subject changes. Keyed on the COORDINATES rather than on the array,
+   * because every render produces a new array and a new marker would blink.
+   */
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    for (const mk of pinned.current) mk.remove();
+    pinned.current = (pins ?? []).map((p) => {
+      const mk = new maplibregl.Marker({ color: p.tone ?? "#5F26E0", scale: 0.72 });
+      if (p.title) mk.setPopup(new maplibregl.Popup({ closeButton: false }).setText(p.title));
+      return mk.setLngLat([p.lon, p.lat]).addTo(m);
+    });
+    return () => {
+      for (const mk of pinned.current) mk.remove();
+      pinned.current = [];
+    };
+  }, [(pins ?? []).map((p) => `${p.lon},${p.lat},${p.tone ?? ""}`).join("|")]);
+
   useEffect(() => {
     const m = map.current;
     if (!m || !highlight) return;
@@ -193,12 +247,31 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
   useEffect(() => {
     const m = map.current;
     if (!m) return;
+    /**
+     * RETRY UNTIL THE SOURCE IS THERE, rather than once on `load`.
+     *
+     * `m.once("load", ...)` was the bug: on the first switch to Conditions the map had
+     * loaded minutes earlier, so the callback was registered for an event that had already
+     * fired and never ran. The dots appeared only after opening a reach and coming back —
+     * because THAT remounted the map and baked the data into the style. `styledata` fires
+     * on every style change and is the only event that reliably arrives afterwards.
+     *
+     * The empty collection is written too, and deliberately: leaving Conditions has to
+     * clear the dots, and a stale layer of readings over the regulations map is a set of
+     * numbers about a question nobody asked.
+     */
+    let done = false;
     const apply = () => {
       const src = m.getSource("gauges") as
         { setData?: (d: unknown) => void } | undefined;
-      src?.setData?.(JSON.parse(gauges ?? EMPTY_FC));
+      if (!src?.setData) return;
+      src.setData(JSON.parse(gauges ?? EMPTY_FC));
+      done = true;
+      m.off("styledata", apply);
     };
-    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+    apply();
+    if (!done) m.on("styledata", apply);
+    return () => { m.off("styledata", apply); };
   }, [gauges]);
 
   // Held in a ref so a caller passing an inline arrow cannot make this effect thrash: the
@@ -263,7 +336,11 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       const best = hits
         .filter((f) => f.id !== undefined && f.layer?.id)
         .sort((a, b) => rank(a.layer!.id) - rank(b.layer!.id))[0];
-      if (best) onPressFeature(best.layer!.id, String(best.id));
+      // WHERE ON THE FEATURE, not just which feature. A river is hundreds of kilometres
+      // long and the answer to "how does this spot reach the gauge" starts at the point
+      // under the finger — without it the route panel can mark the station and nothing
+      // else. The coordinate is snapped to nothing: it is where the person tapped.
+      if (best) onPressFeature(best.layer!.id, String(best.id), e.lngLat.lat, e.lngLat.lng);
     };
     m.on("click", onClick);
     return () => { m.off("click", onClick); };

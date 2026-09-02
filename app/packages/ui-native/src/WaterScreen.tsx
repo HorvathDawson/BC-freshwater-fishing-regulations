@@ -20,15 +20,12 @@
 import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { statusWord, type PlainDate, type SpeciesGroup } from "@app/core";
-import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
+import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, useWaterGauge,
-         useWaterSheet } from "@app/ui";
-import { ChartControls } from "./ChartControls";
+import { useConditions, useWaterGauge, useWaterSheet } from "@app/ui";
+import { ConditionsPanel } from "./ConditionsPanel";
 import { FishSpinner } from "./FishSpinner";
 import { GaugeBadge } from "./GaugeBadge";
-import { GaugeTrace } from "./GaugeTrace";
-import { Hydrograph } from "./Hydrograph";
 import { StatusPill } from "./StatusPill";
 import { ordinal } from "./StatusChip";
 import { TYPE } from "./type";
@@ -51,18 +48,9 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
   // gauge is most likely to be entitled to speak for.
   const first: SectionId | null =
     sheet.state === "ready" && sheet.value ? sheet.value.reaches[0]?.section ?? null : null;
+  // Only for the one line the Regulations face shows about the water's condition; the
+  // Conditions face asks its own questions inside ConditionsPanel.
   const conditions = useConditions(source, first);
-  const station = conditions.state === "ready" ? conditions.value.station : null;
-  // The same three controls the Conditions screen carries, over the same hooks — a chart
-  // that answered a different question depending on which sheet you reached it through
-  // would be exactly the drift rule 23 exists to stop.
-  const params = useGaugeParameters(source, station);
-  const available = params.state === "ready" ? params.value : [];
-  const [pick, setPick] = useState<Parameter | null>(null);
-  const [span, setSpan] = useState<"72h" | "year">("72h");
-  const param: Parameter | undefined = pick && available.includes(pick) ? pick : undefined;
-  const chart = useHydrograph(source, station, span, param);
-  const trace = useGaugeTrace(source, first);
   // Asked of the WATER, not of `first`: most of a well-gauged river has no station on the
   // stretch you happen to be looking at, and answering "ungauged" there would be false.
   const gauged = useWaterGauge(source, item);
@@ -111,71 +99,28 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
       </View>
 
       {face === "conditions" ? (
-        <View style={{ paddingHorizontal: 18, paddingTop: 18, gap: 16 }}>
-          {c?.station ? (
-            <>
-              <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>{c.stationName}</Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap",
-                             columnGap: 26, rowGap: 12 }}>
-                <Figure palette={palette} label="flow" tone={palette.live}
-                        value={c.discharge === null
-                          ? c.level === null ? "—" : `${c.level}` : `${c.discharge}`}
-                        unit={c.discharge !== null ? "m³/s"
-                              : c.level !== null ? "m" : undefined} />
-                <Figure palette={palette} label="against record"
-                        value={c.percentile === null ? "—" : ordinal(c.percentile)} />
-                <Figure palette={palette} label="standing"
-                        value={(c.standing ?? "—").replace(/-/g, " ")} />
-              </View>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                <ChartControls<Parameter> palette={palette} label="Quantity"
-                    value={param ?? (c.discharge !== null ? "discharge" : "level")}
-                    onPick={setPick}
-                    options={available.map((p) =>
-                      [p, p === "discharge" ? "Flow" : "Level"] as const)} />
-                <ChartControls<"72h" | "year"> palette={palette} label="Span"
-                    value={span} onPick={setSpan}
-                    options={[["72h", "Last 72 hours"], ["year", "Whole year"]] as const} />
-              </View>
-              {chart.state === "ready" && chart.value && (
-                <Hydrograph shape={chart.value} palette={palette}
-                            colour={outcomeColour(palette, s.reaches[0]!.status.outcome)}
-                            unit={(param ?? (c.discharge !== null ? "discharge" : "level"))
-                                    === "level" ? "m" : "m³/s"}
-                            label={span === "72h"
-                              ? `Flow on ${s.name} over three days`
-                              : `${s.name} through the year, against its record`} />
-              )}
-              {chart.state === "loading" && (
-                <View style={{ alignItems: "center", paddingVertical: 22 }}>
-                  <FishSpinner palette={palette} size={72} label="Loading flow" />
-                </View>
-              )}
-              {/* The SAME panel a saved spot shows, from the same component. The sentence
-                  about what a gauge can and cannot speak for is written once, in core. */}
-              {trace.state === "ready" && (
-                <View style={{ marginTop: 4 }}>
-                  <GaugeTrace trace={trace.value} palette={palette} at={tiles} theme={theme}
-                              title="How this water reaches the gauge" />
-                </View>
-              )}
-              {/* The other face, in one line — a reader on Conditions still has to be told
-                  the water is closed, and being told to go and look is not telling. */}
-              <CrossLink palette={palette} onPress={() => setFace("regulations")}
-                         label="and the regulations"
-                         value={s.reaches[0]
-                           ? statusWord(s.reaches[0].status)
-                           : "nothing written here"}
-                         tone={s.reaches[0]
-                           ? outcomeColour(palette, s.reaches[0].status.outcome)
-                           : palette.sub} />
-            </>
-          ) : (
-            <Text style={{ ...TYPE.small, color: palette.sub }}>
-              No gauge is entitled to speak for this water. A station draining a far larger
-              watershed would give a number, and the number would be wrong.
-            </Text>
-          )}
+        // THE SAME PANEL THE CONDITIONS TAB RENDERS. This face used to be its own layout
+        // with its own wording and no chart controls, so the app answered "what is the
+        // water doing" two different ways depending on which tab you came from.
+        <View style={{ paddingHorizontal: 18, paddingTop: 18 }}>
+          <ConditionsPanel source={source} section={first} palette={palette}
+                           tiles={tiles} theme={theme} scroll={false}
+                           colour={s.reaches[0]
+                             ? outcomeColour(palette, s.reaches[0].status.outcome)
+                             : undefined}
+                           footer={
+                             // The other face's answer, in one line — a reader on
+                             // Conditions still has to be told the water is closed, and
+                             // telling them to go and look is not telling them.
+                             <CrossLink palette={palette} onPress={() => setFace("regulations")}
+                                        label="and the regulations"
+                                        value={s.reaches[0]
+                                          ? statusWord(s.reaches[0].status)
+                                          : "nothing written here"}
+                                        tone={s.reaches[0]
+                                          ? outcomeColour(palette, s.reaches[0].status.outcome)
+                                          : palette.sub} />
+                           } />
         </View>
       ) : (
         <>

@@ -53,11 +53,30 @@ export interface GaugeTrace {
  * gets a map that certainly contains the gauge and probably contains their reach, and the
  * facts underneath say which.
  */
-export function routeCamera(t: GaugeTrace): { lon: number; lat: number; zoom: number } | null {
+export function routeCamera(t: GaugeTrace, from?: { lat: number; lon: number } | null):
+  { lon: number; lat: number; zoom: number } | null {
   if (t.lon === null || t.lat === null) return null;
-  const hops = Math.max(0, t.path.length - 1);
-  const zoom = hops === 0 ? 12.5 : hops <= 3 ? 11 : hops <= 10 ? 9.5 : 8;
-  return { lon: t.lon, lat: t.lat, zoom };
+  if (!from) {
+    // Nothing but the station. The hop count is the only measure of "how far" that
+    // survives to the client, so the zoom is coarse because the evidence is.
+    const hops = Math.max(0, t.path.length - 1);
+    return { lon: t.lon, lat: t.lat,
+             zoom: hops === 0 ? 12.5 : hops <= 3 ? 11 : hops <= 10 ? 9.5 : 8 };
+  }
+  // BOTH ENDS KNOWN, so the camera is derived rather than guessed: centre on the midpoint,
+  // and pick the zoom from the actual separation. Degrees of longitude are narrowed by
+  // latitude, so the east-west span is scaled by cos(lat) before the two are compared.
+  const lat = (t.lat + from.lat) / 2;
+  const lon = (t.lon + from.lon) / 2;
+  const dLat = Math.abs(t.lat - from.lat);
+  const dLon = Math.abs(t.lon - from.lon) * Math.cos((lat * Math.PI) / 180);
+  const spread = Math.max(dLat, dLon);
+  // 360 degrees fill the world at z0; each zoom halves it. The 1.6 leaves the markers off
+  // the edge of the frame rather than exactly on it.
+  const zoom = spread <= 0
+    ? 12.5
+    : Math.max(5, Math.min(13, Math.log2(360 / (spread * 1.6 * 256 / 220))));
+  return { lon, lat, zoom };
 }
 
 /** The gauge is on this very reach — there is no distance to travel. */

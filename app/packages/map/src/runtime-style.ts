@@ -121,6 +121,28 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       { id: "outside-bc", type: "background" as const,
         paint: { "background-color": resolveTheme(theme)["color.outside"] as string } },
       ...basemapLayers("basemap", flavor, { lang: "en" }),
+      /**
+       * A SHEET OF PAPER OVER THE GROUND, for the Conditions view only.
+       *
+       * The flow ramp has to carry a seven-step ordered scale on 1.4-pixel lines, over an
+       * OpenStreetMap basemap built to be looked at: green parks, tan landcover, white
+       * roads with casings, every one of them saturated enough to compete. Rewriting the
+       * ramp fixed the stop that was literally the paper's colour, but no palette wins that
+       * fight on its own — the answer is to stop the fight, by muting everything the
+       * question is not about.
+       *
+       * A fill over the basemap and UNDER our water, not a change to the basemap's own
+       * paint: the flavour is Protomaps' and is deliberately not ours to restyle (see the
+       * file header), and a wash is one layer to turn on rather than forty to recolour.
+       *
+       * Opacity 0 by default. `Map.web` raises it when the stream layer is in `standing`
+       * mode, which is exactly when the Conditions ramp is on screen.
+       */
+      { id: "basemap-wash", type: "background" as const,
+        paint: {
+          "background-color": resolveTheme(theme)["color.outside"] as string,
+          "background-opacity": 0,
+        } },
       // PAINTED HERE, not on `load`. Shipping the style unpainted meant MapLibre drew its
       // own defaults — black lines across the province — for the frame or two before the
       // adapter ran, which reads as the map flashing.
@@ -175,29 +197,40 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
             "circle-stroke-color": paper,
           } },
         { id: "gauge-label", type: "symbol" as const, source: "gauges",
-          // Labels come in a zoom LATER than their dot. At the zoom a river first appears
-          // the map is at its most crowded and the reading is not yet the question being
-          // asked; the dot alone says "there is a gauge here", which is enough until you
-          // are close enough to fish it.
-          filter: ["<=", ["+", ["get", "minz"], 1], ["zoom"]],
+          /**
+           * READ IT BEFORE YOU CAN FISH IT. A reading is a fact about one point on one
+           * river, and at the zoom that river first appears the map is a province — the
+           * number is unreadable clutter over country you are not standing in. Four zooms
+           * past the dot is roughly "a valley on screen", which is where the number starts
+           * to mean something, and never below z8 whatever the river's size, so the Fraser
+           * does not label itself from orbit.
+           */
+          filter: ["all",
+                   [">=", ["zoom"], 8],
+                   ["<=", ["+", ["get", "minz"], 4], ["zoom"]]],
           layout: {
             "text-field": ["get", "label"],
             "text-font": ["Noto Sans Medium"],
             "text-size": 12,
-            "text-offset": [0.9, 0],
+            // THE PILL. An SDF-free stretchable image added at runtime (see `pillImage`),
+            // fitted around whatever the text turns out to be — which is what the design
+            // draws and what a halo could only approximate. `icon-text-fit` is the whole
+            // reason this is an icon rather than a background colour: MapLibre has no such
+            // thing for text, and a halo on a busy basemap reads as a smudge.
+            "icon-image": "gauge-pill",
+            "icon-text-fit": "both" as const,
+            "icon-text-fit-padding": [3, 9, 3, 9],
+            "icon-anchor": "left" as const,
+            "icon-offset": [10, 0],
+            "text-offset": [1.05, 0],
             "text-anchor": "left" as const,
             // Let a crowded valley drop labels rather than overlap them; the dots stay.
             "text-allow-overlap": false,
+            "icon-allow-overlap": false,
             "text-optional": true,
           },
           paint: {
             "text-color": resolveTheme(theme)["color.gauge.dot"] as string,
-            // A wide halo rather than a drawn pill: it gives the label the same sitting-on-
-            // paper look without a sprite, and it degrades to plain text if the font is
-            // missing instead of leaving an empty box.
-            "text-halo-color": paper,
-            "text-halo-width": 2.4,
-            "text-halo-blur": 0.4,
           } },
       ] : []),
     ],
