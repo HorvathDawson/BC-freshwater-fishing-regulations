@@ -1,0 +1,65 @@
+{
+  "region": "4",
+  "region_number": 4,
+  "region_name": "Kootenays",
+  "structure": {
+    "sections": [],
+    "n_locations": 1,
+    "n_waters": 0,
+    "n_defaults": 1,
+    "precedences": [
+      "section"
+    ]
+  },
+  "scopes": [],
+  "waters": [],
+  "locations": [
+    {
+      "location_id": "4:region:section",
+      "region": "4",
+      "region_number": 4,
+      "kind": "section_default",
+      "precedence": 1,
+      "water": "",
+      "water_id": null,
+      "aliases": [],
+      "section": "region",
+      "section_history": [
+        "region"
+      ],
+      "inherits": [],
+      "fingerprints": [
+        "1d1c79cfcd34d4c5"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All Region 4 waters",
+        "landmarks": [
+          "all",
+          "region"
+        ],
+        "op": "described",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

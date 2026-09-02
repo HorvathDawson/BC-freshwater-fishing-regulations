@@ -1,0 +1,136 @@
+{
+ "type": "FeatureCollection",
+ "_about": "Hand-drawn lake polygons ABSENT from the FWA waterbody layer, ingested as real lake nodes. See pipeline/hack/added_lakes/README.md for the wbk minting scheme and the one thing that makes a lake a lake: the fids inside the polygon are re-stamped with its wbk, which is what breaks the stream run and mints the lake:{wbk} boundary.",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "wbk": "-1",
+    "gnis_id": "-9000001",
+    "name": "Redsand Lake",
+    "kind": "lake",
+    "source": "manual",
+    "note": "DFO Region 6 scope B(ii) regulates 'Redsand Lake' including tributaries (coho 4/day only 1 over 50 cm Sep 1-Oct 31; no fishing for chinook all year). FWA has no polygon for it, so no water of that name exists at all — an exact lookup for 'Redsand Lake' returns nothing. Treston Lake, 441 m south, carries the name variant 'TRESTON LAKE  REDSAND LAKE' from a BATHYMETRY map label (source: bathymetry in name_variants.json) — a sheet covering both lakes, which is itself evidence they are two waters. It indexes only under its own full string, so Treston never answered to 'Redsand Lake'; a substring search suggests otherwise and is not how the matcher works. Sits on the Kitsumkalum River (blk 360883243, wsc 400-195432) in the section 'between Treston Lake and Kitsumkalum Lake' — the same river Treston sits on, 441 m north of it. Hand-drawn, supplied by the curator 2026-09-01, EPSG:3857 -> 4326. 40.49 ha, 25 vertices, centre 54.70592/-128.77963, MU 6-15. Synthetic ids: wbk -1, gnis -9000001 — both NEGATIVE, and the gnis is beyond the real range in magnitude (real gnis run 1,642..8,000,027) so it cannot be confused with a real id even if a sign is lost.",
+    "claims": [
+     {
+      "blk": "360883243",
+      "wsc": "400-195432",
+      "note": "Kitsumkalum River mainstem, ~705 m inside"
+     },
+     {
+      "blk": "360770092",
+      "wsc": "400-195432-306896",
+      "note": "unnamed tributary, ~228 m inside — the lake swallows its mouth"
+     }
+    ]
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -128.774749,
+       54.705223
+      ],
+      [
+       -128.775221,
+       54.704951
+      ],
+      [
+       -128.775306,
+       54.704951
+      ],
+      [
+       -128.776937,
+       54.704281
+      ],
+      [
+       -128.779126,
+       54.703264
+      ],
+      [
+       -128.779512,
+       54.702793
+      ],
+      [
+       -128.781315,
+       54.702372
+      ],
+      [
+       -128.782216,
+       54.702322
+      ],
+      [
+       -128.784018,
+       54.702545
+      ],
+      [
+       -128.784362,
+       54.702942
+      ],
+      [
+       -128.784748,
+       54.70381
+      ],
+      [
+       -128.784834,
+       54.704355
+      ],
+      [
+       -128.784276,
+       54.705719
+      ],
+      [
+       -128.784104,
+       54.706785
+      ],
+      [
+       -128.784362,
+       54.707083
+      ],
+      [
+       -128.784104,
+       54.707455
+      ],
+      [
+       -128.784104,
+       54.707852
+      ],
+      [
+       -128.783718,
+       54.708992
+      ],
+      [
+       -128.78243,
+       54.709761
+      ],
+      [
+       -128.780156,
+       54.709785
+      ],
+      [
+       -128.778182,
+       54.709488
+      ],
+      [
+       -128.776422,
+       54.709042
+      ],
+      [
+       -128.775049,
+       54.707653
+      ],
+      [
+       -128.775092,
+       54.706116
+      ],
+      [
+       -128.774749,
+       54.705223
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

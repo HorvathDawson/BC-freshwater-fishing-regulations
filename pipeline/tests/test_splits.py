@@ -116,3 +116,46 @@ def test_lake_anchor_offset_still_needs_a_direction():
 
     with _pytest.raises(ValueError, match="offset_dir"):
         SplitAnchor.from_dict({"type": "lake", "wbk": "1", "offset_m": 100})
+
+
+def test_every_waterbody_block_targets_a_real_registry_item():
+    """A `applies_to` naming an item that does not exist strands every split under it, silently.
+
+    `load_split_defs` validates the SHAPE of a target, not that anything answers to it — so a made-up
+    id parses fine, resolves to nothing at build time, and the cut simply never appears. That is how
+    `telkwa_river__howson_creek_into_telkwa_river` was written against `gnis:3773` (a number I did not
+    check; the Telkwa is `gnis:24733`) and went missing from a full build without a single warning.
+
+    Skipped when there is no built registry to check against.
+    """
+    import json
+    from pathlib import Path
+
+    from pipeline.registry import load_registry
+
+    reg_path = Path(__file__).resolve().parents[2] / "output" / "v2" / "full" / "registry.json"
+    if not reg_path.exists():
+        pytest.skip("no built registry")
+    from pipeline.matching.matcher import build_id_index
+
+    reg = load_registry(reg_path)
+    # Resolve through the ID INDEX, not the item ids: a target may legitimately name an FWA id that
+    # is not itself an item key — `gnis:29662` is the Vedder Canal's gnis and resolves to
+    # `wbk:329707189`. Checking membership in `reg` alone flags those as broken when they are fine.
+    idx = build_id_index(reg)
+    body = json.loads((Path(__file__).resolve().parents[1] / "splits.json").read_text())
+
+    bad = []
+    for wb in body.get("waterbodies", []):
+        ap = wb.get("applies_to") or {}
+        targets = []
+        for key, prefix in (("gnis_id", "gnis"), ("waterbody_key", "wbk"), ("wbk", "wbk")):
+            if ap.get(key):
+                targets.append(f"{prefix}:{ap[key]}")
+        for g in ap.get("gnis_ids", []):
+            targets.append(f"gnis:{g}")
+        for t in targets:
+            if t not in reg and t not in idx:
+                bad.append(f"{wb.get('name')!r} -> {t} ({len(wb.get('splits') or [])} split(s) stranded)")
+    assert not bad, ("waterbody block(s) whose applies_to resolves to NOTHING — their splits are "
+                     "silently stranded:\n  " + "\n  ".join(bad))

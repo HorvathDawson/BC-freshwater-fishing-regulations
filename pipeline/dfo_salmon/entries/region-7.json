@@ -1,0 +1,150 @@
+{
+  "region": "7",
+  "region_number": 7,
+  "region_name": "Omineca-Peace",
+  "structure": {
+    "sections": [],
+    "n_locations": 1,
+    "n_waters": 1,
+    "n_defaults": 0,
+    "precedences": []
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "7:nechako-river",
+      "region": "7",
+      "region_number": 7,
+      "name": "Nechako River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:16605"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "7:nechako-river:upstream-from-the-boundary-signs-a",
+      "region": "7",
+      "region_number": 7,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nechako River",
+      "water_id": "7:nechako-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "ecc24086fb225910"
+      ],
+      "source_text": {
+        "waters": "Nechako River",
+        "specific_area": "upstream from the boundary signs at the confluence with the Fraser River to the downstream edge of the Foothills Boulevard Bridge",
+        "landmarks": [
+          "boulevard",
+          "confluence",
+          "edge",
+          "foothills",
+          "fraser",
+          "nechako",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "7:nechako-river:from-the-downstream-edge-of-the-fo",
+      "region": "7",
+      "region_number": 7,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nechako River",
+      "water_id": "7:nechako-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "8e55a740643c4b5e"
+      ],
+      "source_text": {
+        "waters": "Nechako River",
+        "specific_area": "from the downstream edge of the Foothills Boulevard Bridge to the boundary signs at the confluence with the Fraser River",
+        "landmarks": [
+          "boulevard",
+          "confluence",
+          "edge",
+          "foothills",
+          "fraser",
+          "nechako",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

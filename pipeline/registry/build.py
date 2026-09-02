@@ -111,6 +111,14 @@ def split_distinct_names(groups: dict[str, list]) -> dict[str, list]:
     return out
 
 
+FLOW_RE = re.compile(r"\b(river|creek|brook|slough|channel)\b", re.I)
+STILL_RE = re.compile(r"\b(lake|lakes|pond|reservoir|lagoon)\b", re.I)
+
+
+def _norm_name(s: str) -> str:
+    return " ".join((s or "").split()).casefold()
+
+
 def _ref_ids(nodes) -> tuple[str, ...]:
     """Every FWA id these nodes answer to, prefixed — the ids an override might pin to this item.
     The matcher builds `id_index: ref_id -> item_id` from these to resolve curated pins.
@@ -173,6 +181,14 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
 
     registry: dict[str, RegistryItem] = {}
     _t_items = time.perf_counter()
+    # Primary names of everything that will become a STREAM item — the set a lake's borrowed
+    # through-river name is checked against below. Built here so it costs one pass, not one per item.
+    stream_primary_names = {
+        _norm_name(_primary_name(i, ns))
+        for i, ns in groups.items() if ns[0].kind not in WATERBODY_KINDS
+    }
+    stream_primary_names.discard("")
+
     for iid, nodes in groups.items():
         kind = nodes[0].kind.value if nodes[0].kind in WATERBODY_KINDS else "stream"
         name = _primary_name(iid, nodes)                     # split_distinct_names left one display name per item
@@ -200,6 +216,22 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
             return bool(t.gnis_id) and t.gnis_id not in own_gnis
 
         own_names = {t.name for n in nodes for t in n.name_tuples if t.name and not _foreign(t)}
+        if kind in {k.value for k in WATERBODY_KINDS} and STILL_RE.search(name or ""):
+            # A LAKE MUST NOT ANSWER TO THE RIVER THAT THREADS IT. FWA hangs the through-river's
+            # gazetted name on the lake polygon (GNIS_NAME_2/3), so `_foreign` above cannot catch it:
+            # the name carries the LAKE's own gnis, not a neighbour's. The result is that an exact
+            # search for a river hits two items and has to be disambiguated by hand — Yakoun Lake
+            # answered to 'YAKOUN RIVER', Mosquito Lake to 'PALLANT CREEK', Lakelse Lake to
+            # 'LAKELSE RIVER' (the last is the binding this repo's matcher docstring names as a
+            # historical wrong answer). 21 items corpus-wide.
+            #
+            # Only dropped when a REAL STREAM ITEM already owns that name as its primary: then the
+            # name has an unambiguous home and the lake is still findable by its own. The other 7
+            # cases keep it, because dropping a name nothing else answers to would make the water
+            # unsearchable under a name the gazetteer really does give it.
+            own_names = {v for v in own_names
+                         if not (FLOW_RE.search(v) and not STILL_RE.search(v)
+                                 and _norm_name(v) in stream_primary_names)}
         if own_names:
             variants = tuple(sorted(own_names))              # has its own name — drop borrowed neighbour names
         else:

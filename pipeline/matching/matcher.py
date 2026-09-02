@@ -138,15 +138,27 @@ def _item_mus(it: RegistryItem) -> set[str]:
     return {m for m in it.mus if m}
 
 
-def load_overrides(path: str | Path | None) -> list[dict]:
-    """Load the archive-schema overrides (a LIST of override objects). Returns [] if no path/file."""
+def load_overrides(path: str | Path | None, *, source: str = "") -> list[dict]:
+    """Load the archive-schema overrides (a LIST of override objects). Returns [] if no path/file.
+
+    An entry may declare `"source": "dfo"` to say it answers a question only the DFO SALMON matcher
+    asks. Those are EXCLUDED by default — every provincial caller (batch_exporter, reach.covered, the
+    matcher CLI) gets the safe set without having to know the field exists — and included only when a
+    caller passes `source="dfo"`.
+
+    The alternative was scoping a DFO answer by region so it could not reach a provincial row, and
+    that only works while the name happens to be unique in the region. It is not always: Region 5 has
+    FIVE gazetted Long Lakes, so a region-scoped "LONG LAKE" entry would bind any future Region-5
+    Long Lake row to the Smith Inlet one. The tag says who is asking instead of guessing from scope.
+    """
     if not path:
         return []
     p = Path(path)
     if not p.exists():
         return []
     data = json.loads(p.read_text(encoding="utf-8"))
-    return data if isinstance(data, list) else data.get("overrides", [])
+    rows = data if isinstance(data, list) else data.get("overrides", [])
+    return [e for e in rows if (e.get("source") or "") in ("", source)]
 
 
 def build_override_index(overrides: list[dict]) -> dict[str, list[dict]]:
@@ -248,6 +260,15 @@ def match_row(index: int, row: dict, registry: dict[str, RegistryItem], name_ind
     e = _pick_override(override_index.get(key, []), rn, row_mus)
     if e is not None:
         note = e.get("note", "") or e.get("skip_reason", "")
+        if e.get("not_found"):
+            # A curator looked and there is no correct registry item for this name in
+            # this MU — a PLACEHOLDER, not a guess. It must not fall through to name
+            # matching, because the name usually does resolve, just to the wrong water
+            # ("REDFERN LAKE" in MU 5-15 finds the 7-42 Redfern Lake). When the right
+            # geometry appears, the row gains ids and this branch stops firing.
+            return MatchResult(index, water, None, "unmatched",
+                               note or "not_found: no registry item for this name",
+                               via="override_not_found")
         if e.get("skip"):
             reason = e.get("skip_reason") or note or "override skip"
             var = (e.get("variant_of") or {}).get("name_verbatim")

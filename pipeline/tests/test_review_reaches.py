@@ -332,3 +332,40 @@ def test_json_safe_leaves_ordinary_values_alone():
 def test_nan_is_also_stripped():
     import math
     assert reuse._json_safe({"x": math.nan}) == {"x": None}
+
+
+# --- what a lake cut-point does, and does not, bound ---------------------------------------------
+
+def test_upstream_of_a_lake_runs_to_the_headwaters_and_the_polygon_is_a_separate_extent(monkeypatch):
+    """`upstream_of` a LAKE cut does NOT stop at the lake — it runs on to the headwaters.
+
+    Written down because the opposite was assumed once and a redundant `include_boundary_lakes` flag
+    was added to `Extent` on the strength of it. What a lake cut actually leaves out is the lake
+    POLYGON, which is a different registry item; and since a rule's `extents` are UNIONed, including
+    it needs no new machinery — a second extent scoped to the polygon already does it.
+    """
+    from pipeline.models.registry import RegistryBoundary, RegistryItem
+
+    lake = SectionBoundary(boundary_id="lake:77", kind=BoundaryKind.lake, route_measure=1000.0,
+                           label="Sumas River")
+    below = _piece(f"{MAIN}:0", MAIN, 0.0, 1000.0, upper=lake)
+    above = _piece(f"{MAIN}:5000", MAIN, 5000.0, 6000.0, lower=lake)
+    head = _piece(f"{MAIN}:6000", MAIN, 6000.0, 9000.0)
+    g = _graph([below, above, head], [])
+    monkeypatch.setattr(reuse, "_graph", lambda: g)
+
+    river = RegistryItem(
+        id="gnis:1", name="Sumas River", kind="stream",
+        section_ids=(below.node_id, above.node_id, head.node_id),
+        boundaries=(RegistryBoundary(id="sumas_river__sumas_river", label="Sumas River",
+                                     kind="lake", ref="lake:77", wbk="77"),))
+    lake_item = RegistryItem(id="wbk:77", name="Sumas River", kind="lake", section_ids=("lake:77:0",))
+    monkeypatch.setattr(reuse, "_registry", lambda: {"gnis:1": river, "wbk:77": lake_item})
+
+    up = reuse.resolve_extent(["gnis:1"], {"op": "upstream_of",
+                                           "splits": ["sumas_river__sumas_river"]})
+    assert up["sections"] == [f"{MAIN}:5000", f"{MAIN}:6000"], "must not stop at the lake"
+
+    # the polygon, when the rule wants it, is just another extent — extents are a UNION
+    poly = reuse.resolve_extent(["gnis:1", "wbk:77"], {"op": "whole", "item_id": "wbk:77"})
+    assert poly["sections"] == ["lake:77:0"]

@@ -58,13 +58,85 @@ _RE_PAREN_SCOPE = re.compile(
     r"\(\s*(?P<scope>(?:up|down)stream[^)]*|above[^)]*|below[^)]*)\)", re.I
 )
 
-#: Directional boundary language. The captured phrase is the anchor.
-_ANCHOR_PATTERNS: List[Tuple[str, re.Pattern]] = [
-    ("upstream_of", re.compile(r"\b(?:upstream|above)\s+(?:of\s+)?(?P<a>.+?)(?=[.;]|$|\s+to\s)", re.I)),
-    ("downstream_of", re.compile(r"\b(?:downstream|below)\s+(?:of\s+)?(?P<a>.+?)(?=[.;]|$|\s+to\s)", re.I)),
-    ("from", re.compile(r"\bfrom\s+(?P<a>.+?)(?=\s+(?:to|upstream|downstream)\b|[.;]|$)", re.I)),
-    ("to", re.compile(r"\bto\s+(?P<a>.+?)(?=[.;]|$)", re.I)),
+# ---------------------------------------------------------------------------
+# Anchor types
+# ---------------------------------------------------------------------------
+#
+# An earlier version extracted the anchor *phrase* — "the confluence with the Quinsam
+# River" — with a stack of regexes that had to find clause boundaries in prose. It was
+# never load-bearing: the fingerprint hashes the whole `specific_area`, the binding is
+# `(op, split_ids)`, and a curator reads the verbatim sentence regardless. It also could
+# not lean on the markup: measured, **0 of 447 specific-area cells contain a `<br>`,
+# `<li>` or `<p>`** — DFO writes the whole scope as one prose sentence.
+#
+# What the phrase was actually *used* for is triage: how hard is this cut point to
+# place? That needs only to know which KINDS of landmark a scope names, which is keyword
+# matching on the full text — no phrase boundaries, no truncation bugs, ~70 fewer lines.
+
+#: (type, pattern). Order matters: the first match wins for a given span, and the
+#: cheap-to-derive kinds are listed first so they are not shadowed.
+ANCHOR_TYPES: List[Tuple[str, re.Pattern]] = [
+    # Derivable from data the repo already has ------------------------------
+    ("latlon", re.compile(r"\d+\s*°|\d+\.\d+['′]\s*[NW]")),
+    ("tidal_boundary", re.compile(r"\btidal\s+(?:water\s+)?boundary\b", re.I)),
+    ("confluence", re.compile(r"\bconfluence\b|\bjunction\b|\bmouth of\b|\bwhere .{0,40} enters\b", re.I)),
+    ("lake_end", re.compile(r"\b(?:outlet|inlet)\b", re.I)),
+    # Need a feature-layer join --------------------------------------------
+    ("dam_or_hatchery", re.compile(r"\bdams?\b|\bweirs?\b|\bfishway\b|\bhatchery\b|\btailrace\b|\bfish (?:counting )?fence\b|\bpower station\b", re.I)),
+    # "Sandy Pool Regional Park" is a place, not a pool; "Elk Falls Provincial Park"
+    # likewise. A feature word swallowed by a park name is not a landmark on the river.
+    ("natural_feature", re.compile(
+        r"\b(?:falls|canyon|pool|rapids)\b(?!\s+(?:\w+\s+)?(?:regional|provincial)?\s*park\b)", re.I)),
+    ("bridge", re.compile(r"\bbridges?\b|\btrestle\b|\boverpass\b", re.I)),
+    ("road", re.compile(r"\b(?:highway|hwy|road|street|avenue)\b", re.I)),
+    ("powerline", re.compile(r"\bpower\s?lines?\b", re.I)),
+    ("place_name", re.compile(r"\bparks?\b|\blodge\b|\bresort\b|\bcampground\b", re.I)),
+    # Needs field data ------------------------------------------------------
+    ("boundary_sign", re.compile(r"\bsigns?\b", re.I)),
 ]
+
+#: Directional shape of the scope, read straight off the text. `between` is tried
+#: first so "downstream of X to Y" is two-ended, not one.
+_RE_FROM_TO_TEXT = re.compile(
+    r"\bfrom\b.+?\bto\b|\b(?:up|down)stream\s+(?:of|from)\b.+?\bto\b", re.I | re.S)
+_RE_UPSTREAM_TEXT = re.compile(r"\b(?:upstream|above)\b", re.I)
+_RE_DOWNSTREAM_TEXT = re.compile(r"\b(?:downstream|below)\b", re.I)
+
+#: A bare stream name used as a cut point IS a confluence — "upstream of Parker Creek"
+#: means where Parker Creek joins. `splits.json` already stores these as `X → Y`.
+_RE_NAMED_STREAM = re.compile(
+    r"\b([A-Z][\w'’]*(?:\s+[A-Z][\w'’]*){0,3}\s+(?:River|Creek|Cr|Ck|Lake|Slough))\b")
+
+
+def anchor_types(scope: str) -> List[str]:
+    """Which KINDS of landmark this scope names, in order of first appearance.
+
+    Drives triage — a confluence is derivable from the stream graph, a physical
+    boundary sign is not — and nothing else. Never used to bind.
+    """
+    text = _norm(scope)
+    if not text:
+        return []
+    found: List[Tuple[int, str]] = []
+    for name, pat in ANCHOR_TYPES:
+        m = pat.search(text)
+        if m:
+            found.append((m.start(), name))
+    if not any(n == "confluence" for _, n in found):
+        m = _RE_NAMED_STREAM.search(text)
+        if m:
+            found.append((m.start(), "confluence"))
+    return [n for _, n in sorted(found)]
+
+
+def named_streams(scope: str) -> List[str]:
+    """Stream names mentioned in a scope, for matching `X → Y` confluence splits."""
+    out: List[str] = []
+    for m in _RE_NAMED_STREAM.finditer(_norm(scope)):
+        name = m.group(1).strip()
+        if name not in out:
+            out.append(name)
+    return out
 
 
 def _norm(t: str) -> str:
@@ -115,16 +187,17 @@ class Rule:
 class Reach:
     """One spatial scope on a water — what `specific_area` is describing.
 
-    `anchors` are the raw boundary phrases ("the CNR Railway Bridge at Terrace",
-    "fishing boundary signs below lower canyon"). They are deliberately kept verbatim:
-    turning them into geometry is `pipeline/splits/anchors.py`'s job, and a
-    half-normalised anchor is worse than the sentence it came from.
+    `anchor_types` says which KINDS of landmark the scope names (confluence, bridge,
+    boundary sign …). It drives triage only — how hard the cut point is to place. The
+    landmark itself is read from `scope`, which is kept verbatim, because turning a
+    sentence into geometry is `pipeline/splits/anchors.py`'s job and a half-normalised
+    phrase is worse than the sentence it came from.
     """
 
     index: int
     scope: str
     kind: str
-    anchors: List[Dict[str, str]] = field(default_factory=list)
+    anchor_types: List[str] = field(default_factory=list)
     excludes: List[str] = field(default_factory=list)
     mainstem_only: bool = False
     #: True / False / None — None means "not stated, inherit the water's own setting".
@@ -169,6 +242,9 @@ class Untangled:
     preamble: List[str]
     defaults: List[ScopeDefault]
     waters: List[Water]
+    #: The lettered section banners, carried through so `cascade.build_scopes` can
+    #: derive the spatial tree without re-parsing.
+    sections: List = field(default_factory=list)
     cross_references: List[Dict[str, str]] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -179,6 +255,7 @@ class Untangled:
             "url": self.url,
             "date_modified": self.date_modified,
             "preamble": self.preamble,
+            "sections": [asdict(s) for s in self.sections],
             "defaults": [asdict(d) for d in self.defaults],
             "waters": [asdict(w) for w in self.waters],
             "cross_references": self.cross_references,
@@ -242,10 +319,29 @@ def split_name(raw: str) -> Tuple[str, List[str], Optional[str], Optional[bool],
     return text, aliases, note, tribs, embedded_scope
 
 
-def classify_scope(scope: str) -> Tuple[str, List[Dict[str, str]], bool, Optional[bool]]:
-    """Return (kind, anchors, mainstem_only, tributaries) for a `specific_area`."""
+#: "between X and Y" — two-ended without using "from"/"to". Seven scopes were
+#: classified `upstream_of` because "above" appears inside the phrase
+#: ("between signs located approximately 100 m above and below Red Rock Pool").
+_RE_BETWEEN_AND = re.compile(r"\bbetween\b.+?\band\b", re.I | re.S)
+
+#: A trailing "Note:" / "except" clause describes something *other* than this reach.
+#: Classifying on it made Cranberry River `between` off a note about where the river
+#: ends, when the scope itself is "including tributaries".
+_RE_TRAILING_CLAUSE = re.compile(r"\b(?:note:|except\b|unless\b)", re.I)
+
+
+def classify_scope(scope: str) -> Tuple[str, List[str], bool, Optional[bool]]:
+    """Return (kind, anchor_types, mainstem_only, tributaries) for a `specific_area`.
+
+    The op is decided on the scope's own words — the part before any `Note:`/`except`
+    clause — because those clauses describe neighbouring water, not this reach.
+    """
     text = _norm(scope)
-    low = text.lower()
+    m_clause = _RE_TRAILING_CLAUSE.search(text)
+    head = text[: m_clause.start()].strip() if m_clause else text
+    if not head:                       # the scope is nothing BUT a note
+        head = text
+    low = head.lower()
 
     tribs: Optional[bool] = None
     m = _RE_TRIBS.search(text)
@@ -254,18 +350,14 @@ def classify_scope(scope: str) -> Tuple[str, List[Dict[str, str]], bool, Optiona
 
     mainstem = "mainstem" in low
 
-    if not text or low in {"all", "all waters"}:
+    if not head or low in {"all", "all waters"}:
         return "whole_water", [], mainstem, tribs
 
-    anchors: List[Dict[str, str]] = []
-    for kind, pat in _ANCHOR_PATTERNS:
-        for am in pat.finditer(text):
-            phrase = _RE_TRIBS.sub(" ", _norm(am.group("a")))
-            phrase = _norm(phrase).rstrip(" .,;")
-            if phrase and len(phrase) > 2:
-                anchors.append({"relation": kind, "phrase": phrase})
+    types = anchor_types(head)
 
-    if re.search(r"\ball\s+tributaries\b", low):
+    if _RE_BETWEEN_AND.search(head) and not re.search(r"\bwithin\b.*\bsigns?\b", low):
+        kind = "between"
+    elif re.search(r"\ball\s+tributaries\b", low):
         kind = "tributary_set"
     elif re.search(r"\bwaters within\b.*\bsigns?\b", low):
         # "waters within the four white triangular fishing boundary signs at the
@@ -275,20 +367,20 @@ def classify_scope(scope: str) -> Tuple[str, List[Dict[str, str]], bool, Optiona
         # Babine Lake: the whole lake minus its tributaries and a set of creek mouths.
         # The "from X to Y" inside is the closure line, not the reach boundary.
         kind = "whole_water_excluding"
-    elif any(a["relation"] == "from" for a in anchors) and any(a["relation"] == "to" for a in anchors):
+    elif _RE_FROM_TO_TEXT.search(head):
         kind = "between"
-    elif any(a["relation"] == "upstream_of" for a in anchors):
+    elif _RE_UPSTREAM_TEXT.search(head):
         kind = "upstream_of"
-    elif any(a["relation"] == "downstream_of" for a in anchors):
+    elif _RE_DOWNSTREAM_TEXT.search(head):
         kind = "downstream_of"
-    elif tribs is not None and not anchors:
+    elif tribs is not None and not types:
         kind = "tributaries_only"
     elif re.match(r"^[A-Z][\w' ]+(?:Creek|River|Lake)\b", text):
         kind = "named_tributaries"
     else:
         kind = "described"
 
-    return kind, anchors, mainstem, tribs
+    return kind, types, mainstem, tribs
 
 
 # ---------------------------------------------------------------------------
@@ -335,8 +427,13 @@ def untangle(parsed: ParsedRegion) -> Untangled:
     for r in parsed.rows:
         if r.precedence not in (1, 2):
             continue
+        # A bare "All" in the Waters column carries no scope — the description is in
+        # Specific area (Region 5b's Management-Unit default is written that way).
+        label = _norm(r.waters)
+        if not label or label.lower() == "all":
+            label = _norm(r.specific_area) or label
         catchalls.setdefault(
-            (r.section_key, r.precedence, _norm(r.waters or r.specific_area), tuple(r.areas)), []
+            (r.section_key, r.precedence, label, tuple(r.areas)), []
         ).append(r)
 
     for (sec, rank, scope, areas), rows in catchalls.items():
@@ -394,12 +491,12 @@ def untangle(parsed: ParsedRegion) -> Untangled:
             full = _norm(f"{embedded_scope}; {scope}") if embedded_scope and scope else (
                 scope or embedded_scope or "")
             if full not in by_scope:
-                kind, anchors, mainstem, tribs = classify_scope(full)
+                kind, types, mainstem, tribs = classify_scope(full)
                 by_scope[full] = Reach(
                     index=len(by_scope),
                     scope=full,
                     kind=kind,
-                    anchors=anchors,
+                    anchor_types=types,
                     excludes=list(r.specific_area_bullets),
                     mainstem_only=mainstem,
                     tributaries=tribs if tribs is not None else name_tribs,
@@ -424,6 +521,7 @@ def untangle(parsed: ParsedRegion) -> Untangled:
         preamble=parsed.preamble,
         defaults=defaults,
         waters=waters,
+        sections=list(parsed.sections),
         cross_references=parsed.cross_references,
     )
 
@@ -498,8 +596,8 @@ def render(out: Untangled) -> str:
         for reach in w.reaches:
             label = reach.scope or "(whole water)"
             L.append(f"    · reach {reach.index} [{reach.kind}] {label}")
-            for a in reach.anchors:
-                L.append(f"        anchor {a['relation']}: {a['phrase']}")
+            if reach.anchor_types:
+                L.append(f"        anchors: {', '.join(reach.anchor_types)}")
             if reach.excludes:
                 L.append(f"        excludes: {', '.join(reach.excludes)}")
             for r in reach.rules:

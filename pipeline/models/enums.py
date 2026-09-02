@@ -17,6 +17,11 @@ class NameSource(str, Enum):
     marker = "marker"                     # bathymetry map marker / point-of-interest name (by wbk)
     vessel_restriction = "vessel_restriction"  # lake named in the Vessel Operation Restriction Regs (SOR-2008-120)
     lake_survey = "lake_survey"           # GAZETTED_NAME from the BC lake-survey table (by wbk)
+    dfo = "dfo"                           # name the DFO salmon regulations use for a water FWA names
+                                          # differently (Braverman River / Braverman Creek) or not at
+                                          # all (Docee River, Rainy Creek). SEARCHABLE, and ranked
+                                          # below gazette so it never relabels a gazetted water —
+                                          # a DFO-only water still displays it via `display: true`.
     alias = "alias"                       # alternate name — SEARCHABLE but never beats gazette
     synopsis = "synopsis"                 # a verbatim name used by a regulation entry
 

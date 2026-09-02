@@ -1,0 +1,305 @@
+{
+  "region": "5a",
+  "region_number": 5,
+  "region_name": "Cariboo Part A, Fraser River Watershed",
+  "structure": {
+    "sections": [],
+    "n_locations": 2,
+    "n_waters": 2,
+    "n_defaults": 0,
+    "precedences": []
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "5a:quesnel-lake",
+      "region": "5a",
+      "region_number": 5,
+      "name": "Quesnel Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329480766"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5a:quesnel-river",
+      "region": "5a",
+      "region_number": 5,
+      "name": "Quesnel River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:27867"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "5a:quesnel-lake:in-the-waters-of-horsefly-bay-loca",
+      "region": "5a",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quesnel Lake",
+      "water_id": "5a:quesnel-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "472e213f4a20e490"
+      ],
+      "source_text": {
+        "waters": "Quesnel Lake",
+        "specific_area": "In the waters of Horsefly Bay located on Quesnel Lake inside a line connecting white triangular fishing boundary signs located on opposite shorelines at the entrance to the bay.",
+        "landmarks": [
+          "bay",
+          "connecting",
+          "entrance",
+          "horsefly",
+          "inside",
+          "line",
+          "opposite",
+          "quesnel",
+          "shorelines"
+        ],
+        "op": "named_tributaries",
+        "anchor_types": [
+          "confluence",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5a:quesnel-river:between-the-johnson-subdivision-br",
+      "region": "5a",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quesnel River",
+      "water_id": "5a:quesnel-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "e474eb8cf13f1159"
+      ],
+      "source_text": {
+        "waters": "Quesnel River",
+        "specific_area": "between the Johnson Subdivision Bridge (52° 58.373'N; 122° 29.349'W) and the powerlines (52° 59.788'N; 122° 29.826'W) located just upstream of Highway 97 Bridge near Quesnel, BC",
+        "landmarks": [
+          "122",
+          "349",
+          "373",
+          "788",
+          "826",
+          "highway",
+          "johnson",
+          "just",
+          "near",
+          "powerlines",
+          "quesnel",
+          "subdivision"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "latlon",
+          "powerline",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5a:quesnel-lake:that-portion-of-quesnel-lake-known",
+      "region": "5a",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quesnel Lake",
+      "water_id": "5a:quesnel-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "88e5238ca194a164"
+      ],
+      "source_text": {
+        "waters": "Quesnel Lake",
+        "specific_area": "that portion of Quesnel Lake known as Horsefly Bay, inside a line connecting white triangular fishing boundary signs located on opposite shorelines at the entrance to the bay",
+        "landmarks": [
+          "bay",
+          "connecting",
+          "entrance",
+          "horsefly",
+          "inside",
+          "known",
+          "line",
+          "opposite",
+          "portion",
+          "quesnel",
+          "shorelines",
+          "that"
+        ],
+        "op": "described",
+        "anchor_types": [
+          "confluence",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5a:quesnel-river:that-portion-of-the-quesnel-river",
+      "region": "5a",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quesnel River",
+      "water_id": "5a:quesnel-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "47c91b93af6df33a"
+      ],
+      "source_text": {
+        "waters": "Quesnel River",
+        "specific_area": "that portion of the Quesnel River between the Johnson Subdivision Bridge (52°58.373'N; 122°29.349'W) and the powerlines (52°59.788'N; 122°29.826'W ) located just upstream of Highway 97 Bridge near Quesnel, British Columbia (BC)",
+        "landmarks": [
+          "122",
+          "349",
+          "373",
+          "788",
+          "826",
+          "british",
+          "columbia",
+          "highway",
+          "johnson",
+          "just",
+          "near",
+          "portion",
+          "powerlines",
+          "quesnel",
+          "subdivision",
+          "that"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "bridge",
+          "latlon",
+          "powerline",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

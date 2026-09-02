@@ -1,0 +1,4347 @@
+{
+  "region": "2",
+  "region_number": 2,
+  "region_name": "Lower Mainland",
+  "structure": {
+    "sections": [],
+    "n_locations": 22,
+    "n_waters": 22,
+    "n_defaults": 0,
+    "precedences": []
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "2:alouette-river-and-tributaries",
+      "region": "2",
+      "region_number": 2,
+      "name": "Alouette River and tributaries",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:9630",
+        "gnis:39404",
+        "wbk:329292631"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: THREE items. gnis:9630 Alouette River (mainstem) + gnis:39404 North Alouette River — DFO names the North Alouette explicitly ('above 216th Street, including the North Alouette River and tributaries to that part', and a whole reach 'North Alouette and tributaries') — + wbk:329292631, the river polygon on the mainstem that FWA mislabels 'South Alouette River' and name_variants renames. Alouette Lake (wbk:329291807) is NOT included: it is the reservoir above the dam and DFO's reaches are all river reaches (216th St, Allco Park, Pitt confluence). Every locator already has its cut-point: alouette_river__216_street_bridge, alouette_river__alouette_boundary_signs (Allco Park), alouette_river__216th_street on the North arm; the Pitt River confluence is a natural end.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:ashlu-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Ashlu Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:17155"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:birkenhead-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Birkenhead River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:13103"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:booth-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Booth Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:37512"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 2",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:brunette-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Brunette River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:10070"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:capilano-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Capilano River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:5922"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:chapman-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Chapman Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:12936"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 2",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:cheakamus-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Cheakamus River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:12999"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:chehalis-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Chehalis River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:13015"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:chehalis-river-hatchery",
+      "region": "2",
+      "region_number": 2,
+      "name": "Chehalis River Hatchery",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:13015"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: the row is named for the HATCHERY but the regulated water is the CHEHALIS RIVER (gnis:13015) — 'from the hatchery outlet downstream to the confluence with the Chehalis/Harrison Rivers'. Deliberately NOT a name_variants entry: 'Chehalis River Hatchery' is a facility, not a name for the river, and making it a searchable name of the water would be wrong. The upstream bound is the curated split chehalis_river__hatchery_outlet; the downstream bound is the river's natural mouth into the Harrison.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Chilliwack/Vedder River (including Sumas River)",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:8634",
+        "gnis:3062",
+        "wbk:329707189",
+        "gnis:26216",
+        "wbk:328997872"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: FIVE registry items. The provincial synopsis already binds the first three as 'CHILLIWACK / VEDDER RIVERS (does not include Sumas River)' -> gnis 8634 + 3062 + 29662; DFO's row is that same system INCLUDING the Sumas, which is why it needs its own entry and why that entry is tagged source=dfo — the provincial row says the opposite in its own name. Sumas is TWO items: the stream (gnis:26216) and the lake polygon (wbk:328997872) the stream runs through. Sumas Lake Canal (gnis:6015 / wbk:329707192) is deliberately NOT included — DFO names the Sumas River. Both Sumas bounds already exist: 'Barrow Town Pump Station' is the auto lake boundary sumas_river__sumas_river (lake:328997872), and 'boundary signs near the confluence with the Fraser River' is the reach's NATURAL downstream end (section 356352298:0 drains straight into a Fraser node), so no split was minted for either.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:coquitlam-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Coquitlam River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:19986"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:de-boville-slough",
+      "region": "2",
+      "region_number": 2,
+      "name": "De Boville Slough",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:16088"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:fraser-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Fraser River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39325",
+        "gnis:10494",
+        "gnis:11566",
+        "gnis:17805",
+        "gnis:17368",
+        "gnis:14905",
+        "gnis:22631",
+        "gnis:21224",
+        "gnis:14010",
+        "gnis:11481",
+        "gnis:13499",
+        "gnis:25152",
+        "gnis:8341"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Fraser River (GNIS 39325) upstream of the CPR Bridge at Mission, plus all named channels and sloughs without their own regulation entries. Region 2. Nicomen Slough and Strawberry Slough excluded — they have separate regulation entries.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:harrison-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Harrison River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:15333"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Matched via base name: HARRISON RIVER",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:hope-slough",
+      "region": "2",
+      "region_number": 2,
+      "name": "Hope Slough",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:24496"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "FWA has MUs 2-3, 2-4, regulation has MU 2-8 (boundary issue)",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:inch-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Inch Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:9809"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:indian-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Indian River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:9837"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:kanaka-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Kanaka Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:11318"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:khartoum-lake",
+      "region": "2",
+      "region_number": 2,
+      "name": "Khartoum Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329197063"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:little-campbell-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Little Campbell River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:7250"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "LITTLE CAMPBELL RIVER is a name variant of CAMPBELL RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:lois-lake",
+      "region": "2",
+      "region_number": 2,
+      "name": "Lois Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329197058"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 2",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:mamquam-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Mamquam River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:12746"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:mclennan-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "McLennan Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:26380"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "UNCERTAIN: Could be McLennan Creek (100-052188, MU 2-4) OR McLean Creek (100-025956-073866, MU 2-8). Currently matched to McLennan Creek but regulation specifies MU 2-8 which matches McLean Creek. User should verify correct creek and update if needed.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:nicomekl-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Nicomekl River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:21100"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:nicomen-including-dewdney-slough",
+      "region": "2",
+      "region_number": 2,
+      "name": "Nicomen (including Dewdney) Slough",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:21105"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Nicomen Slough (GNIS 21105) in Region 2. Includes 7 specific waterbody polygons plus the GNIS stream match.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:norrish-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Norrish Creek",
+      "aliases": [
+        "Suicide Creek"
+      ],
+      "sections": [],
+      "item_ids": [
+        "gnis:23402"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Matched via base name: NORRISH CREEK",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:pitt-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Pitt River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:7551"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:sakinaw-lake",
+      "region": "2",
+      "region_number": 2,
+      "name": "Sakinaw Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329197062"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:scott-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Scott Creek",
+      "aliases": [
+        "Hoy Creek"
+      ],
+      "sections": [],
+      "item_ids": [
+        "gnis:24243"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Matched via base name: SCOTT CREEK",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:serpentine-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Serpentine River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:24978"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:seymour-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Seymour River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:6105"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 2",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:silverdale-creek",
+      "region": "2",
+      "region_number": 2,
+      "name": "Silverdale Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:26286"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:squamish-river-including-powerhouse-channel",
+      "region": "2",
+      "region_number": 2,
+      "name": "Squamish River (including Powerhouse Channel)",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:25671"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "2:stave-river",
+      "region": "2",
+      "region_number": 2,
+      "name": "Stave River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:14589"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "2:alouette-river-and-tributaries:above-216th-street-including-the-n",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Alouette River and tributaries",
+      "water_id": "2:alouette-river-and-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "abb2d14b5f3c419c"
+      ],
+      "source_text": {
+        "waters": "Alouette River and tributaries",
+        "specific_area": "above 216th Street, including the North Alouette River and tributaries to that part",
+        "landmarks": [
+          "216th",
+          "alouette",
+          "north",
+          "part",
+          "street",
+          "that"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "road",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:alouette-river-and-tributaries:downstream-of-a-line-between-2-fis",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Alouette River and tributaries",
+      "water_id": "2:alouette-river-and-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "bb3d8cd454aa3c50"
+      ],
+      "source_text": {
+        "waters": "Alouette River and tributaries",
+        "specific_area": "downstream of a line between 2 fishing boundary signs in Allco Park",
+        "landmarks": [
+          "allco",
+          "alouette",
+          "line",
+          "park"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
+      "duplicate_score": 0.971,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:ashlu-creek:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Ashlu Creek",
+      "water_id": "2:ashlu-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "08d7d3e230ea3ca7"
+      ],
+      "source_text": {
+        "waters": "Ashlu Creek",
+        "specific_area": "",
+        "landmarks": [
+          "ashlu"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:birkenhead-river:from-the-birkenhead-bridge-located",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Birkenhead River",
+      "water_id": "2:birkenhead-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "bfe1a81a84c7f2ff"
+      ],
+      "source_text": {
+        "waters": "Birkenhead River",
+        "specific_area": "from the Birkenhead Bridge located approx. 6 km north of Mount Currie on Portage Road to the canyon located approx. 10 km upstream of the bridge.",
+        "landmarks": [
+          "birkenhead",
+          "canyon",
+          "currie",
+          "mount",
+          "north",
+          "portage",
+          "road"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "road",
+          "natural_feature"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:booth-creek:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Booth Creek",
+      "water_id": "2:booth-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "09a960ce021eb2e8"
+      ],
+      "source_text": {
+        "waters": "Booth Creek",
+        "specific_area": "",
+        "landmarks": [
+          "booth"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:brunette-river:downstream-of-cariboo-road",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Brunette River",
+      "water_id": "2:brunette-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "5813226494810c69"
+      ],
+      "source_text": {
+        "waters": "Brunette River",
+        "specific_area": "downstream of Cariboo Road.",
+        "landmarks": [
+          "brunette",
+          "cariboo",
+          "road"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:capilano-river:including-tributaries",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Capilano River",
+      "water_id": "2:capilano-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "9df3085c8ba6abfd"
+      ],
+      "source_text": {
+        "waters": "Capilano River",
+        "specific_area": "including tributaries.",
+        "landmarks": [
+          "capilano"
+        ],
+        "op": "tributaries_only",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chapman-creek:upstream-of-tidal-water-fishing-bo",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chapman Creek",
+      "water_id": "2:chapman-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "dcf42654b3de49b6"
+      ],
+      "source_text": {
+        "waters": "Chapman Creek",
+        "specific_area": "upstream of tidal water fishing boundary signs located below the Hwy 101 Bridge to 100 m below the falls. The falls are located approximately 550 m upstream of the powerline crossing.",
+        "landmarks": [
+          "100",
+          "101",
+          "550",
+          "are",
+          "chapman",
+          "crossing",
+          "falls",
+          "highway",
+          "powerline",
+          "tidal"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "road",
+          "bridge",
+          "natural_feature",
+          "powerline"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:cheakamus-river:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cheakamus River",
+      "water_id": "2:cheakamus-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "76fc4bd463724f96"
+      ],
+      "source_text": {
+        "waters": "Cheakamus River",
+        "specific_area": "",
+        "landmarks": [
+          "cheakamus"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chehalis-river:downstream-of-the-logging-bridge-2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chehalis River",
+      "water_id": "2:chehalis-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "19979bd5ff7423c0"
+      ],
+      "source_text": {
+        "waters": "Chehalis River",
+        "specific_area": "downstream of the logging bridge 2.4 km downstream of Chehalis Lake, including tributaries to that part",
+        "landmarks": [
+          "chehalis",
+          "logging",
+          "part",
+          "that"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chehalis-river-hatchery:from-the-hatchery-outlet-downstrea",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chehalis River Hatchery",
+      "water_id": "2:chehalis-river-hatchery",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "907d4eca291c5a97"
+      ],
+      "source_text": {
+        "waters": "Chehalis River Hatchery",
+        "specific_area": "from the hatchery outlet downstream to the confluence with the Chehalis/Harrison Rivers",
+        "landmarks": [
+          "chehalis",
+          "confluence",
+          "harrison",
+          "hatchery",
+          "outlet",
+          "rivers",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "lake_end",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chilliwack/Vedder River (including Sumas River)",
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b65c929c889d399c"
+      ],
+      "source_text": {
+        "waters": "Chilliwack/Vedder River (including Sumas River)",
+        "specific_area": "upstream from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream of the confluence of the Chilliwack River and Slesse Creek.",
+        "landmarks": [
+          "100",
+          "chilliwack",
+          "confluence",
+          "either",
+          "line",
+          "side",
+          "slesse",
+          "sumas",
+          "vedder"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chilliwack/Vedder River (including Sumas River)",
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "5ccd7378ac46a56b"
+      ],
+      "source_text": {
+        "waters": "Chilliwack/Vedder River (including Sumas River)",
+        "specific_area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "landmarks": [
+          "100",
+          "barrow",
+          "chilliwack",
+          "confluence",
+          "either",
+          "fraser",
+          "line",
+          "near",
+          "portion",
+          "pump",
+          "side",
+          "slesse",
+          "station",
+          "sumas",
+          "that",
+          "town",
+          "vedder",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+      "duplicate_score": 0.983,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:coquitlam-river:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Coquitlam River",
+      "water_id": "2:coquitlam-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "ee2d769357492e51"
+      ],
+      "source_text": {
+        "waters": "Coquitlam River",
+        "specific_area": "",
+        "landmarks": [
+          "coquitlam"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:de-boville-slough:downstream-of-the-confluence-of-ce",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "De Boville Slough",
+      "water_id": "2:de-boville-slough",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c4bdd00ac7d9446c"
+      ],
+      "source_text": {
+        "waters": "De Boville Slough",
+        "specific_area": "downstream of the confluence of Cedar Creek and Hyde Creek.",
+        "landmarks": [
+          "boville",
+          "cedar",
+          "confluence",
+          "hyde",
+          "slough"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:from-the-downstream-side-of-the-cp",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "daafcb194ba0b184"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "from the downstream side of the CPR Bridge at Mission upstream to the Highway 1 bridge at Hope",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "highway",
+          "hope",
+          "mission",
+          "side"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:upstream-from-the-highway-1-bridge",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6aca6102a50ea196"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "upstream from the Highway 1 Bridge at Hope",
+        "landmarks": [
+          "fraser",
+          "highway",
+          "hope"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Harrison River",
+      "water_id": "2:harrison-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "359b5ff6fdd67a0b"
+      ],
+      "source_text": {
+        "waters": "Harrison River",
+        "specific_area": "from the outlet of Harrison Lake downstream to the Hwy 7 bridge.",
+        "landmarks": [
+          "harrison",
+          "highway",
+          "outlet"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "lake_end",
+          "confluence",
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:harrison-river:from-the-highway-7-bridge-downstre",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Harrison River",
+      "water_id": "2:harrison-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d40faba566f9eb29"
+      ],
+      "source_text": {
+        "waters": "Harrison River",
+        "specific_area": "from the Hwy 7 bridge downstream to the confluence with the Fraser River.",
+        "landmarks": [
+          "confluence",
+          "fraser",
+          "harrison",
+          "highway",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:hope-slough:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Hope Slough",
+      "water_id": "2:hope-slough",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1c04c5ac80cf0b53"
+      ],
+      "source_text": {
+        "waters": "Hope Slough",
+        "specific_area": "",
+        "landmarks": [
+          "hope",
+          "slough"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:inch-creek:from-the-hatchery-outlet-to-the-co",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Inch Creek",
+      "water_id": "2:inch-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1c09c907a539d622"
+      ],
+      "source_text": {
+        "waters": "Inch Creek",
+        "specific_area": "from the hatchery outlet to the confluence with Norrish Creek/ Nicomen Slough.",
+        "landmarks": [
+          "confluence",
+          "hatchery",
+          "inch",
+          "nicomen",
+          "norrish",
+          "outlet",
+          "slough",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "lake_end",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:indian-river:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Indian River",
+      "water_id": "2:indian-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "9f4828638ed997df"
+      ],
+      "source_text": {
+        "waters": "Indian River",
+        "specific_area": "",
+        "landmarks": [
+          "indian"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:kanaka-creek:upstream-of-the-112th-street-bridg",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Kanaka Creek",
+      "water_id": "2:kanaka-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "600cbaa45266512e"
+      ],
+      "source_text": {
+        "waters": "Kanaka Creek",
+        "specific_area": "upstream of the 112th Street bridge.",
+        "landmarks": [
+          "112th",
+          "kanaka",
+          "street"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:kanaka-creek:downstream-of-the-112th-street-bri",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Kanaka Creek",
+      "water_id": "2:kanaka-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "fc0e1fe344d57f50"
+      ],
+      "source_text": {
+        "waters": "Kanaka Creek",
+        "specific_area": "downstream of the 112th Street bridge.",
+        "landmarks": [
+          "112th",
+          "kanaka",
+          "street"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:khartoum-lake:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Khartoum Lake",
+      "water_id": "2:khartoum-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a04cf3f2bfbd4620"
+      ],
+      "source_text": {
+        "waters": "Khartoum Lake",
+        "specific_area": "",
+        "landmarks": [
+          "khartoum"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:little-campbell-river:downstream-of-12th-avenue-includin",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Little Campbell River",
+      "water_id": "2:little-campbell-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3c669a1c37162ad3"
+      ],
+      "source_text": {
+        "waters": "Little Campbell River",
+        "specific_area": "downstream of 12th Avenue, including tributaries to that part.",
+        "landmarks": [
+          "12th",
+          "avenue",
+          "campbell",
+          "little",
+          "part",
+          "that"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:little-campbell-river:downstream-of-a-line-between-2-fis",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Little Campbell River",
+      "water_id": "2:little-campbell-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "7b5da81d87d1995d"
+      ],
+      "source_text": {
+        "waters": "Little Campbell River",
+        "specific_area": "downstream of a line between 2 fishing boundary signs on either side of the Little Campbell River to the pedestrian bridge at the foot of Stayte Road.",
+        "landmarks": [
+          "campbell",
+          "either",
+          "foot",
+          "line",
+          "little",
+          "pedestrian",
+          "road",
+          "side",
+          "stayte"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence",
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:lois-lake:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Lois Lake",
+      "water_id": "2:lois-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "86c1914a996a2cf9"
+      ],
+      "source_text": {
+        "waters": "Lois Lake",
+        "specific_area": "",
+        "landmarks": [
+          "lois"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:mamquam-river:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Mamquam River",
+      "water_id": "2:mamquam-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6394f39fecbedb4f"
+      ],
+      "source_text": {
+        "waters": "Mamquam River",
+        "specific_area": "",
+        "landmarks": [
+          "mamquam"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:mclennan-creek:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "McLennan Creek",
+      "water_id": "2:mclennan-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b5995609f7c442d8"
+      ],
+      "source_text": {
+        "waters": "McLennan Creek",
+        "specific_area": "",
+        "landmarks": [
+          "mclennan"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:nicomekl-river:downstream-of-208th-street",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nicomekl River",
+      "water_id": "2:nicomekl-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "371a5113b8da393a"
+      ],
+      "source_text": {
+        "waters": "Nicomekl River",
+        "specific_area": "downstream of 208th Street",
+        "landmarks": [
+          "208th",
+          "nicomekl",
+          "street"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:nicomen-including-dewdney-slough:from-the-confluence-of-siddle-bell",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nicomen (including Dewdney) Slough",
+      "water_id": "2:nicomen-including-dewdney-slough",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "0b2da5f0dfd7736d"
+      ],
+      "source_text": {
+        "waters": "Nicomen (including Dewdney) Slough",
+        "specific_area": "from the confluence of Siddle (Bell's) Ck. downstream to the Fraser River",
+        "landmarks": [
+          "bell",
+          "confluence",
+          "dewdney",
+          "fraser",
+          "nicomen",
+          "siddle",
+          "slough"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:nicomen-including-dewdney-slough:from-the-highway-7-bridge-at-dewdn",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nicomen (including Dewdney) Slough",
+      "water_id": "2:nicomen-including-dewdney-slough",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "dc1cd8596c4a6283"
+      ],
+      "source_text": {
+        "waters": "Nicomen (including Dewdney) Slough",
+        "specific_area": "from the Highway 7 bridge at Dewdney downstream to the Fraser River",
+        "landmarks": [
+          "dewdney",
+          "fraser",
+          "highway",
+          "nicomen",
+          "slough"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:norrish-creek:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Norrish Creek",
+      "water_id": "2:norrish-creek",
+      "aliases": [
+        "Suicide Creek"
+      ],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c42148264b5589c9"
+      ],
+      "source_text": {
+        "waters": "Norrish Creek",
+        "specific_area": "",
+        "landmarks": [
+          "norrish"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:pitt-river:pitt-river-and-tributaries",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Pitt River",
+      "water_id": "2:pitt-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "126946bd96208cde"
+      ],
+      "source_text": {
+        "waters": "Pitt River",
+        "specific_area": "Pitt River and tributaries",
+        "landmarks": [
+          "pitt"
+        ],
+        "op": "named_tributaries",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:pitt-river:upper-and-lower-river-including-tr",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Pitt River",
+      "water_id": "2:pitt-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c37cddc5b23318bd"
+      ],
+      "source_text": {
+        "waters": "Pitt River",
+        "specific_area": "Upper and lower river, including tributaries.",
+        "landmarks": [
+          "lower",
+          "pitt",
+          "upper"
+        ],
+        "op": "tributaries_only",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:pitt-river:upper-river-upstream-of-pitt-lake",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Pitt River",
+      "water_id": "2:pitt-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "f1022e5b0c72f983"
+      ],
+      "source_text": {
+        "waters": "Pitt River",
+        "specific_area": "Upper river – upstream of Pitt Lake",
+        "landmarks": [
+          "pitt",
+          "upper"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:sakinaw-lake:easterly-of-a-line-drawn-from-a-bo",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Sakinaw Lake",
+      "water_id": "2:sakinaw-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a29f87a614bc7467"
+      ],
+      "source_text": {
+        "waters": "Sakinaw Lake",
+        "specific_area": "Easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49°41.50' north latitude and 123°58.45' west longitude.",
+        "landmarks": [
+          "123",
+          "boat",
+          "drawn",
+          "easterly",
+          "latitude",
+          "launch",
+          "line",
+          "longitude",
+          "north",
+          "sakinaw",
+          "side",
+          "southwesterly",
+          "west"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence",
+          "latlon"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:sakinaw-lake:the-body-of-water-known-as-bear-ba",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Sakinaw Lake",
+      "water_id": "2:sakinaw-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a6f9e2abcb339547"
+      ],
+      "source_text": {
+        "waters": "Sakinaw Lake",
+        "specific_area": "The body of water known as Bear Bay, easterly of a line drawn from a boundary sign located at 49°40.05' north latitude and 124°02.13' west longitude due south to a boundary sign on the opposite shore.",
+        "landmarks": [
+          "124",
+          "bay",
+          "bear",
+          "body",
+          "drawn",
+          "due",
+          "easterly",
+          "known",
+          "latitude",
+          "line",
+          "longitude",
+          "north",
+          "opposite",
+          "sakinaw",
+          "shore",
+          "south",
+          "west"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "latlon"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:scott-creek:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Scott Creek",
+      "water_id": "2:scott-creek",
+      "aliases": [
+        "Hoy Creek"
+      ],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "fee896ee3ff2d7d4"
+      ],
+      "source_text": {
+        "waters": "Scott Creek",
+        "specific_area": "",
+        "landmarks": [
+          "scott"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:serpentine-river:downstream-of-168th-street",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Serpentine River",
+      "water_id": "2:serpentine-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "137e48a2b18c4580"
+      ],
+      "source_text": {
+        "waters": "Serpentine River",
+        "specific_area": "downstream of 168th Street.",
+        "landmarks": [
+          "168th",
+          "serpentine",
+          "street"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:seymour-river:from-the-seymour-river-dam-to-the",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Seymour River",
+      "water_id": "2:seymour-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6fa0053b382715c2"
+      ],
+      "source_text": {
+        "waters": "Seymour River",
+        "specific_area": "from the Seymour River Dam to the tidal boundary, including tributaries",
+        "landmarks": [
+          "dam",
+          "seymour",
+          "tidal"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "dam_or_hatchery",
+          "tidal_boundary"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:silverdale-creek:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Silverdale Creek",
+      "water_id": "2:silverdale-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "52641a1fb916bbb9"
+      ],
+      "source_text": {
+        "waters": "Silverdale Creek",
+        "specific_area": "",
+        "landmarks": [
+          "silverdale"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:squamish-river-including-powerhous:whole",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Squamish River (including Powerhouse Channel)",
+      "water_id": "2:squamish-river-including-powerhouse-channel",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "54ea82a18527b2be"
+      ],
+      "source_text": {
+        "waters": "Squamish River (including Powerhouse Channel)",
+        "specific_area": "",
+        "landmarks": [
+          "channel",
+          "powerhouse",
+          "squamish"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:stave-river:downstream-of-b-c-hydro-dam-to-the",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stave River",
+      "water_id": "2:stave-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "868d25e1b51d0dd3"
+      ],
+      "source_text": {
+        "waters": "Stave River",
+        "specific_area": "downstream of B.C. Hydro Dam to the CPR Railway Bridge",
+        "landmarks": [
+          "cpr",
+          "dam",
+          "hydro",
+          "railway",
+          "stave"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:stave-river:that-portion-of-the-stave-river-kn",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stave River",
+      "water_id": "2:stave-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "ef7dd5a7b634824d"
+      ],
+      "source_text": {
+        "waters": "Stave River",
+        "specific_area": "that portion of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing",
+        "landmarks": [
+          "bank",
+          "boat",
+          "channel",
+          "crossing",
+          "dam",
+          "east",
+          "hydro",
+          "inlet",
+          "known",
+          "near",
+          "park",
+          "portion",
+          "ramp",
+          "ruskin",
+          "spawning",
+          "stave",
+          "that"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "place_name",
+          "lake_end",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:alouette-river-and-tributaries:downstream-of-a-line-between-two-f",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Alouette River and tributaries",
+      "water_id": "2:alouette-river-and-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a4f43bfee22743ae"
+      ],
+      "source_text": {
+        "waters": "Alouette River and tributaries",
+        "specific_area": "downstream of a line between two fishing boundary signs in Allco Park",
+        "landmarks": [
+          "allco",
+          "alouette",
+          "line",
+          "park",
+          "two"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chilliwack-vedder-river-including:from-the-orange-triangular-boundar",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chilliwack/Vedder River (including Sumas River)",
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "84a583f8f8cd352b"
+      ],
+      "source_text": {
+        "waters": "Chilliwack/Vedder River (including Sumas River)",
+        "specific_area": "from the orange triangular boundary signs approximately 200 meters upstream of the Vedder Crossing bridge down to the cable car crossing approximately 200 meters downstream of the Vedder Crossing bridge.",
+        "landmarks": [
+          "200",
+          "cable",
+          "car",
+          "chilliwack",
+          "crossing",
+          "down",
+          "orange",
+          "sumas",
+          "vedder"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chilliwack/Vedder River (including Sumas River)",
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "9cd84c06307083de"
+      ],
+      "source_text": {
+        "waters": "Chilliwack/Vedder River (including Sumas River)",
+        "specific_area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River, with exception of “no fishing for salmon” closure area identified above.",
+        "landmarks": [
+          "100",
+          "area",
+          "barrow",
+          "chilliwack",
+          "closure",
+          "confluence",
+          "either",
+          "exception",
+          "for",
+          "fraser",
+          "identified",
+          "line",
+          "near",
+          "portion",
+          "pump",
+          "salmon",
+          "side",
+          "slesse",
+          "station",
+          "sumas",
+          "that",
+          "town",
+          "vedder",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+      "duplicate_score": 0.886,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:from-the-highway-1-bridge-at-hope",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "222a098495b95a36"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "from the Highway 1 Bridge at Hope to the downstream side of the Alexandra Bridge",
+        "landmarks": [
+          "alexandra",
+          "fraser",
+          "highway",
+          "hope",
+          "side"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:squamish-river-including-powerhous:downstream-of-the-powerline-crossi",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Squamish River (including Powerhouse Channel)",
+      "water_id": "2:squamish-river-including-powerhouse-channel",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "452cc7f824bd69c3"
+      ],
+      "source_text": {
+        "waters": "Squamish River (including Powerhouse Channel)",
+        "specific_area": "downstream of the powerline crossing at 9 mile (approximately 1.5 km upstream of the confluence with the Cheakamus River)",
+        "landmarks": [
+          "channel",
+          "cheakamus",
+          "confluence",
+          "crossing",
+          "mile",
+          "powerhouse",
+          "powerline",
+          "squamish",
+          "with"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "powerline",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:alouette-river-and-tributaries:upstream-of-the-216th-street-bridg",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Alouette River and tributaries",
+      "water_id": "2:alouette-river-and-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "071c585682234b28"
+      ],
+      "source_text": {
+        "waters": "Alouette River and tributaries",
+        "specific_area": "Upstream of the 216th Street bridge to a line between two fishing boundary signs at Allco park",
+        "landmarks": [
+          "216th",
+          "allco",
+          "alouette",
+          "line",
+          "park",
+          "street",
+          "two"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge",
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:alouette-river-and-tributaries:downstream-of-the-216th-street-bri",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Alouette River and tributaries",
+      "water_id": "2:alouette-river-and-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3b4266429b386c49"
+      ],
+      "source_text": {
+        "waters": "Alouette River and tributaries",
+        "specific_area": "Downstream of the 216th street bridge to the confluence of the Pitt River",
+        "landmarks": [
+          "216th",
+          "alouette",
+          "confluence",
+          "pitt",
+          "street"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:alouette-river-and-tributaries:north-alouette-and-tributaries",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Alouette River and tributaries",
+      "water_id": "2:alouette-river-and-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a213d8b6165cf4b0"
+      ],
+      "source_text": {
+        "waters": "Alouette River and tributaries",
+        "specific_area": "North Alouette and tributaries",
+        "landmarks": [
+          "alouette",
+          "north"
+        ],
+        "op": "described",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chilliwack-vedder-river-including:upstream-from-a-line-between-2-fis~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chilliwack/Vedder River (including Sumas River)",
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "e2f631e530064205"
+      ],
+      "source_text": {
+        "waters": "Chilliwack/Vedder River (including Sumas River)",
+        "specific_area": "upstream from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "landmarks": [
+          "100",
+          "barrow",
+          "chilliwack",
+          "confluence",
+          "either",
+          "fraser",
+          "line",
+          "near",
+          "portion",
+          "pump",
+          "side",
+          "slesse",
+          "station",
+          "sumas",
+          "that",
+          "town",
+          "vedder",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+      "duplicate_score": 0.986,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:serpentine-river:downstream-of-168th-street-at-both",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Serpentine River",
+      "water_id": "2:serpentine-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d43e359031cb1c3d"
+      ],
+      "source_text": {
+        "waters": "Serpentine River",
+        "specific_area": "downstream of 168th Street at Bothwell Park",
+        "landmarks": [
+          "168th",
+          "bothwell",
+          "park",
+          "serpentine",
+          "street"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "road",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:chilliwack-vedder-river-including:from-a-line-between-2-fishing-boun~3",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chilliwack/Vedder River (including Sumas River)",
+      "water_id": "2:chilliwack-vedder-river-including-sumas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "f25a4f83235cf446"
+      ],
+      "source_text": {
+        "waters": "Chilliwack/Vedder River (including Sumas River)",
+        "specific_area": "from a line between 2 fishing boundary signs on either side of the Chilliwack River 100 m downstream from the confluence of the Chilliwack River and Slesse Creek downstream including that portion of the Sumas River from the Barrow Town Pump Station downstream to fishing boundary signs near the confluence with the Fraser River.",
+        "landmarks": [
+          "100",
+          "barrow",
+          "chilliwack",
+          "confluence",
+          "either",
+          "fraser",
+          "line",
+          "near",
+          "portion",
+          "pump",
+          "side",
+          "slesse",
+          "station",
+          "sumas",
+          "that",
+          "town",
+          "vedder",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:mainstem-waters-from-the-downstrea",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "fe4e05f4834a86fd"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "mainstem waters from the downstream side of the CPR Bridge at Mission, BC to the Highway 1 Bridge at Hope, BC",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "highway",
+          "hope",
+          "mission",
+          "side"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:nicomekl-river:within-23-m-downstream-of-the-floo",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nicomekl River",
+      "water_id": "2:nicomekl-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "5a3e72e83782b766"
+      ],
+      "source_text": {
+        "waters": "Nicomekl River",
+        "specific_area": "Within 23 m. downstream of the flood dams",
+        "landmarks": [
+          "dams",
+          "flood",
+          "nicomekl",
+          "within"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:serpentine-river:within-23-m-downstream-of-the-floo",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Serpentine River",
+      "water_id": "2:serpentine-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "65922ee430009940"
+      ],
+      "source_text": {
+        "waters": "Serpentine River",
+        "specific_area": "Within 23 m. downstream of the flood dams",
+        "landmarks": [
+          "dams",
+          "flood",
+          "serpentine",
+          "within"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:stave-river:the-ruskin-spawning-channel-on-the",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stave River",
+      "water_id": "2:stave-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3f08d6eb3c878894"
+      ],
+      "source_text": {
+        "waters": "Stave River",
+        "specific_area": "the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing",
+        "landmarks": [
+          "bank",
+          "boat",
+          "channel",
+          "crossing",
+          "dam",
+          "east",
+          "hydro",
+          "inlet",
+          "near",
+          "park",
+          "ramp",
+          "ruskin",
+          "spawning",
+          "stave"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "place_name",
+          "lake_end",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:mainstem-waters-upstream-of-the-cp",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d367a8ea913387b2"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "mainstem waters upstream of the CPR Bridge at Mission, BC",
+        "landmarks": [
+          "cpr",
+          "fraser",
+          "mission"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:fraser-river:from-the-downstream-side-of-the-cp~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "2:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "90bf00405ccb4b3d"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "from the downstream side of the CPR Bridge at Mission upstream to the Highway 1 Bridge at Hope and from the Highway 1 Bridge at Hope to the downstream side of the Alexandra Bridge",
+        "landmarks": [
+          "alexandra",
+          "cpr",
+          "fraser",
+          "highway",
+          "hope",
+          "mission",
+          "side"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:harrison-river:from-the-outlet-of-harrison-lake-d~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Harrison River",
+      "water_id": "2:harrison-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "ab43369ac93c4a0f"
+      ],
+      "source_text": {
+        "waters": "Harrison River",
+        "specific_area": "from the outlet of Harrison Lake downstream to the confluence with the Fraser River",
+        "landmarks": [
+          "confluence",
+          "fraser",
+          "harrison",
+          "outlet",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "lake_end",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:stave-river:in-that-portion-of-the-stave-river",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stave River",
+      "water_id": "2:stave-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6efb3a537cb6cd6f"
+      ],
+      "source_text": {
+        "waters": "Stave River",
+        "specific_area": "in that portion of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing; and you shall not fish for Salmon in that portion of the Stave River known as the Northrop Spawning Channel from the intake downstream to where the channel joins the Stave River mainstem, including its tributary containing the fishway",
+        "landmarks": [
+          "bank",
+          "boat",
+          "channel",
+          "containing",
+          "crossing",
+          "dam",
+          "east",
+          "fish",
+          "fishway",
+          "for",
+          "hydro",
+          "inlet",
+          "intake",
+          "its",
+          "joins",
+          "known",
+          "near",
+          "northrop",
+          "not",
+          "park",
+          "portion",
+          "ramp",
+          "ruskin",
+          "salmon",
+          "shall",
+          "spawning",
+          "stave",
+          "that",
+          "tributary",
+          "where",
+          "you"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "place_name",
+          "lake_end",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "2:stave-river:downstream-of-b-c-hydro-dam-to-the~2",
+      "region": "2",
+      "region_number": 2,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stave River",
+      "water_id": "2:stave-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "0e06d451888d3f14"
+      ],
+      "source_text": {
+        "waters": "Stave River",
+        "specific_area": "downstream of B.C. Hydro Dam to the CPR Railway Bridge; except you shall not fish for salmon in that portion on the east side of the Stave River, known as the Ruskin Spawning Channel on the east bank of the BC Hydro park from the inlet near the dam, downstream to the boat ramp crossing; and you shall not fish for salmon in that portion on the west side of the Stave River known as the Northrop Spawning Channel from the intake downstream to where the channel joins the Stave River mainstem, including its tributary containing the fishway",
+        "landmarks": [
+          "bank",
+          "boat",
+          "channel",
+          "containing",
+          "cpr",
+          "crossing",
+          "dam",
+          "east",
+          "except",
+          "fish",
+          "fishway",
+          "for",
+          "hydro",
+          "inlet",
+          "intake",
+          "its",
+          "joins",
+          "known",
+          "near",
+          "northrop",
+          "not",
+          "park",
+          "portion",
+          "railway",
+          "ramp",
+          "ruskin",
+          "salmon",
+          "shall",
+          "side",
+          "spawning",
+          "stave",
+          "that",
+          "tributary",
+          "west",
+          "where",
+          "you"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

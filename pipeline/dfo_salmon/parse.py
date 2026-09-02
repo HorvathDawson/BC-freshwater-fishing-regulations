@@ -79,8 +79,12 @@ _RE_SECTION = re.compile(
 )
 
 #: A row's Waters/Specific-area text that declares a catch-all rather than a water.
+#: A bare "All" in the Waters column counts when the Specific-area column then
+#: describes the scope — Region 5b's Management-Unit default is written that way
+#: ("All" | "All lakes or streams … in Management Units 5-6 to 5-11"), and reading it
+#: as a waterbody puts a river called "All" in the registry queue.
 _RE_CATCHALL = re.compile(
-    r"^\s*(all\s+(waters|lakes|streams)|all\s+region\b|all\s+other\b)", re.I
+    r"^\s*(all\s+(waters|lakes|streams)|all\s+region\b|all\s+other\b|all\s*$)", re.I
 )
 
 #: DFO tidal Areas named in a scope: "Areas 3, 4, 5, and 6", "tidal water Area 5".
@@ -225,6 +229,10 @@ def _extract_cell(td: Tag) -> Cell:
     run-on sentence; they stay available as a list.
     """
     clone = BeautifulSoup(str(td), "html.parser")
+    # Malformed source can nest whole rows inside a cell (see _expand_grid). Those
+    # rows are emitted separately, so their text must not also leak into this cell.
+    for nested in clone.find_all(["tr", "tbody", "thead", "table"]):
+        nested.decompose()
     bullets: List[str] = []
     for li in clone.find_all("li"):
         t = _norm(li.get_text(" ", strip=True))
@@ -249,6 +257,28 @@ def _extract_cell(td: Tag) -> Cell:
 # ---------------------------------------------------------------------------
 
 
+def _row_tags(body: Tag, table: Tag) -> List[Tag]:
+    """Every data `<tr>` of `table`, in document order.
+
+    NOT `find_all("tr", recursive=False)`. Measured on the 2020-04-08 Region 6 archive:
+    the table holds 202 rows but only 23 are direct children of `<tbody>` — an unclosed
+    cell tag makes html.parser nest the remaining 179 inside each other. Restricting to
+    direct children dropped 88% of that page's rules **silently**, the same failure mode
+    as the unterminated comment in Regions 4/7/5a.
+
+    Rows inside a nested `<table>` are excluded (there are none today, but a nested
+    table would otherwise be read as data), as is anything in `<thead>`.
+    """
+    out: List[Tag] = []
+    for tr in body.find_all("tr"):
+        if tr.find_parent("thead") is not None:
+            continue
+        if tr.find_parent("table") is not table:
+            continue
+        out.append(tr)
+    return out
+
+
 def _expand_grid(table: Tag) -> List[List[Optional[Cell]]]:
     """Expand `<tr>`s into a dense rectangular grid, honouring rowspan/colspan.
 
@@ -264,7 +294,7 @@ def _expand_grid(table: Tag) -> List[List[Optional[Cell]]]:
     pending: Dict[int, Tuple[Cell, int]] = {}
 
     body = table.find("tbody") or table
-    for tr in body.find_all("tr", recursive=False):
+    for tr in _row_tags(body, table):
         cells = tr.find_all(["td", "th"], recursive=False)
         if not cells:
             continue
@@ -277,6 +307,21 @@ def _expand_grid(table: Tag) -> List[List[Optional[Cell]]]:
                 grid.append([_extract_cell(cells[0])])
                 continue
 
+        # A short row with no rowspan carried in is a CONTINUATION the source forgot
+        # to mark. Measured on the 2025-03 Region 5a archive: the Quesnel Lake row
+        # carries all five columns but no `rowspan`, so the Chinook and Coho rows that
+        # follow hold only (species, dates, limits) — and left-aligning them files
+        # "Chinook" as a *waterbody*. A human reads them right-aligned, continuing the
+        # row above; so does this.
+        # The test is total SPAN, not cell count: `<td>Tlell River</td>
+        # <td colspan="4">note</td>` is two cells but already fills the width, so it is
+        # a complete row and must not be shifted right.
+        span_total = sum(max(1, min(int(td.get("colspan", 1) or 1), N_COLS)) for td in cells)
+        carry_from: Optional[List[Optional[Cell]]] = None
+        if (not pending and grid and len(grid[-1]) == N_COLS
+                and 1 < span_total < N_COLS):
+            carry_from = grid[-1]
+
         row: List[Optional[Cell]] = [None] * N_COLS
         still: Dict[int, Tuple[Cell, int]] = {}
         for col, (cell, left) in pending.items():
@@ -287,6 +332,18 @@ def _expand_grid(table: Tag) -> List[List[Optional[Cell]]]:
         pending = still
 
         col = 0
+        if carry_from is not None:
+            lead = N_COLS - span_total
+            # If the row we are carrying from was itself a note spanning the rule
+            # columns, only its water name is meaningful — carrying the note text into
+            # `specific_area` would attach prose to every continuation beneath it.
+            note_row = (len(carry_from) == N_COLS
+                        and carry_from[2] is carry_from[3] is carry_from[4]
+                        and carry_from[1] is carry_from[2])
+            for k in range(lead):
+                row[k] = Cell() if (note_row and k > 0) else carry_from[k]
+            col = lead
+
         for td in cells:
             while col < N_COLS and row[col] is not None:
                 col += 1
@@ -473,6 +530,15 @@ def parse_region(
             waters = Cell(text=_norm(sec.title.split(".", 1)[-1]),
                           bullets=waters.bullets, links=waters.links)
 
+        # A trailing cell that spans species+dates+limits is a NOTE on the water, not
+        # a rule: `<td>Tlell River</td><td colspan="4">Anglers should note …</td>`.
+        # `_expand_grid` puts the *same* Cell object in each spanned column, so identity
+        # is the test. Read as a rule it produces a phantom whose species, dates and
+        # limits are all one sentence of prose.
+        if species is dates is limits and species.text:
+            _note(f"{waters.text}: {species.text}" if waters.text else species.text)
+            continue
+
         if not (species.text or dates.text or limits.text):
             joined = " ".join(c.text for c in grid_row if c.text)
             if joined and not _crossref(joined):
@@ -486,10 +552,14 @@ def parse_region(
                 see = _norm(m.group("target"))
 
         scope_text = waters.text or area.text or ""
+        # A bare "All" in Waters says nothing on its own — the scope is in the next
+        # column, and that is what the Area numbers and MU references live in.
+        if _RE_CATCHALL.match(waters.text or "") and area.text:
+            scope_text = area.text
         areas = _areas_in(scope_text)
         if current and current.letter == "A":
             precedence = 0
-        elif _RE_CATCHALL.match(scope_text):
+        elif _RE_CATCHALL.match(waters.text or "") or _RE_CATCHALL.match(scope_text):
             # A catch-all that names tidal Areas is narrower than the section-wide
             # one it sits under — section E stacks both.
             precedence = 2 if areas else 1

@@ -1,0 +1,847 @@
+{
+  "region": "5b",
+  "region_number": 5,
+  "region_name": "Cariboo Part B, Coastal Watershed",
+  "structure": {
+    "sections": [],
+    "n_locations": 9,
+    "n_waters": 8,
+    "n_defaults": 1,
+    "precedences": [
+      "section"
+    ]
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "5b:atnarko-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Atnarko River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:17209"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5b:bella-coola-river-not-including-atnarko-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Bella Coola River (not including Atnarko River)",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:11611"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5b:chuckwalla-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Chuckwalla River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:31700"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5b:dean-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Dean River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:16075"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5b:docee-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Docee River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wsc:910-020688"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5b:kilbella-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Kilbella River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:2271"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "5b:long-lake",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Long Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329462886"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: the Smith Inlet Long Lake (GNIS 31514, 2134 ha), confirmed by the Docee River (blk 360877652) which touches it at 0.0 m and is the next water in the same DFO section. Region 5 has FIVE gazetted Long Lakes (gnis 17503/17508/17509/17513/31514), one per MU, so name+region does NOT identify this water for the PROVINCE — which is exactly why this entry is tagged source=dfo. DFO region 5 names only one Long Lake.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "bound",
+      "resolution_reason": "curator-confirmed 2026-09-01",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": "Smith Inlet Long Lake (GNIS 31514). Answer now lives in overrides.json as a source=dfo entry, so it survives a re-match and cannot reach the province."
+    },
+    {
+      "water_id": "5b:wannock-river",
+      "region": "5b",
+      "region_number": 5,
+      "name": "Wannock River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:3161"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "5b:region:section",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "section_default",
+      "precedence": 1,
+      "water": "",
+      "water_id": null,
+      "aliases": [],
+      "section": "region",
+      "section_history": [
+        "region"
+      ],
+      "inherits": [],
+      "fingerprints": [
+        "a99637e62e7295d7"
+      ],
+      "source_text": {
+        "waters": "",
+        "specific_area": "All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B, unless otherwise stated below (i.e. Region 5 not including the Fraser River watershed).",
+        "landmarks": [
+          "aggregate",
+          "all",
+          "combined",
+          "fraser",
+          "lakes",
+          "management",
+          "not",
+          "otherwise",
+          "part",
+          "region",
+          "stated",
+          "streams",
+          "thereof",
+          "total",
+          "units",
+          "unless",
+          "watershed"
+        ],
+        "op": "described",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:atnarko-river:whole",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Atnarko River",
+      "water_id": "5b:atnarko-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3ba0bea40207b139"
+      ],
+      "source_text": {
+        "waters": "Atnarko River",
+        "specific_area": "",
+        "landmarks": [
+          "atnarko"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:atnarko-river:downstream-of-the-fishing-boundary",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Atnarko River",
+      "water_id": "5b:atnarko-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d6fe5f612f53505d"
+      ],
+      "source_text": {
+        "waters": "Atnarko River",
+        "specific_area": "downstream of the fishing boundary sign located near Tweedsmuir Park Lodge.",
+        "landmarks": [
+          "atnarko",
+          "lodge",
+          "near",
+          "park",
+          "tweedsmuir"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:bella-coola-river-not-including-at:whole",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Bella Coola River (not including Atnarko River)",
+      "water_id": "5b:bella-coola-river-not-including-atnarko-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "78649faea4ec7520"
+      ],
+      "source_text": {
+        "waters": "Bella Coola River (not including Atnarko River)",
+        "specific_area": "",
+        "landmarks": [
+          "atnarko",
+          "bella",
+          "coola",
+          "not"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:bella-coola-river-not-including-at:all-tributaries-to-the-bella-coola",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Bella Coola River (not including Atnarko River)",
+      "water_id": "5b:bella-coola-river-not-including-atnarko-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "f3a6e363e6d41f12"
+      ],
+      "source_text": {
+        "waters": "Bella Coola River (not including Atnarko River)",
+        "specific_area": "All tributaries to the Bella Coola River.",
+        "landmarks": [
+          "all",
+          "atnarko",
+          "bella",
+          "coola",
+          "not"
+        ],
+        "op": "tributary_set",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:chuckwalla-river:whole",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chuckwalla River",
+      "water_id": "5b:chuckwalla-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1fe50aabdcaa7952"
+      ],
+      "source_text": {
+        "waters": "Chuckwalla River",
+        "specific_area": "",
+        "landmarks": [
+          "chuckwalla"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:dean-river:from-the-confluence-with-crag-cree",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Dean River",
+      "water_id": "5b:dean-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "639259be50c7344d"
+      ],
+      "source_text": {
+        "waters": "Dean River",
+        "specific_area": "from the confluence with Crag Creek downstream to the tidal boundary, except for the canyon as listed below.",
+        "landmarks": [
+          "canyon",
+          "confluence",
+          "crag",
+          "dean",
+          "except",
+          "for",
+          "listed",
+          "tidal",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "tidal_boundary"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:dean-river:from-signs-located-approx-500-m-up",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Dean River",
+      "water_id": "5b:dean-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3d0ed716e7f9e2d8"
+      ],
+      "source_text": {
+        "waters": "Dean River",
+        "specific_area": "from signs located approximately 500 m upstream of the canyon to signs located approximately 100 m below the canyon.",
+        "landmarks": [
+          "100",
+          "500",
+          "canyon",
+          "dean"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "natural_feature"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:dean-river:upstream-of-the-confluence-with-cr",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Dean River",
+      "water_id": "5b:dean-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "941d0a7825c8bc4c"
+      ],
+      "source_text": {
+        "waters": "Dean River",
+        "specific_area": "upstream of the confluence with Crag Creek.",
+        "landmarks": [
+          "confluence",
+          "crag",
+          "dean",
+          "with"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:docee-river:whole",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Docee River",
+      "water_id": "5b:docee-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1755d6c1e2675970"
+      ],
+      "source_text": {
+        "waters": "Docee River",
+        "specific_area": "",
+        "landmarks": [
+          "docee"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:kilbella-river:whole",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Kilbella River",
+      "water_id": "5b:kilbella-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d4902614b1498bcd"
+      ],
+      "source_text": {
+        "waters": "Kilbella River",
+        "specific_area": "",
+        "landmarks": [
+          "kilbella"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:long-lake:including-tributaries",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Long Lake",
+      "water_id": "5b:long-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "5467460a6f450eb9"
+      ],
+      "source_text": {
+        "waters": "Long Lake",
+        "specific_area": "Including tributaries",
+        "landmarks": [
+          "long"
+        ],
+        "op": "tributaries_only",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "5b:wannock-river:whole",
+      "region": "5b",
+      "region_number": 5,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Wannock River",
+      "water_id": "5b:wannock-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "68653c4654626c35"
+      ],
+      "source_text": {
+        "waters": "Wannock River",
+        "specific_area": "",
+        "landmarks": [
+          "wannock"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

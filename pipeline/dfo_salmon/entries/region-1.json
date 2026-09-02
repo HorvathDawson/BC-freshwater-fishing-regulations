@@ -1,0 +1,4998 @@
+{
+  "region": "1",
+  "region_number": 1,
+  "region_name": "Vancouver Island",
+  "structure": {
+    "sections": [],
+    "n_locations": 27,
+    "n_waters": 27,
+    "n_defaults": 0,
+    "precedences": []
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "1:campbell-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Campbell River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39532"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 1",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:cayeghle-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Cayeghle River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:30524",
+        "gnis:30061"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:chemainus-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Chemainus River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39267"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:cluxewe-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Cluxewe River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:30049"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:comox-lake",
+      "region": "1",
+      "region_number": 1,
+      "name": "Comox Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329095500"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:conuma-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Conuma River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:19329"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:courtenay-river-the-waters-below-the-confluence",
+      "region": "1",
+      "region_number": 1,
+      "name": "Courtenay River (the waters below the confluence of the Puntledge and Tsolum Rivers)",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:12206"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:cowichan-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Cowichan River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:12227"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Matched via base name: COWICHAN RIVER",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:goldstream-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Goldstream River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:2521"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 1",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:koksilah-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Koksilah River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:14076"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:little-qualicum-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Little Qualicum River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:10886"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:nahwitti-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Nahwitti River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:29435"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:nanaimo-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Nanaimo River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:16505"
+      ],
+      "tributaries": true,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:nitinat-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Nitinat River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:23318"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:puntledge-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Puntledge River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:27060"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:qualicum-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Qualicum River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:27804"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:quatse-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Quatse River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:32101"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:quinsam-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Quinsam River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:27883"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:reay-creek",
+      "region": "1",
+      "region_number": 1,
+      "name": "Reay Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:28815"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:san-juan-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "San Juan River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:21201"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:seymour-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Seymour River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:31917"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 1",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:shawnigan-creek",
+      "region": "1",
+      "region_number": 1,
+      "name": "Shawnigan Creek",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:22077"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:somass-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Somass River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:25707"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:somass-river-tributaries",
+      "region": "1",
+      "region_number": 1,
+      "name": "Somass River tributaries",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:25707"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: a tributaries-only ROW on a parent that already has its own row. It binds the MAINSTEM item (Somass River, gnis:25707, wsc 930-139262, MU 1-7) — the tributary-only scope is a fact about the RULES, expressed on the entry, not about which water the row is. Deliberately NOT a name_variants entry: 'Somass River Tributaries' is a row label, not a name for the water, and making it searchable would put a non-name into the gazetteer. The row's single locator is whole_water with no anchors, so no split is needed.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:sproat-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Sproat River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:25640"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:stamp-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Stamp River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:14533"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:stamp-river-tributaries",
+      "region": "1",
+      "region_number": 1,
+      "name": "Stamp River tributaries",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:14533"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: a tributaries-only ROW on a parent that already has its own row. It binds the MAINSTEM item (Stamp River, gnis:14533, wsc 930-139262-993282, MU 1-7) — the tributary-only scope is a fact about the RULES, expressed on the entry, not about which water the row is. Deliberately NOT a name_variants entry: 'Stamp River Tributaries' is a row label, not a name for the water, and making it searchable would put a non-name into the gazetteer. The row's single locator is whole_water with no anchors, so no split is needed.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:tsitika-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Tsitika River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:5379"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:washlawlis-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Washlawlis River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:30610"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:waukwaas-river",
+      "region": "1",
+      "region_number": 1,
+      "name": "Waukwaas River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:30617"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "1:adam-and-eve-rivers",
+      "region": "1",
+      "region_number": 1,
+      "name": "Adam and Eve Rivers",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:28136",
+        "gnis:31112"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "DFO salmon: one row, TWO registry items — Adam River (gnis:28136) and Eve River (gnis:31112), the Eve flowing into the Adam. DFO regulates them together (4 pink/day, Aug 25-Sep 30, FN0905) while the provincial synopsis regulates them apart, as 'ADAM RIVER (except Eve River)' and 'EVE RIVER' — different name strings, so this cannot reach either row even before the source=dfo tag.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "1:campbell-river:from-a-fishing-boundary-sign-at-th",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Campbell River",
+      "water_id": "1:campbell-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "cfd35a4e53841399"
+      ],
+      "source_text": {
+        "waters": "Campbell River",
+        "specific_area": "from a fishing boundary sign at the end of Maple Street downstream to the fishing boundary sign at the cement block.",
+        "landmarks": [
+          "block",
+          "campbell",
+          "cement",
+          "end",
+          "maple",
+          "street"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:campbell-river:downstream-of-the-confluence-with",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Campbell River",
+      "water_id": "1:campbell-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c5f6913988e909fc"
+      ],
+      "source_text": {
+        "waters": "Campbell River",
+        "specific_area": "downstream of the confluence with the Quinsam River",
+        "landmarks": [
+          "campbell",
+          "confluence",
+          "quinsam",
+          "with"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:campbell-river:downstream-of-the-confluence-with~2",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Campbell River",
+      "water_id": "1:campbell-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1ec973bc4feb84c6"
+      ],
+      "source_text": {
+        "waters": "Campbell River",
+        "specific_area": "downstream of the confluence with the Quinsam River to the fishing boundary sign at the end of Maple Street.",
+        "landmarks": [
+          "campbell",
+          "confluence",
+          "end",
+          "maple",
+          "quinsam",
+          "street",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "boundary_sign",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cayeghle-river:including-colonial-river",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cayeghle River",
+      "water_id": "1:cayeghle-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "27c9c8dd9a28ef84"
+      ],
+      "source_text": {
+        "waters": "Cayeghle River",
+        "specific_area": "including Colonial River.",
+        "landmarks": [
+          "cayeghle",
+          "colonial"
+        ],
+        "op": "described",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:chemainus-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Chemainus River",
+      "water_id": "1:chemainus-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "28c4fda80f29aa36"
+      ],
+      "source_text": {
+        "waters": "Chemainus River",
+        "specific_area": "",
+        "landmarks": [
+          "chemainus"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cluxewe-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cluxewe River",
+      "water_id": "1:cluxewe-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "48a3ccd8efac6606"
+      ],
+      "source_text": {
+        "waters": "Cluxewe River",
+        "specific_area": "",
+        "landmarks": [
+          "cluxewe"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:comox-lake:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Comox Lake",
+      "water_id": "1:comox-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "460099fe19e2f117"
+      ],
+      "source_text": {
+        "waters": "Comox Lake",
+        "specific_area": "",
+        "landmarks": [
+          "comox"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:conuma-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Conuma River",
+      "water_id": "1:conuma-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "8a4ccdbde0820e6a"
+      ],
+      "source_text": {
+        "waters": "Conuma River",
+        "specific_area": "",
+        "landmarks": [
+          "conuma"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:courtenay-river-the-waters-below-t:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Courtenay River (the waters below the confluence of the Puntledge and Tsolum Rivers)",
+      "water_id": "1:courtenay-river-the-waters-below-the-confluence",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "94ce7ace997702ac"
+      ],
+      "source_text": {
+        "waters": "Courtenay River (the waters below the confluence of the Puntledge and Tsolum Rivers)",
+        "specific_area": "",
+        "landmarks": [
+          "confluence",
+          "courtenay",
+          "puntledge",
+          "rivers",
+          "tsolum"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cowichan-river:including-tributaries-and-cowichan",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cowichan River",
+      "water_id": "1:cowichan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a7eef85fd49a28c8"
+      ],
+      "source_text": {
+        "waters": "Cowichan River",
+        "specific_area": "including tributaries and Cowichan Lake.",
+        "landmarks": [
+          "cowichan"
+        ],
+        "op": "described",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cowichan-river:from-66-mile-trestle-downstream-to",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cowichan River",
+      "water_id": "1:cowichan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b252a76bd2ec2e89"
+      ],
+      "source_text": {
+        "waters": "Cowichan River",
+        "specific_area": "from 66 Mile Trestle downstream to the white triangle boundary sign located in Sandy Pool Regional Park",
+        "landmarks": [
+          "cowichan",
+          "mile",
+          "park",
+          "pool",
+          "regional",
+          "sandy",
+          "trestle",
+          "triangle"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cowichan-river:from-the-white-triangle-boundary-s",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cowichan River",
+      "water_id": "1:cowichan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "67a8c7d30cf882ad"
+      ],
+      "source_text": {
+        "waters": "Cowichan River",
+        "specific_area": "from the white triangle boundary sign located in Sandy Pool Regional Park, downstream to the tidal boundary.",
+        "landmarks": [
+          "cowichan",
+          "park",
+          "pool",
+          "regional",
+          "sandy",
+          "tidal",
+          "triangle"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "place_name",
+          "tidal_boundary"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cowichan-river:downstream-of-the-weir-on-cowichan",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cowichan River",
+      "water_id": "1:cowichan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1de2f8cda4cacbe1"
+      ],
+      "source_text": {
+        "waters": "Cowichan River",
+        "specific_area": "downstream of the weir on Cowichan Lake to 66 Mile Trestle.",
+        "landmarks": [
+          "cowichan",
+          "mile",
+          "trestle",
+          "weir"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "confluence",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:goldstream-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Goldstream River",
+      "water_id": "1:goldstream-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "96ffa7c6602e3c3e"
+      ],
+      "source_text": {
+        "waters": "Goldstream River",
+        "specific_area": "",
+        "landmarks": [
+          "goldstream"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:koksilah-river:including-tributaries",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Koksilah River",
+      "water_id": "1:koksilah-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b3487d55981e12fd"
+      ],
+      "source_text": {
+        "waters": "Koksilah River",
+        "specific_area": "including tributaries.",
+        "landmarks": [
+          "koksilah"
+        ],
+        "op": "tributaries_only",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:little-qualicum-river:all-waters-unless-indicated-below",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Little Qualicum River",
+      "water_id": "1:little-qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "131c1c08cd7ccf5f"
+      ],
+      "source_text": {
+        "waters": "Little Qualicum River",
+        "specific_area": "all waters unless indicated below",
+        "landmarks": [
+          "all",
+          "indicated",
+          "little",
+          "qualicum",
+          "unless"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:little-qualicum-river:from-the-hatchery-fence-to-signs-l",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Little Qualicum River",
+      "water_id": "1:little-qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "176698ddb42aad6f"
+      ],
+      "source_text": {
+        "waters": "Little Qualicum River",
+        "specific_area": "from the hatchery fence to signs located approximately 35 meters downstream",
+        "landmarks": [
+          "fence",
+          "hatchery",
+          "little",
+          "qualicum"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:little-qualicum-river:from-the-falls-in-little-qualicum",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Little Qualicum River",
+      "water_id": "1:little-qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c0119c65f6f39f75"
+      ],
+      "source_text": {
+        "waters": "Little Qualicum River",
+        "specific_area": "from the falls in Little Qualicum Falls Provincial Park downstream to the hatchery fence",
+        "landmarks": [
+          "falls",
+          "fence",
+          "hatchery",
+          "little",
+          "park",
+          "provincial",
+          "qualicum"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "natural_feature",
+          "place_name",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nahwitti-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nahwitti River",
+      "water_id": "1:nahwitti-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "822069a0be516bfd"
+      ],
+      "source_text": {
+        "waters": "Nahwitti River",
+        "specific_area": "",
+        "landmarks": [
+          "nahwitti"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:including-tributaries-except-in-th",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "7eab1584154609d2"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "including tributaries, except in the area described below.",
+        "landmarks": [
+          "area",
+          "described",
+          "except",
+          "nanaimo"
+        ],
+        "op": "tributaries_only",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:from-the-power-line-crossing-at-bo",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "9ff27cf304c0a8fe"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "from the power line crossing at \"Bore Hole\" upstream to the fishing boundary signs at the mouth of Boulder Creek",
+        "landmarks": [
+          "bore",
+          "boulder",
+          "crossing",
+          "hole",
+          "line",
+          "mouth",
+          "nanaimo",
+          "power"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "powerline",
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": "1:nanaimo-river:from-500-m-below-the-lower-power-l",
+      "duplicate_score": 0.924,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:cedar-road-bridge-upstream-approx",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "9d6917bab909f144"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "Cedar Road Bridge upstream approx. 400 m to the fishing boundary sign located near the Hwy 19 bridge crossing.",
+        "landmarks": [
+          "400",
+          "cedar",
+          "crossing",
+          "highway",
+          "nanaimo",
+          "near",
+          "road"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "road",
+          "bridge",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:from-the-upstream-side-of-the-ceda",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "440687aca2984551"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "from the upstream side of the Cedar Road Bridge, upstream to the downstream side of the Highway 1 overpass.",
+        "landmarks": [
+          "cedar",
+          "highway",
+          "nanaimo",
+          "overpass",
+          "road",
+          "side"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nitinat-river:upstream-of-parker-creek",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nitinat River",
+      "water_id": "1:nitinat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "837e8b1adc673069"
+      ],
+      "source_text": {
+        "waters": "Nitinat River",
+        "specific_area": "upstream of Parker Creek",
+        "landmarks": [
+          "nitinat",
+          "parker"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nitinat-river:downstream-of-parker-creek-except",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nitinat River",
+      "water_id": "1:nitinat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "823a40314b9b2f6a"
+      ],
+      "source_text": {
+        "waters": "Nitinat River",
+        "specific_area": "downstream of Parker Creek, except in the areas and times described below.",
+        "landmarks": [
+          "areas",
+          "described",
+          "except",
+          "nitinat",
+          "parker",
+          "times"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nitinat-river:nitinat-river-from-50m-upstream-to",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nitinat River",
+      "water_id": "1:nitinat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "bdcf67bcb25fb8aa"
+      ],
+      "source_text": {
+        "waters": "Nitinat River",
+        "specific_area": "Nitinat River from 50m upstream to 50m downstream of the Nitinat River bridge.",
+        "landmarks": [
+          "50m",
+          "nitinat"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nitinat-river:from-the-powerline-crossing-upstre",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nitinat River",
+      "water_id": "1:nitinat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3fbae663a67785f5"
+      ],
+      "source_text": {
+        "waters": "Nitinat River",
+        "specific_area": "from the powerline crossing upstream of the Nitinat River Hatchery water intake, downstream to the lowest point of confluence with the Little Nitinat River and then perpendicular to the flow of the Nitinat River, to the opposite shore",
+        "landmarks": [
+          "confluence",
+          "crossing",
+          "flow",
+          "hatchery",
+          "intake",
+          "little",
+          "lowest",
+          "nitinat",
+          "opposite",
+          "perpendicular",
+          "point",
+          "powerline",
+          "shore",
+          "then",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "powerline",
+          "dam_or_hatchery",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nitinat-river:between-fishing-boundary-signs-loc",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nitinat River",
+      "water_id": "1:nitinat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "cbf373c73c216927"
+      ],
+      "source_text": {
+        "waters": "Nitinat River",
+        "specific_area": "between fishing boundary signs located approximately 100m above and below Red Rock Pool.",
+        "landmarks": [
+          "100m",
+          "nitinat",
+          "pool",
+          "red",
+          "rock"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "natural_feature"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:puntledge-river:from-the-weir-at-the-lower-hatcher",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Puntledge River",
+      "water_id": "1:puntledge-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "9eb6626d3245662f"
+      ],
+      "source_text": {
+        "waters": "Puntledge River",
+        "specific_area": "from the weir at the lower hatchery to fishing boundary signs approximately 75m downstream of the weir.",
+        "landmarks": [
+          "75m",
+          "hatchery",
+          "lower",
+          "puntledge",
+          "weir"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:puntledge-river:downstream-from-a-fishing-boundary",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Puntledge River",
+      "water_id": "1:puntledge-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "03fac5121b175559"
+      ],
+      "source_text": {
+        "waters": "Puntledge River",
+        "specific_area": "downstream from a fishing boundary sign located 75m downstream of the weir at the lower hatchery (excluding the Morrison Creek closure below).",
+        "landmarks": [
+          "75m",
+          "closure",
+          "hatchery",
+          "lower",
+          "morrison",
+          "puntledge",
+          "weir"
+        ],
+        "op": "whole_water_excluding",
+        "anchor_types": [
+          "boundary_sign",
+          "dam_or_hatchery",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:puntledge-river:morrison-creek-closure-between-fis",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Puntledge River",
+      "water_id": "1:puntledge-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3ec50569c9c30708"
+      ],
+      "source_text": {
+        "waters": "Puntledge River",
+        "specific_area": "Morrison Creek closure: between fishing boundary signs located 100m upstream and downstream of the confluence with Morrison Creek.",
+        "landmarks": [
+          "100m",
+          "closure",
+          "confluence",
+          "morrison",
+          "puntledge",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:qualicum-river:those-waters-upstream-of-the-big-q",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Qualicum River",
+      "water_id": "1:qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6ff2f36d05f2a429"
+      ],
+      "source_text": {
+        "waters": "Qualicum River",
+        "specific_area": "those waters upstream of the Big Qualicum Hatchery upper weir (located approximately 125 m downstream of the E&N railway bridge).",
+        "landmarks": [
+          "125",
+          "big",
+          "hatchery",
+          "qualicum",
+          "railway",
+          "those",
+          "upper",
+          "weir"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:qualicum-river:downstream-of-the-upper-weir-locat",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Qualicum River",
+      "water_id": "1:qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "de59fdcc3bca2578"
+      ],
+      "source_text": {
+        "waters": "Qualicum River",
+        "specific_area": "downstream of the upper weir (located approximately 125 m downstream of the E&N railway bridge) to the QFN boundary fence located approximately 100 m downstream of the hatchery counting fence",
+        "landmarks": [
+          "100",
+          "125",
+          "counting",
+          "fence",
+          "hatchery",
+          "qfn",
+          "qualicum",
+          "railway",
+          "upper",
+          "weir"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:qualicum-river:waters-below-the-qfn-boundary-fenc",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Qualicum River",
+      "water_id": "1:qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "45db9a30044cd5a5"
+      ],
+      "source_text": {
+        "waters": "Qualicum River",
+        "specific_area": "waters below the QFN boundary fence, downstream to the Hwy 19A bridge",
+        "landmarks": [
+          "19a",
+          "fence",
+          "highway",
+          "qfn",
+          "qualicum"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:qualicum-river:all-open-portions-of-the-qualicum",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Qualicum River",
+      "water_id": "1:qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "45d4ed65399dde74"
+      ],
+      "source_text": {
+        "waters": "Qualicum River",
+        "specific_area": "All open portions of the Qualicum River",
+        "landmarks": [
+          "all",
+          "open",
+          "portions",
+          "qualicum"
+        ],
+        "op": "named_tributaries",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:quatse-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quatse River",
+      "water_id": "1:quatse-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "720123c66366c655"
+      ],
+      "source_text": {
+        "waters": "Quatse River",
+        "specific_area": "",
+        "landmarks": [
+          "quatse"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:quatse-river:100m-upstream-and-downstream-of-th",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quatse River",
+      "water_id": "1:quatse-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "dec1940f115944b0"
+      ],
+      "source_text": {
+        "waters": "Quatse River",
+        "specific_area": "100m upstream and downstream of the Quatse River Hatchery weir",
+        "landmarks": [
+          "100m",
+          "hatchery",
+          "quatse",
+          "weir"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "confluence",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:quinsam-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Quinsam River",
+      "water_id": "1:quinsam-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d2de2c39e2d1b32d"
+      ],
+      "source_text": {
+        "waters": "Quinsam River",
+        "specific_area": "",
+        "landmarks": [
+          "quinsam"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:reay-creek:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Reay Creek",
+      "water_id": "1:reay-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c60ccd300929f676"
+      ],
+      "source_text": {
+        "waters": "Reay Creek",
+        "specific_area": "",
+        "landmarks": [
+          "reay"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:san-juan-river:waters-of-the-san-juan-river-and-i",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "San Juan River",
+      "water_id": "1:san-juan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "83cd48f69a68c703"
+      ],
+      "source_text": {
+        "waters": "San Juan River",
+        "specific_area": "waters of the San Juan River and its tributaries downstream of the Fleet River that are open to fishing for salmon",
+        "landmarks": [
+          "are",
+          "fleet",
+          "for",
+          "its",
+          "juan",
+          "open",
+          "salmon",
+          "san",
+          "that"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:san-juan-river:that-portion-of-the-san-juan-river",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "San Juan River",
+      "water_id": "1:san-juan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "afca1aab4ec79514"
+      ],
+      "source_text": {
+        "waters": "San Juan River",
+        "specific_area": "That portion of the San Juan River from the hatchery counting fence downstream approximately 150 meters to square white boundary signs on either side of the river, and that portion of the Fairy Lake tributary approximately 5 meters downstream of the hatchery holding pens, indicated by square white boundary signs.",
+        "landmarks": [
+          "150",
+          "counting",
+          "either",
+          "fairy",
+          "fence",
+          "hatchery",
+          "holding",
+          "indicated",
+          "juan",
+          "pens",
+          "portion",
+          "san",
+          "side",
+          "square",
+          "that",
+          "tributary"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "dam_or_hatchery",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:seymour-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Seymour River",
+      "water_id": "1:seymour-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a46cc6254e96114a"
+      ],
+      "source_text": {
+        "waters": "Seymour River",
+        "specific_area": "",
+        "landmarks": [
+          "seymour"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:shawnigan-creek:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Shawnigan Creek",
+      "water_id": "1:shawnigan-creek",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "83431327e5c01de5"
+      ],
+      "source_text": {
+        "waters": "Shawnigan Creek",
+        "specific_area": "",
+        "landmarks": [
+          "shawnigan"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "7936071b8f2dc633"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "",
+        "landmarks": [
+          "somass"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:except-in-those-areas-and-times-li",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1320d05b3c8f51bb"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "Except in those areas and times listed below",
+        "landmarks": [
+          "areas",
+          "except",
+          "listed",
+          "somass",
+          "those",
+          "times"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:from-the-tidal-boundary-at-the-pap",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "39208b92f3de24d8"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "From the tidal boundary at the Papermill Dam to white triangular fishing boundary signs approximately 0.5 km upstream (Falls Road Gravel Pit and the southernmost end of Collins Farm/Arrow Vale Campground-Hector Road).",
+        "landmarks": [
+          "arrow",
+          "campground",
+          "collins",
+          "dam",
+          "end",
+          "falls",
+          "farm",
+          "gravel",
+          "hector",
+          "papermill",
+          "pit",
+          "road",
+          "somass",
+          "southernmost",
+          "tidal",
+          "vale"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "tidal_boundary",
+          "dam_or_hatchery",
+          "boundary_sign",
+          "natural_feature",
+          "road",
+          "place_name"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:that-portion-of-the-somass-river-l",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "66a94752babb1ca1"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "that portion of the Somass River located approximately 200 meters above and 150 metres below the island near the boat launch at Somass Park near Service Road.",
+        "landmarks": [
+          "150",
+          "200",
+          "boat",
+          "island",
+          "launch",
+          "near",
+          "park",
+          "portion",
+          "road",
+          "service",
+          "somass",
+          "that"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "confluence",
+          "place_name",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river-tributaries:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River tributaries",
+      "water_id": "1:somass-river-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "36fccba6652d8519"
+      ],
+      "source_text": {
+        "waters": "Somass River tributaries",
+        "specific_area": "",
+        "landmarks": [
+          "somass"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:sproat-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Sproat River",
+      "water_id": "1:sproat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "83d8dc2a10c51c26"
+      ],
+      "source_text": {
+        "waters": "Sproat River",
+        "specific_area": "",
+        "landmarks": [
+          "sproat"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:sproat-river:sproat-river-from-sproat-lake-to-f",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Sproat River",
+      "water_id": "1:sproat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "82e2b7bf07f12e22"
+      ],
+      "source_text": {
+        "waters": "Sproat River",
+        "specific_area": "Sproat River from Sproat Lake to fishing boundary signs approx. 300m downstream of Hwy 4",
+        "landmarks": [
+          "300m",
+          "highway",
+          "sproat"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "boundary_sign",
+          "road"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:except-in-those-areas-and-times-li",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "fd896cb9e1efab84"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Except in those areas and times listed below",
+        "landmarks": [
+          "areas",
+          "except",
+          "listed",
+          "stamp",
+          "those",
+          "times"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:from-the-confluence-of-the-ash-riv",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c2a800b65f28980f"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "From the confluence of the Ash River upstream to the Great Central Lake Dam",
+        "landmarks": [
+          "ash",
+          "central",
+          "confluence",
+          "dam",
+          "great",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:between-fishing-boundary-signs-app",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a7ff91bb04341bfd"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Between fishing boundary signs approximately 200m upstream of and 500m downstream of Stamp Falls",
+        "landmarks": [
+          "200m",
+          "500m",
+          "falls",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "natural_feature"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:hatchery-lagoon-from-boundary-sign",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "e37bf4449673262c"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Hatchery Lagoon - from boundary signs on either side of the Stamp River located at the inlet of the Stamp River hatchery lagoon continuing downstream approx. 250m to the cable car crossing",
+        "landmarks": [
+          "250m",
+          "cable",
+          "car",
+          "continuing",
+          "crossing",
+          "either",
+          "hatchery",
+          "inlet",
+          "lagoon",
+          "side",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "boundary_sign",
+          "confluence",
+          "lake_end"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:hatchery-lagoon-from-fishing-bound",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "faf119f69558bb37"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Hatchery Lagoon - from fishing boundary signs on either side of the Stamp River located at the inlet to the Stamp River Hatchery lagoon, downstream to the marker at the outlet of the Hatchery lagoon",
+        "landmarks": [
+          "either",
+          "hatchery",
+          "inlet",
+          "lagoon",
+          "marker",
+          "outlet",
+          "side",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "dam_or_hatchery",
+          "boundary_sign",
+          "confluence",
+          "lake_end"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:powerline-crossing-from-boundary-s",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "4c232e12a7778285"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Powerline Crossing - from boundary signs on either side of the Stamp River at the powerline crossing downstream approx. 500m to boundary signs on either side of the Stamp River located at the inlet of the Stamp River hatchery lagoon.",
+        "landmarks": [
+          "500m",
+          "crossing",
+          "either",
+          "hatchery",
+          "inlet",
+          "lagoon",
+          "powerline",
+          "side",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "powerline",
+          "boundary_sign",
+          "confluence",
+          "lake_end",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:upstream-of-signs-located-at-girl",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "f057b74fbc39be5e"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Upstream of signs located at Girl Guide Falls approximately 250m upstream of the Beaver Creek and Stamp River confluence",
+        "landmarks": [
+          "250m",
+          "beaver",
+          "confluence",
+          "falls",
+          "girl",
+          "guide",
+          "stamp"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "boundary_sign",
+          "natural_feature",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:downstream-of-signs-at-girl-guide",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "959f019c6020078f"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Downstream of signs at \"Girl Guide Falls\" approximately 250m upstream of the mouth of Beaver Creek.",
+        "landmarks": [
+          "250m",
+          "beaver",
+          "falls",
+          "girl",
+          "guide",
+          "mouth",
+          "stamp"
+        ],
+        "op": "upstream_of",
+        "anchor_types": [
+          "boundary_sign",
+          "natural_feature",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river-tributaries:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River tributaries",
+      "water_id": "1:stamp-river-tributaries",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "0798cba8f05676b6"
+      ],
+      "source_text": {
+        "waters": "Stamp River tributaries",
+        "specific_area": "",
+        "landmarks": [
+          "stamp"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:tsitika-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Tsitika River",
+      "water_id": "1:tsitika-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a2e2787ebcc8f28b"
+      ],
+      "source_text": {
+        "waters": "Tsitika River",
+        "specific_area": "",
+        "landmarks": [
+          "tsitika"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:washlawlis-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Washlawlis River",
+      "water_id": "1:washlawlis-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "2f4cc988d99fd77c"
+      ],
+      "source_text": {
+        "waters": "Washlawlis River",
+        "specific_area": "",
+        "landmarks": [
+          "washlawlis"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:waukwaas-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Waukwaas River",
+      "water_id": "1:waukwaas-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "8f563d1d48d379cd"
+      ],
+      "source_text": {
+        "waters": "Waukwaas River",
+        "specific_area": "",
+        "landmarks": [
+          "waukwaas"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:somass-river-from-the-tidal-bounda",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1c54d467f0fe8f55"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "Somass River from the tidal boundary sign at Papermill Dam on the Somass River approximately 0.5 km upstream. Boundary signs may be present to delineate these boundaries.",
+        "landmarks": [
+          "boundaries",
+          "dam",
+          "delineate",
+          "may",
+          "papermill",
+          "present",
+          "somass",
+          "these",
+          "tidal"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "tidal_boundary",
+          "boundary_sign",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cowichan-river:from-cnr-trestle-at-mile-70-2-to-s",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cowichan River",
+      "water_id": "1:cowichan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "ae7eb871747278fb"
+      ],
+      "source_text": {
+        "waters": "Cowichan River",
+        "specific_area": "from CNR Trestle at mile 70.2 to Skutz Falls",
+        "landmarks": [
+          "cnr",
+          "cowichan",
+          "falls",
+          "mile",
+          "skutz",
+          "trestle"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "bridge",
+          "natural_feature"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:little-qualicum-river:all-open-portions-of-the-little-qu",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Little Qualicum River",
+      "water_id": "1:little-qualicum-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "955f7ace81f1158e"
+      ],
+      "source_text": {
+        "waters": "Little Qualicum River",
+        "specific_area": "all open portions of the Little Qualicum River",
+        "landmarks": [
+          "all",
+          "little",
+          "open",
+          "portions",
+          "qualicum"
+        ],
+        "op": "described",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:from-the-cedar-road-bridge-crossin",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "5f1dd8f57774d026"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "from the Cedar Road Bridge crossing upstream to the Highway 19 Bridge crossing",
+        "landmarks": [
+          "cedar",
+          "crossing",
+          "highway",
+          "nanaimo",
+          "road"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:from-the-tidal-boundary-signs-at-t",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c9628f9dba86a139"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "from the tidal boundary signs at the top of the rapids at Paper Mill Dam upstream approximately 0.5km to the northeast corner of Collins Farm. Square boundary signs may be present to delineate the upstream boundary.",
+        "landmarks": [
+          "5km",
+          "collins",
+          "corner",
+          "dam",
+          "delineate",
+          "farm",
+          "may",
+          "mill",
+          "northeast",
+          "paper",
+          "present",
+          "rapids",
+          "somass",
+          "square",
+          "tidal",
+          "top"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "tidal_boundary",
+          "boundary_sign",
+          "natural_feature",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:from-the-northern-boundary-of-soma",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "e841d2b87d492449"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "from the northern boundary of Somass Park (off Service Road) downstream to the southern boundary of Somass Park. Square boundary signs may be present to delineate these boundaries.",
+        "landmarks": [
+          "boundaries",
+          "delineate",
+          "may",
+          "northern",
+          "off",
+          "park",
+          "present",
+          "road",
+          "service",
+          "somass",
+          "southern",
+          "square",
+          "these"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "place_name",
+          "road",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:sproat-river:from-sproat-lake-to-approx-300m-be",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Sproat River",
+      "water_id": "1:sproat-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "47d0e705912769b3"
+      ],
+      "source_text": {
+        "waters": "Sproat River",
+        "specific_area": "from Sproat Lake to approximately 300m below the Highway 4 bridge, at the downstream end of the pool that is below the rapids at the Sproat River Fishway. Square boundary signs may be present to delineate the downstream boundary.",
+        "landmarks": [
+          "300m",
+          "delineate",
+          "end",
+          "fishway",
+          "highway",
+          "may",
+          "pool",
+          "present",
+          "rapids",
+          "sproat",
+          "square",
+          "that"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "road",
+          "bridge",
+          "natural_feature",
+          "dam_or_hatchery",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:from-the-confluence-of-the-ash-riv~2",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "7a189def36ba2f39"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "From the confluence of the Ash River upstream to the Great Central Lake Dam, including tributaries",
+        "landmarks": [
+          "ash",
+          "central",
+          "confluence",
+          "dam",
+          "great",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": true,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:from-approx-200-m-upstream-of-the",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "411369737d53c913"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "From approximately 200 m upstream of the Stamp Falls fishway (50 downstream of site 17 in Stamp River Provincial Park) to 500 m downstream of the Stamp Falls fishway (225m downstream of the confluence of Deer Creek). Square boundary signs may be present to delineate these boundaries.",
+        "landmarks": [
+          "200",
+          "225m",
+          "500",
+          "boundaries",
+          "confluence",
+          "deer",
+          "delineate",
+          "falls",
+          "fishway",
+          "may",
+          "park",
+          "present",
+          "provincial",
+          "site",
+          "square",
+          "stamp",
+          "these"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "natural_feature",
+          "dam_or_hatchery",
+          "place_name",
+          "confluence",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:from-the-inlet-upstream-of-roberst",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "b12878bc3d5c55b1"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "From the inlet upstream of Roberston Creek Hatchery Lagoon downstream to the outlet of the Hatchery lagoon. Square boundary signs may be present to delineate these boundaries.",
+        "landmarks": [
+          "boundaries",
+          "delineate",
+          "hatchery",
+          "inlet",
+          "lagoon",
+          "may",
+          "outlet",
+          "present",
+          "roberston",
+          "square",
+          "stamp",
+          "these"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "lake_end",
+          "confluence",
+          "dam_or_hatchery",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:from-the-powerline-crossing-downst",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3d8b6bad092b6b82"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "From the powerline crossing downstream approximately 500m to the inlet of Roberston Creek Hatchery Lagoon. Square boundary signs may be present to delineate the downstream boundary.",
+        "landmarks": [
+          "500m",
+          "crossing",
+          "delineate",
+          "hatchery",
+          "inlet",
+          "lagoon",
+          "may",
+          "powerline",
+          "present",
+          "roberston",
+          "square",
+          "stamp"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "powerline",
+          "lake_end",
+          "confluence",
+          "dam_or_hatchery",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:stamp-river-downstream-of-girl-gui",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "1edbc8ba29114252"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "Stamp River downstream of “Girl Guide Falls” (approximately 275 m upstream of the mouth of Beaver Creek). Triangle sport fishing boundary signs may be present to delineate the upstream boundary.",
+        "landmarks": [
+          "275",
+          "beaver",
+          "delineate",
+          "falls",
+          "girl",
+          "guide",
+          "may",
+          "mouth",
+          "present",
+          "sport",
+          "stamp",
+          "triangle"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "natural_feature",
+          "confluence",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:puntledge-river:from-signs-located-50m-upstream-of",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Puntledge River",
+      "water_id": "1:puntledge-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "ce32a229bcfa3c5d"
+      ],
+      "source_text": {
+        "waters": "Puntledge River",
+        "specific_area": "From signs located 50m upstream of the BC Hydro generating station tailrace to signs located 75m downstream of the Puntledge River hatchery fish fence (total distance approx. 500m)",
+        "landmarks": [
+          "500m",
+          "50m",
+          "75m",
+          "distance",
+          "fence",
+          "fish",
+          "generating",
+          "hatchery",
+          "hydro",
+          "puntledge",
+          "station",
+          "tailrace",
+          "total"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "dam_or_hatchery",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:puntledge-river:downstream-from-the-base-of-stotan",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Puntledge River",
+      "water_id": "1:puntledge-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "eeca09c3455e5d86"
+      ],
+      "source_text": {
+        "waters": "Puntledge River",
+        "specific_area": "downstream from the base of Stotan Falls (approximately 450 m downstream of the Duncan Bay Mainline logging road bridge)",
+        "landmarks": [
+          "450",
+          "base",
+          "bay",
+          "duncan",
+          "falls",
+          "logging",
+          "mainline",
+          "puntledge",
+          "road",
+          "stotan"
+        ],
+        "op": "downstream_of",
+        "anchor_types": [
+          "natural_feature",
+          "road",
+          "bridge"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:stamp-river:from-the-southern-portion-of-the-r",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Stamp River",
+      "water_id": "1:stamp-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "cf27fbe7c76d133d"
+      ],
+      "source_text": {
+        "waters": "Stamp River",
+        "specific_area": "From the southern portion of the Robertson Creek Hatchery Lagoon, east of a line drawn from the southern shoreline at the inlet to the Hatchery Lagoon to the northern shoreline at the inlet to the Hatchery Lagoon, then south of a line drawn from the northern shoreline at the inlet to the Hatchery Lagoon to the northern shoreline at the outlet to the Hatchery Lagoon, then west of a line drawn from the northern shoreline at the outlet to the Hatchery Lagoon to the southern shoreline at the outlet to the Hatchery Lagoon. Square boundary signs may be present to delineate these boundaries.",
+        "landmarks": [
+          "boundaries",
+          "delineate",
+          "drawn",
+          "east",
+          "hatchery",
+          "inlet",
+          "lagoon",
+          "line",
+          "may",
+          "northern",
+          "outlet",
+          "portion",
+          "present",
+          "robertson",
+          "shoreline",
+          "south",
+          "southern",
+          "square",
+          "stamp",
+          "then",
+          "these",
+          "west"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "dam_or_hatchery",
+          "lake_end",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:cowichan-river:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Cowichan River",
+      "water_id": "1:cowichan-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "6e5519e0ab608e13"
+      ],
+      "source_text": {
+        "waters": "Cowichan River",
+        "specific_area": "",
+        "landmarks": [
+          "cowichan"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:nanaimo-river:from-500-m-below-the-lower-power-l",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Nanaimo River",
+      "water_id": "1:nanaimo-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "7100fcf0c848c7e1"
+      ],
+      "source_text": {
+        "waters": "Nanaimo River",
+        "specific_area": "from 500 meters below the lower power line crossing at \"Bore Hole\" upstream to the fishing boundary signs at the mouth of Boulder Creek",
+        "landmarks": [
+          "500",
+          "bore",
+          "boulder",
+          "crossing",
+          "hole",
+          "line",
+          "lower",
+          "mouth",
+          "nanaimo",
+          "power"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "powerline",
+          "boundary_sign",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:somass-river:from-the-eastern-boundary-of-west",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Somass River",
+      "water_id": "1:somass-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "446a267a2373ee73"
+      ],
+      "source_text": {
+        "waters": "Somass River",
+        "specific_area": "from the eastern boundary of West Coast River Lodge on Rincon Road downstream to the northeast corner of Collins Farm, approximately 0.5km upstream from the tidal boundary signs at the top of the rapids at Paper Mill Dam. Square boundary signs may be present to delineate these boundaries.",
+        "landmarks": [
+          "5km",
+          "boundaries",
+          "coast",
+          "collins",
+          "corner",
+          "dam",
+          "delineate",
+          "eastern",
+          "farm",
+          "lodge",
+          "may",
+          "mill",
+          "northeast",
+          "paper",
+          "present",
+          "rapids",
+          "rincon",
+          "road",
+          "somass",
+          "square",
+          "these",
+          "tidal",
+          "top",
+          "west"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "place_name",
+          "road",
+          "tidal_boundary",
+          "boundary_sign",
+          "natural_feature",
+          "dam_or_hatchery"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "1:adam-and-eve-rivers:whole",
+      "region": "1",
+      "region_number": 1,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Adam and Eve Rivers",
+      "water_id": "1:adam-and-eve-rivers",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "c0ba828a7869f19b"
+      ],
+      "source_text": {
+        "waters": "Adam and Eve Rivers",
+        "specific_area": "",
+        "landmarks": [
+          "adam",
+          "eve",
+          "rivers"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

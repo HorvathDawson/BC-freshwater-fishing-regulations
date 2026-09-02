@@ -72301,5 +72301,329 @@
     "display": true
    }
   ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-999299"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Rainy Creek",
+    "source": "dfo",
+    "display": true,
+    "note": "DFO Region 6 scope E regulates 'Rainy Creek' (chinook + coho closure Aug 15-Mar 31), but FWA leaves this stream UNNAMED — gnis_id and display_name are blank on both segments — so the registry minted no item and the DFO name matched two unrelated Kootenay creeks 1,000 km away (gnis:28698 MU 4-8, gnis:28700 MU 4-5). wsc 910-999299 (= blk 360864904), 3.75 km at 55.954/-130.00 near Portland Canal, fitting its scope-E neighbours (Kitsault, Kwinimass, Kincolith). Targeted by WSC, not blk, so this and the matcher override that pins it (overrides.json, RAINY CREEK / REGION 6) key on the SAME FWA id. Exact-wsc is the right scope: it names these 2 mainstem segments and none of the 24 tributary codes under 910-999299-*. STREAM ONLY — the creek runs through an unnamed lake (wbk:329248744) which is deliberately NOT named here. Identified from Salmon Explorer (rainy-creek-6331); Rainey Creek campground adjacent."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-020688"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Docee River",
+    "source": "dfo",
+    "display": true,
+    "note": "DFO Region 5b regulates the 'Docee River' (no fishing for salmon, all year), but FWA leaves it UNNAMED — gnis_id and display_name blank on both segments. wsc 910-020688 (= blk 360877652), 0.60 km at 51.233/-127.338: the short river draining Long Lake (wbk:329462886) to Smith Inlet, which it touches at 0.0 m. FWA's own location identifier reads 'between lake 329462887 and Long Lake'. Exact-wsc scope: names these 2 mainstem segments and none of the 800 tributary codes under 910-020688-*. STREAM ONLY."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329292631"
+   ]
+  },
+  "names": [
+   {
+    "name": "Alouette River",
+    "source": "override",
+    "display": true,
+    "note": "FWA labels this river polygon 'South Alouette River', but it IS the Alouette — its own through_rivers field says 'Alouette River', and the provincial synopsis row 'SOUTH ALOUETTE RIVER' is already overridden onto the Alouette mainstem (gnis:9630). Display as Alouette River; the gazetted name stays searchable below."
+   },
+   {
+    "name": "South Alouette River",
+    "source": "alias",
+    "display": false,
+    "note": "FWA gazetted name, kept searchable — never the display name."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "950-071751"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Braverman River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 scope D regulates 'Braverman River' (coho, 4/day only 1 over 50 cm, Apr 1-Oct 31). FWA gazettes it 'Braverman Creek' (gnis:33276, wsc 950-071751, MU 6-12, Moresby I. @ 53.008/-132.025) — the only Braverman in the province, and in the same MU as its scope-D neighbours Pallant Creek and Yakoun River. The matcher SAW this ('River' -> 'Creek' is on its retry ladder) but only ever writes an exact hit, because that class of retry once bound Yakoun River to Yakoun Lake. display:false — 'Braverman Creek' stays the gazetted label."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "930-844739"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cayeghle River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 1 regulates 'Cayeghle River' (coho 1/day, Apr 1-Mar 31, the Cayeghle row reading 'including Colonial River'). FWA gazettes it 'Cayeghle Creek' — a generic mismatch, not a different water. display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "930-844739-151593"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Colonial River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 1 regulates 'Colonial River' (coho 1/day, Apr 1-Mar 31, the Cayeghle row reading 'including Colonial River'). FWA gazettes it 'Colonial Creek' — a generic mismatch, not a different water. display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-618922-015487"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Wahoo River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 scope E name for 'Wahoo Creek' — a River/Creek generic swap. display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-688826"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Giltoyees Creek",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 scope E name for 'Gilttoyees Creek' — a one-letter spelling difference (DFO drops a t). display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-537261"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Khutze",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 scope E name for 'Khutze River' — DFO drops the generic entirely. display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "930-869842"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Washlawlis River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 1 name for 'Washlawlis Creek' — a River/Creek generic swap. display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "930-868633"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Waukwaas River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 1 name for 'Waukwaas Creek' — a River/Creek generic swap. display:false so the gazetted label stands."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-891193"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Kwinimass River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO's spelling of the water FWA gazettes as \"Ksi X'anmas\" and keeps the colonial variant 'KWINAMASS RIVER' for. DFO writes KwinImass, FWA KwinAmass — one vowel apart, so the existing variant does not match. display:false: the Nisga'a name is and stays the label."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "-1"
+   ]
+  },
+  "names": [
+   {
+    "name": "Redsand Lake",
+    "source": "dfo",
+    "display": true,
+    "note": "The curated non-FWA lake polygon (pipeline/added_lakes.geojson, wbk -1, gnis -9000001) on the Kitsumkalum River between Treston Lake and Kitsumkalum Lake. DFO Region 6 scope B(ii) regulates it by name and FWA has no polygon for it, so nothing named this water at all. display:true — there is no gazetted label to defer to."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "100-066153-027062"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Inch Creek",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 2 regulates 'Inch Creek' from the hatchery outlet to the confluence with Norrish Creek/Nicomen Slough. FWA gazettes it 'Inches Creek' (gnis:9809, MU 2-8) — DFO drops the plural. A second 'Inches Creek' exists (gnis:9812) but it is MU 8-23 in the Shuswap, so region narrowing settles it. The matcher's own suggestions were Pinch/Minch/Finch Creek at ratio 0.952, all wrong waters — which is why the retry ladder is never applied. display:false so the gazetted name stands. kinds=stream so the name cannot land on a lake threaded by this wsc."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "500-026561"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Iknouk River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 name for the water FWA gazettes as 'Xnukw' (gnis:36595). Another Nisga'a renaming, like Kwinimass -> Ksi X'anmas and Kincolith -> Ksi Gingolx. MU 6-14, the Nass — which is exactly DFO scope C ('Nass River Watershed'), alongside Cranberry, Ishkheenickh and Kiteen. Confirms the matcher's own suggestion, 'kaouk river' at spelling ratio 0.87, was the wrong water entirely: that one is MU 1-12 on Vancouver Island, 550 km away. display:false so the gazetted name stands; kinds=stream so it cannot land on a lake threaded by this wsc."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "500-000580"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Kincolith River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 name for the water FWA gazettes as 'Ksi Gingolx' (gnis:7071). Kincolith is the colonial name of Gingolx; the river is gazetted Ksi Gingolx ('waters of Gingolx'). 'kincolith' returns ZERO registry items, 'gingolx' exactly one. MU 6-14, the Nass. The reach ('upstream of white triangular fishing boundary signs located at the Kincolith River Bridge') binds to the curated split ksi_gingolx__kincolith_river_bridge. display:false so the gazetted name stands; kinds=stream so it cannot land on a lake threaded by this wsc."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "910-640873"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Weeanie River",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO Region 6 name for the water FWA gazettes as 'Weewanie Creek' (gnis:3765). DFO drops a 'w': Weeanie vs the gazetted Weewanie Creek (gnis:3765, MU 6-3, 22.4 km on Gardner Canal at 53.724/-128.668). Fits its scope-E neighbours Wahoo Creek (also MU 6-3) and Kitlope, both Gardner Canal waters. Curator-supplied blk 360878391 / wsc 910-640873. display:false so the gazetted name stands; kinds=stream so it cannot land on a lake threaded by this wsc."
+   }
+  ]
+ },
+ {
+  "target": {
+   "wscs": [
+    "100-025956-070515-998174"
+   ],
+   "kinds": [
+    "stream"
+   ]
+  },
+  "names": [
+   {
+    "name": "Cedar Creek",
+    "source": "dfo",
+    "display": false,
+    "note": "DFO r2 De Boville Slough: 'downstream of the confluence of Cedar Creek and Hyde Creek.' FWA gazettes this line 'Partington Creek' (blk 356229226, wsc 100-025956-070515-998174, Port Coquitlam). A name lookup for 'Cedar Creek' returns gnis:11727 in the Okanagan (MU 8-2, 49.311/-119.867) — a collision 400 km away. Curator-supplied blk. Cedar and Hyde meet the slough 3 m apart at its head (2,638 m and 2,635 m along its 2,643 m length), so the rule is effectively the whole slough and the existing de_boville_slough__hyde_creek_into_de_boville_slough cut expresses it. display:false so the gazetted name stands."
+   }
+  ]
  }
 ]

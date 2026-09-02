@@ -6,15 +6,10 @@
       "region": "REGION 1 - Vancouver Island",
       "mus": []
     },
-    "skip": true,
-    "skip_reason": "In-season name correction: Heber Creek is Heber River",
-    "variant_of": {
-      "name_verbatim": "HEBER RIVER",
-      "region": "REGION 1 - Vancouver Island",
-      "mus": [
-        "1-9"
-      ]
-    }
+    "gnis_ids": [
+      "20215"
+    ],
+    "note": "HEBER CREEK is a name variant of HEBER RIVER — the same water. [was skip+variant_of; converted to a direct id]"
   },
   {
     "type": "override",
@@ -4526,9 +4521,8 @@
         "4-32"
       ]
     },
-    "note": "Regulation refers to Upper/Lower Arrow Lake details",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "No registry item for this name. ignored",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4537,10 +4531,9 @@
       "region": "REGION 4 - Kootenay",
       "mus": []
     },
-    "note": "Likely covered by Upper/Lower tributaries",
-    "skip": true,
-    "skip_reason": "ignored",
-    "canonical_name": "Arrow Lakes"
+    "note": "No registry item for this name. ignored",
+    "canonical_name": "Arrow Lakes",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4551,9 +4544,8 @@
         "4-8"
       ]
     },
-    "note": "Dammed portion of Pend d'Oreille River - uses same regulations as Pend d'Oreille River. This may change in future. Polygons are in unnamed manmade lakes.",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Dammed portion of Pend d'Oreille River - uses same regulations as Pend d'Oreille River. This may change in future. Polygons are in unnamed manmade lakes.  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4564,10 +4556,9 @@
         "4-8"
       ]
     },
-    "note": "Covered by Pend d'Oreille River tributary regulations",
-    "skip": true,
-    "skip_reason": "ignored",
-    "canonical_name": "Seven Mile Reservoir"
+    "note": "No registry item for this name. ignored",
+    "canonical_name": "Seven Mile Reservoir",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4578,9 +4569,8 @@
         "4-8"
       ]
     },
-    "note": "Dammed portion of Pend d'Oreille River - uses same regulations as Pend d'Oreille River. This may change in future. Polygons are in unnamed manmade lakes.",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Dammed portion of Pend d'Oreille River - uses same regulations as Pend d'Oreille River. This may change in future. Polygons are in unnamed manmade lakes.  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4591,10 +4581,9 @@
         "4-8"
       ]
     },
-    "note": "Covered by Pend d'Oreille River tributary regulations",
-    "skip": true,
-    "skip_reason": "ignored",
-    "canonical_name": "Waneta Reservoir"
+    "note": "No registry item for this name. ignored",
+    "canonical_name": "Waneta Reservoir",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4605,9 +4594,8 @@
         "6-1"
       ]
     },
-    "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4618,9 +4606,8 @@
         "6-1"
       ]
     },
-    "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4631,9 +4618,8 @@
         "6-1"
       ]
     },
-    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 18842)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 18842)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4644,9 +4630,8 @@
         "6-1"
       ]
     },
-    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 13318)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 13318)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4657,9 +4642,8 @@
         "6-1"
       ]
     },
-    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 16467)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 16467)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4670,9 +4654,8 @@
         "6-1"
       ]
     },
-    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 20981)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Duplicate entry - already covered in Region 6 (MU 6-1, GNIS 20981)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4683,9 +4666,8 @@
         "5-15"
       ]
     },
-    "note": "Searched but only found in Region 7 (MU 7-42, GNIS 38145, waterbody_key 329423854), not Region 5 (regulation MU 5-15). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-15.",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Searched but only found in Region 7 (MU 7-42, GNIS 38145, waterbody_key 329423854), not Region 5 (regulation MU 5-15). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-15.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4696,9 +4678,8 @@
         "5-6"
       ]
     },
-    "note": "Searched but only found in Region 8 (MU 8-7, GNIS 37609, waterbody_key 329220075) and Region 3 (MU 3-30, GNIS 38166, waterbody_key 331154867), not Region 5 (regulation MU 5-6). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Searched but only found in Region 8 (MU 8-7, GNIS 37609, waterbody_key 329220075) and Region 3 (MU 3-30, GNIS 38166, waterbody_key 331154867), not Region 5 (regulation MU 5-6). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4709,9 +4690,8 @@
         "5-6"
       ]
     },
-    "note": "Searched but only found in Region 3 (MU 3-29, GNIS 12556, waterbody_key 330954838), Region 1 (MU 1-10, GNIS 12554, waterbody_key 329173098), and Region 7 (MU 7-30, GNIS 56145, waterbody_key 329383393), not Region 5 (regulation MU 5-6). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Searched but only found in Region 3 (MU 3-29, GNIS 12556, waterbody_key 330954838), Region 1 (MU 1-10, GNIS 12554, waterbody_key 329173098), and Region 7 (MU 7-30, GNIS 56145, waterbody_key 329383393), not Region 5 (regulation MU 5-6). May be typo in regulations or require duplicate feature creation. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4722,9 +4702,8 @@
         "5-6"
       ]
     },
-    "note": "Searched but only found in Region 5 MU 5-15 (GNIS 21382, waterbody_key 329635892), not in regulation MU 5-6. May be MU boundary issue or typo in regulations. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Searched but only found in Region 5 MU 5-15 (GNIS 21382, waterbody_key 329635892), not in regulation MU 5-6. May be MU boundary issue or typo in regulations. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4735,9 +4714,8 @@
         "5-6"
       ]
     },
-    "note": "Searched but only found in Region 5 MU 5-3 (GNIS 29739, waterbody_key 329677163), not in regulation MU 5-6. May be MU boundary issue or typo in regulations. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Searched but only found in Region 5 MU 5-3 (GNIS 29739, waterbody_key 329677163), not in regulation MU 5-6. May be MU boundary issue or typo in regulations. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 5, MU 5-6.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4748,9 +4726,8 @@
         "6-1"
       ]
     },
-    "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Cross-listed entry - already covered in Region 6 (MU 6-1)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4761,9 +4738,8 @@
         "6-1"
       ]
     },
-    "note": "Searched but only found in Region 5 (MU 5-1, GNIS 38786, waterbody_key 329642030). Should be close to border with Region 5 MUs 5-10, 5-12, or 5-13 (neighboring MU 6-1). Lake likely exists near regional boundary but not found in FWA data for Region 6. May need duplicate feature or MU boundary correction. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 6, MU 6-1.",
-    "skip": true,
-    "skip_reason": "not_found"
+    "note": "Searched but only found in Region 5 (MU 5-1, GNIS 38786, waterbody_key 329642030). Should be close to border with Region 5 MUs 5-10, 5-12, or 5-13 (neighboring MU 6-1). Lake likely exists near regional boundary but not found in FWA data for Region 6. May need duplicate feature or MU boundary correction. Reference: BC Freshwater Fishing Regulations Synopsis 2024-2026, Region 6, MU 6-1.  No correct registry item for this name in this MU yet — placeholder. [was skip:not_found]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4774,9 +4750,8 @@
         "7-12"
       ]
     },
-    "note": "Cross-listed entry - already covered in Region 6 (MUs 6-4, 6-5)",
-    "skip": true,
-    "skip_reason": "ignored"
+    "note": "Cross-listed entry - already covered in Region 6 (MUs 6-4, 6-5)  No correct registry item for this name in this MU yet — placeholder. [was skip:ignored]",
+    "not_found": true
   },
   {
     "type": "override",
@@ -4907,16 +4882,10 @@
         "1-13"
       ]
     },
-    "note": "Listed as 'Marble (Link) River' in gazetteer. 'Link River' is an alternate name.",
-    "skip": true,
-    "skip_reason": "Name variant of: MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes)",
-    "variant_of": {
-      "name_verbatim": "MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes)",
-      "region": "REGION 1 - Vancouver Island",
-      "mus": [
-        "1-13"
-      ]
-    }
+    "note": "\"LINK\" RIVER is a name variant of MARBLE (\"Link\") RIVER (only between Victoria and Alice lakes) — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "30821"
+    ]
   },
   {
     "type": "override",
@@ -4927,16 +4896,10 @@
         "1-10"
       ]
     },
-    "note": "Regulation says 'See Amor de Cosmos Creek'. Bear River is historical/alternate name for Amor de Cosmos Creek. Evidence: https://www.facebook.com/aboriginal.journeys/videos/819108737814861/",
-    "skip": true,
-    "skip_reason": "Name variant of: AMOR DE COSMOS CREEK",
-    "variant_of": {
-      "name_verbatim": "AMOR DE COSMOS CREEK",
-      "region": "REGION 1 - Vancouver Island",
-      "mus": [
-        "1-10"
-      ]
-    }
+    "note": "BEAR RIVER is a name variant of AMOR DE COSMOS CREEK — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "5480"
+    ]
   },
   {
     "type": "override",
@@ -4947,16 +4910,10 @@
         "2-4"
       ]
     },
-    "note": "Alternate name for Campbell River in MU 2-4. Regulations already covered under Campbell River entry.",
-    "skip": true,
-    "skip_reason": "Name variant of: CAMPBELL RIVER",
-    "variant_of": {
-      "name_verbatim": "CAMPBELL RIVER",
-      "region": "REGION 2 - Lower Mainland",
-      "mus": [
-        "2-4"
-      ]
-    }
+    "note": "LITTLE CAMPBELL RIVER is a name variant of CAMPBELL RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "7250"
+    ]
   },
   {
     "type": "override",
@@ -4967,16 +4924,10 @@
         "4-21"
       ]
     },
-    "note": "Alternate name for LEWIS (\"Cameron\") SLOUGH. Same waterbody in regulation MU 4-21.",
-    "skip": true,
-    "skip_reason": "Name variant of: LEWIS (\"Cameron\") SLOUGH",
-    "variant_of": {
-      "name_verbatim": "LEWIS (\"Cameron\") SLOUGH",
-      "region": "REGION 4 - Kootenay",
-      "mus": [
-        "4-21"
-      ]
-    }
+    "note": "CAMERON SLOUGH is a name variant of LEWIS (\"Cameron\") SLOUGH — the same water. [was skip+variant_of; converted to a direct id]",
+    "waterbody_keys": [
+      "329524002"
+    ]
   },
   {
     "type": "override",
@@ -4987,16 +4938,10 @@
         "4-36"
       ]
     },
-    "note": "Regulation says 'See Kinbasket Lake'. McNaughton Lake is an alternate name for part of Kinbasket Lake.",
-    "skip": true,
-    "skip_reason": "Name variant of: KINBASKET (McNaughton) LAKE",
-    "variant_of": {
-      "name_verbatim": "KINBASKET (McNaughton) LAKE",
-      "region": "REGION 4 - Kootenay",
-      "mus": [
-        "4-36"
-      ]
-    }
+    "note": "MCNAUGHTON LAKE is a name variant of KINBASKET (McNaughton) LAKE — the same water. [was skip+variant_of; converted to a direct id]",
+    "waterbody_keys": [
+      "328961767"
+    ]
   },
   {
     "type": "override",
@@ -5007,17 +4952,10 @@
         "5-13"
       ]
     },
-    "note": "Alternate name for WEST ROAD (\"Blackwater\") RIVER. Same waterbody, regulation MU 5-13. Primary entry is in Region 6.",
-    "skip": true,
-    "skip_reason": "Name variant of: WEST ROAD (\"Blackwater\") RIVER",
-    "variant_of": {
-      "name_verbatim": "WEST ROAD (\"Blackwater\") RIVER",
-      "region": "REGION 5 - Cariboo",
-      "mus": [
-        "5-12",
-        "5-13"
-      ]
-    }
+    "note": "\"BLACKWATER\" RIVER is a name variant of WEST ROAD (\"Blackwater\") RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "26104"
+    ]
   },
   {
     "type": "override",
@@ -5028,16 +4966,10 @@
         "5-13"
       ]
     },
-    "note": "Alternate name for BISHOP (\"Brown\") LAKE. Same waterbody.",
-    "skip": true,
-    "skip_reason": "Name variant of: BISHOP (\"Brown\") LAKE",
-    "variant_of": {
-      "name_verbatim": "BISHOP (\"Brown\") LAKE",
-      "region": "REGION 5 - Cariboo",
-      "mus": [
-        "5-13"
-      ]
-    }
+    "note": "\"BROWN\" LAKE is a name variant of BISHOP (\"Brown\") LAKE — the same water. [was skip+variant_of; converted to a direct id]",
+    "waterbody_keys": [
+      "329430941"
+    ]
   },
   {
     "type": "override",
@@ -5048,16 +4980,10 @@
         "6-9"
       ]
     },
-    "note": "Alternate name for ZYMOETZ (Copper) RIVER. Same waterbody, regulation MU 6-9.",
-    "skip": true,
-    "skip_reason": "Name variant of: ZYMOETZ (Copper) RIVER",
-    "variant_of": {
-      "name_verbatim": "ZYMOETZ (Copper) RIVER",
-      "region": "REGION 6 - Skeena",
-      "mus": [
-        "6-9"
-      ]
-    }
+    "note": "COPPER RIVER is a name variant of ZYMOETZ (Copper) RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "3137"
+    ]
   },
   {
     "type": "override",
@@ -5068,16 +4994,10 @@
         "6-14"
       ]
     },
-    "note": "Regulation says 'See Ksi Hlginx River'. River has been renamed to KSI HLGINX (GNIS 4069). Regulation MU 6-14.",
-    "skip": true,
-    "skip_reason": "Name variant of: KSI HLGINX RIVER (formerly Ishkheenickh River)",
-    "variant_of": {
-      "name_verbatim": "KSI HLGINX RIVER (formerly Ishkheenickh River)",
-      "region": "REGION 6 - Skeena",
-      "mus": [
-        "6-14"
-      ]
-    }
+    "note": "ISHKHEENICKH RIVER is a name variant of KSI HLGINX RIVER (formerly Ishkheenickh River) — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "4069"
+    ]
   },
   {
     "type": "override",
@@ -5088,16 +5008,10 @@
         "6-14"
       ]
     },
-    "note": "Regulation says 'See Ksi X'anmas River'. River has been renamed to KSI X'ANMAS (GNIS 3815). Regulation MU 6-14.",
-    "skip": true,
-    "skip_reason": "Name variant of: KSI X'ANMAS RIVER (formerly Kwinamass River)",
-    "variant_of": {
-      "name_verbatim": "KSI X'ANMAS RIVER (formerly Kwinamass River)",
-      "region": "REGION 6 - Skeena",
-      "mus": [
-        "6-14"
-      ]
-    }
+    "note": "KWINAMASS RIVER is a name variant of KSI X'ANMAS RIVER (formerly Kwinamass River) — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "3815"
+    ]
   },
   {
     "type": "override",
@@ -5108,16 +5022,10 @@
         "6-30"
       ]
     },
-    "note": "Alternate name for HEVENOR (\"McQueen\") CREEK. Same waterbody.",
-    "skip": true,
-    "skip_reason": "Name variant of: HEVENOR (\"McQueen\") CREEK",
-    "variant_of": {
-      "name_verbatim": "HEVENOR (\"McQueen\") CREEK",
-      "region": "REGION 6 - Skeena",
-      "mus": [
-        "6-30"
-      ]
-    }
+    "note": "MCQUEEN CREEK is a name variant of HEVENOR (\"McQueen\") CREEK — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "37312"
+    ]
   },
   {
     "type": "override",
@@ -5128,16 +5036,10 @@
         "6-15"
       ]
     },
-    "note": "Regulation says 'See Ksi Sgasginist Creek'. Creek has been renamed to KSI SGASGINIST CREEK. Regulation MU 6-15.",
-    "skip": true,
-    "skip_reason": "Name variant of: KSI SGASGINIST CREEK (formerly Seaskinnish Creek)",
-    "variant_of": {
-      "name_verbatim": "KSI SGASGINIST CREEK (formerly Seaskinnish Creek)",
-      "region": "REGION 6 - Skeena",
-      "mus": [
-        "6-15"
-      ]
-    }
+    "note": "SEASKINNISH CREEK is a name variant of KSI SGASGINIST CREEK (formerly Seaskinnish Creek) — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "4791"
+    ]
   },
   {
     "type": "override",
@@ -5148,16 +5050,10 @@
         "6-14"
       ]
     },
-    "note": "River has been renamed to KSI SII AKS RIVER. Regulation MU 6-14.",
-    "skip": true,
-    "skip_reason": "Name variant of: KSI SII AKS RIVER (formerly Tseax River)",
-    "variant_of": {
-      "name_verbatim": "KSI SII AKS RIVER (formerly Tseax River)",
-      "region": "REGION 6 - Skeena",
-      "mus": [
-        "6-14"
-      ]
-    }
+    "note": "TSEAX RIVER is a name variant of KSI SII AKS RIVER (formerly Tseax River) — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "3828"
+    ]
   },
   {
     "type": "override",
@@ -5168,17 +5064,10 @@
         "7-10"
       ]
     },
-    "note": "Regulation says 'See West Road River'. Alternate name for WEST ROAD ('Blackwater') RIVER. Regulation MU 7-10.",
-    "skip": true,
-    "skip_reason": "Name variant of: WEST ROAD (\"Blackwater\") RIVER",
-    "variant_of": {
-      "name_verbatim": "WEST ROAD (\"Blackwater\") RIVER",
-      "region": "REGION 5 - Cariboo",
-      "mus": [
-        "5-12",
-        "5-13"
-      ]
-    }
+    "note": "BLACKWATER RIVER is a name variant of WEST ROAD (\"Blackwater\") RIVER — the same water. [was skip+variant_of; converted to a direct id]",
+    "gnis_ids": [
+      "26104"
+    ]
   },
   {
     "type": "override",
@@ -5189,16 +5078,10 @@
         "7-35"
       ]
     },
-    "note": "Same waterbody as CHUNAMUN LAKE (waterbody_key 328995585, WBID: 00552UPCE). Both names appear in BC Lakes Database surveys.",
-    "skip": true,
-    "skip_reason": "Name variant of: CHUNAMUN LAKE",
-    "variant_of": {
-      "name_verbatim": "CHUNAMUN LAKE",
-      "region": "REGION 7B - Peace",
-      "mus": [
-        "7-35"
-      ]
-    }
+    "note": "\"CHINAMAN\" LAKE is a name variant of CHUNAMUN LAKE — the same water. [was skip+variant_of; converted to a direct id]",
+    "waterbody_keys": [
+      "328995585"
+    ]
   },
   {
     "type": "override",
@@ -5209,16 +5092,10 @@
         "8-1"
       ]
     },
-    "note": "Alternative name for Burnell Lake. Same waterbody.",
-    "skip": true,
-    "skip_reason": "Name variant of: BURNELL (Sawmill) LAKE",
-    "variant_of": {
-      "name_verbatim": "BURNELL (Sawmill) LAKE",
-      "region": "REGION 8 - Okanagan",
-      "mus": [
-        "8-1"
-      ]
-    }
+    "note": "SAWMILL LAKE is a name variant of BURNELL (Sawmill) LAKE — the same water. [was skip+variant_of; converted to a direct id]",
+    "waterbody_keys": [
+      "328985738"
+    ]
   },
   {
     "type": "override",
@@ -7106,6 +6983,101 @@
     "note": "Two Eagle Creeks in MU 2-8 (both fall 100% inside it, so the MU gate cannot separate them). This is the GAZETTED one in West Vancouver (GNIS 9405, blk 360548981, WSC 900-087856). The other (blk 356206901, Burnaby Lake) is FWA-unnamed — 'Eagle Creek' there is a local name from the City of Burnaby Waterways map (2021), not a regulation source.",
     "gnis_ids": [
       "9405"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "ADAM AND EVE RIVERS",
+      "region": "REGION 1 - Vancouver Island"
+    },
+    "note": "DFO salmon: one row, TWO registry items — Adam River (gnis:28136) and Eve River (gnis:31112), the Eve flowing into the Adam. DFO regulates them together (4 pink/day, Aug 25-Sep 30, FN0905) while the provincial synopsis regulates them apart, as 'ADAM RIVER (except Eve River)' and 'EVE RIVER' — different name strings, so this cannot reach either row even before the source=dfo tag.",
+    "gnis_ids": [
+      "28136",
+      "31112"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "LONG LAKE",
+      "region": "REGION 5 - Cariboo"
+    },
+    "note": "DFO salmon: the Smith Inlet Long Lake (GNIS 31514, 2134 ha), confirmed by the Docee River (blk 360877652) which touches it at 0.0 m and is the next water in the same DFO section. Region 5 has FIVE gazetted Long Lakes (gnis 17503/17508/17509/17513/31514), one per MU, so name+region does NOT identify this water for the PROVINCE — which is exactly why this entry is tagged source=dfo. DFO region 5 names only one Long Lake.",
+    "waterbody_keys": [
+      "329462886"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "Chilliwack/Vedder River (including Sumas River)",
+      "region": "REGION 2 - Lower Mainland"
+    },
+    "note": "DFO salmon: FIVE registry items. The provincial synopsis already binds the first three as 'CHILLIWACK / VEDDER RIVERS (does not include Sumas River)' -> gnis 8634 + 3062 + 29662; DFO's row is that same system INCLUDING the Sumas, which is why it needs its own entry and why that entry is tagged source=dfo — the provincial row says the opposite in its own name. Sumas is TWO items: the stream (gnis:26216) and the lake polygon (wbk:328997872) the stream runs through. Sumas Lake Canal (gnis:6015 / wbk:329707192) is deliberately NOT included — DFO names the Sumas River. Both Sumas bounds already exist: 'Barrow Town Pump Station' is the auto lake boundary sumas_river__sumas_river (lake:328997872), and 'boundary signs near the confluence with the Fraser River' is the reach's NATURAL downstream end (section 356352298:0 drains straight into a Fraser node), so no split was minted for either.",
+    "gnis_ids": [
+      "8634",
+      "3062",
+      "29662",
+      "26216"
+    ],
+    "waterbody_keys": [
+      "328997872"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "Alouette River and tributaries",
+      "region": "REGION 2 - Lower Mainland"
+    },
+    "note": "DFO salmon: THREE items. gnis:9630 Alouette River (mainstem) + gnis:39404 North Alouette River — DFO names the North Alouette explicitly ('above 216th Street, including the North Alouette River and tributaries to that part', and a whole reach 'North Alouette and tributaries') — + wbk:329292631, the river polygon on the mainstem that FWA mislabels 'South Alouette River' and name_variants renames. Alouette Lake (wbk:329291807) is NOT included: it is the reservoir above the dam and DFO's reaches are all river reaches (216th St, Allco Park, Pitt confluence). Every locator already has its cut-point: alouette_river__216_street_bridge, alouette_river__alouette_boundary_signs (Allco Park), alouette_river__216th_street on the North arm; the Pitt River confluence is a natural end.",
+    "gnis_ids": [
+      "9630",
+      "39404"
+    ],
+    "waterbody_keys": [
+      "329292631"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "Somass River tributaries",
+      "region": "REGION 1 - Vancouver Island"
+    },
+    "note": "DFO salmon: a tributaries-only ROW on a parent that already has its own row. It binds the MAINSTEM item (Somass River, gnis:25707, wsc 930-139262, MU 1-7) — the tributary-only scope is a fact about the RULES, expressed on the entry, not about which water the row is. Deliberately NOT a name_variants entry: 'Somass River Tributaries' is a row label, not a name for the water, and making it searchable would put a non-name into the gazetteer. The row's single locator is whole_water with no anchors, so no split is needed.",
+    "gnis_ids": [
+      "25707"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "Stamp River tributaries",
+      "region": "REGION 1 - Vancouver Island"
+    },
+    "note": "DFO salmon: a tributaries-only ROW on a parent that already has its own row. It binds the MAINSTEM item (Stamp River, gnis:14533, wsc 930-139262-993282, MU 1-7) — the tributary-only scope is a fact about the RULES, expressed on the entry, not about which water the row is. Deliberately NOT a name_variants entry: 'Stamp River Tributaries' is a row label, not a name for the water, and making it searchable would put a non-name into the gazetteer. The row's single locator is whole_water with no anchors, so no split is needed.",
+    "gnis_ids": [
+      "14533"
+    ]
+  },
+  {
+    "type": "override",
+    "source": "dfo",
+    "criteria": {
+      "name_verbatim": "Chehalis River Hatchery",
+      "region": "REGION 2 - Lower Mainland"
+    },
+    "note": "DFO salmon: the row is named for the HATCHERY but the regulated water is the CHEHALIS RIVER (gnis:13015) — 'from the hatchery outlet downstream to the confluence with the Chehalis/Harrison Rivers'. Deliberately NOT a name_variants entry: 'Chehalis River Hatchery' is a facility, not a name for the river, and making it a searchable name of the water would be wrong. The upstream bound is the curated split chehalis_river__hatchery_outlet; the downstream bound is the river's natural mouth into the Harrison.",
+    "gnis_ids": [
+      "13015"
     ]
   }
 ]

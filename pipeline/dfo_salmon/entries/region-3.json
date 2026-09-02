@@ -1,0 +1,651 @@
+{
+  "region": "3",
+  "region_number": 3,
+  "region_name": "Thompson-Nicola",
+  "structure": {
+    "sections": [],
+    "n_locations": 6,
+    "n_waters": 6,
+    "n_defaults": 0,
+    "precedences": []
+  },
+  "scopes": [],
+  "waters": [
+    {
+      "water_id": "3:bridge-river",
+      "region": "3",
+      "region_number": 3,
+      "name": "Bridge River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:4945"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "disambiguated by region 3",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "3:clearwater-river",
+      "region": "3",
+      "region_number": 3,
+      "name": "Clearwater River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:17065"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "3:fraser-river",
+      "region": "3",
+      "region_number": 3,
+      "name": "Fraser River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39325"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Fraser River in Region 3. Channels and sloughs are in Zone 2 only.",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "3:kamloops-lake",
+      "region": "3",
+      "region_number": 3,
+      "name": "Kamloops Lake",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "wbk:329563838"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "3:south-thompson-river",
+      "region": "3",
+      "region_number": 3,
+      "name": "South Thompson River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:8675"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "exact name",
+        "reason": "",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    },
+    {
+      "water_id": "3:thompson-river",
+      "region": "3",
+      "region_number": 3,
+      "name": "Thompson River",
+      "aliases": [],
+      "sections": [],
+      "item_ids": [
+        "gnis:39492"
+      ],
+      "tributaries": null,
+      "match": {
+        "status": "matched",
+        "via": "override",
+        "reason": "Matched via base name: THOMPSON RIVER",
+        "candidates": [],
+        "suggestions": []
+      },
+      "resolution": "pending",
+      "resolution_reason": "",
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "note": ""
+    }
+  ],
+  "locations": [
+    {
+      "location_id": "3:bridge-river:whole",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Bridge River",
+      "water_id": "3:bridge-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "7e976b70b002863d"
+      ],
+      "source_text": {
+        "waters": "Bridge River",
+        "specific_area": "",
+        "landmarks": [],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:clearwater-river:whole",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Clearwater River",
+      "water_id": "3:clearwater-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "d6605b684afb9a23"
+      ],
+      "source_text": {
+        "waters": "Clearwater River",
+        "specific_area": "",
+        "landmarks": [
+          "clearwater"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:fraser-river:mainstem-waters-of-the-fraser-rive",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "3:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "76d0c2294c94e350"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "Mainstem waters of the Fraser River",
+        "landmarks": [
+          "fraser"
+        ],
+        "op": "named_tributaries",
+        "anchor_types": [
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:kamloops-lake:whole",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Kamloops Lake",
+      "water_id": "3:kamloops-lake",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "e63fabef088a0d6b"
+      ],
+      "source_text": {
+        "waters": "Kamloops Lake",
+        "specific_area": "",
+        "landmarks": [
+          "kamloops"
+        ],
+        "op": "whole_water",
+        "anchor_types": [],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:south-thompson-river:from-the-green-can-buoy-near-outle",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "South Thompson River",
+      "water_id": "3:south-thompson-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "a1ba54224f07d820"
+      ],
+      "source_text": {
+        "waters": "South Thompson River",
+        "specific_area": "From the green can buoy near outlet of Little River, including Little Shuswap Lake, to the fishing white triangle fishing boundary approximately 100 m downstream of Campbell Creek.",
+        "landmarks": [
+          "100",
+          "buoy",
+          "campbell",
+          "can",
+          "green",
+          "little",
+          "near",
+          "outlet",
+          "shuswap",
+          "south",
+          "thompson",
+          "triangle"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "lake_end",
+          "confluence"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:thompson-river:from-kamloops-lake-outlet-downstre",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Thompson River",
+      "water_id": "3:thompson-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "3fc89d49632c955c"
+      ],
+      "source_text": {
+        "waters": "Thompson River",
+        "specific_area": "From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provincial Park, except:",
+        "landmarks": [
+          "except",
+          "gold",
+          "just",
+          "kamloops",
+          "outlet",
+          "pan",
+          "park",
+          "provincial",
+          "thompson"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "lake_end",
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [
+          "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+          "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+          "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft."
+        ],
+        "areas": []
+      },
+      "status": "dormant",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:thompson-river:from-the-white-triangle-fishing-bo",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Thompson River",
+      "water_id": "3:thompson-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "2e0d379aed182d7f"
+      ],
+      "source_text": {
+        "waters": "Thompson River",
+        "specific_area": "From the white triangle fishing boundary signs just downstream of Gold Pan Provincial Park to the easterly border of the Skihist Ecological reserve along the Thompson River located at 50°15'23.0\"N 121°30'55.0\"W, this is approximately 5 km northeast of Lytton at Skihist Park.",
+        "landmarks": [
+          "121",
+          "along",
+          "border",
+          "easterly",
+          "ecological",
+          "gold",
+          "just",
+          "lytton",
+          "northeast",
+          "pan",
+          "park",
+          "provincial",
+          "reserve",
+          "skihist",
+          "this",
+          "thompson",
+          "triangle"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "boundary_sign",
+          "place_name",
+          "confluence",
+          "latlon"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:fraser-river:in-that-portion-of-the-fraser-rive",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Fraser River",
+      "water_id": "3:fraser-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "81e8caa355f3f207"
+      ],
+      "source_text": {
+        "waters": "Fraser River",
+        "specific_area": "In that portion of the Fraser River from the confluence with the Seton River downstream to the fishing boundary signs located on both sides of the river approximately 4 km downstream of the town of Lillooet",
+        "landmarks": [
+          "both",
+          "confluence",
+          "fraser",
+          "lillooet",
+          "portion",
+          "seton",
+          "sides",
+          "that",
+          "town",
+          "with"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "boundary_sign"
+        ],
+        "excludes": [],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    },
+    {
+      "location_id": "3:thompson-river:from-kamloops-lake-outlet-downstre~2",
+      "region": "3",
+      "region_number": 3,
+      "kind": "water",
+      "precedence": 3,
+      "water": "Thompson River",
+      "water_id": "3:thompson-river",
+      "aliases": [],
+      "section": null,
+      "section_history": [],
+      "inherits": [],
+      "fingerprints": [
+        "8135469b5fea9fc3"
+      ],
+      "source_text": {
+        "waters": "Thompson River",
+        "specific_area": "From Kamloops Lake outlet downstream to the fishing boundary signs just downstream of Gold Pan Provincial Park Please note that no fishing is allowed in the following areas, year-round:",
+        "landmarks": [
+          "allowed",
+          "areas",
+          "following",
+          "gold",
+          "just",
+          "kamloops",
+          "note",
+          "outlet",
+          "pan",
+          "park",
+          "please",
+          "provincial",
+          "round",
+          "that",
+          "thompson",
+          "year"
+        ],
+        "op": "between",
+        "anchor_types": [
+          "confluence",
+          "lake_end",
+          "boundary_sign",
+          "place_name"
+        ],
+        "excludes": [
+          "Deadman - from the fishing boundary signs approximately 1 km downstream of the Hwy No. 1 Bridge at Savona to the CN rail bridge approximately 500 m downstream of the confluence with Deadman Creek.",
+          "Juniper - from the fishing boundary signs approximately 1.5 km downstream from Juniper Beach Park downstream approximately 4 km to the fishing boundary signs located at 50°46.893' N and 121°08.110' W.",
+          "Ashcroft - from the fishing boundary sign at the upstream side of the mouth of the Bonaparte River to Hwy 97C bridge in Ashcroft."
+        ],
+        "areas": []
+      },
+      "status": "active",
+      "duplicate_of": null,
+      "duplicate_score": null,
+      "duplicate_confirmed": null,
+      "locked": false,
+      "reviewed_by": "",
+      "reviewed_at": "",
+      "review_note": "",
+      "binding": {
+        "extents": [],
+        "tributaries": null,
+        "tributaries_only": false,
+        "tributary_excludes": [],
+        "sections_cached": null,
+        "notes": [],
+        "spatial_caveat": false
+      }
+    }
+  ]
+}

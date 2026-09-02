@@ -254,6 +254,63 @@ this reason.
 
 ---
 
+## What actually changes between versions (measured)
+
+Reproduce with `python -m pipeline.dfo_salmon.churn --regions 1 2 6 --detail`. It pulls
+archived versions from the Wayback CDX index, re-parses them with the *current* parser
+(so any difference is the source moving, not us), and compares at three levels.
+
+Five versions per region, 2023-11 → 2026-08:
+
+| Region | Waters | in **every** version | Reaches | Reworded | Rules |
+|---|---|---|---|---|---|
+| 1 Vancouver Island | 30 → 27 | 26 / 30 | +13 / −19 | 2 | +59 / −64 |
+| 2 Lower Mainland | 23 → 22 | 21 / 23 | +10 / −12 | 5 | +56 / −72 |
+| **6 Skeena** | **77 → 77** | **77 / 77** | +5 / −4 | 7 | **+110 / −97** |
+
+Going back a **decade** on Region 6 strengthens it rather than weakening it:
+
+| Snapshot | Waters | Still present in 2026 | Sections |
+|---|---:|---|---|
+| 2017-07-03 | 45 | **45 / 45 (100%)** | A B C D E F |
+| 2018-05-24 | 28 | **28 / 28 (100%)** | A B C D E |
+| 2026-08-28 | 76 | — | A B(i) B(ii) C D E F |
+
+**Across 12 Region 6 versions the union is 76 waters and all 76 are present today —
+zero retired.** Section A's limits are substantively identical across all nine years.
+The one structural change in that decade is section B splitting into B(i)/B(ii) at the
+CNR Railway Bridge at Terrace (between 2018-05 and 2020-04) — which is why a curated
+binding must not key on its section.
+
+That zero is Region 6's alone: Region 1 retired 4 waters of 31 and Region 2 retired 2
+of 24 over the same span. They are dormant rather than deleted — these pages list
+*openings*, so a water leaves when its fishery closes.
+
+Both old snapshots are committed fixtures: the 2017 page has no `dateModified` element
+at all and no B(i)/B(ii) split, so replaying it is free proof the parser has not
+overfitted to the current HTML.
+
+**The places are effectively fixed; the rules turn over completely.** Region 6 has not
+gained or lost a single water in 2.3 years while roughly half its rules were rewritten
+each year. That asymmetry is the whole argument for curating the geography once.
+
+Three findings shape how that curation has to work:
+
+* **A water leaving the table is not a water ceasing to exist.** Region 1 dropped
+  San Juan River and Tsitika River and gained Adam and Eve Rivers. These pages list
+  *openings* ("There is no fishing for salmon in Region 1 except for the opportunities
+  listed below"), so a water disappears when its fishery closes, and comes back.
+* **Reaches cycle seasonally.** The Kispiox River "downstream of fishing boundary signs
+  near Kispiox River Resort" reach was gone 2024-08, back 2025-04, gone 2025-09, back
+  2026-04. Deleting its binding each time means deriving it four times.
+* **The scope text drifts constantly while the geography does not.** "Highway 37
+  Bridge" → "Highway 37 bridge"; the boundary-sign count at the Kispiox confluence has
+  flipped between "three white triangular" and "the 4 triangular" and back. **A curated
+  binding must not be keyed on the scope string.** `churn.compare_reaches()` is the
+  matcher that separates rewording from real change; it is unit-tested.
+
+---
+
 ## Output shape
 
 `output/dfo_salmon/regionN.json`:
