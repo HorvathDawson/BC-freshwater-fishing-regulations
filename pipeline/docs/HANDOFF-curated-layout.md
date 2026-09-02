@@ -20,7 +20,11 @@ Written 2026-09-02 by the agent that surveyed it. Nothing has been moved.
 
 ---
 
-## 1. Three corrections to the plan
+## 1. Scope, and two corrections to the plan
+
+**Scope is live code only.** `archive/` is old code kept for reference and is **out of scope**:
+never edited, and excluded from every grep in this document. The same goes for `.venv/`,
+`node_modules/`, `__pycache__/`, `graphify-out/`.
 
 **`project_config.py` is at the REPO ROOT**, not `pipeline/project_config.py`. `config.yaml` is
 beside it. Its top-level keys today are `output`, `data`, `data_accessor`, `llm`, `graph_builder` —
@@ -31,13 +35,9 @@ docstring saying "read from `splits.json`", a UI string saying "saved to splits.
 apply". Those want updating for accuracy but **cannot break anything**. The lines that actually
 resolve a filesystem path are the list in §2, and there are about **40**.
 
-**Two greps lie to you:**
-
-* `pipeline/hack/waterbody_splits.py:46` and `pipeline/hack/wb_present.py:12` name
-  `pipeline/docs/waterbody-splits.json` — a **different, generated file**. Not in scope. Leave them.
-* `pipeline/hack/name_variants_dedup.py:38` and `name_variants_compile.py:26` point at
-  **`archive/pipeline/matching/overrides.json`** — the archived copy, deliberately. Rewriting these
-  to the live overrides would silently change what those one-off compilers read. Leave them.
+**One grep lies to you:** `pipeline/hack/waterbody_splits.py:46` and `pipeline/hack/wb_present.py:12`
+name `pipeline/docs/waterbody-splits.json` — a **different, generated file** that happens to end in
+`splits.json`. Not in scope. Leave them.
 
 ---
 
@@ -68,7 +68,7 @@ first; it is the single clearest justification for the whole exercise.
 `dfo_salmon/match.py:53` is `Path("pipeline/splits.json")` — relative to the **current working
 directory**. It works only because everything is run from the repo root.
 
-### `overrides.json` — 10 sites (2 more are the archive; see §1)
+### `overrides.json` — 10 sites
 
 ```
 curation-review/backend/reuse.py:46      OVERRIDES_PATH = _ROOT / "pipeline" / "matching" / "overrides.json"
@@ -186,10 +186,14 @@ Follow the plan's six steps. The refinements that matter:
 3. **Then the grep gate.** All four must be empty outside `project_config.py`, `config.yaml`, and
    docs:
    ```bash
-   grep -rn '"pipeline/[a-z_]*\.json"' --include='*.py' .
-   grep -rn 'parents\[[0-9]\] / "\(splits\|name_variants\|gauge_match\|added_streams\)' --include='*.py' .
-   grep -rn '/ "entries"' --include='*.py' pipeline/
-   grep -rn '"matching" / "overrides.json"' --include='*.py' .
+   # run under bash. X holds only --exclude-dir (no globs); --include stays quoted per line.
+   X="--exclude-dir=archive --exclude-dir=.venv --exclude-dir=node_modules \
+      --exclude-dir=__pycache__ --exclude-dir=graphify-out"
+
+   grep -rn $X --include='*.py' '"pipeline/[a-z_]*\.json"' .
+   grep -rn $X --include='*.py' 'parents\[[0-9]\] / "\(splits\|name_variants\|gauge_match\|added_streams\)' .
+   grep -rn $X --include='*.py' '/ "entries"' pipeline/
+   grep -rn $X --include='*.py' '"matching" / "overrides.json"' .
    ```
    **Baseline today: 10 / 4 / 14 / 8 = 36 hits.** That is what you are counting down. Gate 3 keeps
    **3 legitimate hits** — `test_dispatch.py:94,106` and `test_agent_parse_flow.py:96` build
@@ -222,10 +226,10 @@ So, alongside the grep gate:
 
 ## 5. Decide before moving
 
-**`pipeline/ungazetted.json` has zero code references.** The only "ungazetted" mentions in live code
-are a matcher docstring and two files under `archive/`. Either it is dead and should be deleted, or
-something stopped reading it and *that* is the bug. **Ask the user** — do not relocate a file
-nothing loads and do not delete curated data on your own judgement.
+**`pipeline/ungazetted.json` has zero references in live code** — the only mention is a matcher
+docstring. Either it is dead and should be deleted, or something stopped reading it and *that* is
+the bug. **Ask the user** — do not relocate a file nothing loads, and do not delete curated data on
+your own judgement.
 
 ---
 

@@ -175,7 +175,8 @@ un-runnable while they were fixed one by one.
 ## Loose ends found while surveying
 
 * **`pipeline/ungazetted.json` has zero code references.** The only "ungazetted" mentions are a
-  matcher docstring and two files under `archive/`. Either it is dead and should be deleted, or
+  matcher docstring (`archive/` is old reference code and out of scope). Either it is dead and
+  should be deleted, or
   something stopped reading it and that is a bug. Decide before the move rather than relocating a
   file nobody loads.
 * **`pipeline/matching/overrides.json` is curated but lives with matcher code**, unlike every other
