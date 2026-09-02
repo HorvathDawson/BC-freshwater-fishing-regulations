@@ -51,6 +51,8 @@ class SplitAnchor:
             raise ValueError("mu_boundary anchor needs both mu_a and mu_b")
         if t == AnchorType.line and len(coords) < 2:
             raise ValueError("line anchor needs >=2 coords")
+        if t == AnchorType.gauge and not coord:
+            raise ValueError("gauge anchor needs the station's coord")
         if t == AnchorType.confluence and not (d.get("tributary_blk") or d.get("tributary_wsc")):
             raise ValueError("confluence anchor needs tributary_blk or tributary_wsc")
         if t == AnchorType.lake and not d.get("wbk"):
@@ -62,7 +64,8 @@ class SplitAnchor:
         if offset_m < 0:
             raise ValueError("offset_m must be >= 0 (give the direction via offset_dir)")
         if offset_m:
-            if t not in (AnchorType.point, AnchorType.confluence, AnchorType.lake):
+            if t not in (AnchorType.point, AnchorType.gauge, AnchorType.confluence,
+                         AnchorType.lake):
                 raise ValueError(f"offset_m only valid on point/confluence/lake anchors, not {t.value}")
             if offset_dir not in ("upstream", "downstream"):
                 raise ValueError("offset_m requires offset_dir 'upstream' or 'downstream'")
@@ -111,7 +114,8 @@ class SplitDef:
         if len(targets) > 1:
             raise ValueError(f"split {d.get('id')!r}: at most one of blk/wsc/gnis_id, got {targets}")
         anchor = SplitAnchor.from_dict(d["anchor"])
-        if anchor.type in (AnchorType.point, AnchorType.confluence, AnchorType.area_boundary) and not targets:
+        if anchor.type in (AnchorType.point, AnchorType.gauge, AnchorType.confluence,
+                           AnchorType.area_boundary) and not targets:
             raise ValueError(f"split {d.get('id')!r}: {anchor.type.value} anchor requires a target (blk/wsc/gnis_id)")
         return cls(
             id=str(d["id"]), anchor=anchor,

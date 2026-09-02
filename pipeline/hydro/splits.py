@@ -1,172 +1,137 @@
-"""Gauge positions as SPLITS — a cut on the river each station actually measures.
+"""Gauge positions as SPLIT DEFINITIONS — the same kind of object a curator authors.
 
-THE PROBLEM, IN ONE RIVER. The Fraser mainstem is 20 graph nodes for 1,375 km, and 26
-stations sit on it. Every section takes the ONE station that most nearly is that water, so
-a single node — hundreds of kilometres of river — paints one colour from one gauge, and the
-reading at Hope is claimed for water at Lillooet. That is not a ranking problem. It is a
-LENGTH problem: a gauge is the boundary between two different measurements, so the river
-has to change section where the measurement changes.
+THE PROBLEM, IN ONE RIVER. The Fraser mainstem is 20 graph nodes for 1,375 km, and 18
+transmitting stations sit on it. Every section takes the ONE station that most nearly is
+that water, so a single node — hundreds of kilometres of river — paints one colour from one
+gauge, and the reading at Hope is claimed for water at Lillooet. That is not a ranking
+problem. It is a LENGTH problem: a gauge is the boundary between two different
+measurements, so the river has to change section where the measurement changes.
 
-WHY THIS RUNS INSIDE THE BUILD AND NEEDS NO FROZEN ARTIFACT.
+WHAT THIS EMITS, AND WHY IT IS NOT A CUT.
 
-    The first version matched stations to GRAPH NODES, which meant it needed a completed
-    build — and the build needs its splits, so it had to be a two-pass frozen file like
-    `added_streams`. That dependency was self-inflicted. Cutting a river does not need a
-    node; it needs a BLUE LINE and a measure along it, and blue-line chains exist in the
-    build well before anything is split, already carrying their FWA and gazetted names.
+    A station becomes a `point` anchor — its own published coordinate — scoped to the water
+    the matcher resolved it to, by WSC. That is byte-for-byte the shape of a hand-authored
+    split in `pipeline/splits.json`, so the build resolves it through
+    `pipeline.splits.anchors.resolve_split_defs` with everything else. One resolver, one
+    code path, one set of rules.
 
-    So the only input is `data/bc_hydrometric_stations.json` — a FETCHED file, not a build
-    product. The decoupling is real (the roster is refreshed by `fetch_data`, independently
-    of any build) without a committed intermediate that can go stale behind a station move.
+    The earlier version computed a route measure here and handed the build a finished cut.
+    It worked and it was wrong-shaped: it reimplemented projection, missed the perpendicular
+    sweep that catches braids, could not carry an offset or a concern, and appeared in
+    neither `splits.resolved.json` nor the gpkg — so 379 cuts a curator could not review.
+    Everything below the identifier is the resolver's job.
 
-WHY NOT HYDAT. HYDAT is the historical archive: decades of daily means, keyed by station.
-It carries no coordinate accurate enough to cut with and says nothing about which blue line
-a station stands on. The roster ECCC publishes beside it carries the position, and the
-position is the whole question here.
+WHY WSC AND NOT BLK. A gauge on a braided reach measures the whole channel, not the strand
+its coordinate happens to land on. `wsc` scopes to the river AND its side channels, and the
+point anchor then sweeps a perpendicular across them — so a braid is cut where it sits along
+the valley rather than by how near each strand is to the station. `blk` is the fallback for
+a node with no watershed code.
 
-ONLY ON THE WATER THE STATION NAMES. A cut lands on the nearest chain within the radius
-whose own name appears in the station's name — "SLESSE CREEK NEAR VEDDER CROSSING" cuts
-Slesse Creek and never the Vedder, even though the Vedder is closer to some of these
-stations than the creek is. A station whose name matches nothing nearby cuts NOTHING; it
-does not fall back to the closest line, which is exactly the failure the whole
-representativeness rule exists to prevent.
+WHY IT IS FROZEN. Matching a station to a WATER needs the graph — the names it compares
+against include `name_variants.json`, which is applied during the build — and the build
+needs its splits. So this runs against a COMPLETED build and commits the answer, exactly as
+`added_streams` does. The consequence is worth stating plainly: after a station moves or a
+new one starts reporting, the cuts are one build behind until this is re-run.
+
+    python -m pipeline.hydro.splits --build output/v2/full     # writes the artifact
+    python -m pipeline.build ...                               # the next build cuts there
 """
 
 from __future__ import annotations
 
-# Cuts closer together than this on one blue line collapse to the first: two stations 40 m
-# apart describe the same water, and a 40 m section is a rendering artifact rather than a
-# reach anybody fishes.
-MIN_GAP_M = 250.0
+import argparse
+import json
+from pathlib import Path
 
-# A cut this near an end of the blue line is dropped — it would leave a stub too short to
-# see, and the station already sits effectively on that boundary.
-MIN_END_M = 150.0
+DEFAULT_OUT = Path(__file__).resolve().parents[1] / "gauge_splits.json"
 
-# How far a station may be from the line it names. Generous, because a gauge is often on a
-# bank or a bridge and the FWA line is the channel centre; the NAME is what does the work.
-RADIUS_M = 2_000.0
-
-
-def _normalise(s: str) -> str:
-    """Lower-case, letters and digits only — the same shape on both sides of the compare."""
-    return "".join(c for c in (s or "").lower() if c.isalnum() or c == " ").strip()
+# How far the resolver may look from the station's coordinate for a channel to cut. A gauge
+# is often on a bank or a bridge while the FWA line is the channel centre, and on a braided
+# reach the far strand can be a few hundred metres off. Wide enough for that, narrow enough
+# that it cannot reach the next river over — and the WSC scope is doing the real work.
+PROXIMITY_M = 400.0
 
 
-def waterbody_name(station_name: str) -> str:
-    """The water out of an ECCC station name.
+def split_defs(graph, stations: list[dict], node_for_station: dict[str, str]) -> list[dict]:
+    """`SplitDef` dicts — one per station, scoped to the water the matcher resolved.
 
-    Their convention is "<WATER> <relation> <landmark>": "CHILLIWACK RIVER AT VEDDER
-    CROSSING", "FRASER RIVER NEAR AGASSIZ". Everything from the relation onwards is a
-    landmark and must not be matched against — "AT VEDDER CROSSING" is why a Chilliwack
-    station would otherwise cut the Vedder.
+    Deterministic: sorted by station id, which is also the split id, which is part of the
+    section-id ABI. A reordering here would move boundaries between builds for no reason.
     """
-    n = _normalise(station_name)
-    for sep in (" at ", " near ", " below ", " above ", " abv ", " blw ", " upstream ",
-                " downstream ", " d/s ", " u/s "):
-        if sep in n:
-            n = n.split(sep)[0]
-            break
-    return n.strip()
-
-
-def _chain_names(chain) -> list[str]:
-    """Every name this blue line answers to, normalised."""
-    out, seen = [], set()
-    for raw in (getattr(chain, "gnis_name", ""),
-                *(t.name for t in getattr(chain, "name_tuples", ()) or ())):
-        k = _normalise(raw)
-        if k and k not in seen:
-            seen.add(k)
-            out.append(k)
+    by_id = {s["station"]: s for s in stations}
+    out: list[dict] = []
+    for station in sorted(node_for_station):
+        node_id = node_for_station[station]
+        node = graph.nodes.get(node_id)
+        s = by_id.get(station)
+        if node is None or s is None:
+            continue
+        # A LAKE STATION IS NOT A CUT. It reports a level for a body of water; there is no
+        # "above it" and "below it" along a channel to separate. Lake gauges are linked to
+        # the lake itself by `pipeline.hydro.shed.lake_gauge_links`, which is the question
+        # they can actually answer.
+        if str(getattr(node, "kind", "")).endswith("lake"):
+            continue
+        lon, lat = s.get("lon"), s.get("lat")
+        if lon is None or lat is None:
+            continue
+        scope = ({"wsc": node.wsc} if getattr(node, "wsc", "")
+                 else {"blk": node.blk} if getattr(node, "blk", "") else None)
+        if scope is None:
+            continue                      # nothing to scope the cut to; a bare point is not one
+        out.append({
+            "id": f"gauge__{station}",
+            "label": f"{station} · {str(s.get('name', '')).title()}",
+            "anchor": {"type": "gauge", "coord": [float(lon), float(lat)],
+                       "is_lonlat": True},
+            **scope,
+            "proximity_m": PROXIMITY_M,
+            # Review aids, ignored by the loader. `_node` records WHICH water the match
+            # chose, which is the one judgement in this file worth a human's eye.
+            "_node": node_id,
+            "_name": node.display_name or "",
+            "_station_name": s.get("name", ""),
+        })
     return out
 
 
-def gauge_split_points(chains, stations: list[dict], *, radius_m: float = RADIUS_M):
-    """`list[SplitPoint]` — one cut per station, on the chain it names. Deterministic.
+def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--build", type=Path, default=Path("output/v2/full"),
+                    help="a completed build directory (graph.pkl, geometries.pkl)")
+    ap.add_argument("--stations", type=Path,
+                    default=Path("data/bc_hydrometric_stations.json"))
+    ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    ap.add_argument("--all-stations", action="store_true",
+                    help="include discontinued stations (default: transmitting only)")
+    a = ap.parse_args()
 
-    ``chains`` is the build's ``BlkChain`` list, which carries geometry in EPSG:3005 and the
-    resolved names. Nothing here touches the graph, so it can run before a single split has
-    been applied — which is the point.
-    """
-    import geopandas as gpd
-    from shapely.geometry import Point
-    from shapely.strtree import STRtree
+    import pickle
+    from pipeline.hydro.match import load_aliases, match_stations, nodes_for, summarise
+    from pipeline.hydro.shed import load_stations
 
-    from pipeline.models import AnchorType
-    from pipeline.models.splits import SplitPoint
+    graph = pickle.load((a.build / "graph.pkl").open("rb"))
+    geoms = pickle.load((a.build / "geometries.pkl").open("rb"))
+    # TRANSMITTING STATIONS ONLY, by default. A station discontinued in 1974 still sits
+    # somewhere, but cutting the river at it buys a boundary no reading will ever appear on.
+    stations = [s for s in load_stations(a.stations)
+                if a.all_stations or s.get("realtime")]
+    matches = match_stations(stations, geoms, graph, aliases=load_aliases())
+    print(summarise(matches))
 
-    usable = [c for c in chains
-              if getattr(c, "geometry", None) is not None and not c.geometry.is_empty]
-    if not usable or not stations:
-        return []
-    tree = STRtree([c.geometry for c in usable])
-
-    pts = gpd.GeoSeries([Point(s["lon"], s["lat"]) for s in stations],
-                        crs=4326).to_crs(3005)
-
-    found: list[tuple[str, float, str, float, str]] = []   # blk, measure, station, off, name
-    for station, pt in zip(stations, pts):
-        want = waterbody_name(station.get("name", ""))
-        if not want:
-            continue
-        best: tuple[float, object] | None = None
-        for ix in tree.query(pt.buffer(radius_m)):
-            chain = usable[ix]
-            d = chain.geometry.distance(pt)
-            if d > radius_m:
-                continue                      # the query is the bbox; this is the circle
-            # The FWA name must APPEAR IN the gauge name, not equal it: the station says
-            # "COQUITLAM RIVER" and the chain may say "Coquitlam River", but a chain called
-            # "Coquitlam" alone should still match while "Coquitlam Lake" must not.
-            if any(nm and nm in want for nm in _chain_names(chain)):
-                if best is None or d < best[0]:
-                    best = (d, chain)
-        if best is None:
-            continue
-        d, chain = best
-        local = float(chain.geometry.project(pt))
-        length = float(chain.geometry.length)
-        if local < MIN_END_M or length - local < MIN_END_M:
-            continue                          # a stub nobody could see, on a boundary already
-        base = float(getattr(chain, "mouth_measure", 0.0) or 0.0)
-        found.append((str(chain.blk), round(base + local, 1),
-                      str(station["station"]), round(d, 1),
-                      str(station.get("name", "")).title()))
-
-    # Collapse near-duplicates per blue line, keeping the lowest measure — deterministic,
-    # and it is the downstream one, which is the reach a person is more likely to be on.
-    found.sort()
-    out = []
-    last: tuple[str, float] | None = None
-    for blk, measure, sid, off, name in found:
-        if last and last[0] == blk and measure - last[1] < MIN_GAP_M:
-            continue
-        last = (blk, measure)
-        out.append(SplitPoint(
-            split_id=f"gauge__{sid}", blk=blk, route_measure=measure, fid="",
-            label=f"{sid} · {name}", anchor_type=AnchorType.gauge, offset_m=off,
-            # A station a few metres from a confluence or a lake outlet should REUSE that
-            # boundary rather than cut a second one beside it.
-            proximity_m=250.0,
-        ))
-    return out
+    rows = split_defs(graph, stations, nodes_for(matches))
+    a.out.write_text(json.dumps({
+        "_about": "Hydrometric stations as split definitions — a `gauge` point anchor at "
+                  "each station's published coordinate, scoped to the water the matcher "
+                  "resolved it to. GENERATED by `python -m pipeline.hydro.splits` against a "
+                  "COMPLETED build; do not hand-edit. Loaded by pipeline.build beside "
+                  "splits.json and resolved by the same resolver.",
+        "splits": rows,
+    }, indent=2) + "\n", encoding="utf-8")
+    scoped = sum(1 for r in rows if "wsc" in r)
+    print(f"wrote {a.out}  ({len(rows)} station splits, {scoped} scoped by WSC, "
+          f"{len(rows) - scoped} by BLK)")
 
 
-def load_roster(path) -> list[dict]:
-    """The fetched ECCC station list, realtime stations only, sorted.
-
-    Only the transmitting ones: a station discontinued in 1974 still sits somewhere, but
-    cutting the river at it buys a boundary no reading will ever be shown at.
-    """
-    import json
-    from pathlib import Path
-
-    p = Path(path)
-    if not p.exists():
-        return []
-    rows = json.loads(p.read_text(encoding="utf-8"))
-    return sorted((r for r in rows
-                   if r.get("realtime") and r.get("lon") is not None
-                   and r.get("lat") is not None),
-                  key=lambda r: r["station"])
+if __name__ == "__main__":
+    main()

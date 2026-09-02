@@ -210,7 +210,11 @@ def resolve_split_defs(split_defs: list[SplitDef], chains: list[BlkChain],
         a = sd.anchor
         targets = [(blk, by_blk[blk]) for blk in _target_blks(sd, chains) if blk in by_blk]
 
-        if a.type == AnchorType.point and a.coord is not None:
+        # A GAUGE ANCHOR IS A POINT ANCHOR WITH A PROVENANCE. Identical geometry — a
+        # published coordinate, projected onto the scoped channel, then swept perpendicular
+        # across the braid — and a distinct `anchor_type` so a cut a curator wrote and a cut
+        # a station generated are told apart in splits.resolved.json and in the gpkg.
+        if a.type in (AnchorType.point, AnchorType.gauge) and a.coord is not None:
             # The authored coordinate names ONE channel — the one it sits on. Cut that channel by
             # projection (exact), then sweep a perpendicular cut line across the valley and cut every
             # OTHER target channel it crosses, so a braid is caught by where it sits along the river

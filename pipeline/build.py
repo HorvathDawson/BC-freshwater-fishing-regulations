@@ -239,6 +239,10 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
 
 
 _ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "added_streams.build.json"
+# Hydrometric stations as split definitions, frozen from a completed build's match by
+# `python -m pipeline.hydro.splits`. Loaded beside splits.json and resolved by the same
+# resolver — see the comment where it is read.
+_GAUGE_SPLITS_JSON = Path(__file__).resolve().parent / "gauge_splits.json"
 _ADDED_LAKES_GEOJSON = Path(__file__).resolve().parent / "added_lakes.geojson"
 _DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"
 
@@ -316,8 +320,6 @@ def main() -> None:
     ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
     ap.add_argument("--added-streams", default=None,
                     help="path to a frozen added_streams.build.json (default: the packaged one)")
-    ap.add_argument("--stations", default="data/bc_hydrometric_stations.json",
-                    help="ECCC station roster; rivers are sectioned at their gauges")
     ap.add_argument("--no-gauge-splits", action="store_true",
                     help="do not section rivers at their hydrometric stations")
     ap.add_argument("--added-lakes", help="path to an added_lakes.geojson (default: the packaged one)")
@@ -550,6 +552,22 @@ def main() -> None:
             raise SystemExit(f"splits file not found: {_sp}  (pass --splits, or --no-splits to skip)")
         splits = load_split_defs(str(_sp))
         print(f"curated splits: {len(splits)} from {_sp}")
+        # GAUGE SPLITS RIDE IN AS ORDINARY SPLIT DEFS.
+        #
+        # A section takes ONE station: the one that most nearly is that water. On a river of
+        # 20 sections with 18 stations that means the reading at Hope is claimed for water at
+        # Lillooet, because one section runs between them. The answer is not a better ranking
+        # but a shorter reach — a gauge is the boundary between two measurements.
+        #
+        # They are `gauge` point anchors scoped by WSC, generated against a completed build
+        # by `python -m pipeline.hydro.splits` (see that module for why it must be frozen).
+        # Appended here rather than resolved separately so there is ONE resolver, one set of
+        # rules about braids and offsets and proximity, and one place a curator can review
+        # every cut in the province — splits.resolved.json and the gpkg both.
+        if not args.no_gauge_splits and _GAUGE_SPLITS_JSON.exists():
+            gauge_defs = load_split_defs(str(_GAUGE_SPLITS_JSON))
+            splits = list(splits) + list(gauge_defs)
+            print(f"gauge splits:   {len(gauge_defs)} from {_GAUGE_SPLITS_JSON.name}")
     applied_splits: list = []
     if splits:
         from pipeline.splits.anchors import resolve_split_defs
@@ -595,37 +613,6 @@ def main() -> None:
             if len(aliased_splits) > 20:
                 print(f"      … and {len(aliased_splits) - 20} more")
         _tick("curated splits")
-
-    # GAUGE CUTS — a station's own position on the river it measures.
-    #
-    # WHY THE RIVER IS CUT AT ALL. A section takes ONE station: the one that most nearly is
-    # that water. On a river of 20 sections with 26 stations that means the reading at Hope
-    # is claimed for water at Lillooet, because one section runs between them. The answer is
-    # not a better ranking, it is a shorter reach — a gauge is the boundary between two
-    # different measurements, so the map should change section there.
-    #
-    # RUNS HERE, OFF THE CHAINS, WITH NO FROZEN ARTIFACT. Cutting needs a blue line and a
-    # measure along it, not a graph node, and chains already carry both plus their resolved
-    # names. The only input is the FETCHED station roster, so this stays decoupled from any
-    # build product while never being able to go stale behind a station that moved.
-    #
-    # Proximity pickup is ON: a station a few metres from a confluence or a lake outlet
-    # reuses that boundary rather than cutting a second one beside it.
-    if not args.no_gauge_splits:
-        from pipeline.hydro.splits import gauge_split_points, load_roster
-        from pipeline.splits.sectionizer import split_graph_at
-        roster = load_roster(args.stations)
-        gpts = gauge_split_points(chains, roster) if roster else []
-        if gpts:
-            before = len(graph.nodes)
-            split_graph_at(graph, geoms, gpts, fid_index, proximity_pickup=True,
-                           applied=applied_splits)
-            print(f"  gauge splits: {len(gpts)} station cut(s) on "
-                  f"{len({p.blk for p in gpts})} blue line(s) -> "
-                  f"{len(graph.nodes) - before} new section(s)")
-            _tick("gauge splits")
-        elif roster:
-            print(f"  gauge splits: none of {len(roster)} stations named a line in this bbox")
 
     # Blanket area closures (areas.json) — cut ALL streams crossing each admin polygon
     # (national parks, ecological reserves, the Chilkoot trail) at first-enter/last-exit + flag
