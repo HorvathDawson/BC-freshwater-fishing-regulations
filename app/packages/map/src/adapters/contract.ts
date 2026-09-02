@@ -111,18 +111,27 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
       }
       out[widthKey] = z;
     }
-    // A HIGHLIGHTED REACH IS ALSO THICKER. Colour alone is not enough on a 1.4 px line
-    // over a busy basemap, and the route panel's whole job is to pick a chain of reaches
-    // out of hundreds of others.
-    //
-    // `max`, not a multiplier: `width.stream.highlight` is a width IN PIXELS (3.2), so
-    // multiplying by it would make the Fraser thirty pixels wide while leaving a creek
-    // thinner than the highlight is supposed to guarantee. A floor gives every selected
-    // reach at least that weight and leaves a big river its own.
-    if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined)
-      out[widthKey] = ["case", selected,
-                       ["max", out[widthKey], Number(tokens["width.stream.highlight"])],
-                       out[widthKey]];
+    /**
+     * A HIGHLIGHTED REACH IS ALSO THICKER — as a FLOOR, applied INSIDE the zoom curve.
+     *
+     * `max`, not a multiplier: `width.stream.highlight` is a width in pixels (3.2), so
+     * multiplying would make the Fraser thirty pixels wide while leaving a creek thinner
+     * than the highlight is supposed to guarantee.
+     *
+     * THE ZOOM CURVE MUST STAY AT THE TOP. MapLibre allows exactly one zoom-based
+     * `interpolate` per expression AND requires it to be the outermost one — a
+     * "zoom-and-property" function is a zoom curve whose OUTPUTS are data expressions,
+     * never the other way round. Both wrong shapes were shipped in turn: first
+     * `case(selected, max(<curve>, 3.2), <curve>)` (two curves), then
+     * `max(<curve>, case(...))` (one curve, but nested). Each one fails to PARSE, so the
+     * layer is dropped and the map comes up unstyled with a single console line.
+     * `tools/style-valid.test.ts` now runs the spec's own validator over this.
+     */
+    if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined) {
+      const floor: unknown =
+        ["case", selected, Number(tokens["width.stream.highlight"]), 0];
+      out[widthKey] = withinZoomCurve(out[widthKey], (v) => ["max", v, floor]);
+    }
   }
 
   const dash = (STYLE_META.dashes ?? {})[layerId];
@@ -152,6 +161,25 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
     if (o !== undefined) out[`${type}-opacity`] = o;
   }
   return out;
+}
+
+/**
+ * Apply `f` to what an expression EVALUATES TO, leaving any zoom curve on the outside.
+ *
+ * A zoom-based `interpolate` has the shape `["interpolate", interp, ["zoom"], at, out, …]`,
+ * and MapLibre requires it to be outermost. So a data-dependent adjustment cannot wrap the
+ * curve; it has to be pushed into each of the curve's outputs, which is the same value
+ * everywhere and legal. Anything that is not such a curve is transformed directly.
+ */
+function withinZoomCurve(expr: unknown, f: (value: unknown) => unknown): unknown {
+  const isZoomCurve = Array.isArray(expr)
+    && (expr[0] === "interpolate" || expr[0] === "step")
+    && JSON.stringify(expr[expr[0] === "step" ? 1 : 2]) === '["zoom"]';
+  if (!isZoomCurve) return f(expr);
+  const a = expr as unknown[];
+  const head = a[0] === "step" ? 2 : 3;           // step: op, input, default; interpolate: op, interp, input
+  return [...a.slice(0, head),
+          ...a.slice(head).map((v, i) => ((i % 2 === 0) ? v : f(v)))];
 }
 
 export function baseAdapter(platform: "native" | "web"): MapAdapter {
