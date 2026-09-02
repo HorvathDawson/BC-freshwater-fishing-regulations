@@ -218,12 +218,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
     );
 
   const body = item !== null
-    // THE TAB YOU CAME FROM IS THE QUESTION YOU ASKED. Opening a river from Conditions and
-    // landing on its regulations means answering something nobody asked and burying what
-    // they did — so the sheet opens on the face that matches the tab.
     ? <WaterScreen source={source} item={item} on={on} group={group} palette={palette}
-                   face={tab === "conditions" ? "conditions" : "regulations"}
-                   tiles={tiles} theme={theme}
+                   // The toggle LEAVES for the one conditions screen rather than rendering
+                   // a second one here. Opening it from a list means there is no tapped
+                   // point, so the route map has no "you are here" — which is honest: the
+                   // reader did not choose one.
+                   onConditions={(sec) => { setCondAt(null); setCondSection(sec);
+                                            setItem(null); setTab("conditions"); }}
                    onBack={() => setItem(null)} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} onPick={setItem} total={waters}
@@ -237,6 +238,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
                             parameter={flowParam === "both" ? undefined : flowParam}
                             onParameter={setFlowParam}
                             from={condAt}
+                            // The same section -> item resolution a map tap uses, so the
+                            // two cannot answer differently.
+                            onRegulations={(sec) => { setCondSection(null);
+                                                      void onPressFeature("stream", sec); }}
                             onBack={() => setCondSection(null)} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}

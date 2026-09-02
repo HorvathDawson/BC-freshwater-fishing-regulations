@@ -55,6 +55,14 @@ class TestWhatIsEmitted:
         assert d.anchor.coord == (-123.0, 49.0)
         assert d.wsc == "100-123456"
 
+    def test_names_the_station_as_a_field_not_only_inside_the_id(self):
+        # The id becomes the graph boundary `split:gauge__08AA001` and travels into the
+        # registry, so a boundary carries the name of the thing that made it. The field is
+        # so nothing downstream has to parse an id string to find out which gauge it was.
+        rows = GS.split_defs(_graph({"n1": _node()}), [_station()], {"08AA001": "n1"})
+        assert rows[0]["station"] == "08AA001"
+        assert rows[0]["id"] == f"gauge__{rows[0]['station']}"
+
     def test_records_which_water_the_match_chose(self):
         # The one judgement in this file worth a human's eye: everything else is mechanical.
         rows = GS.split_defs(_graph({"n1": _node(name="Chilliwack River")}),

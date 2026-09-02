@@ -552,18 +552,25 @@ def main() -> None:
             raise SystemExit(f"splits file not found: {_sp}  (pass --splits, or --no-splits to skip)")
         splits = load_split_defs(str(_sp))
         print(f"curated splits: {len(splits)} from {_sp}")
-        # GAUGE SPLITS RIDE IN AS ORDINARY SPLIT DEFS.
+        # GAUGE SPLITS RIDE IN AS ORDINARY SPLIT DEFS, SECOND.
         #
         # A section takes ONE station: the one that most nearly is that water. On a river of
         # 20 sections with 18 stations that means the reading at Hope is claimed for water at
         # Lillooet, because one section runs between them. The answer is not a better ranking
         # but a shorter reach — a gauge is the boundary between two measurements.
         #
-        # They are `gauge` point anchors scoped by WSC, generated against a completed build
-        # by `python -m pipeline.hydro.splits` (see that module for why it must be frozen).
-        # Appended here rather than resolved separately so there is ONE resolver, one set of
-        # rules about braids and offsets and proximity, and one place a curator can review
-        # every cut in the province — splits.resolved.json and the gpkg both.
+        # They are `gauge` point anchors scoped by WSC, frozen from a completed build's match
+        # by `python -m pipeline.hydro.splits` (that module documents the whole flow and why
+        # it has to be two-pass).
+        #
+        # AFTER the curated ones, and that order is load-bearing rather than tidy: proximity
+        # pickup means a station near a hand-authored boundary REUSES it instead of cutting a
+        # near-duplicate a few metres away, and a split can only pick up a boundary that is
+        # already there. Authored geometry is the primary boundary; a gauge defers to it.
+        #
+        # Appended rather than resolved separately so there is ONE resolver, one set of rules
+        # about braids and offsets and proximity, and one place a curator reviews every cut in
+        # the province — splits.resolved.json and the gpkg both.
         if not args.no_gauge_splits and _GAUGE_SPLITS_JSON.exists():
             gauge_defs = load_split_defs(str(_GAUGE_SPLITS_JSON))
             splits = list(splits) + list(gauge_defs)

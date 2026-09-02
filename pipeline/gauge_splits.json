@@ -3,6 +3,7 @@
   "splits": [
     {
       "id": "gauge__07EA004",
+      "station": "07EA004",
       "label": "07EA004 \u00b7 Ingenika River Above Swannell River",
       "anchor": {
         "type": "gauge",
@@ -20,6 +21,7 @@
     },
     {
       "id": "gauge__07EA005",
+      "station": "07EA005",
       "label": "07EA005 \u00b7 Finlay River Above Akie River",
       "anchor": {
         "type": "gauge",
@@ -37,6 +39,7 @@
     },
     {
       "id": "gauge__07EA007",
+      "station": "07EA007",
       "label": "07EA007 \u00b7 Akie River Near The 760 M Contour",
       "anchor": {
         "type": "gauge",
@@ -54,6 +57,7 @@
     },
     {
       "id": "gauge__07EB002",
+      "station": "07EB002",
       "label": "07EB002 \u00b7 Ospika River Above Aley Creek",
       "anchor": {
         "type": "gauge",
@@ -71,6 +75,7 @@
     },
     {
       "id": "gauge__07EC002",
+      "station": "07EC002",
       "label": "07EC002 \u00b7 Omineca River Above Osilinka River",
       "anchor": {
         "type": "gauge",
@@ -88,6 +93,7 @@
     },
     {
       "id": "gauge__07EC003",
+      "station": "07EC003",
       "label": "07EC003 \u00b7 Mesilinka River Above Gopherhole Creek",
       "anchor": {
         "type": "gauge",
@@ -105,6 +111,7 @@
     },
     {
       "id": "gauge__07EC004",
+      "station": "07EC004",
       "label": "07EC004 \u00b7 Osilinka River Near End Lake",
       "anchor": {
         "type": "gauge",
@@ -122,6 +129,7 @@
     },
     {
       "id": "gauge__07ED001",
+      "station": "07ED001",
       "label": "07ED001 \u00b7 Nation River Near Fort St. James",
       "anchor": {
         "type": "gauge",
@@ -139,6 +147,7 @@
     },
     {
       "id": "gauge__07ED003",
+      "station": "07ED003",
       "label": "07ED003 \u00b7 Nation River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -156,6 +165,7 @@
     },
     {
       "id": "gauge__07EE007",
+      "station": "07EE007",
       "label": "07EE007 \u00b7 Parsnip River Above Misinchinka River",
       "anchor": {
         "type": "gauge",
@@ -173,6 +183,7 @@
     },
     {
       "id": "gauge__07EE009",
+      "station": "07EE009",
       "label": "07EE009 \u00b7 Chuchinka Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -190,6 +201,7 @@
     },
     {
       "id": "gauge__07EE010",
+      "station": "07EE010",
       "label": "07EE010 \u00b7 Pack River At Outlet Of Mcleod Lake",
       "anchor": {
         "type": "gauge",
@@ -207,6 +219,7 @@
     },
     {
       "id": "gauge__07EF004",
+      "station": "07EF004",
       "label": "07EF004 \u00b7 Carbon Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -224,6 +237,7 @@
     },
     {
       "id": "gauge__07FA003",
+      "station": "07FA003",
       "label": "07FA003 \u00b7 Halfway River Above Graham River",
       "anchor": {
         "type": "gauge",
@@ -241,6 +255,7 @@
     },
     {
       "id": "gauge__07FA004",
+      "station": "07FA004",
       "label": "07FA004 \u00b7 Peace River Above Pine River",
       "anchor": {
         "type": "gauge",
@@ -258,6 +273,7 @@
     },
     {
       "id": "gauge__07FA005",
+      "station": "07FA005",
       "label": "07FA005 \u00b7 Graham River Above Colt Creek",
       "anchor": {
         "type": "gauge",
@@ -275,6 +291,7 @@
     },
     {
       "id": "gauge__07FA006",
+      "station": "07FA006",
       "label": "07FA006 \u00b7 Halfway River Near Farrell Creek",
       "anchor": {
         "type": "gauge",
@@ -292,6 +309,7 @@
     },
     {
       "id": "gauge__07FB001",
+      "station": "07FB001",
       "label": "07FB001 \u00b7 Pine River At East Pine",
       "anchor": {
         "type": "gauge",
@@ -309,6 +327,7 @@
     },
     {
       "id": "gauge__07FB002",
+      "station": "07FB002",
       "label": "07FB002 \u00b7 Murray River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -326,6 +345,7 @@
     },
     {
       "id": "gauge__07FB003",
+      "station": "07FB003",
       "label": "07FB003 \u00b7 Sukunka River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -343,6 +363,7 @@
     },
     {
       "id": "gauge__07FB004",
+      "station": "07FB004",
       "label": "07FB004 \u00b7 Dickebusch Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -360,6 +381,7 @@
     },
     {
       "id": "gauge__07FB006",
+      "station": "07FB006",
       "label": "07FB006 \u00b7 Murray River Above Wolverine River",
       "anchor": {
         "type": "gauge",
@@ -377,6 +399,7 @@
     },
     {
       "id": "gauge__07FB008",
+      "station": "07FB008",
       "label": "07FB008 \u00b7 Moberly River Near Fort St. John",
       "anchor": {
         "type": "gauge",
@@ -394,6 +417,7 @@
     },
     {
       "id": "gauge__07FB009",
+      "station": "07FB009",
       "label": "07FB009 \u00b7 Flatbed Creek At Kilometre 110 Heritage Highway",
       "anchor": {
         "type": "gauge",
@@ -411,6 +435,7 @@
     },
     {
       "id": "gauge__07FC001",
+      "station": "07FC001",
       "label": "07FC001 \u00b7 Beatton River Near Fort St. John",
       "anchor": {
         "type": "gauge",
@@ -428,6 +453,7 @@
     },
     {
       "id": "gauge__07FC003",
+      "station": "07FC003",
       "label": "07FC003 \u00b7 Blueberry River Below Aitken Creek",
       "anchor": {
         "type": "gauge",
@@ -445,6 +471,7 @@
     },
     {
       "id": "gauge__07FC008",
+      "station": "07FC008",
       "label": "07FC008 \u00b7 Beatton River At Tommy Lakes Road",
       "anchor": {
         "type": "gauge",
@@ -462,6 +489,7 @@
     },
     {
       "id": "gauge__07FD001",
+      "station": "07FD001",
       "label": "07FD001 \u00b7 Kiskatinaw River Near Farmington",
       "anchor": {
         "type": "gauge",
@@ -479,6 +507,7 @@
     },
     {
       "id": "gauge__07FD002",
+      "station": "07FD002",
       "label": "07FD002 \u00b7 Peace River Near Taylor",
       "anchor": {
         "type": "gauge",
@@ -496,6 +525,7 @@
     },
     {
       "id": "gauge__07FD007",
+      "station": "07FD007",
       "label": "07FD007 \u00b7 Pouce Coupe River Below Henderson Creek",
       "anchor": {
         "type": "gauge",
@@ -513,6 +543,7 @@
     },
     {
       "id": "gauge__07FD010",
+      "station": "07FD010",
       "label": "07FD010 \u00b7 Peace River Above Alces River",
       "anchor": {
         "type": "gauge",
@@ -530,6 +561,7 @@
     },
     {
       "id": "gauge__07FD019",
+      "station": "07FD019",
       "label": "07FD019 \u00b7 Kiskatinaw River Below Borden Creek",
       "anchor": {
         "type": "gauge",
@@ -547,6 +579,7 @@
     },
     {
       "id": "gauge__08CD001",
+      "station": "08CD001",
       "label": "08CD001 \u00b7 Tuya River Near Telegraph Creek",
       "anchor": {
         "type": "gauge",
@@ -564,6 +597,7 @@
     },
     {
       "id": "gauge__08CE001",
+      "station": "08CE001",
       "label": "08CE001 \u00b7 Stikine River At Telegraph Creek",
       "anchor": {
         "type": "gauge",
@@ -581,6 +615,7 @@
     },
     {
       "id": "gauge__08CE005",
+      "station": "08CE005",
       "label": "08CE005 \u00b7 Tahltan River At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -598,6 +633,7 @@
     },
     {
       "id": "gauge__08CG001",
+      "station": "08CG001",
       "label": "08CG001 \u00b7 Iskut River Below Johnson River",
       "anchor": {
         "type": "gauge",
@@ -615,6 +651,7 @@
     },
     {
       "id": "gauge__08DA005",
+      "station": "08DA005",
       "label": "08DA005 \u00b7 Surprise Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -632,6 +669,7 @@
     },
     {
       "id": "gauge__08DB001",
+      "station": "08DB001",
       "label": "08DB001 \u00b7 Nass River Above Shumal Creek",
       "anchor": {
         "type": "gauge",
@@ -649,6 +687,7 @@
     },
     {
       "id": "gauge__08DB013",
+      "station": "08DB013",
       "label": "08DB013 \u00b7 Ansedagan Creek Near New Aiyansh",
       "anchor": {
         "type": "gauge",
@@ -666,6 +705,7 @@
     },
     {
       "id": "gauge__08EB003",
+      "station": "08EB003",
       "label": "08EB003 \u00b7 Skeena River At Glen Vowell",
       "anchor": {
         "type": "gauge",
@@ -683,6 +723,7 @@
     },
     {
       "id": "gauge__08EB004",
+      "station": "08EB004",
       "label": "08EB004 \u00b7 Kispiox River Near Hazelton",
       "anchor": {
         "type": "gauge",
@@ -700,6 +741,7 @@
     },
     {
       "id": "gauge__08EB005",
+      "station": "08EB005",
       "label": "08EB005 \u00b7 Skeena River Above Babine River",
       "anchor": {
         "type": "gauge",
@@ -717,6 +759,7 @@
     },
     {
       "id": "gauge__08EB007",
+      "station": "08EB007",
       "label": "08EB007 \u00b7 Kitwanga River Near Kitwanga",
       "anchor": {
         "type": "gauge",
@@ -734,6 +777,7 @@
     },
     {
       "id": "gauge__08EC001",
+      "station": "08EC001",
       "label": "08EC001 \u00b7 Babine River At Babine",
       "anchor": {
         "type": "gauge",
@@ -751,6 +795,7 @@
     },
     {
       "id": "gauge__08EC004",
+      "station": "08EC004",
       "label": "08EC004 \u00b7 Pinkut Creek Near Tintagel",
       "anchor": {
         "type": "gauge",
@@ -768,6 +813,7 @@
     },
     {
       "id": "gauge__08EC013",
+      "station": "08EC013",
       "label": "08EC013 \u00b7 Babine River At Outlet Of Nilkitkwa Lake",
       "anchor": {
         "type": "gauge",
@@ -785,6 +831,7 @@
     },
     {
       "id": "gauge__08EC014",
+      "station": "08EC014",
       "label": "08EC014 \u00b7 Twain Creek Tributary Near Babine Lake",
       "anchor": {
         "type": "gauge",
@@ -802,6 +849,7 @@
     },
     {
       "id": "gauge__08ED001",
+      "station": "08ED001",
       "label": "08ED001 \u00b7 Nanika River At Outlet Of Kidprice Lake",
       "anchor": {
         "type": "gauge",
@@ -819,6 +867,7 @@
     },
     {
       "id": "gauge__08ED002",
+      "station": "08ED002",
       "label": "08ED002 \u00b7 Morice River Near Houston",
       "anchor": {
         "type": "gauge",
@@ -836,6 +885,7 @@
     },
     {
       "id": "gauge__08ED004",
+      "station": "08ED004",
       "label": "08ED004 \u00b7 Thautil Corner Creek Near Morice Lake",
       "anchor": {
         "type": "gauge",
@@ -853,6 +903,7 @@
     },
     {
       "id": "gauge__08EE003",
+      "station": "08EE003",
       "label": "08EE003 \u00b7 Bulkley River Near Houston",
       "anchor": {
         "type": "gauge",
@@ -870,6 +921,7 @@
     },
     {
       "id": "gauge__08EE004",
+      "station": "08EE004",
       "label": "08EE004 \u00b7 Bulkley River At Quick",
       "anchor": {
         "type": "gauge",
@@ -887,6 +939,7 @@
     },
     {
       "id": "gauge__08EE005",
+      "station": "08EE005",
       "label": "08EE005 \u00b7 Bulkley River Near Smithers",
       "anchor": {
         "type": "gauge",
@@ -904,6 +957,7 @@
     },
     {
       "id": "gauge__08EE008",
+      "station": "08EE008",
       "label": "08EE008 \u00b7 Goathorn Creek Near Telkwa",
       "anchor": {
         "type": "gauge",
@@ -921,6 +975,7 @@
     },
     {
       "id": "gauge__08EE012",
+      "station": "08EE012",
       "label": "08EE012 \u00b7 Simpson Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -938,6 +993,7 @@
     },
     {
       "id": "gauge__08EE013",
+      "station": "08EE013",
       "label": "08EE013 \u00b7 Buck Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -955,6 +1011,7 @@
     },
     {
       "id": "gauge__08EE020",
+      "station": "08EE020",
       "label": "08EE020 \u00b7 Telkwa River Below Tsai Creek",
       "anchor": {
         "type": "gauge",
@@ -972,6 +1029,7 @@
     },
     {
       "id": "gauge__08EE025",
+      "station": "08EE025",
       "label": "08EE025 \u00b7 Two Mile Creek In District Lot 4834",
       "anchor": {
         "type": "gauge",
@@ -989,6 +1047,7 @@
     },
     {
       "id": "gauge__08EF001",
+      "station": "08EF001",
       "label": "08EF001 \u00b7 Skeena River At Usk",
       "anchor": {
         "type": "gauge",
@@ -1006,6 +1065,7 @@
     },
     {
       "id": "gauge__08EF005",
+      "station": "08EF005",
       "label": "08EF005 \u00b7 Zymoetz River Above O.K. Creek",
       "anchor": {
         "type": "gauge",
@@ -1023,6 +1083,7 @@
     },
     {
       "id": "gauge__08EF006",
+      "station": "08EF006",
       "label": "08EF006 \u00b7 M3 Creek Near Smithers",
       "anchor": {
         "type": "gauge",
@@ -1040,6 +1101,7 @@
     },
     {
       "id": "gauge__08EG012",
+      "station": "08EG012",
       "label": "08EG012 \u00b7 Exchamsiks River Near Terrace",
       "anchor": {
         "type": "gauge",
@@ -1057,6 +1119,7 @@
     },
     {
       "id": "gauge__08EG018",
+      "station": "08EG018",
       "label": "08EG018 \u00b7 Clarence Creek Near Rosswood",
       "anchor": {
         "type": "gauge",
@@ -1074,6 +1137,7 @@
     },
     {
       "id": "gauge__08EG019",
+      "station": "08EG019",
       "label": "08EG019 \u00b7 Kitsumkalum River Below Alice Creek",
       "anchor": {
         "type": "gauge",
@@ -1091,6 +1155,7 @@
     },
     {
       "id": "gauge__08FA002",
+      "station": "08FA002",
       "label": "08FA002 \u00b7 Wannock River At Outlet Of Owikeno Lake",
       "anchor": {
         "type": "gauge",
@@ -1108,6 +1173,7 @@
     },
     {
       "id": "gauge__08FB004",
+      "station": "08FB004",
       "label": "08FB004 \u00b7 Salloomt River Near Hagensborg",
       "anchor": {
         "type": "gauge",
@@ -1125,6 +1191,7 @@
     },
     {
       "id": "gauge__08FB006",
+      "station": "08FB006",
       "label": "08FB006 \u00b7 Atnarko River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1142,6 +1209,7 @@
     },
     {
       "id": "gauge__08FB011",
+      "station": "08FB011",
       "label": "08FB011 \u00b7 Bella Coola River Above Hammer Creek",
       "anchor": {
         "type": "gauge",
@@ -1159,6 +1227,7 @@
     },
     {
       "id": "gauge__08FC003",
+      "station": "08FC003",
       "label": "08FC003 \u00b7 Dean River Below Tanswanket Creek",
       "anchor": {
         "type": "gauge",
@@ -1176,6 +1245,7 @@
     },
     {
       "id": "gauge__08FE003",
+      "station": "08FE003",
       "label": "08FE003 \u00b7 Kemano River Above Powerhouse Tailrace",
       "anchor": {
         "type": "gauge",
@@ -1193,6 +1263,7 @@
     },
     {
       "id": "gauge__08FF001",
+      "station": "08FF001",
       "label": "08FF001 \u00b7 Kitimat River Below Hirsch Creek",
       "anchor": {
         "type": "gauge",
@@ -1210,6 +1281,7 @@
     },
     {
       "id": "gauge__08FF002",
+      "station": "08FF002",
       "label": "08FF002 \u00b7 Hirsch Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1227,6 +1299,7 @@
     },
     {
       "id": "gauge__08FF003",
+      "station": "08FF003",
       "label": "08FF003 \u00b7 Little Wedeene River Below Bowbyes Creek",
       "anchor": {
         "type": "gauge",
@@ -1244,6 +1317,7 @@
     },
     {
       "id": "gauge__08FF006",
+      "station": "08FF006",
       "label": "08FF006 \u00b7 Renegade Creek Near Kitimat",
       "anchor": {
         "type": "gauge",
@@ -1261,6 +1335,7 @@
     },
     {
       "id": "gauge__08GA010",
+      "station": "08GA010",
       "label": "08GA010 \u00b7 Capilano River Above Intake",
       "anchor": {
         "type": "gauge",
@@ -1278,6 +1353,7 @@
     },
     {
       "id": "gauge__08GA022",
+      "station": "08GA022",
       "label": "08GA022 \u00b7 Squamish River Near Brackendale",
       "anchor": {
         "type": "gauge",
@@ -1295,6 +1371,7 @@
     },
     {
       "id": "gauge__08GA026",
+      "station": "08GA026",
       "label": "08GA026 \u00b7 Capilano River Above Eastcap Creek",
       "anchor": {
         "type": "gauge",
@@ -1312,6 +1389,7 @@
     },
     {
       "id": "gauge__08GA030",
+      "station": "08GA030",
       "label": "08GA030 \u00b7 Seymour River Near North Vancouver",
       "anchor": {
         "type": "gauge",
@@ -1329,6 +1407,7 @@
     },
     {
       "id": "gauge__08GA031",
+      "station": "08GA031",
       "label": "08GA031 \u00b7 Capilano River At Canyon",
       "anchor": {
         "type": "gauge",
@@ -1346,6 +1425,7 @@
     },
     {
       "id": "gauge__08GA043",
+      "station": "08GA043",
       "label": "08GA043 \u00b7 Cheakamus River Near Brackendale",
       "anchor": {
         "type": "gauge",
@@ -1363,6 +1443,7 @@
     },
     {
       "id": "gauge__08GA047",
+      "station": "08GA047",
       "label": "08GA047 \u00b7 Roberts Creek At Roberts Creek",
       "anchor": {
         "type": "gauge",
@@ -1380,6 +1461,7 @@
     },
     {
       "id": "gauge__08GA061",
+      "station": "08GA061",
       "label": "08GA061 \u00b7 Mackay Creek At Montroyal Boulevard",
       "anchor": {
         "type": "gauge",
@@ -1397,6 +1479,7 @@
     },
     {
       "id": "gauge__08GA071",
+      "station": "08GA071",
       "label": "08GA071 \u00b7 Elaho River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1414,6 +1497,7 @@
     },
     {
       "id": "gauge__08GA072",
+      "station": "08GA072",
       "label": "08GA072 \u00b7 Cheakamus River Above Millar Creek",
       "anchor": {
         "type": "gauge",
@@ -1431,6 +1515,7 @@
     },
     {
       "id": "gauge__08GA075",
+      "station": "08GA075",
       "label": "08GA075 \u00b7 Mamquam River Above Ring Creek",
       "anchor": {
         "type": "gauge",
@@ -1448,6 +1533,7 @@
     },
     {
       "id": "gauge__08GA076",
+      "station": "08GA076",
       "label": "08GA076 \u00b7 Stawamus River At Highway No. 99",
       "anchor": {
         "type": "gauge",
@@ -1465,6 +1551,7 @@
     },
     {
       "id": "gauge__08GA077",
+      "station": "08GA077",
       "label": "08GA077 \u00b7 Seymour River Below Orchid Creek",
       "anchor": {
         "type": "gauge",
@@ -1482,6 +1569,7 @@
     },
     {
       "id": "gauge__08GA079",
+      "station": "08GA079",
       "label": "08GA079 \u00b7 Seymour River Above Lakehead",
       "anchor": {
         "type": "gauge",
@@ -1499,6 +1587,7 @@
     },
     {
       "id": "gauge__08GB013",
+      "station": "08GB013",
       "label": "08GB013 \u00b7 Clowhom River Near Clowhom Lake",
       "anchor": {
         "type": "gauge",
@@ -1516,6 +1605,7 @@
     },
     {
       "id": "gauge__08GB014",
+      "station": "08GB014",
       "label": "08GB014 \u00b7 Horseshoe River Above Lois Lake",
       "anchor": {
         "type": "gauge",
@@ -1533,6 +1623,7 @@
     },
     {
       "id": "gauge__08GC005",
+      "station": "08GC005",
       "label": "08GC005 \u00b7 Theodosia River Diversion Above Olsen Lake",
       "anchor": {
         "type": "gauge",
@@ -1550,6 +1641,7 @@
     },
     {
       "id": "gauge__08GC006",
+      "station": "08GC006",
       "label": "08GC006 \u00b7 Theodosia River Diversion Bypass",
       "anchor": {
         "type": "gauge",
@@ -1567,6 +1659,7 @@
     },
     {
       "id": "gauge__08GC007",
+      "station": "08GC007",
       "label": "08GC007 \u00b7 Theodosia River Below Olsen Lake Diversion",
       "anchor": {
         "type": "gauge",
@@ -1584,6 +1677,7 @@
     },
     {
       "id": "gauge__08GC008",
+      "station": "08GC008",
       "label": "08GC008 \u00b7 Theodosia River Above Scotty Creek",
       "anchor": {
         "type": "gauge",
@@ -1601,6 +1695,7 @@
     },
     {
       "id": "gauge__08GD004",
+      "station": "08GD004",
       "label": "08GD004 \u00b7 Homathko River At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1618,6 +1713,7 @@
     },
     {
       "id": "gauge__08GD008",
+      "station": "08GD008",
       "label": "08GD008 \u00b7 Homathko River At Inlet To Tatlayoko Lake",
       "anchor": {
         "type": "gauge",
@@ -1635,6 +1731,7 @@
     },
     {
       "id": "gauge__08GD010",
+      "station": "08GD010",
       "label": "08GD010 \u00b7 Southgate River Above Elliot Creek",
       "anchor": {
         "type": "gauge",
@@ -1652,6 +1749,7 @@
     },
     {
       "id": "gauge__08GE002",
+      "station": "08GE002",
       "label": "08GE002 \u00b7 Klinaklini River East Channel (Main) Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1669,6 +1767,7 @@
     },
     {
       "id": "gauge__08GE003",
+      "station": "08GE003",
       "label": "08GE003 \u00b7 Icy Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1686,6 +1785,7 @@
     },
     {
       "id": "gauge__08GF007",
+      "station": "08GF007",
       "label": "08GF007 \u00b7 Wakeman River Below Atwaykellesse River",
       "anchor": {
         "type": "gauge",
@@ -1703,6 +1803,7 @@
     },
     {
       "id": "gauge__08GF009",
+      "station": "08GF009",
       "label": "08GF009 \u00b7 Kingcome River Below Atlatzi River",
       "anchor": {
         "type": "gauge",
@@ -1720,6 +1821,7 @@
     },
     {
       "id": "gauge__08HA001",
+      "station": "08HA001",
       "label": "08HA001 \u00b7 Chemainus River Near Westholme",
       "anchor": {
         "type": "gauge",
@@ -1737,6 +1839,7 @@
     },
     {
       "id": "gauge__08HA002",
+      "station": "08HA002",
       "label": "08HA002 \u00b7 Cowichan River At Lake Cowichan",
       "anchor": {
         "type": "gauge",
@@ -1754,6 +1857,7 @@
     },
     {
       "id": "gauge__08HA003",
+      "station": "08HA003",
       "label": "08HA003 \u00b7 Koksilah River At Cowichan Station",
       "anchor": {
         "type": "gauge",
@@ -1771,6 +1875,7 @@
     },
     {
       "id": "gauge__08HA010",
+      "station": "08HA010",
       "label": "08HA010 \u00b7 San Juan River Near Port Renfrew",
       "anchor": {
         "type": "gauge",
@@ -1788,6 +1893,7 @@
     },
     {
       "id": "gauge__08HA011",
+      "station": "08HA011",
       "label": "08HA011 \u00b7 Cowichan River Near Duncan",
       "anchor": {
         "type": "gauge",
@@ -1805,6 +1911,7 @@
     },
     {
       "id": "gauge__08HA016",
+      "station": "08HA016",
       "label": "08HA016 \u00b7 Bings Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1822,6 +1929,7 @@
     },
     {
       "id": "gauge__08HA068",
+      "station": "08HA068",
       "label": "08HA068 \u00b7 Garbage Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -1839,6 +1947,7 @@
     },
     {
       "id": "gauge__08HA069",
+      "station": "08HA069",
       "label": "08HA069 \u00b7 Renfrew Creek Near Port Renfrew",
       "anchor": {
         "type": "gauge",
@@ -1856,6 +1965,7 @@
     },
     {
       "id": "gauge__08HA070",
+      "station": "08HA070",
       "label": "08HA070 \u00b7 Harris Creek Near Lake Cowichan",
       "anchor": {
         "type": "gauge",
@@ -1873,6 +1983,7 @@
     },
     {
       "id": "gauge__08HA072",
+      "station": "08HA072",
       "label": "08HA072 \u00b7 Cottonwood Creek Headwaters",
       "anchor": {
         "type": "gauge",
@@ -1890,6 +2001,7 @@
     },
     {
       "id": "gauge__08HB002",
+      "station": "08HB002",
       "label": "08HB002 \u00b7 Englishman River Near Parksville",
       "anchor": {
         "type": "gauge",
@@ -1907,6 +2019,7 @@
     },
     {
       "id": "gauge__08HB006",
+      "station": "08HB006",
       "label": "08HB006 \u00b7 Puntledge River At Courtenay",
       "anchor": {
         "type": "gauge",
@@ -1924,6 +2037,7 @@
     },
     {
       "id": "gauge__08HB008",
+      "station": "08HB008",
       "label": "08HB008 \u00b7 Sproat River Near Alberni",
       "anchor": {
         "type": "gauge",
@@ -1941,6 +2055,7 @@
     },
     {
       "id": "gauge__08HB011",
+      "station": "08HB011",
       "label": "08HB011 \u00b7 Tsolum River Near Courtenay",
       "anchor": {
         "type": "gauge",
@@ -1958,6 +2073,7 @@
     },
     {
       "id": "gauge__08HB014",
+      "station": "08HB014",
       "label": "08HB014 \u00b7 Sarita River Near Bamfield",
       "anchor": {
         "type": "gauge",
@@ -1975,6 +2091,7 @@
     },
     {
       "id": "gauge__08HB017",
+      "station": "08HB017",
       "label": "08HB017 \u00b7 Somass River Near Alberni",
       "anchor": {
         "type": "gauge",
@@ -1992,6 +2109,7 @@
     },
     {
       "id": "gauge__08HB022",
+      "station": "08HB022",
       "label": "08HB022 \u00b7 Nile Creek Near Bowser",
       "anchor": {
         "type": "gauge",
@@ -2009,6 +2127,7 @@
     },
     {
       "id": "gauge__08HB023",
+      "station": "08HB023",
       "label": "08HB023 \u00b7 Ash River Below Moran Creek",
       "anchor": {
         "type": "gauge",
@@ -2026,6 +2145,7 @@
     },
     {
       "id": "gauge__08HB025",
+      "station": "08HB025",
       "label": "08HB025 \u00b7 Browns River Near Courtenay",
       "anchor": {
         "type": "gauge",
@@ -2043,6 +2163,7 @@
     },
     {
       "id": "gauge__08HB029",
+      "station": "08HB029",
       "label": "08HB029 \u00b7 Little Qualicum River Near Qualicum Beach",
       "anchor": {
         "type": "gauge",
@@ -2060,6 +2181,7 @@
     },
     {
       "id": "gauge__08HB032",
+      "station": "08HB032",
       "label": "08HB032 \u00b7 Millstone River At Nanaimo",
       "anchor": {
         "type": "gauge",
@@ -2077,6 +2199,7 @@
     },
     {
       "id": "gauge__08HB034",
+      "station": "08HB034",
       "label": "08HB034 \u00b7 Nanaimo River Near Cassidy",
       "anchor": {
         "type": "gauge",
@@ -2094,6 +2217,7 @@
     },
     {
       "id": "gauge__08HB041",
+      "station": "08HB041",
       "label": "08HB041 \u00b7 Jump Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -2111,6 +2235,7 @@
     },
     {
       "id": "gauge__08HB048",
+      "station": "08HB048",
       "label": "08HB048 \u00b7 Carnation Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -2128,6 +2253,7 @@
     },
     {
       "id": "gauge__08HB074",
+      "station": "08HB074",
       "label": "08HB074 \u00b7 Cruickshank River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -2145,6 +2271,7 @@
     },
     {
       "id": "gauge__08HB075",
+      "station": "08HB075",
       "label": "08HB075 \u00b7 Dove Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -2162,6 +2289,7 @@
     },
     {
       "id": "gauge__08HB083",
+      "station": "08HB083",
       "label": "08HB083 \u00b7 Courtenay River At 5Th Avenue Bridge",
       "anchor": {
         "type": "gauge",
@@ -2179,6 +2307,7 @@
     },
     {
       "id": "gauge__08HB084",
+      "station": "08HB084",
       "label": "08HB084 \u00b7 Puntledge River Below Diversion",
       "anchor": {
         "type": "gauge",
@@ -2196,6 +2325,7 @@
     },
     {
       "id": "gauge__08HB086",
+      "station": "08HB086",
       "label": "08HB086 \u00b7 Tofino Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -2213,6 +2343,7 @@
     },
     {
       "id": "gauge__08HB092",
+      "station": "08HB092",
       "label": "08HB092 \u00b7 South Nanaimo River Near Junction",
       "anchor": {
         "type": "gauge",
@@ -2230,6 +2361,7 @@
     },
     {
       "id": "gauge__08HC001",
+      "station": "08HC001",
       "label": "08HC001 \u00b7 Gold River Below Ucona River",
       "anchor": {
         "type": "gauge",
@@ -2247,6 +2379,7 @@
     },
     {
       "id": "gauge__08HD005",
+      "station": "08HD005",
       "label": "08HD005 \u00b7 Quinsam River Near Campbell River",
       "anchor": {
         "type": "gauge",
@@ -2264,6 +2397,7 @@
     },
     {
       "id": "gauge__08HD006",
+      "station": "08HD006",
       "label": "08HD006 \u00b7 Salmon River Near Sayward",
       "anchor": {
         "type": "gauge",
@@ -2281,6 +2415,7 @@
     },
     {
       "id": "gauge__08HD007",
+      "station": "08HD007",
       "label": "08HD007 \u00b7 Salmon River Above Memekay River",
       "anchor": {
         "type": "gauge",
@@ -2298,6 +2433,7 @@
     },
     {
       "id": "gauge__08HD011",
+      "station": "08HD011",
       "label": "08HD011 \u00b7 Oyster River Below Woodhus Creek",
       "anchor": {
         "type": "gauge",
@@ -2315,6 +2451,7 @@
     },
     {
       "id": "gauge__08HD018",
+      "station": "08HD018",
       "label": "08HD018 \u00b7 Elk River Above Campbell Lake",
       "anchor": {
         "type": "gauge",
@@ -2332,6 +2469,7 @@
     },
     {
       "id": "gauge__08HD021",
+      "station": "08HD021",
       "label": "08HD021 \u00b7 Quinsam River At Argonaut Bridge",
       "anchor": {
         "type": "gauge",
@@ -2349,6 +2487,7 @@
     },
     {
       "id": "gauge__08HD022",
+      "station": "08HD022",
       "label": "08HD022 \u00b7 Campbell River At Campbell River Lodge",
       "anchor": {
         "type": "gauge",
@@ -2366,6 +2505,7 @@
     },
     {
       "id": "gauge__08HD023",
+      "station": "08HD023",
       "label": "08HD023 \u00b7 Little Oyster River At Yorke Road",
       "anchor": {
         "type": "gauge",
@@ -2383,6 +2523,7 @@
     },
     {
       "id": "gauge__08HD024",
+      "station": "08HD024",
       "label": "08HD024 \u00b7 Campbell River At Argonaut Wharf",
       "anchor": {
         "type": "gauge",
@@ -2400,6 +2541,7 @@
     },
     {
       "id": "gauge__08HD026",
+      "station": "08HD026",
       "label": "08HD026 \u00b7 Quinsam Diversion Near Campbell River",
       "anchor": {
         "type": "gauge",
@@ -2417,6 +2559,7 @@
     },
     {
       "id": "gauge__08HD027",
+      "station": "08HD027",
       "label": "08HD027 \u00b7 Quinsam River Below Lower Quinsam Lake",
       "anchor": {
         "type": "gauge",
@@ -2434,6 +2577,7 @@
     },
     {
       "id": "gauge__08HD034",
+      "station": "08HD034",
       "label": "08HD034 \u00b7 Quinsam River Diversion Headpond",
       "anchor": {
         "type": "gauge",
@@ -2451,6 +2595,7 @@
     },
     {
       "id": "gauge__08HD035",
+      "station": "08HD035",
       "label": "08HD035 \u00b7 Campbell River Near Campbell River Cableway",
       "anchor": {
         "type": "gauge",
@@ -2468,6 +2613,7 @@
     },
     {
       "id": "gauge__08HE001",
+      "station": "08HE001",
       "label": "08HE001 \u00b7 Marble River At Outlet Of Alice Lake",
       "anchor": {
         "type": "gauge",
@@ -2485,6 +2631,7 @@
     },
     {
       "id": "gauge__08HE006",
+      "station": "08HE006",
       "label": "08HE006 \u00b7 Zeballos River Near Zeballos",
       "anchor": {
         "type": "gauge",
@@ -2502,6 +2649,7 @@
     },
     {
       "id": "gauge__08HE008",
+      "station": "08HE008",
       "label": "08HE008 \u00b7 Zeballos River At Mook Peak",
       "anchor": {
         "type": "gauge",
@@ -2519,6 +2667,7 @@
     },
     {
       "id": "gauge__08HE009",
+      "station": "08HE009",
       "label": "08HE009 \u00b7 Klaskish River Near Klaskino Inlet",
       "anchor": {
         "type": "gauge",
@@ -2536,6 +2685,7 @@
     },
     {
       "id": "gauge__08HF004",
+      "station": "08HF004",
       "label": "08HF004 \u00b7 Tsitika River Below Catherine Creek",
       "anchor": {
         "type": "gauge",
@@ -2553,6 +2703,7 @@
     },
     {
       "id": "gauge__08HF005",
+      "station": "08HF005",
       "label": "08HF005 \u00b7 Nimpkish River Above Woss River",
       "anchor": {
         "type": "gauge",
@@ -2570,6 +2721,7 @@
     },
     {
       "id": "gauge__08HF006",
+      "station": "08HF006",
       "label": "08HF006 \u00b7 San Josef River Below Sharp Creek",
       "anchor": {
         "type": "gauge",
@@ -2587,6 +2739,7 @@
     },
     {
       "id": "gauge__08HF012",
+      "station": "08HF012",
       "label": "08HF012 \u00b7 Pugh Creek Near Nahwitti Lake",
       "anchor": {
         "type": "gauge",
@@ -2604,6 +2757,7 @@
     },
     {
       "id": "gauge__08HF013",
+      "station": "08HF013",
       "label": "08HF013 \u00b7 Simpson Creek Near Koprino Harbour",
       "anchor": {
         "type": "gauge",
@@ -2621,6 +2775,7 @@
     },
     {
       "id": "gauge__08HF014",
+      "station": "08HF014",
       "label": "08HF014 \u00b7 Keogh River Near Port Hardy",
       "anchor": {
         "type": "gauge",
@@ -2638,6 +2793,7 @@
     },
     {
       "id": "gauge__08HF015",
+      "station": "08HF015",
       "label": "08HF015 \u00b7 Eve River Below Kunnum Creek",
       "anchor": {
         "type": "gauge",
@@ -2655,6 +2811,7 @@
     },
     {
       "id": "gauge__08JA017",
+      "station": "08JA017",
       "label": "08JA017 \u00b7 Nechako River Below Cheslatta Falls",
       "anchor": {
         "type": "gauge",
@@ -2672,6 +2829,7 @@
     },
     {
       "id": "gauge__08JA029",
+      "station": "08JA029",
       "label": "08JA029 \u00b7 Whitesail Middle Creek Near Tahtsa Reach",
       "anchor": {
         "type": "gauge",
@@ -2689,6 +2847,7 @@
     },
     {
       "id": "gauge__08JB003",
+      "station": "08JB003",
       "label": "08JB003 \u00b7 Nautley River Near Fort Fraser",
       "anchor": {
         "type": "gauge",
@@ -2706,6 +2865,7 @@
     },
     {
       "id": "gauge__08JB008",
+      "station": "08JB008",
       "label": "08JB008 \u00b7 Nadina River At Outlet Of Nadina Lake",
       "anchor": {
         "type": "gauge",
@@ -2723,6 +2883,7 @@
     },
     {
       "id": "gauge__08JC001",
+      "station": "08JC001",
       "label": "08JC001 \u00b7 Nechako River At Vanderhoof",
       "anchor": {
         "type": "gauge",
@@ -2740,6 +2901,7 @@
     },
     {
       "id": "gauge__08JC002",
+      "station": "08JC002",
       "label": "08JC002 \u00b7 Nechako River At Isle Pierre",
       "anchor": {
         "type": "gauge",
@@ -2757,6 +2919,7 @@
     },
     {
       "id": "gauge__08JD006",
+      "station": "08JD006",
       "label": "08JD006 \u00b7 Driftwood River Above Kastberg Creek",
       "anchor": {
         "type": "gauge",
@@ -2774,6 +2937,7 @@
     },
     {
       "id": "gauge__08JE001",
+      "station": "08JE001",
       "label": "08JE001 \u00b7 Stuart River Near Fort St. James",
       "anchor": {
         "type": "gauge",
@@ -2791,6 +2955,7 @@
     },
     {
       "id": "gauge__08JE004",
+      "station": "08JE004",
       "label": "08JE004 \u00b7 Tsilcoh River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -2808,6 +2973,7 @@
     },
     {
       "id": "gauge__08KA001",
+      "station": "08KA001",
       "label": "08KA001 \u00b7 Dore River Near Mcbride",
       "anchor": {
         "type": "gauge",
@@ -2825,6 +2991,7 @@
     },
     {
       "id": "gauge__08KA004",
+      "station": "08KA004",
       "label": "08KA004 \u00b7 Fraser River At Hansard",
       "anchor": {
         "type": "gauge",
@@ -2842,6 +3009,7 @@
     },
     {
       "id": "gauge__08KA005",
+      "station": "08KA005",
       "label": "08KA005 \u00b7 Fraser River At Mcbride",
       "anchor": {
         "type": "gauge",
@@ -2859,6 +3027,7 @@
     },
     {
       "id": "gauge__08KA007",
+      "station": "08KA007",
       "label": "08KA007 \u00b7 Fraser River At Red Pass",
       "anchor": {
         "type": "gauge",
@@ -2876,6 +3045,7 @@
     },
     {
       "id": "gauge__08KA013",
+      "station": "08KA013",
       "label": "08KA013 \u00b7 Morkill River Below Hellroaring Creek",
       "anchor": {
         "type": "gauge",
@@ -2893,6 +3063,7 @@
     },
     {
       "id": "gauge__08KB001",
+      "station": "08KB001",
       "label": "08KB001 \u00b7 Fraser River At Shelley",
       "anchor": {
         "type": "gauge",
@@ -2910,6 +3081,7 @@
     },
     {
       "id": "gauge__08KB003",
+      "station": "08KB003",
       "label": "08KB003 \u00b7 Mcgregor River At Lower Canyon",
       "anchor": {
         "type": "gauge",
@@ -2927,6 +3099,7 @@
     },
     {
       "id": "gauge__08KC001",
+      "station": "08KC001",
       "label": "08KC001 \u00b7 Salmon River Near Prince George",
       "anchor": {
         "type": "gauge",
@@ -2944,6 +3117,7 @@
     },
     {
       "id": "gauge__08KD007",
+      "station": "08KD007",
       "label": "08KD007 \u00b7 Bowron River Below Box Canyon",
       "anchor": {
         "type": "gauge",
@@ -2961,6 +3135,7 @@
     },
     {
       "id": "gauge__08KE016",
+      "station": "08KE016",
       "label": "08KE016 \u00b7 Baker Creek At Quesnel",
       "anchor": {
         "type": "gauge",
@@ -2978,6 +3153,7 @@
     },
     {
       "id": "gauge__08KE018",
+      "station": "08KE018",
       "label": "08KE018 \u00b7 Fraser River At South Fort George",
       "anchor": {
         "type": "gauge",
@@ -2995,6 +3171,7 @@
     },
     {
       "id": "gauge__08KE024",
+      "station": "08KE024",
       "label": "08KE024 \u00b7 Little Swift River At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3012,6 +3189,7 @@
     },
     {
       "id": "gauge__08KF001",
+      "station": "08KF001",
       "label": "08KF001 \u00b7 Nazko River Above Michelle Creek",
       "anchor": {
         "type": "gauge",
@@ -3029,6 +3207,7 @@
     },
     {
       "id": "gauge__08KG001",
+      "station": "08KG001",
       "label": "08KG001 \u00b7 West Road River Near Cinema",
       "anchor": {
         "type": "gauge",
@@ -3046,6 +3225,7 @@
     },
     {
       "id": "gauge__08KH001",
+      "station": "08KH001",
       "label": "08KH001 \u00b7 Quesnel River At Likely",
       "anchor": {
         "type": "gauge",
@@ -3063,6 +3243,7 @@
     },
     {
       "id": "gauge__08KH006",
+      "station": "08KH006",
       "label": "08KH006 \u00b7 Quesnel River Near Quesnel",
       "anchor": {
         "type": "gauge",
@@ -3080,6 +3261,7 @@
     },
     {
       "id": "gauge__08KH010",
+      "station": "08KH010",
       "label": "08KH010 \u00b7 Horsefly River Above Mckinley Creek",
       "anchor": {
         "type": "gauge",
@@ -3097,6 +3279,7 @@
     },
     {
       "id": "gauge__08KH019",
+      "station": "08KH019",
       "label": "08KH019 \u00b7 Moffat Creek Near Horsefly",
       "anchor": {
         "type": "gauge",
@@ -3114,6 +3297,7 @@
     },
     {
       "id": "gauge__08KH020",
+      "station": "08KH020",
       "label": "08KH020 \u00b7 Mckinley Creek Below Outlet Of Mckinley Lake",
       "anchor": {
         "type": "gauge",
@@ -3131,6 +3315,7 @@
     },
     {
       "id": "gauge__08KH031",
+      "station": "08KH031",
       "label": "08KH031 \u00b7 Horsefly River Above Quesnel Lake",
       "anchor": {
         "type": "gauge",
@@ -3148,6 +3333,7 @@
     },
     {
       "id": "gauge__08LA001",
+      "station": "08LA001",
       "label": "08LA001 \u00b7 Clearwater River Near Clearwater Station",
       "anchor": {
         "type": "gauge",
@@ -3165,6 +3351,7 @@
     },
     {
       "id": "gauge__08LA027",
+      "station": "08LA027",
       "label": "08LA027 \u00b7 Bridge Creek Below Deka Creek",
       "anchor": {
         "type": "gauge",
@@ -3182,6 +3369,7 @@
     },
     {
       "id": "gauge__08LB020",
+      "station": "08LB020",
       "label": "08LB020 \u00b7 Barriere River At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3199,6 +3387,7 @@
     },
     {
       "id": "gauge__08LB024",
+      "station": "08LB024",
       "label": "08LB024 \u00b7 Fishtrap Creek Near Mclure",
       "anchor": {
         "type": "gauge",
@@ -3216,6 +3405,7 @@
     },
     {
       "id": "gauge__08LB038",
+      "station": "08LB038",
       "label": "08LB038 \u00b7 Blue River Near Blue River",
       "anchor": {
         "type": "gauge",
@@ -3233,6 +3423,7 @@
     },
     {
       "id": "gauge__08LB047",
+      "station": "08LB047",
       "label": "08LB047 \u00b7 North Thompson River At Birch Island",
       "anchor": {
         "type": "gauge",
@@ -3250,6 +3441,7 @@
     },
     {
       "id": "gauge__08LB064",
+      "station": "08LB064",
       "label": "08LB064 \u00b7 North Thompson River At Mclure",
       "anchor": {
         "type": "gauge",
@@ -3267,6 +3459,7 @@
     },
     {
       "id": "gauge__08LB069",
+      "station": "08LB069",
       "label": "08LB069 \u00b7 Barriere River Below Sprague Creek",
       "anchor": {
         "type": "gauge",
@@ -3284,6 +3477,7 @@
     },
     {
       "id": "gauge__08LB072",
+      "station": "08LB072",
       "label": "08LB072 \u00b7 Louis Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3301,6 +3495,7 @@
     },
     {
       "id": "gauge__08LB076",
+      "station": "08LB076",
       "label": "08LB076 \u00b7 Harper Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3318,6 +3513,7 @@
     },
     {
       "id": "gauge__08LB078",
+      "station": "08LB078",
       "label": "08LB078 \u00b7 Lemieux Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3335,6 +3531,7 @@
     },
     {
       "id": "gauge__08LC002",
+      "station": "08LC002",
       "label": "08LC002 \u00b7 Shuswap River Near Enderby",
       "anchor": {
         "type": "gauge",
@@ -3352,6 +3549,7 @@
     },
     {
       "id": "gauge__08LC003",
+      "station": "08LC003",
       "label": "08LC003 \u00b7 Shuswap River Near Lumby",
       "anchor": {
         "type": "gauge",
@@ -3369,6 +3567,7 @@
     },
     {
       "id": "gauge__08LC018",
+      "station": "08LC018",
       "label": "08LC018 \u00b7 Shuswap River At Outlet Of Sugar Lake Reservoir",
       "anchor": {
         "type": "gauge",
@@ -3386,6 +3585,7 @@
     },
     {
       "id": "gauge__08LC039",
+      "station": "08LC039",
       "label": "08LC039 \u00b7 Bessette Creek Above Beaverjack Creek",
       "anchor": {
         "type": "gauge",
@@ -3403,6 +3603,7 @@
     },
     {
       "id": "gauge__08LC040",
+      "station": "08LC040",
       "label": "08LC040 \u00b7 Vance Creek Below Deafies Creek",
       "anchor": {
         "type": "gauge",
@@ -3420,6 +3621,7 @@
     },
     {
       "id": "gauge__08LC042",
+      "station": "08LC042",
       "label": "08LC042 \u00b7 Bessette Creek Above Lumby Lagoon Outfall",
       "anchor": {
         "type": "gauge",
@@ -3437,6 +3639,7 @@
     },
     {
       "id": "gauge__08LD001",
+      "station": "08LD001",
       "label": "08LD001 \u00b7 Adams River Near Squilax",
       "anchor": {
         "type": "gauge",
@@ -3454,6 +3657,7 @@
     },
     {
       "id": "gauge__08LE020",
+      "station": "08LE020",
       "label": "08LE020 \u00b7 Salmon River At Falkland",
       "anchor": {
         "type": "gauge",
@@ -3471,6 +3675,7 @@
     },
     {
       "id": "gauge__08LE021",
+      "station": "08LE021",
       "label": "08LE021 \u00b7 Salmon River Near Salmon Arm",
       "anchor": {
         "type": "gauge",
@@ -3488,6 +3693,7 @@
     },
     {
       "id": "gauge__08LE024",
+      "station": "08LE024",
       "label": "08LE024 \u00b7 Eagle River Near Malakwa",
       "anchor": {
         "type": "gauge",
@@ -3505,6 +3711,7 @@
     },
     {
       "id": "gauge__08LE027",
+      "station": "08LE027",
       "label": "08LE027 \u00b7 Seymour River Near Seymour Arm",
       "anchor": {
         "type": "gauge",
@@ -3522,6 +3729,7 @@
     },
     {
       "id": "gauge__08LE031",
+      "station": "08LE031",
       "label": "08LE031 \u00b7 South Thompson River At Chase",
       "anchor": {
         "type": "gauge",
@@ -3539,6 +3747,7 @@
     },
     {
       "id": "gauge__08LE077",
+      "station": "08LE077",
       "label": "08LE077 \u00b7 Corning Creek Near Squilax",
       "anchor": {
         "type": "gauge",
@@ -3556,6 +3765,7 @@
     },
     {
       "id": "gauge__08LE108",
+      "station": "08LE108",
       "label": "08LE108 \u00b7 East Canoe Creek Above Dam",
       "anchor": {
         "type": "gauge",
@@ -3573,6 +3783,7 @@
     },
     {
       "id": "gauge__08LE112",
+      "station": "08LE112",
       "label": "08LE112 \u00b7 Chase Creek Above The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3590,6 +3801,7 @@
     },
     {
       "id": "gauge__08LF002",
+      "station": "08LF002",
       "label": "08LF002 \u00b7 Bonaparte River Below Cache Creek",
       "anchor": {
         "type": "gauge",
@@ -3607,6 +3819,7 @@
     },
     {
       "id": "gauge__08LF007",
+      "station": "08LF007",
       "label": "08LF007 \u00b7 Criss Creek Near Savona",
       "anchor": {
         "type": "gauge",
@@ -3624,6 +3837,7 @@
     },
     {
       "id": "gauge__08LF023",
+      "station": "08LF023",
       "label": "08LF023 \u00b7 Thompson River At Kamloops",
       "anchor": {
         "type": "gauge",
@@ -3641,6 +3855,7 @@
     },
     {
       "id": "gauge__08LF027",
+      "station": "08LF027",
       "label": "08LF027 \u00b7 Deadman River Above Criss Creek",
       "anchor": {
         "type": "gauge",
@@ -3658,6 +3873,7 @@
     },
     {
       "id": "gauge__08LF033",
+      "station": "08LF033",
       "label": "08LF033 \u00b7 Thompson River Near Savona",
       "anchor": {
         "type": "gauge",
@@ -3675,6 +3891,7 @@
     },
     {
       "id": "gauge__08LF051",
+      "station": "08LF051",
       "label": "08LF051 \u00b7 Thompson River Near Spences Bridge",
       "anchor": {
         "type": "gauge",
@@ -3692,6 +3909,7 @@
     },
     {
       "id": "gauge__08LF094",
+      "station": "08LF094",
       "label": "08LF094 \u00b7 Joe Ross Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3709,6 +3927,7 @@
     },
     {
       "id": "gauge__08LF099",
+      "station": "08LF099",
       "label": "08LF099 \u00b7 Arrowstone Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3726,6 +3945,7 @@
     },
     {
       "id": "gauge__08LF100",
+      "station": "08LF100",
       "label": "08LF100 \u00b7 Dairy Creek Above Tsotin Lake",
       "anchor": {
         "type": "gauge",
@@ -3743,6 +3963,7 @@
     },
     {
       "id": "gauge__08LG008",
+      "station": "08LG008",
       "label": "08LG008 \u00b7 Spius Creek Near Canford",
       "anchor": {
         "type": "gauge",
@@ -3760,6 +3981,7 @@
     },
     {
       "id": "gauge__08LG009",
+      "station": "08LG009",
       "label": "08LG009 \u00b7 Witches Brook Near Merritt",
       "anchor": {
         "type": "gauge",
@@ -3777,6 +3999,7 @@
     },
     {
       "id": "gauge__08LG010",
+      "station": "08LG010",
       "label": "08LG010 \u00b7 Coldwater River At Merritt",
       "anchor": {
         "type": "gauge",
@@ -3794,6 +4017,7 @@
     },
     {
       "id": "gauge__08LG016",
+      "station": "08LG016",
       "label": "08LG016 \u00b7 Pennask Creek Near Quilchena",
       "anchor": {
         "type": "gauge",
@@ -3811,6 +4035,7 @@
     },
     {
       "id": "gauge__08LG017",
+      "station": "08LG017",
       "label": "08LG017 \u00b7 Quilchena Creek At Quilchena",
       "anchor": {
         "type": "gauge",
@@ -3828,6 +4053,7 @@
     },
     {
       "id": "gauge__08LG028",
+      "station": "08LG028",
       "label": "08LG028 \u00b7 Nicola River At Outlet Of Douglas Lake",
       "anchor": {
         "type": "gauge",
@@ -3845,6 +4071,7 @@
     },
     {
       "id": "gauge__08LG041",
+      "station": "08LG041",
       "label": "08LG041 \u00b7 Guichon Creek At Outlet Of Mamit Lake",
       "anchor": {
         "type": "gauge",
@@ -3862,6 +4089,7 @@
     },
     {
       "id": "gauge__08LG048",
+      "station": "08LG048",
       "label": "08LG048 \u00b7 Coldwater River Near Brookmere",
       "anchor": {
         "type": "gauge",
@@ -3879,6 +4107,7 @@
     },
     {
       "id": "gauge__08LG056",
+      "station": "08LG056",
       "label": "08LG056 \u00b7 Guichon Creek Above Tunkwa Lake Diversion",
       "anchor": {
         "type": "gauge",
@@ -3896,6 +4125,7 @@
     },
     {
       "id": "gauge__08LG065",
+      "station": "08LG065",
       "label": "08LG065 \u00b7 Nicola River At Outlet Of Nicola Lake",
       "anchor": {
         "type": "gauge",
@@ -3913,6 +4143,7 @@
     },
     {
       "id": "gauge__08LG070",
+      "station": "08LG070",
       "label": "08LG070 \u00b7 Nicola River South Of Shackan",
       "anchor": {
         "type": "gauge",
@@ -3930,6 +4161,7 @@
     },
     {
       "id": "gauge__08MA001",
+      "station": "08MA001",
       "label": "08MA001 \u00b7 Chilko River Near Redstone",
       "anchor": {
         "type": "gauge",
@@ -3947,6 +4179,7 @@
     },
     {
       "id": "gauge__08MA002",
+      "station": "08MA002",
       "label": "08MA002 \u00b7 Chilko River At Outlet Of Chilko Lake",
       "anchor": {
         "type": "gauge",
@@ -3964,6 +4197,7 @@
     },
     {
       "id": "gauge__08MA003",
+      "station": "08MA003",
       "label": "08MA003 \u00b7 Taseko River At Outlet Of Taseko Lakes",
       "anchor": {
         "type": "gauge",
@@ -3981,6 +4215,7 @@
     },
     {
       "id": "gauge__08MA006",
+      "station": "08MA006",
       "label": "08MA006 \u00b7 Lingfield Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -3998,6 +4233,7 @@
     },
     {
       "id": "gauge__08MB006",
+      "station": "08MB006",
       "label": "08MB006 \u00b7 Big Creek Above Groundhog Creek",
       "anchor": {
         "type": "gauge",
@@ -4015,6 +4251,7 @@
     },
     {
       "id": "gauge__08MB007",
+      "station": "08MB007",
       "label": "08MB007 \u00b7 Big Creek Below Graveyard Creek",
       "anchor": {
         "type": "gauge",
@@ -4032,6 +4269,7 @@
     },
     {
       "id": "gauge__08MB012",
+      "station": "08MB012",
       "label": "08MB012 \u00b7 Chilcotin River Near Hanceville",
       "anchor": {
         "type": "gauge",
@@ -4049,6 +4287,7 @@
     },
     {
       "id": "gauge__08MC018",
+      "station": "08MC018",
       "label": "08MC018 \u00b7 Fraser River Near Marguerite",
       "anchor": {
         "type": "gauge",
@@ -4066,6 +4305,7 @@
     },
     {
       "id": "gauge__08MC040",
+      "station": "08MC040",
       "label": "08MC040 \u00b7 San Jose River Above Borland Creek",
       "anchor": {
         "type": "gauge",
@@ -4083,6 +4323,7 @@
     },
     {
       "id": "gauge__08MC045",
+      "station": "08MC045",
       "label": "08MC045 \u00b7 Sheridan Creek Above Mcleese Lake",
       "anchor": {
         "type": "gauge",
@@ -4100,6 +4341,7 @@
     },
     {
       "id": "gauge__08MD013",
+      "station": "08MD013",
       "label": "08MD013 \u00b7 Fraser River At Big Bar Creek",
       "anchor": {
         "type": "gauge",
@@ -4117,6 +4359,7 @@
     },
     {
       "id": "gauge__08MD035",
+      "station": "08MD035",
       "label": "08MD035 \u00b7 Dash Creek Above Churn Creek",
       "anchor": {
         "type": "gauge",
@@ -4134,6 +4377,7 @@
     },
     {
       "id": "gauge__08ME002",
+      "station": "08ME002",
       "label": "08ME002 \u00b7 Cayoosh Creek Near Lillooet",
       "anchor": {
         "type": "gauge",
@@ -4151,6 +4395,7 @@
     },
     {
       "id": "gauge__08ME003",
+      "station": "08ME003",
       "label": "08ME003 \u00b7 Seton River Near Lillooet",
       "anchor": {
         "type": "gauge",
@@ -4168,6 +4413,7 @@
     },
     {
       "id": "gauge__08ME023",
+      "station": "08ME023",
       "label": "08ME023 \u00b7 Bridge River (South Branch) Below Bridge Glacier",
       "anchor": {
         "type": "gauge",
@@ -4185,6 +4431,7 @@
     },
     {
       "id": "gauge__08ME025",
+      "station": "08ME025",
       "label": "08ME025 \u00b7 Yalakom River Above Ore Creek",
       "anchor": {
         "type": "gauge",
@@ -4202,6 +4449,7 @@
     },
     {
       "id": "gauge__08ME027",
+      "station": "08ME027",
       "label": "08ME027 \u00b7 Hurley River Below Lone Goat Creek",
       "anchor": {
         "type": "gauge",
@@ -4219,6 +4467,7 @@
     },
     {
       "id": "gauge__08ME028",
+      "station": "08ME028",
       "label": "08ME028 \u00b7 Bridge River Above Downton Lake",
       "anchor": {
         "type": "gauge",
@@ -4236,6 +4485,7 @@
     },
     {
       "id": "gauge__08ME029",
+      "station": "08ME029",
       "label": "08ME029 \u00b7 Bridge River Below Lajoie Dam",
       "anchor": {
         "type": "gauge",
@@ -4253,6 +4503,7 @@
     },
     {
       "id": "gauge__08ME030",
+      "station": "08ME030",
       "label": "08ME030 \u00b7 Gun Creek Above Carpenter Lake",
       "anchor": {
         "type": "gauge",
@@ -4270,6 +4521,7 @@
     },
     {
       "id": "gauge__08MF005",
+      "station": "08MF005",
       "label": "08MF005 \u00b7 Fraser River At Hope",
       "anchor": {
         "type": "gauge",
@@ -4287,6 +4539,7 @@
     },
     {
       "id": "gauge__08MF035",
+      "station": "08MF035",
       "label": "08MF035 \u00b7 Fraser River Near Agassiz",
       "anchor": {
         "type": "gauge",
@@ -4304,6 +4557,7 @@
     },
     {
       "id": "gauge__08MF038",
+      "station": "08MF038",
       "label": "08MF038 \u00b7 Fraser River At Cannor",
       "anchor": {
         "type": "gauge",
@@ -4321,6 +4575,7 @@
     },
     {
       "id": "gauge__08MF040",
+      "station": "08MF040",
       "label": "08MF040 \u00b7 Fraser River Above Texas Creek",
       "anchor": {
         "type": "gauge",
@@ -4338,6 +4593,7 @@
     },
     {
       "id": "gauge__08MF062",
+      "station": "08MF062",
       "label": "08MF062 \u00b7 Coquihalla River Below Needle Creek",
       "anchor": {
         "type": "gauge",
@@ -4355,6 +4611,7 @@
     },
     {
       "id": "gauge__08MF065",
+      "station": "08MF065",
       "label": "08MF065 \u00b7 Nahatlatch River Below Tachewana Creek",
       "anchor": {
         "type": "gauge",
@@ -4372,6 +4629,7 @@
     },
     {
       "id": "gauge__08MF068",
+      "station": "08MF068",
       "label": "08MF068 \u00b7 Coquihalla River Above Alexander Creek",
       "anchor": {
         "type": "gauge",
@@ -4389,6 +4647,7 @@
     },
     {
       "id": "gauge__08MF073",
+      "station": "08MF073",
       "label": "08MF073 \u00b7 Fraser River At Harrison Mills",
       "anchor": {
         "type": "gauge",
@@ -4406,6 +4665,7 @@
     },
     {
       "id": "gauge__08MF074",
+      "station": "08MF074",
       "label": "08MF074 \u00b7 Fraser River Above Herrling Island",
       "anchor": {
         "type": "gauge",
@@ -4423,6 +4683,7 @@
     },
     {
       "id": "gauge__08MF075",
+      "station": "08MF075",
       "label": "08MF075 \u00b7 Fraser River At Lower Kent",
       "anchor": {
         "type": "gauge",
@@ -4440,6 +4701,7 @@
     },
     {
       "id": "gauge__08MF076",
+      "station": "08MF076",
       "label": "08MF076 \u00b7 Fraser River Above Hunter Creek",
       "anchor": {
         "type": "gauge",
@@ -4457,6 +4719,7 @@
     },
     {
       "id": "gauge__08MG001",
+      "station": "08MG001",
       "label": "08MG001 \u00b7 Chehalis River Near Harrison Mills",
       "anchor": {
         "type": "gauge",
@@ -4474,6 +4737,7 @@
     },
     {
       "id": "gauge__08MG005",
+      "station": "08MG005",
       "label": "08MG005 \u00b7 Lillooet River Near Pemberton",
       "anchor": {
         "type": "gauge",
@@ -4491,6 +4755,7 @@
     },
     {
       "id": "gauge__08MG013",
+      "station": "08MG013",
       "label": "08MG013 \u00b7 Harrison River Near Harrison Hot Springs",
       "anchor": {
         "type": "gauge",
@@ -4508,6 +4773,7 @@
     },
     {
       "id": "gauge__08MG014",
+      "station": "08MG014",
       "label": "08MG014 \u00b7 Harrison River At Harrison Mills",
       "anchor": {
         "type": "gauge",
@@ -4525,6 +4791,7 @@
     },
     {
       "id": "gauge__08MG022",
+      "station": "08MG022",
       "label": "08MG022 \u00b7 Harrison River Below Morris Creek",
       "anchor": {
         "type": "gauge",
@@ -4542,6 +4809,7 @@
     },
     {
       "id": "gauge__08MG025",
+      "station": "08MG025",
       "label": "08MG025 \u00b7 Pemberton Creek Near Pemberton",
       "anchor": {
         "type": "gauge",
@@ -4559,6 +4827,7 @@
     },
     {
       "id": "gauge__08MG026",
+      "station": "08MG026",
       "label": "08MG026 \u00b7 Fitzsimmons Creek Below Blackcomb Creek",
       "anchor": {
         "type": "gauge",
@@ -4576,6 +4845,7 @@
     },
     {
       "id": "gauge__08MG027",
+      "station": "08MG027",
       "label": "08MG027 \u00b7 Lillooet River At Tenas Narrows",
       "anchor": {
         "type": "gauge",
@@ -4593,6 +4863,7 @@
     },
     {
       "id": "gauge__08MG028",
+      "station": "08MG028",
       "label": "08MG028 \u00b7 Ryan River Near Pemberton Meadows",
       "anchor": {
         "type": "gauge",
@@ -4610,6 +4881,7 @@
     },
     {
       "id": "gauge__08MH001",
+      "station": "08MH001",
       "label": "08MH001 \u00b7 Chilliwack River At Vedder Crossing",
       "anchor": {
         "type": "gauge",
@@ -4627,6 +4899,7 @@
     },
     {
       "id": "gauge__08MH002",
+      "station": "08MH002",
       "label": "08MH002 \u00b7 Coquitlam River At Port Coquitlam",
       "anchor": {
         "type": "gauge",
@@ -4644,6 +4917,7 @@
     },
     {
       "id": "gauge__08MH005",
+      "station": "08MH005",
       "label": "08MH005 \u00b7 Alouette River Near Haney",
       "anchor": {
         "type": "gauge",
@@ -4661,6 +4935,7 @@
     },
     {
       "id": "gauge__08MH006",
+      "station": "08MH006",
       "label": "08MH006 \u00b7 North Alouette River At 232Nd Street, Maple Ridge",
       "anchor": {
         "type": "gauge",
@@ -4678,6 +4953,7 @@
     },
     {
       "id": "gauge__08MH016",
+      "station": "08MH016",
       "label": "08MH016 \u00b7 Chilliwack River At Outlet Of Chilliwack Lake",
       "anchor": {
         "type": "gauge",
@@ -4695,6 +4971,7 @@
     },
     {
       "id": "gauge__08MH024",
+      "station": "08MH024",
       "label": "08MH024 \u00b7 Fraser River At Mission",
       "anchor": {
         "type": "gauge",
@@ -4712,6 +4989,7 @@
     },
     {
       "id": "gauge__08MH028",
+      "station": "08MH028",
       "label": "08MH028 \u00b7 Fraser River At Steveston",
       "anchor": {
         "type": "gauge",
@@ -4729,6 +5007,7 @@
     },
     {
       "id": "gauge__08MH029",
+      "station": "08MH029",
       "label": "08MH029 \u00b7 Sumas River Near Huntingdon",
       "anchor": {
         "type": "gauge",
@@ -4746,6 +5025,7 @@
     },
     {
       "id": "gauge__08MH032",
+      "station": "08MH032",
       "label": "08MH032 \u00b7 North Arm Fraser River At Vancouver",
       "anchor": {
         "type": "gauge",
@@ -4763,6 +5043,7 @@
     },
     {
       "id": "gauge__08MH035",
+      "station": "08MH035",
       "label": "08MH035 \u00b7 Pitt River Near Port Coquitlam",
       "anchor": {
         "type": "gauge",
@@ -4780,6 +5061,7 @@
     },
     {
       "id": "gauge__08MH044",
+      "station": "08MH044",
       "label": "08MH044 \u00b7 Fraser River At Whonock",
       "anchor": {
         "type": "gauge",
@@ -4797,6 +5079,7 @@
     },
     {
       "id": "gauge__08MH053",
+      "station": "08MH053",
       "label": "08MH053 \u00b7 Fraser River At Deas Island Tunnel",
       "anchor": {
         "type": "gauge",
@@ -4814,6 +5097,7 @@
     },
     {
       "id": "gauge__08MH056",
+      "station": "08MH056",
       "label": "08MH056 \u00b7 Slesse Creek Near Vedder Crossing",
       "anchor": {
         "type": "gauge",
@@ -4831,6 +5115,7 @@
     },
     {
       "id": "gauge__08MH076",
+      "station": "08MH076",
       "label": "08MH076 \u00b7 Kanaka Creek Near Webster Corners",
       "anchor": {
         "type": "gauge",
@@ -4848,6 +5133,7 @@
     },
     {
       "id": "gauge__08MH090",
+      "station": "08MH090",
       "label": "08MH090 \u00b7 Salmon River At 72 Avenue, Langley",
       "anchor": {
         "type": "gauge",
@@ -4865,6 +5151,7 @@
     },
     {
       "id": "gauge__08MH098",
+      "station": "08MH098",
       "label": "08MH098 \u00b7 West Creek Near Fort Langley",
       "anchor": {
         "type": "gauge",
@@ -4882,6 +5169,7 @@
     },
     {
       "id": "gauge__08MH103",
+      "station": "08MH103",
       "label": "08MH103 \u00b7 Chilliwack River Above Slesse Creek",
       "anchor": {
         "type": "gauge",
@@ -4899,6 +5187,7 @@
     },
     {
       "id": "gauge__08MH126",
+      "station": "08MH126",
       "label": "08MH126 \u00b7 Fraser River At Port Mann Pumping Station",
       "anchor": {
         "type": "gauge",
@@ -4916,6 +5205,7 @@
     },
     {
       "id": "gauge__08MH141",
+      "station": "08MH141",
       "label": "08MH141 \u00b7 Coquitlam River Above Coquitlam Lake",
       "anchor": {
         "type": "gauge",
@@ -4933,6 +5223,7 @@
     },
     {
       "id": "gauge__08MH147",
+      "station": "08MH147",
       "label": "08MH147 \u00b7 Stave River Above Stave Lake",
       "anchor": {
         "type": "gauge",
@@ -4950,6 +5241,7 @@
     },
     {
       "id": "gauge__08MH153",
+      "station": "08MH153",
       "label": "08MH153 \u00b7 Fishtrap Creek At International Boundary",
       "anchor": {
         "type": "gauge",
@@ -4967,6 +5259,7 @@
     },
     {
       "id": "gauge__08MH155",
+      "station": "08MH155",
       "label": "08MH155 \u00b7 Nicomekl River At 203 Street, Langley",
       "anchor": {
         "type": "gauge",
@@ -4984,6 +5277,7 @@
     },
     {
       "id": "gauge__08MH156",
+      "station": "08MH156",
       "label": "08MH156 \u00b7 Pepin Creek At International Boundary",
       "anchor": {
         "type": "gauge",
@@ -5001,6 +5295,7 @@
     },
     {
       "id": "gauge__08MH166",
+      "station": "08MH166",
       "label": "08MH166 \u00b7 Cedar Creek Above The Mouth",
       "anchor": {
         "type": "gauge",
@@ -5018,6 +5313,7 @@
     },
     {
       "id": "gauge__08MH168",
+      "station": "08MH168",
       "label": "08MH168 \u00b7 Or Creek Near Coquitlam",
       "anchor": {
         "type": "gauge",
@@ -5035,6 +5331,7 @@
     },
     {
       "id": "gauge__08NA002",
+      "station": "08NA002",
       "label": "08NA002 \u00b7 Columbia River At Nicholson",
       "anchor": {
         "type": "gauge",
@@ -5052,6 +5349,7 @@
     },
     {
       "id": "gauge__08NA006",
+      "station": "08NA006",
       "label": "08NA006 \u00b7 Kicking Horse River At Golden",
       "anchor": {
         "type": "gauge",
@@ -5069,6 +5367,7 @@
     },
     {
       "id": "gauge__08NA011",
+      "station": "08NA011",
       "label": "08NA011 \u00b7 Spillimacheen River Near Spillimacheen",
       "anchor": {
         "type": "gauge",
@@ -5086,6 +5385,7 @@
     },
     {
       "id": "gauge__08NB005",
+      "station": "08NB005",
       "label": "08NB005 \u00b7 Columbia River At Donald",
       "anchor": {
         "type": "gauge",
@@ -5103,6 +5403,7 @@
     },
     {
       "id": "gauge__08NB012",
+      "station": "08NB012",
       "label": "08NB012 \u00b7 Blaeberry River Above Willowbank Creek",
       "anchor": {
         "type": "gauge",
@@ -5120,6 +5421,7 @@
     },
     {
       "id": "gauge__08NB014",
+      "station": "08NB014",
       "label": "08NB014 \u00b7 Gold River Above Palmer Creek",
       "anchor": {
         "type": "gauge",
@@ -5137,6 +5439,7 @@
     },
     {
       "id": "gauge__08NB020",
+      "station": "08NB020",
       "label": "08NB020 \u00b7 Nordic Creek At The Outlet Of Nordic Glacier",
       "anchor": {
         "type": "gauge",
@@ -5154,6 +5457,7 @@
     },
     {
       "id": "gauge__08NB021",
+      "station": "08NB021",
       "label": "08NB021 \u00b7 Beaver River Above Cupola Creek",
       "anchor": {
         "type": "gauge",
@@ -5171,6 +5475,7 @@
     },
     {
       "id": "gauge__08NC004",
+      "station": "08NC004",
       "label": "08NC004 \u00b7 Canoe River Below Kimmel Creek",
       "anchor": {
         "type": "gauge",
@@ -5188,6 +5493,7 @@
     },
     {
       "id": "gauge__08ND012",
+      "station": "08ND012",
       "label": "08ND012 \u00b7 Goldstream River Below Old Camp Creek",
       "anchor": {
         "type": "gauge",
@@ -5205,6 +5511,7 @@
     },
     {
       "id": "gauge__08ND013",
+      "station": "08ND013",
       "label": "08ND013 \u00b7 Illecillewaet River At Greeley",
       "anchor": {
         "type": "gauge",
@@ -5222,6 +5529,7 @@
     },
     {
       "id": "gauge__08ND021",
+      "station": "08ND021",
       "label": "08ND021 \u00b7 Greeley Creek Above Diversion",
       "anchor": {
         "type": "gauge",
@@ -5239,6 +5547,7 @@
     },
     {
       "id": "gauge__08NE006",
+      "station": "08NE006",
       "label": "08NE006 \u00b7 Kuskanax Creek Near Nakusp",
       "anchor": {
         "type": "gauge",
@@ -5256,6 +5565,7 @@
     },
     {
       "id": "gauge__08NE039",
+      "station": "08NE039",
       "label": "08NE039 \u00b7 Big Sheep Creek Near Rossland",
       "anchor": {
         "type": "gauge",
@@ -5273,6 +5583,7 @@
     },
     {
       "id": "gauge__08NE049",
+      "station": "08NE049",
       "label": "08NE049 \u00b7 Columbia River At Birchbank",
       "anchor": {
         "type": "gauge",
@@ -5290,6 +5601,7 @@
     },
     {
       "id": "gauge__08NE074",
+      "station": "08NE074",
       "label": "08NE074 \u00b7 Salmo River Near Salmo",
       "anchor": {
         "type": "gauge",
@@ -5307,6 +5619,7 @@
     },
     {
       "id": "gauge__08NE087",
+      "station": "08NE087",
       "label": "08NE087 \u00b7 Deer Creek At Deer Park",
       "anchor": {
         "type": "gauge",
@@ -5324,6 +5637,7 @@
     },
     {
       "id": "gauge__08NE110",
+      "station": "08NE110",
       "label": "08NE110 \u00b7 Inonoaklin Creek Above Valley Creek",
       "anchor": {
         "type": "gauge",
@@ -5341,6 +5655,7 @@
     },
     {
       "id": "gauge__08NE114",
+      "station": "08NE114",
       "label": "08NE114 \u00b7 Hidden Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -5358,6 +5673,7 @@
     },
     {
       "id": "gauge__08NE123",
+      "station": "08NE123",
       "label": "08NE123 \u00b7 Cranberry Creek Above B.C. Hydro Intake",
       "anchor": {
         "type": "gauge",
@@ -5375,6 +5691,7 @@
     },
     {
       "id": "gauge__08NE130",
+      "station": "08NE130",
       "label": "08NE130 \u00b7 Whatshan River Below Barnes Creek",
       "anchor": {
         "type": "gauge",
@@ -5392,6 +5709,7 @@
     },
     {
       "id": "gauge__08NF001",
+      "station": "08NF001",
       "label": "08NF001 \u00b7 Kootenay River At Kootenay Crossing",
       "anchor": {
         "type": "gauge",
@@ -5409,6 +5727,7 @@
     },
     {
       "id": "gauge__08NG002",
+      "station": "08NG002",
       "label": "08NG002 \u00b7 Bull River Near Wardner",
       "anchor": {
         "type": "gauge",
@@ -5426,6 +5745,7 @@
     },
     {
       "id": "gauge__08NG065",
+      "station": "08NG065",
       "label": "08NG065 \u00b7 Kootenay River At Fort Steele",
       "anchor": {
         "type": "gauge",
@@ -5443,6 +5763,7 @@
     },
     {
       "id": "gauge__08NG076",
+      "station": "08NG076",
       "label": "08NG076 \u00b7 Mather Creek Below Houle Creek",
       "anchor": {
         "type": "gauge",
@@ -5460,6 +5781,7 @@
     },
     {
       "id": "gauge__08NG077",
+      "station": "08NG077",
       "label": "08NG077 \u00b7 St. Mary River Below Morris Creek",
       "anchor": {
         "type": "gauge",
@@ -5477,6 +5799,7 @@
     },
     {
       "id": "gauge__08NH005",
+      "station": "08NH005",
       "label": "08NH005 \u00b7 Kaslo River Below Kemp Creek",
       "anchor": {
         "type": "gauge",
@@ -5494,6 +5817,7 @@
     },
     {
       "id": "gauge__08NH007",
+      "station": "08NH007",
       "label": "08NH007 \u00b7 Lardeau River At Marblehead",
       "anchor": {
         "type": "gauge",
@@ -5511,6 +5835,7 @@
     },
     {
       "id": "gauge__08NH084",
+      "station": "08NH084",
       "label": "08NH084 \u00b7 Arrow Creek Near Erickson",
       "anchor": {
         "type": "gauge",
@@ -5528,6 +5853,7 @@
     },
     {
       "id": "gauge__08NH118",
+      "station": "08NH118",
       "label": "08NH118 \u00b7 Duncan River Below Lardeau River",
       "anchor": {
         "type": "gauge",
@@ -5545,6 +5871,7 @@
     },
     {
       "id": "gauge__08NH119",
+      "station": "08NH119",
       "label": "08NH119 \u00b7 Duncan River Below B.B. Creek",
       "anchor": {
         "type": "gauge",
@@ -5562,6 +5889,7 @@
     },
     {
       "id": "gauge__08NH132",
+      "station": "08NH132",
       "label": "08NH132 \u00b7 Keen Creek Below Kyawats Creek",
       "anchor": {
         "type": "gauge",
@@ -5579,6 +5907,7 @@
     },
     {
       "id": "gauge__08NH139",
+      "station": "08NH139",
       "label": "08NH139 \u00b7 Moyie River Above Noke Creek",
       "anchor": {
         "type": "gauge",
@@ -5596,6 +5925,7 @@
     },
     {
       "id": "gauge__08NJ013",
+      "station": "08NJ013",
       "label": "08NJ013 \u00b7 Slocan River Near Crescent Valley",
       "anchor": {
         "type": "gauge",
@@ -5613,6 +5943,7 @@
     },
     {
       "id": "gauge__08NJ026",
+      "station": "08NJ026",
       "label": "08NJ026 \u00b7 Duhamel Creek Above Diversions",
       "anchor": {
         "type": "gauge",
@@ -5630,6 +5961,7 @@
     },
     {
       "id": "gauge__08NJ061",
+      "station": "08NJ061",
       "label": "08NJ061 \u00b7 Redfish Creek Near Harrop",
       "anchor": {
         "type": "gauge",
@@ -5647,6 +5979,7 @@
     },
     {
       "id": "gauge__08NJ130",
+      "station": "08NJ130",
       "label": "08NJ130 \u00b7 Anderson Creek Near Nelson",
       "anchor": {
         "type": "gauge",
@@ -5664,6 +5997,7 @@
     },
     {
       "id": "gauge__08NJ160",
+      "station": "08NJ160",
       "label": "08NJ160 \u00b7 Lemon Creek Above South Lemon Creek",
       "anchor": {
         "type": "gauge",
@@ -5681,6 +6015,7 @@
     },
     {
       "id": "gauge__08NK002",
+      "station": "08NK002",
       "label": "08NK002 \u00b7 Elk River At Fernie",
       "anchor": {
         "type": "gauge",
@@ -5698,6 +6033,7 @@
     },
     {
       "id": "gauge__08NK016",
+      "station": "08NK016",
       "label": "08NK016 \u00b7 Elk River Near Natal",
       "anchor": {
         "type": "gauge",
@@ -5715,6 +6051,7 @@
     },
     {
       "id": "gauge__08NK018",
+      "station": "08NK018",
       "label": "08NK018 \u00b7 Fording River At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -5732,6 +6069,7 @@
     },
     {
       "id": "gauge__08NK022",
+      "station": "08NK022",
       "label": "08NK022 \u00b7 Line Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -5749,6 +6087,7 @@
     },
     {
       "id": "gauge__08NK026",
+      "station": "08NK026",
       "label": "08NK026 \u00b7 Hosmer Creek Above Diversions",
       "anchor": {
         "type": "gauge",
@@ -5766,6 +6105,7 @@
     },
     {
       "id": "gauge__08NK030",
+      "station": "08NK030",
       "label": "08NK030 \u00b7 Elk River Below Elko Dam Diversion",
       "anchor": {
         "type": "gauge",
@@ -5783,6 +6123,7 @@
     },
     {
       "id": "gauge__08NK031",
+      "station": "08NK031",
       "label": "08NK031 \u00b7 Elk River At Elko Dam Forebay",
       "anchor": {
         "type": "gauge",
@@ -5800,6 +6141,7 @@
     },
     {
       "id": "gauge__08NL004",
+      "station": "08NL004",
       "label": "08NL004 \u00b7 Ashnola River Near Keremeos",
       "anchor": {
         "type": "gauge",
@@ -5817,6 +6159,7 @@
     },
     {
       "id": "gauge__08NL007",
+      "station": "08NL007",
       "label": "08NL007 \u00b7 Similkameen River At Princeton",
       "anchor": {
         "type": "gauge",
@@ -5834,6 +6177,7 @@
     },
     {
       "id": "gauge__08NL024",
+      "station": "08NL024",
       "label": "08NL024 \u00b7 Tulameen River At Princeton",
       "anchor": {
         "type": "gauge",
@@ -5851,6 +6195,7 @@
     },
     {
       "id": "gauge__08NL038",
+      "station": "08NL038",
       "label": "08NL038 \u00b7 Similkameen River Near Hedley",
       "anchor": {
         "type": "gauge",
@@ -5868,6 +6213,7 @@
     },
     {
       "id": "gauge__08NL039",
+      "station": "08NL039",
       "label": "08NL039 \u00b7 Siwash Creek Near Princeton",
       "anchor": {
         "type": "gauge",
@@ -5885,6 +6231,7 @@
     },
     {
       "id": "gauge__08NL045",
+      "station": "08NL045",
       "label": "08NL045 \u00b7 Keremeos Creek Below Willis Intake",
       "anchor": {
         "type": "gauge",
@@ -5902,6 +6249,7 @@
     },
     {
       "id": "gauge__08NL050",
+      "station": "08NL050",
       "label": "08NL050 \u00b7 Hedley Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -5919,6 +6267,7 @@
     },
     {
       "id": "gauge__08NL069",
+      "station": "08NL069",
       "label": "08NL069 \u00b7 Pasayten River Above Calcite Creek",
       "anchor": {
         "type": "gauge",
@@ -5936,6 +6285,7 @@
     },
     {
       "id": "gauge__08NL070",
+      "station": "08NL070",
       "label": "08NL070 \u00b7 Similkameen River Above Goodfellow Creek",
       "anchor": {
         "type": "gauge",
@@ -5953,6 +6303,7 @@
     },
     {
       "id": "gauge__08NL071",
+      "station": "08NL071",
       "label": "08NL071 \u00b7 Tulameen River Below Vuich Creek",
       "anchor": {
         "type": "gauge",
@@ -5970,6 +6321,7 @@
     },
     {
       "id": "gauge__08NL076",
+      "station": "08NL076",
       "label": "08NL076 \u00b7 Ewart Creek Near Cathedral Park",
       "anchor": {
         "type": "gauge",
@@ -5987,6 +6339,7 @@
     },
     {
       "id": "gauge__08NM002",
+      "station": "08NM002",
       "label": "08NM002 \u00b7 Okanagan River At Okanagan Falls",
       "anchor": {
         "type": "gauge",
@@ -6004,6 +6357,7 @@
     },
     {
       "id": "gauge__08NM037",
+      "station": "08NM037",
       "label": "08NM037 \u00b7 Shatford Creek Near Penticton",
       "anchor": {
         "type": "gauge",
@@ -6021,6 +6375,7 @@
     },
     {
       "id": "gauge__08NM050",
+      "station": "08NM050",
       "label": "08NM050 \u00b7 Okanagan River At Penticton",
       "anchor": {
         "type": "gauge",
@@ -6038,6 +6393,7 @@
     },
     {
       "id": "gauge__08NM065",
+      "station": "08NM065",
       "label": "08NM065 \u00b7 Vernon Creek At Outlet Of Kalamalka Lake",
       "anchor": {
         "type": "gauge",
@@ -6055,6 +6411,7 @@
     },
     {
       "id": "gauge__08NM085",
+      "station": "08NM085",
       "label": "08NM085 \u00b7 Okanagan River Near Oliver",
       "anchor": {
         "type": "gauge",
@@ -6072,6 +6429,7 @@
     },
     {
       "id": "gauge__08NM116",
+      "station": "08NM116",
       "label": "08NM116 \u00b7 Mission Creek Near East Kelowna",
       "anchor": {
         "type": "gauge",
@@ -6089,6 +6447,7 @@
     },
     {
       "id": "gauge__08NM123",
+      "station": "08NM123",
       "label": "08NM123 \u00b7 B.X. Creek Below Swan Lake Control Dam",
       "anchor": {
         "type": "gauge",
@@ -6106,6 +6465,7 @@
     },
     {
       "id": "gauge__08NM134",
+      "station": "08NM134",
       "label": "08NM134 \u00b7 Camp Creek At Mouth Near Thirsk",
       "anchor": {
         "type": "gauge",
@@ -6123,6 +6483,7 @@
     },
     {
       "id": "gauge__08NM146",
+      "station": "08NM146",
       "label": "08NM146 \u00b7 Clark Creek Near Winfield",
       "anchor": {
         "type": "gauge",
@@ -6140,6 +6501,7 @@
     },
     {
       "id": "gauge__08NM158",
+      "station": "08NM158",
       "label": "08NM158 \u00b7 Trout Creek At The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6157,6 +6519,7 @@
     },
     {
       "id": "gauge__08NM160",
+      "station": "08NM160",
       "label": "08NM160 \u00b7 Vernon Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6174,6 +6537,7 @@
     },
     {
       "id": "gauge__08NM165",
+      "station": "08NM165",
       "label": "08NM165 \u00b7 Lambly Creek Above Terrace Creek",
       "anchor": {
         "type": "gauge",
@@ -6191,6 +6555,7 @@
     },
     {
       "id": "gauge__08NM171",
+      "station": "08NM171",
       "label": "08NM171 \u00b7 Vaseux Creek Above Solco Creek",
       "anchor": {
         "type": "gauge",
@@ -6208,6 +6573,7 @@
     },
     {
       "id": "gauge__08NM172",
+      "station": "08NM172",
       "label": "08NM172 \u00b7 Pearson Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6225,6 +6591,7 @@
     },
     {
       "id": "gauge__08NM173",
+      "station": "08NM173",
       "label": "08NM173 \u00b7 Greata Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6242,6 +6609,7 @@
     },
     {
       "id": "gauge__08NM174",
+      "station": "08NM174",
       "label": "08NM174 \u00b7 Whiteman Creek Above Bouleau Creek",
       "anchor": {
         "type": "gauge",
@@ -6259,6 +6627,7 @@
     },
     {
       "id": "gauge__08NM200",
+      "station": "08NM200",
       "label": "08NM200 \u00b7 Inkaneep Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6276,6 +6645,7 @@
     },
     {
       "id": "gauge__08NM232",
+      "station": "08NM232",
       "label": "08NM232 \u00b7 Belgo Creek Below Hilda Creek",
       "anchor": {
         "type": "gauge",
@@ -6293,6 +6663,7 @@
     },
     {
       "id": "gauge__08NM240",
+      "station": "08NM240",
       "label": "08NM240 \u00b7 Two Forty Creek Near Penticton",
       "anchor": {
         "type": "gauge",
@@ -6310,6 +6681,7 @@
     },
     {
       "id": "gauge__08NM242",
+      "station": "08NM242",
       "label": "08NM242 \u00b7 Dennis Creek Near 1780 Metre Contour",
       "anchor": {
         "type": "gauge",
@@ -6327,6 +6699,7 @@
     },
     {
       "id": "gauge__08NM247",
+      "station": "08NM247",
       "label": "08NM247 \u00b7 Okanagan River Below Mcintyre Dam",
       "anchor": {
         "type": "gauge",
@@ -6344,6 +6717,7 @@
     },
     {
       "id": "gauge__08NM248",
+      "station": "08NM248",
       "label": "08NM248 \u00b7 Coldstream Creek At Coldstream Creek Road",
       "anchor": {
         "type": "gauge",
@@ -6361,6 +6735,7 @@
     },
     {
       "id": "gauge__08NM249",
+      "station": "08NM249",
       "label": "08NM249 \u00b7 B.X. Creek At B.X. Ranch Park",
       "anchor": {
         "type": "gauge",
@@ -6378,6 +6753,7 @@
     },
     {
       "id": "gauge__08NM250",
+      "station": "08NM250",
       "label": "08NM250 \u00b7 Vernon Creek At Swalwell Park",
       "anchor": {
         "type": "gauge",
@@ -6395,6 +6771,7 @@
     },
     {
       "id": "gauge__08NN002",
+      "station": "08NN002",
       "label": "08NN002 \u00b7 Granby River At Grand Forks",
       "anchor": {
         "type": "gauge",
@@ -6412,6 +6789,7 @@
     },
     {
       "id": "gauge__08NN003",
+      "station": "08NN003",
       "label": "08NN003 \u00b7 West Kettle River At Westbridge",
       "anchor": {
         "type": "gauge",
@@ -6429,6 +6807,7 @@
     },
     {
       "id": "gauge__08NN015",
+      "station": "08NN015",
       "label": "08NN015 \u00b7 West Kettle River Near Mcculloch",
       "anchor": {
         "type": "gauge",
@@ -6446,6 +6825,7 @@
     },
     {
       "id": "gauge__08NN019",
+      "station": "08NN019",
       "label": "08NN019 \u00b7 Trapping Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6463,6 +6843,7 @@
     },
     {
       "id": "gauge__08NN023",
+      "station": "08NN023",
       "label": "08NN023 \u00b7 Burrell Creek Above Gloucester Creek",
       "anchor": {
         "type": "gauge",
@@ -6480,6 +6861,7 @@
     },
     {
       "id": "gauge__08NN026",
+      "station": "08NN026",
       "label": "08NN026 \u00b7 Kettle River Near Westbridge",
       "anchor": {
         "type": "gauge",
@@ -6497,6 +6879,7 @@
     },
     {
       "id": "gauge__08NN029",
+      "station": "08NN029",
       "label": "08NN029 \u00b7 Boundary Creek Near Boundary Falls",
       "anchor": {
         "type": "gauge",
@@ -6514,6 +6897,7 @@
     },
     {
       "id": "gauge__08OA002",
+      "station": "08OA002",
       "label": "08OA002 \u00b7 Yakoun River Near Port Clements",
       "anchor": {
         "type": "gauge",
@@ -6531,6 +6915,7 @@
     },
     {
       "id": "gauge__08OA004",
+      "station": "08OA004",
       "label": "08OA004 \u00b7 Honna River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6548,6 +6933,7 @@
     },
     {
       "id": "gauge__08OA005",
+      "station": "08OA005",
       "label": "08OA005 \u00b7 Tarundl Creek Near Daajing Giids",
       "anchor": {
         "type": "gauge",
@@ -6565,6 +6951,7 @@
     },
     {
       "id": "gauge__08OB002",
+      "station": "08OB002",
       "label": "08OB002 \u00b7 Pallant Creek Near Daajing Giids",
       "anchor": {
         "type": "gauge",
@@ -6582,6 +6969,7 @@
     },
     {
       "id": "gauge__08PA004",
+      "station": "08PA004",
       "label": "08PA004 \u00b7 Skagit River At International Boundary",
       "anchor": {
         "type": "gauge",
@@ -6599,6 +6987,7 @@
     },
     {
       "id": "gauge__08PA012",
+      "station": "08PA012",
       "label": "08PA012 \u00b7 Skagit River Above Klesilkwa River",
       "anchor": {
         "type": "gauge",
@@ -6616,6 +7005,7 @@
     },
     {
       "id": "gauge__09AA006",
+      "station": "09AA006",
       "label": "09AA006 \u00b7 Atlin River Near Atlin",
       "anchor": {
         "type": "gauge",
@@ -6633,6 +7023,7 @@
     },
     {
       "id": "gauge__09AA013",
+      "station": "09AA013",
       "label": "09AA013 \u00b7 Tutshi River At Outlet Of Tutshi Lake",
       "anchor": {
         "type": "gauge",
@@ -6650,6 +7041,7 @@
     },
     {
       "id": "gauge__09AE003",
+      "station": "09AE003",
       "label": "09AE003 \u00b7 Swift River Near Swift River",
       "anchor": {
         "type": "gauge",
@@ -6667,6 +7059,7 @@
     },
     {
       "id": "gauge__10AC005",
+      "station": "10AC005",
       "label": "10AC005 \u00b7 Cottonwood River Above Bass Creek",
       "anchor": {
         "type": "gauge",
@@ -6684,6 +7077,7 @@
     },
     {
       "id": "gauge__10BE001",
+      "station": "10BE001",
       "label": "10BE001 \u00b7 Liard River At Lower Crossing",
       "anchor": {
         "type": "gauge",
@@ -6701,6 +7095,7 @@
     },
     {
       "id": "gauge__10BE004",
+      "station": "10BE004",
       "label": "10BE004 \u00b7 Toad River Above Nonda Creek",
       "anchor": {
         "type": "gauge",
@@ -6718,6 +7113,7 @@
     },
     {
       "id": "gauge__10BE007",
+      "station": "10BE007",
       "label": "10BE007 \u00b7 Trout River At Kilometre 783.7 Alaska Highway",
       "anchor": {
         "type": "gauge",
@@ -6735,6 +7131,7 @@
     },
     {
       "id": "gauge__10BE009",
+      "station": "10BE009",
       "label": "10BE009 \u00b7 Teeter Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6752,6 +7149,7 @@
     },
     {
       "id": "gauge__10BE013",
+      "station": "10BE013",
       "label": "10BE013 \u00b7 Smith River Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6769,6 +7167,7 @@
     },
     {
       "id": "gauge__10CB001",
+      "station": "10CB001",
       "label": "10CB001 \u00b7 Sikanni Chief River Near Fort Nelson",
       "anchor": {
         "type": "gauge",
@@ -6786,6 +7185,7 @@
     },
     {
       "id": "gauge__10CD001",
+      "station": "10CD001",
       "label": "10CD001 \u00b7 Muskwa River Near Fort Nelson",
       "anchor": {
         "type": "gauge",
@@ -6803,6 +7203,7 @@
     },
     {
       "id": "gauge__10CD003",
+      "station": "10CD003",
       "label": "10CD003 \u00b7 Raspberry Creek Near The Mouth",
       "anchor": {
         "type": "gauge",
@@ -6820,6 +7221,7 @@
     },
     {
       "id": "gauge__10CD004",
+      "station": "10CD004",
       "label": "10CD004 \u00b7 Bougie Creek At Kilometre 368 Alaska Highway",
       "anchor": {
         "type": "gauge",
@@ -6837,6 +7239,7 @@
     },
     {
       "id": "gauge__10DA001",
+      "station": "10DA001",
       "label": "10DA001 \u00b7 Petitot River Below Highway No. 77",
       "anchor": {
         "type": "gauge",

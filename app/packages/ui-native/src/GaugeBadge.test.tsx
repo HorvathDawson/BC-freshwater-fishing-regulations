@@ -128,7 +128,11 @@ describe("<ConditionsScreen>", () => {
     gaugeForSection: async () => null,
     gaugeNow: async () => null,
     gaugeSeries: async () => null,
+    gaugeParameters: async () => [],
     traceToGauge: async () => [],
+    // The screen asks which water the reach belongs to, so the Regulations toggle has
+    // somewhere to go. A tile carries a section id and nothing else.
+    itemForSection: async () => null,
     ...over,
   } as never);
 
@@ -138,6 +142,22 @@ describe("<ConditionsScreen>", () => {
       <ConditionsScreen source={src()} section={"1:0" as never} palette={LIGHT}
                         onBack={() => {}} />);
     expect(await findByText(/No gauge is entitled to speak/)).toBeTruthy();
+  });
+
+  it("offers the other question, and leaves rather than answering it here", async () => {
+    // ONE CONDITIONS SCREEN. The rules sheet used to render its own conditions face, so the
+    // app answered "what is the water doing" two ways depending on which tab you came from.
+    // Both toggles now navigate to the single screen that owns each answer.
+    const { ConditionsScreen } = await import("./ConditionsScreen");
+    const onRegulations = vi.fn();
+    const { findByLabelText } = render(
+      <ConditionsScreen source={src()} section={"1:0" as never} palette={LIGHT}
+                        onBack={() => {}} onRegulations={onRegulations} />);
+    fireEvent.click(await findByLabelText("Regulations"));
+    // BY SECTION, not by item. Resolving the water here would make the button do nothing
+    // for the first few hundred milliseconds after the screen appears; the shell already
+    // owns that lookup for a map tap and does it once.
+    expect(onRegulations).toHaveBeenCalledWith("1:0");
   });
 
   it("offers a way back, because it is a detail view not a tab", async () => {

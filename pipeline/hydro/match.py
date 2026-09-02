@@ -221,6 +221,55 @@ def load_aliases(path: Path | None = None) -> dict[str, str]:
             if not k.startswith("$")}
 
 
+#: Where a build keeps its own match. BESIDE THE BUILD, never in `data/`, because node ids
+#: are per-build: a match cached against one graph names sections another graph does not have.
+MATCH_CACHE = "gauge_nodes.json"
+
+
+def match_for_build(build_dir: Path, stations: list[dict] | None = None,
+                    *, refresh: bool = False) -> list[StationMatch]:
+    """THE match for one build. The only supported way to ask.
+
+    TWO CONSUMERS, ONE ANSWER. The bundle needs `{station: node}` to build sheds and the
+    gauge table; `pipeline.hydro.splits` needs it to decide which water a station's cut
+    belongs to. Both used to call `match_stations` themselves, which is two call sites that
+    could drift apart on the alias file, the radius, or which stations were passed — and
+    the failure would be silent, because each half would look internally consistent while
+    describing a different set of gauges.
+
+    Now they call this, and it caches to ``build_dir/gauge_nodes.json``. Whoever runs first
+    warms it; the second reads the same bytes. Two consumers, one answer, by construction.
+
+    The match survives a regulation edition — only a new FWA or a moved station invalidates
+    it — so the cache is cheap to keep and expensive to recompute (it needs the 2 GB
+    geometry sidecar and an STRtree over every node in the province).
+    """
+    import pickle
+
+    from pipeline.hydro.shed import load_stations
+
+    cache = Path(build_dir) / MATCH_CACHE
+    if not refresh:
+        cached = load_matches(cache)
+        if cached:
+            return cached
+
+    graph_path = Path(build_dir) / "graph.pkl"
+    geom_path = Path(build_dir) / "geometries.pkl"
+    if not graph_path.exists() or not geom_path.exists():
+        return []
+
+    rows = stations if stations is not None else load_stations(
+        Path("data/bc_hydrometric_stations.json"))
+    with graph_path.open("rb") as fh:
+        graph = pickle.load(fh)
+    with geom_path.open("rb") as fh:
+        geoms = pickle.load(fh)
+    matches = match_stations(rows, geoms, graph, aliases=load_aliases())
+    save_matches(cache, matches)
+    return matches
+
+
 def load_matches(path: Path) -> list[StationMatch]:
     """Read a cached match file, or an empty list if there is none."""
     if not path.exists():

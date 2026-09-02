@@ -1,29 +1,27 @@
 /**
  * One water's sheet. Drawn to `design/riffle.html`.
  *
- * TWO FACES ON ONE SHEET, exactly as the design has it: **Conditions** and **Regulations**,
- * switched by a control under the title. They are not two screens because they are not two
- * subjects — a person looking at a river wants "may I fish here" and "what is the water
- * doing" about the SAME water, and making them two destinations means navigating away to
- * answer half of one question. They are not one scroll either: stacked, the conditions sat
- * below however many stretches the river happened to have, so a well-documented river hid
- * its own gauge behind sixty rules.
+ * THE RULES, AND A DOOR TO THE CONDITIONS. The switch under the title shows both questions
+ * a water answers — which is worth showing, because a reader who does not know Conditions
+ * exists will never go looking for it — but pressing the other one LEAVES.
  *
- * Which face opens first is the caller's, because the tab you came from is the question you
- * were asking. Tapping a river on the Conditions tab opens Conditions; on the Map tab,
- * Regulations.
+ * This sheet used to render conditions in place. Sharing `ConditionsPanel` made the two
+ * agree on the numbers and on nothing else: the Conditions tab's screen carries the reach
+ * you actually tapped, the coordinate that puts "you are here" on the route map, and the
+ * map's own flow/level choice, and a sheet opened from a search result knows none of those.
+ * Two surfaces answering one question, with one of them permanently the poorer, is exactly
+ * the drift AGENTS rule 23 exists to stop.
  *
  * Every value here arrived from a hook in @app/ui (rule 25). Nothing on this screen decides
  * whether a stretch is open, what a flow reading means, or whether a gauge may speak for
  * this water — read it as a list of the questions the app knows how to ask.
  */
-import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { statusWord, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useWaterGauge, useWaterSheet } from "@app/ui";
-import { ConditionsPanel } from "./ConditionsPanel";
+import { Faces } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
 import { GaugeBadge } from "./GaugeBadge";
 import { StatusPill } from "./StatusPill";
@@ -33,23 +31,25 @@ import { outcomeColour, type Palette } from "./theme";
 
 export type Face = "conditions" | "regulations";
 
-export function WaterScreen({ source, item, on, group, palette, onBack,
-                              face: initialFace = "regulations", tiles, theme }: {
+export function WaterScreen({ source, item, on, group, palette, onBack, onConditions }: {
   source: RegsSource; item: ItemId; on: PlainDate; group: SpeciesGroup;
   palette: Palette; onBack?: () => void;
-  /** Which question the reader arrived with. */
-  face?: Face;
-  /** Present, the Conditions face can draw the route down to the gauge. */
-  tiles?: TileEndpoints; theme?: string;
+  /**
+   * Leave for the Conditions screen, on this water's first reach.
+   *
+   * A CALLBACK RATHER THAN A FACE. Rendering conditions here as well gave the app two
+   * surfaces answering one question, and only one of them could have the things that make
+   * it useful — the reach you tapped, where on it you tapped, and the map's own quantity.
+   */
+  onConditions?: (section: SectionId) => void;
 }) {
-  const [face, setFace] = useState<Face>(initialFace);
   const sheet = useWaterSheet(source, item, on, group);
   // Reaches run mouth -> source; conditions belong to the first, which is the stretch a
   // gauge is most likely to be entitled to speak for.
   const first: SectionId | null =
     sheet.state === "ready" && sheet.value ? sheet.value.reaches[0]?.section ?? null : null;
-  // Only for the one line the Regulations face shows about the water's condition; the
-  // Conditions face asks its own questions inside ConditionsPanel.
+  // ONE LINE ONLY. This sheet says what the water is doing in a sentence and offers a way
+  // to the screen that says it properly; it does not answer the question itself.
   const conditions = useConditions(source, first);
   // Asked of the WATER, not of `first`: most of a well-gauged river has no station on the
   // stretch you happen to be looking at, and answering "ungauged" there would be false.
@@ -95,35 +95,23 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
             <GaugeBadge gauge={gauged.value} palette={palette} waterName={s.name} />
           </View>
         )}
-        <Faces palette={palette} face={face} onFace={setFace} />
+        <Faces palette={palette} face="regulations"
+               onFace={(f) => { if (f === "conditions" && first) onConditions?.(first); }} />
       </View>
 
-      {face === "conditions" ? (
-        // THE SAME PANEL THE CONDITIONS TAB RENDERS. This face used to be its own layout
-        // with its own wording and no chart controls, so the app answered "what is the
-        // water doing" two different ways depending on which tab you came from.
-        <View style={{ paddingHorizontal: 18, paddingTop: 18 }}>
-          <ConditionsPanel source={source} section={first} palette={palette}
-                           tiles={tiles} theme={theme} scroll={false}
-                           colour={s.reaches[0]
-                             ? outcomeColour(palette, s.reaches[0].status.outcome)
-                             : undefined}
-                           footer={
-                             // The other face's answer, in one line — a reader on
-                             // Conditions still has to be told the water is closed, and
-                             // telling them to go and look is not telling them.
-                             <CrossLink palette={palette} onPress={() => setFace("regulations")}
-                                        label="and the regulations"
-                                        value={s.reaches[0]
-                                          ? statusWord(s.reaches[0].status)
-                                          : "nothing written here"}
-                                        tone={s.reaches[0]
-                                          ? outcomeColour(palette, s.reaches[0].status.outcome)
-                                          : palette.sub} />
-                           } />
-        </View>
-      ) : (
-        <>
+      {/* ONE CONDITIONS SCREEN, REACHED ONE WAY.
+
+           This used to render `ConditionsPanel` in place, which meant the app still had two
+           conditions surfaces: the tab's, opened by tapping a reach, and this one, opened by
+           toggling here. Sharing the panel made them agree on the numbers and not on
+           anything else — the tab's carries the reach you actually tapped, the tap
+           coordinate that puts "you are here" on the route map, and the map's own flow/level
+           choice, none of which a sheet opened from a list can know.
+
+           So the toggle NAVIGATES. `Faces` is still two buttons because which two questions
+           exist about a water is itself worth showing, but pressing Conditions leaves for
+           the one screen that answers it. */}
+      <>
           <Section palette={palette} title="Stretches" />
           {s.reaches.map((r) => (
             <View key={r.section}
@@ -149,7 +137,8 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
             </View>
           ))}
           <View style={{ paddingHorizontal: 18, paddingTop: 20 }}>
-            <CrossLink palette={palette} onPress={() => setFace("conditions")}
+            <CrossLink palette={palette}
+                       onPress={() => { if (first) onConditions?.(first); }}
                        label="and the conditions"
                        value={c?.percentile != null
                          ? `${ordinal(c.percentile)} percentile for the date`
@@ -158,40 +147,8 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
                            : "no gauge speaks for this water"}
                        tone={palette.live} />
           </View>
-        </>
-      )}
+      </>
     </ScrollView>
-  );
-}
-
-/**
- * The face switch. Two buttons, both always visible, the current one pressed.
- *
- * NOT a tab bar and not a segmented control that hides the other label: which two questions
- * this sheet answers is itself information, and a reader who does not know Conditions exists
- * will never go looking for it.
- */
-function Faces({ palette, face, onFace }: {
-  palette: Palette; face: Face; onFace: (f: Face) => void;
-}) {
-  const items: [Face, string][] = [["conditions", "Conditions"], ["regulations", "Regulations"]];
-  return (
-    <View style={{ flexDirection: "row", gap: 8, paddingTop: 6 }}>
-      {items.map(([id, label]) => {
-        const on = face === id;
-        return (
-          <Pressable key={id} onPress={() => onFace(id)} accessibilityRole="button"
-                     accessibilityState={{ selected: on }} accessibilityLabel={label}
-                     style={{ paddingVertical: 8, paddingHorizontal: 16, borderRadius: 999,
-                              borderWidth: 1,
-                              borderColor: on ? palette.accent : palette.line,
-                              backgroundColor: on ? palette.tint : "transparent" }}>
-            <Text style={{ ...TYPE.micro, fontSize: 12,
-                           color: on ? palette.accent : palette.sub }}>{label}</Text>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }
 

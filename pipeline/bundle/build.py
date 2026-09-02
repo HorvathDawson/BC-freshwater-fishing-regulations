@@ -264,29 +264,21 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     import pickle
 
     from pipeline.hydro import build_gauge_sheds, lake_gauge_links
-    from pipeline.hydro.match import (
-        load_aliases, load_matches, match_stations, nodes_for, save_matches, summarise,
-    )
+    from pipeline.hydro.match import match_for_build, nodes_for, summarise
     from pipeline.hydro.shed import downstream_map, load_stations
 
     stations = load_stations(stations_path)
     with graph_path.open("rb") as fh:
         graph = pickle.load(fh)
 
-    # The match survives a regulation edition; only a new FWA invalidates it. Keeping it
-    # beside the build rather than in `data/` is deliberate — node ids are per-build.
-    cache = build_dir / "gauge_nodes.json"
-    matches = load_matches(cache)
+    # ONE MATCH PER BUILD, shared with `pipeline.hydro.splits` — see `match_for_build`.
+    # Whichever runs first warms `build_dir/gauge_nodes.json`; the other reads the same
+    # bytes, so the gauge table and the gauge splits cannot describe different stations.
+    matches = match_for_build(build_dir, stations)
     if not matches:
-        if not geom_path.exists():
-            cov.skip("section_gauge", f"no {geom_path.name} and no cached match")
-            cov.skip("section_down", "needs section_gauge")
-            return
-        with geom_path.open("rb") as fh:
-            geoms = pickle.load(fh)
-        matches = match_stations(stations, geoms, graph, aliases=load_aliases())
-        save_matches(cache, matches)
-        del geoms
+        cov.skip("section_gauge", f"no {geom_path.name} and no cached match")
+        cov.skip("section_down", "needs section_gauge")
+        return
 
     matched = nodes_for(matches)
     prov = {m.station: m for m in matches}
