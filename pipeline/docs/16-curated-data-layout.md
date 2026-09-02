@@ -3,6 +3,10 @@
 **Status: PLAN ONLY. Not implemented.** Written 2026-09-02 while another agent held `build.py`,
 `graph/`, and the hydro/gauge work; the move touches those files, so it waits.
 
+> **Executing this?** The line-by-line surface — every real path resolution, the greps that
+> only *look* like work, and the order — is in
+> [`HANDOFF-curated-layout.md`](HANDOFF-curated-layout.md). It corrects two counts below.
+
 ## The problem
 
 Curated, hand-authored data — the stuff a human decided, that no rebuild can regenerate — is
