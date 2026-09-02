@@ -133,6 +133,13 @@ def _as_list(target: dict, singular: str, plural: str) -> list:
 
 
 def _node_matches(node, target: dict, reach: Optional[dict]) -> bool:
+    # Optional kind filter. `blks` is stream-only by construction (below), but `wscs` is NOT: a LAKE
+    # carries the wsc of the river threading it, so a wsc-targeted name lands on the lake as well as
+    # the stream. That renamed Long Lake to "Docee River" — the Docee's wsc target caught the lake it
+    # drains. Absent, the filter does nothing, so the ~3,600 existing entries are unaffected.
+    kinds = {str(k).lower() for k in _as_list(target, "kind", "kinds")}
+    if kinds and (("stream" if node.kind == NodeKind.stream else str(node.kind.value)) not in kinds):
+        return False
     blks = _as_list(target, "blk", "blks")
     wbks = _as_list(target, "wbk", "wbks")
     gnis = _as_list(target, "gnis_id", "gnis_ids")
@@ -261,7 +268,7 @@ def apply_name_variants(graph: StreamGraph, entries: list[dict]) -> int:
 
 
 def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: NameSource,
-                         kind: NodeKind = NodeKind.lake) -> int:
+                         kind: NodeKind = NodeKind.lake, allow_unnamed: bool = False) -> int:
     """Mint an edgeless ``lake:{wbk}`` node for every NAMED waterbody in ``names`` that the graph does
     not already node. Returns the count minted.
 
@@ -284,6 +291,17 @@ def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: Na
     name, matching what ``add_waterbody_items`` used to put on the item so no name churns. ``kind``
     types the node and, through it, the registry item: ``NodeKind.wetland`` for the wetlands layer,
     ``lake`` otherwise.
+
+    ``allow_unnamed`` mints a node for a waterbody with no gazetted name at all. That used to
+    be pointless — "nothing could ever target it" — and it is now the opposite of true: a ZONE
+    regulation targets water by where it is, not by what it is called, so an unnamed pond in a
+    management unit with a spring closure is closed. Province-wide that is **417,111**
+    waterbodies with no node: 333,468 of 333,526 wetlands, 82,201 lakes and 1,442 reservoirs.
+    Without a node they carry no ``mus``, and every zone rule is invisible on exactly the small
+    water people fish.
+
+    Minting them here rather than stamping them in a side artifact keeps ONE source: membership
+    is a property of a node, and every waterbody is a node.
     """
     from pipeline.models import StreamNode
 
@@ -294,11 +312,11 @@ def mint_waterbody_nodes(graph: StreamGraph, names: dict[str, tuple], source: Na
         if nid in graph.nodes:
             continue
         nms = [nm for nm, _ in pairs if nm]
-        if not nms:
-            continue                                   # unnamed: nothing could ever target it
+        if not nms and not allow_unnamed:
+            continue
         graph.nodes[nid] = StreamNode(
             node_id=nid, kind=kind, wbk=wbk,
-            display_name=max(nms, key=len),
+            display_name=max(nms, key=len) if nms else "",
             name_tuples=tuple(NameTuple(nm, source, "", gid or "") for nm, gid in pairs if nm),
         )
         minted += 1

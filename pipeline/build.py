@@ -41,6 +41,23 @@ def get_wetland_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
     return out
 
 
+def get_all_waterbody_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
+    """Every WATERBODY_KEY in the province, across all three waterbody layers.
+
+    Named or not, noded or not. A waterbody becomes a node when a stream is routed through it,
+    and a wetland only when something names it — so 417,111 of them have no node, and a node is
+    the only thing that carries `mus`. A zone regulation targets water by where it is, so those
+    417,111 would be invisible to every zone rule. This is the set that has to be minted.
+    """
+    out: set[str] = set()
+    for layer in ("lakes", "manmade", "wetlands"):
+        if layer not in fwa.layer_names:
+            continue
+        gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox)
+        out |= {str(w) for w in gdf["WATERBODY_KEY"] if w}
+    return out
+
+
 def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
     kind: dict[str, str] = {}
     for layer, k in (("lakes", "lake"), ("manmade", "manmade")):
@@ -222,6 +239,8 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
 
 
 _ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "added_streams.build.json"
+_ADDED_LAKES_GEOJSON = Path(__file__).resolve().parent / "added_lakes.geojson"
+_DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"
 
 
 def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
@@ -283,7 +302,11 @@ def main() -> None:
     ap.add_argument("--bbox", nargs=4, type=float, metavar=("MINX", "MINY", "MAXX", "MAXY"))
     ap.add_argument("--gnis", help="comma-separated GNIS_NAME(s); bbox derived from them")
     ap.add_argument("--full", action="store_true", help="whole province (no bbox; heavy)")
-    ap.add_argument("--splits", help="path to a splits.json to overlay as an anchors layer")
+    ap.add_argument("--splits", help="path to a splits.json to overlay as an anchors layer "
+                    f"(default: the checked-in {_DEFAULT_SPLITS.name})")
+    ap.add_argument("--no-splits", action="store_true",
+                    help="build with NO curated splits. Almost never what you want — every "
+                         "'downstream of the bridge' regulation stops resolving.")
     ap.add_argument("--border", action="store_true",
                     help="split cross-border BLKs at the BC outline + flag out-of-BC pieces "
                          "(auto-on with --full; off for small inland bboxes to stay fast)")
@@ -293,6 +316,9 @@ def main() -> None:
     ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
     ap.add_argument("--added-streams", default=None,
                     help="path to a frozen added_streams.build.json (default: the packaged one)")
+    ap.add_argument("--added-lakes", help="path to an added_lakes.geojson (default: the packaged one)")
+    ap.add_argument("--no-added-lakes", action="store_true",
+                    help="skip the curated non-FWA lake polygons (see pipeline/hack/added_lakes)")
     ap.add_argument("--no-added-streams", action="store_true",
                     help="skip merging the minted municipal added-streams dataset (on by default)")
     ap.add_argument("--tributaries-of", metavar="NAME|BLK",
@@ -333,6 +359,21 @@ def main() -> None:
     print("loading stream fids ...")
     fids = load_stream_fids(args.gpkg, bbox=bbox)
     print(f"  {len(fids)} fids")
+
+    # Curated lake polygons the FWA waterbody layer is missing (Redsand Lake). MUST run before
+    # build_blk_chains: the whole mechanism is re-stamping FidRow.wbk inside each polygon, and the
+    # chain/graph passes below are already what read that field — a fid carrying a lake wbk is given
+    # to the lake node and BREAKS the stream run there, which is what cuts the stream and mints the
+    # `lake:{wbk}` boundary a regulation binds to. See pipeline/hack/added_lakes/README.md.
+    added_lake_polys: dict = {}
+    if not args.no_added_lakes:
+        from pipeline.hack.added_lakes.ingest import merge as _merge_lakes
+        _alp = Path(args.added_lakes) if args.added_lakes else _ADDED_LAKES_GEOJSON
+        _rep = _merge_lakes(fids, lake_kind, lake_names, added_lake_polys, _alp)
+        if _rep["lakes"]:
+            print(f"  + {_rep['lakes']} curated lake polygon(s) from {_alp.name}: "
+                  + ", ".join(f"{n!r} (wbk {w}, {len(_rep['claimed'].get(w, []))} fid(s) claimed)"
+                              for w, n in _rep["names"].items()))
 
     # Merge the frozen, vetted municipal added-streams dataset (on by default): remove the FWA blue lines it
     # supersedes (fwa_exclude), then add its synthetic fids so the SAME blk-chain / graph / geometry passes below
@@ -421,6 +462,29 @@ def main() -> None:
             + mint_waterbody_nodes(graph, _curated_wet, NameSource.override, _NK.wetland))
     if _iso:
         print(f"  minted {_iso} named waterbody node(s) — no stream runs through them")
+
+    # EVERY REMAINING WATERBODY. A zone regulation targets water by WHERE IT IS, not by what it
+    # is called, so an unnamed pond in a management unit with a spring closure is closed. Only a
+    # node carries `mus`, so an unnamed waterbody with no node is invisible to every zone rule —
+    # 417,111 of them province-wide, which is most of the small water people actually fish.
+    # Minted edgeless (nothing flows through them) and given their FWA polygon as sidecar
+    # geometry, so the membership passes below and the tile exporter both read ONE source.
+    _all_wbks = get_all_waterbody_wbks(fwa, bbox)
+    # Load every waterbody polygon ONCE. It is needed three times over: to mint the missing
+    # nodes, to give the membership passes something to test, and as the shape the tiles draw.
+    wb_polys = get_waterbody_polys(fwa, _all_wbks, bbox)
+    _todo = {w for w in _all_wbks if f"lake:{w}" not in graph.nodes}
+    if _todo:
+        _wet = get_wetland_wbks(fwa, bbox)
+        _n = 0
+        for _w in _todo:
+            _pl = wb_polys.get(_w)
+            if _pl is None or _pl.is_empty:
+                continue
+            _kind = _NK.wetland if _w in _wet else _NK.lake
+            mint_waterbody_nodes(graph, {_w: ()}, NameSource.gazette, _kind, allow_unnamed=True)
+            _n += 1
+        print(f"  minted {_n} unnamed waterbody node(s) so zone rules can reach them")
     _tick("name variants (whole-feature)")
 
     _moved_tribs: list = []
@@ -466,7 +530,22 @@ def main() -> None:
               f"-> {len(graph.nodes)} nodes")
         _tick("border")
 
-    splits = load_split_defs(args.splits) if args.splits else None
+    # CURATED SPLITS DEFAULT ON. `--splits` used to have no default, so omitting it built a whole
+    # province with ZERO curated cuts and said nothing: 376 confluence/point/lake splits silently
+    # gone, 373 registry boundaries with them (Fraser 29->13, Kokish 6->0, Stamp 7->2), and every
+    # "downstream of X" regulation left unresolvable. The build still passed its tests and the
+    # registry still looked healthy, because only the AREA splits — which come from a different
+    # source — survived. A build that quietly drops the curated geometry must not be reachable by
+    # forgetting a flag; opting out is now explicit.
+    if args.no_splits:
+        splits = None
+        print("!! --no-splits: building with NO curated splits; 'downstream of X' rules will not resolve")
+    else:
+        _sp = Path(args.splits) if args.splits else _DEFAULT_SPLITS
+        if not _sp.exists():
+            raise SystemExit(f"splits file not found: {_sp}  (pass --splits, or --no-splits to skip)")
+        splits = load_split_defs(str(_sp))
+        print(f"curated splits: {len(splits)} from {_sp}")
     applied_splits: list = []
     if splits:
         from pipeline.splits.anchors import resolve_split_defs
@@ -559,14 +638,31 @@ def main() -> None:
         # test has nothing to measure — and those are exactly the waters an area closure most often
         # names. Load their FWA polygons and key them by node id. Loaded ONCE here and reused for the
         # MU pass below, which needs the same polygons for the same reason.
-        _nogeom = {n.wbk for n in graph.nodes.values()
-                   if n.kind in WATERBODY_KINDS and n.wbk and geoms.get(n.node_id) is None}
-        wbk_polys = get_waterbody_polys(fwa, _nogeom, bbox)
+        # Every waterbody, not just the ones with no line geometry: a NODED lake's sidecar
+        # geometry is the under-lake route through it, which is the wrong shape to test a
+        # polygon against. Its actual outline is here.
+        wbk_polys = {**wb_polys, **added_lake_polys}   # a curated lake draws + gets MUs like any other
         _flags = mark_inside_areas(graph, geoms, _polys,
                                    extra={f"lake:{w}": pl for w, pl in wbk_polys.items()})
         print(f"  area membership: {_flags} flag(s) across {len(_polys)} area(s) "
               f"({len(wbk_polys)} minted waterbody polygon(s) included)")
         _tick("area membership")
+
+    # MANAGEMENT UNITS. Separate pass from area membership, and unconditional, because the two
+    # are different kinds of fact: `in_areas` is membership of a REGULATED area and exists only
+    # where someone wrote a rule; `mus` is administrative geography that is true everywhere.
+    # Zone regulations ("in MU 4-5, no bait") resolve through `mus` and nothing else — before
+    # this pass, MU came only from the synopsis entry, so unnamed streams had no MU and no zone
+    # rule could reach them. Measured: 100% coverage, 99.14% of sections in exactly one MU.
+    from pipeline.splits.border import load_mu_polys, mark_mus
+    _mu_polys = load_mu_polys(args.gpkg, bbox)
+    if _mu_polys:
+        _mu_flags = mark_mus(graph, geoms, _mu_polys,
+                             extra={f"lake:{w}": pl for w, pl in wbk_polys.items()})
+        _with_mu = sum(1 for n in graph.nodes.values() if n.mus)
+        print(f"  management units: {_mu_flags} flag(s) across {len(_mu_polys)} MU(s); "
+              f"{_with_mu}/{len(graph.nodes)} sections stamped")
+        _tick("management units")
 
     # The REACH-qualified variants only: these name a measure range and must land on a section
     # boundary, so they wait for the splits. Everything else was applied before the prune, above.
@@ -576,6 +672,15 @@ def main() -> None:
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    if wb_polys:
+        # A waterbody has TWO geometries and they answer different questions: `geometries.pkl`
+        # holds the under-lake ROUTE a river takes through it (a line, for topology), this holds
+        # its SHAPE (a polygon, for drawing). One file per fact; neither is derivable from the
+        # other, and drawing the route as the shape is what renders a lake as a spiky asterisk.
+        import pickle as _pk
+        with (out / "waterbody_polys.pkl").open("wb") as _fh:
+            _pk.dump({f"lake:{w}": pl for w, pl in wb_polys.items()}, _fh, protocol=5)
+        print(f"  wrote waterbody_polys.pkl ({len(wb_polys):,} outlines)")
     write_artifact(chains, str(out / "blk_chains.pkl"))
     write_artifact(graph, str(out / "graph.pkl"))
     write_artifact(geoms, str(out / "geometries.pkl"))
