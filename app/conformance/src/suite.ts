@@ -153,9 +153,19 @@ export function runConformance(name: string, make: () => Promise<RegsSource>) {
     // A POINT PER DAY. The envelope is sampled every five days because percentiles are
     // noisy at daily resolution, but the line across it is this year's own record and
     // belongs at its own resolution — on 73 buckets a whole autumn is fourteen points.
-    expect(year!.value.band.length).toBeGreaterThanOrEqual(365);
     expect(year!.value.step).toBe("1d");
     expect(year!.value.at.length).toBe(year!.value.values.length);
+    expect(year!.value.band.length).toBe(year!.value.values.length);
+    // YEAR TO DATE PLUS A MONTH, never the whole calendar year: past that the record has
+    // nothing in it and the longest forecast has already ended, so the rest of the frame
+    // would be an empty band.
+    expect(year!.value.at.length).toBeGreaterThan(180);
+    expect(year!.value.at[0]).toMatch(/-01-01$/);
+    const last = new Date(year!.value.at[year!.value.at.length - 1]!);
+    const today = new Date(year!.value.at[(year!.value.now?.index ?? 0)]!);
+    const ahead = (last.getTime() - today.getTime()) / 86_400_000;
+    expect(ahead).toBeGreaterThan(20);
+    expect(ahead).toBeLessThanOrEqual(31);
     // The marker is explicit rather than "the last value": most of the year's cells are
     // null, and taking the last would put today on New Year's Eve.
     expect(year!.value.now).not.toBeNull();

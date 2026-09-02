@@ -700,7 +700,8 @@
       "color.flow.f7": "#101E4D",
       "color.gauge.dot": "#0A1116",
       "color.flow.nobaseline": "#7B4FBF",
-      "color.water.ungauged": "#D5D5D5"
+      "color.water.ungauged": "#D5D5D5",
+      "color.mask": "#505950"
     },
     "dark": {
       "color.water.mapped": "#38B6DE",
@@ -751,7 +752,8 @@
       "color.flow.f7": "#A8B8FF",
       "color.gauge.dot": "#F4F8F5",
       "color.flow.nobaseline": "#A97CFF",
-      "color.water.ungauged": "#39434B"
+      "color.water.ungauged": "#39434B",
+      "color.mask": "#595956"
     },
     "light": {
       "color.water.mapped": "#0B6987",
@@ -802,7 +804,8 @@
       "color.flow.f7": "#122A8F",
       "color.gauge.dot": "#0A1116",
       "color.flow.nobaseline": "#7B4FBF",
-      "color.water.ungauged": "#D5D5D5"
+      "color.water.ungauged": "#D5D5D5",
+      "color.mask": "#505950"
     }
   },
   "tokens": {
@@ -1011,6 +1014,11 @@
       "type": "color",
       "themeable": true,
       "$comment": "water no gauge is entitled to speak for. NEUTRAL BY NAME AND BY FAMILY, and both are enforced: `water.*` is the one family a data-driven mode may borrow from (build-style FAMILY_FOR_PROVIDER), and anything under `flow.*` is a POINT ON THE SCALE that a no-data colour must never be mistaken for (tools/no-data-is-not-an-answer.test.ts). Distinct from water.unmapped, which is a claim about the ATLAS; this is a claim about MEASUREMENT, and the two were one grey while meaning different things."
+    },
+    "color.mask": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "the fill over everything that is NOT British Columbia. A separate token from color.outside, which it used to share: that one is the PAPER — the ground under a missing tile and the fill of a gauge label's pill — so darkening the mask darkened the pill and the loading state with it. One colour cannot be both 'we have no answers here' and 'this is the page'."
     }
   },
   "enums": {

@@ -58,6 +58,26 @@ const GAUGE = {
 };
 const FRASER_AT_HOPE_MAGNITUDE = 273576;
 
+/**
+ * One BC River Forecast Centre run, as the real feed publishes them — a SERIES with bounds,
+ * thirty daily steps. A fixture carrying a single point could not have caught the triangle
+ * the chart used to draw.
+ */
+const ELF = {
+  model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30,
+  value: 9.4, extreme: "min" as const, min: 9.4, ave: 12.1, max: 16.8, unit: "m3/s",
+  disclaimer: "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE AND " +
+              "INTERPRETATION.",
+  series: {
+    step: "1d" as const,
+    at: Array.from({ length: 30 }, (_, i) =>
+      new Date(Date.UTC(2026, 7, 30 + i)).toISOString().slice(0, 10)),
+    mid: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.2),
+    lo: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.28),
+    hi: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.1),
+  },
+};
+
 export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): RegsSource {
   const sectionRules = new Map<string, Rule[]>(
     CHILLIWACK.reaches.map((r) => [r.section, r.rules]),
@@ -172,7 +192,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
                  percentile: GAUGE.percentile, standing: "much-below" },
       };
     },
-    async gaugeSeries(st, span, parameter): Promise<Aged<Series> | null> {
+    async gaugeSeries(st, span, parameter, model): Promise<Aged<Series> | null> {
       if (st !== GAUGE.station) return null;
       const param: Parameter = parameter ?? "discharge";
       const level = param === "level";
@@ -181,11 +201,11 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       // only one would let a unit bug through the tests that exist to catch it.
       const band: Band = level ? [1.20, 1.35, 1.52, 1.74, 2.05] : [18.8, 23.0, 30.6, 39.0, 56.6];
       const value = level ? GAUGE.level : GAUGE.discharge;
-      // The year axis is 73 pentads of envelope with today marked on it — no observations,
-      // exactly as the bundle source builds it.
+      // Year to date plus a month, as the bundle source builds it — the whole calendar
+      // year would be four empty months on the right.
       // A day per point on the year axis, mirroring the bundle source: the envelope is
       // five-day but the line across it is daily.
-      const n = span === "72h" ? 72 : 365;
+      const n = span === "72h" ? 72 : 273;
       return {
         fetchedAt: now,
         value: {
@@ -200,20 +220,13 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
           now: { index: span === "72h" ? n - 1 : 241, value },
           // A REAL SERIES, thirty daily steps with bounds — not one number. A fixture
           // carrying a single point could not have caught the triangle the chart drew.
-          forecast: level ? null : {
-            model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30,
-            value: 9.4, extreme: "min", min: 9.4, ave: 12.1, max: 16.8, unit: "m3/s",
-            disclaimer: "USERS OF THIS DATA MUST ACCEPT ALL RESPONSIBILITY FOR THE USE " +
-                        "AND INTERPRETATION.",
-            series: {
-              step: "1d",
-              at: Array.from({ length: 30 }, (_, i) =>
-                new Date(Date.UTC(2026, 7, 30 + i)).toISOString().slice(0, 10)),
-              mid: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.2),
-              lo: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.28),
-              hi: Array.from({ length: 30 }, (_, i) => 15.7 - i * 0.1),
-            },
-          },
+          forecast: level ? null : ELF,
+          forecasts: level ? [] : [ELF],
+          // Two complete years on the same day index, so 3 August sits above 3 August.
+          priorYears: span === "year"
+            ? [{ year: 2025, values: Array.from({ length: n }, (_, i) => value * (1 + i / 400)) },
+               { year: 2024, values: Array.from({ length: n }, (_, i) => value * (1.3 - i / 500)) }]
+            : [],
         },
       };
     },

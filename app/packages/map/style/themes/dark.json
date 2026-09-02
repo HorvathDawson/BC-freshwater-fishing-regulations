@@ -49,6 +49,7 @@
     "color.flow.f7": "#A8B8FF",
     "color.gauge.dot": "#F4F8F5",
     "color.flow.nobaseline": "#A97CFF",
-    "color.water.ungauged": "#39434B"
+    "color.water.ungauged": "#39434B",
+    "color.mask": "#595956"
   }
 }

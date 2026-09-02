@@ -38,6 +38,14 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
           <Path key={`e${i}`} d={e.d} fill={palette.ink}
                 fillOpacity={0.06 + i * 0.05} />
         ))}
+        {/* EARLIER YEARS, thin and quiet. Each is a real year of record, so they are lines
+            rather than another band — a reader comparing this summer with last one needs to
+            see a year, not an average of years. Faded by age so the most recent reads first. */}
+        {shape.priorYears.map((y, i) => (
+          <Path key={y.year} d={y.d} fill="none" stroke={palette.sub}
+                strokeWidth={1.1} strokeOpacity={0.65 - i * 0.2}
+                strokeLinejoin="round" strokeLinecap="round" />
+        ))}
         {shape.median !== "" && (
           <Path d={shape.median} fill="none" stroke={palette.sub}
                 strokeWidth={1.2} strokeDasharray="5,4" />
@@ -50,15 +58,20 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
             band is fainter than the record's, and its line is dashed — three cues, because
             one is a legend nobody read. A model run drawn in the same stroke as an
             observation is the worst thing this chart could do. */}
+        {/* TODAY, drawn whether or not a forecast follows it. On the seasonal chart the
+            record simply stops here and the rest of the frame is band; without the rule a
+            reader cannot tell where the measuring ended and the season's shape took over. */}
+        {shape.todayX !== null && (
+          <G>
+            <Line x1={shape.todayX} y1={box.padTop}
+                  x2={shape.todayX} y2={box.height - box.padBottom}
+                  stroke={palette.sub} strokeWidth={1} strokeDasharray="2,3" />
+            <SvgText x={shape.todayX + 3} y={box.padTop + 8}
+                     fontSize={8.5} fill={palette.faint}>TODAY</SvgText>
+          </G>
+        )}
         {shape.forecast && (
           <G>
-            {/* TODAY. The one line on this chart that separates measurement from model —
-                everything left of it happened, everything right of it is an opinion. */}
-            <Line x1={shape.forecast.at} y1={box.padTop}
-                  x2={shape.forecast.at} y2={box.height - box.padBottom}
-                  stroke={palette.sub} strokeWidth={1} strokeDasharray="2,3" />
-            <SvgText x={shape.forecast.at + 3} y={box.padTop + 8}
-                     fontSize={8.5} fill={palette.faint}>TODAY</SvgText>
             {shape.forecast.band !== "" && (
               <Path d={shape.forecast.band} fill={colour} fillOpacity={0.13} />
             )}
@@ -103,6 +116,10 @@ export function Hydrograph({ shape, palette, colour, label, caption, unit,
             <Key palette={palette} label="median" swatch="dash" colour={palette.sub} />
           </>
         )}
+        {shape.priorYears.map((y) => (
+          <Key key={y.year} palette={palette} label={String(y.year)} swatch="line"
+               colour={palette.sub} />
+        ))}
         {shape.forecast && (
           <Key palette={palette} label={forecastLabel ?? "forecast"} swatch="dash"
                colour={colour} />

@@ -60,8 +60,25 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
     Record<string, unknown> {
   const type = (MAP_STYLE.layers.find((l) => l.id === layerId) as { type?: string } | undefined)
     ?.type;
+  /**
+   * SELECTION IS A PAINT RULE, and it was not one.
+   *
+   * `highlight()` has always written `{selected: true}` into feature-state, and nothing
+   * anywhere read it — so every "show me this route" and every tap highlight set a flag
+   * into the void. The route panel drew its two end markers over a map where the water
+   * between them was the same colour as all the other water.
+   *
+   * Wrapped here rather than in the style so it applies to EVERY mode automatically: a
+   * highlight has to survive whichever colouring the layer happens to be in, and a per-mode
+   * expression would be one more place for the two to drift apart.
+   */
+  const selected = ["boolean", ["feature-state", "selected"], false];
+  const base = colorExpression(layerId, mode, tokens);
+  const isHighlightable = STYLE_META.highlightable.some((h) => h.id === layerId);
   const out: Record<string, unknown> = {
-    [colourPropFor(type)]: colorExpression(layerId, mode, tokens),
+    [colourPropFor(type)]: isHighlightable && tokens["color.highlight"] !== undefined
+      ? ["case", selected, tokens["color.highlight"], base]
+      : base,
   };
 
   const spec = STYLE_META.widths[layerId];
@@ -94,6 +111,18 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
       }
       out[widthKey] = z;
     }
+    // A HIGHLIGHTED REACH IS ALSO THICKER. Colour alone is not enough on a 1.4 px line
+    // over a busy basemap, and the route panel's whole job is to pick a chain of reaches
+    // out of hundreds of others.
+    //
+    // `max`, not a multiplier: `width.stream.highlight` is a width IN PIXELS (3.2), so
+    // multiplying by it would make the Fraser thirty pixels wide while leaving a creek
+    // thinner than the highlight is supposed to guarantee. A floor gives every selected
+    // reach at least that weight and leaves a big river its own.
+    if (isHighlightable && type === "line" && tokens["width.stream.highlight"] !== undefined)
+      out[widthKey] = ["case", selected,
+                       ["max", out[widthKey], Number(tokens["width.stream.highlight"])],
+                       out[widthKey]];
   }
 
   const dash = (STYLE_META.dashes ?? {})[layerId];
@@ -101,6 +130,21 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
     const pattern = tokens[dash];
     if (Array.isArray(pattern)) out["line-dasharray"] = pattern;
   }
+
+  /**
+   * THE WATER STANDS ASIDE FOR THE REGIONAL VIEW.
+   *
+   * In `standing` mode below z7 the atlas has already dropped all but a few mainstems, and
+   * what survives is a thin scribble that reads as noise beside the station haze drawn over
+   * it (see `gauge-haze`). Fading it out is what lets the low-zoom answer be one thing
+   * rather than two competing ones; by z7 the rivers are back at full weight and the haze
+   * is gone.
+   *
+   * Only in this mode. The Regulations view at the same zoom is answering a question about
+   * specific water, so its lines must not disappear.
+   */
+  if (mode === "standing" && type === "line")
+    out["line-opacity"] = ["interpolate", ["linear"], ["zoom"], 5, 0.12, 7, 1];
 
   const opacity = (STYLE_META.opacities ?? {})[layerId];
   if (opacity !== undefined && type) {

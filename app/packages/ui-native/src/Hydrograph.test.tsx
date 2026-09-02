@@ -48,7 +48,14 @@ describe("<Hydrograph>", () => {
 
   it("puts the gridlines behind the data, so a rule never sits on the reading", () => {
     const { container } = draw();
-    const kinds = [...container.querySelectorAll("line, path")].map((n) => n.tagName.toLowerCase());
+    // GRIDLINES ONLY. The today rule is also a <line> and is drawn deliberately OVER the
+    // data: it separates what was measured from what is forecast, and an envelope painted
+    // on top of it would hide the one mark on the chart that says which is which. Told
+    // apart by the dash, which is what makes the today rule read as an annotation.
+    const kinds = [...container.querySelectorAll("line, path")]
+      .filter((n) => n.tagName.toLowerCase() === "path"
+                     || !n.getAttribute("stroke-dasharray"))
+      .map((n) => n.tagName.toLowerCase());
     expect(kinds.lastIndexOf("line")).toBeLessThan(kinds.indexOf("path"));
   });
 

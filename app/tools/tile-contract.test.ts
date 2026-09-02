@@ -198,7 +198,7 @@ describe("the gauges draw on top of the water", () => {
       basemap: "https://example.invalid/basemap.pmtiles",
       gauges: "https://example.invalid/gauges.geojson" },
     "light",
-  ) as unknown as { layers: { id: string; filter?: unknown }[] };
+  ) as unknown as { layers: ({ id: string; filter?: unknown } & Record<string, unknown>)[] };
   const at = (id: string) => style.layers.findIndex((l) => l.id === id);
 
   it("puts every gauge layer after every atlas layer", () => {
@@ -215,5 +215,24 @@ describe("the gauges draw on top of the water", () => {
       expect(f, `${id} draws at every zoom`).toContain("minz");
       expect(f, `${id} ignores the camera`).toContain("zoom");
     }
+  });
+
+  it("hands the low zooms to the haze and the high ones to the dots, with no overlap", () => {
+    // Two answers to one question on screen at once is the failure. The regional haze is
+    // for the zooms where individual rivers have already thinned out of the atlas; the dots
+    // are for the zooms where they are back. They must not both be drawn.
+    const haze = style.layers[at("gauge-haze")] as { maxzoom?: number };
+    const dot = style.layers[at("gauge-dot")] as { minzoom?: number };
+    expect(haze.maxzoom).toBeDefined();
+    expect(dot.minzoom).toBeDefined();
+    expect(dot.minzoom!).toBeLessThanOrEqual(haze.maxzoom!);
+  });
+
+  it("draws the route arrows above the water and below the gauges", () => {
+    // They annotate the highlighted reach, so they cannot be under it; and they must not
+    // sit over a reading, which is the one thing on the map that carries a number.
+    expect(at("route-arrows")).toBeGreaterThan(
+      Math.max(...MAP_STYLE.layers.map((l) => at(l.id))));
+    expect(at("route-arrows")).toBeLessThan(at("gauge-dot"));
   });
 });

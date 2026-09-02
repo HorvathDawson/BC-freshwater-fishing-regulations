@@ -63,10 +63,12 @@ interface StationFile {
          percentile: number | null; parameter?: Parameter };
   /** `[timestamp, level, discharge]`, thinned to 30-minute steps by the publisher. */
   recent?: [string, number | null, number | null][];
-  /** A BC River Forecast Centre run, or null outside every model's season. */
-  forecast?: RawForecast | null;
+  /** Every BC River Forecast Centre run for this station, keyed by model name. */
+  forecasts?: Record<string, RawForecast> | null;
   /** `[day, level, discharge]` daily means for the current year, grown by the feed. */
   daily?: [string, number | null, number | null][];
+  /** `{parameter: {year: [366 daily values]}}` from the same HYDAT release as the envelope. */
+  priorYears?: Record<string, Record<string, (number | null)[]>> | null;
 }
 
 /**
@@ -90,13 +92,15 @@ export interface Observations {
   /** This calendar year's daily means: `[day, level, discharge]`, oldest first. */
   daily: readonly [string, number | null, number | null][];
   /**
-   * The run, with BOTH quantities still in it.
+   * Every run, with BOTH quantities still in each.
    *
    * Picked apart by the source, not here, for the same reason `discharge` and `level` both
    * come back: the feed does not know which chart is being drawn, and ELF publishes a level
    * forecast beside its discharge one. Choosing here would throw away the other half.
    */
-  forecast: RawForecast | null;
+  forecasts: Record<string, RawForecast>;
+  /** `{parameter: {year: [366 values]}}` — the recent complete years, unpicked. */
+  priorYears: Record<string, Record<string, (number | null)[]>>;
 }
 
 /**
@@ -227,7 +231,8 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
         level: rows.map((r) => r[1]),
         discharge: rows.map((r) => r[2]),
         daily: f?.daily ?? [],
-        forecast: f?.forecast ?? null,
+        forecasts: f?.forecasts ?? {},
+        priorYears: f?.priorYears ?? {},
       };
     },
   };

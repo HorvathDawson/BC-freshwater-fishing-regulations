@@ -103,8 +103,17 @@ export interface Series {
    * the last element there would put the dot on New Year's Eve.
    */
   now: { index: number; value: number } | null;
-  /** The model run continuing past today, or null outside a model's season. */
+  /** The chosen model run continuing past today, or null outside every model's season. */
   forecast: Forecast | null;
+  /** Every model running for this station, so a reader can pick. Empty out of season. */
+  forecasts: readonly Forecast[];
+  /**
+   * The last complete years of the daily record, on this series' own day index.
+   *
+   * A band shows what is NORMAL and has no shape in time — it cannot show that last summer
+   * was dry too, which is the question a person actually asks standing on a low river.
+   */
+  priorYears: readonly { year: number; values: readonly (number | null)[] }[];
 }
 
 /**
@@ -269,8 +278,9 @@ export interface RegsSource {
    * `parameter` omitted means "whatever this station actually measures" — which the client
    * cannot know and must not guess. Passing one explicitly is the toggle in the sheet.
    */
+  /** `model` names one BC River Forecast Centre run; omitted, the freshest is chosen. */
   gaugeSeries(station: StationId, span: "72h" | "year",
-              parameter?: Parameter): Promise<Aged<Series> | null>;
+              parameter?: Parameter, model?: string): Promise<Aged<Series> | null>;
   /** Which quantities this station has an envelope for, so a toggle can offer only those. */
   gaugeParameters(station: StationId): Promise<readonly Parameter[]>;
   /** Downstream from here to the station that measures it, via the build's pointers. */

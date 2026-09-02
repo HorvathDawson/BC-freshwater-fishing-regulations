@@ -62,6 +62,16 @@ export interface Hydrograph {
   box: Box;
   /** Observed values, in whatever quantity the series is about. */
   line: string;
+  /**
+   * Earlier years of the same record, on the same day index — one path each.
+   *
+   * NOT part of `envelopes`. A band is every year pooled and has no shape in time; these
+   * are individual years, and the difference is the whole question a reader is asking when
+   * they wonder whether last summer was like this one.
+   */
+  priorYears: readonly { year: number; d: string }[];
+  /** x of today, for the rule that separates the record from the forecast. */
+  todayX: number | null;
   /** Nested percentile bands, widest first, so they can be drawn in order. */
   envelopes: readonly Envelope[];
   /** The median trace. */
@@ -146,6 +156,8 @@ export interface BuildInput {
                hi: readonly (number | null)[] } | null;
   /** Observation stamps, for laying the forecast on the same clock. */
   at?: readonly string[];
+  /** Earlier years of the same record, aligned to `values` by index. */
+  priorYears?: readonly { year: number; values: readonly (number | null)[] }[];
   log?: boolean;
   box?: Box;
 }
@@ -196,6 +208,11 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   if (input.nowValue !== null && input.nowValue !== undefined && Number.isFinite(input.nowValue)) {
     lo = Math.min(lo, input.nowValue); hi = Math.max(hi, input.nowValue);
   }
+  // Earlier years scale the axis too. A previous year that ran twice as high as this one is
+  // exactly what the reader is here to see, and clipping it would hide the comparison.
+  for (const y of input.priorYears ?? [])
+    for (const v of y.values)
+      if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
   for (const b of bands) {
     if (!b) continue;
     lo = Math.min(lo, b[0]);
@@ -254,6 +271,20 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     envelope((b) => b[3], (b) => b[1]),   // the middle half
   ].filter((e): e is Envelope => e !== null);
 
+  /** One path per earlier year, broken wherever that year has a gap. */
+  const priorYears = (input.priorYears ?? []).map((y) => {
+    const segs: string[] = [];
+    let run: string[] = [];
+    y.values.forEach((v, i) => {
+      if (v === null || !Number.isFinite(v)) {
+        if (run.length > 1) segs.push(`M${run.join("L")}`);
+        run = [];
+      } else run.push(pt(i, v));
+    });
+    if (run.length > 1) segs.push(`M${run.join("L")}`);
+    return { year: y.year, d: segs.join("") };
+  }).filter((y) => y.d !== "");
+
   const medianPts = trace((b) => b[2]);
   const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, 4);
 
@@ -307,6 +338,12 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
       label,
     })),
     now: nowValue !== null ? { x: x(nowIndex), y: y(nowValue) } : null,
+    priorYears,
+    // TODAY IS A RULE OF ITS OWN, drawn whether or not a forecast follows it. On the
+    // seasonal chart the record simply stops there and the rest of the frame is band —
+    // without the rule a reader cannot tell where the measuring ended and the season's
+    // shape took over.
+    todayX: nowIndex >= 0 && nowIndex < vals.length ? x(nowIndex) : null,
     forecast,
     log,
   };

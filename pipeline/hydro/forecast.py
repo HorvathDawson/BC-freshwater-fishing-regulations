@@ -153,13 +153,21 @@ def _query(service: str, timeout: float = 30.0) -> list[dict]:
         offset += page
 
 
-def fetch(models: list[str] | None = None) -> dict[str, dict]:
-    """`{station: forecast}` across every model that is currently running.
+def fetch(models: list[str] | None = None) -> dict[str, dict[str, dict]]:
+    """`{station: {model: forecast}}` — EVERY model running for that station.
+
+    ALL OF THEM, not the freshest. The first version kept one run per station, broken by
+    issue time, and the effect was that only CLEVER ever appeared: the freshet model
+    publishes later in the morning than ELF, so it won the tie in September — when freshet
+    is months over and the low-flow model is the one anybody wants. There is no rule that
+    picks correctly for every station on every day, because the models answer different
+    questions: CLEVER asks how HIGH over ten days, ELF asks how LOW over thirty. Publishing
+    both and letting the reader choose is the only version that is not sometimes wrong.
 
     A model that fails is SKIPPED with a note, not raised. This runs inside a 30-minute cron
     beside the observations; losing a seasonal forecast must not cost the map its readings.
     """
-    out: dict[str, dict] = {}
+    out: dict[str, dict[str, dict]] = {}
     for name in (models or list(MODELS)):
         cfg = MODELS[name]
         try:
@@ -190,12 +198,7 @@ def fetch(models: list[str] | None = None) -> dict[str, dict]:
                 "observed": _num(a.get(cfg.get("obs"))),
                 "unit": "m3/s",
             }
-            prev = out.get(station)
-            # Two models overlap at the shoulders of their seasons. The fresher run wins;
-            # with no issue time to compare, the first model listed keeps the slot rather
-            # than being replaced by an arbitrary later one.
-            if prev is None or (row["issuedAt"] or "") > (prev["issuedAt"] or ""):
-                out[station] = row
+            out.setdefault(station, {})[name] = row
             kept += 1
         print(f"  {name:7} {kept:>4} station forecasts")
     return out
@@ -300,30 +303,33 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
     return out
 
 
-def with_series(summary: dict[str, dict], stations: set[str] | None = None,
-                keep: dict[str, str] | None = None, workers: int = 8) -> dict[str, dict]:
-    """Attach the per-station series, skipping every station whose run has not moved.
+def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None = None,
+                keep: dict[str, dict[str, str]] | None = None,
+                workers: int = 8) -> dict[str, dict[str, dict]]:
+    """Attach the per-station series to every run, skipping the ones that have not moved.
 
-    ``keep`` maps station -> the issue time already on disk. A station whose summary still
-    names that issue time keeps what it has and costs no request; in the steady state that
-    is every station, and this whole pass is free.
+    ``keep`` maps ``station -> {model: issuedAt}`` for what is already on disk. A run whose
+    summary still names that issue time keeps what it has and costs no request; in the
+    steady state that is every run, and this whole pass is free.
     """
     from concurrent.futures import ThreadPoolExecutor
 
-    want = [st for st, row in summary.items()
-            if (stations is None or st in stations)
-            and (keep or {}).get(st) != (row.get("issuedAt") or "")]
+    want = [(st, model) for st, runs in summary.items()
+            if stations is None or st in stations
+            for model, row in runs.items()
+            if ((keep or {}).get(st) or {}).get(model) != (row.get("issuedAt") or "")]
+    total = sum(len(r) for r in summary.values())
     if not want:
-        print(f"  series   0 fetched ({len(summary)} already current)")
+        print(f"  series   0 fetched ({total} runs already current)")
         return summary
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        got = list(pool.map(lambda st: (st, series(st, summary[st]["model"])), sorted(want)))
+        got = list(pool.map(lambda k: (k, series(k[0], k[1])), sorted(want)))
     n = 0
-    for st, ser in got:
+    for (st, model), ser in got:
         if ser:
-            summary[st]["series"] = ser
+            summary[st][model]["series"] = ser
             n += 1
-    print(f"  series   {n} fetched of {len(want)} asked ({len(summary) - len(want)} current)")
+    print(f"  series   {n} fetched of {len(want)} asked ({total - len(want)} current)")
     return summary
 
 
@@ -338,7 +344,8 @@ def main() -> None:
         {"fetchedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
          "attribution": ATTRIBUTION, "stations": got},
         separators=(",", ":")), encoding="utf-8")
-    print(f"wrote {a.out}  ({len(got)} stations)")
+    runs = sum(len(v) for v in got.values())
+    print(f"wrote {a.out}  ({len(got)} stations, {runs} runs)")
 
 
 if __name__ == "__main__":

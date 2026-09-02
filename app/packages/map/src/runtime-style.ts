@@ -153,7 +153,12 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       ...(at.outside ? [{
         id: "outside", type: "fill" as const, source: "outside",
         paint: {
-          "fill-color": resolveTheme(theme)["color.outside"] as string,
+          // `color.mask`, NOT `color.outside`. They were one token and it had two jobs:
+          // the PAPER (the ground under a tile that has not arrived, and the fill of a
+          // gauge label's pill) and the "we have no answers here" fill beyond the
+          // province. Darkening one darkened the other, so the mask could not be made to
+          // read without turning the loading state grey and the pills with it.
+          "fill-color": resolveTheme(theme)["color.mask"] as string,
           "fill-opacity": resolveTheme(theme)["opacity.outside"] as number,
         },
       }] : []),
@@ -163,6 +168,47 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         if (!mode) return l;
         return { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) };
       }),
+      /**
+       * WHICH WAY THE WATER GOES, on a highlighted route only.
+       *
+       * The route panel's job is to show the chain of reaches between where you are and
+       * the station that speaks for you. Colouring them says WHICH; it does not say which
+       * END is the gauge, and on a braided lowland river that is genuinely ambiguous.
+       *
+       * FWA BLUE LINES RUN MOUTH TO SOURCE — verified against the Fraser, whose first
+       * vertex is at Vancouver and whose last is above Prince George — so the line's own
+       * direction points UPSTREAM. `text-rotate: 180` turns the arrowhead around to point
+       * downstream, and `text-keep-upright: false` stops MapLibre helpfully flipping it
+       * back on west-flowing rivers, which would make half the province's arrows lie.
+       *
+       * Drawn from feature-state rather than a filter: a `filter` cannot read feature
+       * state, so the layer covers every stream and its opacity is 0 unless selected.
+       */
+      ...(at.gauges ? [{
+        id: "route-arrows", type: "symbol" as const, source: "atlas",
+        "source-layer": "stream",
+        minzoom: 7,
+        layout: {
+          "symbol-placement": "line" as const,
+          "symbol-spacing": 70,
+          "text-field": "▲",
+          "text-font": ["Noto Sans Medium"],
+          "text-size": 11,
+          "text-rotate": 180,
+          "text-keep-upright": false,
+          "text-allow-overlap": true,
+          "text-ignore-placement": true,
+          "text-rotation-alignment": "map" as const,
+          "text-pitch-alignment": "map" as const,
+        },
+        paint: {
+          "text-color": resolveTheme(theme)["color.highlight"] as string,
+          "text-opacity": ["case",
+                           ["boolean", ["feature-state", "selected"], false], 0.95, 0],
+          "text-halo-color": paper,
+          "text-halo-width": 1.4,
+        },
+      }] : []),
       /**
        * THE GAUGES, LAST — which is what puts them ON TOP.
        *
@@ -178,6 +224,34 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        * value, and two names for one meaning is how a palette drifts.
        */
       ...(at.gauges ? [
+        /**
+         * THE PROVINCE, BELOW THE ZOOM WHERE INDIVIDUAL RIVERS MEAN ANYTHING.
+         *
+         * The atlas thins itself out as you zoom away — by z6 most of BC's water is gone,
+         * which is correct for a map of rivers and useless for a map of CONDITIONS. What
+         * is left is a handful of mainstems and a scatter of dots too small to read, and
+         * the question at that zoom is not "what is this creek doing" but "is the country
+         * I am driving to wet or dry".
+         *
+         * So below z7 the rivers fade out and each station becomes a soft disc of its own
+         * colour. It is NOT an interpolation and does not pretend to be one: every disc is
+         * centred on a real gauge and coloured by that gauge's own reading, and where they
+         * overlap they simply blend. Nothing is claimed about the country between two
+         * stations except that two stations are near it.
+         *
+         * Discs shrink to nothing by z7.5, exactly as the dots and the rivers come in, so
+         * the two never argue on screen.
+         */
+        { id: "gauge-haze", type: "circle" as const, source: "gauges",
+          maxzoom: 7.5,
+          paint: {
+            "circle-radius": ["interpolate", ["linear"], ["zoom"],
+                              4, 30, 5.5, 26, 7, 12, 7.5, 0],
+            "circle-color": rampExpression(theme),
+            "circle-blur": 0.85,
+            "circle-opacity": ["interpolate", ["linear"], ["zoom"],
+                               4, 0.5, 6.5, 0.42, 7.5, 0],
+          } },
         // THE DOT IS THE SAME COLOUR AS ITS RIVER. It reads the percentile off the
         // feature and runs it through the same ramp the stream layer uses, so a gauge and
         // the water it measures can never disagree on screen. A dot in a colour of its own
@@ -189,6 +263,9 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         // creek disappeared four zooms ago. `minz` comes from `@app/core/ladder`, which a
         // test holds equal to the pipeline's — so a dot appears exactly when its water does.
         { id: "gauge-dot", type: "circle" as const, source: "gauges",
+          // Nothing below z7: at that scale a 5 px dot is noise, and the haze above is
+          // saying the same thing in a form a person can actually read.
+          minzoom: 7,
           filter: ["<=", ["get", "minz"], ["zoom"]],
           paint: {
             "circle-radius": 5,

@@ -7,7 +7,7 @@ import type { GaugeTrace, PlainDate, SpeciesGroup, Status } from "@app/core";
 import { statusWord } from "@app/core";
 import type {
   Forecast, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, Parameter, PlaceHit, PlaceId,
-  RegsSource, SectionId, StationId,
+  RegsSource, SectionId, Series, StationId,
 } from "@app/data";
 import { useAsync, useDebounced, type Async } from "./async";
 
@@ -234,14 +234,18 @@ export function useStandings(
         | undefined,
   sections: readonly SectionId[],
   /**
-   * Which quantity the MAP is coloured by.
+   * Which quantity the MAP is coloured by, or "both".
    *
    * Not cosmetic and not the same question twice: a regulated river can sit at a perfectly
    * normal stage while its discharge is in the bottom tenth, because the dam is holding
-   * the pond and letting nothing through. Undefined means each station's own default,
-   * which is what it was before the switch existed.
+   * the pond and letting nothing through.
+   *
+   * "both" is the default and means FLOW WHERE THERE IS FLOW, level where there is not —
+   * which is the publisher's own choice per station, already computed against the matching
+   * envelope. It colours the most water; asking for one quantity colours only the stations
+   * that measure it, and says nothing about the rest rather than answering with the other.
    */
-  parameter?: Parameter,
+  parameter?: Parameter | "both",
 ): ReadonlyMap<SectionId, number> {
   const key = (sections.length
     ? `${sections.length}:${sections[0]}:${sections[sections.length - 1]}` : "")
@@ -263,7 +267,7 @@ export function useStandings(
         // paints "there is a gauge here, and it cannot tell you this" — because quietly
         // answering a level question with a discharge puts two different claims under one
         // legend, and nothing on screen would say which one you were looking at.
-        const p = parameter ? row[parameter] : row.percentile;
+        const p = parameter && parameter !== "both" ? row[parameter] : row.percentile;
         out.set(section, typeof p === "number" ? p : -0.01);
       }
       return out;
@@ -322,10 +326,12 @@ export function useHydrograph(
   station: StationId | null,
   span: "72h" | "year",
   parameter?: Parameter,
+  model?: string,
 ): Async<Hydrograph | null> {
   const series = useAsync(
-    () => (station ? source.gaugeSeries(station, span, parameter) : Promise.resolve(null)),
-    `series:${station}:${span}:${parameter ?? "auto"}`,
+    () => (station ? source.gaugeSeries(station, span, parameter, model)
+                   : Promise.resolve(null)),
+    `series:${station}:${span}:${parameter ?? "auto"}:${model ?? "auto"}`,
     station !== null,
   );
   return useMemo(() => {
@@ -353,6 +359,7 @@ export function useHydrograph(
         xLabels: labels,
         nowIndex: v.now?.index ?? -1,
         nowValue: v.now?.value ?? null,
+        priorYears: v.priorYears,
         forecast: v.forecast?.series
           ? { at: v.forecast.series.at, mid: v.forecast.series.mid,
               lo: v.forecast.series.lo, hi: v.forecast.series.hi }
@@ -366,6 +373,28 @@ export function useHydrograph(
       error: null,
     };
   }, [series, span]);
+}
+
+/**
+ * The whole series, not just its shapes — the model runs, the record, the disclaimer.
+ *
+ * `useHydrograph` returns geometry, which is what a chart draws and nothing a caption can
+ * read. The panel needs both, and asking twice is free: `useAsync` keys on the same string,
+ * so the second call is the same in-flight promise rather than a second fetch.
+ */
+export function useSeries(
+  source: RegsSource, station: StationId | null, span: "72h" | "year",
+  parameter?: Parameter, model?: string,
+): Async<Series | null> {
+  const got = useAsync(
+    () => (station ? source.gaugeSeries(station, span, parameter, model)
+                   : Promise.resolve(null)),
+    `series:${station}:${span}:${parameter ?? "auto"}:${model ?? "auto"}`,
+    station !== null,
+  );
+  return useMemo(() => (got.state === "ready"
+    ? { state: "ready" as const, value: got.value?.value ?? null, error: null }
+    : (got as Async<Series | null>)), [got]);
 }
 
 /** Which quantities this station can be charted in — an empty list means no envelope. */

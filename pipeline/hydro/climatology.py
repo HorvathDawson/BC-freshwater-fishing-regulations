@@ -55,6 +55,14 @@ MIN_OBS = 10
 PENTADS = 73                 # 365 / 5, with the 73rd absorbing day 366
 PCTILES = (10, 25, 50, 75, 90)
 
+# How many complete years of the daily record travel with the envelope.
+#
+# The seasonal chart shows this year against normal, and "normal" is a band with no shape —
+# it cannot show whether last summer was also dry, which is the question a person actually
+# asks standing on a low river. Two recent years is enough to answer it and small enough to
+# ride in the feed: 2 x 366 x 4 bytes is ~3 KB a station beside a file already 23 KB.
+RECENT_YEARS = 2
+
 
 def pentad_of_yday(yday: int) -> int:
     return min(PENTADS - 1, (yday - 1) // 5)
@@ -85,11 +93,23 @@ def _quantile(xs: list[float], q: float) -> float:
     return xs[lo] + (xs[hi] - xs[lo]) * (i - lo)
 
 
-def _read(db, table: str, col: str, where: str, args: list) -> tuple[dict, dict, dict]:
-    """Pool one HYDAT daily table into pentads. Returns (pooled, years, days)."""
+def _read(db, table: str, col: str, where: str,
+          args: list) -> tuple[dict, dict, dict, dict]:
+    """Pool one HYDAT daily table into pentads. Returns (pooled, years, days, recent).
+
+    ``recent`` is the raw daily record for the last few complete years, keyed
+    ``{station: {year: [366 values]}}`` — the LINE the seasonal chart draws across its band,
+    for years the envelope has already absorbed. It is the same read either way, so pulling
+    it out here costs one dict rather than a second pass over 40 million cells.
+    """
     pooled: dict[str, dict[int, list[float]]] = defaultdict(lambda: defaultdict(list))
     years: dict[str, set[int]] = defaultdict(set)
     days: dict[str, int] = defaultdict(int)
+    recent: dict[str, dict[int, list[float | None]]] = defaultdict(dict)
+    # "Complete" means a year HYDAT has finished publishing. The current calendar year is
+    # never that, and the one before it usually is not either at the start of a release.
+    newest = date.today().year - 1
+    keep = set(range(newest - RECENT_YEARS + 1, newest + 1))
     cols = ", ".join(f"{col}{d}" for d in range(1, 32))
     for row in db.execute(f"SELECT STATION_NUMBER, YEAR, MONTH, {cols} FROM {table}{where}",
                           args):
@@ -101,10 +121,14 @@ def _read(db, table: str, col: str, where: str, args: list) -> tuple[dict, dict,
                 when = date(yr, mo, d)
             except ValueError:
                 continue          # day 31 of a 30-day month; HYDAT pads the row
-            pooled[st][pentad_of_yday(when.timetuple().tm_yday)].append(float(v))
+            yday = when.timetuple().tm_yday
+            pooled[st][pentad_of_yday(yday)].append(float(v))
             years[st].add(yr)
             days[st] += 1
-    return pooled, years, days
+            if yr in keep:
+                slot = recent[st].setdefault(yr, [None] * 366)
+                slot[yday - 1] = _sig4(float(v))
+    return pooled, years, days, recent
 
 
 def build(hydat: Path, stations: list[str] | None = None,
@@ -145,7 +169,11 @@ def build(hydat: Path, stations: list[str] | None = None,
 
     envelope: dict[str, dict[str, dict[str, list[float | None]]]] = {}
     stats: dict[str, dict] = {}
-    for param, (pooled, years, days) in series.items():
+    # `{station: {parameter: {year: [366 daily values]}}}` — the recent complete years, for
+    # the seasonal chart to draw beside this one. Only for stations that get an envelope:
+    # a year trace with no band to read it against says nothing.
+    recent_years: dict[str, dict[str, dict[str, list[float | None]]]] = {}
+    for param, (pooled, years, days, recent) in series.items():
         for st, by_pentad in pooled.items():
             if len(years[st]) < MIN_YEARS:
                 continue          # under three years there is no "normal" to speak of
@@ -158,6 +186,9 @@ def build(hydat: Path, stations: list[str] | None = None,
             if not bands:
                 continue
             envelope.setdefault(st, {})[param] = bands
+            if recent.get(st):
+                recent_years.setdefault(st, {})[param] = {
+                    str(y): v for y, v in sorted(recent[st].items())}
             # One stats row per station-parameter, so a reader can be told the record
             # behind the number they are actually looking at.
             stats.setdefault(st, {})[param] = {
@@ -170,6 +201,11 @@ def build(hydat: Path, stations: list[str] | None = None,
         "pentads": PENTADS,
         "stations": envelope,
         "stats": stats,
+        # The last complete years, day by day. NOT part of the envelope — the envelope is
+        # every year pooled and has no shape in time; this is what lets a reader see that
+        # last summer was dry too, which a band cannot show however wide it is.
+        "recentYears": recent_years,
+        "recentYearCount": RECENT_YEARS,
     }
 
 

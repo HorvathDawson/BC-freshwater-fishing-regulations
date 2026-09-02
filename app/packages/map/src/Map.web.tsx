@@ -46,28 +46,8 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
   const adapter = useRef(baseAdapter("web"));
   const pin = useRef<maplibregl.Marker | null>(null);
   const pinned = useRef<maplibregl.Marker[]>([]);
-
-  /**
-   * The gauge label's pill, as pixels.
-   *
-   * Added imperatively because `addImage` is the only way in: a style cannot declare a
-   * generated image, and the alternative was forking the basemap's sprite sheet to add one
-   * rounded rectangle. Re-added on a theme change, since its fill is the theme's paper —
-   * a light pill under dark text on a dark map is the failure this replaces a halo to avoid.
-   */
-  useEffect(() => {
-    const m = map.current;
-    if (!m) return;
-    const t = resolveTheme(theme) as Record<string, string>;
-    const add = () => {
-      const img = pillImage(t["color.outside"] ?? "#FFFFFF", t["color.line"] ?? "#D9D9D2");
-      if (m.hasImage("gauge-pill")) m.removeImage("gauge-pill");
-      m.addImage("gauge-pill", img as unknown as ImageData,
-                 { pixelRatio: img.pixelRatio, stretchX: img.stretchX,
-                   stretchY: img.stretchY, content: img.content });
-    };
-    if (m.isStyleLoaded()) add(); else m.once("styledata", add);
-  }, [theme]);
+  /** Re-adds the label pill in the current theme. Set once the map exists. */
+  const pill = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!host.current) return;
@@ -105,6 +85,34 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     // looks exactly like water with no regulations on it. Surface every renderer error.
     m.on("error", (e) => onError?.(
       e.error instanceof Error ? e.error : new Error(e.error?.message ?? "map error")));
+    /**
+     * THE GAUGE LABEL'S PILL, as pixels.
+     *
+     * Added imperatively because a style cannot declare a generated image, and the
+     * alternative was forking the basemap's sprite sheet to add one rounded rectangle.
+     *
+     * REGISTERED HERE, INSIDE THE EFFECT THAT CREATES THE MAP. It used to be its own
+     * effect declared above this one, which meant it ran first, found `map.current` still
+     * null, returned — and never ran again, because its only dependency was the theme.
+     * MapLibre's response to a missing `icon-image` is to draw the text and log a warning,
+     * so every label rendered as bare text on the basemap and nothing looked broken.
+     *
+     * `styleimagemissing` is the belt to that brace: MapLibre fires it the moment a layer
+     * asks for an image it does not have, so the pill arrives however the ordering falls.
+     */
+    const addPill = () => {
+      const t = resolveTheme(theme) as Record<string, string>;
+      const img = pillImage(t["color.outside"] ?? "#FFFFFF", t["color.line"] ?? "#D9D9D2");
+      if (m.hasImage("gauge-pill")) m.removeImage("gauge-pill");
+      m.addImage("gauge-pill", img as unknown as ImageData,
+                 { pixelRatio: img.pixelRatio, stretchX: img.stretchX,
+                   stretchY: img.stretchY, content: img.content });
+    };
+    pill.current = addPill;
+    m.on("styleimagemissing", (e: { id: string }) => {
+      if (e.id === "gauge-pill") pill.current?.();
+    });
+    m.on("load", addPill);
     map.current = m;
     // Development only: a map is the one component you cannot inspect from the React tree,
     // and every question about it ("where is the camera", "did that source load") needs the
@@ -138,18 +146,22 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
           if (src) m.removeFeatureState({ source: src, sourceLayer: layerId });
         },
       };
+      // The pill is painted in the theme's paper, so a light one under dark text on a dark
+      // map is the exact failure it replaced a halo to avoid. Repainted with everything else.
+      pill.current?.();
       adapter.current.applyView(handle, view, theme);
       // A bad mode or group name is a CALLER bug, and it used to throw from inside this
       // effect — which unmounts the tree and shows a blank screen. Report it and keep the
       // map alive: a map still showing the previous colouring is recoverable, a white
       // screen is not.
       // THE WASH follows the stream layer's mode: the Conditions ramp needs a quiet
-      // ground, the regulations view wants the map legible as a map. 0.58 was chosen
-      // against the ramp's own darkest and lightest stops — enough that roads and
-      // landcover stop competing, little enough that you can still tell where you are.
+      // ground, the regulations view wants the map legible as a map. 0.42 rather than the
+      // 0.58 it shipped at — enough that roads and landcover stop competing with a 1.4 px
+      // coloured line, little enough that a reader can still find the town they launched
+      // from. A wash heavy enough to guarantee the ramp is a wash that hides the map.
       if (m.getLayer("basemap-wash"))
         m.setPaintProperty("basemap-wash", "background-opacity",
-                           (modes ?? {}).stream === "standing" ? 0.58 : 0);
+                           (modes ?? {}).stream === "standing" ? 0.42 : 0);
       for (const [id, mode] of Object.entries(modes ?? {})) {
         if (!m.getLayer(id)) continue;
         try { adapter.current.setLayerMode(handle, id, mode, theme); }

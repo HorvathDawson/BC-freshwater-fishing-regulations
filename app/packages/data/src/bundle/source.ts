@@ -238,7 +238,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
      *          record for the current year is not published anywhere we read. The shape of
      *          the year and where today sits in it is the question, and it is answered.
      */
-    async gaugeSeries(station, span, parameter): Promise<Aged<Series> | null> {
+    async gaugeSeries(station, span, parameter, model): Promise<Aged<Series> | null> {
       const obs = (await opts.feed?.observations?.(station)) ?? null;
       // Which quantity. The caller's choice wins; failing that, the station's own — never
       // a default, because "discharge" is wrong for the 237 stations that never measure it.
@@ -252,23 +252,38 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
                         Number(r.p75), Number(r.p90)] as Band;
       }
       const hasClim = pentads.some((b) => b !== null);
-      // The run, narrowed to the quantity this chart is in. CLEVER publishes discharge
-      // only; ELF publishes both, so a level chart can still carry a ribbon.
-      const outlook = forecastFor(obs?.forecast, param);
+
+      // EVERY RUN, narrowed to this chart's quantity. CLEVER publishes discharge only, so
+      // on a level chart it comes back with no ribbon and drops out; ELF publishes both.
+      const runs = Object.entries(obs?.forecasts ?? {})
+        .map(([, raw]) => forecastFor(raw, param))
+        .filter((f): f is NonNullable<typeof f> => f !== null && f.series !== null)
+        .sort((a, b) => a.model.localeCompare(b.model));
+      const chosen = (model ? runs.find((f) => f.model === model) : null)
+        // No preference: the freshest run. Which is a UI default, not a judgement about
+        // which model is right — that is the reader's, and both are offered.
+        ?? [...runs].sort((a, b) => (b.issuedAt ?? "").localeCompare(a.issuedAt ?? ""))[0]
+        ?? null;
 
       if (span === "year") {
         if (!hasClim) return null;      // a year chart with no envelope has nothing to draw
         /**
-         * ONE POINT PER DAY, not per pentad.
+         * YEAR TO DATE PLUS A MONTH, not the whole calendar year.
          *
-         * The envelope is sampled every five days because percentiles are noisy at daily
-         * resolution, but the LINE across it is this year's own daily record and belongs at
-         * its own resolution — on 73 buckets a river's whole autumn is fourteen points.
-         * `bandAt` interpolates the envelope between pentads, which is what it is for.
+         * A full year is mostly empty on the right: the record stops today, and the four
+         * remaining months are a band with nothing in it. Ending a month past today keeps
+         * the frame full of things that exist — the year so far, where today sits, and the
+         * longest forecast (ELF, 30 days) reaching the edge rather than off it.
+         *
+         * ONE POINT PER DAY. The envelope is sampled every five days because percentiles
+         * are noisy at daily resolution, but the lines across it are real daily records and
+         * belong at their own: on 73 buckets a whole autumn is fourteen points. `bandAt`
+         * interpolates between pentads, which is what it is for.
          */
         const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date();
         const year = at.getUTCFullYear();
-        const days = daysInYear(year);
+        const today = dayOfYear(at.toISOString().slice(0, 10));
+        const days = Math.min(daysInYear(year), today + 31);
         const values: (number | null)[] = Array.from({ length: days }, () => null);
         const stamps: string[] = Array.from({ length: days }, (_, i) => dayStamp(year, i));
         for (const [day, lv, q] of obs?.daily ?? []) {
@@ -280,14 +295,19 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         const band = Array.from({ length: days }, (_, i) => bandAt(pentads, i + 1));
         const reading = obs
           ? last(param === "level" ? obs.level : obs.discharge) : null;
-        const today = dayOfYear(at.toISOString().slice(0, 10)) - 1;
+        // Prior years land on the SAME day index, so 3 August is above 3 August whatever
+        // year it was — which is the only comparison a seasonal chart is making.
+        const prior = Object.entries((obs?.priorYears ?? {})[param] ?? {})
+          .map(([y, vals]) => ({ year: Number(y), values: vals.slice(0, days) }))
+          .filter((p) => Number.isFinite(p.year))
+          .sort((a, b) => b.year - a.year);
         return {
           fetchedAt: obs?.fetchedAt ?? Date.now(),
           value: {
             step: "1d", from: `${year}-01-01`, parameter: param,
             at: stamps, values, band,
-            now: reading === null ? null : { index: today, value: reading },
-            forecast: outlook,
+            now: reading === null ? null : { index: today - 1, value: reading },
+            forecast: chosen, forecasts: runs, priorYears: prior,
           },
         };
       }
@@ -304,7 +324,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
           step: "1h", from: obs.from, parameter: param,
           at: obs.at, values, band,
           now: idx < 0 ? null : { index: idx, value: values[idx]! },
-          forecast: outlook,
+          forecast: chosen, forecasts: runs, priorYears: [],
         },
       };
     },

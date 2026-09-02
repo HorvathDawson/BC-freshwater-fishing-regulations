@@ -98,7 +98,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
     (ids: readonly string[]) => setVisible(ids as readonly SectionId[]), []);
   // Which quantity the Conditions map is coloured by. Held here rather than in the map,
   // because the sheet a tap opens has to be about the same thing the map is showing.
-  const [flowParam, setFlowParam] = useState<Parameter>("discharge");
+  const [flowParam, setFlowParam] = useState<Parameter | "both">("both");
   const standings = useStandings(source, feed, visible, flowParam);
   const gauges = useGaugeGeoJSON(source, feed, tab === "conditions");
   // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
@@ -231,7 +231,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
       : tab === "conditions" && condSection
         ? <ConditionsScreen source={source} section={condSection} palette={palette}
                             tiles={tiles} theme={theme}
-                            parameter={flowParam} onParameter={setFlowParam}
+                            // "both" is a MAP setting, not a chart one: a chart has to be
+                            // about one quantity or its axis means nothing. The sheet then
+                            // falls back to whatever the station itself leads with.
+                            parameter={flowParam === "both" ? undefined : flowParam}
+                            onParameter={setFlowParam}
                             from={condAt}
                             onBack={() => setCondSection(null)} />
       : tab === "map" || tab === "conditions"
@@ -270,9 +274,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
           because it is what the legend is measuring. */}
       {showLegend && tab === "conditions" && (
         <View style={{ position: "absolute", right: 14, bottom: 74 }}>
-          <ChartControls<Parameter> palette={palette} value={flowParam} label="Colour by"
-                                    onPick={setFlowParam}
-                                    options={[["discharge", "Flow"],
+          <ChartControls<Parameter | "both"> palette={palette} value={flowParam}
+                                    label="Colour by" onPick={setFlowParam}
+                                    options={[["both", "Both"], ["discharge", "Flow"],
                                               ["level", "Level"]] as const} />
         </View>
       )}
@@ -284,7 +288,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
             // blue — so the legend promised red-through-cyan and the map drew a wash of
             // blue. A legend that disagrees with its map is worse than no legend.
             <LegendRamp palette={palette}
-                        low={flowParam === "level" ? "low stage for the date" : "low for the date"}
+                        low={flowParam === "level" ? "low stage for the date"
+                             : flowParam === "discharge" ? "low flow for the date"
+                             : "low for the date"}
                         mid="normal" high="high"
                         stops={flowRamp(theme)} marks={visibleMarks} />
           ) : layers.lake === "stocked" ? (

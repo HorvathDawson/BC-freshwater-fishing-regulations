@@ -16,7 +16,8 @@ import { ScrollView, Text, View } from "react-native";
 import { standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph } from "@app/ui";
+import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph,
+         useSeries } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { FishSpinner } from "./FishSpinner";
 import { GaugeTrace } from "./GaugeTrace";
@@ -70,10 +71,16 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     picked && available.includes(picked) ? picked : undefined;
   const shown: Parameter = param
     ?? (c?.discharge !== null && c?.discharge !== undefined ? "discharge" : "level");
-  const chart = useHydrograph(source, station, span, param);
+  // WHICH MODEL. Left alone the freshest run is chosen, and that is a UI default rather
+  // than a judgement: CLEVER asks how HIGH over ten days and ELF how LOW over thirty, and
+  // which one matters depends on the month and on why you are asking.
+  const [model, setModel] = useState<string | null>(null);
+  const chart = useHydrograph(source, station, span, param, model ?? undefined);
+  const series = useSeries(source, station, span, param, model ?? undefined);
   const tint = colour ?? palette.live;
   const forecast = chart.state === "ready" ? chart.value?.forecast : null;
-  const run = c?.forecast ?? null;
+  const runs = series.state === "ready" ? series.value?.forecasts ?? [] : [];
+  const run = (series.state === "ready" ? series.value?.forecast : null) ?? null;
 
   if (conditions.state === "loading")
     return (
@@ -136,7 +143,14 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
             <ChartControls<Span> palette={palette} value={span} label="Span"
                                  onPick={setSpan}
                                  options={[["72h", "Last 72 hours"],
-                                           ["year", "Whole year"]] as const} />
+                                           ["year", "This year"]] as const} />
+            {/* THE MODEL, when more than one is running. Both are shown rather than the
+                app picking: they answer different questions, and in the shoulder months
+                both are in season and disagree. */}
+            <ChartControls<string> palette={palette} label="Forecast model"
+                                   value={run?.model ?? ""} onPick={setModel}
+                                   options={runs.map((f) =>
+                                     [f.model, `${f.model} · ${f.horizonDays}d`] as const)} />
           </View>
           {chart.state === "loading" && (
             <View style={{ alignItems: "center", paddingVertical: 22 }}>
@@ -153,10 +167,12 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                                               : "the whole year against its record"}
                         caption={span === "year"
                           ? "Bands are this station's whole record for each five-day " +
-                            "period of the year. The solid line is this year so far, " +
-                            "which the feed accumulates day by day — it starts a month " +
-                            "long and grows, because the published daily record lags a " +
-                            "year behind."
+                            "period. The bold line is this year to date, which the feed " +
+                            "accumulates day by day — it starts a month long and grows, " +
+                            "because the published daily record lags a year behind. The " +
+                            "thin lines are the last complete years out of that record. " +
+                            "The frame ends a month past today, where the longest " +
+                            "forecast does."
                           : undefined} />
           )}
           {chart.state === "ready" && !chart.value && (

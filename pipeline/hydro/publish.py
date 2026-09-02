@@ -270,7 +270,8 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # paint the map before anything is tapped, and the full model series is ~15 KB a
             # station — 6 MB to answer a question the map does not ask. The series lives in
             # the per-station file, which is opened on a tap.
-            "forecast": bool((forecast.get(r["station"]) or {}).get("series")),
+            "forecast": any(run.get("series")
+                            for run in (forecast.get(r["station"]) or {}).values()),
         }
         # This year's daily record: whatever the file already held, plus every day the
         # 2-hour window can see, plus the one-time 30-day backfill.
@@ -295,7 +296,16 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # seasonal chart draws across its envelope. Grown by this feed rather than read
             # from anywhere: HYDAT is the only published daily record and it lags a year.
             "daily": daily,
-            "forecast": forecast.get(r["station"]),
+            # THE LAST COMPLETE YEARS, day by day, out of the same HYDAT release the
+            # envelope came from: `{parameter: {year: [366 values]}}`. A band shows what is
+            # normal and has no shape in time — it cannot show that last summer was dry too,
+            # which is the question a person actually asks standing on a low river.
+            "priorYears": (clim or {}).get("recentYears", {}).get(r["station"]),
+            # EVERY MODEL RUNNING for this station, keyed by name. Keeping only the freshest
+            # meant only CLEVER ever appeared: the freshet model publishes later in the
+            # morning than the low-flow model, so it won the tie in September, when freshet
+            # is months over. They answer different questions; the reader picks.
+            "forecasts": forecast.get(r["station"]) or {},
         }, separators=(",", ":")), encoding="utf-8")
 
     # PROVENANCE TRAVELS WITH THE NUMBERS. Every percentile in this file was computed
@@ -369,16 +379,17 @@ def main() -> None:
             # single point, and a single point joined to today's reading is a triangle —
             # which is exactly what it looked like. Fetched only where the issue time has
             # moved since the last publish, so the steady state costs nothing.
-            have = {}
+            have: dict[str, dict[str, str]] = {}
             for st in fcast:
                 f = args.out / f"{st}.json"
-                if f.exists():
-                    try:
-                        prev = json.loads(f.read_text(encoding="utf-8")).get("forecast") or {}
-                        if prev.get("series"):
-                            have[st] = prev.get("issuedAt") or ""
-                    except Exception:                           # noqa: BLE001
-                        pass
+                if not f.exists():
+                    continue
+                try:
+                    prev = json.loads(f.read_text(encoding="utf-8")).get("forecasts") or {}
+                except Exception:                               # noqa: BLE001
+                    continue
+                have[st] = {m: (run.get("issuedAt") or "")
+                            for m, run in prev.items() if run.get("series")}
             fcast = _forecast.with_series(fcast, stations=set(ids), keep=have)
         except Exception as exc:                                # noqa: BLE001
             print(f"  forecast unavailable: {exc}", file=sys.stderr)
@@ -387,7 +398,9 @@ def main() -> None:
     print(f"  ✅ {args.out}  {summary['answered']}/{summary['asked']} answered, "
           f"{summary['withPercentile']} with a percentile")
     if fcast:
-        print(f"     {len(fcast)} station forecasts from the BC River Forecast Centre")
+        runs = sum(len(v) for v in fcast.values())
+        print(f"     {runs} model runs across {len(fcast)} stations "
+              f"from the BC River Forecast Centre")
     if summary["release"]:
         print(f"     envelope from HYDAT {summary['release']}")
     if summary["stale"]:
