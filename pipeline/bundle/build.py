@@ -272,10 +272,10 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         graph = pickle.load(fh)
 
     # THE FROZEN MATCH — `pipeline/gauge_match.json`, the same file the build read to cut
-    # rivers at their gauges. Nothing is matched here: a station is addressed by blue line
-    # and route measure, both FWA's own, and `nodes_for` places it in THIS graph by finding
-    # the node whose measure range contains it. That is why nothing goes stale when the
-    # sectionizer cuts differently — node ids move, blue lines and measures do not.
+    # rivers at their gauges. Nothing is matched here: the file says where each station is
+    # and which water it is on, and `nodes_for` projects that coordinate onto THIS graph,
+    # taking the section that begins at the gauge and runs upstream. Node ids move when the
+    # sectionizer cuts differently; a published coordinate does not.
     matches = read_match()
     if not matches:
         cov.skip("section_gauge", "no pipeline/gauge_match.json — run "
@@ -283,7 +283,10 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         cov.skip("section_down", "needs section_gauge")
         return
 
-    matched = nodes_for(matches, graph)
+    with geom_path.open("rb") as fh:
+        geoms = pickle.load(fh)
+    matched = nodes_for(matches, graph, geoms)
+    del geoms
     prov = {m.station: m for m in matches}
 
     # section -> the item that owns it, so a client can name the water, not just the gauge.

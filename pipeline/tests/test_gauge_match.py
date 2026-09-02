@@ -5,6 +5,9 @@ from __future__ import annotations
 import json
 from types import SimpleNamespace
 
+import geopandas as gpd
+from shapely.geometry import LineString, Point
+
 from pipeline.hydro import match as M
 
 
@@ -12,55 +15,73 @@ def _graph(nodes):
     return SimpleNamespace(nodes=nodes)
 
 
-def _stream(nid, blk, down, up, wsc="100-1"):
-    return SimpleNamespace(node_id=nid, blk=blk, down_m=down, up_m=up, wsc=wsc, wbk="")
+def _stream(nid, wsc="100-1"):
+    return SimpleNamespace(node_id=nid, blk="B1", wsc=wsc, wbk="")
 
 
 def _lake(nid, wbk):
-    return SimpleNamespace(node_id=nid, blk="", down_m=0.0, up_m=0.0, wsc="", wbk=wbk)
+    return SimpleNamespace(node_id=nid, blk="", wsc="", wbk=wbk)
 
 
-class TestStableAddressing:
-    """Node ids move whenever a river is re-sectioned. Blue lines and measures do not."""
+def _at(x, y, wsc="100-1", station="08AA001"):
+    """A match at a BC Albers position, given as the lon/lat the file would hold."""
+    p = gpd.GeoSeries([Point(x, y)], crs=3005).to_crs(4326)[0]
+    return M.StationMatch(station, "matched", "name+radius", 1.0,
+                          lon=p.x, lat=p.y, wsc=wsc)
 
-    def test_places_a_station_in_whatever_graph_it_is_handed(self):
-        # THE WHOLE POINT. The match was frozen against a build where this blue line was one
-        # node; the next build cut it at the gauges into three. `(blk, measure)` still names
-        # the middle one, where a stored node id would name something that no longer exists.
-        before = _graph({"B1:0": _stream("B1:0", "B1", 0, 30_000)})
-        after = _graph({"B1:0": _stream("B1:0", "B1", 0, 10_000),
-                        "B1:10000": _stream("B1:10000", "B1", 10_000, 20_000),
-                        "B1:20000": _stream("B1:20000", "B1", 20_000, 30_000)})
-        m = M.StationMatch("08AA001", "matched", "name+radius", 12.0,
-                           blk="B1", measure=15_000.0, node_id="B1:0")
-        assert M.nodes_for([m], before) == {"08AA001": "B1:0"}
-        assert M.nodes_for([m], after) == {"08AA001": "B1:10000"}
 
-    def test_a_lake_station_is_placed_by_waterbody_key(self):
-        # A lake station has no measure and that is not a gap: it sits on a body of water,
-        # not along a channel. Forgetting this emptied `lake_gauge` entirely — 220 stations
-        # fell through a branch that only understood blue lines.
+class TestPlacing:
+    """Where a station lands in a graph, projected from its own published coordinate."""
+
+    def test_takes_the_section_that_begins_at_the_gauge_and_runs_upstream(self):
+        # AFTER THE GAUGE CUTS, a station sits exactly on a join and both neighbours contain
+        # its coordinate at their shared end. The one it belongs to is the upstream one:
+        # that is the water that has just flowed past it and been measured. The section
+        # below has already taken on whatever joins in between.
+        #
+        # FWA lines run mouth to source, so `project` == 0 means "this section starts here".
+        below = LineString([(0, 0), (100, 0)])       # ends at the gauge
+        above = LineString([(100, 0), (200, 0)])     # begins at the gauge
+        g = _graph({"below": _stream("below"), "above": _stream("above")})
+        geoms = {"below": below, "above": above}
+        m = _at(100, 0)
+        assert M.nodes_for([m], g, geoms) == {"08AA001": "above"}
+
+    def test_a_station_mid_section_lands_on_that_section(self):
+        g = _graph({"only": _stream("only")})
+        geoms = {"only": LineString([(0, 0), (200, 0)])}
+        assert M.nodes_for([_at(100, 0)], g, geoms) == {"08AA001": "only"}
+
+    def test_never_leaves_its_own_watershed(self):
+        # A creek gauge twenty metres from a mainstem must not be placed on the mainstem.
+        # This is the Slesse case at placement time rather than at shed time.
+        g = _graph({"creek": _stream("creek", wsc="100-1-2"),
+                    "main": _stream("main", wsc="100-1")})
+        geoms = {"creek": LineString([(0, 20), (200, 20)]),
+                 "main": LineString([(0, 0), (200, 0)])}
+        assert M.nodes_for([_at(100, 0, wsc="100-1-2")], g, geoms) == {"08AA001": "creek"}
+
+    def test_a_station_too_far_from_its_water_is_not_placed(self):
+        g = _graph({"only": _stream("only")})
+        geoms = {"only": LineString([(0, 0), (200, 0)])}
+        assert M.nodes_for([_at(100, 5_000)], g, geoms) == {}
+
+    def test_a_lake_station_is_named_not_projected(self):
+        # It sits on a body of water, not along a channel. Forgetting this emptied
+        # `lake_gauge` from 220 rows to 0.
         g = _graph({"lake:99": _lake("lake:99", "99")})
         m = M.StationMatch("08MH999", "matched", "name+radius", 5.0, wbk="99")
-        assert M.nodes_for([m], g) == {"08MH999": "lake:99"}
-
-    def test_a_measure_in_a_gap_resolves_to_nothing_rather_than_a_neighbour(self):
-        # Under-lake runs and pruned pieces leave holes. A silently-adjacent node is how a
-        # reading ends up on the wrong side of a confluence.
-        g = _graph({"B1:0": _stream("B1:0", "B1", 0, 1_000),
-                    "B1:9000": _stream("B1:9000", "B1", 9_000, 10_000)})
-        m = M.StationMatch("08AA001", "matched", "name+radius", 1.0,
-                           blk="B1", measure=5_000.0)
-        assert M.nodes_for([m], g) == {}
+        assert M.nodes_for([m], g, {}) == {"08MH999": "lake:99"}
 
     def test_an_unmatched_station_is_never_placed(self):
-        g = _graph({"B1:0": _stream("B1:0", "B1", 0, 10_000)})
-        m = M.StationMatch("08AA001", "unresolved", None, None, blk="B1", measure=5_000.0)
-        assert M.nodes_for([m], g) == {}
+        g = _graph({"only": _stream("only")})
+        geoms = {"only": LineString([(0, 0), (200, 0)])}
+        m = M.StationMatch("08AA001", "unresolved", None, None)
+        assert M.nodes_for([m], g, geoms) == {}
 
     def test_without_a_graph_it_returns_what_was_recorded(self):
-        # The diagnostic path: the node ids as they were when the match was made, correct
-        # only for that same build — which is exactly why the argument exists.
+        # The diagnostic path: node ids as they were when the match was made, correct only
+        # for that build — which is exactly why the argument exists.
         m = M.StationMatch("08AA001", "matched", "name+radius", 1.0, node_id="B1:0")
         assert M.nodes_for([m]) == {"08AA001": "B1:0"}
 
@@ -68,7 +89,7 @@ class TestStableAddressing:
 class TestTheArtifact:
     def test_round_trips(self, tmp_path):
         rows = [M.StationMatch("08AA001", "matched", "name+radius", 12.0,
-                               blk="B1", measure=15_000.0, wsc="100-1",
+                               lon=-123.0, lat=49.0, wsc="100-1",
                                name="Test River", node_id="B1:0"),
                 M.StationMatch("08ZZ999", "unresolved", None, None, "nothing nearby")]
         p = tmp_path / "gauge_match.json"
@@ -92,5 +113,5 @@ class TestTheArtifact:
         p = tmp_path / "gauge_match.json"
         p.write_text(json.dumps({"stations": [
             {"station": "08AA001", "status": "matched", "resolved_by": "name+radius",
-             "distance_m": 1.0, "blk": "B1", "measure": 5.0, "_future": "whatever"}]}))
+             "distance_m": 1.0, "lon": -123.0, "lat": 49.0, "_future": "whatever"}]}))
         assert M.read_match(p)[0].station == "08AA001"

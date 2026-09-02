@@ -14,12 +14,13 @@ code — is in the frozen match, which is the single place a station is ever loc
       │
       │  python -m pipeline.hydro.match --build <a completed build>
       ▼
-    pipeline/gauge_match.json                frozen: station -> blk, measure, wsc, coord
+    pipeline/gauge_match.json                frozen: station -> coord + wsc (or wbk)
       │                        │
       │  pipeline.build        │  pipeline.bundle
       ▼                        ▼
-    a `gauge` point anchor     the node on `blk` containing `measure`,
-    scoped by `wsc`            in THAT build's graph
+    a `gauge` point anchor     the section that BEGINS at that coordinate and runs
+    at the coord, scoped       upstream on that water — what the gauge has just
+    by `wsc`                   measured — or `lake:{wbk}`
 
 Two consumers, one fact, and neither of them matches anything.
 """
@@ -55,9 +56,11 @@ def split_defs(matches, stations: list[dict], *, live_only: bool = True) -> list
         # "above it" and "below it" along a channel to separate. Lake gauges are linked to
         # the lake itself by `pipeline.hydro.shed.lake_gauge_links`, which is the question
         # they can actually answer. The match records them with a `wbk` and no `blk`.
-        if m.status != "matched" or not m.blk or not m.wsc:
+        if m.status != "matched" or m.wbk or not m.wsc:
             continue
-        lon, lat = s.get("lon"), s.get("lat")
+        # The coordinate comes from the MATCH, not the roster: one frozen fact, so a
+        # roster refreshed between the match and the build cannot move a cut on its own.
+        lon, lat = m.lon, m.lat
         if lon is None or lat is None:
             continue
         out.append({

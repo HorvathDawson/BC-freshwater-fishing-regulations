@@ -77,27 +77,36 @@ class StationMatch:
     very next build. A match frozen as node ids is therefore stale by construction: it names
     sections the graph it is being read against does not have.
 
-    `(blk, measure)` is the same address in FWA's own terms: a blue line and a position along
-    it, both of which come out of the source data and survive any amount of re-sectioning.
-    Every consumer derives what it needs from it —
+    THE ADDRESS IS A PLACE AND A WATER, and nothing derived.
 
-        the build   a `gauge` point anchor at (lon, lat) scoped by `wsc`
-        the bundle  the node on `blk` whose measure range contains `measure`
+        streams   the station's published coordinate + `wsc`, the FWA watershed code
+        lakes     the station's published coordinate + `wbk`, the FWA waterbody key
 
-    — so there is one frozen fact and no cached derivative that can disagree with it.
+    A route measure would work too — FWA measures survive re-sectioning — but it is a number
+    WE compute from the coordinate, and freezing a derived value means every consumer
+    inherits whatever we believed about projection on the day the file was written. The
+    coordinate is the primary fact: ECCC publishes it, it does not move, and each consumer
+    projects it itself against the graph in front of it.
+
+        the build   a `gauge` point anchor at the coordinate, scoped by `wsc`
+        the bundle  the nearest section on that water, taking the UPSTREAM one where the
+                    gauge sits on a boundary — that is the water it has just measured
+
+    One frozen fact, no cached derivative that can disagree with it.
     """
     station: str
     status: str                  # matched | no_match | unresolved
     resolved_by: str | None      # name+radius | alias | override
     distance_m: float | None
     reason: str | None = None
-    # --- the stable address (empty when unmatched) ---
-    blk: str = ""                # FWA BLUE_LINE_KEY: which line
-    measure: float | None = None  # FWA route measure along it: where on the line
-    wsc: str = ""                # FWA watershed code: the river + its side channels
+    # --- the address (empty when unmatched) ---
+    lon: float | None = None     # the station's own published position
+    lat: float | None = None
+    wsc: str = ""                # FWA watershed code: the river and its side channels
     wbk: str = ""                # FWA waterbody key, when the station is on a lake
     # --- review aids, never an input to anything ---
     name: str = ""               # the water the atlas calls this, at the time of matching
+    blk: str = ""                # the blue line it matched. Diagnostic; see the note above.
     node_id: str | None = None   # the node it matched IN THAT BUILD. Diagnostic only.
 
 
@@ -128,24 +137,14 @@ def _names(node) -> list[str]:
 
 
 def _matched(station: str, node, node_id: str, how: str, distance: float | None,
-             geoms: dict, pt) -> StationMatch:
-    """Record a hit as an FWA ADDRESS: which blue line, and where along it.
-
-    The measure is the node's own start plus how far along its geometry the station
-    projects — the same arithmetic the sectionizer used to give the node its id, run
-    forwards. That is what makes the answer survive re-sectioning: the node it landed in
-    will be cut into three next build, and `(blk, measure)` will still name the middle one.
-    """
-    geom = geoms.get(node_id)
-    measure = None
-    if geom is not None and not geom.is_empty and getattr(node, "blk", ""):
-        measure = round(float(getattr(node, "down_m", 0.0) or 0.0)
-                        + float(geom.project(pt)), 1)
+             lon: float | None, lat: float | None) -> StationMatch:
+    """Record a hit as WHERE the station is and WHICH WATER it is on. Nothing derived."""
     return StationMatch(
         station=station, status="matched", resolved_by=how, distance_m=distance,
-        blk=str(getattr(node, "blk", "") or ""), measure=measure,
+        lon=lon, lat=lat,
         wsc=str(getattr(node, "wsc", "") or ""), wbk=str(getattr(node, "wbk", "") or ""),
-        name=str(getattr(node, "display_name", "") or ""), node_id=node_id,
+        name=str(getattr(node, "display_name", "") or ""),
+        blk=str(getattr(node, "blk", "") or ""), node_id=node_id,
     )
 
 
@@ -192,7 +191,7 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
         if override:
             if override in graph.nodes:
                 out.append(_matched(sid, graph.nodes[override], override, "override",
-                                    None, geoms, pt))
+                                    None, station.get("lon"), station.get("lat")))
             else:
                 out.append(StationMatch(sid, "unresolved", None, None,
                                         f"override names {override!r}, not in this graph"))
@@ -233,53 +232,89 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
             named.sort()                     # closest of the correctly-named candidates
             d, node = named[0]
             out.append(_matched(sid, graph.nodes[node], node, "name+radius", round(d, 1),
-                                geoms, pt))
+                                station.get("lon"), station.get("lat")))
         else:
             out.append(StationMatch(sid, "unresolved", None, None,
                                     f"nothing named {want!r} within {radius_m:.0f} m"))
     return sorted(out, key=lambda m: m.station)
 
 
-def nodes_for(matches: list[StationMatch], graph=None) -> dict[str, str]:
-    """`{station: node_id}` IN THE GRAPH YOU HAND IT, derived from the frozen address.
+#: How far a station may be from the channel it names. A gauge is on a bank or a bridge and
+#: the FWA line is the channel centre; on a braided reach the far strand can be a few hundred
+#: metres off. The watershed code does the real work of saying WHICH water.
+PLACE_RADIUS_M = 500.0
+
+
+def nodes_for(matches: list[StationMatch], graph=None,
+              geoms: dict | None = None) -> dict[str, str]:
+    """`{station: node_id}` IN THE GRAPH YOU HAND IT, projected from the frozen coordinate.
 
     Without a graph this returns the node ids recorded when the match was made — correct
-    only for that same build, and the reason this argument exists at all. With one, each
-    station is placed by finding the node on its blue line whose measure range contains it,
-    which is pure arithmetic on FWA numbers and needs no geometry.
+    only for that same build, and the reason this argument exists at all.
 
-    A station whose blue line was renumbered, or whose measure falls in a gap (an
-    under-lake run, a pruned piece), resolves to nothing rather than to a neighbour. A
-    silently-adjacent node is how a reading ends up on the wrong side of a confluence.
+    THE UPSTREAM SECTION, where the gauge sits on a boundary. After the gauge cuts, a
+    station is exactly on the join between two sections and both contain its coordinate at
+    their shared end. The one it belongs to is the UPSTREAM one: that is the water that has
+    just flowed past it and been measured. The section below has already taken on whatever
+    joins in between.
+
+    Ranked by distance first, then by how near the projection lands to the section's own
+    downstream end — which is zero for the section starting at the gauge, and large for the
+    one ending there. Lakes never project; they are named directly by their waterbody key.
+
+    Nothing outside the station's own watershed is considered, so a creek gauge twenty
+    metres from a mainstem cannot be placed on it.
     """
     if graph is None:
         return {m.station: m.node_id for m in matches if m.node_id}
 
-    by_blk: dict[str, list] = {}
-    for nid, n in graph.nodes.items():
-        blk = getattr(n, "blk", "")
-        if blk:
-            by_blk.setdefault(blk, []).append((float(n.down_m), float(n.up_m), nid))
-    for rows in by_blk.values():
-        rows.sort()
+    import geopandas as gpd
+    from shapely.geometry import Point
 
     out: dict[str, str] = {}
+    todo: list[StationMatch] = []
     for m in matches:
         if m.status != "matched":
             continue
-        # A LAKE STATION HAS NO MEASURE, and that is not a gap. It sits on a waterbody, not
-        # along a channel, so its stable address is the FWA waterbody key — and the lake
-        # node is named after it. Forgetting this emptied `lake_gauge` entirely: 220
-        # stations addressed by `wbk` fell through a branch that only understood blue lines.
-        if m.wbk and f"lake:{m.wbk}" in graph.nodes:
-            out[m.station] = f"lake:{m.wbk}"
+        # A LAKE STATION IS NAMED, NOT PROJECTED. It sits on a body of water rather than
+        # along a channel, so its address is the waterbody key and the node is called after
+        # it. Forgetting this emptied `lake_gauge` from 220 rows to 0.
+        if m.wbk:
+            if f"lake:{m.wbk}" in graph.nodes:
+                out[m.station] = f"lake:{m.wbk}"
             continue
-        if not m.blk or m.measure is None:
+        if m.lon is not None and m.lat is not None and m.wsc and geoms is not None:
+            todo.append(m)
+    if not todo:
+        return out
+
+    # Candidate nodes, grouped by watershed: only water the station is actually on.
+    from pipeline.utils.wsc import trim_wsc
+    by_wsc: dict[str, list[str]] = {}
+    for nid, n in graph.nodes.items():
+        if nid.startswith("lake:") or nid not in geoms:
             continue
-        for down, up, nid in by_blk.get(m.blk, ()):
-            if down <= m.measure <= up:
-                out[m.station] = nid
-                break
+        w = trim_wsc(getattr(n, "wsc", "") or "")
+        if w:
+            by_wsc.setdefault(w, []).append(nid)
+
+    pts = gpd.GeoSeries([Point(m.lon, m.lat) for m in todo], crs=4326).to_crs(3005)
+    for m, pt in zip(todo, pts):
+        best: tuple[float, float, str] | None = None
+        for nid in by_wsc.get(trim_wsc(m.wsc), ()):
+            g = geoms[nid]
+            if g is None or g.is_empty:
+                continue
+            d = g.distance(pt)
+            if d > PLACE_RADIUS_M:
+                continue
+            # `project` is distance from the geometry's START, and FWA lines run mouth to
+            # source — so 0 means "this section begins at the gauge and runs upstream".
+            rank = (round(d, 1), round(float(g.project(pt)), 1), nid)
+            if best is None or rank < best:
+                best = rank
+        if best is not None:
+            out[m.station] = best[2]
     return out
 
 
@@ -318,11 +353,14 @@ def write_match(matches: list[StationMatch], path: Path | None = None) -> Path:
     """Freeze the match. Sorted by station, so a diff reads as a list of gauges."""
     path = path or MATCH_FILE
     path.write_text(json.dumps({
-        "_about": "Where each hydrometric station sits, as FWA keys — blue line, route "
-                  "measure, watershed code — NOT as node ids, which move whenever a river "
-                  "is re-sectioned. GENERATED by `python -m pipeline.hydro.match --build "
-                  "<a completed build>`; do not hand-edit. Read by pipeline.build (to cut "
-                  "rivers at their gauges) and by pipeline.bundle (to build sheds).",
+        "_about": "Where each hydrometric station sits: its own published coordinate plus "
+                  "the FWA key for the water it is on — `wsc` for a stream, `wbk` for a "
+                  "lake. NOT node ids, which are build output and move whenever a river is "
+                  "re-sectioned, and NOT a route measure, which is a number we derive from "
+                  "the coordinate rather than a fact anyone published. GENERATED by "
+                  "`python -m pipeline.hydro.match --build <a completed build>`; do not "
+                  "hand-edit. Read by pipeline.build (to cut rivers at their gauges) and by "
+                  "pipeline.bundle (to place each station on a section).",
         "stations": [asdict(m) for m in sorted(matches, key=lambda m: m.station)],
     }, indent=1) + "\n", encoding="utf-8")
     return path
@@ -389,8 +427,9 @@ def main() -> None:
                              aliases=load_aliases())
     print(summarise(matches))
     write_match(matches, a.out)
-    placed = sum(1 for m in matches if m.status == "matched" and m.measure is not None)
-    print(f"wrote {a.out}  ({placed} stations addressed by blue line + measure)")
+    riv = sum(1 for m in matches if m.status == "matched" and m.wsc and not m.wbk)
+    lak = sum(1 for m in matches if m.status == "matched" and m.wbk)
+    print(f"wrote {a.out}  ({riv} on streams by coord + wsc, {lak} on lakes by wbk)")
     print("  next: python -m pipeline.build   (cuts rivers at their gauges)")
     print("        python -m pipeline.bundle  (reads the same file for its sheds)")
 

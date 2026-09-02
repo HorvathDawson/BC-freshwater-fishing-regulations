@@ -10,7 +10,7 @@ from pipeline.models.splits import SplitDef
 
 def _m(station="08AA001", **kw):
     base = dict(status="matched", resolved_by="name+radius", distance_m=12.0,
-                blk="B1", measure=5_000.0, wsc="100-1", name="Test River")
+                lon=-123.0, lat=49.0, wsc="100-1", name="Test River", blk="B1")
     base.update(kw)
     return StationMatch(station, **base)
 
@@ -56,7 +56,7 @@ class TestWhatIsRefused:
     def test_a_lake_station_is_not_a_cut(self):
         # It reports a level for a body of water; there is no "above it" and "below it"
         # along a channel to separate. The match records it with a wbk and no blk.
-        assert split_defs([_m(blk="", measure=None, wsc="", wbk="99")], [_s()]) == []
+        assert split_defs([_m(wsc="", wbk="99")], [_s()]) == []
 
     def test_a_discontinued_station_is_matched_but_not_cut_at(self):
         # It still sits somewhere — the bundle wants it — but cutting the river there buys
@@ -65,7 +65,7 @@ class TestWhatIsRefused:
         assert len(split_defs([_m()], [_s(realtime=False)], live_only=False)) == 1
 
     def test_an_unmatched_station_contributes_nothing(self):
-        assert split_defs([_m(status="unresolved", blk="", wsc="")], [_s()]) == []
+        assert split_defs([_m(status="unresolved", wsc="", lon=None, lat=None)], [_s()]) == []
 
     def test_a_station_missing_from_the_roster_contributes_nothing(self):
         assert split_defs([_m("08AA001")], [_s("08ZZ999")]) == []
