@@ -28,7 +28,10 @@ EXPORT=($PY -m pipeline.parsing.batch_exporter --registry "$REGISTRY" --batch-si
 DISPATCH=($PY -m pipeline.parsing.dispatch --concurrency "$CONCURRENCY" --claude-bin "$CLAUDE_BIN")
 RESP="$($PY -c 'from pipeline.parsing.io import default_work_dir; print(default_work_dir()/"responses")')"
 
-CMD="${1:-parse}"
+# NO DEFAULT. `parse` spends credits and its first act is an export that DELETES the work dir's
+# responses, so a bare `run_parse.sh` — typed to see the usage text — silently destroys the raw
+# output of the previous run. It did exactly that once. An argument is required; bare prints usage.
+CMD="${1:-}"
 
 _need_claude() {
   command -v "$CLAUDE_BIN" >/dev/null 2>&1 || {
@@ -48,6 +51,17 @@ _apply_ingest() {   # dry-run ingest, then confirm-apply. $@ = extra ingest flag
     echo "  skipped apply. Re-run: $PY -m pipeline.parsing.ingest $RESP/*.json $*"
   fi
 }
+
+# REPAIR TOOLS — deliberately NOT part of the cascade. Each rewrites already-ingested rules, so
+# running one automatically after every parse would quietly paper over a bad parse instead of
+# surfacing it: the parse would look fine and the prompt would never get fixed. The parser is
+# supposed to emit correct, split, standard-form rules (prompts/PARSE_PROMPT.md +
+# prompts/RULE_STANDARDS.md) and the reviewer is supposed to catch it when it does not. Reach for
+# these only to repair an existing corpus, and read the --dry-run first:
+#
+#   $PY -m pipeline.parsing.backfill_rule_subjects --dry-run   # `details` that lost its subject
+#   $PY -m pipeline.parsing.split_bundled_gear     --dry-run   # one rule carrying several restrictions
+#   $PY -m pipeline.parsing.normalize_details      --dry-run   # off-standard wording / restriction_type
 
 case "$CMD" in
 
@@ -72,22 +86,33 @@ case "$CMD" in
     echo "  ✓ parse-missing done (no review run). Review later: bash pipeline/parsing/run_parse.sh review"
     ;;
 
-  review)  # review EVERY current entry in place (locked + not); stamp parse_review. No re-parse.
+  review)  # review current entries in place (locked + not); stamp parse_review. No re-parse.
+    #   review            every entry WITHOUT a verdict yet (resumes a partial run)
+    #   review hardest    the unreviewed half, worst-first by rule count (HARDEST=0.5 to change)
+    #   review clean      wipe every verdict and review everything again
+    #
+    # Resume is keyed on the ENTRY (`parse_review.verdict`), never on the batch file. Reviewing a
+    # SUBSET renumbers the batches, so a stale `reviews/batch_007.review.json` from a previous run
+    # would be read as this run's batch 7 — the same desync that cost a parse once. The review files
+    # are transient (the verdict is stamped onto the entry at the end), so they are cleared every
+    # run and the entry is the only thing that remembers.
     echo "== review: preflight =="; _need_claude; _need_registry
-    RR=""
+    SELECT=(--unreviewed)
     if [ "${2:-}" = "clean" ]; then
-      echo "== clean: wiping ALL prior agent reviews (files + entry parse_review) =="
-      rm -f output/parse/reviews/*.review.json 2>/dev/null || true
+      echo "== clean: wiping ALL prior verdicts (entry parse_review) =="
       $PY -m pipeline.parsing.ingest --clear-reviews
-      RR="--rereview"
-    elif [ "${2:-}" = "rereview" ]; then
-      RR="--rereview"; echo "  (rereview: refreshing even already-reviewed batches)"
+      SELECT=()
+    elif [ "${2:-}" = "hardest" ]; then
+      SELECT=(--unreviewed --hardest "${HARDEST:-0.5}")
+      echo "  (hardest: the unreviewed ${HARDEST:-0.5} by rule count — run 'review' again for the rest)"
     fi
-    echo "== full export (all entries -> batches) =="; "${EXPORT[@]}"
+    rm -f output/parse/reviews/*.review.json 2>/dev/null || true   # transient; verdicts live on entries
+    echo "== export (selected entries -> batches) =="; "${EXPORT[@]}" "${SELECT[@]+"${SELECT[@]}"}"
     echo "== synth responses from current entries =="; $PY -m pipeline.parsing.synth_responses
-    echo "== review ($REVIEW_MODEL) =="; "${DISPATCH[@]}" --review $RR --review-model "$REVIEW_MODEL"
+    echo "== review ($REVIEW_MODEL) =="; "${DISPATCH[@]}" --review --review-model "$REVIEW_MODEL"
     echo "== stamp parse_review onto entries (content-safe) =="; $PY -m pipeline.parsing.ingest --apply-reviews
-    echo "  ✓ review done. Flagged entries: run 'run_parse.sh repass' to re-parse them."
+    echo "  ✓ review done. Remaining unreviewed: run 'run_parse.sh review' again."
+    echo "    Flagged entries: run 'run_parse.sh repass' to re-parse them."
     ;;
 
   repass)  # re-parse ONLY the review-flagged entries (MODEL selectable), with reviewer hints
@@ -121,11 +146,14 @@ print(f"  flagged & unlocked (repass candidates): {flagged}")
 PYEOF
     ;;
 
-  *)
+  ""|-h|--help|help|*)
+    [ -n "$CMD" ] && echo "  ✗ unknown subcommand: $CMD"
     echo "usage: bash pipeline/parsing/run_parse.sh <parse|parse-missing|review|repass|prune|status>"
     echo "  parse-missing             parse ONLY missing rows + ingest, NO review (saves credits)"
-    echo "  review [rereview|clean]   rereview = re-review even reviewed batches;"
-    echo "                            clean    = wipe ALL prior reviews (files + parse_review) then rereview"
+    echo "  review [hardest|clean]    (no arg) = every entry with no verdict yet (resumes);"
+    echo "                            hardest  = the unreviewed half, worst-first by rule count"
+    echo "                                       (HARDEST=0.25 for a quarter, HARDEST=200 for a count);"
+    echo "                            clean    = wipe every verdict and review everything again"
     exit 1
     ;;
 esac

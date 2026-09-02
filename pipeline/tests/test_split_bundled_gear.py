@@ -149,3 +149,60 @@ def test_include_locked_unlocks_and_flags_for_re_review():
     assert all(r["needs_review"] for r in e["rules"])
     assert all("split out of e1.r1" in r["review_reason"] for r in e["rules"])
     assert any("unlocked" in line for line in e["audit_log"])
+
+
+def test_a_vessel_clause_splits_into_one_rule_per_restriction():
+    """"no vessels on parts, no powered boats on parts, no towing on parts" is THREE rules.
+
+    Two things stopped it. The table had no "No vessels"/"No towing", and `split_entry`'s gate only
+    offered `gear_restriction` and `harvest` rules to `classify` — excluding the very type these
+    clauses carry. ELK LAKE sat at 4 rules where the curator had confirmed 6.
+    """
+    got = classify("No vessels, no powered boats, no towing (parts)")
+    assert got == [("No vessels", "vessel_restriction", None),
+                   ("No powered boats", "vessel_restriction", None),
+                   ("No towing (parts)", "vessel_restriction", None)]
+
+    entry = {"rules": [{"rule_id": "x.r1", "restriction_type": "vessel_restriction",
+                        "details": "No vessels, no powered boats, no towing (parts)",
+                        "rule_text": "no vessels on parts, no powered boats on parts, no towing on parts",
+                        "extents": [{"op": "whole"}]}]}
+    split_entry(entry)
+    assert [r["details"] for r in entry["rules"]] == ["No vessels", "No powered boats", "No towing (parts)"]
+    assert {r["restriction_type"] for r in entry["rules"]} == {"vessel_restriction"}
+
+
+def test_a_size_limit_and_a_quota_are_separate_rules_over_separate_species():
+    """"No wild trout over 50 cm, 1 bull trout over 60 cm" is two rules about two different fish.
+
+    Left as one rule it carried the UNION of both species lists, which says bull trout may not
+    exceed 50 cm and every trout has a quota of 1 — neither of which the synopsis says.
+    """
+    got = classify("No wild trout over 50 cm; bull trout daily quota 1 (over 60 cm)")
+    assert got == [("No wild trout over 50 cm", "harvest", ["RB", "CT", "WCT", "CCT", "GB", "GT"]),
+                   ("Bull trout daily quota = 1 (over 60 cm)", "harvest", ["BT"])]
+
+
+def test_a_qualifier_that_binds_its_own_clause_is_never_split_off():
+    """"Trout daily quota = 1, none over 50 cm" is ONE rule — the size limit qualifies the quota.
+
+    The comma here is not a separator between restrictions, and treating it as one would invent a
+    standalone "none over 50 cm" rule that applies to nothing.
+    """
+    assert classify("Trout daily quota = 1, none over 50 cm") is None
+
+
+def test_the_rule_standard_is_actually_delivered_to_both_agents():
+    """RULE_STANDARDS.md is cited BY NAME in both prompts; a spec the agent cannot see is not a spec.
+
+    The review checklist tells the reviewer to check `details` "against RULE_STANDARDS.md §3", and
+    the parse prompt defers the canonical forms to it. Both loaders read only their own file, so the
+    citation pointed at nothing until the standard was appended to each.
+    """
+    from pipeline.parsing.parse_context import load_system_prompt
+    from pipeline.parsing.review_exporter import render_review_prompt
+
+    for text in (load_system_prompt(), render_review_prompt([], {})):
+        assert "Rule statement standards" in text
+        assert "daily quota = " in text
+        assert "restriction_type` is decided by what the rule DOES" in text

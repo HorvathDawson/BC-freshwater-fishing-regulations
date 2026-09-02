@@ -79,7 +79,10 @@ def test_export_validate_ingest_and_locked(tmp_path):
     # the unmatched row exported as a no-registry item: no boundaries, reason recorded
     nr = items[1]
     assert nr["no_registry"] is True and nr["bindable_ids"] == [] and nr["item_id"] is None
-    assert "unmatched" in nr["registry_note"] and nr["entry_id"].startswith("noreg_")
+    # The id is derived from the ROW (region + verbatim name + MUs) and carries NO match state:
+    # an unmatched row keeps the same id shape as a matched one, so binding it later never moves it.
+    assert "unmatched" in nr["registry_note"]
+    assert nr["entry_id"] == "r5:nonexistent_creek@5-4" and not nr["entry_id"].startswith("noreg_")
 
     # agent's candidate response -> self-check passes
     cand = tmp_path / "resp.json"
@@ -94,7 +97,7 @@ def test_export_validate_ingest_and_locked(tmp_path):
     written = ingest_mod.write_entry_files(accepted, batch_items, entries_dir)
     assert written["5"]["entries"] == 1
     region_file = entries_dir / "region-5.json"
-    assert json.loads(region_file.read_text())["entries"][0]["entry_id"] == "gnis:1"
+    assert json.loads(region_file.read_text())["entries"][0]["entry_id"] == "r5:atnarko_river@5-4"
 
     # lock it, then a re-ingest with a changed entry must NOT overwrite the locked one
     data = json.loads(region_file.read_text())
@@ -132,7 +135,7 @@ def test_no_registry_row_parses_content_only(tmp_path):
     assert report["accepted"] == [nr_index] and not report["failed"], report
     entry = accepted[nr_index]
     assert entry.registry_status == "no_registry" and "unmatched" in entry.registry_note
-    assert entry.entry_id.startswith("noreg_") and entry.matched == []
+    assert entry.entry_id == "r5:nonexistent_creek@5-4" and entry.matched == []
     assert entry.rules[0].needs_review and entry.rules[0].extents == []
 
 
@@ -183,13 +186,13 @@ def test_batch_layout_is_stable_regardless_of_existing_entries(tmp_path):
     m_fresh = export(_rows(), reg, tmp_path / "a", batch_size=40, overrides={},
                      existing_ids=set(), force=False)
     m_with_done = export(_rows(), reg, tmp_path / "b", batch_size=40, overrides={},
-                         existing_ids={"gnis:1"}, force=False)          # pretend gnis:1 already ingested
+                         existing_ids={"r5:atnarko_river@5-4"}, force=False)   # pretend it's ingested
     assert m_with_done["pending_count"] == m_fresh["pending_count"]
     assert len(m_with_done["batches"]) == len(m_fresh["batches"])
     assert m_with_done["skipped_existing"] == []                        # opt-in only
     # opt-in skip_existing DOES drop it (deliberate fresh export)
     m_skip = export(_rows(), reg, tmp_path / "c", batch_size=40, overrides={},
-                    existing_ids={"gnis:1"}, force=False, skip_existing=True)
+                    existing_ids={"r5:atnarko_river@5-4"}, force=False, skip_existing=True)
     assert m_skip["pending_count"] == m_fresh["pending_count"] - 1
 
 
@@ -203,3 +206,74 @@ def test_ingest_rejects_bad_split(tmp_path):
     batch_items = validate_mod.load_batch_items(batch_file)
     accepted, report = ingest_mod.ingest([json.dumps([bad])], batch_items)
     assert not accepted and report["failed"] and report["failed"][0]["index"] == 0
+
+
+def test_two_rows_sharing_one_item_with_identical_regs_are_both_exported(tmp_path):
+    """The exporter must NEVER drop a synopsis row because another row says the same thing.
+
+    It used to dedupe on `(item_id, raw_regs)`, a key blind to region, MU and the verbatim
+    name — so it silently deleted five real rows: PECKHAMS LAKE (a different water that merely
+    shares "No powered boats" with NORBURY LAKE), BLACKWATER RIVER's "See West Road River"
+    pointer printed in BOTH region 5 and region 7, and lakes listed under both their names.
+    Redundancy is the CURATOR's call (`reference_only`), made where it is visible.
+    """
+    reg = _registry()
+    rows = [
+        {"water": "Atnarko River", "region": "REGION 5 - Cariboo", "mu": "5-4",
+         "raw_regs": "No powered boats.", "symbols": []},
+        {"water": "Atnarko", "region": "REGION 5 - Cariboo", "mu": "5-4",
+         "raw_regs": "No powered boats.", "symbols": []},        # same item, byte-identical regs
+    ]
+    m = export(rows, reg, tmp_path / "d", batch_size=40, overrides={}, existing_ids=set(), force=False)
+    assert m["pending_count"] == 2 and m["skipped_existing"] == []
+    items = json.loads((tmp_path / "d" / "batches" / "batch_000.json").read_text())["items"]
+    ids = [it["entry_id"] for it in items]
+    assert ids == ["r5:atnarko_river@5-4", "r5:atnarko@5-4"]      # kept apart by the row, not the item
+    assert len(set(ids)) == 2
+
+
+def test_identity_is_injected_from_the_batch_item_not_trusted_from_the_model(tmp_path):
+    """WHO an entry is about is export-time knowledge. The model must not get a vote.
+
+    It had one, and used it: 843 of 1,021 entries came back with a name that was not the
+    synopsis's. Most were merely title-cased, but 66 were rewritten — and the rewrite ate the
+    parenthetical that carries the reach, which is the whole basis of entry-level `scope`.
+    """
+    reg = _registry()
+    out_dir = tmp_path / "parse"
+    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
+    item = json.loads((out_dir / "batches" / "batch_000.json").read_text())["items"][0]
+    assert item["name"] == "Atnarko River"
+
+    cand = _candidate_entry()["entry"]
+    cand["identity"] = {"name": "Marble River", "display_name": "x",   # model rewrites all four
+                        "region": "9", "mus": ["9-9"]}
+    entry, errors, _ = validate_mod.validate_candidate(item, cand)
+    assert entry is not None, errors
+    assert entry.identity.name == "Atnarko River"                      # the synopsis's words win
+    assert entry.identity.display_name == item["display_name"]
+    assert entry.identity.region == "5" and entry.identity.mus == ["5-4"]
+
+
+def test_identity_mus_is_the_rows_mu_not_the_registry_items_union(tmp_path):
+    """`identity.mus` is the MU heading the synopsis ROW sits under, not every MU its water touches.
+
+    `ParseContext.mus` is the union across the matched item(s) and exists to orient the parser;
+    injecting THAT into identity gave 287 entries MUs their row never named.
+    """
+    reg = _registry()
+    import dataclasses
+    it = reg["gnis:1"]
+    reg["gnis:1"] = (it.model_copy(update={"mus": ("5-4", "5-6", "5-12")})
+                     if hasattr(it, "model_copy")
+                     else dataclasses.replace(it, mus=("5-4", "5-6", "5-12")))
+    out_dir = tmp_path / "parse"
+    export(_rows(), reg, out_dir, batch_size=40, overrides={}, existing_ids=set(), force=False)
+    item = json.loads((out_dir / "batches" / "batch_000.json").read_text())["items"][0]
+    assert item["mus"] == ["5-12", "5-4", "5-6"]           # the item's union: parser orientation
+    assert item["row_mus"] == ["5-4"]                       # the row's own heading
+
+    entry, errors, _ = validate_mod.validate_candidate(item, _candidate_entry()["entry"])
+    assert entry is not None, errors
+    assert entry.identity.mus == ["5-4"]
+    assert entry.entry_id.endswith("@5-4")                  # id and identity agree

@@ -45,7 +45,14 @@ RESTRICTIONS: list[tuple[str, str, str]] = [
     ("Fly fishing only", r"^fly[\s-]*fishing\s+only$", "gear_restriction"),
     ("Artificial fly only", r"^artificial\s+fl(?:y|ies)(?:\s+only)?$", "gear_restriction"),
     ("Artificial lure only", r"^artificial\s+lures?(?:\s+only)?$", "gear_restriction"),
-    ("No powered boats", r"^no\s+powered\s+boats?$", "gear_restriction"),
+    # vessel_restriction, not gear_restriction: all 94 standalone "No powered boats" rules in the
+    # corpus are vessel_restriction, and typing it as gear here would have flipped the type on every
+    # rule this table split out of a vessel clause.
+    ("No powered boats", r"^no\s+powered\s+boats?$", "vessel_restriction"),
+    # Vessel restrictions travel in threes on the big lakes — "no vessels on parts, no powered boats
+    # on parts, no towing on parts" — and without these two the whole clause was one rule.
+    ("No vessels", r"^no\s+vessels?$", "vessel_restriction"),
+    ("No towing", r"^no\s+towing$", "vessel_restriction"),
     ("Electric motor only", r"^electric\s+motors?\s+only(?:\s*-?\s*max.*)?$", "gear_restriction"),
 ]
 
@@ -65,9 +72,12 @@ _AND = re.compile(r"\s+and\s+", re.I)
 # A release/quota clause carries its OWN subject, so it is a separate rule from the gear restrictions
 # beside it — and a DIFFERENT restriction_type, with its own species. `subject -> species codes`;
 # a subject we do not know is a refusal to split, never a guess.
-_TROUT_CHAR = ["RB", "CT", "WCT", "CCT", "GB", "GT", "SLV"]
+_TROUT = ["RB", "CT", "WCT", "CCT", "GB", "GT"]
+_TROUT_CHAR = [*_TROUT, "SLV"]
 SUBJECTS: list[tuple[str, list[str]]] = [
     (r"trout\s*/\s*char", _TROUT_CHAR),
+    (r"(?:all\s+)?wild\s+trout", _TROUT),        # "No wild trout over 50 cm" — trout, not char
+    (r"(?:all\s+)?trout", _TROUT),
     (r"(?:all\s+)?hatchery\s+rainbow\s+trout", ["RB"]),
     (r"(?:all\s+)?hatchery\s+cutthroat(?:\s+trout)?", ["CT"]),
     (r"(?:all\s+)?rainbow\s+trout", ["RB"]),
@@ -82,7 +92,11 @@ SUBJECTS: list[tuple[str, list[str]]] = [
 # "<subject> [(qualifier)] catch and release"  ->  one harvest rule per subject
 _RELEASE = re.compile(r"^(?P<subj>.+?)\s*(?P<qual>\([^)]*\))?\s*\x00CR\x00$", re.I)
 # "<subject> daily quota = N"  ->  one harvest rule per subject
-_QUOTA = re.compile(r"^(?P<subj>.+?)\s+daily\s+quota\s*=?\s*(?P<n>\d+|unlimited)$", re.I)
+_QUOTA = re.compile(r"^(?P<subj>.+?)\s+daily\s+quota\s*=?\s*(?P<n>\d+|unlimited)"
+                    r"\s*(?P<qual>\([^)]*\))?$", re.I)
+# "No wild trout over 50 cm" / "no bull trout under 30 cm" — a size limit, not a quota. It carries
+# its own subject exactly as a quota clause does, so it splits the same way.
+_SIZE = re.compile(r"^no\s+(?P<subj>.+?)\s+(?P<dir>over|under)\s+(?P<n>\d+)\s*cm$", re.I)
 
 
 def _subject_species(subj: str) -> list[str] | None:
@@ -136,12 +150,24 @@ def classify(details: str) -> list[tuple[str, str, list[str] | None]] | None:
 
 
 def _one_clause(seg: str) -> list[tuple[str, str, list[str] | None]] | None:
-    """One clause as rule(s): a gear restriction, or a release/quota clause. None if unrecognised."""
-    for canon, pat, rtype in RESTRICTIONS:
-        m = re.match(pat, _restore(seg), re.I)
-        if m:
-            name = canon.replace("{1}", m.group(1).lower()) if "{1}" in canon else canon
-            return [(name, rtype, None)]
+    """One clause as rule(s): a gear restriction, or a release/quota clause. None if unrecognised.
+
+    A trailing parenthetical is peeled off and re-attached to the canonical name, so "no towing
+    (parts)" is recognised as "No towing" and comes back as "No towing (parts)". Without this the
+    qualifier the synopsis puts on the LAST of a list — "no vessels on parts, no powered boats on
+    parts, no towing on parts" collapsing to "... (parts)" — refused the whole rule.
+    """
+    text = _restore(seg)
+    attempts: list[tuple[str, str]] = [(text, "")]           # (text to match, qualifier to re-attach)
+    qm = re.search(r"\s*(\([^)]*\))\s*$", text)
+    if qm:
+        attempts.append((text[: qm.start()], qm.group(1)))
+    for candidate, suffix in attempts:
+        for canon, pat, rtype in RESTRICTIONS:
+            m = re.match(pat, candidate.strip(), re.I)
+            if m:
+                name = canon.replace("{1}", m.group(1).lower()) if "{1}" in canon else canon
+                return [(f"{name} {suffix}".strip(), rtype, None)]
     return _release_or_quota(seg)
 
 
@@ -187,7 +213,15 @@ def _release_or_quota(seg: str) -> list[tuple[str, str, list[str]]] | None:
         codes = _subject_species(m.group("subj"))
         if codes is None:
             return None
-        return [(f"{m.group('subj').strip().capitalize()} daily quota = {m.group('n')}",
+        qual = (m.group("qual") or "").strip()
+        label = f"{m.group('subj').strip().capitalize()} daily quota = {m.group('n')}"
+        return [(f"{label} {qual}".strip(), "harvest", codes)]
+    m = _SIZE.match(seg)
+    if m:
+        codes = _subject_species(m.group("subj"))
+        if codes is None:
+            return None
+        return [(f"No {m.group('subj').strip()} {m.group('dir').lower()} {m.group('n')} cm",
                  "harvest", codes)]
     return None
 
@@ -219,8 +253,13 @@ def split_entry(entry: dict, include_locked: bool = False) -> tuple[list[str], l
     locked = bool(entry.get("locked"))
     out: list[dict] = []
     for r in entry.get("rules") or []:
+        # vessel_restriction is in the gate because the table now produces it: "no vessels on parts,
+        # no powered boats on parts, no towing on parts" is three vessel rules the synopsis wrote as
+        # one phrase. Before, the gate excluded the very type those clauses carry, so the clause was
+        # recognised by `classify` and then never offered to it.
         parts = (classify(r.get("details", ""))
-                 if r.get("restriction_type") in ("gear_restriction", "harvest") else None)
+                 if r.get("restriction_type") in ("gear_restriction", "harvest", "vessel_restriction")
+                 else None)
         if not parts:
             out.append(r)
             continue

@@ -45,6 +45,20 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
         data["tributaries"] = tribs
     if item.get("entry_id"):                              # authoritative id/status — never trusted from the model
         data["entry_id"] = item["entry_id"]
+    # WHO the entry is about is export-time knowledge, not a parsing result. Trusting the model's
+    # copy cost us the name on 843 of 1,021 entries: it title-cased 777 of them, and on 66 it
+    # rewrote the name outright — dropping the parenthetical that CARRIES THE REACH
+    # ("THOMPSON RIVER (upstream of Kamloops Lake)" -> "Thompson River"; both MICHEL CREEK rows
+    # collapsed to "Michel Creek" and became indistinguishable), substituting the registry's name
+    # for the synopsis's ('"LINK" RIVER' -> "Marble River"), and "correcting" spellings the book
+    # actually prints (MCDONNEL -> McDonell). Same class of bug as the id: inject, never trust.
+    ident = dict(data.get("identity") or {})
+    for field, key in (("name", "name"), ("display_name", "display_name"), ("region", "region")):
+        if item.get(key) is not None:
+            ident[field] = item[key]
+    if item.get("row_mus") is not None:                    # the ROW's MUs, never the item's union:
+        ident["mus"] = list(item["row_mus"])               # the row is printed under one MU heading
+    data["identity"] = ident
     if item.get("item_id"):                               # registry ids this entry covers: the matched
         data["matched"] = [item["item_id"], *item.get("also_item_ids", [])]   # item + a combined
                                                           # override's other items (Chilliwack+Vedder)

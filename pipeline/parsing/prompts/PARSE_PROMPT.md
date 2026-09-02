@@ -96,10 +96,71 @@ item, so there is nothing to bind against. Still do the real work, but bind noth
 
 This captures the regulation's content for the curator even though its location can't be resolved yet.
 
+## ONE RESTRICTION PER RULE
+
+The synopsis packs several independent restrictions into one sentence to save paper:
+
+    Trout catch and release; artificial fly only, bait ban, single barbless hook
+
+That is **four rules**, not one. Each is separately searchable, separately displayable, and a curator
+editing one must not have to edit a sentence to do it. Emit one rule per restriction:
+
+    { "restriction_type": "harvest",          "details": "Trout catch and release" }
+    { "restriction_type": "gear_restriction", "details": "Artificial fly only" }
+    { "restriction_type": "gear_restriction", "details": "Bait ban" }
+    { "restriction_type": "gear_restriction", "details": "Single barbless hook" }
+
+All four carry the SAME `rule_text` (the one source sentence, still a verbatim substring of
+`regs_verbatim`), the same dates, and the same `extents`. Only `details` and `restriction_type` differ.
+
+Split on `,` `;` and `and` **between restrictions**. Do NOT split inside a fixed phrase —
+`catch and release`, `point to shank` — and do NOT split a clause's own qualifier away from it:
+`"Trout daily quota = 1, none over 50 cm"` is ONE rule (the size limit qualifies the quota).
+
+More examples of one sentence → several rules:
+
+    "no vessels on parts, no powered boats on parts, no towing on parts"
+        -> vessel_restriction "No vessels on parts"
+        -> vessel_restriction "No powered boats on parts"
+        -> vessel_restriction "No towing on parts"
+
+    "No wild trout over 50 cm, 1 bull trout over 60 cm"
+        -> harvest "No wild trout over 50 cm"
+        -> harvest "Bull trout daily quota = 1 (over 60 cm)"
+
+    "Trout/char catch and release, bait ban and single barbless hook"
+        -> harvest          "Trout/char catch and release"
+        -> gear_restriction "Bait ban"
+        -> gear_restriction "Single barbless hook"
+
+A restriction that mixes types is a signal you have not split far enough: a single rule typed
+`harvest` whose `details` reads `"Catch and release; bait ban; single barbless hook"` is wrong twice —
+it is three rules, and two of them are `gear_restriction`.
+
+## `details` MUST KEEP ITS SUBJECT
+
+`details` is what a curator and the app read on its own, with no sentence around it. Never drop the
+species, the quantity, or the qualifier the regulation attached:
+
+    regs: "Trout/char catch and release, bait ban and single barbless hook"
+      ✅ "Trout/char catch and release"
+      ❌ "Catch and release"          <- WHICH fish? unusable, and unsplittable downstream
+    regs: "1 bull trout over 60 cm"
+      ✅ "Bull trout daily quota = 1 (over 60 cm)"
+      ❌ "Daily quota = 1"
+    regs: "Engine power restriction on parts - 7.5 kW (10 hp)"
+      ✅ "Engine power restriction 7.5 kW (10 hp) on parts"
+      ❌ "Engine power restriction"
+
+Normalise the WORDING, never the CONTENT. If the regulation names a fish, a number, a size, a season
+or "on parts", `details` keeps it.
+
 ## Other fields
 
 - **`restriction_type`**: one of `closure | harvest | gear_restriction | vessel_restriction | licensing | note`.
-- **`details`**: a concise normalized summary (e.g. `"No powered boats"`, `"Bait ban"`).
+- **`details`**: a concise normalized summary of ONE restriction, keeping its subject
+  (e.g. `"No powered boats"`, `"Bait ban"`, `"Trout/char catch and release"`). See the two
+  sections above — they are the most common source of bad output.
 - **`display_location`**: human-readable reach label for the app (e.g. `"Above Talchako confluence"`).
   Default it from the locator phrasing; it is NOT verbatim-constrained.
 - **`species`**: codes from the Species menu this rule applies to. **Empty = ALL species.** Use a group
@@ -112,7 +173,17 @@ This captures the regulation's content for the curator even though its location 
 - **Entry-level `tributaries`**: `{ included, only, excludes }`. Set `included: true` when the row shows
   the **[Includes Tributaries]** synopsis symbol (stated in the header) — ingest also enforces this from
   the symbol, so keep them consistent. Leave `excludes` empty (hand-curated later).
-- **`scope`** (entry-level extents) composes by intersection with each rule's extents; usually leave it `[]`.
+- **`scope`** (entry-level extents) composes by INTERSECTION with each rule's extents.
+  Leave it `[]` unless **the waterbody name itself names a reach** — the synopsis often
+  splits one river into several rows and puts the reach in the name:
+      `HARRISON RIVER (from the Fraser River upstream to Harrison Lake)`
+      `ADAMS RIVER (downstream of Adams Lake)`
+      `TROUT LAKE'S TRIBUTARIES`
+      `FRASER RIVER (upstream of the CPR Bridge at Mission)`
+  When it does, put THAT reach in `scope` once, and let each rule carry only its own
+  extra narrowing. Every rule in the entry is then automatically confined to the named
+  stretch, and a rule that applies to the whole of it can stay `op: whole`.
+  Do NOT repeat the name's reach on every rule.
 - Leave **`matched`** `[]` (the matcher fills it) and **`locked`** `false`.
 
 ## Output

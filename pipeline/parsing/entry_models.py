@@ -303,10 +303,26 @@ class Rule(BaseModel):
 
 
 class Identity(BaseModel):
-    """Who the entry is about — the matcher uses (name, region, mus) to find the registry item."""
+    """Who the entry is about — the matcher uses (name, region, mus) to find the registry item.
+
+    `name` is the SYNOPSIS's own words and is the key; `display_name` is what the registry
+    calls the water it resolved to. Keeping both is not cosmetic: several differently-named
+    synopsis rows can resolve to registry items that share one collective name, and writing
+    that collective name into `name` makes them look like duplicates of each other.
+
+    Measured on the 2026-08 corpus: INDATA, TCHENTLO, TSAYTA and CHUCHI LAKE are four rows
+    that resolve to four different polygons in the Nation Lakes chain, every one of which
+    the registry displays as "Nation Lakes" — so all four entries read `name: "Nation
+    Lakes"` and the source names were gone. Same for HAYNES/HYDRAULIC/MINNOW LAKE
+    ("McCulloch Reservoir") and SATURDAY/FRIDAY LAKE ("Tepee Lakes")."""
 
     model_config = ConfigDict(frozen=True)
-    name: str = Field(..., description="waterbody name verbatim from the synopsis row")
+    name: str = Field(..., description="waterbody name VERBATIM from the synopsis row — the key")
+    display_name: str = Field(
+        default="",
+        description="what the registry calls the matched item ('Nation Lakes'); '' when the "
+        "synopsis name is already the display name or there is no registry match",
+    )
     region: str = Field(default="", description="management region, e.g. '5'")
     mus: List[str] = Field(default_factory=list, description="management units, e.g. ['5-4']")
 

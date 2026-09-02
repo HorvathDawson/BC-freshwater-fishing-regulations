@@ -13,10 +13,11 @@ The exporter still has the verbatim rows, so this replays it and copies each bat
 touches ONLY `matched`, so a locked entry's curated content is untouched (its `matched` is still
 stamped: the id set is a fact about the registry, not a curation decision).
 
-The entry's NAME is deliberately NOT rewritten. A combined row's verbatim wording is often unusable
-as a label ("ATNARKO/BELLA COOLA RIVERS [Includes Tributaries] EXCEPT: Burnt Bridge Creek upstream
-of …"), and the parser's cleaned-up name is better. The combined nature is surfaced in the review UI
-from `matched` instead.
+The entry's NAME is not touched here — `backfill_identity` owns it. That module writes the verbatim
+synopsis wording, because the "cleaned-up name is better" reasoning this file used to give was wrong:
+the cleanup dropped the parenthetical that carries the reach, collapsing MICHEL CREEK's upstream and
+downstream rows to one indistinguishable label. The readable form lives in `identity.display_name`,
+and a combined entry's several items are surfaced in the review UI from `matched`.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.parsing.backfill_matched --dry-run
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.parsing.backfill_matched --registry output/v2/full/registry.json

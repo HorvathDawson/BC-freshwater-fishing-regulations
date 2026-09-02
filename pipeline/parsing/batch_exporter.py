@@ -48,6 +48,26 @@ load_existing_entry_ids = io.load_existing_entry_ids
 load_existing_entry_regs = io.load_existing_entry_regs
 
 
+def _row_entry_id(row: dict, m) -> str:
+    """`r{region}:{name}@{mus}` — derived from the SYNOPSIS ROW ALONE.
+
+    The id used to be the matched registry item (`gnis:4927`), or that item plus a reach
+    slug when several rows shared it (`gnis:4927#…`), or `noreg_…` when nothing matched.
+    All three encode *match state*, so an entry's id moved whenever matching moved — a
+    new override, a registry rebuild, a second row starting to match the same item. That
+    is what left 42 entries under ids the exporter no longer produced, holding real
+    regulations (Trout Lake's tributaries among them) that a prune would have deleted.
+
+    A synopsis row's region, name and MUs are what the BOOK says; they do not change when
+    we rebind it. Verified unique across all 1,393 rows with no suffix needed.
+    """
+    from pipeline.matching.matcher import parse_reg_mus, region_num
+
+    mus = "+".join(sorted(parse_reg_mus(row)))
+    base = f"r{region_num(row) or '?'}:{_slug(m.water)[:60].strip('_')}"
+    return f"{base}@{mus}" if mus else base
+
+
 def _item_payload(index: int, ctx) -> dict:
     """Batch payload for one synopsis row (one entry). `entry_id`, `registry_status`, and `registry_note`
     are injected into the Entry at ingest (authoritative — never trusted from the model), same as
@@ -58,8 +78,10 @@ def _item_payload(index: int, ctx) -> dict:
         "item_id": ctx.item_id or None,
         "also_item_ids": list(ctx.also_item_ids),      # combined override -> extra registry items
         "name": ctx.name,
+        "display_name": ctx.display_name,
         "region": ctx.region,
-        "mus": list(ctx.mus),
+        "mus": list(ctx.mus),                             # the ITEM's MUs — parser orientation
+        "row_mus": list(ctx.row_mus),                     # the ROW's MUs — what identity.mus must be
         "raw_regs": ctx.raw_regs,
         "bindable_ids": sorted(ctx.bindable_ids),
         "boundaries": [list(b) for b in ctx.boundaries],   # (id,label,kind) — the review prompt's menu
@@ -72,7 +94,7 @@ def _item_payload(index: int, ctx) -> dict:
 
 def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_ids, force: bool,
            skip_existing: bool = False, only_changed: bool = False,
-           existing_regs: dict | None = None, flagged_ids: set[str] | None = None,
+           existing_regs: dict | None = None, only_ids: set[str] | None = None,
            review_hints: dict[str, list] | None = None) -> dict:
     """Export matchable rows into stable batches, ONE batch item per synopsis ROW (each row is its own
     entry). Rows that share a registry item get a reach-qualified `entry_id` (`item_id#<reach-slug>`) so
@@ -94,20 +116,16 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
     matches = match_rows(rows, registry, overrides)
     existing_regs = existing_regs or {}
 
-    # A synopsis row that shares its registry item with another row (reach splits like "Elk River
-    # (upstream/downstream of Elko Dam)", multi-part lakes, a mainstem + its "X's TRIBUTARIES" row)
-    # becomes its OWN entry with a reach-qualified id + name, instead of colliding on the item id and
-    # overwriting at ingest (the bug). Single-row waterbodies keep entry_id == item_id (no churn).
-    from collections import Counter
-    item_rowcount = Counter(m.item_id for m in matches if m.item_id)
-
+    # EVERY synopsis row becomes its own entry. Rows that share a registry item — reach splits
+    # ("Elk River upstream/downstream of Elko Dam"), a mainstem plus its "X's TRIBUTARIES" row, the
+    # same water printed in two regional books, a lake listed under both its names — are kept apart
+    # by `_row_entry_id`, which keys on the ROW (region + verbatim name + MUs), never on the item.
+    # Measured: 1,393 rows -> 1,393 distinct entry_ids, zero collisions.
     pending: list[tuple[int, object]] = []              # (row_index, ParseContext)
     unmatched: list[dict] = []
     excluded_empty: list[int] = []
     skipped_existing: list[int] = []
     no_registry_count = 0
-    used_ids: dict[str, int] = {}                        # entry_id -> dup counter (distinct regs, same slug)
-    seen_content: set[tuple[str, str]] = set()           # (item_id, raw_regs) — drop exact-duplicate rows
 
     for m in matches:
         row = rows[m.index]
@@ -117,7 +135,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             continue
         if m.item_id is None:
             unmatched.append({"index": m.index, "water": m.water, "status": m.status, "reason": m.reason})
-            eid = f"noreg_{_slug(m.water)}_{m.index}"
+            eid = _row_entry_id(row, m)
             note = f"{m.status}: {m.reason}" if m.reason else m.status
             ctx = build_no_registry_context(
                 entry_id=eid, name=m.water, raw_regs=raw, registry_note=note,
@@ -125,36 +143,31 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
                 symbols=tuple(row.get("symbols", [])))
             is_noreg = True
         else:
-            if item_rowcount[m.item_id] > 1:            # multi-row waterbody -> per-row entry
-                key = (m.item_id, raw)
-                if key in seen_content:                 # exact-duplicate listing -> one entry
-                    skipped_existing.append(m.index)
-                    continue
-                seen_content.add(key)
-                eid = f"{m.item_id}#{_slug(m.water)[:48].strip('_')}"
-                if eid in used_ids:                     # same slug (or truncated), different regs -> disambiguate
-                    used_ids[eid] += 1
-                    eid = f"{eid}_{used_ids[eid]}"
-                else:
-                    used_ids[eid] = 0
-                name = m.water                          # keep the reach-qualified name
-            else:
-                eid = m.item_id
-                # A COMBINED entry keeps the synopsis's own wording too. Its row names several waters
-                # ("CHILLIWACK / VEDDER RIVERS (does not include Sumas River)"), while the item name is
-                # just the first one — so falling back to it labelled the whole combined regulation
-                # "Chilliwack River", and the Vedder row "Vedder Canal". The verbatim name is what the
-                # synopsis calls the regulation and what a reviewer is looking for.
-                name = m.water if m.also else ""        # else -> item.name (unchanged single-row entries)
+            # NO content dedupe here. Two rows resolving to one registry item with byte-identical
+            # regs are still two rows, and the exporter is not the place to decide one does not
+            # count: PECKHAMS LAKE and NORBURY LAKE are different waters that merely share
+            # "No powered boats"; BLACKWATER RIVER's "See West Road River" pointer is printed in
+            # BOTH region 5 and region 7. Dropping either lost a real row silently. A row that is
+            # genuinely redundant is marked `reference_only` by the CURATOR, who can see it.
+            eid = _row_entry_id(row, m)
+            # EVERY entry keeps the synopsis's own wording. This used to fall back to the
+            # registry item's name for single-row entries, which is wrong twice over: for a
+            # combined row it labelled the whole regulation "Chilliwack River"; and where
+            # several differently-named rows resolve to items sharing one collective name it
+            # erased the distinction entirely — INDATA, TCHENTLO, TSAYTA and CHUCHI LAKE all
+            # became "Nation Lakes", HAYNES/HYDRAULIC/MINNOW became "McCulloch Reservoir".
+            # The registry's name is carried alongside as `display_name`.
+            name = m.water
             ctx = build_parse_context(registry[m.item_id], raw_regs=raw, entry_id=eid,
                                       region=region_num(row), row_index=m.index, name=name,
                                       symbols=tuple(row.get("symbols", [])),
                                       review_hints=tuple((review_hints or {}).get(eid, ())),
-                                      also_items=tuple(registry[i] for i in m.also if i in registry))
+                                      also_items=tuple(registry[i] for i in m.also if i in registry),
+                                      row_mus=tuple(sorted(parse_reg_mus(row))))
             is_noreg = False
 
-        if flagged_ids is not None and eid not in flagged_ids:
-            skipped_existing.append(m.index)            # repass: only the review-flagged entries
+        if only_ids is not None and eid not in only_ids:
+            skipped_existing.append(m.index)            # a targeted subset (repass / review slice)
             continue
         if skip_existing and eid in existing_ids and not force:
             skipped_existing.append(m.index)
@@ -223,6 +236,14 @@ def main() -> None:
                     help="export ONLY entries whose combined regs differ from the already-parsed entry "
                     "(i.e. multi-row collisions + genuinely new/changed rows). The minimal re-parse set "
                     "after the per-row grouping fix — pair with `dispatch --force` on a fresh --out-dir.")
+    ap.add_argument("--unreviewed", action="store_true",
+                    help="REVIEW: export only entries with NO parse_review verdict yet. Resume is by "
+                    "ENTRY, not by batch — verdicts live on the entry, so a half-finished review run "
+                    "picks up exactly where it stopped even though the batch layout changed.")
+    ap.add_argument("--hardest", type=float, default=0.0, metavar="FRAC_OR_N",
+                    help="REVIEW: keep only the hardest entries by RULE COUNT — a fraction (0.5 = the "
+                    "worst half) or a count (>1). Combine with --unreviewed to review the hard half "
+                    "now and the rest later.")
     ap.add_argument("--flagged", action="store_true",
                     help="REPASS: export ONLY entries the review flagged (parse_review.verdict == "
                     "'changes_requested'), skipping locked ones; the reviewer's issues are passed to the "
@@ -238,21 +259,36 @@ def main() -> None:
     existing_regs = load_existing_entry_regs(entries_dir)
     existing = set(existing_regs)
 
-    flagged_ids = review_hints = None
+    only_ids = review_hints = None
     if args.flagged:
-        flagged_ids, review_hints = set(), {}
+        only_ids, review_hints = set(), {}
         for eid, e in io.read_entries_dir(entries_dir).items():
             pr = e.get("parse_review") or {}
             if pr.get("verdict") == "changes_requested" and not e.get("locked"):
-                flagged_ids.add(eid)
+                only_ids.add(eid)
                 review_hints[eid] = [
                     f"[{i.get('severity','?')}] {i.get('problem','')}"
                     + (f" -> fix: {i.get('fix')}" if i.get("fix") else "")
                     for i in (pr.get("issues") or [])]
+    elif args.unreviewed or args.hardest:
+        entries = io.read_entries_dir(entries_dir)
+        pool = {eid: e for eid, e in entries.items()
+                if not (args.unreviewed and ((e.get("parse_review") or {}).get("verdict")))}
+        if args.hardest:
+            # Rule count is the proxy for difficulty: a 1-rule lake is a sentence, an 8-rule river
+            # is several reaches, seasons and species. Ties broken by entry_id so the slice is
+            # deterministic and two runs never disagree about where the half is.
+            ranked = sorted(pool, key=lambda i: (-len(entries[i].get("rules") or []), i))
+            n = int(args.hardest) if args.hardest > 1 else round(len(ranked) * args.hardest)
+            pool = {eid: entries[eid] for eid in ranked[:max(0, n)]}
+        only_ids = set(pool)
+        print(f"  selector: {len(only_ids)} entr(y/ies)"
+              + (" unreviewed" if args.unreviewed else "")
+              + (f", hardest {args.hardest}" if args.hardest else ""))
 
     manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force,
                       skip_existing=args.skip_existing, only_changed=args.only_changed,
-                      existing_regs=existing_regs, flagged_ids=flagged_ids, review_hints=review_hints)
+                      existing_regs=existing_regs, only_ids=only_ids, review_hints=review_hints)
     print(f"Exported {manifest['pending_count']} rows into {len(manifest['batches'])} batch(es) -> {out_dir/'batches'}")
     print(f"  of those, no-registry (content-only, flagged): {manifest['no_registry_count']}")
     print(f"  held-back rows also parsed (no-registry): {len(manifest['unmatched'])}  "
@@ -262,8 +298,8 @@ def main() -> None:
                "unchanged (already parsed)" if args.only_changed else "already in EntryFiles")
         print(f"  dropped {len(manifest['skipped_existing'])} row(s) — {why}")
     if args.flagged:
-        print(f"  repass: {len(flagged_ids)} flagged entr(y/ies) requested; {manifest['pending_count']} exported")
-        if manifest["pending_count"] < len(flagged_ids):
+        print(f"  repass: {len(only_ids)} flagged entr(y/ies) requested; {manifest['pending_count']} exported")
+        if manifest["pending_count"] < len(only_ids):
             print("    ⚠ some flagged entries did not map to a current row (id drift / superseded / "
                   "locked) — not re-parsed")
     print("  (already-parsed batches are skipped at the parse step, not here)")

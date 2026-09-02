@@ -27,6 +27,9 @@ from pipeline.parsing.rows import symbols_include_tributaries
 from pipeline.parsing.species import prompt_menu
 
 _PROMPT = Path(__file__).resolve().parent / "prompts" / "PARSE_PROMPT.md"
+#: The canonical spelling of every rule statement. Appended to BOTH the parse and review prompts —
+#: they each cite it by name, and a spec the agent cannot see is not a spec.
+_STANDARDS = Path(__file__).resolve().parent / "prompts" / "RULE_STANDARDS.md"
 
 
 @dataclass(frozen=True)
@@ -34,8 +37,16 @@ class ParseContext:
     entry_id: str
     row_index: int = -1                               # synopsis global row index (the {index,entry} key)
     name: str = ""
+    #: What the registry calls the matched item. Kept beside `name`, never merged into it.
+    display_name: str = ""
     region: str = ""
+    #: Every MU the matched registry ITEM touches — a union, shown to the parser as orientation.
     mus: tuple[str, ...] = ()
+    #: The MUs of the synopsis ROW itself — the heading this regulation is printed under, and what
+    #: `entry_id` is built from. NOT the same as `mus`: the West Road ("Blackwater") River is one
+    #: item spanning 5-12, 5-13, 6-1, 7-8 and 7-10, but its region-5 row is printed under 5-13
+    #: alone. `identity.mus` must be this one, or an entry claims MUs its row never named.
+    row_mus: tuple[str, ...] = ()
     item_id: str = ""
     also_item_ids: tuple[str, ...] = ()               # a combined override's OTHER items (see below)
     item_kind: str = ""
@@ -58,13 +69,17 @@ class ParseContext:
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
                         region: str = "", row_index: int = -1, name: str = "",
                         symbols: tuple[str, ...] = (), review_hints: tuple[str, ...] = (),
-                        also_items: tuple[RegistryItem, ...] = ()) -> ParseContext:
+                        also_items: tuple[RegistryItem, ...] = (),
+                        row_mus: tuple[str, ...] = ()) -> ParseContext:
     """Assemble the constrained menu for one item: its bindable boundaries + identity. Area `within`
     targets are intentionally excluded — area scoping is a curation step (see module docstring).
 
-    `name` overrides the displayed identity name — used when several synopsis rows share one registry
-    item (reach splits like "Elk River (downstream of Elko Dam)"): each row becomes its OWN entry that
-    keeps its reach-qualified name, so the reach is visible and can scope the whole entry.
+    `name` is the SYNOPSIS row's own name and is carried through verbatim. It used to fall back to
+    `item.name` when a caller passed nothing, which silently replaced the synopsis name with the
+    registry's — and where several differently-named rows resolve to items sharing one collective
+    name, that made them look like duplicates of each other. INDATA, TCHENTLO, TSAYTA and CHUCHI
+    LAKE all became "Nation Lakes"; HAYNES/HYDRAULIC/MINNOW became "McCulloch Reservoir". The
+    registry's name is now carried separately as `display_name`, so both survive.
 
     `also_items` = the OTHER items a combined override pinned (`MatchResult.also`). One synopsis row can
     name several registry items — "CHILLIWACK / VEDDER RIVERS" is one row over Chilliwack River + Vedder
@@ -82,9 +97,11 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
     return ParseContext(
         entry_id=entry_id or item.id,
         row_index=row_index,
-        name=name or item.name,
+        name=name,                     # the synopsis's own words — never item.name
+        display_name=item.name,        # what the registry calls what it resolved to
         region=region,
         mus=tuple(sorted({m for it in items for m in it.mus})),
+        row_mus=tuple(row_mus),
         item_id=item.id,
         also_item_ids=tuple(it.id for it in also_items),
         item_kind=item.kind,
@@ -109,6 +126,7 @@ def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, regist
         name=name,
         region=region,
         mus=mus,
+        row_mus=tuple(mus),                # no registry item: the row's MUs are the only MUs
         item_id="",
         item_kind="",
         variants=(),
@@ -121,8 +139,9 @@ def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, regist
 
 
 def load_system_prompt() -> str:
-    """The stable parser instructions + worked examples (PARSE_PROMPT.md)."""
-    return _PROMPT.read_text(encoding="utf-8")
+    """The stable parser instructions + worked examples (PARSE_PROMPT.md) + RULE_STANDARDS.md."""
+    return (_PROMPT.read_text(encoding="utf-8") + "\n\n---\n\n"
+            + _STANDARDS.read_text(encoding="utf-8"))
 
 
 def render_boundary_menu(boundaries, owners=None) -> list[str]:
