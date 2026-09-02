@@ -16,6 +16,19 @@ WHAT COUNTS AS THE SAME WATER
     section reached by neither walk is in a different drainage and gets nothing, however
     close it looks on a map.
 
+    AND IT MUST BE IN THE GAUGE'S OWN WATERSHED. The walk alone is not enough, because
+    walking downstream from a tributary arrives at the mainstem — and a gauge on a
+    tributary has not seen the mainstem's water. SLESSE CREEK NEAR VEDDER CROSSING was
+    speaking for 13 reaches of the Chilliwack, 7 of them rated `fair`, off a creek carrying
+    a seventh of the river. The magnitude ratio cannot catch it: symmetric, it reads "the
+    creek is 14% of the river" as a moderately good description, when the honest reading is
+    that 86% of the water is unaccounted for.
+
+    So a reach qualifies only if its FWA watershed code IS the gauge's or DESCENDS from it —
+    "this water drains through that gauge". Directional by construction, which is the thing
+    a ratio can never be. Measured on the real bundle: 3,416 of 118,331 rows refused, 642 of
+    them previously rated `good`.
+
 HOW HONEST THE ANSWER IS
     ``stream_magnitude`` is the count of headwater links draining through a node — the
     graph's own proxy for discharge, and the only one that exists for every section. The
@@ -44,6 +57,8 @@ from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
+
+from pipeline.utils.wsc import trim_wsc as _trim
 
 # Fraction of the gauge's own drainage that this section accounts for.
 #
@@ -174,6 +189,23 @@ def lake_gauge_links(graph, stations: list[dict], node_for_station: dict[str, st
     )
 
 
+def drains_through(section_wsc: str, gauge_wsc: str) -> bool:
+    """Does water at ``section_wsc`` flow through a gauge at ``gauge_wsc``?
+
+    FWA watershed codes are hierarchical: a tributary's code is its trunk's code plus one
+    more segment. So the gauge's code being a PREFIX of the reach's means the reach drains
+    into the gauge — and the reverse means the gauge is on a tributary of the reach, which
+    is the direction that must be refused.
+
+    Dash-guarded, so `100-025956` never matches a sibling numbered `100-0259560`. An unknown
+    code on either side is a no: a shed built on a guess is the failure this file exists to
+    prevent.
+    """
+    if not section_wsc or not gauge_wsc:
+        return False
+    return section_wsc == gauge_wsc or section_wsc.startswith(gauge_wsc + "-")
+
+
 def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, str],
                       prefer: set[str] | None = None) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ALL gauges per section, best first.
@@ -234,7 +266,16 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
         gauge_mag = gauge_node.stream_magnitude
         if not gauge_mag:
             continue            # a gauge we cannot scale speaks for its own node only
+        gauge_wsc = _trim(getattr(gauge_node, "wsc", ""))
+        if not gauge_wsc:
+            continue            # nothing to bound the shed with; see `drains_through`
 
+        # PRUNING ONLY, and deliberately still on magnitude alone. `keep` controls whether
+        # the walk EXPANDS PAST a node as well as whether it yields it, and 417,420 of the
+        # province's 721,353 lake nodes carry no watershed code — testing drainage here
+        # would stop every walk at the first such lake and sever a river from its own
+        # headwaters. Whether a reach may be CLAIMED is decided below, where it is only a
+        # claim and not also a wall.
         def keep(node: str, _mag: int = gauge_mag) -> bool:
             return trust_for(graph.nodes[node].stream_magnitude, _mag) is not None
 
@@ -247,6 +288,13 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                 # A lake reached from a river gauge is skipped for the same reason as the
                 # reverse: the river's discharge is not the lake's level.
                 if is_lake_station(graph, sec):
+                    continue
+                # THE GAUGE MUST BE IN THIS REACH'S DRAINAGE. The walk can arrive at water
+                # the gauge has never seen — downstream from a tributary is the mainstem —
+                # and the magnitude ratio cannot tell the difference, because it is
+                # symmetric and the question is not. See `drains_through`.
+                if not drains_through(_trim(getattr(graph.nodes[sec], "wsc", "")),
+                                      gauge_wsc):
                     continue
                 mag = int(graph.nodes[sec].stream_magnitude)
                 band = trust_for(mag, gauge_mag)

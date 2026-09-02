@@ -235,3 +235,46 @@ Three things this deliberately does NOT do:
 The Province's attribution is required **verbatim** wherever a forecast appears. It lives in
 `pipeline/hydro/forecast.ATTRIBUTION` and in the app's attribution list, and the two must
 stay identical.
+
+## Where a gauge IS — one frozen fact, two consumers
+
+Everything about a station's position lives in **`pipeline/gauge_match.json`**, and nothing
+matches anything anywhere else.
+
+```
+data/bc_hydrometric_stations.json        fetched roster (fetch_data --layers hydrometric_stations)
+  │
+  │   python -m pipeline.hydro.match --build <a completed build>
+  ▼
+pipeline/gauge_match.json                COMMITTED. One row per station:
+  │                                        streams  wsc + blk + measure
+  │                                        lakes    wbk
+  │                                        neither  status=unresolved, with the reason
+  │
+  ├──► pipeline.build      a `gauge` point anchor at the station's coordinate, scoped by
+  │                        `wsc`, appended AFTER pipeline/splits.json and resolved by the
+  │                        same resolver → rivers get cut at their gauges
+  │
+  └──► pipeline.bundle     the node on `blk` whose measure range contains `measure`
+                           (or `lake:{wbk}`) in THAT build's graph → sheds, gauge table
+```
+
+**Why the keys are FWA's and not ours.** A node id is `{blk}:{down_m}` — build output, and it
+moves the moment a river is sectioned differently, which the gauge cuts do deliberately on
+the very next build. A match frozen as node ids is stale by construction. `wsc`, `blk`,
+`measure` and `wbk` all come out of the source data and survive any amount of re-cutting, so
+each consumer derives what it needs and no cached derivative can disagree with the original.
+
+**Why it is two-pass.** Matching compares a station's name against every name a node carries,
+and those include `name_variants.json`, which is applied *during* a build. So the match needs
+a completed build, and the build needs the match. Re-run the matcher after a station moves or
+a new one starts reporting; until then the cuts are one build behind, which is stated rather
+than hidden.
+
+**Why a tributary gauge cannot speak for its mainstem.** A shed is bounded by drainage as
+well as by the flow walk: a reach qualifies only if its watershed code IS the gauge's or
+descends from it. Walking downstream from a tributary arrives at the mainstem, and the
+magnitude ratio cannot refuse it because the ratio is symmetric and the question is not —
+SLESSE CREEK NEAR VEDDER CROSSING was speaking for 13 reaches of the Chilliwack off a creek
+carrying a seventh of the river, 7 of them rated `fair`. Measured: 3,416 of 118,331 rows
+refused, 642 of them previously `good`.

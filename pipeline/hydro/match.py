@@ -44,7 +44,7 @@ import json
 import re
 from pathlib import Path
 
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass, fields
 
 from pipeline.tiles.names import normalise
 
@@ -70,13 +70,35 @@ NO_MATCH: dict[str, str] = {
 
 @dataclass(frozen=True)
 class StationMatch:
-    """One station's outcome, with the evidence."""
+    """One station's outcome, addressed by keys the FWA owns rather than by a node id.
+
+    NODE IDS ARE BUILD OUTPUT. `{blk}:{down_m}` is assigned by the sectionizer, so it moves
+    the moment a river is cut differently — which the gauge splits do, deliberately, on the
+    very next build. A match frozen as node ids is therefore stale by construction: it names
+    sections the graph it is being read against does not have.
+
+    `(blk, measure)` is the same address in FWA's own terms: a blue line and a position along
+    it, both of which come out of the source data and survive any amount of re-sectioning.
+    Every consumer derives what it needs from it —
+
+        the build   a `gauge` point anchor at (lon, lat) scoped by `wsc`
+        the bundle  the node on `blk` whose measure range contains `measure`
+
+    — so there is one frozen fact and no cached derivative that can disagree with it.
+    """
     station: str
-    node_id: str | None
     status: str                  # matched | no_match | unresolved
     resolved_by: str | None      # name+radius | alias | override
     distance_m: float | None
     reason: str | None = None
+    # --- the stable address (empty when unmatched) ---
+    blk: str = ""                # FWA BLUE_LINE_KEY: which line
+    measure: float | None = None  # FWA route measure along it: where on the line
+    wsc: str = ""                # FWA watershed code: the river + its side channels
+    wbk: str = ""                # FWA waterbody key, when the station is on a lake
+    # --- review aids, never an input to anything ---
+    name: str = ""               # the water the atlas calls this, at the time of matching
+    node_id: str | None = None   # the node it matched IN THAT BUILD. Diagnostic only.
 
 
 def waterbody_name(station_name: str) -> str:
@@ -103,6 +125,28 @@ def _names(node) -> list[str]:
             seen.add(k)
             out.append(k)
     return out
+
+
+def _matched(station: str, node, node_id: str, how: str, distance: float | None,
+             geoms: dict, pt) -> StationMatch:
+    """Record a hit as an FWA ADDRESS: which blue line, and where along it.
+
+    The measure is the node's own start plus how far along its geometry the station
+    projects — the same arithmetic the sectionizer used to give the node its id, run
+    forwards. That is what makes the answer survive re-sectioning: the node it landed in
+    will be cut into three next build, and `(blk, measure)` will still name the middle one.
+    """
+    geom = geoms.get(node_id)
+    measure = None
+    if geom is not None and not geom.is_empty and getattr(node, "blk", ""):
+        measure = round(float(getattr(node, "down_m", 0.0) or 0.0)
+                        + float(geom.project(pt)), 1)
+    return StationMatch(
+        station=station, status="matched", resolved_by=how, distance_m=distance,
+        blk=str(getattr(node, "blk", "") or ""), measure=measure,
+        wsc=str(getattr(node, "wsc", "") or ""), wbk=str(getattr(node, "wbk", "") or ""),
+        name=str(getattr(node, "display_name", "") or ""), node_id=node_id,
+    )
 
 
 def match_stations(stations: list[dict], geoms: dict, graph, *,
@@ -142,19 +186,20 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
     for station, pt in zip(stations, pts):
         sid = station["station"]
         if sid in NO_MATCH:
-            out.append(StationMatch(sid, None, "no_match", None, None, NO_MATCH[sid]))
+            out.append(StationMatch(sid, "no_match", None, None, NO_MATCH[sid]))
             continue
         override = aliases.get(sid)
         if override:
             if override in graph.nodes:
-                out.append(StationMatch(sid, override, "matched", "override", None))
+                out.append(_matched(sid, graph.nodes[override], override, "override",
+                                    None, geoms, pt))
             else:
-                out.append(StationMatch(sid, None, "unresolved", None, None,
+                out.append(StationMatch(sid, "unresolved", None, None,
                                         f"override names {override!r}, not in this graph"))
             continue
         want = waterbody_name(station.get("name", ""))
         if not want:
-            out.append(StationMatch(sid, None, "unresolved", None, None,
+            out.append(StationMatch(sid, "unresolved", None, None,
                                     "no waterbody name could be parsed"))
             continue
         named: list[tuple[float, str]] = []
@@ -187,16 +232,55 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
         if named:
             named.sort()                     # closest of the correctly-named candidates
             d, node = named[0]
-            out.append(StationMatch(sid, node, "matched", "name+radius", round(d, 1)))
+            out.append(_matched(sid, graph.nodes[node], node, "name+radius", round(d, 1),
+                                geoms, pt))
         else:
-            out.append(StationMatch(sid, None, "unresolved", None, None,
+            out.append(StationMatch(sid, "unresolved", None, None,
                                     f"nothing named {want!r} within {radius_m:.0f} m"))
     return sorted(out, key=lambda m: m.station)
 
 
-def nodes_for(matches: list[StationMatch]) -> dict[str, str]:
-    """Just the resolved ones, as ``{station: node}`` — what the shed walk needs."""
-    return {m.station: m.node_id for m in matches if m.node_id}
+def nodes_for(matches: list[StationMatch], graph=None) -> dict[str, str]:
+    """`{station: node_id}` IN THE GRAPH YOU HAND IT, derived from the frozen address.
+
+    Without a graph this returns the node ids recorded when the match was made — correct
+    only for that same build, and the reason this argument exists at all. With one, each
+    station is placed by finding the node on its blue line whose measure range contains it,
+    which is pure arithmetic on FWA numbers and needs no geometry.
+
+    A station whose blue line was renumbered, or whose measure falls in a gap (an
+    under-lake run, a pruned piece), resolves to nothing rather than to a neighbour. A
+    silently-adjacent node is how a reading ends up on the wrong side of a confluence.
+    """
+    if graph is None:
+        return {m.station: m.node_id for m in matches if m.node_id}
+
+    by_blk: dict[str, list] = {}
+    for nid, n in graph.nodes.items():
+        blk = getattr(n, "blk", "")
+        if blk:
+            by_blk.setdefault(blk, []).append((float(n.down_m), float(n.up_m), nid))
+    for rows in by_blk.values():
+        rows.sort()
+
+    out: dict[str, str] = {}
+    for m in matches:
+        if m.status != "matched":
+            continue
+        # A LAKE STATION HAS NO MEASURE, and that is not a gap. It sits on a waterbody, not
+        # along a channel, so its stable address is the FWA waterbody key — and the lake
+        # node is named after it. Forgetting this emptied `lake_gauge` entirely: 220
+        # stations addressed by `wbk` fell through a branch that only understood blue lines.
+        if m.wbk and f"lake:{m.wbk}" in graph.nodes:
+            out[m.station] = f"lake:{m.wbk}"
+            continue
+        if not m.blk or m.measure is None:
+            continue
+        for down, up, nid in by_blk.get(m.blk, ()):
+            if down <= m.measure <= up:
+                out[m.station] = nid
+                break
+    return out
 
 
 def load_aliases(path: Path | None = None) -> dict[str, str]:
@@ -221,53 +305,37 @@ def load_aliases(path: Path | None = None) -> dict[str, str]:
             if not k.startswith("$")}
 
 
-#: Where a build keeps its own match. BESIDE THE BUILD, never in `data/`, because node ids
-#: are per-build: a match cached against one graph names sections another graph does not have.
-MATCH_CACHE = "gauge_nodes.json"
+#: THE ONE FROZEN FACT about where BC's gauges are, committed and reviewable.
+#:
+#: Beside `splits.json` and `added_streams.build.json`, and generated the same way: run it
+#: against a completed build, commit the answer, and the NEXT build reads it. It has to be
+#: two-pass because matching compares a station's name against every name a node carries,
+#: and those include `name_variants.json`, which is applied during the build.
+MATCH_FILE = Path(__file__).resolve().parents[1] / "gauge_match.json"
 
 
-def match_for_build(build_dir: Path, stations: list[dict] | None = None,
-                    *, refresh: bool = False) -> list[StationMatch]:
-    """THE match for one build. The only supported way to ask.
+def write_match(matches: list[StationMatch], path: Path | None = None) -> Path:
+    """Freeze the match. Sorted by station, so a diff reads as a list of gauges."""
+    path = path or MATCH_FILE
+    path.write_text(json.dumps({
+        "_about": "Where each hydrometric station sits, as FWA keys — blue line, route "
+                  "measure, watershed code — NOT as node ids, which move whenever a river "
+                  "is re-sectioned. GENERATED by `python -m pipeline.hydro.match --build "
+                  "<a completed build>`; do not hand-edit. Read by pipeline.build (to cut "
+                  "rivers at their gauges) and by pipeline.bundle (to build sheds).",
+        "stations": [asdict(m) for m in sorted(matches, key=lambda m: m.station)],
+    }, indent=1) + "\n", encoding="utf-8")
+    return path
 
-    TWO CONSUMERS, ONE ANSWER. The bundle needs `{station: node}` to build sheds and the
-    gauge table; `pipeline.hydro.splits` needs it to decide which water a station's cut
-    belongs to. Both used to call `match_stations` themselves, which is two call sites that
-    could drift apart on the alias file, the radius, or which stations were passed — and
-    the failure would be silent, because each half would look internally consistent while
-    describing a different set of gauges.
 
-    Now they call this, and it caches to ``build_dir/gauge_nodes.json``. Whoever runs first
-    warms it; the second reads the same bytes. Two consumers, one answer, by construction.
-
-    The match survives a regulation edition — only a new FWA or a moved station invalidates
-    it — so the cache is cheap to keep and expensive to recompute (it needs the 2 GB
-    geometry sidecar and an STRtree over every node in the province).
-    """
-    import pickle
-
-    from pipeline.hydro.shed import load_stations
-
-    cache = Path(build_dir) / MATCH_CACHE
-    if not refresh:
-        cached = load_matches(cache)
-        if cached:
-            return cached
-
-    graph_path = Path(build_dir) / "graph.pkl"
-    geom_path = Path(build_dir) / "geometries.pkl"
-    if not graph_path.exists() or not geom_path.exists():
+def read_match(path: Path | None = None) -> list[StationMatch]:
+    """The frozen match, or an empty list if it has never been generated."""
+    path = path or MATCH_FILE
+    if not path.exists():
         return []
-
-    rows = stations if stations is not None else load_stations(
-        Path("data/bc_hydrometric_stations.json"))
-    with graph_path.open("rb") as fh:
-        graph = pickle.load(fh)
-    with geom_path.open("rb") as fh:
-        geoms = pickle.load(fh)
-    matches = match_stations(rows, geoms, graph, aliases=load_aliases())
-    save_matches(cache, matches)
-    return matches
+    rows = json.loads(path.read_text(encoding="utf-8")).get("stations", [])
+    known = {f.name for f in fields(StationMatch)}
+    return [StationMatch(**{k: v for k, v in r.items() if k in known}) for r in rows]
 
 
 def load_matches(path: Path) -> list[StationMatch]:
@@ -293,3 +361,39 @@ def summarise(matches: list[StationMatch], live: set[str] | None = None) -> str:
     return (f"{by['matched']}/{len(rows)} matched ({by['matched']/total:.1%})"
             f"  · " + ", ".join(f"{n} by {k}" for k, n in sorted(how.items()))
             + f"  · {by['no_match']} no_match, {by['unresolved']} unresolved")
+
+
+def main() -> None:
+    """Freeze the match against a completed build. See `MATCH_FILE`."""
+    import argparse
+    import pickle
+
+    from pipeline.hydro.shed import load_stations
+
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--build", type=Path, default=Path("output/v2/full"),
+                    help="a completed build directory (graph.pkl, geometries.pkl)")
+    ap.add_argument("--stations", type=Path,
+                    default=Path("data/bc_hydrometric_stations.json"))
+    ap.add_argument("--out", type=Path, default=MATCH_FILE)
+    a = ap.parse_args()
+
+    if not (a.build / "graph.pkl").exists():
+        raise SystemExit(f"no completed build at {a.build} (needs graph.pkl + geometries.pkl)")
+    with (a.build / "graph.pkl").open("rb") as fh:
+        graph = pickle.load(fh)
+    with (a.build / "geometries.pkl").open("rb") as fh:
+        geoms = pickle.load(fh)
+
+    matches = match_stations(load_stations(a.stations), geoms, graph,
+                             aliases=load_aliases())
+    print(summarise(matches))
+    write_match(matches, a.out)
+    placed = sum(1 for m in matches if m.status == "matched" and m.measure is not None)
+    print(f"wrote {a.out}  ({placed} stations addressed by blue line + measure)")
+    print("  next: python -m pipeline.build   (cuts rivers at their gauges)")
+    print("        python -m pipeline.bundle  (reads the same file for its sheds)")
+
+
+if __name__ == "__main__":
+    main()

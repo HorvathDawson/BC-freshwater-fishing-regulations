@@ -239,10 +239,6 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
 
 
 _ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "added_streams.build.json"
-# Hydrometric stations as split definitions, frozen from a completed build's match by
-# `python -m pipeline.hydro.splits`. Loaded beside splits.json and resolved by the same
-# resolver — see the comment where it is read.
-_GAUGE_SPLITS_JSON = Path(__file__).resolve().parent / "gauge_splits.json"
 _ADDED_LAKES_GEOJSON = Path(__file__).resolve().parent / "added_lakes.geojson"
 _DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"
 
@@ -552,16 +548,17 @@ def main() -> None:
             raise SystemExit(f"splits file not found: {_sp}  (pass --splits, or --no-splits to skip)")
         splits = load_split_defs(str(_sp))
         print(f"curated splits: {len(splits)} from {_sp}")
-        # GAUGE SPLITS RIDE IN AS ORDINARY SPLIT DEFS, SECOND.
+        # GAUGE CUTS RIDE IN AS ORDINARY SPLIT DEFS, SECOND.
         #
         # A section takes ONE station: the one that most nearly is that water. On a river of
         # 20 sections with 18 stations that means the reading at Hope is claimed for water at
         # Lillooet, because one section runs between them. The answer is not a better ranking
         # but a shorter reach — a gauge is the boundary between two measurements.
         #
-        # They are `gauge` point anchors scoped by WSC, frozen from a completed build's match
-        # by `python -m pipeline.hydro.splits` (that module documents the whole flow and why
-        # it has to be two-pass).
+        # They are `gauge` point anchors scoped by WSC, derived here from
+        # `pipeline/gauge_match.json` — the one frozen record of where BC's gauges are,
+        # written by `python -m pipeline.hydro.match --build <a completed build>` and read
+        # by this and by `pipeline.bundle`. `pipeline/hydro/splits.py` draws the flow.
         #
         # AFTER the curated ones, and that order is load-bearing rather than tidy: proximity
         # pickup means a station near a hand-authored boundary REUSES it instead of cutting a
@@ -571,10 +568,19 @@ def main() -> None:
         # Appended rather than resolved separately so there is ONE resolver, one set of rules
         # about braids and offsets and proximity, and one place a curator reviews every cut in
         # the province — splits.resolved.json and the gpkg both.
-        if not args.no_gauge_splits and _GAUGE_SPLITS_JSON.exists():
-            gauge_defs = load_split_defs(str(_GAUGE_SPLITS_JSON))
-            splits = list(splits) + list(gauge_defs)
-            print(f"gauge splits:   {len(gauge_defs)} from {_GAUGE_SPLITS_JSON.name}")
+        if not args.no_gauge_splits:
+            from pipeline.hydro.match import read_match
+            from pipeline.hydro.shed import load_stations
+            from pipeline.hydro.splits import split_defs as _gauge_defs
+            from pipeline.models.splits import SplitDef
+            _matches = read_match()
+            if _matches:
+                _rows = _gauge_defs(_matches, load_stations(Path("data") /
+                                                            "bc_hydrometric_stations.json"))
+                splits = list(splits) + [SplitDef.from_dict(r) for r in _rows]
+                print(f"gauge cuts:     {len(_rows)} from gauge_match.json")
+            else:
+                print("gauge cuts:     none — run `python -m pipeline.hydro.match --build …`")
     applied_splits: list = []
     if splits:
         from pipeline.splits.anchors import resolve_split_defs

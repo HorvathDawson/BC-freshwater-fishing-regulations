@@ -264,23 +264,26 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     import pickle
 
     from pipeline.hydro import build_gauge_sheds, lake_gauge_links
-    from pipeline.hydro.match import match_for_build, nodes_for, summarise
+    from pipeline.hydro.match import nodes_for, read_match, summarise
     from pipeline.hydro.shed import downstream_map, load_stations
 
     stations = load_stations(stations_path)
     with graph_path.open("rb") as fh:
         graph = pickle.load(fh)
 
-    # ONE MATCH PER BUILD, shared with `pipeline.hydro.splits` — see `match_for_build`.
-    # Whichever runs first warms `build_dir/gauge_nodes.json`; the other reads the same
-    # bytes, so the gauge table and the gauge splits cannot describe different stations.
-    matches = match_for_build(build_dir, stations)
+    # THE FROZEN MATCH — `pipeline/gauge_match.json`, the same file the build read to cut
+    # rivers at their gauges. Nothing is matched here: a station is addressed by blue line
+    # and route measure, both FWA's own, and `nodes_for` places it in THIS graph by finding
+    # the node whose measure range contains it. That is why nothing goes stale when the
+    # sectionizer cuts differently — node ids move, blue lines and measures do not.
+    matches = read_match()
     if not matches:
-        cov.skip("section_gauge", f"no {geom_path.name} and no cached match")
+        cov.skip("section_gauge", "no pipeline/gauge_match.json — run "
+                                  "`python -m pipeline.hydro.match --build <build>`")
         cov.skip("section_down", "needs section_gauge")
         return
 
-    matched = nodes_for(matches)
+    matched = nodes_for(matches, graph)
     prov = {m.station: m for m in matches}
 
     # section -> the item that owns it, so a client can name the water, not just the gauge.

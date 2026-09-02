@@ -21,7 +21,7 @@ import { statusWord, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useWaterGauge, useWaterSheet } from "@app/ui";
-import { Faces } from "./Faces";
+import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
 import { GaugeBadge } from "./GaugeBadge";
 import { StatusPill } from "./StatusPill";
@@ -81,7 +81,9 @@ export function WaterScreen({ source, item, on, group, palette, onBack, onCondit
     <ScrollView style={{ flex: 1, backgroundColor: palette.card }}
                 contentContainerStyle={{ paddingBottom: 32 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, gap: 10 }}>
-        {onBack && <Back palette={palette} onPress={onBack} />}
+        {/* THE SAME ROW, IN THE SAME PLACE, on both screens — see FaceBar. */}
+        <FaceBar palette={palette} face="regulations" onBack={onBack} backLabel="Back"
+                 onFace={(f) => { if (f === "conditions" && first) onConditions?.(first); }} />
         <Text style={{ ...TYPE.title, color: palette.ink }}>{s.name}</Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>
           {s.reaches.length} {s.reaches.length === 1 ? "stretch" : "stretches"}
@@ -95,8 +97,6 @@ export function WaterScreen({ source, item, on, group, palette, onBack, onCondit
             <GaugeBadge gauge={gauged.value} palette={palette} waterName={s.name} />
           </View>
         )}
-        <Faces palette={palette} face="regulations"
-               onFace={(f) => { if (f === "conditions" && first) onConditions?.(first); }} />
       </View>
 
       {/* ONE CONDITIONS SCREEN, REACHED ONE WAY.
@@ -177,6 +177,7 @@ function Section({ palette, title }: { palette: Palette; title: string }) {
   );
 }
 
+/** The plain back link, for the states where there is no sheet to put a FaceBar over. */
 function Back({ palette, onPress }: { palette: Palette; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Back">

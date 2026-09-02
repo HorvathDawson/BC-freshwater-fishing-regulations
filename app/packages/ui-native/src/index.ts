@@ -15,7 +15,7 @@ export { SpotsScreen } from "./SpotsScreen";
 export { SpotCapture, type SpotCaptureProps } from "./SpotCapture";
 export { ChartControls } from "./ChartControls";
 export { ConditionsPanel } from "./ConditionsPanel";
-export { Faces, type Face } from "./Faces";
+export { FaceBar, type Face } from "./Faces";
 export { ConditionsScreen } from "./ConditionsScreen";
 export { SpotScreen } from "./SpotScreen";
 export { GaugeBadge } from "./GaugeBadge";

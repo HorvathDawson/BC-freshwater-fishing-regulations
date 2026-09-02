@@ -11,6 +11,7 @@ import pytest
 
 from pipeline.hydro.match import waterbody_name
 from pipeline.hydro.shed import (
+    drains_through,
     TRUST_BANDS,
     build_gauge_sheds,
     downstream_map,
@@ -21,16 +22,28 @@ from pipeline.models.enums import NodeKind
 from pipeline.models.graph import FlowEdge, StreamGraph, StreamNode
 
 
-def _node(node_id: str, mag: int | None, name: str = "") -> StreamNode:
-    return StreamNode(node_id=node_id, kind=NodeKind.stream, blk="1",
+#: One watershed unless a test says otherwise. A shed is bounded by the FWA watershed code
+#: as well as by the flow walk (see `drains_through`), so a fixture with no code gets no
+#: shed at all — which is correct behaviour and useless as a default for tests about ratios.
+TRUNK = "100-000001"
+
+
+def _node(node_id: str, mag: int | None, name: str = "",
+          wsc: str = TRUNK) -> StreamNode:
+    return StreamNode(node_id=node_id, kind=NodeKind.stream, blk="1", wsc=wsc,
                       display_name=name, stream_magnitude=mag)
 
 
-def _graph(nodes: dict[str, int | None], edges: list[tuple[str, str]]) -> StreamGraph:
-    """A tiny flow graph. `edges` are (from, to) = "from flows into to"."""
+def _graph(nodes: dict[str, int | None], edges: list[tuple[str, str]],
+           wsc: dict[str, str] | None = None) -> StreamGraph:
+    """A tiny flow graph. `edges` are (from, to) = "from flows into to".
+
+    `wsc` overrides a node's watershed code, for the tests that care which drainage a reach
+    is in rather than only how big it is.
+    """
     g = StreamGraph()
     for nid, mag in nodes.items():
-        g.nodes[nid] = _node(nid, mag)
+        g.nodes[nid] = _node(nid, mag, wsc=(wsc or {}).get(nid, TRUNK))
     for ix, (a, b) in enumerate(edges):
         g.edges.append(FlowEdge(from_node=a, to_node=b, at_measure=0.0))
         g.up_adj.setdefault(b, []).append(ix)
@@ -348,10 +361,10 @@ class TestMatchProvenance:
     def test_summarise_counts_by_outcome(self):
         from pipeline.hydro.match import StationMatch, summarise
         got = summarise([
-            StationMatch("a", "n1", "matched", "name+radius", 12.0),
-            StationMatch("b", "n2", "matched", "alias", 40.0),
-            StationMatch("c", None, "no_match", None, None, "tidal"),
-            StationMatch("d", None, "unresolved", None, None, "nothing named"),
+            StationMatch("a", "matched", "name+radius", 12.0, node_id="n1"),
+            StationMatch("b", "matched", "alias", 40.0, node_id="n2"),
+            StationMatch("c", "no_match", None, None, "tidal"),
+            StationMatch("d", "unresolved", None, None, "nothing named"),
         ])
         assert "2/4 matched" in got and "1 by alias" in got
         assert "1 no_match" in got and "1 unresolved" in got
@@ -360,8 +373,8 @@ class TestMatchProvenance:
         # The roster-wide rate is 89%; among TRANSMITTING stations it is 99%. Reporting the
         # first as the headline hides the only number a user can be affected by.
         from pipeline.hydro.match import StationMatch, summarise
-        rows = [StationMatch("live", "n", "matched", "name+radius", 1.0),
-                StationMatch("dead", None, "unresolved", None, None, "x")]
+        rows = [StationMatch("live", "matched", "name+radius", 1.0, node_id="n"),
+                StationMatch("dead", "unresolved", None, None, "x")]
         assert "1/1 matched (100.0%)" in summarise(rows, live={"live"})
 
 
@@ -408,3 +421,46 @@ class TestPreferTransmitting:
         # It is a ranking input, not a fact about the gauge. Liveness belongs to the feed.
         for l in self._two({"08LIVE"}):
             assert not hasattr(l, "live") and not hasattr(l, "realtime")
+
+
+class TestTheGaugeMustBeInTheDrainage:
+    """A ratio cannot tell you which way the water is going. A watershed code can."""
+
+    def test_a_tributary_gauge_does_not_speak_for_the_mainstem(self):
+        # SLESSE CREEK NEAR VEDDER CROSSING was speaking for 13 reaches of the Chilliwack,
+        # 7 of them `fair`, off a creek carrying a seventh of the river. The magnitude ratio
+        # reads "the creek is 14% of the river" as a moderately good description; the honest
+        # reading is that 86% of the water is unaccounted for.
+        g = _graph({"trib": 313, "main": 2236},
+                   [("trib", "main")],
+                   wsc={"trib": TRUNK + "-282809", "main": TRUNK})
+        links = build_gauge_sheds(g, [{"station": "08MH056"}], {"08MH056": "trib"})
+        assert {l.section_id for l in links} == {"trib"}
+
+    def test_a_mainstem_gauge_still_speaks_upstream_within_its_own_watershed(self):
+        # The direction that IS legitimate: water at the upper reach flows through the gauge,
+        # so the gauge has already counted it.
+        g = _graph({"upper": 1800, "gauged": 2236}, [("upper", "gauged")])
+        links = build_gauge_sheds(g, [{"station": "08MH001"}], {"08MH001": "gauged"})
+        assert {l.section_id for l in links} == {"upper", "gauged"}
+
+    def test_a_reach_with_no_watershed_code_is_refused_rather_than_guessed(self):
+        g = _graph({"a": 100, "b": 100}, [("a", "b")], wsc={"a": "", "b": ""})
+        assert build_gauge_sheds(g, [{"station": "X"}], {"X": "b"}) == []
+
+
+class TestDrainsThrough:
+    def test_a_descendant_drains_through_its_trunk(self):
+        assert drains_through("100-1-2", "100-1")
+
+    def test_a_trunk_does_not_drain_through_its_tributary(self):
+        # The whole point. This is the Slesse case, stated as arithmetic.
+        assert not drains_through("100-1", "100-1-2")
+
+    def test_a_sibling_is_not_a_descendant(self):
+        # Dash-guarded, so 100-1 never swallows 100-10.
+        assert not drains_through("100-10", "100-1")
+
+    def test_an_unknown_code_is_a_no_on_either_side(self):
+        assert not drains_through("", "100-1")
+        assert not drains_through("100-1", "")

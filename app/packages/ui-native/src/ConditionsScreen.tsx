@@ -6,12 +6,11 @@
  * the water sheet's Conditions face — two layouts, two vocabularies, and only one of them
  * had the chart controls. Both now render the same component.
  */
-import { Pressable, Text, View } from "react-native";
+import { View } from "react-native";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { ConditionsPanel } from "./ConditionsPanel";
-import { Faces } from "./Faces";
-import { TYPE } from "./type";
+import { FaceBar } from "./Faces";
 import type { Palette } from "./theme";
 
 export function ConditionsScreen({ source, section, palette, onBack, tiles, theme,
@@ -35,16 +34,9 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
-      <View style={{ paddingHorizontal: 18, paddingTop: 14, gap: 12 }}>
-        <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back">
-          <Text style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }}>
-            ‹  Conditions
-          </Text>
-        </Pressable>
-        {/* The same two buttons the rules sheet shows, and the same behaviour: pressing the
-            other one LEAVES. Two surfaces answering one question is what this replaced. */}
-        <Faces palette={palette} face="conditions"
-               onFace={(f) => { if (f === "regulations") onRegulations?.(section); }} />
+      <View style={{ paddingHorizontal: 18, paddingTop: 14 }}>
+        <FaceBar palette={palette} face="conditions" onBack={onBack} backLabel="Conditions"
+                 onFace={(f) => { if (f === "regulations") onRegulations?.(section); }} />
       </View>
       <ConditionsPanel source={source} section={section} palette={palette}
                        tiles={tiles} theme={theme}
