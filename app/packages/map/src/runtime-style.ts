@@ -135,19 +135,39 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           "fill-opacity": resolveTheme(theme)["opacity.outside"] as number,
         },
       }] : []),
-      // THE GAUGES, above the water and above the labels: they are the answer the
-      // Conditions view exists to give, and a reading hidden behind a place name is a
-      // reading nobody reads. Drawn as a dot plus its own number — never a dot alone,
-      // because a bare dot says "something is here" and the number is the point.
-      // The halo and the dot's stroke are the PAPER the mark sits on — the same colour the
-      // map already uses for ground outside the province. A second near-white token would
-      // only ever hold the same value, and two names for one meaning is how a palette drifts.
+      ...MAP_STYLE.layers.map((l) => {
+        const view = defaultView();
+        const mode = modes[l.id] ?? view?.modes[l.id];
+        if (!mode) return l;
+        return { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) };
+      }),
+      /**
+       * THE GAUGES, LAST — which is what puts them ON TOP.
+       *
+       * They were written above this line and drew UNDERNEATH every river, because a
+       * MapLibre style is painted in array order and the comment saying "above the water"
+       * was describing an intention rather than the code. A gauge dot under a two-pixel
+       * river line is a dot you cannot see and cannot tap.
+       *
+       * Drawn as a dot plus its own number — never a dot alone, because a bare dot says
+       * "something is here" and the number is the point. The halo and the dot's stroke are
+       * the PAPER the mark sits on — the same colour the map already uses for ground
+       * outside the province. A second near-white token would only ever hold the same
+       * value, and two names for one meaning is how a palette drifts.
+       */
       ...(at.gauges ? [
         // THE DOT IS THE SAME COLOUR AS ITS RIVER. It reads the percentile off the
         // feature and runs it through the same ramp the stream layer uses, so a gauge and
         // the water it measures can never disagree on screen. A dot in a colour of its own
         // would be a second scale the reader has to learn.
+        //
+        // THE FILTER IS THE ZOOM LADDER. Tile features thin out on their own because
+        // tippecanoe stamped a minzoom on each; a GeoJSON source does not, so every station
+        // in the province drew at every zoom and a creek gauge sat over country where its
+        // creek disappeared four zooms ago. `minz` comes from `@app/core/ladder`, which a
+        // test holds equal to the pipeline's — so a dot appears exactly when its water does.
         { id: "gauge-dot", type: "circle" as const, source: "gauges",
+          filter: ["<=", ["get", "minz"], ["zoom"]],
           paint: {
             "circle-radius": 5,
             "circle-color": rampExpression(theme),
@@ -155,6 +175,11 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
             "circle-stroke-color": paper,
           } },
         { id: "gauge-label", type: "symbol" as const, source: "gauges",
+          // Labels come in a zoom LATER than their dot. At the zoom a river first appears
+          // the map is at its most crowded and the reading is not yet the question being
+          // asked; the dot alone says "there is a gauge here", which is enough until you
+          // are close enough to fish it.
+          filter: ["<=", ["+", ["get", "minz"], 1], ["zoom"]],
           layout: {
             "text-field": ["get", "label"],
             "text-font": ["Noto Sans Medium"],
@@ -175,12 +200,6 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
             "text-halo-blur": 0.4,
           } },
       ] : []),
-      ...MAP_STYLE.layers.map((l) => {
-        const view = defaultView();
-        const mode = modes[l.id] ?? view?.modes[l.id];
-        if (!mode) return l;
-        return { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) };
-      }),
     ],
   };
 }

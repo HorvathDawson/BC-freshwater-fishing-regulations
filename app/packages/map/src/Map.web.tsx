@@ -221,7 +221,14 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     // is mounted and settled before the effect runs. Ask once immediately.
     if (m.isStyleLoaded()) report();
     return () => { m.off("idle", report); };
-  }, []);
+    // ASKING AGAIN WHEN SOMEONE STARTS LISTENING is the whole reason this depends on
+    // anything. `onVisible` is undefined on the Map tab and defined on Conditions, and the
+    // map is NOT remounted between them — so switching tabs left a settled map that would
+    // not fire `idle` again until you panned. Nobody had reported what was on screen, the
+    // standings map stayed empty, and every river painted as unmeasured until you nudged
+    // it. Keyed on whether a listener exists rather than on its identity, so a caller
+    // passing an inline arrow still cannot make this thrash.
+  }, [onVisible !== undefined]);
 
   useEffect(() => {
     const m = map.current;

@@ -10,6 +10,7 @@
  * Stations with no reading today are DROPPED rather than drawn bare. A dot with no number
  * invites the reader to assume the map failed rather than that the station is quiet.
  */
+import { zoomForMagnitude } from "@app/core";
 import type { GaugeFeed } from "@app/data";
 
 export interface GaugePoint {
@@ -17,6 +18,8 @@ export interface GaugePoint {
   name: string;
   lon: number;
   lat: number;
+  /** FWA stream magnitude at the station's node. Null when the node never got one. */
+  mag?: number | null;
 }
 
 type Index = Awaited<ReturnType<GaugeFeed["index"]>>;
@@ -55,8 +58,17 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index): strin
     features.push({
       type: "Feature" as const,
       geometry: { type: "Point" as const, coordinates: [p.lon, p.lat] },
+      // `minz` IS THE LADDER, precomputed here rather than expressed in the style.
+      //
+      // A tile feature carries the zoom it appears at because tippecanoe stamped it; a
+      // GeoJSON source carries nothing, so without this every station in the province drew
+      // at every zoom and a creek gauge floated over country where its creek had vanished
+      // four zooms earlier. Stamping the number here keeps the style's filter to a single
+      // comparison, and keeps the ladder itself in ONE place (`@app/core/ladder`) that a
+      // test holds equal to the pipeline's.
       properties: { station: p.station, name: p.name, label,
-                    percentile: row.percentile },
+                    percentile: row.percentile,
+                    minz: zoomForMagnitude(p.mag ?? null) },
     });
   }
   return features.length

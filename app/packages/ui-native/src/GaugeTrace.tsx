@@ -13,13 +13,27 @@
  * `@app/core/trace`; this file only lays them out.
  */
 import { Text, View } from "react-native";
-import { distanceWord, onTheReach, shareWord, traceSentence, trustWord,
+import { distanceWord, onTheReach, routeCamera, shareWord, traceSentence, trustWord,
          type GaugeTrace as Trace } from "@app/core";
+import type { TileEndpoints } from "@app/map";
+import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-export function GaugeTrace({ trace, palette, title = "How this spot reaches the gauge" }:
-  { trace: Trace; palette: Palette; title?: string }) {
+export function GaugeTrace({ trace, palette, title = "How this spot reaches the gauge",
+                             at, theme }:
+  { trace: Trace; palette: Palette; title?: string;
+    /**
+     * The tiles, when the caller has them — then the route is DRAWN as well as described.
+     *
+     * Optional because two of the three callers may not have them: a saved spot pinned
+     * before this existed carries no station coordinate, and a trace with no station has no
+     * route to draw. The words are the panel; the map is an addition to them.
+     */
+    at?: TileEndpoints; theme?: string }) {
+  // Centred on the station, zoomed by hop count — see `routeCamera` for why it is not
+  // fitted to the path (nothing client-side knows where a reach is).
+  const camera = routeCamera(trace);
   const facts: [string, string | null][] = [
     ["distance", onTheReach(trace) ? "on the reach" : distanceWord(trace.metres)],
     ["this reach", trace.reachMagnitude === null ? null : `magnitude ${trace.reachMagnitude}`],
@@ -40,6 +54,17 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
           </Text>
         )}
       </View>
+
+      {/* THE ROUTE, drawn on the same tiles and the same renderer as the full map — a
+          thumbnail built from a second renderer is a second map, and two maps drift. The
+          reaches between here and the station are highlighted, so the chain the facts below
+          are counting is the chain you can see. */}
+      {at && theme && camera && (
+        <MiniMap at={at} palette={palette} theme={theme} camera={camera} height={168}
+                 view="plain" highlight={trace.path}
+                 hint={`${trace.station} · ${trace.path.length} ` +
+                       `${trace.path.length === 1 ? "reach" : "reaches"}`} />
+      )}
 
       <View>
         {facts.map(([label, value], i) => (

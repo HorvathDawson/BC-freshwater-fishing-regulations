@@ -10,11 +10,11 @@
  * It decides nothing. Every outcome comes from `evaluate()` in core; this assembles the
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
-import { evaluate, gaugeTrust, type PlainDate, type Rule, type RuleKind, type SpeciesGroup,
-         type Status, type Window } from "@app/core";
+import { evaluate, gaugeTrust, type Band, type PlainDate, type Rule, type RuleKind,
+         type SpeciesGroup, type Status, type Window } from "@app/core";
 import type {
-  Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, PlaceHit,
-  PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
+  Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
+  PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
 } from "../index";
 import * as Q from "./queries";
 import { json, num, str, type Db, type Row } from "./db";
@@ -44,7 +44,14 @@ export interface BundleSourceOptions {
   /** The live feed. Absent means conditions render as "we could not check", never as a number. */
   feed?: {
     now(station: StationId): Promise<Aged<Reading> | null>;
-    series(station: StationId, span: "72h" | "year"): Promise<Aged<Series> | null>;
+    /** Raw observations, with no envelope — this source supplies the other half. */
+    observations?(station: StationId): Promise<{
+      fetchedAt: number; from: string; parameter: Parameter;
+      at: readonly string[];
+      discharge: readonly (number | null)[];
+      level: readonly (number | null)[];
+      forecast: Series["forecast"];
+    } | null>;
     /**
      * The stations transmitting right now — membership IS the answer.
      *
@@ -206,15 +213,97 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     },
 
     async gaugePoints(): Promise<readonly { station: StationId; name: string;
-                                            lon: number; lat: number }[]> {
+                                            lon: number; lat: number;
+                                            mag: number | null }[]> {
       return (await db.all(Q.GAUGE_POINTS)).map((r) => ({
         station: str(r.station) as StationId, name: str(r.name),
         lon: Number(r.lon), lat: Number(r.lat),
+        // NULL stays null. A station whose node has no magnitude is unmeasured, not tiny,
+        // and a zero would push it to the bottom of the ladder as if it were a ditch.
+        mag: r.mag === null || r.mag === undefined ? null : Number(r.mag),
       }));
     },
 
     async gaugeNow(station) { return (await opts.feed?.now(station)) ?? null; },
-    async gaugeSeries(station, span) { return (await opts.feed?.series(station, span)) ?? null; },
+    /**
+     * THE JOIN. Observations from the feed, envelope from the bundle, one axis.
+     *
+     * They live apart because they change apart: a reading is thirty minutes old and a
+     * climatology is a year old, and putting the envelope in the feed would mean
+     * republishing 440 stations' history every half hour to carry numbers that did not
+     * move. Neither half is a chart on its own — a line with no envelope cannot say
+     * whether today is unusual, and an envelope with no line does not say where today is.
+     *
+     * TWO SPANS, TWO DIFFERENT AXES:
+     *
+     *   72h    the observations, at 30-minute steps, over the envelope for those days.
+     *          What is the river doing right now.
+     *   year   the whole envelope, 73 pentads, with today's reading marked on it. There
+     *          are NO observations here and that is honest rather than missing: the daily
+     *          record for the current year is not published anywhere we read. The shape of
+     *          the year and where today sits in it is the question, and it is answered.
+     */
+    async gaugeSeries(station, span, parameter): Promise<Aged<Series> | null> {
+      const obs = (await opts.feed?.observations?.(station)) ?? null;
+      // Which quantity. The caller's choice wins; failing that, the station's own — never
+      // a default, because "discharge" is wrong for the 237 stations that never measure it.
+      const param: Parameter = parameter ?? obs?.parameter ?? "discharge";
+      const clim = await db.all(Q.CLIMATOLOGY, station, param);
+      const pentads: (Band | null)[] = Array.from({ length: 73 }, () => null);
+      for (const r of clim) {
+        const i = Number(r.pentad);
+        if (i >= 0 && i < 73 && r.p10 !== null)
+          pentads[i] = [Number(r.p10), Number(r.p25), Number(r.p50),
+                        Number(r.p75), Number(r.p90)] as Band;
+      }
+      const hasClim = pentads.some((b) => b !== null);
+      // THE FORECAST IS IN CUBIC METRES A SECOND, ALWAYS. The BC River Forecast Centre
+      // models discharge; a station like the Fraser at Mission reports STAGE, so pinning
+      // its 3,157 m3/s outlook onto a chart of metres would put two units on one axis and
+      // draw a forecast a hundred times off the frame. Only offered where the chart is
+      // already in the forecast's own unit.
+      const outlook = (p: Parameter, f: Series["forecast"]) => (p === "discharge" ? f : null);
+
+      if (span === "year") {
+        if (!hasClim) return null;      // a year chart with no envelope has nothing to draw
+        const at = obs?.at.length ? new Date(obs.at[obs.at.length - 1]!) : new Date();
+        const reading = obs
+          ? last(param === "level" ? obs.level : obs.discharge) : null;
+        return {
+          fetchedAt: obs?.fetchedAt ?? Date.now(),
+          value: {
+            step: "5d", from: `${at.getUTCFullYear()}-01-01`, parameter: param,
+            // No observations on this axis — see the doc comment. Nulls, not zeros.
+            values: pentads.map(() => null),
+            band: pentads,
+            now: reading === null ? null : { index: pentadOf(at), value: reading },
+            forecast: outlook(param, obs?.forecast ?? null),
+          },
+        };
+      }
+
+      if (!obs) return null;
+      const values = param === "level" ? obs.level : obs.discharge;
+      // The envelope is sampled every five days; each observation takes the band for the
+      // pentad its own timestamp falls in, so a series spanning a month bends with it.
+      const band = obs.at.map((t: string) => pentads[pentadOf(new Date(t))] ?? null);
+      const idx = lastIndex(values);
+      return {
+        fetchedAt: obs.fetchedAt,
+        value: {
+          step: "1h", from: obs.from, parameter: param,
+          values, band,
+          now: idx < 0 ? null : { index: idx, value: values[idx]! },
+          forecast: outlook(param, obs.forecast),
+        },
+      };
+    },
+
+    async gaugeParameters(station): Promise<readonly Parameter[]> {
+      const rows = await db.all(Q.CLIM_PARAMETERS, station);
+      return rows.map((r) => str(r.parameter) as Parameter)
+        .filter((p): p is Parameter => p === "discharge" || p === "level");
+    },
 
     async traceToGauge(from): Promise<readonly SectionId[]> {
       // Walk the stored pointers. They exist only inside a gauge's watershed, which is
@@ -290,3 +379,34 @@ function link(r: Row | undefined, section: SectionId | null,
 }
 
 export { gaugeTrust };
+
+
+/**
+ * Which five-day bucket of the year a moment falls in, 0..72.
+ *
+ * The envelope is sampled every five days rather than every day because the percentiles
+ * themselves are noisy at daily resolution — the p90 of one calendar date across 40 years is
+ * 40 numbers, and the 366 of them do not form a smooth curve. Pooling five days is what
+ * makes the band read as a season instead of as static.
+ *
+ * 29 February shares the bucket before it, so the ladder does not shift by a day every four
+ * years and a leap-year reading is not compared against the wrong week.
+ */
+function pentadOf(when: Date): number {
+  const start = Date.UTC(when.getUTCFullYear(), 0, 1);
+  const day = Math.floor((Date.UTC(when.getUTCFullYear(), when.getUTCMonth(),
+                                   when.getUTCDate()) - start) / 86_400_000);
+  return Math.min(72, Math.floor(day / 5));
+}
+
+/** The last value that is actually a number, or null. A trailing gap is not a reading. */
+function last(values: readonly (number | null)[]): number | null {
+  const i = lastIndex(values);
+  return i < 0 ? null : values[i]!;
+}
+
+function lastIndex(values: readonly (number | null)[]): number {
+  for (let i = values.length - 1; i >= 0; i--)
+    if (values[i] !== null && Number.isFinite(values[i]!)) return i;
+  return -1;
+}

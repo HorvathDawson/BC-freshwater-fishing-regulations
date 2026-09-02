@@ -109,13 +109,19 @@ async function traceFor(source: RegsSource, section: SectionId | null):
   const link = await source.gaugeForSection(section);
   if (!link || link.trust === "none")
     return { station: null, stationName: null, trust: null, path: [],
-             metres: null, reachMagnitude: null, gaugeMagnitude: null };
+             metres: null, reachMagnitude: null, gaugeMagnitude: null,
+             lon: null, lat: null };
   return {
     station: link.station, stationName: link.name, trust: link.trust,
     path: await source.traceToGauge(section),
     metres: null,
     reachMagnitude: link.reachMagnitude || null,
     gaugeMagnitude: link.gaugeMagnitude || null,
+    // FROZEN WITH THE REST OF THE SPOT. The station does not move, but a spot pinned
+    // before this field existed carries null and draws no route — which is the truth about
+    // what was recorded, not a failure to load.
+    lon: link.lon,
+    lat: link.lat,
   };
 }
 

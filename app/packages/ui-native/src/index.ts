@@ -13,6 +13,7 @@ export { SearchScreen } from "./SearchScreen";
 export { MapScreen } from "./MapScreen";
 export { SpotsScreen } from "./SpotsScreen";
 export { SpotCapture, type SpotCaptureProps } from "./SpotCapture";
+export { ChartControls } from "./ChartControls";
 export { ConditionsScreen } from "./ConditionsScreen";
 export { SpotScreen } from "./SpotScreen";
 export { GaugeBadge } from "./GaugeBadge";

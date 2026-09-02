@@ -163,10 +163,14 @@ const inShed = new Set(Object.keys(src.gauge_shed));
 counts.section_down = insert("INSERT OR REPLACE INTO section_down VALUES (?,?)",
   Object.entries(src.down).filter(([s]) => inShed.has(s)).sort());
 
-counts.gauge_clim = insert("INSERT OR REPLACE INTO gauge_clim VALUES (?,?,?,?,?,?,?)",
+// KEYED BY PARAMETER, because a station measuring both stage and discharge has TWO
+// envelopes in two different units. The design deck only carries the discharge one, so
+// that is what this writes — labelled, rather than left ambiguous for a reader to assume.
+counts.gauge_clim = insert("INSERT OR REPLACE INTO gauge_clim VALUES (?,?,?,?,?,?,?,?)",
   src.gauges.flatMap((g) => (g.clim?.band ?? []).map((b, i) =>
     // stored p10/p25/p50/p75/p90 — p0 and p100 do not interpolate (82% error, §5)
-    [g.id, i, b[1] ?? null, b[2] ?? null, b[3] ?? null, b[4] ?? null, b[5] ?? null])));
+    [g.id, "discharge", i,
+     b[1] ?? null, b[2] ?? null, b[3] ?? null, b[4] ?? null, b[5] ?? null])));
 
 // ---- lakes ------------------------------------------------------------------------
 counts.chart = insert("INSERT INTO chart VALUES (?,?,?,?,?,?,?,?,?)",
@@ -261,8 +265,13 @@ for (const g of src.gauges)
   writeFileSync(`${OUT}/feeds/gauge/${g.id}.json`, JSON.stringify({
     fetchedAt: src.fetched, station: g.id,
     now: { discharge: g.last?.[1] ?? null, level: g.level_last?.[1] ?? null,
-           at: g.last?.[0] ?? null, percentile: g.standing?.pctile ?? null },
-    discharge: g.discharge, level: g.level,
+           at: g.last?.[0] ?? null, percentile: g.standing?.pctile ?? null,
+           parameter: g.last ? "discharge" : "level" },
+    // `[timestamp, level, discharge]`, THE SAME SHAPE THE PUBLISHER WRITES. It used to be
+    // two parallel arrays under their own keys, which no reader of the real feed knows how
+    // to open — so the fixture pair charted nothing while the province pair charted fine,
+    // and the difference looked like a bug in the app.
+    recent: (g.discharge ?? []).map(([t, q], i) => [t, g.level?.[i]?.[1] ?? null, q]),
     // Where the BCRFC model runs will land — CLEVER / COFFEE / ELF, already keyed per
     // station upstream, so they merge in here rather than becoming a third artifact.
     forecast: null,

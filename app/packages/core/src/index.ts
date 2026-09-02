@@ -16,6 +16,7 @@ export * from "./dates";
 export * from "./status";
 export * from "./flow";
 export * from "./trace";
+export * from "./ladder";
 
 export type Freshness =
   | { state: "live"; ageMs: number }

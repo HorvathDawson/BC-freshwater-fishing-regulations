@@ -13,6 +13,7 @@
  * test rather than a blank screen.
  */
 import { describe, expect, it } from "vitest";
+import { MAGNITUDE_LADDER, zoomForMagnitude } from "@app/core";
 import { runtimeStyle } from "@app/map";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -21,7 +22,8 @@ import { join } from "node:path";
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const contract = JSON.parse(
   readFileSync(join(ROOT, "pipeline/tiles/tile-contract.json"), "utf8"),
-) as { layers: Record<string, { geometry: string; attrs: string[]; featureId: string }> };
+) as { layers: Record<string, { geometry: string; attrs: string[]; featureId: string }>;
+        magnitudeLadder: [number, number][] };
 
 const readStyle = (f: string) =>
   JSON.parse(readFileSync(join(ROOT, "app/packages/map/style", f), "utf8"));
@@ -162,5 +164,56 @@ describe("the runtime uses the feature id, not just names it", () => {
     for (const [sourceLayer, prop] of Object.entries(promote))
       expect(contract.layers[sourceLayer]?.attrs,
              `${sourceLayer} has no attribute "${prop}"`).toContain(prop);
+  });
+});
+
+
+/**
+ * The gauge dots are the one thing on this map with NO tile behind them.
+ *
+ * Every water is a tile feature carrying the minzoom tippecanoe stamped on it, so the atlas
+ * thins out on its own. The gauges are a GeoJSON source refreshed every half hour, and a
+ * GeoJSON source carries no ladder — so the app has to apply the same one, and "the same
+ * one" is a copy, and a copy is a thing that drifts. It drifted the only way it could: not
+ * at all at first, and silently later.
+ */
+describe("the gauge dots climb the same ladder as the water", () => {
+  it("the app's ladder IS the pipeline's, stop for stop", () => {
+    expect(MAGNITUDE_LADDER.map((p) => [...p])).toEqual(contract.magnitudeLadder);
+  });
+
+  it("a dot appears at the zoom its own river appears at", () => {
+    // The Fraser at Hope (magnitude 273,576) is on screen from z4; a creek gauge of
+    // magnitude 12 waits until z11, by which time its creek is drawn too.
+    expect(zoomForMagnitude(273576)).toBe(4);
+    expect(zoomForMagnitude(12)).toBe(11);
+    // No magnitude is not a small magnitude — it goes to the bottom, never hidden.
+    expect(zoomForMagnitude(null)).toBe(14);
+  });
+});
+
+describe("the gauges draw on top of the water", () => {
+  const style = runtimeStyle(
+    { atlas: "https://example.invalid/atlas.pmtiles",
+      basemap: "https://example.invalid/basemap.pmtiles",
+      gauges: "https://example.invalid/gauges.geojson" },
+    "light",
+  ) as unknown as { layers: { id: string; filter?: unknown }[] };
+  const at = (id: string) => style.layers.findIndex((l) => l.id === id);
+
+  it("puts every gauge layer after every atlas layer", () => {
+    // They were written first and therefore drawn UNDERNEATH, while the comment above them
+    // said "above the water". A dot under a river line is a dot you cannot see or tap.
+    const lastAtlas = Math.max(...MAP_STYLE.layers.map((l) => at(l.id)));
+    expect(at("gauge-dot")).toBeGreaterThan(lastAtlas);
+    expect(at("gauge-label")).toBeGreaterThan(at("gauge-dot"));
+  });
+
+  it("filters both on the ladder, so a dot cannot outlive its river", () => {
+    for (const id of ["gauge-dot", "gauge-label"]) {
+      const f = JSON.stringify(style.layers[at(id)]!.filter);
+      expect(f, `${id} draws at every zoom`).toContain("minz");
+      expect(f, `${id} ignores the camera`).toContain("zoom");
+    }
   });
 });

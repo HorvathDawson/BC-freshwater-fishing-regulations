@@ -73,12 +73,55 @@ export interface GaugeLink {
   section: SectionId | null;
 }
 
+/** Which quantity a chart is about. Never mixed — see `Series.parameter`. */
+export type Parameter = "discharge" | "level";
+
+/**
+ * What the river did, over one span, in ONE quantity.
+ *
+ * `parameter` IS PART OF THE ANSWER, not a formatting hint. 237 BC stations measure stage
+ * and never discharge, and a percentile computed from a level against a discharge envelope
+ * is arithmetic across two different units — a number that looks entirely reasonable and
+ * means nothing. So a series carries which quantity it is, and the envelope that came with
+ * it was built from that same quantity.
+ */
 export interface Series {
-  step: "1h" | "1d";
+  step: "1h" | "1d" | "5d";
   from: string;
-  discharge: readonly (number | null)[];
-  /** Percentile envelope for the same span, every 5 days. */
+  parameter: Parameter;
+  /** Observations. A null is a gap in the record, never a zero. */
+  values: readonly (number | null)[];
+  /** Percentile envelope aligned to `values`, from the bundle's climatology. */
   band: readonly (Band | null)[];
+  /**
+   * Where the live reading sits on this axis.
+   *
+   * Explicit rather than "the last value", because the seasonal chart has NO observations
+   * of its own — it is a year of envelope with today's reading marked on it — and taking
+   * the last element there would put the dot on New Year's Eve.
+   */
+  now: { index: number; value: number } | null;
+  /** The model run continuing past today, or null outside a model's season. */
+  forecast: Forecast | null;
+}
+
+/**
+ * A BC River Forecast Centre run. A PREDICTION, and never rendered as an observation.
+ *
+ * `extreme` says which end of the range the headline number is, and it is not cosmetic: a
+ * freshet model is asked how HIGH and a low-flow model how LOW, so showing an average would
+ * smooth away the question each was run to answer.
+ */
+export interface Forecast {
+  model: string;
+  issuedAt: string | null;
+  horizonDays: number;
+  value: number;
+  extreme: "min" | "ave" | "max";
+  min: number | null;
+  ave: number | null;
+  max: number | null;
+  unit: string;
 }
 
 /** One water's whole sheet. Assembled by the source, never by the client. */
@@ -190,9 +233,20 @@ export interface RegsSource {
   stationsFor(sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, StationId>>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
-                                    lon: number; lat: number }[]>;
+                                    lon: number; lat: number;
+                                    /** FWA stream magnitude at the station's own node,
+                                     *  null when the node never got one. Drives the zoom
+                                     *  the dot appears at. */
+                                    mag: number | null }[]>;
   gaugeNow(station: StationId): Promise<Aged<Reading> | null>;
-  gaugeSeries(station: StationId, span: "72h" | "year"): Promise<Aged<Series> | null>;
+  /**
+   * `parameter` omitted means "whatever this station actually measures" — which the client
+   * cannot know and must not guess. Passing one explicitly is the toggle in the sheet.
+   */
+  gaugeSeries(station: StationId, span: "72h" | "year",
+              parameter?: Parameter): Promise<Aged<Series> | null>;
+  /** Which quantities this station has an envelope for, so a toggle can offer only those. */
+  gaugeParameters(station: StationId): Promise<readonly Parameter[]>;
   /** Downstream from here to the station that measures it, via the build's pointers. */
   traceToGauge(from: SectionId): Promise<readonly SectionId[]>;
 

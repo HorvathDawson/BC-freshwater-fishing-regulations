@@ -162,13 +162,13 @@ describe("the bundle source", () => {
     expect(link!.live).toBeNull();
 
     const withFeed = makeBundleSource(db, {
-      feed: { now: async () => null, series: async () => null,
+      feed: { now: async () => null, observations: async () => null,
               live: async () => new Set([link!.station]) },
     });
     expect((await withFeed.gaugeForItem("gnis:8634" as ItemId))!.live).toBe(true);
 
     const quiet = makeBundleSource(db, {
-      feed: { now: async () => null, series: async () => null,
+      feed: { now: async () => null, observations: async () => null,
               live: async () => new Set<string>() },
     });
     expect((await quiet.gaugeForItem("gnis:8634" as ItemId))!.live).toBe(false);

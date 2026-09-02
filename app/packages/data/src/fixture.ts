@@ -6,11 +6,11 @@
  * several regulated stretches, a June closure, a rule nobody could place, a gauge running
  * at its 4th percentile, and a creek the Fraser gauge must refuse to speak for.
  */
-import type { PlainDate, Rule, SpeciesGroup, Status } from "@app/core";
+import type { Band, PlainDate, Rule, SpeciesGroup, Status } from "@app/core";
 import { evaluate, gaugeTrust } from "@app/core";
 import type {
-  Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, PlaceHit,
-  PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
+  Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
+  PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
 } from "./index";
 
 const id = <T extends string>(s: string): T => s as T;
@@ -158,8 +158,10 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     },
 
     async gaugePoints() {
+      // Vedder Crossing on the Chilliwack: magnitude 2,236, so the dot appears at z5 —
+      // the same zoom the river it measures does.
       return [{ station: id<StationId>(GAUGE.station), name: GAUGE.name,
-                lon: -121.958, lat: 49.096 }];
+                lon: -121.958, lat: 49.096, mag: 2236 }];
     },
 
     async gaugeNow(st): Promise<Aged<Reading> | null> {
@@ -170,15 +172,36 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
                  percentile: GAUGE.percentile, standing: "much-below" },
       };
     },
-    async gaugeSeries(st, span): Promise<Aged<Series> | null> {
+    async gaugeSeries(st, span, parameter): Promise<Aged<Series> | null> {
       if (st !== GAUGE.station) return null;
-      const n = span === "72h" ? 72 : 366;
+      const param: Parameter = parameter ?? "discharge";
+      const level = param === "level";
+      // Two envelopes in two units, because that is the shape of the real thing: a station
+      // measuring both has one band in m3/s and one in metres, and a fixture that carried
+      // only one would let a unit bug through the tests that exist to catch it.
+      const band: Band = level ? [1.20, 1.35, 1.52, 1.74, 2.05] : [18.8, 23.0, 30.6, 39.0, 56.6];
+      const value = level ? GAUGE.level : GAUGE.discharge;
+      // The year axis is 73 pentads of envelope with today marked on it — no observations,
+      // exactly as the bundle source builds it.
+      const n = span === "72h" ? 72 : 73;
       return {
         fetchedAt: now,
-        value: { step: span === "72h" ? "1h" : "1d", from: "2026-08-27T07:00:00Z",
-                 discharge: Array.from({ length: n }, () => GAUGE.discharge),
-                 band: [[18.8, 23.0, 30.6, 39.0, 56.6]] },
+        value: {
+          step: span === "72h" ? "1h" : "5d",
+          from: span === "72h" ? "2026-08-27T07:00:00Z" : "2026-01-01",
+          parameter: param,
+          values: Array.from({ length: n }, () => (span === "72h" ? value : null)),
+          band: Array.from({ length: n }, () => band),
+          now: { index: span === "72h" ? n - 1 : 48, value },
+          forecast: level ? null : {
+            model: "ELF", issuedAt: "2026-08-30T00:00:00Z", horizonDays: 30,
+            value: 9.4, extreme: "min", min: 9.4, ave: 12.1, max: 16.8, unit: "m3/s",
+          },
+        },
       };
+    },
+    async gaugeParameters(st): Promise<readonly Parameter[]> {
+      return st === GAUGE.station ? ["discharge", "level"] : [];
     },
     async traceToGauge(from) {
       return sectionRules.has(from) ? [id<SectionId>(from)] : [];

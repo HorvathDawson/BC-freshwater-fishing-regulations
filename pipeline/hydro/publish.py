@@ -221,6 +221,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, help="fetch only the first N — for a dev run")
     ap.add_argument("--no-release-check", action="store_true",
                     help="skip the HYDAT listing check (one HTTP GET)")
+    ap.add_argument("--no-forecast", action="store_true",
+                    help="skip the BC River Forecast Centre pull (three HTTP GETs)")
     args = ap.parse_args()
 
     roster = json.loads(args.stations.read_text(encoding="utf-8"))
@@ -244,9 +246,23 @@ def main() -> None:
         except Exception:
             latest = None
 
-    summary = publish(args.out, ids, clim=clim, latest_release=latest)
+    # THE FORECAST IS A DIFFERENT AGENCY AND A DIFFERENT KIND OF CLAIM — see
+    # `pipeline.hydro.forecast`. Three requests, seasonal, and frequently empty: outside
+    # freshet, fall floods and low-flow season no model is running, which is normal and not
+    # a failure. A forecast pull that fails costs the map nothing.
+    fcast: dict = {}
+    if not args.no_forecast:
+        try:
+            from pipeline.hydro import forecast as _forecast   # noqa: PLC0415
+            fcast = _forecast.fetch()
+        except Exception as exc:                                # noqa: BLE001
+            print(f"  forecast unavailable: {exc}", file=sys.stderr)
+
+    summary = publish(args.out, ids, clim=clim, forecast=fcast, latest_release=latest)
     print(f"  ✅ {args.out}  {summary['answered']}/{summary['asked']} answered, "
           f"{summary['withPercentile']} with a percentile")
+    if fcast:
+        print(f"     {len(fcast)} station forecasts from the BC River Forecast Centre")
     if summary["release"]:
         print(f"     envelope from HYDAT {summary['release']}")
     if summary["stale"]:

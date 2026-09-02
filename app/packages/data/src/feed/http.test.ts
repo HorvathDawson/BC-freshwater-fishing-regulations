@@ -53,7 +53,7 @@ describe("httpFeed", () => {
     const f = httpFeed("http://x", dead);
     await expect(f.now(S)).resolves.toBeNull();
     await expect(f.live()).resolves.toBeNull();
-    await expect(f.series(S, "72h")).resolves.toBeNull();
+    await expect(f.observations(S)).resolves.toBeNull();
   });
 
   it("treats a 404 as 'not transmitting', not as an error", async () => {
@@ -86,12 +86,15 @@ describe("httpFeed", () => {
     expect(calls).toBe(1);
   });
 
-  it("refuses to relabel the 72-hour series as a year of data", async () => {
-    // There is no yearly source published yet. Returning the fine series under a "year"
-    // label would draw a chart that silently lies about its own span.
+  it("hands back both quantities and lets the caller pick", async () => {
+    // The feed does NOT choose. 237 BC stations measure stage and never discharge, and a
+    // feed that picked one would decide for them — so it publishes what it has, says which
+    // one the station leads with, and the source joins it to the matching envelope.
     const f = httpFeed("http://x", server({ "08MH001.json": STATION }));
-    expect(await f.series(S, "year")).toBeNull();
-    expect(await f.series(S, "72h")).not.toBeNull();
+    const obs = (await f.observations(S))!;
+    expect(obs.discharge.length).toBe(obs.level.length);
+    expect(obs.at.length).toBe(obs.discharge.length);
+    expect(["discharge", "level"]).toContain(obs.parameter);
   });
 
   it("reports no reading when the station answered with no numbers", async () => {

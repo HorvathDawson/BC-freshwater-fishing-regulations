@@ -24,6 +24,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from . import ladder
+
 
 @dataclass(frozen=True)
 class LayerSpec:
@@ -193,4 +195,14 @@ def contract() -> dict:
             }
             for s in ALL
         },
+        # THE LADDER ITSELF, not just its name.
+        #
+        # The app draws one thing the tiles do not: a dot per gauge, on a GeoJSON source
+        # that has no zoom ladder of its own. Left alone it drew every station in the
+        # province at every zoom, so a dot for a creek gauge sat over a country where its
+        # creek had thinned out four zooms ago — a reading with no water under it.
+        #
+        # Publishing the stops here rather than restating them in TypeScript is what stops
+        # the two from drifting: `app/tools/tile-contract.test.ts` fails if they differ.
+        "magnitudeLadder": [list(pair) for pair in ladder.MAGNITUDE_LADDER],
     }

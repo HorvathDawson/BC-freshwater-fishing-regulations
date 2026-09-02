@@ -26,6 +26,38 @@ export interface GaugeTrace {
   /** FWA stream magnitudes the trust was derived from. */
   reachMagnitude: number | null;
   gaugeMagnitude: number | null;
+  /**
+   * Where the station stands, so a route can be DRAWN rather than only described.
+   *
+   * Null for two different reasons and the panel must not conflate them: ECCC published no
+   * coordinate for this station, or this trace was frozen into a saved spot before the app
+   * carried coordinates at all. Either way there is no map to draw and the words still work
+   * — which is why the panel treats the map as an addition to the sentence, never as the
+   * sentence itself.
+   */
+  lon: number | null;
+  lat: number | null;
+}
+
+/**
+ * Where to point a small map so both ends of the route are on it.
+ *
+ * CENTRED ON THE STATION, not fitted to the path, and the reason is a gap in the data
+ * rather than a preference: the app knows where the gauge is (ECCC publishes it) and does
+ * NOT know where the reach is — no section carries a coordinate in the bundle. Fitting a
+ * camera to geometry the client does not have would mean inventing one.
+ *
+ * So the zoom stands in for the distance instead. The hop count is the only measure of
+ * "how far" that survives to the client — `metres` is null until something computes
+ * along-channel distance — and it is a coarse one, so the steps are coarse too. A reader
+ * gets a map that certainly contains the gauge and probably contains their reach, and the
+ * facts underneath say which.
+ */
+export function routeCamera(t: GaugeTrace): { lon: number; lat: number; zoom: number } | null {
+  if (t.lon === null || t.lat === null) return null;
+  const hops = Math.max(0, t.path.length - 1);
+  const zoom = hops === 0 ? 12.5 : hops <= 3 ? 11 : hops <= 10 ? 9.5 : 8;
+  return { lon: t.lon, lat: t.lat, zoom };
 }
 
 /** The gauge is on this very reach — there is no distance to travel. */

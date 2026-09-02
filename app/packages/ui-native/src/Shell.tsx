@@ -212,13 +212,19 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
     );
 
   const body = item !== null
+    // THE TAB YOU CAME FROM IS THE QUESTION YOU ASKED. Opening a river from Conditions and
+    // landing on its regulations means answering something nobody asked and burying what
+    // they did — so the sheet opens on the face that matches the tab.
     ? <WaterScreen source={source} item={item} on={on} group={group} palette={palette}
+                   face={tab === "conditions" ? "conditions" : "regulations"}
+                   tiles={tiles} theme={theme}
                    onBack={() => setItem(null)} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} onPick={setItem} total={waters}
                       tiles={tiles} theme={theme} />
       : tab === "conditions" && condSection
         ? <ConditionsScreen source={source} section={condSection} palette={palette}
+                            tiles={tiles} theme={theme}
                             onBack={() => setCondSection(null)} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}

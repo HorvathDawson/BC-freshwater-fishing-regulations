@@ -39,9 +39,26 @@ export interface Envelope {
   to: number;
 }
 
+/**
+ * The forecast, as shapes — drawn to the RIGHT of the observations on the same axis.
+ *
+ * A separate field rather than more points on `line`, because a prediction and a
+ * measurement must never be one stroke. The band is the model's own min-to-max spread; the
+ * line is the number the model is asked for (highest for a flood model, lowest for a
+ * low-flow one), and `at` is where the observations stop and the model starts.
+ */
+export interface ForecastShape {
+  band: string;
+  line: string;
+  /** x of the boundary between what happened and what is expected. */
+  at: number;
+  /** The headline value's y, for the label. */
+  y: number;
+}
+
 export interface Hydrograph {
   box: Box;
-  /** Observed discharge. */
+  /** Observed values, in whatever quantity the series is about. */
   line: string;
   /** Nested percentile bands, widest first, so they can be drawn in order. */
   envelopes: readonly Envelope[];
@@ -51,6 +68,8 @@ export interface Hydrograph {
   xTicks: readonly Tick[];
   /** Where "now" sits, for the marker and the vertical rule. */
   now: { x: number; y: number } | null;
+  /** The model run past today, or null outside every model's season. */
+  forecast: ForecastShape | null;
   /** True when the y scale is logarithmic — a whole year of flow spans two orders. */
   log: boolean;
 }
@@ -99,6 +118,23 @@ export interface BuildInput {
   xLabels: readonly string[];
   /** Index of "now" within `values`; -1 for none. */
   nowIndex?: number;
+  /**
+   * The reading to MARK, when it is not one of `values`.
+   *
+   * The seasonal chart has no observations at all — it is a year of envelope with today on
+   * it — so the dot cannot be read out of the series. Supplying it explicitly is the
+   * difference between marking today and marking the last element of an array of nulls.
+   */
+  nowValue?: number | null;
+  /**
+   * A forecast to draw past the observations, in the same units.
+   *
+   * `days` sets how far right it reaches, scaled against how long the observed span is, so
+   * a 30-day outlook on a 3-day chart does not pretend to the same resolution as the line
+   * beside it.
+   */
+  forecast?: { lo: number | null; mid: number; hi: number | null;
+               days: number; spanDays: number } | null;
   log?: boolean;
   box?: Box;
 }
@@ -119,9 +155,21 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const bands = input.bands;
   const log = input.log ?? false;
 
+  const fc = input.forecast ?? null;
+
   let lo = Infinity;
   let hi = -Infinity;
   for (const v of vals) if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  // THE FORECAST IS INSIDE THE SCALE. A flood outlook that runs off the top of the frame is
+  // the one case where the chart most needs to be readable, and clipping it would show a
+  // line leaving the picture with no indication of where it was going.
+  if (fc) {
+    for (const v of [fc.lo, fc.mid, fc.hi])
+      if (v !== null && Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  }
+  if (input.nowValue !== null && input.nowValue !== undefined && Number.isFinite(input.nowValue)) {
+    lo = Math.min(lo, input.nowValue); hi = Math.max(hi, input.nowValue);
+  }
   for (const b of bands) {
     if (!b) continue;
     lo = Math.min(lo, b[0]);
@@ -141,8 +189,15 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const L1 = log ? Math.log10(hi) : hi;
   const y = (v: number): number =>
     padTop + innerH - (((log ? Math.log10(Math.max(v, 10 ** L0)) : v) - L0) / (L1 - L0)) * innerH;
+  // How much of the width the observations get. A forecast takes the rest, in proportion to
+  // how far ahead it looks — a 30-day outlook beside 3 days of record is mostly forecast,
+  // and drawing it as a narrow tail on the right would understate what it is claiming.
+  const share = fc && fc.spanDays > 0
+    ? Math.max(0.35, Math.min(0.85, fc.spanDays / (fc.spanDays + fc.days)))
+    : 1;
+  const obsW = innerW * share;
   const x = (i: number): number =>
-    padLeft + (vals.length > 1 ? (i / (vals.length - 1)) * innerW : innerW / 2);
+    padLeft + (vals.length > 1 ? (i / (vals.length - 1)) * obsW : obsW / 2);
 
   const pt = (i: number, v: number): string => `${x(i).toFixed(1)},${y(v).toFixed(1)}`;
 
@@ -176,7 +231,28 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
   const yValues = log ? logTicks(10 ** L0, 10 ** L1).slice(0, 7) : niceTicks(lo, hi, 4);
 
   const nowIndex = input.nowIndex ?? vals.length - 1;
-  const nowValue = nowIndex >= 0 ? vals[nowIndex] ?? null : null;
+  const nowValue = input.nowValue ?? (nowIndex >= 0 ? vals[nowIndex] ?? null : null);
+
+  // The forecast occupies the strip to the right of the observations, from the boundary to
+  // the frame edge. A band when the model published a range; a line always, because a
+  // model with a single number still has one thing to say.
+  const edge = padLeft + innerW;
+  const forecast: ForecastShape | null = fc ? (() => {
+    const x0 = padLeft + obsW;
+    const yMid = y(fc.mid);
+    const yLo = fc.lo !== null ? y(fc.lo) : yMid;
+    const yHi = fc.hi !== null ? y(fc.hi) : yMid;
+    const y0 = nowValue !== null ? y(nowValue) : yMid;
+    return {
+      band: fc.lo !== null && fc.hi !== null
+        ? `M${x0.toFixed(1)},${y0.toFixed(1)}L${edge.toFixed(1)},${yHi.toFixed(1)}` +
+          `L${edge.toFixed(1)},${yLo.toFixed(1)}Z`
+        : "",
+      line: `M${x0.toFixed(1)},${y0.toFixed(1)}L${edge.toFixed(1)},${yMid.toFixed(1)}`,
+      at: x0,
+      y: yMid,
+    };
+  })() : null;
 
   return {
     box,
@@ -186,10 +262,11 @@ export function buildHydrograph(input: BuildInput): Hydrograph {
     yTicks: yValues.map((v) => ({ value: v, at: y(v), label: fmt(v) })),
     xTicks: input.xLabels.map((label, i) => ({
       value: i,
-      at: padLeft + (input.xLabels.length > 1 ? (i / (input.xLabels.length - 1)) * innerW : 0),
+      at: padLeft + (input.xLabels.length > 1 ? (i / (input.xLabels.length - 1)) * obsW : 0),
       label,
     })),
     now: nowValue !== null ? { x: x(nowIndex), y: y(nowValue) } : null,
+    forecast,
     log,
   };
 }

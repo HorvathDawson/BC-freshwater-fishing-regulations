@@ -9,25 +9,49 @@
  * gauge's representativeness is the most misread number in this app and may not have two
  * explanations — see `packages/core/src/trace.ts`.
  */
+import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import type { RegsSource, SectionId } from "@app/data";
+import type { Parameter, RegsSource, SectionId } from "@app/data";
+import type { TileEndpoints } from "@app/map";
 import { standingWord, type Standing } from "@app/core";
 
 const NO_RECORD: Standing = "no-record";
-import { useConditions, useGaugeTrace, useHydrograph } from "@app/ui";
+import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph } from "@app/ui";
+import { ChartControls } from "./ChartControls";
 import { FishSpinner } from "./FishSpinner";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
-export function ConditionsScreen({ source, section, palette, onBack }: {
+type Span = "72h" | "year";
+
+const UNIT: Record<Parameter, string> = { discharge: "m³/s", level: "m" };
+
+export function ConditionsScreen({ source, section, palette, onBack, tiles, theme }: {
   source: RegsSource; section: SectionId; palette: Palette; onBack: () => void;
+  /** Present, the route panel draws the chain of reaches down to the station. */
+  tiles?: TileEndpoints; theme?: string;
 }) {
   const conditions = useConditions(source, section);
   const trace = useGaugeTrace(source, section);
   const c = conditions.state === "ready" ? conditions.value : null;
-  const chart = useHydrograph(source, c?.station ?? null, "72h");
+  const station = c?.station ?? null;
+
+  // WHICH QUANTITIES THIS STATION CAN ANSWER IN. Asked of the bundle rather than assumed:
+  // 237 BC stations measure stage and never discharge, and offering a discharge chart for
+  // one of them would produce an empty frame with no explanation.
+  const params = useGaugeParameters(source, station);
+  const available = params.state === "ready" ? params.value : [];
+  const [pick, setPick] = useState<Parameter | null>(null);
+  const [span, setSpan] = useState<Span>("72h");
+  // The reader's choice, unless the station cannot answer in it — then whatever the reading
+  // itself is about, which is what the percentile was computed against.
+  const param: Parameter | undefined =
+    pick && available.includes(pick) ? pick : undefined;
+  const shown: Parameter = param
+    ?? (c?.discharge !== null && c?.discharge !== undefined ? "discharge" : "level");
+  const chart = useHydrograph(source, station, span, param);
 
   if (conditions.state === "loading")
     return (
@@ -58,6 +82,14 @@ export function ConditionsScreen({ source, section, palette, onBack }: {
               <Text style={{ ...TYPE.figure, color: palette.sub }}>
                 {c.discharge != null ? "m³/s" : "m"}
               </Text>
+              {/* BOTH NUMBERS WHERE THERE ARE BOTH. A station measuring stage and discharge
+                  has two readings a person may want, and hiding one behind the chart
+                  toggle makes the sheet answer a question it was not asked. */}
+              {c.discharge != null && c.level != null && (
+                <Text style={{ ...TYPE.figure, fontSize: 13, color: palette.faint }}>
+                  {c.level} m stage
+                </Text>
+              )}
             </View>
             <Text style={{ ...TYPE.body, color: palette.ink }}>
               {c.percentile != null
@@ -82,13 +114,49 @@ export function ConditionsScreen({ source, section, palette, onBack }: {
           </Text>
         )}
 
-        {chart.state === "ready" && chart.value && (
-          <Hydrograph shape={chart.value} palette={palette} colour={palette.live}
-                      label="the last 72 hours" />
+        {station && (
+          <View style={{ gap: 10 }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+              <ChartControls<Parameter> palette={palette} value={shown} label="Quantity"
+                                        onPick={setPick}
+                                        options={available.map((p) =>
+                                          [p, p === "discharge" ? "Flow" : "Level"] as const)} />
+              <ChartControls<Span> palette={palette} value={span} label="Span"
+                                   onPick={setSpan}
+                                   options={[["72h", "Last 72 hours"],
+                                             ["year", "Whole year"]] as const} />
+            </View>
+            {chart.state === "loading" && (
+              <View style={{ alignItems: "center", paddingVertical: 22 }}>
+                <FishSpinner palette={palette} size={72} label="Loading the record" />
+              </View>
+            )}
+            {chart.state === "ready" && chart.value && (
+              <Hydrograph shape={chart.value} palette={palette} colour={palette.live}
+                          unit={UNIT[shown]}
+                          label={span === "72h" ? "the last 72 hours"
+                                                : "the whole year against its record"}
+                          caption={span === "year"
+                            ? "Bands are this station's whole record for each five-day " +
+                              "period of the year — the middle half, then the 10th to " +
+                              "90th. The dot is today's reading. There is no line for " +
+                              "this year: the daily record is not published until the " +
+                              "next HYDAT release."
+                            : undefined} />
+            )}
+            {chart.state === "ready" && !chart.value && (
+              <Text style={{ ...TYPE.small, color: palette.sub }}>
+                {span === "year"
+                  ? "This station has no envelope in this quantity, so there is no season " +
+                    "to draw it against."
+                  : "This station published no recent readings."}
+              </Text>
+            )}
+          </View>
         )}
 
         {trace.state === "ready" && (
-          <GaugeTrace trace={trace.value} palette={palette} />
+          <GaugeTrace trace={trace.value} palette={palette} at={tiles} theme={theme} />
         )}
       </ScrollView>
     </View>

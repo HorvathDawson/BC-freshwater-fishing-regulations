@@ -168,6 +168,13 @@ export default function App() {
                attribution={[
                  "Basemap © OpenStreetMap contributors · © Protomaps",
                  "Hydrometric data: Environment and Climate Change Canada",
+                 // REQUIRED VERBATIM by the Province wherever a forecast appears —
+                 // confirmed with the River Forecast Centre. See
+                 // `pipeline/hydro/forecast.py`, which holds the same string.
+                 "Forecast data provided by the BC River Forecast Centre, Province of " +
+                 "British Columbia, and used under the Province's copyright terms " +
+                 "(https://www2.gov.bc.ca/gov/content/home/copyright). Users should use " +
+                 "the information on this website with caution and at their own risk.",
                  "Stocking: Province of British Columbia, Fisheries Inventory Data Queries",
                  "Weather from Open-Meteo.com (CC BY 4.0)",
                ]} />

@@ -200,3 +200,38 @@ with the same provenance discipline as the two above. v1's bathymetry matching i
 this document insists on `matched_by`: bad matches there were "fixed" by editing shared name
 variants, which corrupted display names elsewhere. **A bathymetry match may never write back
 into a name file.**
+
+## The forecast
+
+A fourth source, and the only one in this document that is not a measurement.
+
+    BC River Forecast Centre (Province of BC)  ->  pipeline/hydro/forecast.py
+                                               ->  rides in the same feed files
+
+Three seasonal models, each an ArcGIS FeatureServer layer read in **one request**:
+
+| model  | season      | step   | horizon | asked |
+|--------|-------------|--------|---------|-------|
+| CLEVER | freshet     | hourly | 10 days | how HIGH |
+| COFFEE | fall floods | daily  | 5 days  | how HIGH |
+| ELF    | low flow    | daily  | 30 days | how LOW  |
+
+Outside its season a model publishes nothing, so **a station with no forecast today is the
+normal case**, not a failure. Where two models overlap at the shoulders of their seasons the
+fresher issue time wins — which is why `_issued` normalises the Centre's own wording
+("Updated at: 09:38 AM Tue 2026-09-01") into something that sorts.
+
+Three things this deliberately does NOT do:
+
+- **It does not fetch the per-station CSVs.** The Centre publishes one per station and v1
+  read all of them: ~450 requests every thirty minutes against a provincial endpoint, for
+  numbers the summary layer already carries. Three requests is polite.
+- **It never lands on a level chart.** The models output discharge. The Fraser at Mission
+  reports stage — about 1.8 m — and its outlook is 3,157 m³/s; on one axis that is two units
+  in one frame. `gaugeSeries` attaches a forecast only where the chart is already in m³/s.
+- **It is never drawn as an observation.** Past the dotted rule, fainter band, dashed line —
+  three cues, because one is a legend nobody read.
+
+The Province's attribution is required **verbatim** wherever a forecast appears. It lives in
+`pipeline/hydro/forecast.ATTRIBUTION` and in the app's attribution list, and the two must
+stay identical.

@@ -95,3 +95,74 @@ describe("everything the component needs is a number or a string", () => {
     expect(h.box).toEqual(DEFAULT_BOX);
   });
 });
+
+/**
+ * The forecast is the one thing on this chart that has not happened yet.
+ *
+ * Everything else here is a measurement or a percentile of measurements. A model run drawn
+ * with the same geometry as an observation is the failure mode that matters — so the
+ * arithmetic keeps them structurally apart, and these hold it there.
+ */
+describe("the forecast", () => {
+  const base = {
+    values: [10, 11, 12] as (number | null)[],
+    bands: [null, null, null],
+    xLabels: ["a", "b", "c"],
+  };
+
+  it("is absent when no model is running", () => {
+    expect(buildHydrograph(base).forecast).toBeNull();
+  });
+
+  it("starts where the observations stop, never before", () => {
+    const h = buildHydrograph({
+      ...base,
+      forecast: { lo: 6, mid: 8, hi: 14, days: 30, spanDays: 3 },
+    });
+    const lastObserved = h.xTicks[h.xTicks.length - 1]!.at;
+    expect(h.forecast!.at).toBeGreaterThanOrEqual(lastObserved - 0.01);
+  });
+
+  it("keeps its own extremes inside the frame", () => {
+    // A flood outlook that runs off the top is the one case where the chart most needs to
+    // be readable. The y scale has to include the forecast, not just the record.
+    const h = buildHydrograph({
+      ...base,
+      forecast: { lo: 6, mid: 900, hi: 1200, days: 10, spanDays: 3 },
+    });
+    expect(h.yTicks[0]!.value).toBeLessThanOrEqual(1200);
+    expect(Math.max(...h.yTicks.map((t) => t.value))).toBeGreaterThan(100);
+  });
+
+  it("gives a longer outlook more of the width", () => {
+    const short = buildHydrograph({ ...base,
+      forecast: { lo: 9, mid: 10, hi: 11, days: 5, spanDays: 3 } });
+    const long = buildHydrograph({ ...base,
+      forecast: { lo: 9, mid: 10, hi: 11, days: 30, spanDays: 3 } });
+    expect(long.forecast!.at).toBeLessThan(short.forecast!.at);
+  });
+
+  it("draws a line but no band when the model published only one number", () => {
+    const h = buildHydrograph({ ...base,
+      forecast: { lo: null, mid: 10, hi: null, days: 5, spanDays: 3 } });
+    expect(h.forecast!.line).not.toBe("");
+    expect(h.forecast!.band).toBe("");
+  });
+});
+
+describe("marking today", () => {
+  it("uses the reading it was given, not the last cell of the array", () => {
+    // The seasonal chart is 73 pentads of envelope with NO observations. Reading the marker
+    // out of the series there would put today on New Year's Eve.
+    const h = buildHydrograph({
+      values: Array.from({ length: 73 }, () => null),
+      bands: Array.from({ length: 73 }, () => [1, 2, 3, 4, 5] as const),
+      xLabels: ["Jan", "Apr", "Jul", "Oct"],
+      nowIndex: 20,
+      nowValue: 2.5,
+    });
+    expect(h.now).not.toBeNull();
+    // A fifth of the way along the year, not at the right-hand edge.
+    expect(h.now!.x).toBeLessThan(h.box.width / 2);
+  });
+});

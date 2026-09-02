@@ -12,6 +12,7 @@
 #   yearly    HYDAT archive   ->  the percentile envelope
 #   per build station roster  ->  the bundle gauge tables
 #   30 min    ECCC readings   ->  the feed the app actually reads
+#             BCRFC models    ->  the forecast riding in the same files (3 requests)
 #
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -43,6 +44,9 @@ echo "-- app fixture --------------------------------------"
 
 echo ""
 echo "-- ready --------------------------------------------"
+echo "  The feed now carries BC River Forecast Centre outlooks (CLEVER / COFFEE / ELF)."
+echo "  They are SEASONAL: outside a model's season it publishes nothing, and a station"
+echo "  with no forecast today is the normal case, not a failure."
 echo "  serve-tiles.mjs serves  /feeds/live/*   real data,    province bundle"
 echo "                          /feeds/gauge/*  fixture data, fixture bundle"
 echo "  Point apps/mobile FEED + BUNDLE at the SAME pair: a feed is only"

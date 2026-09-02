@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import type { GaugeTrace, PlainDate, SpeciesGroup, Status } from "@app/core";
 import { statusWord } from "@app/core";
 import type {
-  GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, PlaceHit, PlaceId, RegsSource,
+  GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, Parameter, PlaceHit, PlaceId, RegsSource,
   SectionId, StationId,
 } from "@app/data";
 import { useAsync, useDebounced, type Async } from "./async";
@@ -144,6 +144,7 @@ export function useGaugeTrace(
       const none: GaugeTrace = {
         station: null, stationName: null, trust: null, path: [],
         metres: null, reachMagnitude: null, gaugeMagnitude: null,
+        lon: null, lat: null,
       };
       if (!section) return none;
       const link = await source.gaugeForSection(section);
@@ -158,6 +159,10 @@ export function useGaugeTrace(
         metres: null,
         reachMagnitude: link.reachMagnitude || null,
         gaugeMagnitude: link.gaugeMagnitude || null,
+        // ECCC's own coordinate, straight through. Null when they published none — which
+        // the panel draws as no map rather than as a map of the wrong place.
+        lon: link.lon,
+        lat: link.lat,
       };
     },
     `trace:${section}`,
@@ -268,37 +273,80 @@ export function useGaugeGeoJSON(
 }
 
 /** The chart, as numbers. The component only draws the shapes it is handed (rule 25). */
+/**
+ * One chart, in one quantity, over one span.
+ *
+ * FOUR THINGS THE READER CAN CHANGE, and each of them changes what is being claimed rather
+ * than how it looks:
+ *
+ *   parameter   discharge (the whole river) or level (one cross-section). Not a unit
+ *               swap — a stage percentile moves when the channel does and a discharge
+ *               percentile does not, so they are different statements about the water.
+ *   span        "72h" is what the river is doing; "year" is where today sits in the season.
+ *   envelope    always drawn when the bundle has one; its absence is the answer for the
+ *               eight stations whose record is too thin to build one.
+ *   forecast    drawn when a BC River Forecast Centre model is running, which is seasonal.
+ *
+ * Passing `parameter` as undefined means "whatever this station measures", which the client
+ * genuinely cannot know: 237 BC stations never measure discharge at all.
+ */
 export function useHydrograph(
   source: RegsSource,
   station: StationId | null,
   span: "72h" | "year",
+  parameter?: Parameter,
 ): Async<Hydrograph | null> {
   const series = useAsync(
-    () => (station ? source.gaugeSeries(station, span) : Promise.resolve(null)),
-    `series:${station}:${span}`,
+    () => (station ? source.gaugeSeries(station, span, parameter) : Promise.resolve(null)),
+    `series:${station}:${span}:${parameter ?? "auto"}`,
     station !== null,
   );
   return useMemo(() => {
     if (series.state !== "ready") return series as Async<Hydrograph | null>;
     const s = series.value;
     if (!s) return { state: "ready", value: null, error: null };
-    const n = s.value.discharge.length;
-    // One stored band covers a short span; a year has one per pentad.
-    const bands = s.value.band.length === n
-      ? s.value.band
-      : Array.from({ length: n }, () => s.value.band[0] ?? null);
+    const v = s.value;
+    const n = v.values.length;
+    // One stored band covers a short span; a year has one per pentad. A band array that is
+    // neither is a build defect, so it is repeated rather than truncated — a chart with a
+    // short envelope would show the normal range ending mid-frame.
+    const bands = v.band.length === n
+      ? v.band
+      : Array.from({ length: n }, () => v.band[0] ?? null);
+    const spanDays = span === "72h" ? 3 : 365;
     return {
       state: "ready",
       value: buildHydrograph({
-        values: s.value.discharge,
+        values: v.values,
         bands,
         xLabels: span === "72h" ? ["3d ago", "2d", "1d", "now"]
                                 : ["Jan", "Apr", "Jul", "Oct"],
-        log: span === "year",
+        nowIndex: v.now?.index ?? -1,
+        nowValue: v.now?.value ?? null,
+        forecast: v.forecast
+          ? { lo: v.forecast.min, mid: v.forecast.value, hi: v.forecast.max,
+              days: v.forecast.horizonDays, spanDays }
+          : null,
+        // A YEAR OF FLOW SPANS TWO ORDERS OF MAGNITUDE and a linear axis spends nine tenths
+        // of its height on the freshet, flattening the summer — which is the half of the
+        // year anybody is fishing. Level does not: stage is metres above a datum and its
+        // range is narrow, so a log axis there would exaggerate centimetres into a story.
+        log: span === "year" && v.parameter === "discharge",
       }),
       error: null,
     };
   }, [series, span]);
+}
+
+/** Which quantities this station can be charted in — an empty list means no envelope. */
+export function useGaugeParameters(
+  source: RegsSource, station: StationId | null,
+): Async<readonly Parameter[]> {
+  return useAsync(
+    () => (station ? source.gaugeParameters(station) : Promise.resolve([])),
+    `params:${station}`,
+    station !== null,
+  );
 }
 
 export function useLake(source: RegsSource, item: ItemId | null): Async<LakeInfo | null> {

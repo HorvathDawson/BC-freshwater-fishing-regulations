@@ -103,8 +103,10 @@ export const GAUGE_FOR_SECTION =
  * `section_gauge` had 11,049 stream sections being told a reservoir's level.
  */
 /** Every station with a position — a few hundred rows, for drawing them on the map. */
+// `mag` rides along because the dot on the map obeys the SAME zoom ladder as the water it
+// measures — see `@app/core/ladder`. Without it every station drew at every zoom.
 export const GAUGE_POINTS =
-  "SELECT station, name, lon, lat FROM gauge WHERE lon IS NOT NULL AND lat IS NOT NULL";
+  "SELECT station, name, lon, lat, mag FROM gauge WHERE lon IS NOT NULL AND lat IS NOT NULL";
 
 export const LAKE_GAUGES =
   "SELECT lg.station, g.name, g.lon, g.lat, g.area_km2, g.mag " +
@@ -162,8 +164,17 @@ export const GAUGE_FOR_ITEM =
 export const gaugesForSections = (n: number) =>
   `SELECT section_id, station, trust FROM section_gauge WHERE section_id IN (${placeholders(n)})`;
 
+// ONE ENVELOPE PER (STATION, PARAMETER). A station that measures both stage and discharge
+// has two, in two different units, and asking for "the" envelope of such a station is how a
+// level ends up compared against a discharge — a percentile that looks fine and means
+// nothing. The parameter is always part of the key.
 export const CLIMATOLOGY =
-  "SELECT pentad, p10, p25, p50, p75, p90 FROM gauge_clim WHERE station = ? ORDER BY pentad";
+  "SELECT pentad, p10, p25, p50, p75, p90 FROM gauge_clim " +
+  "WHERE station = ? AND parameter = ? ORDER BY pentad";
+
+/** Which quantities this station has an envelope for — the toggle offers only these. */
+export const CLIM_PARAMETERS =
+  "SELECT DISTINCT parameter FROM gauge_clim WHERE station = ? ORDER BY parameter";
 
 export const DOWN_FROM = "SELECT down_id FROM section_down WHERE section_id = ?";
 

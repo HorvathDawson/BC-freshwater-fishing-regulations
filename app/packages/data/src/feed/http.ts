@@ -20,7 +20,7 @@
 // thresholds is a second answer to "is this river low", and the feed and the sheet
 // would eventually disagree about the same reading (AGENTS rule 23).
 import { standing } from "@app/core";
-import type { Aged, Reading, Series, StationId } from "../index";
+import type { Aged, Forecast, Parameter, Reading, StationId } from "../index";
 
 /** How long a fetched file is reused. The publisher runs every 30 minutes. */
 const TTL_MS = 5 * 60_000;
@@ -47,14 +47,38 @@ interface StationFile {
   fetchedAt: string;
   station: string;
   now: { discharge: number | null; level: number | null; at: string | null;
-         percentile: number | null };
+         percentile: number | null; parameter?: Parameter };
+  /** `[timestamp, level, discharge]`, thinned to 30-minute steps by the publisher. */
   recent?: [string, number | null, number | null][];
-  forecast?: (number | null)[] | null;
+  /** A BC River Forecast Centre run, or null outside every model's season. */
+  forecast?: Forecast | null;
+}
+
+/**
+ * The observations, with no envelope on them.
+ *
+ * THE FEED CANNOT BUILD A `Series` AND MUST NOT PRETEND TO. Half of one — the percentile
+ * envelope — lives in the bundle, because it is derived from a HYDAT release and changes
+ * once a year, not once every thirty minutes. Splitting them this way is what lets the
+ * feed stay a set of static files addressed by station id and nothing else. The source
+ * joins the two halves; see `gaugeSeries` in `bundle/source.ts`.
+ */
+export interface Observations {
+  fetchedAt: number;
+  from: string;
+  /** Which quantity the station itself leads with, when the caller did not pick one. */
+  parameter: Parameter;
+  /** ISO timestamps, one per sample — the source needs them to align the envelope. */
+  at: readonly string[];
+  discharge: readonly (number | null)[];
+  level: readonly (number | null)[];
+  forecast: Forecast | null;
 }
 
 export interface GaugeFeed {
   now(station: StationId): Promise<Aged<Reading> | null>;
-  series(station: StationId, span: "72h" | "year"): Promise<Aged<Series> | null>;
+  /** Raw recent observations. The envelope is the bundle's half — see `Observations`. */
+  observations(station: StationId): Promise<Observations | null>;
   live(): Promise<ReadonlySet<string> | null>;
   /** The whole index, for colouring the map. Null when it could not be fetched. */
   index(): Promise<IndexFile | null>;
@@ -132,21 +156,23 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
       };
     },
 
-    async series(station, span) {
+    async observations(station) {
       const f = await load<StationFile>(`${station}.json`);
       const rows = f?.recent ?? [];
       if (!rows.length) return null;
-      // Only the fine recent series is published today; a "year" request has no source yet
-      // and says so rather than returning the 72 h series relabelled.
-      if (span === "year") return null;
       return {
         fetchedAt: stamp(f?.fetchedAt),
-        value: {
-          step: "1h",
-          from: rows[0]![0],
-          discharge: rows.map((r) => r[2]),
-          band: rows.map(() => null),
-        },
+        from: rows[0]![0],
+        // The publisher already decided which quantity this station's percentile is about,
+        // against the envelope it actually has. Re-deciding here would be a second opinion
+        // on a question that has one right answer per station.
+        parameter: f?.now?.parameter
+          ?? (f?.now?.discharge !== null && f?.now?.discharge !== undefined
+                ? "discharge" : "level"),
+        at: rows.map((r) => r[0]),
+        level: rows.map((r) => r[1]),
+        discharge: rows.map((r) => r[2]),
+        forecast: f?.forecast ?? null,
       };
     },
   };
