@@ -1,5 +1,18 @@
 # 16 — One home for curated data, and paths from config
 
+> ## ⚠️ SUPERSEDED AND IMPLEMENTED — 2026-09-03
+>
+> The move happened, and it went further than this document proposed. Curated data lives under
+> **`data/curated/`**, not `pipeline/curated/`, beside `data/source/` and `data/generated/` — so
+> the three kinds of data are visible in one listing and `pipeline/` is purely code. It is also
+> grouped by DOMAIN (`waters/`, `regulations/`, `gauges/`) rather than flat.
+>
+> This document is kept for its reasoning and its reference counts, both of which held up. What
+> it did not have is the third category: **promoted** data, machine-produced and human-approved,
+> which looks generated and is not. See `data/curated/README.md` and AGENTS.md rules 35-40.
+>
+> Original status line follows.
+
 **Status: PLAN ONLY. Not implemented.** Written 2026-09-02 while another agent held `build.py`,
 `graph/`, and the hydro/gauge work; the move touches those files, so it waits.
 
