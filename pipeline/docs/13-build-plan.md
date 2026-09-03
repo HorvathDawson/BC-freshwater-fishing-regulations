@@ -22,7 +22,7 @@ template. Where it is cited it is because it measured something or failed instru
 ## 0. Measurements taken before planning
 
 Re-runnable via `pipeline/tools/build_parity.py` (step 2). Measured across the only two real builds that
-exist: `output/v2/full` → `output/v2/full_new` (the added-streams work, 49,542 → 64,128 sections).
+exist: `data/generated/atlas/full` → `data/generated/atlas/full_new` (the added-streams work, 49,542 → 64,128 sections).
 
 ### 0.1 — Identifier durability: a 3-tier hierarchy
 
@@ -535,8 +535,8 @@ the area catalog `area_catalog.gpkg` (**code**).
 ### 6.1 — Contract
 
 ```
-python -m pipeline.atlas.reach.build --build output/v2/full --out output/reaches/full
-python -m pipeline.atlas.reach.build --build output/v2/full_new --against output/reaches/full
+python -m pipeline.atlas.reach.build --build data/generated/atlas/full --out data/generated/reaches/full
+python -m pipeline.atlas.reach.build --build data/generated/atlas/full_new --against data/generated/reaches/full
 ```
 
 ```
@@ -596,7 +596,7 @@ and the ⑬ determinism check a natural home.
   `reason == None` (㊳).
 - **6.4** Full pass within the step-1 budget: **≤ 5 min wall after graph load**, actuals recorded.
 - **6.5** Incremental: re-resolving one changed entry touches only that entry; asserted by count.
-- **6.6** Diff mode reproduces `output/v2/full` → `full_new` and reports the changed-rule set; the
+- **6.6** Diff mode reproduces `data/generated/atlas/full` → `full_new` and reports the changed-rule set; the
   curated-cut survival number (**270/271**, §0.1) is reproduced from it.
 - **6.7** The review app's `/reaches` endpoint is served **by this builder** — one implementation, and
   ㊲'s tautology stops being a question anyone can ask.
@@ -610,7 +610,7 @@ and the ⑬ determinism check a natural home.
 ### Step 1 — Lift the resolver into `pipeline/resolve/`
 
 Not a file move: `resolve_extent` *fetches its own data* from `lru_cache`d loaders pinned to
-`output/v2/full` (`reuse.py:35-39`), so a builder invoked with a different `--out` would silently
+`data/generated/atlas/full` (`reuse.py:35-39`), so a builder invoked with a different `--out` would silently
 resolve against the wrong build. The lift inverts that — the resolver receives its world.
 
 ```
@@ -638,10 +638,10 @@ reasons: `area_scope` · `area_id_dangling` (㉔) · `no_sections_for_items` (�
 when `not resolved`. **`API.md` and the frontend are untouched.**
 
 - **1.1** Snapshot **before** editing: `entry_reaches` for all **1,392** entries against
-  `output/v2/full` → `pipeline/tests/fixtures/reaches-baseline.json.gz`. Post-lift, **byte-identical**.
+  `data/generated/atlas/full` → `pipeline/tests/fixtures/reaches-baseline.json.gz`. Post-lift, **byte-identical**.
   The only legitimate parity test for the lift, precisely because the baseline predates the move.
 - **1.2** No resolution logic remains in `curation-review/backend/reuse.py`.
-- **1.3** `rtk grep -n "output/v2" pipeline/resolve/` returns nothing.
+- **1.3** `rtk grep -n "data/generated/atlas" pipeline/resolve/` returns nothing.
 - **1.4** `test_review_reaches.py` imports `pipeline.resolve`; the `sys.path` insert and
   `importorskip("reuse")` are deleted; all 19 tests pass with unchanged assertions.
 - **1.5** `GET /api/entries/{id}/reaches` byte-identical for 20 fixed entries: Chilliwack (braids), the

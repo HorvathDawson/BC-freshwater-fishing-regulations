@@ -1,6 +1,6 @@
 # Session handoff — 2026-08-17
 
-Everything below is **uncommitted** (working tree). Province registry at `output/v2/full/registry.json`.
+Everything below is **uncommitted** (working tree). Province registry at `data/generated/atlas/full/registry.json`.
 Full test suite: **152 passed, 8 skipped**.
 
 > Prior handoffs (the 2026-08-15 override deep-dive, profiling, border cache, area work) are archived at
@@ -8,7 +8,7 @@ Full test suite: **152 passed, 8 skipped**.
 
 ## 0. Where coverage stands now
 
-`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry output/v2/full/registry.json`
+`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry data/generated/atlas/full/registry.json`
 
 ```
 registry           19,335 items  (stream 11,645 / lake 7,640 / wetland 46 / area 4)
@@ -76,7 +76,7 @@ Backups of every name_variants edit are in the session scratchpad (`name_variant
 
 Flow (`pipeline/regs/parsing/run_parse.sh`): **export batches → dispatch to Claude CLI → validate → ingest**.
 ```
-REGISTRY=output/v2/full/registry.json bash pipeline/regs/parsing/run_parse.sh
+REGISTRY=data/generated/atlas/full/registry.json bash pipeline/regs/parsing/run_parse.sh
 # knobs: BATCH_SIZE=40  MODEL=opus  CONCURRENCY=3  CLAUDE_BIN=claude
 ```
 Prereqs (all satisfied): registry.json ✓, `data/curated/regulations/overrides.json` (480) ✓, synopsis rows
@@ -155,9 +155,9 @@ multi-feature misses above all wait on it. Also open: lazy area-catalog wiring i
 ## 4. Commands
 ```
 # full production rebuild (~14 min; bakes name_variants + splits):
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out output/v2/full --splits data/curated/waters/splits.json
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out data/generated/atlas/full --splits data/curated/waters/splits.json
 # coverage (no build):
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry output/v2/full/registry.json
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry data/generated/atlas/full/registry.json
 # tests:
 PYTHONPATH="$PWD" .venv/bin/python -m pytest pipeline/tests/ -q
 # refresh the code graph after edits:

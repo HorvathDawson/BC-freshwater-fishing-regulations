@@ -32,7 +32,7 @@ from pipeline.atlas.waters.added_streams.validate import validate_propagation
 from pipeline.atlas.waters.added_streams.wsc import mint_wsc
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.models import BlkChain
-from pipeline.common.curated import CURATED
+from pipeline.common.curated import CURATED, GENERATED
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _CONNECT_TOL = 80.0        # a novel mouth must be within this of its receiver / the tidal boundary
@@ -1352,8 +1352,7 @@ def write(streams, candidates, report, out_dir: Path, name: str = "added_streams
         "fwa_exclude": report.get("fwa_exclude", []),
         "name_variants": report.get("name_variants", []),
         "streams": streams}, indent=1), encoding="utf-8")
-    from project_config import get_config
-    outputs = get_config().added_streams_dir
+    outputs = GENERATED.added_streams
     outputs.mkdir(parents=True, exist_ok=True)
     (outputs / "added_name_variant_candidates.json").write_text(
         json.dumps([asdict(c) for c in candidates], indent=1), encoding="utf-8")
@@ -1499,7 +1498,6 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
 
 def main() -> None:
     import argparse
-    from project_config import get_config
     ap = argparse.ArgumentParser(description="Build the minted additional-streams dataset.")
     ap.add_argument("sources", nargs="*", default=["burnaby"],
                     help="municipal sources (default: burnaby)")

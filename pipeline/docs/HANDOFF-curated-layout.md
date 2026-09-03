@@ -262,7 +262,7 @@ your own judgement.
 ## 8. Addendum — generated-and-committed artifacts (added 2026-09-03)
 
 Doc 16 splits the world in two: **curated** (a human authored it, no rebuild can recreate it)
-against **generated** (`output/`, costs CPU, throw it away freely). There is a third kind, and
+against **generated** (`data/generated/`, costs CPU, throw it away freely). There is a third kind, and
 it is the one that keeps going stale in silence.
 
 **A machine produced it, a human reviewed it, and from then on everything only reads it.**

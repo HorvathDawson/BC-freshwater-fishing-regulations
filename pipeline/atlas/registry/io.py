@@ -70,6 +70,17 @@ def load_registry(path: str | Path) -> dict[str, RegistryItem]:
 
 
 def default_registry_path() -> Path:
-    """The build's registry artifact location (under the pipeline output dir)."""
-    from project_config import get_config
-    return Path(get_config().fwa_output_dir) / "registry.json"
+    """`registry.json` of the default build — and it must EXIST.
+
+    This used to return `output/pipeline/graph/registry.json`, a directory that never
+    existed on disk, while every build wrote `output/v2/full/registry.json`. It was the
+    declared default of seven parser tools; they worked only because run_parse.sh always
+    passed `--registry` explicitly. Two of them (dfo_salmon splitwork and dossier) FELL BACK
+    to it, so a missing registry sent them looking somewhere impossible.
+
+    `GENERATED.registry()` refuses a build that is not there and names the command that
+    makes one, so the same situation is now one legible line instead of a FileNotFoundError
+    naming a path nobody recognises.
+    """
+    from pipeline.common.curated import GENERATED
+    return GENERATED.registry()

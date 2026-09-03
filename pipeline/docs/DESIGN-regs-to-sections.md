@@ -165,7 +165,7 @@ partial carve-out references the boundary split(s). Consumed at the resolve step
 1. DOWNLOAD    fetch the BC synopsis PDF(s)
 2. EXTRACTION  pipeline/regs/extraction: PDF → rows. Row = {name:"Chemainus River", region:1,
                mus:["1-5"], raw_regs:"No fishing between Copper Canyon Falls and the signs…"}
-               → output/ (ephemeral, regenerable)
+               → data/generated/ (ephemeral, regenerable)
 3. FWA DATA    data/: Freshwater Atlas geometry (every stream/lake)
 4. SPLITS      data/curated/waters/splits.json (by waterbody, curated FIRST): Chemainus →
                bannon_confluence, copper_canyon_falls, signs_100m  (id+label+note+anchor)
@@ -250,7 +250,7 @@ or curate it. Store as per-region files (`pipeline/regs/parsing/entries/region-2
 ## The parser — rebuild on Claude Code, freeze, consume
 
 **Today:** `pipeline/regs/parsing/parser.py` sends synopsis-row batches to **Gemini**, validates against the
-`ParsedBatch` pydantic models, and writes `output/pipeline/regs/parsing/synopsis_parsed.json` (ephemeral);
+`ParsedBatch` pydantic models, and writes `data/generated/regs/parsing/synopsis_parsed.json` (ephemeral);
 `region`/`mu` come out null. (An archived `agent_parsing/` shows a chat-driven flow already existed.)
 
 **New — drive the parse through Claude Code (chat + subagents), emit the `Entry` shape, freeze it in
@@ -278,8 +278,8 @@ or curate it. Store as per-region files (`pipeline/regs/parsing/entries/region-2
   bind (no split matches "the 2nd bridge"; nested harvest; freeform polygon) is emitted with
   `needs_review:true` + a reason → the coverage report's hand-curation queue. Expectation: nearly
   everything auto; Atnarko/Bella-Coola-class → flagged.
-- **Output → `pipeline/regs/parsing/` (checked-in), not `output/`.** Because the parse **freezes** and is then
-  hand-curated (extents, overrides), it must be version-controlled. `output/` stays for regenerable,
+- **Output → `pipeline/regs/parsing/` (checked-in), not `data/generated/`.** Because the parse **freezes** and is then
+  hand-curated (extents, overrides), it must be version-controlled. `data/generated/` stays for regenerable,
   ephemeral artifacts (raw extraction). Suggest per-region files (`pipeline/regs/parsing/entries/region-2.json`
   …) for small, reviewable diffs.
 - **Keep the pydantic gate:** the chain-of-custody checks (`location_text ⊆ rule_text`, verbatim fields,
@@ -321,7 +321,7 @@ The current `overrides.json` stays in `archive/pipeline/regs/matching/` as the s
 
 ## Worked example — Atnarko / Bella Coola system
 
-Real parsed entry (today `output/pipeline/regs/parsing/synopsis_parsed.json`; the rebuilt parser writes the
+Real parsed entry (today `data/generated/regs/parsing/synopsis_parsed.json`; the rebuilt parser writes the
 frozen `Entry` form to `pipeline/regs/parsing/`): `includes_tributaries: true`,
 `entry_location_text: "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek
 upstream of Hunlen Falls, and Young Creek upstream of Hwy 20"`, plus 8 rules. Printed under both

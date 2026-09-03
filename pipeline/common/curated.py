@@ -33,7 +33,7 @@ The third splits again, and the split is what this module exists to make visible
 A CURATED PATH IS NEVER OVERRIDABLE BY AN ENVIRONMENT VARIABLE. That is the
 `review_build` failure with a new coat of paint — the app rebuilt one directory and read
 another and neither said so. There is one answer to "where is the curated data" and it
-lives in `config.yaml`. Env override is for `output/` and for which build to read.
+lives in `config.yaml`. Generated paths live there too, under `generated:` — see `GENERATED`.
 """
 
 from __future__ import annotations
@@ -167,6 +167,111 @@ class DataTree(BaseModel):
     _abs = field_validator("*", mode="before")(_absolute)
 
 
+# ======================================================================================
+# generated/ — everything a program writes
+# ======================================================================================
+
+
+class GeneratedAtlas(BaseModel):
+    """Graph builds. One subdirectory per region, plus `full/`."""
+
+    model_config = ConfigDict(frozen=True)
+
+    builds: Path
+    #: The build the review app serves AND rebuilds into. One name, read by both — these
+    #: were two independent hard-codings of "output/v2/full", and the app could rebuild one
+    #: directory and read another with nothing saying so.
+    default_build: str = "full"
+
+    _abs = field_validator("builds", mode="before")(_absolute)
+
+
+class GeneratedRegs(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    extraction: Path
+    parsing: Path
+    parse: Path
+    dfo_salmon: Path
+    entries_backup: Path
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
+class GeneratedGauges(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    feeds: Path
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
+class Generated(BaseModel):
+    """Where computed data goes. Losing any of it costs CPU, never human time.
+
+    Every field is a plain `Path`, not a `DirectoryPath`: a fresh checkout has run nothing,
+    so requiring these to exist would make the config unloadable before the first build.
+    That permissiveness is exactly what `output/` got wrong — a missing output directory was
+    created on demand, so a build could write somewhere new and a reader could go on reading
+    the old place, and neither would say so.
+
+    The rule that replaces it is asymmetric, and it is the whole point of this class:
+
+        a WRITER may create its directory      -> `mkdir(...)`
+        a READER may not                       -> `require_build(...)`, which raises
+
+    `require_build` names the command that produces what is missing, so the failure is one
+    line and actionable instead of a FileNotFoundError three frames down naming a pickle.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    base: Path
+    atlas: GeneratedAtlas
+    reaches: Path
+    bundle: Path
+    tiles: Path
+    added_streams: Path
+    scratch: Path
+    regs: GeneratedRegs
+    gauges: GeneratedGauges
+
+    _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
+                           mode="before")(_absolute)
+
+    # --- builds -----------------------------------------------------------------------
+
+    def build(self, name: str | None = None) -> Path:
+        """The path of a build. Does NOT check it exists — for writers and for messages."""
+        return self.atlas.builds / (name or self.atlas.default_build)
+
+    def require_build(self, name: str | None = None) -> Path:
+        """The path of a build that must already be there, or raise saying how to make it."""
+        p = self.build(name)
+        if not p.is_dir():
+            raise FileNotFoundError(
+                f"no build at {p} — build it:\n"
+                f"    PYTHONPATH=\"$PWD\" .venv/bin/python -m pipeline.atlas.build "
+                f"--full --out {p}"
+            )
+        return p
+
+    def registry(self, name: str | None = None) -> Path:
+        """`registry.json` of a build that must already be there.
+
+        This replaces `default_registry_path()`, which returned
+        `output/pipeline/graph/registry.json` — a directory that never existed on disk — and
+        was the declared default of seven parser tools.
+        """
+        return self.require_build(name) / "registry.json"
+
+    def mkdir(self, *parts: str) -> Path:
+        """A directory under `generated/`, created. For WRITERS only."""
+        p = self.base.joinpath(*parts)
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+
 @functools.lru_cache(maxsize=2)
 def load(config: Path | None = None) -> Curated:
     """The validated curated tree. Cached, because validation stats every file.
@@ -189,6 +294,24 @@ def load_data_tree(config: Path | None = None) -> DataTree:
     if "data_tree" not in blob:
         raise KeyError(f"{path} has no `data_tree:` — see the restructure plan")
     return DataTree.model_validate(blob["data_tree"])
+
+
+@functools.lru_cache(maxsize=2)
+def load_generated(config: Path | None = None) -> Generated:
+    """The generated tree. Cross-checked against `data_tree.generated` so the two roots
+    cannot drift into naming different directories."""
+    path = config or CONFIG
+    blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if "generated" not in blob:
+        raise KeyError(f"{path} has no `generated:` tree — `output:` was retired into it")
+    got = Generated.model_validate(blob["generated"])
+    root = DataTree.model_validate(blob["data_tree"]).generated
+    if got.base != root:
+        raise ValueError(
+            f"config.yaml disagrees with itself: data_tree.generated={root} but "
+            f"generated.base={got.base}. They must name the same directory."
+        )
+    return got
 
 
 class _Lazy:
@@ -236,6 +359,11 @@ CURATED = _Lazy(load)
 #: `SOURCE / "bc_hydrometric_stations.json"` — fetched data, addressed through config so a
 #: fetcher and a reader cannot disagree about where a file went.
 SOURCE = _Lazy(load_data_tree)
+
+
+#: `GENERATED.tiles`, `GENERATED.require_build()` — computed data, addressed through config
+#: so a writer and a reader cannot disagree about where a build went.
+GENERATED = _Lazy(load_generated)
 
 
 def generated(*parts: str) -> Path:

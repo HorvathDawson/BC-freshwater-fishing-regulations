@@ -20,7 +20,7 @@ from pipeline.regs.dfo_salmon.parse import (
     _expand_grid,
     parse_region,
 )
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dfo_salmon"
 
@@ -1417,7 +1417,7 @@ def test_the_ladder_is_ordered_most_faithful_first():
 
 @pytest.mark.slow
 def test_match_report_against_the_real_registry():
-    """Needs output/v2/full/registry.json. Guards the two failure modes that matter:
+    """Needs data/generated/atlas/full/registry.json. Guards the two failure modes that matter:
     an ambiguous name must never be 'resolved' by a less faithful rung, and a fuzzy
     near-spelling must never auto-bind."""
     from pipeline.regs.dfo_salmon.entries import load
@@ -1896,7 +1896,7 @@ def test_not_found_does_not_fall_through_to_a_wrong_name_match():
     from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
     from pipeline.atlas.registry.io import load_registry
 
-    reg = load_registry("output/v2/full/registry.json")
+    reg = load_registry(GENERATED.build() / "registry.json")
     ni, ii = build_name_index(reg), build_id_index(reg)
     ovx = build_override_index(load_overrides(DEFAULT_OVERRIDES))
 
@@ -1913,7 +1913,7 @@ def test_a_renamed_water_links_instead_of_being_refused():
     from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
     from pipeline.atlas.registry.io import load_registry
 
-    reg = load_registry("output/v2/full/registry.json")
+    reg = load_registry(GENERATED.build() / "registry.json")
     ni, ii = build_name_index(reg), build_id_index(reg)
     ovx = build_override_index(load_overrides(DEFAULT_OVERRIDES))
     for name, region, item in [("ISHKHEENICKH RIVER", "REGION 6", "gnis:4069"),

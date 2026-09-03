@@ -28,21 +28,20 @@ from pipeline.regs.matching.matcher import (
 from pipeline.regs.parsing import io
 from pipeline.regs.parsing.entry_models import Entry, unused_splits, validate_entry_splits
 from pipeline.regs.parsing.rows import load_synopsis_rows
-from project_config import get_config
 from pipeline.atlas.registry import load_registry
 from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
 from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.atlas.reach import extent as _resolve
 from pipeline.common.utils.wsc import trim_wsc
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
 ENTRIES_DIR = CURATED.regulations.entries.synopsis
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it, shared with
-# rebuild.py (which writes this same directory) — see config.yaml `output.review_build`. Hard-coding
+# rebuild.py (which writes this same directory) — see config.yaml `generated.atlas.default_build`. Hard-coding
 # it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
-_BUILD = get_config().review_build_dir
+_BUILD = GENERATED.build()
 REGISTRY_PATH = _BUILD / "registry.json"
 OVERRIDES_PATH = CURATED.regulations.overrides
 SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
@@ -50,7 +49,7 @@ GRAPH_GPKG_PATH = _BUILD / "graph.gpkg"
 GRAPH_PKL_PATH = _BUILD / "graph.pkl"
 BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
 SPLITS_JSON_PATH = CURATED.waters.splits                 # THE hand-curated split source (editable here)
-ROW_IMAGES_DIR = _ROOT / "output" / "pipeline" / "extraction" / "row_images"  # source synopsis row crops
+ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
 
 
 # --------------------------------------------------------------------------- #

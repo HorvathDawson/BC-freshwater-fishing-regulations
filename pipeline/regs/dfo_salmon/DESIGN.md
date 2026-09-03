@@ -172,12 +172,12 @@ pipeline/regs/dfo_salmon/entries/region-6.json     CURATED · committed · rarel
                         │
                         │  build_reach()
                         ▼
-output/dfo_salmon/link/region-6.json          BUNDLE
+data/generated/regs/dfo_salmon/link/region-6.json          BUNDLE
    fingerprint  →  section_ids[]
                         ▲
                         │  joined on the fingerprint, by the app
                         │
-output/dfo_salmon/feed/region-6.json          FEED · re-scraped, never curated
+data/generated/regs/dfo_salmon/feed/region-6.json          FEED · re-scraped, never curated
    fingerprint  →  species, dates, limits, gear, fishery notices
 ```
 
@@ -199,7 +199,7 @@ Everything else on the page keeps working throughout. A row that does not resolv
 listed, not dropped:
 
 ```jsonc
-// output/dfo_salmon/feed/region-6.json
+// data/generated/regs/dfo_salmon/feed/region-6.json
 { "region": "6", "scraped_at": "…", "source_sha256": "…",
   "rules":     [ { "fingerprint": "d0ece960…", "species": "Sockeye",
                    "dates": {…}, "limits_gear": "2 per day", … } ],
@@ -302,7 +302,7 @@ class EntryLocation:
 That is what `build_reach` consumes, so there is one definition of "upstream of split s"
 in the repo and the DFO side cannot drift from it.
 
-### `output/dfo_salmon/link/region-<slug>.json` — BUNDLE, generated
+### `data/generated/regs/dfo_salmon/link/region-<slug>.json` — BUNDLE, generated
 
 ```python
 @dataclass
@@ -326,7 +326,7 @@ class Link:
 `section_ids` is valid **only for the named `bundle`** — never reuse a resolved section
 list across a rebuild (AGENTS rule 6).
 
-### `output/dfo_salmon/feed/region-<slug>.json` — FEED, generated
+### `data/generated/regs/dfo_salmon/feed/region-<slug>.json` — FEED, generated
 
 ```python
 @dataclass
@@ -377,7 +377,7 @@ class UnmatchedRow:
         name/override → waters[].item_ids                       → unmatched[]
         (exact hits only)                                            │
                  │                                                   ▼
-    (d) CURATION — the human pass (§4)                     output/…/feed/region-N.json
+    (d) CURATION — the human pass (§4)                     data/generated/regs/dfo_salmon/feed/region-N.json
         extents, new splits, overrides                             FEED
                  │
                  ▼
@@ -387,7 +387,7 @@ class UnmatchedRow:
         build_reach(entry, rule) per location
                  │
                  ▼
-    output/dfo_salmon/link/region-N.json           BUNDLE
+    data/generated/regs/dfo_salmon/link/region-N.json           BUNDLE
 ```
 
 | step | command | when | needs |

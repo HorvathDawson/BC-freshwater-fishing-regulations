@@ -6,7 +6,7 @@
  *            landcover, places. Generic, replaceable, and NOT ours to style; the flavour
  *            comes from @protomaps/basemaps so it looks like every other OSM map, which is
  *            the point. A fisherman should recognise the ground before they read our water.
- *   atlas    our pipeline's tiles (output/tiles/atlas.pmtiles) — every stream, lake,
+ *   atlas    our pipeline's tiles (data/generated/tiles/atlas.pmtiles) — every stream, lake,
  *            wetland and administrative boundary in the province, carrying identity but no
  *            regulation. Colour arrives at runtime by feature-state.
  *

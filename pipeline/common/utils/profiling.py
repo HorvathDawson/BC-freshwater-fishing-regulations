@@ -7,7 +7,7 @@ wrap sub-phases in `prof.phase(...)` and they cost nothing unless profiling is e
 
 Enable per-run with an env var (no code change):
 
-    PIPELINE_PROFILE=1 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out output/v2/full
+    PIPELINE_PROFILE=1 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out data/generated/atlas/full
 
 or explicitly: `build_registry(graph, prof=Profiler(enabled=True))`.
 """

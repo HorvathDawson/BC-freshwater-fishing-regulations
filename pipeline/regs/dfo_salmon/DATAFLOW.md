@@ -101,7 +101,7 @@ The single biggest simplification. The scraper should write the halves **separat
 so the cron's check is a file comparison rather than a walk:
 
 ```jsonc
-// output/dfo_salmon/locations/region-6.json   — what cron CHECKS
+// data/generated/regs/dfo_salmon/locations/region-6.json   — what cron CHECKS
 { "region": "6", "source_sha256": "…", "scraped_at": "…",
   "locations": [
     { "fingerprint": "a3f19c22b7e1",
@@ -111,7 +111,7 @@ so the cron's check is a file comparison rather than a walk:
       "excludes": ["Morrison Creek", "…"],
       "precedence": 3 } ] }
 
-// output/dfo_salmon/rules/region-6.json       — what cron PUBLISHES
+// data/generated/regs/dfo_salmon/rules/region-6.json       — what cron PUBLISHES
 { "region": "6", "source_sha256": "…",
   "rules": [
     { "fingerprint": "a3f19c22b7e1",

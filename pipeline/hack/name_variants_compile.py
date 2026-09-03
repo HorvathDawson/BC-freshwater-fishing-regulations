@@ -3,7 +3,7 @@
     .venv/bin/python -m pipeline.hack.name_variants_compile --out pipeline/name_variants.json
 
 Sources: feature_display_names.json, overrides.json, and the stocking/bathy names in
-output/pipeline/anglerinfo/anglerinfo_matches.json (wbk_names). FWA gazette stays live at build,
+the archived anglerinfo matches (wbk_names). FWA gazette stays live at build,
 NOT here. Future stocking/bathy/gauge formats get their own appenders; this is the bootstrap.
 
 Every entry is {"target": {blk|wbk|gnis_id|wsc: "..."}, "reach"?: {from_m,to_m}, "names":

@@ -17,7 +17,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PY=.venv/bin/python
-FEED=output/feeds/gauge
+FEED=data/generated/gauges/feeds
 FULL=${1:-}
 
 echo "-- roster -------------------------------------------"
@@ -28,15 +28,15 @@ if [ "$FULL" = "--full" ]; then
   echo "-- HYDAT (yearly, ~266 MB; skipped unless the release moved) --"
   (cd data && PYTHONPATH=.. ../$PY fetch_data.py --layers hydat)
   echo "-- envelope -----------------------------------------"
-  $PY -m pipeline.hydro.climatology --out "$FEED/clim.json"
+  $PY -m pipeline.gauges.feed.climatology --out "$FEED/clim.json"
 fi
 
 echo "-- feed ---------------------------------------------"
 if [ -f "$FEED/clim.json" ]; then
-  $PY -m pipeline.hydro.publish --out "$FEED" --clim "$FEED/clim.json"
+  $PY -m pipeline.gauges.feed.publish --out "$FEED" --clim "$FEED/clim.json"
 else
   echo "  (no envelope yet: percentiles will be null. Run with --full once.)"
-  $PY -m pipeline.hydro.publish --out "$FEED"
+  $PY -m pipeline.gauges.feed.publish --out "$FEED"
 fi
 
 echo "-- app fixture --------------------------------------"

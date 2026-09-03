@@ -26,7 +26,7 @@ rules attach to them exactly as they attach to a named water.
 
 CLI
 ---
-    .venv/bin/python -m pipeline.regs.dfo_salmon.locations --out output/dfo_salmon
+    .venv/bin/python -m pipeline.regs.dfo_salmon.locations --out data/generated/regs/dfo_salmon
 """
 
 from __future__ import annotations
@@ -44,6 +44,7 @@ from typing import Dict, List, Optional
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.parse import parse_cached
 from pipeline.regs.dfo_salmon.untangle import Untangled, classify_scope, untangle
+from pipeline.common.curated import GENERATED
 
 logger = logging.getLogger(__name__)
 
@@ -409,7 +410,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS)
     ap.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
-    ap.add_argument("--out", type=Path, default=Path("output/dfo_salmon"))
+    ap.add_argument("--out", type=Path, default=GENERATED.regs.dfo_salmon)
     args = ap.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")

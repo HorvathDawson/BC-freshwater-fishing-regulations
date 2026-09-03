@@ -10,7 +10,7 @@ but `applies_to` scoped it to blk 360836756 — an unnamed order-1 creek 249 m l
 happens to be the nearest blue line to the pin (50 m, vs 280 m to the Atnarko). The cut landed on
 the ditch, no item carried it, and both rules naming those boundary signs stayed unbound.
 
-    python -m pipeline.tools.audit_split_binding [--build output/v2/full] [--json]
+    python -m pipeline.tools.audit_split_binding [--build data/generated/atlas/full] [--json]
 
 Verdicts, worst first:
 
@@ -34,7 +34,7 @@ from pathlib import Path
 from pipeline.atlas.registry import load_registry
 from pipeline.common.io.serialize import read_artifact
 from pipeline.atlas.splits.splits import load_split_defs
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 
 def _bare(x) -> str:
@@ -108,7 +108,7 @@ ORDER = ["unnamed_water", "lost", "never_resolved", "mouth_noop", "ok"]
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--build", default="output/v2/full")
+    ap.add_argument("--build", default=str(GENERATED.build()))
     ap.add_argument("--splits", default=str(CURATED.waters.splits))
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()

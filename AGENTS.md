@@ -76,8 +76,8 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 ## Builds and tests
 
 17. **Full builds take ~18 min and ~9 GB.** Never rebuild to test a change. Build to a new
-    `--out` and compare with `pipeline/tools/build_parity.py`. `output/v2/full` and
-    `output/v2/full_new` already exist.
+    `--out` and compare with `pipeline/tools/build_parity.py`. `data/generated/atlas/full` and
+    `data/generated/atlas/full_new` already exist.
 18. **`pytest.ini` deselects 153 `slow` tests by default** (㊷). Determinism and full-build
     guards live there, so CI must run `-m slow` explicitly or they never run.
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
@@ -130,7 +130,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     |---|---|---|---|
     | **authored** | `splits.json`, `name_variants.json`, `overrides.json` | only READ it | human hours |
     | **reviewed** | `gauge_match.json`, `bc_station_waterbody_type.json` | only READ it | human hours |
-    | **generated** | anything under `output/` | rewrite it freely | CPU |
+    | **generated** | anything under `data/generated/` | rewrite it freely | CPU |
 
     "Reviewed" is the one people get wrong: a machine produced it, a human then checked it,
     and **re-running the generator throws that review away**. It is curated data that
@@ -167,6 +167,24 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     pipeline's, one in `@app/core`, one in `build-fixture.mjs` with a band the pipeline has
     never written — and a test pinning the *constants* passed the whole time, because they
     agreed on the thresholds and disagreed on the rule.
+
+41. **There is no `output/`. Generated paths come from `pipeline.common.curated.GENERATED`.**
+    `from pipeline.common.curated import GENERATED` then `GENERATED.build()`,
+    `GENERATED.tiles`, `GENERATED.regs.parse`. Everything a program writes lives under
+    `data/generated/`, so the three kinds of data are one listing (`source/`, `generated/`,
+    `curated/`) instead of three plus a fourth that meant the same as one of them.
+
+    `output/` was retired because it drifted and nothing said so: six of its declared
+    directories — `output/pipeline/{graph,atlas,matching,anglerinfo,hydro,deploy}` — had
+    never existed on disk, and `default_registry_path()` handed seven parser tools a
+    `registry.json` inside one of them. A missing output directory is created on demand, so
+    the class of bug is silent by construction.
+
+    **The rule that replaces it is asymmetric.** A WRITER may create its directory; a READER
+    may not. Read a build through `GENERATED.require_build()` / `GENERATED.registry()`,
+    which refuse a directory that is not there and print the command that makes it. Never
+    `Path("data/generated/...")` as a literal — that is `output/v2/full` hard-coded twice
+    with a new prefix.
 
 ## Working style
 

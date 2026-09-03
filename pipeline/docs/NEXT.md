@@ -53,7 +53,7 @@ its locators are shown on their sheets, and nothing is applied.
 
 ---
 
-## 0. The active build — `output/v2/full` (adopted 2026-08-29)
+## 0. The active build — `data/generated/atlas/full` (adopted 2026-08-29)
 
 **Section 0's old warning about `full_named` is resolved and gone.** That build was never
 adopted; it has been deleted along with `full_v4`. The blocker it described — 163 new
@@ -118,7 +118,7 @@ completion, so stale artifacts are not a problem — but the in-flight window is
 you want to verify before adopting:
 
 ```bash
-.venv/bin/python -m pipeline.atlas.build --full --out output/v2/_full_staging \
+.venv/bin/python -m pipeline.atlas.build --full --out data/generated/atlas/_full_staging \
     --splits data/curated/waters/splits.json
 # verify, then:  rm -rf full_prev_bak && mv full full_prev_bak && mv _full_staging full
 ```
@@ -144,7 +144,7 @@ geometry-free consumer never pays for shapely"). Geometry lives in a sidecar:
 | **`geometries.pkl`** | build dir | **2.07 GB** | **the actual lines, by `node_id`** |
 | `graph.gpkg` | build dir | 3.77 GB | the same, queryable — what `reuse` reads for the map |
 
-So: **graph + registry + geometries**. All three exist in `output/v2/full`.
+So: **graph + registry + geometries**. All three exist in `data/generated/atlas/full`.
 
 ### It does NOT need the reach builder
 
@@ -204,7 +204,7 @@ wbk:329524100                                     -> wbk:329524100, wbk:32898916
 
 ```bash
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched \
-    --registry output/v2/full/registry.json
+    --registry data/generated/atlas/full/registry.json
 ```
 
 It replays `batch_exporter` locally — **no credits, no `claude` CLI** — and touches only
@@ -430,7 +430,7 @@ those rules were confirmed against a 1-section river.
 
 ## 7. Housekeeping notes
 
-* **`output/v2` holds two builds only**: `full` (active) and `full_prev_bak` (rollback — the
+* **`data/generated/atlas` holds two builds only**: `full` (active) and `full_prev_bak` (rollback — the
   build adopted earlier the same day). `full_named`, `full_v4`, and the build-19 backup were
   deleted 2026-08-29. Each build is ~8.8 GB — budget for that before starting one.
 * **`docs/waterbody-splits.json` is kept deliberately.** Its generator (`hack/build_splits.py`)

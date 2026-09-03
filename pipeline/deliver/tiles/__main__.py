@@ -6,17 +6,17 @@ from pathlib import Path
 
 from project_config import get_config
 from pipeline.deliver.tiles import export, tippe
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 
 def main() -> None:
     cfg = get_config()
     ap = argparse.ArgumentParser(prog="python -m pipeline.deliver.tiles")
-    ap.add_argument("--build", default=str(cfg.builds_dir / "full"),
+    ap.add_argument("--build", default=str(GENERATED.build()),
                     help="a completed build dir (graph.pkl, geometries.pkl, registry.json)")
     ap.add_argument("--gpkg", default=str(cfg.fwa_data_gpkg))
     ap.add_argument("--places", default=str(SOURCE / "bc_places.json"))
-    ap.add_argument("--out", default="output/tiles")
+    ap.add_argument("--out", default=str(GENERATED.tiles))
     ap.add_argument("--minzoom", type=int, default=4)
     ap.add_argument("--maxzoom", type=int, default=14)
     ap.add_argument("--limit", type=int, default=None,

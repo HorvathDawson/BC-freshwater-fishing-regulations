@@ -7,12 +7,12 @@ entry's `parse_review`), we can reconstruct the responses from the EntryFiles: f
 (index -> entry_id) emit `{index, entry}` using the entry on disk. Then:
 
     # 1. export ALL entries into batches (a full export — no --skip-existing/--only-changed)
-    PYTHONPATH=$PWD .venv/bin/python -m pipeline.regs.parsing.batch_exporter --registry output/v2/full/registry.json
+    PYTHONPATH=$PWD .venv/bin/python -m pipeline.regs.parsing.batch_exporter --registry data/generated/atlas/full/registry.json
     # 2. rebuild responses from the entries on disk (this script) — no credits
     PYTHONPATH=$PWD .venv/bin/python -m pipeline.regs.parsing.synth_responses
     # 3. REVIEW every batch (HUMAN — spends haiku credits) then ingest to bake parse_review
     PYTHONPATH=$PWD .venv/bin/python -m pipeline.regs.parsing.dispatch --review --review-model haiku
-    PYTHONPATH=$PWD .venv/bin/python -m pipeline.regs.parsing.ingest output/parse/responses/*.json
+    PYTHONPATH=$PWD .venv/bin/python -m pipeline.regs.parsing.ingest data/generated/regs/parse/responses/*.json
 
 Only the review step spends credits (haiku), and ingest preserves locked entries.
 """
@@ -60,7 +60,7 @@ def synth(batches_dir: Path, responses_dir: Path, entries_dir: Path) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Rebuild parse responses from the current EntryFiles (for a review-only pass).")
-    ap.add_argument("--out-dir", help="parse work dir (default: <root>/output/parse).")
+    ap.add_argument("--out-dir", help="parse work dir (default: <generated>/regs/parse).")
     ap.add_argument("--entries-dir", help="EntryFiles dir (default: pipeline/regs/parsing/entries).")
     args = ap.parse_args()
 

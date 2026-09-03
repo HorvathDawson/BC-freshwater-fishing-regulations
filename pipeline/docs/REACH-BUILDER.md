@@ -40,7 +40,7 @@ policy decision in one readable table so the answers to §"open policy" below li
                          ├─▶ build.py ──▶ classify.py ──▶ bindings + unresolved + diagnostics
   ResolveContext ────────┘       │                              │
    (graph + registry,            │                              ▼
-    from one --build)         cache.py                     io.py ──▶ output/reaches/<build>/
+    from one --build)         cache.py                     io.py ──▶ data/generated/reaches/<build>/
                                                                       ├── rule_section.parquet
                                                                       ├── rule_unresolved.parquet
                                                                       ├── rule_extent.parquet
@@ -97,9 +97,9 @@ graph load. There is no performance problem to solve.
 ## Diff mode — the reason it is next
 
 ```bash
-python -m pipeline.atlas.reach.build --build output/v2/full     --out output/reaches/full
-python -m pipeline.atlas.reach.build --build output/v2/full_new --out output/reaches/full_new \
-                               --against output/reaches/full
+python -m pipeline.atlas.reach.build --build data/generated/atlas/full     --out data/generated/reaches/full
+python -m pipeline.atlas.reach.build --build data/generated/atlas/full_new --out data/generated/reaches/full_new \
+                               --against data/generated/reaches/full
 ```
 
 Reports, per rule, the sections added and removed, grouped by entry, ranked by blast radius, with each

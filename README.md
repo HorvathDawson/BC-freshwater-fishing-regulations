@@ -82,7 +82,7 @@ python -m pipeline --step tiles enrich  # skip atlas if only regs changed
 pytest pipeline/tests/ -q
 ```
 
-Pipeline output lands in `output/pipeline/deploy/`.
+Pipeline output lands in `data/generated/deploy/`.
 
 ## Running the webapp locally
 

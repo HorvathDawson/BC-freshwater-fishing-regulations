@@ -20,7 +20,7 @@ downstream rows to one indistinguishable label. The readable form lives in `iden
 and a combined entry's several items are surfaced in the review UI from `matched`.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --dry-run
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --registry output/v2/full/registry.json
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched --registry data/generated/atlas/full/registry.json
 """
 
 from __future__ import annotations

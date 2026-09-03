@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Iterable
 
 from pipeline.regs.parsing.entry_models import Entry, EntryFile
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.common.curated import REPO_ROOT
 
 _ROOT = REPO_ROOT
@@ -32,9 +32,10 @@ _ROOT = REPO_ROOT
 # --------------------------------------------------------------------------- #
 
 def default_work_dir() -> Path:
-    """The parse work dir (batches/responses/reviews) — a top-level `<root>/output/parse`, unrelated to
-    the FWA graph artifacts."""
-    return _ROOT / "output" / "parse"
+    """The parse work dir (batches/responses/reviews) — `<generated>/regs/parse`, unrelated to
+    the FWA graph artifacts. Transient: run_parse.sh deletes it on a fresh run, and every
+    verdict that matters is written back onto the EntryFiles, which are curated."""
+    return GENERATED.regs.parse
 
 
 def entries_dir() -> Path:

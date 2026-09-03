@@ -65,7 +65,7 @@ export function RebuildButton({ onRebuilt }: Props) {
     if (running || starting) return;
     if (!window.confirm(
       "Rebuild the full graph now?\n\nRuns pipeline.build --full (~15–20 min, CPU-only, no credits). " +
-      "It overwrites output/v2/full/* and bakes your splits.json edits into the section boundaries. " +
+      "It overwrites data/generated/atlas/full/* and bakes your splits.json edits into the section boundaries. " +
       "When it finishes, every item here refreshes automatically.",
     )) return;
     setStarting(true);

@@ -18,6 +18,7 @@ from pipeline.common.models import (
 from pipeline.atlas.reach.tributaries import (
     _breaks_strahler, _mouths_at_lower_bound, expand, tributaries_of_reach,
 )
+from pipeline.common.curated import GENERATED
 
 
 def _n(nid, *, order=1, blk=None, barrier=False, kind=NodeKind.stream, lower=None):
@@ -358,7 +359,7 @@ def real():
     import sys
     from pathlib import Path
     root = Path(__file__).resolve().parents[2]
-    if not (root / "output/v2/full/graph.pkl").exists():
+    if not (GENERATED.build() / "graph.pkl").exists():
         pytest.skip("no built graph")
     sys.path.insert(0, str(root / "curation-review/backend"))
     import reuse

@@ -1,6 +1,6 @@
 """Compare two build outputs — is the registry the same after a change?
 
-    .venv/bin/python -m pipeline.tools.build_parity output/v2/full output/v2/full_new
+    .venv/bin/python -m pipeline.tools.build_parity data/generated/atlas/full data/generated/atlas/full_new
 
 Downstream consumes `registry.json`, so that is what parity means: same items, same names, same
 section membership, same boundaries. BOUNDARIES ARE REPORTED SEPARATELY and a net loss is shouted

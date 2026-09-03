@@ -28,7 +28,7 @@ decision, and a curator who locked an entry did so looking at a name we had alre
 Nothing else on the entry is touched.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_identity --dry-run
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_identity --registry output/v2/full/registry.json
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_identity --registry data/generated/atlas/full/registry.json
 """
 
 from __future__ import annotations

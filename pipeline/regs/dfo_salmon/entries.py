@@ -42,7 +42,7 @@ from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.regs.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
 from pipeline.regs.parsing.entry_models import Extent, Tributaries
 from pipeline.regs.dfo_salmon.locations import Location, normalize
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 logger = logging.getLogger(__name__)
 
@@ -718,7 +718,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("command", choices=["seed", "reconcile", "group", "contest"])
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS)
-    ap.add_argument("--scrape", type=Path, default=Path("output/dfo_salmon"))
+    ap.add_argument("--scrape", type=Path, default=GENERATED.regs.dfo_salmon)
     ap.add_argument("--entries-dir", type=Path, default=ENTRIES_DIR)
     ap.add_argument("--history", action="store_true",
                     help="seed: also take every location from cached historical versions, "

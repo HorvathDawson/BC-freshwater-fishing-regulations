@@ -31,13 +31,13 @@ import re
 from pathlib import Path
 
 from pipeline.deliver.tiles.names import normalise
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.common.curated import generated
 
 CSV_PATH = SOURCE / "wsa_bathymetry_maps.csv"
 WFS_PATH = SOURCE / "bc_bathymetry_sheets.json"
 GPKG = SOURCE / "bc_fisheries_data.gpkg"
-GRAPH = Path("output/v2/full/graph.pkl")
+GRAPH = GENERATED.build() / "graph.pkl"
 
 
 def _bare(name: str) -> str:

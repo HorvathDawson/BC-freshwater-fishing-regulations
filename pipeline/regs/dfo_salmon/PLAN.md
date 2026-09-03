@@ -62,7 +62,7 @@ cache/dfo_salmon/                 gitignored — machine state
 pipeline/regs/dfo_salmon/entries/      COMMITTED — the curated half
   region-6.json                   waters -> reaches -> bindings; locked flags
 
-output/dfo_salmon/                generated, disposable
+data/generated/regs/dfo_salmon/                generated, disposable
   regionN.json                    faithful rows (parse.py)
   untangled/regionN.json          waters -> reaches -> rules (untangle.py)
   reconcile/regionN.json          what changed this run, and what needs a human

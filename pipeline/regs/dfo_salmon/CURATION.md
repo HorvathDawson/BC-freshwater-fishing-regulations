@@ -6,7 +6,7 @@
 
 **Every number here is measured** from the 346 seeded locations and 438 scraped rules.
 Reproduce with `pipeline.regs.dfo_salmon.locations`, `… entries seed --history`, and the
-registry at `output/v2/full/registry.json`.
+registry at `data/generated/atlas/full/registry.json`.
 
 ---
 

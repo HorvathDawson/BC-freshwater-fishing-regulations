@@ -1,8 +1,8 @@
 """Build + validate the stream graph. Run with the project venv:
 
-    .venv/bin/python -m pipeline.atlas.build --gnis "Adams River" --out output/v2/adams
-    .venv/bin/python -m pipeline.atlas.build --bbox 1282000 476000 1305000 508000 --out output/v2/chehalis
-    .venv/bin/python -m pipeline.atlas.build --full --out output/v2/full   # whole province (heavy)
+    .venv/bin/python -m pipeline.atlas.build --gnis "Adams River" --out data/generated/atlas/adams
+    .venv/bin/python -m pipeline.atlas.build --bbox 1282000 476000 1305000 508000 --out data/generated/atlas/chehalis
+    .venv/bin/python -m pipeline.atlas.build --full --out data/generated/atlas/full   # whole province (heavy)
 
 Produces (under --out): blk_chains.pkl, graph.pkl, graph.gpkg (streams / confluences /
 anchors layers for QGIS), and summary.txt.
@@ -24,7 +24,7 @@ from pipeline.atlas.graph.graph import build_section_geometries, build_stream_gr
 from pipeline.atlas.graph.names import resolve_names
 from pipeline.common.io.serialize import write_artifact
 from pipeline.atlas.splits.splits import load_split_defs
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 _DEFAULT_GPKG = str(get_config().fwa_data_gpkg)
 
@@ -335,7 +335,7 @@ def main() -> None:
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
     ap.add_argument("--lakes", action="store_true",
                     help="export lake inlet/outlet points as a 'lake_io' layer")
-    ap.add_argument("--out", default=str(get_config().builds_dir / "validate"))
+    ap.add_argument("--out", default=str(GENERATED.build("validate")))
     args = ap.parse_args()
 
     fwa = FWADataAccessor(args.gpkg)

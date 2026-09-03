@@ -44,10 +44,10 @@ Two costs, both already paid once:
   `"data/curated/waters/splits.json"`, 3× `<something> / "splits.json"`, 2× `parents[1] / "splits.json"`, 1×
   `parents[2] / ...`, 1× `Path("data/curated/waters/splits.json")`, and exactly 1 that goes through config.
   `config.yaml` already carries the scar from the same class of bug, on `review_build`: *"These were
-  two independent hard-codings of `output/v2/full` in reuse.py and rebuild.py: the app could rebuild
+  two independent hard-codings of `data/generated/atlas/full` in reuse.py and rebuild.py: the app could rebuild
   one directory and read another, and neither would say so."*
 * **Curated data is indistinguishable from generated data.** Nothing in the tree says
-  `splits.json` is irreplaceable while `output/v2/full/` is 27 minutes of CPU. A `--splits` flag
+  `splits.json` is irreplaceable while `data/generated/atlas/full/` is 27 minutes of CPU. A `--splits` flag
   with no default silently dropped all 376 curated cuts from three full builds because nothing made
   the omission loud. That is fixed, but the shape that allowed it is structural.
 
@@ -82,7 +82,7 @@ and ~15 typed properties. Add a `curated:` tree and properties beside the existi
 # config.yaml
 curated:
   # Hand-authored data. NOTHING here is regenerable: a rebuild reads it, never writes it.
-  # Losing a file here loses curation that cost human time; losing anything under output/ costs CPU.
+  # Losing a file here loses curation that cost human time; losing anything under data/generated/ costs CPU.
   base: "pipeline/curated"
   splits: "pipeline/curated/splits.json"
   name_variants: "pipeline/curated/name_variants.json"

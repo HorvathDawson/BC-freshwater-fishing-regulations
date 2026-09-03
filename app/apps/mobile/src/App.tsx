@@ -69,7 +69,7 @@ const BUNDLE = "http://localhost:39217/province.sqlite";
  *
  *   /feeds/gauge  the fixture feed — five stations, matching the fixture bundle
  *   /feeds/live   real ECCC data from `python -m pipeline.hydro.publish`, matching
- *                 output/bundle/bundle.sqlite (served here as /province.sqlite)
+ *                 data/generated/bundle/bundle.sqlite (served here as /province.sqlite)
  *
  * Point both at the province pair to see live numbers over the whole map.
  */

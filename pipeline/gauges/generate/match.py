@@ -57,7 +57,7 @@ from dataclasses import asdict, dataclass, fields, replace
 
 from pipeline.gauges import review as _review
 from pipeline.deliver.tiles.names import normalise
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.gauges.matches import MATCH_FILE, StationMatch, read_match, write_match
 
 # Longest first, so "ABOVE THE" wins over "ABOVE" and "UPSTREAM OF" over "AT".
@@ -517,7 +517,7 @@ def main() -> None:
     from pipeline.gauges.consume.shed import load_stations
 
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--build", type=Path, default=Path("output/v2/full"),
+    ap.add_argument("--build", type=Path, default=GENERATED.build(),
                     help="a completed build directory (graph.pkl, geometries.pkl)")
     ap.add_argument("--stations", type=Path,
                     default=SOURCE / "bc_hydrometric_stations.json")

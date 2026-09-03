@@ -75,7 +75,7 @@ Each anchor is classified by **what it would take to resolve it**:
 
 `--extents` shows what the locators **resolve to once bound**, grouped by section rather than by
 wording — this is what proves two differently-worded locators are the same reach. Needs a built
-graph (`output/v2/full/graph.pkl`).
+graph (`data/generated/atlas/full/graph.pkl`).
 
 **Read the `maybe?` column before pinning anything.** It counts active locators that already have
 a *plausible* existing cut — a rewording the strict label test cannot see. Somass proved why this

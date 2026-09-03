@@ -3,7 +3,7 @@
 Loads real FWA fids for a small bbox (auto-derived from the added streams' extent), ingests a curated
 added_streams GeoJSON, builds a graph over FWA ∪ added fids, attaches connector edges, and reports:
 merged mainstem = one node/blk/wsc, tributaries nest under it, added nodes are ancestors of the FWA
-stream they join. Optionally writes output/added_demo.gpkg for eyeballing in QGIS.
+stream they join. Optionally writes <generated>/added_streams/added_demo.gpkg for eyeballing in QGIS.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.harness \
         --geojson pipeline/atlas/waters/added_streams/tests/data/added_streams.sample.geojson
@@ -25,6 +25,7 @@ from pipeline.atlas.build import get_lake_names, get_lake_wbk_kind
 from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
 from pipeline.atlas.graph.graph import ancestors, build_section_geometries, build_stream_graph
 from pipeline.common.models import NodeKind
+from pipeline.common.curated import GENERATED
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 
@@ -101,7 +102,6 @@ def _write_gpkg(graph, geoms, add_chains, specs, out: str) -> None:
 
 
 def main() -> None:
-    from project_config import get_config
     ap = argparse.ArgumentParser(description="Standalone added-streams end-to-end demo.")
     ap.add_argument("--geojson", default="pipeline/atlas/waters/added_streams/tests/data/added_streams.sample.geojson")
     ap.add_argument("--gpkg", default=None, help="FWA gpkg (default: project config)")
@@ -111,7 +111,7 @@ def main() -> None:
     ap.add_argument("--out", default=None, help="output gpkg (default: config output.added_streams/added_demo.gpkg)")
     args = ap.parse_args()
     gpkg = args.gpkg or get_config().fwa_data_gpkg
-    out = args.out or str(get_config().added_streams_dir / "added_demo.gpkg")
+    out = args.out or str(GENERATED.added_streams / "added_demo.gpkg")
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     result = run(args.geojson, gpkg, bbox=args.bbox, pad=args.pad, out=out)
     print(f"\n  RESULT: all added streams are FWA tributaries = {result['all_tributaries']}")

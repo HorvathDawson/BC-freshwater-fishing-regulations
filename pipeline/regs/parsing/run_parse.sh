@@ -17,7 +17,7 @@ cd "$(git rev-parse --show-toplevel)"
 export PYTHONPATH="$PWD"
 PY=".venv/bin/python"
 
-REGISTRY="${REGISTRY:-output/v2/full/registry.json}"
+REGISTRY="${REGISTRY:-data/generated/atlas/full/registry.json}"
 BATCH_SIZE="${BATCH_SIZE:-30}"
 MODEL="${MODEL:-sonnet}"
 REVIEW_MODEL="${REVIEW_MODEL:-haiku}"
@@ -39,7 +39,7 @@ _need_claude() {
   "$CLAUDE_BIN" --version >/dev/null 2>&1 && echo "  ✓ claude CLI: $($CLAUDE_BIN --version 2>/dev/null | head -1)"
 }
 _need_registry() {
-  [ -f "$REGISTRY" ] || { echo "  ✗ registry not found: $REGISTRY — build it: $PY -m pipeline.atlas.build --full --out output/v2/full"; exit 1; }
+  [ -f "$REGISTRY" ] || { echo "  ✗ registry not found: $REGISTRY — build it: $PY -m pipeline.atlas.build --full --out data/generated/atlas/full"; exit 1; }
   echo "  ✓ registry: $REGISTRY"
 }
 _apply_ingest() {   # dry-run ingest, then confirm-apply. $@ = extra ingest flags
@@ -106,7 +106,7 @@ case "$CMD" in
       SELECT=(--unreviewed --hardest "${HARDEST:-0.5}")
       echo "  (hardest: the unreviewed ${HARDEST:-0.5} by rule count — run 'review' again for the rest)"
     fi
-    rm -f output/parse/reviews/*.review.json 2>/dev/null || true   # transient; verdicts live on entries
+    rm -f data/generated/regs/parse/reviews/*.review.json 2>/dev/null || true   # transient; verdicts live on entries
     echo "== export (selected entries -> batches) =="; "${EXPORT[@]}" "${SELECT[@]+"${SELECT[@]}"}"
     echo "== synth responses from current entries =="; $PY -m pipeline.regs.parsing.synth_responses
     echo "== review ($REVIEW_MODEL) =="; "${DISPATCH[@]}" --review --review-model "$REVIEW_MODEL"
@@ -118,7 +118,7 @@ case "$CMD" in
   repass)  # re-parse ONLY the review-flagged entries (MODEL selectable), with reviewer hints
     echo "== repass: preflight =="; _need_claude; _need_registry
     echo "  re-parsing review-flagged entries on: $MODEL"
-    rm -rf output/parse                                    # fresh work dir (progress lives in EntryFiles)
+    rm -rf data/generated/regs/parse                                    # fresh work dir (progress lives in EntryFiles)
     echo "== export flagged =="; "${EXPORT[@]}" --flagged
     echo "== parse ($MODEL, force) ==";                     "${DISPATCH[@]}" --model "$MODEL" --force
     echo "== escalate validation failures ($ESCALATE_MODEL) =="; "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-invalid

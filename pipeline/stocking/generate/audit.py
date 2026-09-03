@@ -51,11 +51,11 @@ import pickle
 from pathlib import Path
 
 from pipeline.deliver.tiles.names import normalise
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 from pipeline.common.curated import generated
 
 GPKG = SOURCE / "bc_fisheries_data.gpkg"
-GRAPH = Path("output/v2/full/graph.pkl")
+GRAPH = GENERATED.build() / "graph.pkl"
 BATHY = SOURCE / "wsa_bathymetry_maps.csv"
 
 CODE = "WATERBODY_KEY_GROUP_CODE_50K"

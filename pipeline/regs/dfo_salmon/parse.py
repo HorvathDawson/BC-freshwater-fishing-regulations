@@ -30,7 +30,7 @@ rewrite that reintroduces `BeautifulSoup(page).find("table")` re-opens that hole
 
 CLI
 ---
-    .venv/bin/python -m pipeline.regs.dfo_salmon.parse --out output/dfo_salmon
+    .venv/bin/python -m pipeline.regs.dfo_salmon.parse --out data/generated/regs/dfo_salmon
     .venv/bin/python -m pipeline.regs.dfo_salmon.parse --regions 6 --print
 """
 
@@ -48,6 +48,7 @@ from typing import Dict, List, Optional, Tuple
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, DEFAULT_CACHE, PAGES, load_cached, normalize_slug
+from pipeline.common.curated import GENERATED
 
 logger = logging.getLogger(__name__)
 
@@ -646,7 +647,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS, help="default: all real pages")
     ap.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE)
-    ap.add_argument("--out", type=Path, default=Path("output/dfo_salmon"))
+    ap.add_argument("--out", type=Path, default=GENERATED.regs.dfo_salmon)
     ap.add_argument("--print", dest="do_print", action="store_true", help="print rows instead of writing")
     args = ap.parse_args(argv)
 

@@ -7,7 +7,7 @@ Scans the curated overrides (named) and the parsed synopsis, and emits a Markdow
   - MULTI-RULE / EXCEPTION: >1 rule, or a rule with an exception.
 
 Run: .venv/bin/python -m pipeline.complex_regs_report
-Writes output/v2/complex_regulations.md
+Writes <generated>/scratch/complex_regulations.md
 """
 
 from __future__ import annotations
@@ -15,12 +15,11 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from pipeline.common.curated import CURATED, SOURCE
-from project_config import get_config
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 _OVERRIDES = str(CURATED.regulations.overrides)
-_PARSED = str(get_config().parsing_dir / "synopsis_parsed.json")
-_OUT = "output/v2/complex_regulations.md"
+_PARSED = str(GENERATED.regs.parsing / "synopsis_parsed.json")
+_OUT = str(GENERATED.scratch / "complex_regulations.md")
 
 # Section/location language that implies a stream needs splitting or careful matching.
 # Strong terms only (avoids false positives on names that merely contain "bridge"/"reach").

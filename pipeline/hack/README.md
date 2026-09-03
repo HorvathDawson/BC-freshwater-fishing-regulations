@@ -7,9 +7,9 @@ Run-once and hand-curation tooling, kept for reproducibility but NOT part of the
 | Script | What it does | Output |
 |--------|--------------|--------|
 | `name_variants_compile.py` | Bootstrap the unified name-variations file (feature_display_names + overrides + anglerinfo). | `stream_sections/name_variants.json` |
-| `complex_regs_report.py` | Scan overrides + parsed synopsis for section-language / tributary / multi-rule complexity. | `output/v2/complex_regulations.md` |
+| `complex_regs_report.py` | Scan overrides + parsed synopsis for section-language / tributary / multi-rule complexity. | `data/generated/scratch/complex_regulations.md` |
 | `bridge_structural.py` | Structural pass on `bridge_road_km` locators: split `from A to B` into `-a`/`-b` (per-endpoint kind), reclass, note shared anchors. `apply` mutates. | writes `14-locators-to-curate.json` |
-| `osm_bridges.py` | Candidate coords for man-made crossings (highway/road/rail/**power line**/**dam**) via OSM Overpass ∩ MU-clipped FWA river. `report`→`output/osm_candidates.md`; `apply`→`[osm-candidate]` notes. FWA is used for the river; OSM ONLY for features not in the gpkg (see `../docs/14`). | `output/osm_candidates.{md,json}` |
+| `osm_bridges.py` | Candidate coords for man-made crossings (highway/road/rail/**power line**/**dam**) via OSM Overpass ∩ MU-clipped FWA river. `report`→`data/generated/scratch/osm_candidates.md`; `apply`→`[osm-candidate]` notes. FWA is used for the river; OSM ONLY for features not in the gpkg (see `../docs/14`). | `data/generated/scratch/osm_candidates.{md,json}` |
 
 ---
 
@@ -72,12 +72,12 @@ OSM/Google/Satellite links + `target` (blk/wsc/wbk to locate in QGIS/FWA). Decis
 #              d[ reason] = defer            x[ reason] = not a split      m[ reason] = manual
 #              t wbk=..|blk=..|wsc=.. = set target      n <note>      a <text> = flag for an agent
 #              u = undo this row             enter/s = skip            q = quit
-#   --easy hides rows without a candidate; --out <path> overrides output/review_decisions.json
+#   --easy hides rows without a candidate; --out <path> overrides data/generated/scratch/review_decisions.json
 ```
 
 **Back in service — apply the decisions into the doc:**
 ```bash
-.venv/bin/python -m stream_sections.oneoff.curation_status apply                       # output/review_decisions.json
+.venv/bin/python -m stream_sections.oneoff.curation_status apply                       # data/generated/scratch/review_decisions.json
 .venv/bin/python -m stream_sections.oneoff.curation_status apply path/to/decisions.json   # e.g. the HTML export
 #   correct->curated(+coord) · wrong+coord->curated · not_a_split->not_applicable
 #   defer->deferred · manual->manual · for_agent-> left todo & reported as NEEDS AGENT
@@ -112,5 +112,5 @@ For the locators JSON specifically, prefer the `label` loop's `n <note>` / `a <f
 
 ## Typical away-from-service loop
 1. `curation_status label --hint <bucket> --easy` → label offline.
-2. Decisions accumulate in `output/review_decisions.json` (safe to copy around).
+2. Decisions accumulate in `data/generated/scratch/review_decisions.json` (safe to copy around).
 3. On return: `curation_status apply` → then hand-finish any `NEEDS AGENT` rows → commit.

@@ -175,7 +175,7 @@ def rename_split(split_id: str, body: RenamePayload):
 
 @app.get("/api/row-image/{filename}")
 def row_image(filename: str):
-    """Serve a source synopsis row-crop image (output/pipeline/regs/extraction/row_images/<name>.png)."""
+    """Serve a source synopsis row-crop image (<generated>/regs/extraction/row_images/<name>.png)."""
     if not re.fullmatch(r"[A-Za-z0-9_]+\.png", filename):
         raise HTTPException(400, "bad filename")
     path = reuse.ROW_IMAGES_DIR / filename

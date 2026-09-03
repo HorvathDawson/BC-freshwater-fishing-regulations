@@ -15,7 +15,7 @@ import pytest
 from pipeline.atlas.graph.blk_chains import FidRow
 from pipeline.atlas.graph.graph import _assign_owners, _lake_name_pairs
 from pipeline.atlas.waters.added_lakes import ingest
-from pipeline.common.curated import CURATED
+from pipeline.common.curated import CURATED, GENERATED
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -100,7 +100,7 @@ def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     from pipeline.regs.matching.matcher import _norm, build_name_index
     from pipeline.atlas.registry import load_registry
 
-    reg = Path("output/v2/full/registry.json")
+    reg = GENERATED.build() / "registry.json"
     if not reg.exists():
         pytest.skip("no built registry")
     TRESTON = "wbk:329241963"

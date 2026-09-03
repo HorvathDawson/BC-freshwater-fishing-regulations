@@ -75,5 +75,5 @@ content change — safe on locked/curated entries). `repass` re-exports just the
   so re-runs don't churn.
 - A `locked` entry's content is never overwritten by a re-parse; `--review-only-locked` refreshes only
   its `parse_review`.
-- `entries/region-*.json` is the durable progress. The `output/parse/` work dir is transient — deleting
+- `entries/region-*.json` is the durable progress. The `data/generated/regs/parse/` work dir is transient — deleting
   it never loses parsed entries.

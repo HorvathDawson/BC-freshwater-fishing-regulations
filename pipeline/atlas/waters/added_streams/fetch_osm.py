@@ -4,14 +4,14 @@ Fetches `waterway` ways from Overpass, merges same-name connected ways into chan
 (`merge.merge_channels`, minting a `-min(way_id)` blk each), and writes:
   - <output.added_streams>/added_candidates.geojson  (one Feature per channel; edit + copy the keepers into
                                        pipeline/added_streams.geojson, adding `connect_to`)
-  - output/added_candidates.md       (a review table)
+  - <added_streams>/added_candidates.md  (a review table)
 
 HUMAN-RUN: this hits the public Overpass API (external network). It is NOT part of the build — the
 build only reads the curated pipeline/added_streams.geojson. Reuses the paced/multi-endpoint pattern
 from pipeline/oneoff/resolvers/osm_batch.py.
 
     PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.fetch_osm \
-        --bbox -123.02 49.22 -122.88 49.28 --out output/added_candidates.geojson
+        --bbox -123.02 49.22 -122.88 49.28 --out data/generated/added_streams/added_candidates.geojson
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ from pathlib import Path
 from shapely.geometry import mapping
 
 from pipeline.atlas.waters.added_streams.merge import merge_channels
+from pipeline.common.curated import GENERATED
 
 _HDR = {"User-Agent": "bc-fishing-reg-curation/1.0 (horvath.dawson@gmail.com)"}
 _ENDPOINTS = ["https://overpass.kumi.systems/api/interpreter",
@@ -114,8 +115,7 @@ def main() -> None:
     if args.out:
         out = Path(args.out)
     else:
-        from project_config import get_config
-        out = get_config().added_streams_dir / "added_candidates.geojson"
+        out = GENERATED.added_streams / "added_candidates.geojson"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({"type": "FeatureCollection",
                                "_about": "OSM waterway candidates — review, add connect_to, and copy "

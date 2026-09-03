@@ -34,7 +34,7 @@ geometry — the coupling doc 10 explicitly forbids.
 
 ## 2. Baseline: it is in better shape than the issue list suggests
 
-Ran today's resolver over **all 1,392 entries** (`output/v2/full`):
+Ran today's resolver over **all 1,392 entries** (`data/generated/atlas/full`):
 
 | rule outcome | count |
 |---|---|
@@ -171,7 +171,7 @@ The 4 `area:` registry items are: `area:hamber_prov_park_boundary`,
 Neither authored id is an `area:` id — **but fixing the strings alone changes nothing**, because
 `resolve_extent` returns `None` for `op == "within"` unconditionally and never reads `area_id`
 (`reuse.py:641`). Both halves are required: correct the two ids (curation) **and** resolve `within`
-against the area catalog (`output/v2/full/area_catalog.gpkg`).
+against the area catalog (`data/generated/atlas/full/area_catalog.gpkg`).
 
 ---
 

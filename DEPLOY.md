@@ -99,17 +99,17 @@ python -m pipeline --step tiles enrich # skip atlas if only regs changed
 pytest pipeline/tests/ -q             # verify tests pass
 ```
 
-Output lands in `output/pipeline/deploy/`.
+Output lands in `data/generated/deploy/`.
 
 ### 2. Upload data to staging R2
 
 ```bash
 ./scripts/seed-r2.sh                  # defaults to DEPLOY_ENV=staging
 ./scripts/seed-r2.sh --dry-run        # preview first
-./scripts/seed-r2.sh --file output/pipeline/deploy/in_season.json  # single file
+./scripts/seed-r2.sh --file data/generated/deploy/in_season.json  # single file
 ```
 
-This uses rclone to sync `output/pipeline/deploy/` → `bc-fishing-regulations-staging` bucket. Checksum-based — only changed files upload.
+This uses rclone to sync `data/generated/deploy/` → `bc-fishing-regulations-staging` bucket. Checksum-based — only changed files upload.
 
 ### 3. Deploy workers (push to staging branch)
 
@@ -198,7 +198,7 @@ node scripts/dev.mjs
 ```
 
 This does three things:
-1. **Seeds local R2** — runs `scripts/seed.mjs` to populate Miniflare R2 from `output/pipeline/deploy/`
+1. **Seeds local R2** — runs `scripts/seed.mjs` to populate Miniflare R2 from `data/generated/deploy/`
 2. **Starts R2 worker** — `wrangler dev` at `http://localhost:8787`
 3. **Starts Vite dev** — at `http://localhost:5173`, proxies `/data/*` and `/api/*` to the R2 worker
 

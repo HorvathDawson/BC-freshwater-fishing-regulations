@@ -139,7 +139,7 @@ point: that file keyed each station to a `node_id`, which is build output and mo
 the sectionizer cuts differently — so it was stale the moment the next build ran, while
 sitting in the build directory looking authoritative. The committed file addresses a station
 by its published coordinate plus the FWA's own `wsc`/`wbk`, none of which re-sectioning can
-move. Stale copies may still exist under older `output/v2/*` directories; nothing reads
+move. Stale copies may still exist under older `data/generated/atlas/*` directories; nothing reads
 them.
 
 ---

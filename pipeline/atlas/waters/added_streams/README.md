@@ -21,16 +21,16 @@ hand-drawn LineString  ──────────┘        (curated, allowl
 1. **(optional) Fetch OSM candidates over an area** — human-run, hits Overpass (external network):
    ```
    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.fetch_osm \
-       --bbox -123.02 49.22 -122.88 49.28 --out output/added_streams/added_candidates.geojson
+       --bbox -123.02 49.22 -122.88 49.28 --out data/generated/added_streams/added_candidates.geojson
    ```
-   Writes `output/added_streams/added_candidates.geojson` (one Feature per merged channel) + a `.md` review table.
+   Writes `data/generated/added_streams/added_candidates.geojson` (one Feature per merged channel) + a `.md` review table.
 2. **Curate** — copy the keepers into `pipeline/added_streams.geojson`, adding a `connect_to`
    (`{gnis_id}` / `{blk}` / `{coord}`) for anything ambiguous. Hand-drawn streams: author a
    `LineString` with `source:"manual"` and a negative `blk`.
 3. **Verify standalone** — no build.py needed:
    ```
    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.harness \
-       --geojson pipeline/tests/data/added_streams.sample.geojson --out output/added_streams/added_demo.gpkg
+       --geojson pipeline/tests/data/added_streams.sample.geojson --out data/generated/added_streams/added_demo.gpkg
    ```
    Prints merged mainstem = one node/blk/wsc, tributaries nesting under it, added nodes ∈
    `ancestors(FWA stream)`; writes a small gpkg to eyeball in QGIS.
@@ -93,8 +93,8 @@ PYTHONPATH="$PWD" .venv/bin/python -m pipeline.added_streams.build_dataset burna
 
 Flow: `clean` (uniform schema, strip ArcGIS cruft) → `merge` (same-name connected ways → one channel)
 → `fwa_match` (fuzzy, FWA-favouring) → resolve receiver → `underlake` (tag under-lake wbk) → mint →
-`validate` → write `added_streams.build.json` + `output/added_streams/added_name_variant_candidates.json` +
-`output/added_streams/added_streams_report.md`.
+`validate` → write `added_streams.build.json` + `data/generated/added_streams/added_name_variant_candidates.json` +
+`data/generated/added_streams/added_streams_report.md`.
 
 - **duplicates** (a municipal line that hugs an FWA stream, even a small offset subset) are dropped —
   FWA geometry wins.
@@ -148,7 +148,7 @@ OWN bbox (a combined bbox cross-contaminates), then merges with per-source blk o
 ```
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.waters.added_streams.build_dataset burnaby squamish port_moody
 ```
-Then eyeball `output/added_streams/verify_<source>.html` (regenerate with `python -m pipeline.atlas.waters.added_streams.verify_map <source>`)
+Then eyeball `data/generated/added_streams/verify_<source>.html` (regenerate with `python -m pipeline.atlas.waters.added_streams.verify_map <source>`)
 and commit the artifact. It is the checked-off source of truth from then on.
 
 **Guarantees the resolver enforces** for the consumer:

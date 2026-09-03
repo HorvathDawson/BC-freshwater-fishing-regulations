@@ -26,6 +26,7 @@ from pipeline.atlas.waters.added_streams.build_dataset import (_albers, _load_fw
                                                   RELIABLE_SOURCES)
 from pipeline.atlas.waters.added_streams.dem import ElevationSampler, dem_flow
 from pipeline.atlas.waters.added_streams.clean import clean_source
+from pipeline.common.curated import GENERATED
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _TO_LONLAT = Transformer.from_crs("EPSG:3005", "EPSG:4326", always_xy=True)
@@ -238,14 +239,13 @@ def _html(title, muni, fwa, raw, demraw, dembridges, demmarkers, counts, unresol
 
 def main() -> None:
     import argparse
-    from project_config import get_config
     ap = argparse.ArgumentParser(description="Write a Leaflet check map per municipal source.")
     ap.add_argument("sources", nargs="*", default=_SOURCES, help="sources (default: all)")
     ap.add_argument("--gpkg", default=None)
     ap.add_argument("--out", default=None, help="output dir (default: config output.added_streams)")
     args = ap.parse_args()
     gpkg = args.gpkg or get_config().fwa_data_gpkg
-    out_dir = Path(args.out) if args.out else get_config().added_streams_dir
+    out_dir = Path(args.out) if args.out else GENERATED.added_streams
     out_dir.mkdir(parents=True, exist_ok=True)
     for src in (args.sources or _SOURCES):
         out = region_map(src, gpkg, out_dir)

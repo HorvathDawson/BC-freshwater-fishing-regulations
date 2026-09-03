@@ -15,7 +15,7 @@ bash curation-review/run.sh          # backend :8787 + frontend :5173, Ctrl-C st
 
 Then open **http://localhost:5173**. Local only — no LLM calls, no credits.
 
-The build it serves is `config.yaml` → `output.review_build` (currently `output/v2/full`);
+The build it serves is `config.yaml` → `output.review_build` (currently `data/generated/atlas/full`);
 `reuse.py` and the in-app rebuild button both read `project_config.review_build_dir`, so
 repointing the app at another build is a config edit, not a code change.
 
@@ -59,10 +59,10 @@ couldn't. This tool is that review surface.
 | Source | Path | Role |
 |---|---|---|
 | Entries (read **and write**) | `pipeline/regs/parsing/entries/region-*.json` | the review surface; the app edits `locked`, extents, `matched`, `audit_log` |
-| Registry (read) | `output/v2/full/registry.json` | item identity, **`boundaries`** (the bindable splits), `variants`, `mus`, `section_ids` |
-| Split detail (read) | `output/v2/full/splits.resolved.json` | `{split_id, blk, route_measure, label, anchor_type}` — split metadata |
-| Geometry (read) | `output/v2/full/graph.gpkg` | layers: `streams`, `split_points`, `lakes`, `areas` — served as GeoJSON for the map |
-| Batch parse artifacts (read, optional) | `output/parse/{batches,responses,reviews}` | show the reviewer's findings + the raw parse for provenance |
+| Registry (read) | `data/generated/atlas/full/registry.json` | item identity, **`boundaries`** (the bindable splits), `variants`, `mus`, `section_ids` |
+| Split detail (read) | `data/generated/atlas/full/splits.resolved.json` | `{split_id, blk, route_measure, label, anchor_type}` — split metadata |
+| Geometry (read) | `data/generated/atlas/full/graph.gpkg` | layers: `streams`, `split_points`, `lakes`, `areas` — served as GeoJSON for the map |
+| Batch parse artifacts (read, optional) | `data/generated/regs/parse/{batches,responses,reviews}` | show the reviewer's findings + the raw parse for provenance |
 
 **Write model:** edits go back into `region-*.json` through the **same validators the pipeline uses**
 (`pipeline.regs.parsing.entry_models.Entry` + `validate_entry_splits`) so the app can never write an invalid

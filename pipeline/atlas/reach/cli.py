@@ -1,6 +1,6 @@
-"""    python -m pipeline.atlas.reach.cli --build output/v2/full --out output/reaches/full
-       python -m pipeline.atlas.reach.cli --build output/v2/full_new --out output/reaches/full_new \
-                                    --against output/reaches/full
+"""    python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out data/generated/reaches/full
+       python -m pipeline.atlas.reach.cli --build data/generated/atlas/full_new --out data/generated/reaches/full_new \
+                                    --against data/generated/reaches/full
 
 Resolves every rule against one build, writes the tables, and (with `--against`) reports
 which rules now cover different water than they did — confirmed entries first.

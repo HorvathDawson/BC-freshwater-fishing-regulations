@@ -23,8 +23,7 @@ import argparse
 import functools
 import json
 from pathlib import Path
-from pipeline.common.curated import CURATED, SOURCE
-from project_config import get_config
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 ENTRIES = CURATED.regulations.entries.dfo_salmon
 SPLITS = CURATED.waters.splits
@@ -79,8 +78,8 @@ def _locations_for(water: dict, doc: dict) -> list[dict]:
     return out
 
 
-DEFAULT_REGISTRY = Path("output/v2/full/registry.json")
-ITEM_POINTS = get_config().review_build_dir / "item_points.json"
+DEFAULT_REGISTRY = GENERATED.build() / "registry.json"
+ITEM_POINTS = GENERATED.build() / "item_points.json"
 
 
 def osm_link(lat: float, lon: float, zoom: int = 14) -> str:

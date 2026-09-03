@@ -207,7 +207,7 @@ walked it.
 ~3,200 sections, ~4 s and ~12 MB. `truncated` is reported, never hidden.
 
 ### GET /api/row-image/{filename}
-The source synopsis row-crop PNG (`output/pipeline/regs/extraction/row_images/`). Filename must match
+The source synopsis row-crop PNG (`data/generated/regs/extraction/row_images/`). Filename must match
 `[A-Za-z0-9_]+\.png`.
 
 ### GET /basemap/bc.pmtiles
@@ -242,7 +242,7 @@ rewrites every rule that binds it, so a rename never strands a binding.
 ## Rebuild
 
 ### POST /api/rebuild
-Kicks off `pipeline.atlas.build --full --out output/v2/full --splits pipeline/atlas/splits.json` as a background
+Kicks off `pipeline.atlas.build --full --out data/generated/atlas/full --splits pipeline/atlas/splits.json` as a background
 subprocess — CPU-only, **no credits**. Bakes splits.json edits into the section boundaries. Idempotent
 while one is running (returns the in-flight status). On success the backend drops its reuse caches —
 registry, splits.resolved, gpkg split_points, **and the in-memory graph** — so every subsequent request

@@ -15,19 +15,19 @@ Run everything with the venv: `.venv/bin/python`. Order below is the usual flow.
 ```bash
 # Whole province (heavy, ~15–20 min). Applies splits, writes registry.json.
 .venv/bin/python -m pipeline.atlas.build --full \
-  --splits data/curated/waters/splits.json --out output/v2/full
+  --splits data/curated/waters/splits.json --out data/generated/atlas/full
 
 # Small area (fast) — scope by GNIS name or bbox
-.venv/bin/python -m pipeline.atlas.build --gnis "Campbell River" --out output/v2/validate
-.venv/bin/python -m pipeline.atlas.build --bbox MINX MINY MAXX MAXY --out output/v2/validate
+.venv/bin/python -m pipeline.atlas.build --gnis "Campbell River" --out data/generated/atlas/validate
+.venv/bin/python -m pipeline.atlas.build --bbox MINX MINY MAXX MAXY --out data/generated/atlas/validate
 ```
 
-Output: `output/v2/<name>/registry.json` (+ graph artifacts / `graph.gpkg`).
+Output: `data/generated/atlas/<name>/registry.json` (+ graph artifacts / `graph.gpkg`).
 
 ## 3. Parse regulations (⛔ HUMAN-ONLY — spends credits)
 
 ```bash
-REGISTRY=output/v2/full/registry.json bash pipeline/regs/parsing/run_parse.sh
+REGISTRY=data/generated/atlas/full/registry.json bash pipeline/regs/parsing/run_parse.sh
 ```
 
 Resumable, row-granular (`--skip-existing`): only entries missing from

@@ -1,6 +1,6 @@
 """Packages a build into the client bundle.
 
-    python -m pipeline.deliver.bundle --build output/v2/full --out output/bundle/bundle.sqlite
+    python -m pipeline.deliver.bundle --build data/generated/atlas/full --out data/generated/bundle/bundle.sqlite
 
 WHAT THIS IS
     The last step of the pipeline. Everything upstream produces artifacts for US — a graph,
@@ -27,7 +27,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pipeline.common.curated import REPO_ROOT, SOURCE
+from pipeline.common.curated import GENERATED, REPO_ROOT, SOURCE
 from pipeline.common.registry_kinds import is_water
 
 HERE = Path(__file__).parent
@@ -38,7 +38,7 @@ INDEXES = HERE / "indexes.sql"
 #: The envelope, written by `pipeline.gauges.feed.climatology` and read by BOTH the feed publisher
 #: and this. Anchored on the repo root rather than derived from `data_dir`, which is how it
 #: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
-CLIM_PATH = _ROOT / "output" / "feeds" / "gauge" / "clim.json"
+CLIM_PATH = GENERATED.gauges.feeds / "clim.json"
 
 
 @dataclass
@@ -423,8 +423,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
 
     THIS HAS NOW BEEN WRONG TWICE, in opposite directions, and both times it was silent:
 
-      · it defaulted to `build_dir.parents[1] / "data"`, which for `output/v2/full` resolves
-        to `output/data` — a directory that has never existed;
+      · it defaulted to `build_dir.parents[1] / "data"`, which for `output/v2/full` resolved
+        to `output/data` — a directory that never existed;
       · then to a literal `<repo>/data`, which was right until the fetched files moved into
         `data/source/` and stopped being found.
 

@@ -49,7 +49,7 @@ the search screen; the water sheet redrawn against this file; the floating date 
 stack, Layers button and legend strip.
 
 **The map renders for real** on mobile web: `data/bc.pmtiles` (Protomaps OSM basemap for BC)
-under `output/tiles/atlas.pmtiles` (our streams, lakes, wetlands and administrative areas),
+under `data/generated/tiles/atlas.pmtiles` (our streams, lakes, wetlands and administrative areas),
 both read by byte range. `pnpm tiles` serves them in development.
 
 **Not carried over yet.**

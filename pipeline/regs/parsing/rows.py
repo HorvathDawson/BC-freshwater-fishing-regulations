@@ -41,12 +41,12 @@ def load_synopsis_rows(raw_path: Optional[Path] = None) -> List[Dict[str, Any]]:
     ----------
     raw_path:
         Path to ``synopsis_raw_data.json``.  When ``None`` the path is resolved
-        from ``project_config.get_config().synopsis_raw_data_path``.
+        from ``GENERATED.regs.extraction / 'synopsis_raw_data.json'``.
     """
     if raw_path is None:
-        from project_config import get_config
+        from pipeline.common.curated import GENERATED
 
-        raw_path = get_config().synopsis_raw_data_path
+        raw_path = GENERATED.regs.extraction / "synopsis_raw_data.json"
 
     with open(raw_path, encoding="utf-8") as f:
         pages = json.load(f)

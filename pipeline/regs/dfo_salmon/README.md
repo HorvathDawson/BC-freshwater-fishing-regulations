@@ -13,7 +13,7 @@ regions from `pac.dfo-mpo.gc.ca`.
 
 ```bash
 .venv/bin/python -m pipeline.regs.dfo_salmon.fetch                    # snapshot -> cache/dfo_salmon/
-.venv/bin/python -m pipeline.regs.dfo_salmon.parse                    # faithful rows -> output/dfo_salmon/
+.venv/bin/python -m pipeline.regs.dfo_salmon.parse                    # faithful rows -> data/generated/regs/dfo_salmon/
 .venv/bin/python -m pipeline.regs.dfo_salmon.untangle --regions 6 --print   # waters -> reaches -> rules
 .venv/bin/python -m pipeline.regs.dfo_salmon.stability --burst --compare-clients
 .venv/bin/python -m pytest pipeline/tests/test_dfo_salmon.py
@@ -313,7 +313,7 @@ Three findings shape how that curation has to work:
 
 ## Output shape
 
-`output/dfo_salmon/regionN.json`:
+`data/generated/regs/dfo_salmon/regionN.json`:
 
 ```jsonc
 {

@@ -93,7 +93,7 @@ it needs re-running after a full build.
 `pipeline.atlas.reach.covered` over the full corpus), `chart` (needs the bathymetry contour fetch),
 `stock_water` / `stock_code` (need the FIDQ fetch — no waterbody roster on disk).
 
-**A parse run was stopped on credits.** `output/parse.credit-stopped-2026-09-01/`.
+**A parse run was stopped on credits.** `data/generated/regs/parse.credit-stopped-2026-09-01/`.
 
 **The HYDAT release check** prints a warning when a newer release is out. It has never fired
 in anger, so the notification path is unverified.

@@ -1,6 +1,6 @@
 # `data/curated/` — everything a human's time is embedded in
 
-**Nothing here is regenerable.** Losing a file loses hours; losing anything under `output/`
+**Nothing here is regenerable.** Losing a file loses hours; losing anything under `data/generated/`
 or `data/generated/` loses CPU. That is the whole distinction, and it is why these have
 their own tree.
 

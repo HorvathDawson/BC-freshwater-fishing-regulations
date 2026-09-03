@@ -43,17 +43,18 @@ from pipeline.common.io.serialize import read_artifact
 from pipeline.regs.parsing import io as parse_io
 from pipeline.atlas.reach.covered import covered_ids, make_matcher
 from pipeline.atlas.registry import load_registry
+from pipeline.common.curated import GENERATED
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--build", default="output/v2/full")
+    ap.add_argument("--build", default=str(GENERATED.build()))
     ap.add_argument("--stamp", action="store_true",
                     help="write `matched` for entries whose id already names the item (free)")
     ap.add_argument("--apply", action="store_true",
                     help="back up, then DELETE the re-parse group so parse-missing re-runs them")
-    ap.add_argument("--backup-dir", default="output/entries-backup")
+    ap.add_argument("--backup-dir", default=str(GENERATED.regs.entries_backup))
     args = ap.parse_args()
 
     registry = load_registry(str(Path(args.build) / "registry.json"))

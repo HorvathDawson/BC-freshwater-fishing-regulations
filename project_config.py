@@ -104,26 +104,22 @@ class ProjectConfig:
     # ========================================================================
     # Pipeline — Extraction & Parsing
     # ========================================================================
-
-    @property
-    def extraction_dir(self) -> Path:
-        """Get extraction output directory."""
-        return self.get_path("output", "pipeline", "extraction")
-
-    @property
-    def parsing_dir(self) -> Path:
-        """Get parsing output directory."""
-        return self.get_path("output", "pipeline", "parsing")
+    #
+    # `extraction_dir`, `parsing_dir`, `synopsis_raw_data_path`, `fwa_output_dir`,
+    # `fwa_graph_path`, `builds_dir`, `review_build_dir` and `added_streams_dir` USED TO
+    # LIVE HERE, over an `output:` tree in config.yaml. They are now
+    # `pipeline.common.curated.GENERATED` — see the `generated:` block in config.yaml.
+    #
+    # They are gone rather than forwarded on purpose. `get_path` below returns `Path()` —
+    # the CURRENT DIRECTORY — for a key that does not exist: no exception, no warning. That
+    # is how `fwa_output_dir` came to name `output/pipeline/graph/`, a directory that never
+    # existed, and hand it to seven parser tools as their default registry. Two front doors
+    # to the same paths is the condition that let it hide; there is now one.
 
     @property
     def synopsis_pdf_path(self) -> Path:
         """Get path to fishing synopsis PDF."""
         return self.project_root / "data" / "source" / "fishing_synopsis.pdf"
-
-    @property
-    def synopsis_raw_data_path(self) -> Path:
-        """Get path to extracted raw data JSON."""
-        return self.extraction_dir / "synopsis_raw_data.json"
 
     def get_api_keys(self) -> List[Dict[str, str]]:
         """
@@ -154,43 +150,10 @@ class ProjectConfig:
 
         return api_keys
 
-    # ========================================================================
-    # Graph Builder
-    # ========================================================================
-
-    @property
-    def fwa_output_dir(self) -> Path:
-        """Get graph builder output directory."""
-        return self.get_path("output", "pipeline", "graph", "base")
-
-    @property
-    def fwa_graph_path(self) -> Path:
-        """Get path to FWA graph pickle file."""
-        return self.get_path("output", "pipeline", "graph", "graph")
-
     @property
     def fwa_data_gpkg(self) -> Path:
         """Get path to unified FWA GeoPackage for FWADataAccessor."""
         return self.get_path("data_accessor", "gpkg_path")
-
-    @property
-    def builds_dir(self) -> Path:
-        """Graph-build output root (build.py --out): per-region + full/. Single source of truth."""
-        return self.get_path("output", "builds", default="output/v2")
-
-    @property
-    def review_build_dir(self) -> Path:
-        """The build directory the curation-review app serves AND rebuilds into (`builds_dir` /
-        `output.review_build`). Repointing the app at a newer build is a config edit, not a code
-        edit — which matters because a stale build is invisible: every reach still renders, just
-        against yesterday's graph."""
-        name = (self._config.get("output", {}) or {}).get("review_build", "full")
-        return self.builds_dir / str(name)
-
-    @property
-    def added_streams_dir(self) -> Path:
-        """Added-streams review artifacts (mapcheck/verify_map html, demo gpkg, OSM candidates)."""
-        return self.get_path("output", "added_streams", default="output/added_streams")
 
     # ========================================================================
     # Data Fetch
@@ -206,6 +169,34 @@ class ProjectConfig:
         """Get temporary directory for data fetch operations."""
         return self.get_path("data", "fetch", "temp_dir")
 
+
+_RETIRED = {
+    "extraction_dir": "GENERATED.regs.extraction",
+    "parsing_dir": "GENERATED.regs.parsing",
+    "synopsis_raw_data_path": 'GENERATED.regs.extraction / "synopsis_raw_data.json"',
+    "fwa_output_dir": "GENERATED.build()",
+    "fwa_graph_path": 'GENERATED.build() / "graph.pkl"',
+    "builds_dir": "GENERATED.atlas.builds",
+    "review_build_dir": "GENERATED.build()",
+    "added_streams_dir": "GENERATED.added_streams",
+}
+
+
+def _retired(self, name):
+    """Refuse an accessor that moved, and name its replacement.
+
+    Without this, `get_config().builds_dir` would raise a bare AttributeError somewhere far
+    from the fix. With it, the error IS the fix.
+    """
+    if name in _RETIRED:
+        raise AttributeError(
+            f"ProjectConfig.{name} was retired with the `output:` tree. "
+            f"Use `from pipeline.common.curated import GENERATED` and {_RETIRED[name]}."
+        )
+    raise AttributeError(f"{type(self).__name__!r} object has no attribute {name!r}")
+
+
+ProjectConfig.__getattr__ = _retired
 
 # Global singleton instance
 _config_instance = None

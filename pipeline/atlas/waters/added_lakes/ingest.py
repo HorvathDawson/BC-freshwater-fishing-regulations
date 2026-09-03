@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 GEOJSON = CURATED.waters.added_lakes
 
@@ -121,7 +121,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Inspect the curated added-lake polygons.")
     ap.add_argument("--geojson", help=f"default: {GEOJSON}")
     ap.add_argument("--check", action="store_true", help="report what each polygon would claim")
-    ap.add_argument("--graph", default="output/v2/full/graph.gpkg",
+    ap.add_argument("--graph", default=str(GENERATED.build() / "graph.gpkg"),
                     help="a built graph.gpkg, used only to show which pieces WOULD be split")
     args = ap.parse_args()
 

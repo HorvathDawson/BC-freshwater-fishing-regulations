@@ -18,10 +18,10 @@ checked against the reg text, so nothing is half-finished before we author `spli
 
 ## Sources & join
 
-- **SPINE — `output/pipeline/regs/extraction/synopsis_raw_data.json`.** The raw synopsis rows (the
+- **SPINE — `data/generated/regs/extraction/synopsis_raw_data.json`.** The raw synopsis rows (the
   original regs): `water`, `mu`, `region`, `raw_regs`, `symbols`, `page`, `image`. 1395 entries.
   This is the authoritative "what regs exist / what waterbodies have splits" list.
-- **PARSE — `output/pipeline/regs/parsing/synopsis_parsed.json`.** Per-reg `rules`; a rule with a
+- **PARSE — `data/generated/regs/parsing/synopsis_parsed.json`.** Per-reg `rules`; a rule with a
   non-empty `location_text` is a **boundary** = a split. Joined to the spine by `normalize(raw_regs)
   == normalize(regs_verbatim)`.
 - **CURATION — `14-locators-to-curate.json`.** Our work; **backfilled** into the structure, never

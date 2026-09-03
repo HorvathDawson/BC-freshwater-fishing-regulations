@@ -1,6 +1,6 @@
 """The percentile envelope: what a river USUALLY does, by time of year.
 
-    python -m pipeline.gauges.feed.climatology --hydat data/hydat.sqlite3 --out output/feeds/gauge/clim.json
+    python -m pipeline.gauges.feed.climatology --hydat data/source/hydat.sqlite3 --out data/generated/gauges/feeds/clim.json
 
 WHAT IT IS FOR. "12 m³/s" tells a person nothing. "12 m³/s, which is the 4th percentile for
 early September" tells them the river is very low. That second sentence needs 97 years of

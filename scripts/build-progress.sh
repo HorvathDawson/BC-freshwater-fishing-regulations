@@ -6,7 +6,7 @@
 #
 # The default used to be a hard-coded scratchpad path from whichever session wrote it, which
 # is dead the moment that session ends. It now takes the newest build log it can find.
-LOG="${BUILD_LOG:-$(ls -t /tmp/build*.log ./build*.log ./output/v2/*.log 2>/dev/null | head -1)}"
+LOG="${BUILD_LOG:-$(ls -t /tmp/build*.log ./build*.log ./data/generated/scratch/logs/*.log ./data/generated/atlas/*.log 2>/dev/null | head -1)}"
 [ -n "$LOG" ] && [ -f "$LOG" ] || { echo "no build log; set BUILD_LOG=<path>"; exit 1; }
 echo "log: $LOG"
 
@@ -24,6 +24,6 @@ if pgrep -f "pipeline.atlas.build|pipeline.deliver.tiles" >/dev/null 2>&1; then
     | sed 's/\(.\{140\}\).*/\1…/'
 else
   echo "not running"
-  ls -lh output/tiles/atlas.pmtiles 2>/dev/null && echo "(tiles present)"
+  ls -lh data/generated/tiles/atlas.pmtiles 2>/dev/null && echo "(tiles present)"
 fi
 printf '\n'

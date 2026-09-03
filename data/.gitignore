@@ -15,7 +15,11 @@ source/*.pmtiles
 
 # Generated: candidates awaiting promotion, cleaned municipal layers. Regenerable by
 # definition — the promoted answers live in ../curated/.
-generated/
+# `generated/*`, not `generated/` — git never descends into an excluded DIRECTORY, so a
+# `!generated/README.md` under a bare `generated/` rule is silently dead. Excluding the
+# CONTENTS instead leaves the directory itself visible, which is what makes the negations
+# below actually apply.
+generated/*
 
 # TWO EXCEPTIONS, and they are temporary. These predate their matchers being wired, so they
 # CANNOT currently be regenerated — and between them they hold 2,265 bathymetry identifiers
@@ -26,3 +30,7 @@ generated/
 # these become ordinary regenerable candidates and these two lines come out.
 !generated/bathymetry/audit.json
 !generated/stocking/identifier_audit.json
+
+# The tree's own documentation — the map of what each subdirectory is and who writes it.
+# It belongs beside the thing it describes, not only in pipeline/docs/.
+!generated/README.md

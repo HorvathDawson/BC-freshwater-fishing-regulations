@@ -30,6 +30,7 @@ from pipeline.atlas.waters.added_streams.clean import clean_source
 from pipeline.atlas.waters.added_streams.dem import ElevationSampler
 from pipeline.atlas.waters.added_streams.mapcheck import _TO_ALBERS, _TO_LONLAT, _feature, _SOURCES
 from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.curated import GENERATED
 
 
 def _excluded(wsc: str, prefixes) -> bool:
@@ -146,14 +147,13 @@ def _html(title, added, kept, excl_fwa, report, exclude) -> str:
 
 def main() -> None:
     import argparse
-    from project_config import get_config
     ap = argparse.ArgumentParser(description="Verification map: added streams + FWA (kept/excluded) context.")
     ap.add_argument("sources", nargs="*", default=_SOURCES, help="sources (default: all)")
     ap.add_argument("--gpkg", default=None)
     ap.add_argument("--out", default=None, help="output dir (default: config output.added_streams)")
     args = ap.parse_args()
     gpkg = args.gpkg or get_config().fwa_data_gpkg
-    out_dir = Path(args.out) if args.out else get_config().added_streams_dir
+    out_dir = Path(args.out) if args.out else GENERATED.added_streams
     out_dir.mkdir(parents=True, exist_ok=True)
     for src in (args.sources or _SOURCES):
         out = verify_map(src, gpkg, out_dir)

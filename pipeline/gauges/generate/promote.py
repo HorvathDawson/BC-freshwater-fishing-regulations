@@ -37,7 +37,7 @@ import math
 from collections import Counter
 from pathlib import Path
 
-from pipeline.common.curated import SOURCE, generated
+from pipeline.common.curated import GENERATED, SOURCE, generated
 from pipeline.gauges import review as _review
 from pipeline.gauges.generate.match import (
     AREA_TOLERANCE_DECADES, KM2_PER_MAGNITUDE, _contains_word, waterbody_name,
@@ -151,7 +151,7 @@ def main() -> int:
     # Magnitudes come from the last bundle: the promote decides TRUST, not placement, and
     # re-deriving 2,097 node magnitudes would mean loading the atlas for a bookkeeping pass.
     mags: dict[str, int] = {}
-    bundle = Path("output/bundle/bundle.sqlite")
+    bundle = GENERATED.bundle / "bundle.sqlite"
     if bundle.exists():
         import sqlite3
         mags = {s: m for s, m in sqlite3.connect(bundle).execute(

@@ -28,6 +28,7 @@ import re
 from pathlib import Path
 
 from pipeline.regs.dfo_salmon.dossier import ENTRIES, item_pin, osm_link
+from pipeline.common.curated import GENERATED
 
 HISTORY = Path("cache/dfo_salmon/history")
 RAW = Path("cache/dfo_salmon/raw")
@@ -110,7 +111,7 @@ def seen_on(slug: str, text: str) -> list[str]:
 
 def _registry(path=None):
     from pipeline.atlas.registry import default_registry_path, load_registry
-    p = Path(path) if path else Path("output/v2/full/registry.json")
+    p = Path(path) if path else GENERATED.build() / "registry.json"
     return load_registry(p if p.exists() else default_registry_path())
 
 
@@ -301,7 +302,7 @@ _RESOLVED: list = []
 def _resolved() -> list:
     import json
     if not _RESOLVED:
-        p = Path("output/v2/full/splits.resolved.json")
+        p = GENERATED.build() / "splits.resolved.json"
         _RESOLVED.extend(json.loads(p.read_text(encoding="utf-8")) if p.exists() else [])
     return _RESOLVED
 
@@ -322,7 +323,7 @@ def main() -> None:
         if not args.name:
             raise SystemExit("--extents needs a water name")
         from pipeline.common.io.serialize import read_artifact
-        graph = read_artifact("output/v2/full/graph.pkl")
+        graph = read_artifact(GENERATED.build() / "graph.pkl")
         for w in [x for x in ws if args.name.casefold() in x["water"].casefold()]:
             print(render_extents(w["water"], w["slug"], reg, graph))
         return
