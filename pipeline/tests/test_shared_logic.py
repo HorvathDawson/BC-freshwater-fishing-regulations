@@ -60,25 +60,42 @@ def test_the_trust_bands_agree_across_the_language_boundary():
     """The pipeline decides a band; the app decides what a band MEANS. They must not each
     decide where a band starts.
 
-    `pipeline/hydro/shed.py` writes `trust` into the bundle. `app/packages/core/src/flow.ts`
-    has `TRUST_FLOOR` and re-derives the same band from raw magnitudes for anything the
-    bundle did not precompute. Two copies of one set of thresholds is exactly the drift
-    that made a gauge speak for the wrong river in v1, so this pins them together — if you
-    move a floor, move both and this test tells you which one you forgot.
+    THIS TEST WAS RIGHT AND NOT ENOUGH, which is worth recording. It pinned `TRUST_FLOOR` in
+    `flow.ts` to `TRUST_BANDS` in `shed.py`, and it passed the whole time the app was ALSO
+    carrying `gaugeTrust()` — a second implementation that banded `reach / gauge`
+    asymmetrically, with no watershed gate — and `build-fixture.mjs` was carrying a third
+    with a `none: 0` band the pipeline has never written. Equal thresholds, three different
+    rules. Pinning the CONSTANTS never had a chance of catching that.
+
+    So the floors are no longer written by hand on the TypeScript side at all: they are
+    GENERATED from `TRUST_BANDS` by `pipeline.tools.emit_gauge_policy`, and
+    `pipeline/tests/test_gauge_policy.py` fails if the committed output is stale. What is
+    left here is the assertion that the app still gets its floors from that generated file
+    and has not quietly reintroduced a literal.
     """
     import re
     from pathlib import Path
 
     from pipeline.hydro.shed import TRUST_BANDS
 
-    flow = Path(__file__).resolve().parents[2] / "app/packages/core/src/flow.ts"
-    if not flow.exists():                       # the pipeline may be checked out alone
+    core = Path(__file__).resolve().parents[2] / "app/packages/core/src"
+    if not core.exists():                       # the pipeline may be checked out alone
         import pytest
 
         pytest.skip("app/ not present")
 
-    m = re.search(r"TRUST_FLOOR\s*=\s*\{([^}]*)\}", flow.read_text(encoding="utf-8"))
-    assert m, "TRUST_FLOOR is gone from flow.ts — find where the app puts the floors now"
+    flow = (core / "flow.ts").read_text(encoding="utf-8")
+    assert "gauge-policy.generated" in flow, (
+        "flow.ts no longer reads the generated policy — if the floors moved, they must "
+        "still come from pipeline/hydro/shed.py via emit_gauge_policy")
+    assert "function gaugeTrust" not in flow, (
+        "a second implementation of the trust rule is back in flow.ts. The app reads "
+        "`section_gauge.trust`; it cannot band anything itself, because the drainage gate "
+        "needs FWA watershed codes that never ship to a client.")
+
+    m = re.search(r"TRUST_FLOOR\s*=\s*\{([^}]*)\}",
+                  (core / "gauge-policy.generated.ts").read_text(encoding="utf-8"))
+    assert m, "TRUST_FLOOR is gone from the generated policy"
     ts = {k: float(v) for k, v in re.findall(r"(\w+)\s*:\s*([\d.]+)", m.group(1))}
 
     assert ts == {band: floor for band, floor in TRUST_BANDS}

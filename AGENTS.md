@@ -122,6 +122,52 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     pdfjs + fuse + suncalc without anyone deciding to.
 31. **`pnpm check` must pass**: boundaries → platform → style → deps → typecheck → test.
 
+## Curated data, and the artifacts you must not regenerate casually
+
+35. **Three kinds of data, and confusing them is the recurring bug in this repo.**
+
+    | kind | example | a rebuild may | losing it costs |
+    |---|---|---|---|
+    | **authored** | `splits.json`, `name_variants.json`, `overrides.json` | only READ it | human hours |
+    | **reviewed** | `gauge_match.json`, `bc_station_waterbody_type.json` | only READ it | human hours |
+    | **generated** | anything under `output/` | rewrite it freely | CPU |
+
+    "Reviewed" is the one people get wrong: a machine produced it, a human then checked it,
+    and **re-running the generator throws that review away**. It is curated data that
+    happens to have been typed by a program.
+
+36. **Read curated paths through `pipeline.curated.CURATED`, never as a literal.**
+    `from pipeline.curated import CURATED` then `CURATED.splits`. The tree is pydantic-
+    validated at first access, so a bad path fails naming the key instead of returning an
+    empty list four builds later. `ProjectConfig.get_path` returns `Path()` for a missing
+    key — silently the current directory — which is how a `--splits` flag with no default
+    dropped all 376 curated cuts from three full builds with nothing looking wrong.
+
+37. **A loader for a curated file must RAISE on a missing file, never return `[]`.**
+    Absent curated data is a bug, never an empty set. This is the same failure as ㉟ one
+    layer down, and the grep gate in `pipeline/docs/HANDOFF-curated-layout.md` §3.3 is what
+    keeps it from creeping back.
+
+38. **Never regenerate a reviewed artifact to "check something".** Regenerating
+    `gauge_match.json` needs a completed build and rewrites 2,324 hand-checked decisions,
+    including 23 `NO_MATCH` entries a human verified against the map. Run
+    `python -m pipeline.tools.check_curated` to see whether it is actually stale; it prints
+    the command and never runs it. If it says `ok`, there is nothing to do.
+
+39. **The two tiers are not interchangeable.** The *mill* (fetch → build → match → bundle →
+    tiles) is ~27 min and ~10 GB and runs by hand a few times a year. The *guards*
+    (`pipeline-ci.yml`, `app-ci.yml`) are seconds and run on every push. Never add a step
+    to CI that needs `graph.pkl` — a hosted runner has 14 GB of disk and one build directory
+    is 10, and a job that fails for unrelated reasons is one people learn to ignore.
+
+40. **A value that exists on both sides of the Python/TypeScript boundary is generated,
+    not typed twice.** `pipeline/hydro/shed.py::TRUST_BANDS` is the source;
+    `python -m pipeline.tools.emit_gauge_policy` writes the TypeScript and JSON, and
+    `--check` fails CI when they drift. Three copies of the trust rule once existed — the
+    pipeline's, one in `@app/core`, one in `build-fixture.mjs` with a band the pipeline has
+    never written — and a test pinning the *constants* passed the whole time, because they
+    agreed on the thresholds and disagreed on the rule.
+
 ## Working style
 
 32. **Measure before asserting.** Every number in the docs is reproducible; several

@@ -207,7 +207,8 @@ def drains_through(section_wsc: str, gauge_wsc: str) -> bool:
 
 
 def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, str],
-                      prefer: set[str] | None = None) -> list[GaugeLink]:
+                      prefer: set[str] | None = None,
+                      *, report: list[str] | None = None) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ALL gauges per section, best first.
 
     ``node_for_station`` comes from the spatial match (``pipeline.hydro.match``) and is kept
@@ -242,32 +243,41 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
     reaches a station that closed decades ago. The map could colour 9% of the province and
     the sheet 404'd on the rest — a technically perfect answer nobody can read a number from.
 
-    EVERY STATION IS KEPT, not the single best one. Two gauges on one river answer different
-    questions — the Chilliwack's lake-outlet station and its Vedder Crossing station
-    describe genuinely different water, and somebody fishing the canyon wants the upper one.
-    Rows come back sorted by section then by descending ratio, so a client that wants only
-    the best takes the first and one that wants the choice has it.
+    ONE STATION PER SECTION — see the module header for the measurement behind that. This
+    docstring used to claim the opposite ("every station is kept, sorted by descending
+    ratio"); it was a survivor of the change that introduced the cap, and the code has
+    returned exactly one row per section since.
+
+    ``report`` collects a line for every station that produces NO rows, with the reason.
 
     Lake stations are excluded here and handled by ``lake_gauge_links`` — see
     ``is_lake_station`` for why mixing them is not a rounding error.
     """
     by_id = {s["station"]: s for s in stations}
     found: dict[str, list[GaugeLink]] = {}
+    # Why each station produced nothing. Every `continue` below records itself: a station
+    # that silently vanishes here is a river the app calls ungauged, and the only way that
+    # was ever noticeable was by differencing two bundles.
+    dropped: dict[str, str] = {}
 
     for station in sorted(node_for_station):
         node_id = node_for_station[station]
         gauge_node = graph.nodes.get(node_id)
         if gauge_node is None or not by_id.get(station):
+            dropped[station] = ("node not in this graph" if gauge_node is None
+                                else "not in the fetched roster")
             continue
         if prefer is not None and station not in prefer:
-            continue            # retired: its shed is rows nobody can ever read
+            continue            # retired: its shed is rows nobody can ever read — expected
         if is_lake_station(graph, node_id):
             continue            # a level, not a discharge — linked to the lake instead
         gauge_mag = gauge_node.stream_magnitude
         if not gauge_mag:
+            dropped[station] = "gauge node carries no stream_magnitude"
             continue            # a gauge we cannot scale speaks for its own node only
         gauge_wsc = _trim(getattr(gauge_node, "wsc", ""))
         if not gauge_wsc:
+            dropped[station] = "gauge node carries no watershed code"
             continue            # nothing to bound the shed with; see `drains_through`
 
         # PRUNING ONLY, and deliberately still on magnitude alone. `keep` controls whether
@@ -304,8 +314,36 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                 found.setdefault(sec, []).append(
                     GaugeLink(sec, station, band, lo / hi, hops))
 
-    # Best ratio wins; the station id breaks a tie so a rebuild is byte-identical.
-    return [min(found[sec], key=lambda l: (-l.ratio, l.station)) for sec in sorted(found)]
+    # Best ratio wins. A TIE IS BROKEN ON WHETHER THE STATION IS TRANSMITTING, and only then
+    # on the id for determinism.
+    #
+    # The id alone was doing real damage, because a tie is not rare: two stations that resolve
+    # to the SAME node have ratio 1.0 against each other and the lower id took every section.
+    # Measured on the province, six active stations spoke for nothing at all —
+    #
+    #     08MH044 FRASER RIVER AT WHONOCK          lost to 08MH024 (Fraser at Mission)
+    #     08MH103 CHILLIWACK RIVER ABOVE SLESSE    lost to 08MH016 (outlet of Chilliwack Lake)
+    #     08HD007 SALMON RIVER ABOVE MEMEKAY       lost to 08HD006 (near Sayward)
+    #
+    # — and in the Duncan and Quinsam cases the id happened to pick the DISCONTINUED station
+    # over the transmitting one, so the reach was handed a gauge with no reading. Sharing a
+    # node at all is the deeper problem (those pairs are up to 18 km apart and should be cut
+    # into different sections); until the cuts separate them, preferring the station a reader
+    # can actually get a number from is the honest tiebreak.
+    def rank(l: GaugeLink) -> tuple:
+        return (-l.ratio, 0 if by_id.get(l.station, {}).get("realtime") else 1, l.station)
+
+    links = [min(found[sec], key=rank) for sec in sorted(found)]
+
+    if report is not None:
+        spoke = {l.station for l in links}
+        for station in sorted(node_for_station):
+            if station in spoke or station in dropped:
+                continue
+            report.append(f"{station} qualified but every section it reached was claimed "
+                          f"by a station with an equal or better ratio")
+        report.extend(dropped[s] for s in sorted(dropped))
+    return links
 
 
 def downstream_map(graph, sections: Iterable[str]) -> dict[str, str]:

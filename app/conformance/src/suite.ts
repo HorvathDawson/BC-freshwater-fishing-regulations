@@ -123,8 +123,13 @@ export function runConformance(name: string, make: () => Promise<RegsSource>) {
 
   T("a gauge refuses to speak for water it does not measure", async (s) => {
     // The Fraser at Hope drains 216,600 km2; it knows nothing about a 12-magnitude creek.
-    const far = await s.gaugeForSection(JEPERSON);
-    expect(far!.trust).toBe("none");
+    //
+    // THE REFUSAL IS A NULL LINK, NOT A BAND CALLED "none". `pipeline/hydro/shed.py` bands
+    // only what it will vouch for and writes NO `section_gauge` ROW below the `weak` floor,
+    // so there is nothing for the source to return. This asserted `"none"` for as long as
+    // three separate implementations of the trust rule existed — the pipeline's, one in
+    // @app/core, and one in the fixture builder — and only the last two could produce it.
+    expect(await s.gaugeForSection(JEPERSON)).toBeNull();
     const near = await s.gaugeForSection(LOWER_REACH);
     expect(near!.trust).toBe("good");
   });

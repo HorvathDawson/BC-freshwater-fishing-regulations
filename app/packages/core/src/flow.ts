@@ -51,28 +51,39 @@ export function bandAt(pentads: readonly (Band | null)[], dayOfYear: number): Ba
 /**
  * How much of a gauge's watershed this reach actually is, by FWA stream magnitude.
  *
+ * THE APP DOES NOT DECIDE THIS. There used to be a `gaugeTrust()` here that banded
+ * `reach / gauge` — asymmetric, where the pipeline's rule is symmetric, and with no
+ * drainage gate at all, which is the whole of what stopped SLESSE CREEK NEAR VEDDER
+ * CROSSING speaking for the Chilliwack. It could not have had one: the gate needs FWA
+ * watershed codes for two million nodes, and none of that ships to a client.
+ *
+ * So the band is read, never computed. `pipeline/hydro/shed.py` decides it once and writes
+ * it to `section_gauge.trust`; the names and floors below are generated from that same file
+ * so the two cannot drift, and `pipeline.tools.emit_gauge_policy --check` fails the build if
+ * they do. Changing the rule means changing `shed.py` and rebuilding — which is the point.
+ *
  * The Fraser at Hope drains 216,600 km2. Without a floor it "describes" every creek in
  * the valley — 601 reaches on the Chilliwack window alone. With it, 4.
  */
-export type GaugeTrust = "good" | "fair" | "weak" | "none";
+export { TRUST_BANDS, TRUST_FLOOR, type GaugeTrust } from "./gauge-policy.generated";
 
-export const TRUST_FLOOR = { good: 0.10, fair: 0.01, weak: 0.001 } as const;
+import type { GaugeTrust as Trust } from "./gauge-policy.generated";
 
-export function gaugeTrust(reachMagnitude: number, gaugeMagnitude: number): GaugeTrust {
-  if (gaugeMagnitude <= 0) return "none";
-  const share = reachMagnitude / gaugeMagnitude;
-  if (share >= TRUST_FLOOR.good) return "good";
-  if (share >= TRUST_FLOOR.fair) return "fair";
-  if (share >= TRUST_FLOOR.weak) return "weak";
-  return "none";
-}
-
-/** What the sheet says. "none" is why a reach is drawn dotted, as if ungauged. */
-export function trustWord(t: GaugeTrust): string {
+/**
+ * What the sheet says about a band.
+ *
+ * There is no entry for "no gauge", because that is not a band — it is the ABSENCE of a
+ * row in `section_gauge`, and the caller has to handle a null link before it gets here.
+ * A fourth enum value read like a fourth outcome and invited exactly the bug where a reach
+ * with no station showed a word instead of a silence.
+ */
+export function trustWord(t: Trust): string {
   return {
     good: "describes this water",
     fair: "a major branch of it",
     weak: "the trend, not the level",
-    none: "no station speaks for this water",
   }[t];
 }
+
+/** What the sheet says when nothing is entitled to speak for this water at all. */
+export const NO_GAUGE = "no station speaks for this water";

@@ -119,7 +119,13 @@ counts.rule_section = insert("INSERT INTO rule_section VALUES (?,?,?,?)",
 // the band by position so the ordering has something to order. Deterministic, and it never
 // contradicts the band the design actually recorded.
 const NOMINAL_GAUGE_MAG = 1000;
-const BAND_FLOOR = { good: 0.10, fair: 0.01, weak: 0.001, none: 0 };
+// The floors come from @app/core, which generates them from pipeline/hydro/shed.py. There
+// used to be a literal here — a THIRD copy of the trust vocabulary after the pipeline's and
+// the app's — and it carried a `none: 0` band that the pipeline has never written, which is
+// how 1,785 `trust = 'none'` rows got into the fixture bundle and into the assertions three
+// test files made against it.
+const BAND_FLOOR = JSON.parse(readFileSync(
+  new URL("../packages/core/src/gauge-policy.generated.json", import.meta.url), "utf8")).floor;
 const shedBands = {};
 for (const [section, q] of Object.entries(src.shed_q)) (shedBands[q] ??= []).push(section);
 const shedMag = {};
@@ -153,9 +159,15 @@ counts.gauge = insert("INSERT INTO gauge VALUES (?,?,?,?,?,?,?,?,?,?)",
 // One station per section, which is also what the production bundler emits: a second
 // gauge on the same reach drains more or less country than the first, so it is a worse
 // answer to the same question rather than a second opinion.
+// A REACH NO GAUGE REPRESENTS GETS NO ROW, exactly as `pipeline/hydro/shed.py` does it:
+// `trust_for` returns None below the `weak` floor and the bundler writes nothing. Defaulting
+// to a "none" band here invented a fourth value, and because three test files asserted
+// against this file rather than against a real bundle, that invention looked like the
+// contract for months. The refusal reaches the client as a null link, not as a labelled row.
 counts.section_gauge = insert("INSERT OR REPLACE INTO section_gauge VALUES (?,?,?,?)",
   Object.entries(src.gauge_shed).sort()
-    .map(([section, station]) => [section, station, src.shed_q[section] ?? "none",
+    .filter(([section]) => src.shed_q[section] && src.shed_q[section] !== "none")
+    .map(([section, station]) => [section, station, src.shed_q[section],
                                   shedMag[section] ?? null]));
 
 // Only inside a shed. The contract cuts the rest and nothing is lost.

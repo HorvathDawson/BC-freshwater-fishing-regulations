@@ -17,7 +17,7 @@ It fetches by id and writes `id → data`.
 | Producer | Runs | Reads | Writes |
 |---|---|---|---|
 | `data/fetch_data.py --layers hydrometric_stations` | per build | ECCC OGC API + today's transmitting roster | `data/bc_hydrometric_stations.json` |
-| `pipeline.hydro.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `gauge_nodes.json` (every station, with provenance) |
+| `pipeline.hydro.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `pipeline/gauge_match.json` (every station, with provenance) |
 | `pipeline.hydro.shed` | per build | `graph.pkl` + the match | `section_gauge`, `lake_gauge`, `section_down` |
 | hydro job — HYDAT tier | **yearly**, gated on the release listing date | the 266 MB HYDAT release | `gauge/clim.json` — 325 KB, all stations |
 | hydro job — reading tier | **30 min** | ECCC readings, BCRFC CLEVER | `gauge/index.json`, `gauge/{station}.json` |
@@ -130,9 +130,17 @@ never writes to them. Letting a matcher edit that file is what corrupted v1's di
 the same ambiguous question: it breaks when two waters share the string, and silently follows
 the wrong one when the FWA renames something. `aliases.json` is expected to stay empty.
 
-The **complete** record is `gauge_nodes.json` — every station with its status and how it
-resolved. A new station that matches needs no action; one that does not appears as
+The **complete** record is `pipeline/gauge_match.json` — every station with its status and
+how it resolved. A new station that matches needs no action; one that does not appears as
 `unresolved` in the build's own summary line.
+
+It replaced a `gauge_nodes.json` written into the build directory, and the difference is the
+point: that file keyed each station to a `node_id`, which is build output and moves whenever
+the sectionizer cuts differently — so it was stale the moment the next build ran, while
+sitting in the build directory looking authoritative. The committed file addresses a station
+by its published coordinate plus the FWA's own `wsc`/`wbk`, none of which re-sectioning can
+move. Stale copies may still exist under older `output/v2/*` directories; nothing reads
+them.
 
 ---
 

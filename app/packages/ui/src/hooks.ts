@@ -109,9 +109,11 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
       };
       if (!section) return empty;
       const link = await source.gaugeForSection(section);
-      // "none" means the station drains far too much to describe this water. Returning its
-      // number anyway is the failure this whole path exists to prevent.
-      if (!link || link.trust === "none") return empty;
+      // NO LINK IS THE REFUSAL. A station that drains far too much to describe this water
+      // gets no `section_gauge` row at all, so `gaugeForSection` returns null — there is no
+      // "none" band to test for, and testing for one implied the row existed and was
+      // labelled. Returning its number anyway is the failure this path exists to prevent.
+      if (!link) return empty;
       const [now, trace, series] = await Promise.all([
         source.gaugeNow(link.station),
         source.traceToGauge(section),
@@ -157,9 +159,9 @@ export function useGaugeTrace(
       };
       if (!section) return none;
       const link = await source.gaugeForSection(section);
-      // "none" means the station drains far too much to describe this water. Returning it
-      // as a trace anyway would put a real station id on a panel that must claim nothing.
-      if (!link || link.trust === "none") return none;
+      // No link is the refusal — see above. Returning a trace anyway would put a real
+      // station id on a panel that must claim nothing.
+      if (!link) return none;
       return {
         station: link.station,
         stationName: link.name,
@@ -197,9 +199,7 @@ export function useWaterGauge(
     async (): Promise<GaugeLink | null> => {
       if (!item) return null;
       const link = await source.gaugeForItem(item);
-      // "none" is stored nowhere, but a source that computes rather than reads could
-      // return it; treat it as what it says — nobody speaks for this water.
-      return !link || link.trust === "none" ? null : link;
+      return link ?? null;
     },
     `watergauge:${item}`,
     item !== null,

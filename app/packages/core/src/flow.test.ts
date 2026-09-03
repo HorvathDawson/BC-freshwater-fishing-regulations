@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { bandAt, gaugeTrust, standing, standingWord, type Band } from "./flow";
+import { bandAt, standing, standingWord, TRUST_FLOOR, trustWord,
+         type Band } from "./flow";
 
 describe("standing", () => {
   it("names the bands the map colours by", () => {
@@ -29,24 +30,26 @@ describe("pentad bands", () => {
   });
 });
 
-describe("a gauge has a limit", () => {
-  // Real magnitudes from the build.
-  const FRASER_AT_HOPE = 273576;
-  const CHILLIWACK_AT_VEDDER = 2182;
+describe("the trust bands are the pipeline's, not ours", () => {
+  // THERE IS NO `gaugeTrust()` HERE ANY MORE, and its absence is the test. The band is
+  // decided once, in pipeline/hydro/shed.py, against the full graph and the FWA watershed
+  // codes — neither of which ships to a client. What used to live here banded `reach/gauge`
+  // asymmetrically with no drainage gate, which is precisely the rule that let SLESSE CREEK
+  // NEAR VEDDER CROSSING speak for the Chilliwack.
+  //
+  // What the app keeps is the vocabulary, generated from that same Python constant by
+  // `pipeline.tools.emit_gauge_policy`. `--check` in CI fails if the two drift.
+  it("carries the floors the pipeline banded on", () => {
+    expect(TRUST_FLOOR).toEqual({ good: 0.10, fair: 0.01, weak: 0.001 });
+  });
 
-  it("the Fraser at Hope says nothing about a small creek", () => {
-    expect(gaugeTrust(12, FRASER_AT_HOPE)).toBe("none");
+  it("has a sentence for every band the bundle can store", () => {
+    for (const band of ["good", "fair", "weak"] as const) {
+      expect(trustWord(band)).toBeTruthy();
+    }
   });
-  it("but it does describe the Fraser", () => {
-    expect(gaugeTrust(273576, FRASER_AT_HOPE)).toBe("good");
-  });
-  it("a major branch is fair, not good", () => {
-    expect(gaugeTrust(60, CHILLIWACK_AT_VEDDER)).toBe("fair");
-  });
-  it("a headwater trickle in the same valley is weak, not none", () => {
-    expect(gaugeTrust(5, CHILLIWACK_AT_VEDDER)).toBe("weak");
-  });
-  it("a gauge with no magnitude speaks for nothing", () => {
-    expect(gaugeTrust(100, 0)).toBe("none");
+
+  it("has no band meaning `no gauge` — that is an absent row, not a value", () => {
+    expect(Object.keys(TRUST_FLOOR)).not.toContain("none");
   });
 });

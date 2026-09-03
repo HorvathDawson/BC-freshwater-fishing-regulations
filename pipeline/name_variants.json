@@ -72625,5 +72625,25 @@
     "note": "DFO r2 De Boville Slough: 'downstream of the confluence of Cedar Creek and Hyde Creek.' FWA gazettes this line 'Partington Creek' (blk 356229226, wsc 100-025956-070515-998174, Port Coquitlam). A name lookup for 'Cedar Creek' returns gnis:11727 in the Okanagan (MU 8-2, 49.311/-119.867) — a collision 400 km away. Curator-supplied blk. Cedar and Hyde meet the slough 3 m apart at its head (2,638 m and 2,635 m along its 2,643 m length), so the rule is effectively the whole slough and the existing de_boville_slough__hyde_creek_into_de_boville_slough cut expresses it. display:false so the gazetted name stands."
    }
   ]
+ },
+ {
+  "target": {
+   "wbks": [
+    "329520014"
+   ]
+  },
+  "names": [
+   {
+    "name": "Beaver Tree Lake",
+    "source": "curation",
+    "display": true,
+    "note": "Display name for wbk 329520014, set by hand 3 Sep 2026. The FWA polygon is unnamed, so the resolver promotes this to the label."
+   },
+   {
+    "name": "Lightning Lake",
+    "source": "curation",
+    "note": "Alias, and a real one: this water is CONNECTED to one of the Lightning Lakes, which is why anglers ask for it under that name. Two other lakes already carry 'Lightning Lake' as their display label (wbk:329316138, wbk:329522909), so it is Beaver Tree Lake on the map — one name per feature — and Lightning Lake in search, where all three should be findable."
+   }
+  ]
  }
 ]

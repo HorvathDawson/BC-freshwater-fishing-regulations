@@ -88,9 +88,10 @@ async function readingFor(source: RegsSource, section: SectionId | null):
   Promise<SpotReading | null> {
   if (!section) return null;
   const link = await source.gaugeForSection(section);
-  // "none" means the station drains far too much to describe this water. Recording its
-  // number anyway would freeze a wrong answer into the record permanently.
-  if (!link || link.trust === "none") return null;
+  // NO LINK IS THE REFUSAL. A station that drains far too much to describe this water gets
+  // no `section_gauge` row, so the link is null — recording a number anyway would freeze a
+  // wrong answer into a saved spot permanently, and a spot is forever.
+  if (!link) return null;
   const now = await source.gaugeNow(link.station);
   if (!now) return { station: link.station, discharge: null, level: null,
                      percentile: null, at: null };
@@ -107,7 +108,7 @@ async function traceFor(source: RegsSource, section: SectionId | null):
   Promise<GaugeTrace | null> {
   if (!section) return null;
   const link = await source.gaugeForSection(section);
-  if (!link || link.trust === "none")
+  if (!link)
     return { station: null, stationName: null, trust: null, path: [],
              metres: null, reachMagnitude: null, gaugeMagnitude: null,
              lon: null, lat: null };

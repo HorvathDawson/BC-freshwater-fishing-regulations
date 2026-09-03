@@ -97,3 +97,54 @@ llm:
 # ============================================================================
 graph_builder:
   enable_caching: true
+
+# ============================================================================
+# Curated data — everything a human's time is embedded in
+# ============================================================================
+#
+# NOTHING UNDER HERE IS REGENERABLE BY A REBUILD. Losing a file here loses curation that
+# cost human hours; losing anything under output/ costs CPU. That is the whole distinction,
+# and it is why these have their own tree rather than sitting next to the code that reads
+# them.
+#
+# READ THROUGH `pipeline.curated`, never as a literal. Every path below is validated the
+# moment the process starts — a typo fails at import with the key that is wrong, instead of
+# at runtime with an empty list. This repo has paid for the alternative: a `--splits` flag
+# with no default silently dropped all 376 curated cuts from three full builds and nothing
+# looked wrong.
+#
+# ⚠️ These still point at the CURRENT locations. Step 1 of pipeline/docs/16 is to introduce
+# the accessors WITHOUT moving anything, so the migration is reversible at every step; the
+# `git mv` is the last commit, not the first.
+curated:
+  base: "pipeline"
+
+  # --- authored by hand: a person typed every one of these -------------------------
+  splits: "pipeline/splits.json"
+  name_variants: "pipeline/name_variants.json"
+  overrides: "pipeline/matching/overrides.json"
+  areas: "pipeline/areas.json"
+  added_lakes: "pipeline/added_lakes.geojson"
+  added_streams: "pipeline/added_streams.build.json"
+
+  entries:
+    synopsis: "pipeline/parsing/entries"
+    dfo_salmon: "pipeline/dfo_salmon/entries"
+
+  # --- machine-produced, HUMAN-REVIEWED --------------------------------------------
+  #
+  # The third category, and the one doc 16 was missing. A slow pass produced these, a person
+  # checked them, and everything downstream only reads them. Not curated (nobody typed it);
+  # not generated (a rebuild must NEVER recreate it — that discards the review).
+  #
+  # Regenerate deliberately, review the diff, commit. `pipeline.tools.check_curated --ci`
+  # fails the build when a roster has moved past one of these.
+  # The hand review of gauge matches. An INPUT to matching, not output — `gauge_match.json`
+  # is rewritten wholesale every run, so a decision recorded there would not survive.
+  gauge_review: "pipeline/gauge_review.json"
+
+  matches:
+    gauge: "pipeline/gauge_match.json"
+    waterbody_type: "data/bc_station_waterbody_type.json"
+    stocking: null        # not built — needs the FIDQ fetch
+    charts: null          # not built — needs the bathymetry fetch

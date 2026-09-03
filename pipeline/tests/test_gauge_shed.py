@@ -308,9 +308,47 @@ class TestMatchProvenance:
         # Comox Harbour is tidal salt water, deliberately outside the atlas. Filing it as
         # unresolved means someone re-investigates it every year and reaches the same
         # conclusion; filing it as no_match records that the conclusion was already reached.
-        from pipeline.hydro.match import NO_MATCH
-        assert "08HB087" in NO_MATCH
-        assert NO_MATCH["08HB087"]
+        #
+        # This lived in a `NO_MATCH` dict in match.py until the hand review outgrew it. The
+        # decisions are curation, so they live in a curated file that people and tools edit
+        # and that is reviewed in a diff — `matching/overrides.json`'s argument exactly.
+        from pipeline.hydro.review import load
+
+        comox = load().stations.get("08HB087")
+        assert comox is not None and comox.verdict == "none"
+        assert comox.note, "a refusal without a reason is indistinguishable from a gap"
+
+    def test_the_review_records_confirmations_and_not_only_corrections(self):
+        # HALF A REVIEW IS THE ROWS THAT WERE ALREADY FINE. A `confirmed` decision pins the
+        # water, so an atlas release that quietly moves the station fails loudly instead of
+        # silently; keeping only the refusals throws that half away and leaves no way to
+        # tell "checked and correct" from "never looked at".
+        from pipeline.hydro.review import load
+
+        r = load()
+        counts = r.counts()
+        assert counts.get("confirmed", 0) > counts.get("wrong", 0), counts
+        pinned = [d for d in r.stations.values() if d.verdict == "confirmed" and d.keys]
+        assert len(pinned) == counts["confirmed"], (
+            "a confirmation that names no water cannot detect drift, which is its whole job")
+
+    def test_a_refusal_never_doubles_as_a_binding(self):
+        # A refused row still carries the wsc/wbk it was WRONGLY matched to, as evidence.
+        # Reading those as a binding would point the station at the very water the review
+        # threw out.
+        from pipeline.hydro.review import Decision
+
+        d = Decision(verdict="wrong", wbk=("329070038",), note="not this lake")
+        assert d.keys == ()
+        assert d.rejected == ("329070038",)
+
+    def test_a_binding_must_name_a_water(self):
+        import pytest as _pytest
+        from pipeline.hydro.review import Decision
+
+        with _pytest.raises(Exception):
+            Decision(verdict="bind", note="onto what?")
+        assert Decision(verdict="bind", wsc=("100-1",)).keys == ("100-1",)
 
     def test_the_override_file_is_empty_and_should_stay_that_way(self):
         # It once held seven entries. Every one was a name the atlas already carried in
@@ -344,12 +382,28 @@ class TestMatchProvenance:
         src = Path(m.__file__).read_text(encoding="utf-8")
         assert "override in graph.nodes" in src
 
-    def test_no_station_is_both_aliased_and_declared_hopeless(self):
-        # The two mechanisms say opposite things. A station in both would silently take
-        # whichever the code checked first.
-        from pipeline.hydro.match import NO_MATCH, load_aliases
-        assert not (set(load_aliases()) & set(NO_MATCH))
+    def test_a_wrong_match_is_a_gap_to_close_not_a_permanent_absence(self):
+        # THE TWO REFUSALS ARE DIFFERENT CLAIMS. `wrong` says the match is bad and the right
+        # water is not recorded yet — a worklist. `none` says there is no such water at all.
+        # Filing a `wrong` as no_match retires the station permanently on the strength of a
+        # review that said "this needs the outlet stream, which we cannot address yet", and
+        # the Kootenay below Corra Linn stays ungauged forever.
+        from pipeline.hydro.review import load
 
+        r = load()
+        todo = [d for d in r.stations.values() if d.is_todo]
+        assert todo, "the worklist should not be empty while outlet stations are unbound"
+        assert all(d.note for d in todo), "a TODO with no reason cannot be worked"
+        # And they are NOT declared absent.
+        assert all(d.verdict != "none" for d in todo)
+
+    def test_no_station_is_both_curated_and_aliased(self):
+        # An alias binds a station to a node id; the review binds it to FWA keys. A station
+        # in both is two mechanisms answering the same question, and the loser is silent.
+        from pipeline.hydro.match import load_aliases
+        from pipeline.hydro.review import load
+
+        assert not (set(load_aliases()) & set(load().stations))
     def test_the_alias_file_is_never_the_shared_name_variants_file(self):
         # v1 corrupted display names by letting a matcher write into the variants file that
         # decides what waters are CALLED. This file is read here and nowhere else.

@@ -1,0 +1,14 @@
+{
+  "_generated_by": "python -m pipeline.tools.emit_gauge_policy",
+  "_source": "pipeline/hydro/shed.py :: TRUST_BANDS",
+  "bands": [
+    "good",
+    "fair",
+    "weak"
+  ],
+  "floor": {
+    "good": 0.1,
+    "fair": 0.01,
+    "weak": 0.001
+  }
+}

@@ -1,0 +1,80 @@
+name: pipeline
+
+# THE GUARDS, NOT THE MILL. Everything here is seconds and megabytes.
+#
+# The heavy half of this project — a full build, the gauge match, the tile export — runs a
+# few times a year on a machine that can hold the atlas. It CANNOT run here and should not
+# be made to: one build directory is ~10 GB (graph.gpkg alone is 4.5) against a hosted
+# runner's 14 GB, and the match needs 2.8 GB of pickled geometry. Forcing it produces a job
+# that fails for reasons unrelated to the change, and a job people learn to ignore is worse
+# than no job.
+#
+# So this checks the things that are cheap to check and expensive to get wrong: that the
+# committed artifacts still agree with the rosters they were built from, that generated
+# files were regenerated, and that the suite passes. See
+# pipeline/docs/HANDOFF-curated-layout.md §8 for the two-tier split.
+
+on:
+  push:
+    paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
+            "requirements.txt", ".github/workflows/pipeline-ci.yml"]
+  pull_request:
+    paths: ["pipeline/**", "data/**", "config.yaml", "project_config.py",
+            "requirements.txt", ".github/workflows/pipeline-ci.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13", cache: pip }
+
+      - run: pip install -r requirements.txt
+
+      # FIRST, because it is the cheapest and its failure means the tree cannot be trusted
+      # rather than that a test broke: every curated path in config.yaml resolves to a file
+      # that exists. pydantic refuses to construct otherwise, naming the key.
+      #
+      # This is the `--splits` incident's tripwire. That flag had no default, silently
+      # dropped all 376 curated cuts from three full builds, and nothing looked wrong.
+      - name: Every curated path resolves
+        run: python -c "from pipeline.curated import load; c = load(); print(c.model_dump_json(indent=1))"
+
+      # Are the committed match artifacts still in step with the rosters they were built
+      # from? A new station appearing with nobody re-running the match is invisible
+      # otherwise — the river is just ungauged, with no error and no empty table.
+      #
+      # It never regenerates; it prints the command. Regeneration needs a completed build
+      # and a human to read the diff.
+      - name: Committed match artifacts are in step with their rosters
+        run: python -m pipeline.tools.check_curated --ci
+
+      # The trust bands exist in Python and in TypeScript, because a browser cannot import
+      # shed.py and a union type must exist before a bundle is opened. This re-runs the
+      # generator and fails if the committed output differs, so the two cannot drift.
+      - name: Generated gauge policy is current
+        run: python -m pipeline.tools.emit_gauge_policy --check
+
+      - name: Tests
+        run: python -m pytest pipeline/tests -q
+
+      # The path shapes doc 16 exists to remove. Not yet zero — this reports rather than
+      # fails until the migration lands, at which point `continue-on-error` comes off and
+      # the counts become the gate. Baselines recorded 2026-09-02: 10 / 4 / 36.
+      - name: Hardcoded curated paths (reporting only until doc 16 lands)
+        continue-on-error: true
+        run: |
+          X="--exclude-dir=archive --exclude-dir=.venv --exclude-dir=node_modules \
+             --exclude-dir=__pycache__ --exclude-dir=graphify-out"
+          echo "literal 'pipeline/*.json':"
+          grep -rn $X --include='*.py' '"pipeline/[a-z_]*\.json"' . | wc -l
+          echo "parents[N] / a curated file:"
+          grep -rn $X --include='*.py' 'parents\[[0-9]\] / "\(splits\|name_variants\|gauge_match\|added_streams\)' . | wc -l
+          echo "total (target: the first two at 0, entries at 3):"
+          grep -rn $X --include='*.py' '/ "entries"' pipeline/ | wc -l

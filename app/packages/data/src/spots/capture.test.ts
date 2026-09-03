@@ -43,15 +43,15 @@ describe("captureSpot", () => {
     expect(s.reading).toBeNull();      // not a zero, not an empty object
   });
 
-  it("refuses a reading from a gauge whose trust is none", async () => {
-    // `none` means the station drains far too much to describe this water. Freezing its
-    // number into a permanent record is worse than showing it once on a screen.
+  it("refuses a reading when no gauge is entitled to speak for the reach", async () => {
+    // The bundler writes no `section_gauge` row for a reach its gauge drains far too much
+    // to describe — the Fraser at Hope against a 12-magnitude side channel — so the source
+    // returns null. Freezing a number into a permanent record on that basis is worse than
+    // showing it once on a screen.
     const s = await captureSpot({
       ...base,
       source: source({
-        gaugeForSection: async () => ({ station: "08MF005", name: "Fraser at Hope",
-                                        trust: "none", reachMagnitude: 12,
-                                        gaugeMagnitude: 273576 } as never),
+        gaugeForSection: async () => null,
         gaugeNow: async () => ({ value: { discharge: 2400, level: 8.1, at: "x" },
                                  fetchedAt: 1 } as never),
       }),

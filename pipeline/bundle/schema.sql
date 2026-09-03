@@ -93,9 +93,15 @@ CREATE TABLE section_gauge (section_id TEXT PRIMARY KEY, station TEXT NOT NULL,
 CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,
                          PRIMARY KEY (item_id, station)) WITHOUT ROWID;
 
--- Only for sections INSIDE a gauge's watershed. The contract cuts the rest: the sole use
--- is tracing a tap down to its gauge, and every reach on that path is in the same shed by
--- definition. 2.02M pointers become ~300k, losing nothing.
+-- Only for sections inside some gauge's shed. The contract cuts the rest: the sole use is
+-- tracing a tap down to its gauge, and 2.02M pointers become ~119k.
+--
+-- `down_id` MAY NAME A SECTION WITH NO ROW OF ITS OWN — measured, 33,454 of 119,271 do.
+-- This comment used to claim otherwise ("every reach on that path is in the same shed by
+-- definition"), which is true walking UPSTREAM-to-gauge and false in general: a shed also
+-- runs downstream of its gauge, and the last member's neighbour is outside it. A trace that
+-- runs out of pointers has reached the edge of what any gauge speaks for; that is the
+-- answer, not missing data, and the client must render it as the end of the chain.
 CREATE TABLE section_down (section_id TEXT PRIMARY KEY, down_id TEXT NOT NULL) WITHOUT ROWID;
 
 -- Pentad-sampled percentiles. p0 and p100 are absent on purpose: they do not interpolate

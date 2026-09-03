@@ -101,12 +101,27 @@ resolve to **identical sections**. Geometry beats text; never dedupe locators by
 
 ### Where the artefacts go
 
-| what | file |
-|---|---|
-| cut-points | `pipeline/splits.json` — by-waterbody blocks, `applies_to` = gnis_id / waterbody_key / wsc |
-| a DFO name DFO uses and the province does not | `pipeline/name_variants.json` |
-| a forced item binding | `pipeline/matching/overrides.json`, **tagged `"source": "dfo"`** |
-| extents / bindings | ⛔ **not yet decided — see §7** |
+| what | file — **after the restructure** | before |
+|---|---|---|
+| cut-points | `data/curated/waters/splits.json` | `pipeline/splits.json` |
+| a DFO name DFO uses and the province does not | `data/curated/waters/name_variants.json` | `pipeline/name_variants.json` |
+| a forced item binding | `data/curated/regulations/overrides.json`, **tagged `"source": "dfo"`** | `pipeline/matching/overrides.json` |
+| DFO entry files | `data/curated/regulations/entries/dfo_salmon/` | `pipeline/dfo_salmon/entries/` |
+| synopsis entry files | `data/curated/regulations/entries/synopsis/` | `pipeline/parsing/entries/` |
+| extents / bindings | ⛔ **not yet decided — see §7** | |
+
+⚠️ **Reach every one of these through `pipeline.curated`, never as a literal path.**
+
+```python
+from pipeline.curated import CURATED
+CURATED.waters.splits            # data/curated/waters/splits.json
+CURATED.entries.dfo_salmon       # data/curated/regulations/entries/dfo_salmon/
+```
+
+The paths are validated by pydantic when the process starts, so a typo fails naming the key
+instead of returning an empty list. `dossier.py` and `splitwork.py` both resolved these by hand
+(`Path(__file__).parents[1] / "splits.json"`, and one bare `Path("pipeline/splits.json")` that
+only worked from the repo root); both go through config now.
 
 `load_overrides(path, source="dfo")` — the **provincial matcher never loads DFO overrides**. Keep
 the tag on every one you add or a DFO decision leaks into the synopsis build.
@@ -171,13 +186,22 @@ Somass is curated but **has no entry file**, deliberately. The decision was:
 
 > *"wait we shouldn't add to the current entries… DFO should have a different set of entries."*
 
-So DFO extents currently live only as splits + the `--extents` view. The layout that unblocks them
-is planned in **`pipeline/docs/16-curated-data-layout.md`** — `pipeline/curated/` with
-`entries/synopsis/` and `entries/dfo_salmon/` nested inside, a `curated:` config tree, and the
-`git mv` **last**. That migration is deferred until the concurrent agent's task lands.
+So DFO extents currently live only as splits + the `--extents` view.
 
-**Until then: keep curating into `splits.json` and record extents in the session, but do not
-create a DFO entries tree.** Picking a location now means moving it twice.
+**The location is now decided**, which unblocks this: `data/curated/regulations/entries/dfo_salmon/`.
+The reasoning and the full migration are in the restructure plan (which supersedes
+`16-curated-data-layout.md`); the short version is that curated data is grouped by DOMAIN under
+`data/curated/`, beside `source/` and `generated/`, so the three kinds are visible in one listing.
+
+**Sequencing, and it matters for you specifically:** the entries move is the LAST phase of the
+migration and lands in its own commit on a clean tree, because `git mv` conflicts with any local
+edit to an entry file. So:
+
+* **Keep curating into `splits.json` now.** It moves with everything else; `git mv` preserves
+  history and does not touch contents.
+* **Do not create the DFO entries tree by hand.** The migration creates it. Minting it early means
+  moving it twice and resolving a conflict for nothing.
+* **Do not have uncommitted entry edits when the move runs.** Commit or stash first.
 
 ---
 

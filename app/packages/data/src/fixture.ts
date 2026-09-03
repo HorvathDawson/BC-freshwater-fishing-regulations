@@ -7,7 +7,7 @@
  * at its 4th percentile, and a creek the Fraser gauge must refuse to speak for.
  */
 import type { Band, PlainDate, Rule, SpeciesGroup, Status } from "@app/core";
-import { evaluate, gaugeTrust } from "@app/core";
+import { evaluate } from "@app/core";
 import type {
   Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
   PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
@@ -56,7 +56,6 @@ const GAUGE = {
   magnitude: 2182, discharge: 15.7, level: 1.487, percentile: 0.038,
   at: "2026-08-30T07:00:00Z",
 };
-const FRASER_AT_HOPE_MAGNITUDE = 273576;
 
 /**
  * One BC River Forecast Centre run, as the real feed publishes them — a SERIES with bounds,
@@ -152,14 +151,21 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
 
     async gaugeForSection(s): Promise<GaugeLink | null> {
       if (!sectionRules.has(s)) return null;
+      // THE BAND IS READ, NOT COMPUTED — because that is what the real source does. It
+      // selects `section_gauge.trust`, a value `pipeline/hydro/shed.py` decided against the
+      // full graph. This used to call a `gaugeTrust()` in @app/core, so the suite asserted
+      // against a SECOND implementation of the rule (asymmetric, and with no drainage gate)
+      // rather than against anything the province bundle could produce. That function is
+      // gone; the fixture states outcomes the same way the bundle stores them.
+      //
       // A tiny creek in the same window is measured by the Fraser at Hope, which must
-      // refuse to speak for it — that is the whole point of the magnitude floor.
-      const reachMagnitude = s === JEPERSON.section ? 12 : GAUGE.magnitude;
-      const gaugeMagnitude = s === JEPERSON.section ? FRASER_AT_HOPE_MAGNITUDE : GAUGE.magnitude;
+      // refuse to speak for it — that is the whole point of the magnitude floor. 12 against
+      // 273,576 is a ten-thousandth, below even the `weak` floor, so the bundler writes NO
+      // ROW: the honest answer is a null link, not a fourth band meaning "none".
+      if (s === JEPERSON.section) return null;
       return {
-        station: id<StationId>(GAUGE.station), name: GAUGE.name,
-        trust: gaugeTrust(reachMagnitude, gaugeMagnitude),
-        reachMagnitude, gaugeMagnitude,
+        station: id<StationId>(GAUGE.station), name: GAUGE.name, trust: "good",
+        reachMagnitude: GAUGE.magnitude, gaugeMagnitude: GAUGE.magnitude,
         live: true, areaKm2: 1230, lon: -121.958, lat: 49.096, section: s,
       };
     },

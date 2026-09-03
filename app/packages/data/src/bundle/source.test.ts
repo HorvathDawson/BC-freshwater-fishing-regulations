@@ -109,13 +109,19 @@ describe("the bundle source", () => {
     for (const h of near) expect(await src.itemExists(h.item), h.name).toBe(true);
   });
 
-  it("refuses to speak for a reach no gauge represents", async () => {
-    const none = await db.get("SELECT section_id FROM section_gauge WHERE trust = 'none' LIMIT 1");
-    if (!none) return;
-    const link = await src.gaugeForSection(none.section_id as SectionId);
-    // The link exists but says `none`; the CLIENT is what must refuse to show a number,
-    // and useConditions does. What matters here is that the trust survives the read.
-    expect(link!.trust).toBe("none");
+  it("stores only bands the pipeline can produce — a refusal is an absent row", async () => {
+    // There is no `none` band. `pipeline/hydro/shed.py` writes NO ROW for a reach the gauge
+    // drains far too much to describe, so the refusal reaches the client as a null link.
+    // A stored `none` would mean the opposite: a row asserting a station and then
+    // retracting it, which is what the app used to test for and the bundler never wrote.
+    const bands = await db.all("SELECT DISTINCT trust FROM section_gauge");
+    expect(bands.map((r) => r.trust).sort()).toEqual(["fair", "good", "weak"]);
+
+    const ungauged = await db.get(
+      "SELECT s.section_id FROM item_section s " +
+      "LEFT JOIN section_gauge g USING(section_id) WHERE g.section_id IS NULL LIMIT 1");
+    if (!ungauged) return;
+    expect(await src.gaugeForSection(ungauged.section_id as SectionId)).toBeNull();
   });
 
   it("answers whether a WATER has a gauge, not just the reach you tapped", async () => {

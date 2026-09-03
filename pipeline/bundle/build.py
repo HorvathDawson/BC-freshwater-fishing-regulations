@@ -28,8 +28,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 HERE = Path(__file__).parent
+_ROOT = HERE.parents[1]
 SCHEMA = HERE / "schema.sql"
 INDEXES = HERE / "indexes.sql"
+
+#: The envelope, written by `pipeline.hydro.climatology` and read by BOTH the feed publisher
+#: and this. Anchored on the repo root rather than derived from `data_dir`, which is how it
+#: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
+CLIM_PATH = _ROOT / "output" / "feeds" / "gauge" / "clim.json"
 
 
 @dataclass
@@ -62,6 +68,26 @@ def _connect(out: Path) -> sqlite3.Connection:
     db.execute("PRAGMA journal_mode = OFF")
     db.executescript(SCHEMA.read_text())
     return db
+
+
+def _report(what: str, lost: list[str], live: set[str]) -> None:
+    """Print every station that fell out of a stage, transmitting ones first.
+
+    NOT a debug aid. A gauge that disappears between stages is a river the app tells people
+    is unmeasured, and until this existed the only way to notice was to diff two bundles. A
+    silent zero is the one thing this pipeline has repeatedly got wrong: `lake_gauge` went
+    from 220 rows to 0 and the build reported success.
+    """
+    if not lost:
+        return
+    hot = [x for x in lost if x.split()[0] in live]
+    print(f"     {len(lost)} stations {what}"
+          + (f" — {len(hot)} of them transmitting:" if hot else ":"))
+    for line in hot[:12]:
+        print(f"       LIVE  {line}")
+    rest = len(lost) - len(hot[:12])
+    if rest > 0:
+        print(f"       … and {rest:,} more (all in the run log)")
 
 
 def _is_water(item: dict) -> bool:
@@ -193,10 +219,16 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
     from shapely.strtree import STRtree
 
     items = json.loads(registry.read_text())["items"]
-    # section -> (item_id, name), for items that have a name a person could search
+    # section -> (item_id, name), for WATERS that have a name a person could search.
+    #
+    # `_is_water` for the same reason as in `_gauges`: an `area:` item's name is a slug
+    # (`area:indigenous_land:becher_bay_1`), nobody types it, and because `area:` sorts first
+    # `setdefault` gave it the section before the river could claim it. That put 35,133 park
+    # polygons into "water near this town" AND cost the real water those sections as distance
+    # candidates, so the km it reports was measured to whatever was left over.
     owner: dict[str, tuple[str, str]] = {}
     for i in items:
-        if not i.get("name"):
+        if not i.get("name") or not _is_water(i):
             continue
         for sec in i.get("section_ids", []):
             owner.setdefault(sec, (i["id"], i["name"]))
@@ -285,13 +317,30 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 
     with geom_path.open("rb") as fh:
         geoms = pickle.load(fh)
-    matched = nodes_for(matches, graph, geoms)
+    # EVERY LOSS IS COUNTED. A station that matched and then failed to place, or placed and
+    # then won no section, is a river the app will call ungauged — and both used to happen
+    # in silence: 79 stations (7 of them active) fell out of `nodes_for` against a cap the
+    # matcher did not share, and six active stations, the Fraser at Whonock and the
+    # Chilliwack above Slesse among them, lost every section to a tiebreak on station id.
+    # Neither showed in any output. See HANDOFF: "the build hides its own regressions".
+    place_lost: list[str] = []
+    shed_lost: list[str] = []
+    matched = nodes_for(matches, graph, geoms, report=place_lost)
     del geoms
     prov = {m.station: m for m in matches}
 
-    # section -> the item that owns it, so a client can name the water, not just the gauge.
+    # section -> the WATER that owns it, so a client can name the river, not just the gauge.
+    #
+    # `_is_water` IS LOAD-BEARING HERE, not tidiness. The registry holds 1,473 `area:` items
+    # carrying 783,492 section ids against 19,698 waters carrying 61,879 — and `area:` sorts
+    # first, so `setdefault` handed every reach inside a park, reserve or indigenous land to
+    # the polygon. A gauge measures water; it does not care whose land it stands on. Measured
+    # before the filter: 542 of 2,018 `gauge.item_id` and 123 of 220 `lake_gauge` rows named
+    # an `area:` id that `_items` never inserted, so the app looked them up and found nothing.
     owner: dict[str, str] = {}
     for i in json.loads((build_dir / "registry.json").read_text())["items"]:
+        if not _is_water(i):
+            continue
         for sec in i.get("section_ids", []):
             owner.setdefault(sec, i["id"])
 
@@ -314,7 +363,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     # their `gauge` row and climatology; what they lose is the claim to speak for reaches
     # they can no longer say anything about.
     active = {s["station"] for s in stations if s.get("active")}
-    links = build_gauge_sheds(graph, stations, matched, prefer=active)
+    links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost)
     # `links` arrives grouped by section, best ratio first; `seq` freezes that order so a
     # client takes row 0 and never has to re-derive the judgement.
     db.executemany("INSERT INTO section_gauge VALUES (?,?,?,?)",
@@ -335,7 +384,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     # and the bundle snapshots it here so a client can draw a seasonal band and date an old
     # spot offline. Building it twice would be two envelopes that can disagree about the
     # same river.
-    clim_path = data_dir.parent / "output/feeds/gauge/clim.json"
+    clim_path = CLIM_PATH
     if clim_path.exists():
         clim = json.loads(clim_path.read_text(encoding="utf-8"))
         rows = [(st, param, int(pent), *bands)
@@ -365,6 +414,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     bands: dict[str, int] = {}
     for l in links:
         bands[l.trust] = bands.get(l.trust, 0) + 1
+    live = {s["station"] for s in stations if s.get("realtime")}
+    _report("could not be placed on this graph", place_lost, live)
+    _report("placed but spoke for no section", shed_lost, live)
     print(f"     match: {summarise(matches)}")
     print(f"     bands: " + ", ".join(f"{bands.get(b, 0):,} {b}" for b, _ in
                                       __import__("pipeline.hydro",
@@ -374,8 +426,19 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 
 
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
-    """Write the bundle. Returns the path written."""
-    data_dir = data_dir or build_dir.parents[1] / "data"
+    """Write the bundle. Returns the path written.
+
+    ``data_dir`` is the REPO's `data/`, not anything derived from the build directory. It
+    used to default to `build_dir.parents[1] / "data"`, which for the standard build
+    `output/v2/full` resolves to `output/data` — a directory that has never existed. A caller
+    that omitted the argument therefore skipped `gauge`, `section_gauge`, `section_down`,
+    `place` and `place_water` and still reported success, which is doc 16's `--splits`
+    incident in a second place. It raises now.
+    """
+    data_dir = Path(data_dir) if data_dir else _ROOT / "data"
+    if not data_dir.is_dir():
+        raise FileNotFoundError(
+            f"data dir not found: {data_dir} — pass data_dir=<repo>/data")
     cov = Coverage()
     db = _connect(out)
 
@@ -399,10 +462,25 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     cov.skip("release", "RETIRED — keyed on a name; stock_water + the stocking feed replace it")
 
     db.executescript(INDEXES.read_text())
+    # THE BUNDLE CARRIES THE POLICY IT WAS BUILT UNDER.
+    #
+    # `section_gauge.trust` says `fair`; this says what `fair` meant when that row was
+    # written. Without it a client explaining a band ("a major branch — at least 1% of the
+    # gauge's watershed") is quoting a number from ITS OWN build, and a phone holding last
+    # season's bundle would explain last season's bands with this season's floors. Stamping
+    # them makes every bundle self-describing, so the explanation cannot outrun the data.
+    #
+    # It is also the only copy that can never drift, because it ships inside the artifact
+    # rather than beside it. The generated TypeScript is a compile-time convenience — a
+    # browser cannot import shed.py, and a union type has to exist before the bundle is
+    # opened — and `pipeline.tools.emit_gauge_policy --check` is what keeps THAT honest.
+    from pipeline.hydro.shed import TRUST_BANDS
+
     db.executemany("INSERT INTO meta VALUES (?,?)", [
         ("schema", SCHEMA.read_text().split("\n")[0]),
         ("build", str(build_dir)),
         ("generated_by", "python -m pipeline.bundle"),
+        ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),
     ])
     db.commit()
     db.execute("VACUUM")

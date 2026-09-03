@@ -256,3 +256,119 @@ your own judgement.
 * **Prefix shell commands with `rtk`.**
 * **`graphify query` before grepping**, then `graphify update .` after the move — the graph indexes
   paths.
+
+---
+
+## 8. Addendum — generated-and-committed artifacts (added 2026-09-03)
+
+Doc 16 splits the world in two: **curated** (a human authored it, no rebuild can recreate it)
+against **generated** (`output/`, costs CPU, throw it away freely). There is a third kind, and
+it is the one that keeps going stale in silence.
+
+**A machine produced it, a human reviewed it, and from then on everything only reads it.**
+
+```
+pipeline/gauge_match.json              2,324 stations   station -> coord + wsc/wbk
+data/bc_station_waterbody_type.json    2,324 stations   ECCC's own "Type of water body"
+pipeline/stock_match.json              NOT BUILT        FIDQ waterbody_id -> item_id
+pipeline/chart_match.json              NOT BUILT        bathymetry sheet -> item_id
+```
+
+These are not curated (no one typed them) and not generated (a rebuild must NOT recreate them
+— it would throw away the review). They belong under `curated/`, because the property that
+matters is *irreplaceable without human time*, and a reviewed match is exactly that.
+
+### Why they are committed rather than rebuilt
+
+`gauge_match.json` needs a completed build: `graph.pkl` and `geometries.pkl`, 2.8 GB of
+pickle, plus an STRtree over two million sections. The bathymetry and stocking matchers will
+need the same. **And the input barely moves** — ECCC commissions a handful of stations a
+year; DFO salmon curation measured waters at 77/77 unchanged over 2.3 years
+(`memory/dfo-salmon-churn-asymmetry.md`). Re-deriving on every build is an enormous cost for
+an answer that has not changed, and it silently discards every hand-review with it.
+
+### The failure mode, and the gate
+
+The roster moves and the artifact does not. A new station appears, nothing regenerates, and
+that river is ungauged forever — no error, no empty table, nothing to notice. This is the
+`--splits` incident in a new place: **an omission that produces a plausible result.**
+
+`pipeline/tools/check_curated.py` is the tripwire. It reads two JSON files and compares id
+sets — no geometry, no graph, milliseconds — so it runs on every CI job while the
+regeneration it guards runs a few times a year on a machine that can hold the atlas.
+
+```
+python -m pipeline.tools.check_curated        # human report
+python -m pipeline.tools.check_curated --ci   # exit 1 if anything is stale
+```
+
+Three verdicts, and keeping them apart is the whole design:
+
+| verdict | means | fails CI |
+|---|---|---|
+| `fresh` | every roster id has a decision | no |
+| `STALE` | the roster has ids the artifact has never seen | **yes** |
+| `absent` | the artifact is declared but not built yet | no — see below |
+
+**`absent` must never fail.** `stock_match.json` and `chart_match.json` are declared in
+`ARTIFACTS` *before they exist*, so the gate is already waiting the day somebody wires the
+FIDQ or bathymetry fetch. Making that red today would teach everyone to ignore the gate.
+
+**It never regenerates anything.** It prints the command. A tool that rewrote a reviewed file
+because a roster changed is precisely what this repo keeps getting hurt by.
+
+### Two tiers, and why matching is not in CI
+
+| | runs | where | cost |
+|---|---|---|---|
+| **the mill** | a few times a year, by hand | a machine with the atlas | ~27 min build + the match passes |
+| **the guards** | every PR | hosted CI | seconds |
+
+The mill: `fetch → climatology → build → match → bundle → tiles`. The guards: `pytest`,
+`pnpm check`, `check_curated --ci`, `emit_gauge_policy --check`, and a committed row-count
+manifest so a regression is a diff in a PR rather than a silent zero.
+
+Hosted runners give 14 GB of disk; one build directory is ~10 GB (`graph.gpkg` alone is 4.5).
+The mill cannot live there, and forcing it produces a flaky job people learn to ignore.
+
+### What this adds to the migration
+
+Add to the `curated:` tree in `config.yaml`, in their own block so the distinction survives:
+
+```yaml
+curated:
+  # authored by hand — nothing can recreate these
+  splits: "pipeline/curated/splits.json"
+  name_variants: "pipeline/curated/name_variants.json"
+  overrides: "pipeline/curated/overrides.json"
+  # ... etc
+
+  # MACHINE-PRODUCED, HUMAN-REVIEWED. A rebuild reads these and must never write them.
+  # Regenerate deliberately via the command in pipeline/tools/check_curated.py; review the
+  # diff; commit. `check_curated --ci` fails the build when a roster has moved past one.
+  matches:
+    gauge: "pipeline/curated/matches/gauge_match.json"
+    waterbody_type: "pipeline/curated/matches/station_waterbody_type.json"
+    stocking: "pipeline/curated/matches/stock_match.json"      # not built
+    charts: "pipeline/curated/matches/chart_match.json"        # not built
+```
+
+Path sites to add to §2's checklist:
+
+```
+pipeline/hydro/match.py            MATCH_FILE      (already listed — 1 site)
+pipeline/hydro/waterbody_type.py   TYPES_FILE, STATIONS
+pipeline/tools/check_curated.py    ARTIFACTS[].roster / .frozen   ← 8 literals, all in one list
+```
+
+`check_curated.py` is the easy one and should move last: every path is in a single declarative
+list, so it is one edit rather than a hunt.
+
+### Also decided
+
+**The hand review is part of the artifact.** 22 stations were reviewed against the map and
+the Water Office on 2026-09-03 and recorded in `NO_MATCH` in `pipeline/hydro/match.py` — lake
+outlets, diversions and tributaries that all matched confidently and were all on different
+water. That dict is authored curation living inside a code file. It is small enough to leave
+there for now, but if it grows past a screen it should become a curated JSON beside the match
+it corrects, for the same reason `overrides.json` is not a Python literal.

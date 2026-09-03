@@ -6,6 +6,7 @@ import json
 from types import SimpleNamespace
 
 import geopandas as gpd
+import pytest
 from shapely.geometry import LineString, Point
 
 from pipeline.hydro import match as M
@@ -79,11 +80,38 @@ class TestPlacing:
         m = M.StationMatch("08AA001", "unresolved", None, None)
         assert M.nodes_for([m], g, geoms) == {}
 
-    def test_without_a_graph_it_returns_what_was_recorded(self):
-        # The diagnostic path: node ids as they were when the match was made, correct only
-        # for that build — which is exactly why the argument exists.
+    def test_a_graph_is_required_so_a_stale_node_id_can_never_be_returned(self):
+        # There used to be a no-graph path here that returned the `node_id` frozen into the
+        # match. `{blk}:{down_m}` is build output and moves whenever the sectionizer cuts
+        # differently, so that answer was correct only for the build it was written against
+        # — a default that quietly hands back last build's sections. It is gone; callers
+        # must supply the graph they want the answer to be about.
         m = M.StationMatch("08AA001", "matched", "name+radius", 1.0, node_id="B1:0")
-        assert M.nodes_for([m]) == {"08AA001": "B1:0"}
+        with pytest.raises(TypeError):
+            M.nodes_for([m])                                       # type: ignore[call-arg]
+
+    def test_it_may_reach_as_far_as_the_match_did_but_no_further(self):
+        # ONE DECISION, MADE ONCE. The match accepted this station at 900 m; re-projecting
+        # it onto a re-sectioned graph must not then refuse it at a flat 500 m cap. 79
+        # matched stations — seven of them transmitting — were dropped in exactly that gap.
+        g = _graph({"only": _stream("only")})
+        geoms = {"only": LineString([(0, 0), (200, 0)])}
+        far = M.StationMatch(**{**vars(_at(100, 900)), "distance_m": 900.0})
+        assert M.nodes_for([far], g, geoms) == {"08AA001": "only"}
+
+        # ... and no further: a station matched at 30 m cannot drift onto a node 900 m away
+        # just because a boundary moved.
+        near = M.StationMatch(**{**vars(_at(100, 900)), "distance_m": 30.0})
+        assert M.nodes_for([near], g, geoms) == {}
+
+    def test_every_station_it_cannot_place_is_reported(self):
+        # A station that matched and then failed to project is a river the app will call
+        # ungauged. It was only ever visible by differencing two files.
+        g = _graph({"only": _stream("only")})
+        geoms = {"only": LineString([(0, 0), (200, 0)])}
+        report: list[str] = []
+        assert M.nodes_for([_at(100, 5_000)], g, geoms, report=report) == {}
+        assert len(report) == 1 and "08AA001" in report[0]
 
 
 class TestTheArtifact:
@@ -115,3 +143,42 @@ class TestTheArtifact:
             {"station": "08AA001", "status": "matched", "resolved_by": "name+radius",
              "distance_m": 1.0, "lon": -123.0, "lat": 49.0, "_future": "whatever"}]}))
         assert M.read_match(p)[0].station == "08AA001"
+
+
+class TestDrainageArea:
+    """ECCC's own surveyed area, refereeing between candidates that all look right.
+
+    The third check, and the only one whose evidence does not come from the thing being
+    chosen. `wsc` is copied off the matched node, so it cannot referee the match; the name
+    is shared by a river and its own side channels; the distance prefers whichever of those
+    the coordinate happens to sit nearer.
+    """
+
+    def test_it_refuses_a_stub_for_a_station_that_drains_a_province(self):
+        # 08MH028 FRASER RIVER AT STEVESTON, matched to a node of magnitude 1 in the build
+        # on disk. ECCC surveyed 232,000 km2. Name, watershed and distance all passed.
+        assert not M._area_fits({"area_km2": 232_000.0},
+                                SimpleNamespace(stream_magnitude=1))
+        assert M._area_fits({"area_km2": 232_000.0},
+                            SimpleNamespace(stream_magnitude=290_000))
+
+    def test_silence_on_either_side_is_not_evidence_of_a_bad_match(self):
+        # A station with no published area, or a node with no magnitude, tells us nothing.
+        # Treating "unknown" as "wrong" would refuse the lake stations wholesale.
+        assert M._area_fits({}, SimpleNamespace(stream_magnitude=1))
+        assert M._area_fits({"area_km2": 232_000.0}, SimpleNamespace(stream_magnitude=None))
+        assert M._area_fits({"area_km2": 500.0}, SimpleNamespace(stream_magnitude=0))
+        assert M._area_fits({"area_km2": None}, SimpleNamespace(stream_magnitude=3))
+
+    def test_the_ordinary_case_is_never_disturbed(self):
+        # The whole 5th-to-95th spread of the roster, 0.29 to 2.86 km2 per magnitude, has to
+        # pass — this is a blunder detector, not a ranking.
+        for km2_per_mag in (0.29, 0.80, 2.86):
+            assert M._area_fits({"area_km2": 100 * km2_per_mag},
+                                SimpleNamespace(stream_magnitude=100)), km2_per_mag
+
+    def test_a_bad_area_value_is_treated_as_no_area(self):
+        assert M._area_km2({"area_km2": "not a number"}) is None
+        assert M._area_km2({"area_km2": 0}) is None
+        assert M._area_km2({"area_km2": -1}) is None
+        assert M._area_km2({"area_km2": 12.5}) == 12.5

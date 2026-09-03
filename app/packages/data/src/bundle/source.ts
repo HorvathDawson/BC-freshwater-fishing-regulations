@@ -10,7 +10,7 @@
  * It decides nothing. Every outcome comes from `evaluate()` in core; this assembles the
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
-import { bandAt, evaluate, gaugeTrust, type Band, type PlainDate, type Rule,
+import { bandAt, evaluate, type Band, type PlainDate, type Rule,
          type RuleKind, type SpeciesGroup, type Status, type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type {
@@ -407,8 +407,6 @@ function link(r: Row | undefined, section: SectionId | null,
     section,
   };
 }
-
-export { gaugeTrust };
 
 
 /** 1..366 for an ISO date or timestamp. The axis of every seasonal question here. */
