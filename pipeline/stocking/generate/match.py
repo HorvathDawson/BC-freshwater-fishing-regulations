@@ -1,5 +1,10 @@
 """Which registry item each stocked waterbody is.
 
+NO ALIAS FILE. It mapped a waterbody id to a NODE ID, and a node id is build output — it
+moves whenever the sectionizer cuts differently, so an alias was stale by construction. The
+curated review's `bind` replaces it and names FWA keys, which survive a re-sectioning. Same
+change as `pipeline/gauges`; see `pipeline/gauges/review.py`.
+
 MATCH ON THE IDENTIFIER FIRST. NAMES ARE THE FALLBACK.
 
 FIDQ publishes a `WATERBODY_IDENTIFIER` (e.g. `02322SAJR`) which is the SAME STRING as the
@@ -73,7 +78,6 @@ class StockMatch:
 
 def match_waterbodies(waters: list[dict], geoms: dict, graph, *,
                       radius_m: float = RADIUS_M,
-                      aliases: dict[str, str] | None = None,
                       by_identifier: dict[str, list[str]] | None = None) -> list[StockMatch]:
     """Match FIDQ waterbodies to graph nodes. Returns one row per input, always.
 
@@ -81,8 +85,6 @@ def match_waterbodies(waters: list[dict], geoms: dict, graph, *,
     FIDQ fetch. ``by_identifier`` maps an FWA ``WATERBODY_KEY_GROUP_CODE_50K`` to the node
     ids carrying it — the exact-key join, tried before any name.
 
-    ``aliases`` maps a waterbody id straight to a NODE ID: the last resort, binding to the
-    water rather than to a name, for the same reason the gauge overrides do.
 
     Every input gets a row even when nothing matched — a silent drop is how a stocked lake
     disappears from the app without anybody noticing it was ever expected.
@@ -98,21 +100,11 @@ def match_waterbodies(waters: list[dict], geoms: dict, graph, *,
     pts = gpd.GeoSeries([Point(w["lon"], w["lat"]) for w in waters],
                         crs=4326).to_crs(3005)
 
-    aliases = aliases or {}
     by_identifier = by_identifier or {}
     out: list[StockMatch] = []
     for w, pt in zip(waters, pts):
         wid = w["waterbody_id"]
 
-        override = aliases.get(wid)
-        if override:
-            out.append(StockMatch(wid, w.get("name", ""),
-                                  override if override in graph.nodes else None,
-                                  "matched" if override in graph.nodes else "unresolved",
-                                  "override" if override in graph.nodes else None, None,
-                                  reason=None if override in graph.nodes
-                                         else f"override names {override!r}, not in graph"))
-            continue
 
         # TIER 1 — the exact key. FIDQ ships the FWA's own group code; use it.
         ident = (w.get("identifier") or "").strip()
@@ -175,16 +167,3 @@ def match_waterbodies(waters: list[dict], geoms: dict, graph, *,
     return sorted(out, key=lambda m: m.waterbody_id)
 
 
-def load_aliases(path: Path | None = None) -> dict[str, str]:
-    """Waterbody id -> the FWA name to look for instead of FIDQ's.
-
-    Read only here, and never written back into `pipeline/name_variants.json` — see the
-    gauge matcher for what that cost in v1.
-    """
-    import json
-
-    path = path or Path(__file__).parent / "aliases.json"
-    if not path.exists():
-        return {}
-    return {k: v for k, v in json.loads(path.read_text(encoding="utf-8")).items()
-            if not k.startswith("$")}

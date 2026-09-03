@@ -7,11 +7,14 @@ fish where there are none. Every test here is that question asked a different wa
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from shapely.geometry import Point
 
 from pipeline.common.models.enums import NodeKind
 from pipeline.common.models.graph import StreamGraph, StreamNode
+from pipeline.stocking.generate import match as match_mod
 from pipeline.stocking.generate.match import RADIUS_M, StockMatch, match_waterbodies
 
 pytest.importorskip("geopandas")
@@ -91,14 +94,16 @@ class TestMatching:
         [m] = match_waterbodies([_water("W1", "Dragon Lake", -120.100, 49.900)], geoms, g)
         assert m.status == "matched"
 
-    def test_an_override_binds_to_a_node_not_to_a_name(self):
-        # Same discipline as the gauge overrides: a name-keyed override is a second guess
-        # at the same ambiguous question, and follows the wrong water on a rename.
-        g, geoms = _world({"Blakeny Creek": (-120.10, 49.90)})
-        [m] = match_waterbodies([_water("W1", "Cedar Creek", -120.10, 49.90)], geoms, g,
-                                aliases={"W1": "lake:Blakeny Creek"})
-        assert (m.status, m.resolved_by) == ("matched", "override")
-        assert m.node_id == "lake:Blakeny Creek"
+    def test_there_is_no_node_id_alias_mechanism(self):
+        # Removed with the gauges' one, for the same reason: it bound a waterbody id to a
+        # NODE ID, which is build output and moves whenever the sectionizer cuts
+        # differently. The curated review's `bind` names FWA keys instead, and those
+        # survive a re-sectioning — so a person's decision outlives the build it was made
+        # against. Two mechanisms answering one question is how the loser goes quiet.
+        from pipeline.stocking.generate import match as _m
+
+        assert not hasattr(_m, "load_aliases")
+        assert not (Path(_m.__file__).parent / "aliases.json").exists()
 
 
 class TestIdentifierFirst:
@@ -167,16 +172,18 @@ class TestEveryInputIsAccountedFor:
         assert [m.waterbody_id for m in out] == ["W1", "W9"]
 
 
-def test_the_alias_file_is_never_the_shared_name_variants_file():
-    # v1's bathymetry matching "fixed" bad matches by editing shared name variants, which
-    # corrupted display names elsewhere. No matcher may write into that file.
-    from pathlib import Path
+def test_the_matcher_never_writes_to_the_shared_name_variants_file():
+    """A matcher may READ the names, never add to them.
 
-    import pipeline.stocking.generate.match as m
-
-    src = Path(m.__file__).read_text(encoding="utf-8")
-    assert "name_variants.json`" in src          # mentioned only in the warning
-    assert src.count("name_variants") == 1
+    `name_variants.json` decides what waters are CALLED, and letting a matcher edit it is
+    what corrupted v1's display names — a stocking name would silently relabel a gazetted
+    lake. The direction of the dependency is the guarantee: the matcher consumes shared
+    names and produces matches, and nothing flows back.
+    """
+    src = Path(match_mod.__file__).read_text(encoding="utf-8")
+    assert "name_variants" not in src.replace("name_variants.json`", ""), (
+        "the stocking matcher references name_variants — it must only ever read the "
+        "graph's names, never the curated file")
 
 
 class TestIdentifierIndex:

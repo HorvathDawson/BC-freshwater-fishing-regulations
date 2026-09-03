@@ -818,8 +818,26 @@ def main() -> None:
         n = export_lake_io(graph, geoms, gpkg_path)
         print(f"  lake inlet/outlet edges: {n} -> 'lake_io' layer")
 
-    timings.append(("TOTAL", _clock() - _t0))
-    timing_str = "timings:\n" + "\n".join(f"  {label:32} {secs:8.1f}s" for label, secs in timings)
+    _total = _clock() - _t0
+    timings.append(("TOTAL", _total))
+    # PROFILE, not just a log. Sorted by cost with a share column, because "which stage
+    # would repay optimising" is the question this is read for, and a chronological list of
+    # 30 numbers does not answer it. Anything under 1% is rolled up: a build has a long
+    # tail of sub-second stages and listing them buries the four that matter.
+    _ranked = sorted((t for t in timings if t[0] != "TOTAL"), key=lambda kv: -kv[1])
+    _small = [t for t in _ranked if t[1] / _total < 0.01]
+    _big = [t for t in _ranked if t[1] / _total >= 0.01]
+    _bar = lambda f: "#" * max(1, round(f * 40))
+    timing_str = (
+        "timings, by cost:\n"
+        + "\n".join(f"  {label:32} {secs:8.1f}s  {secs/_total:5.1%}  {_bar(secs/_total)}"
+                    for label, secs in _big)
+        + (f"\n  {'(' + str(len(_small)) + ' stages under 1%)':32} "
+           f"{sum(t[1] for t in _small):8.1f}s  {sum(t[1] for t in _small)/_total:5.1%}"
+           if _small else "")
+        + f"\n  {'TOTAL':32} {_total:8.1f}s  ({_total/60:.1f} min)"
+        + "\n\nchronological:\n"
+        + "\n".join(f"  {label:32} {secs:8.1f}s" for label, secs in timings))
 
     summary = summarize(chains, graph, fids, pruned_fids) + "\n\n" + timing_str
     (out / "summary.txt").write_text(summary)

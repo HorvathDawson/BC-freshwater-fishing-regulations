@@ -1,1 +1,0 @@
-{"$comment": "FIDQ waterbody id -> the FWA name to look for, when FIDQ names a lake differently from the atlas. EXCEPTIONS ONLY, like pipeline/gauges/aliases.json: the complete record is the match output, not this file. Values must be READ OFF the atlas, never guessed from the FIDQ name. Never written back into pipeline/name_variants.json."}
