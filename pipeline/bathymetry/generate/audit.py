@@ -32,6 +32,7 @@ from pathlib import Path
 
 from pipeline.deliver.tiles.names import normalise
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import generated
 
 CSV_PATH = SOURCE / "wsa_bathymetry_maps.csv"
 WFS_PATH = SOURCE / "bc_bathymetry_sheets.json"
@@ -162,7 +163,7 @@ def main() -> None:
     print(f"\n  sheet name disagrees with the FWA: {len(dis)}")
     for d in dis[:8]:
         print(f"    {d['identifier']}  sheet={d['sheet']}  fwa={d['fwa']}")
-    out = Path("pipeline/stocking/bathymetry_audit.json")
+    out = generated("bathymetry", "audit.json")
     out.write_text(json.dumps(r, indent=1, sort_keys=True, default=list), encoding="utf-8")
     print(f"\n  wrote {out}")
 

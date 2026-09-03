@@ -23,6 +23,7 @@ from pathlib import Path
 from pipeline.deliver.tiles import ladder
 from pipeline.deliver.tiles.layers import BY_NAME, LayerSpec
 from pipeline.deliver.tiles.names import display, haystack
+from pipeline.common.registry_kinds import waters
 
 _ROUND = 6                      # ~11 cm; tippecanoe quantises to the tile grid anyway
 
@@ -222,7 +223,12 @@ def _kind(node) -> str:
 
 def _identity(build_dir: Path) -> tuple[dict, dict]:
     """{section -> item_id} and {section -> every registry name it answers to}."""
-    reg = json.loads((build_dir / "registry.json").read_text())["items"]
+    # WATERS ONLY. An `area:` item's `section_ids` are the sections INSIDE the polygon, not
+    # the sections that ARE it — and areas outnumber waters twelve to one and sort first, so
+    # `setdefault` gave every feature inside a park the park's id and its slug as a search
+    # name. See pipeline/common/registry_kinds. Areas reach the tile as the `areas`
+    # attribute of each feature, which is the right place for containment.
+    reg = waters(json.loads((build_dir / "registry.json").read_text())["items"])
     item_of: dict[str, str] = {}
     variants: dict[str, set[str]] = defaultdict(set)
     for it in reg:

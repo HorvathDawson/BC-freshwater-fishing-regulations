@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pipeline.common.curated import REPO_ROOT
+from pipeline.common.registry_kinds import is_water
 
 HERE = Path(__file__).parent
 _ROOT = REPO_ROOT
@@ -92,19 +93,6 @@ def _report(what: str, lost: list[str], live: set[str]) -> None:
         print(f"       … and {rest:,} more (all in the run log)")
 
 
-def _is_water(item: dict) -> bool:
-    """Is this a water a person could search for, or administrative geography?
-
-    The registry holds both. An `area:` item is a park, a reserve or a closure polygon —
-    real, and already on the TILE as the `areas` attribute of every feature inside it.
-    Carrying its membership in the bundle as well put 778,411 of 838,228 item_section rows
-    there (93%) and took the artifact from 10 MB to 140 MB, against a budget of about ten.
-    Its name is a slug (`area:indigenous_land:lukesstsissum_9`), so it is not something
-    anyone types either.
-
-    One fact, one place: geography on the tile, regulations in the bundle.
-    """
-    return not item["id"].startswith("area:")
 
 
 def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
@@ -114,7 +102,7 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     sections is it". It is also the whole search index: 20,609 distinct strings, which is
     ~90 KB gzipped — small enough that no server-side search is needed anywhere.
     """
-    items = [i for i in json.loads(registry.read_text())["items"] if _is_water(i)]
+    items = [i for i in json.loads(registry.read_text())["items"] if is_water(i)]
     db.executemany("INSERT OR REPLACE INTO item VALUES (?,?,?)",
                    ((i["id"], i["name"], i.get("kind")) for i in items))
     cov.filled("item", len(items))
@@ -230,7 +218,7 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
     # candidates, so the km it reports was measured to whatever was left over.
     owner: dict[str, tuple[str, str]] = {}
     for i in items:
-        if not i.get("name") or not _is_water(i):
+        if not i.get("name") or not is_water(i):
             continue
         for sec in i.get("section_ids", []):
             owner.setdefault(sec, (i["id"], i["name"]))
@@ -341,7 +329,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     # an `area:` id that `_items` never inserted, so the app looked them up and found nothing.
     owner: dict[str, str] = {}
     for i in json.loads((build_dir / "registry.json").read_text())["items"]:
-        if not _is_water(i):
+        if not is_water(i):
             continue
         for sec in i.get("section_ids", []):
             owner.setdefault(sec, i["id"])

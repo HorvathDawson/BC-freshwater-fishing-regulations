@@ -52,6 +52,7 @@ from pathlib import Path
 
 from pipeline.deliver.tiles.names import normalise
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import generated
 
 GPKG = SOURCE / "bc_fisheries_data.gpkg"
 GRAPH = Path("output/v2/full/graph.pkl")
@@ -200,7 +201,7 @@ def main() -> None:
         for c in r["conflicts"][:10]:
             print(f"    {c['identifier']}  {c['name']:<26} "
                   f"name would agree: {c['name_would_agree']}")
-    out = Path("pipeline/gauges/../stocking/identifier_audit.json").resolve()
+    out = generated("stocking", "identifier_audit.json")
     out.write_text(json.dumps(r, indent=1, sort_keys=True), encoding="utf-8")
     print(f"\n  wrote {out}")
 

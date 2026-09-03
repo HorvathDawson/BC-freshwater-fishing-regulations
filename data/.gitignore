@@ -16,3 +16,13 @@ source/*.pmtiles
 # Generated: candidates awaiting promotion, cleaned municipal layers. Regenerable by
 # definition — the promoted answers live in ../curated/.
 generated/
+
+# TWO EXCEPTIONS, and they are temporary. These predate their matchers being wired, so they
+# CANNOT currently be regenerated — and between them they hold 2,265 bathymetry identifiers
+# already resolved to lakes, 2,122 of them name-verified. Losing them would mean re-deriving
+# work nobody has the tooling to re-derive yet.
+#
+# When pipeline/bathymetry/generate/match.py and pipeline/stocking/generate/match.py land,
+# these become ordinary regenerable candidates and these two lines come out.
+!generated/bathymetry/audit.json
+!generated/stocking/identifier_audit.json
