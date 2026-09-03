@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import REPO_ROOT
 
 # ~200 m. This is a visual wash, not a legal boundary: the fjords do not need to be right,
 # and 2,308 vertices of coastline cost more than the effect is worth.
@@ -55,5 +56,5 @@ def build(boundary: Path, out: Path) -> Path:
 
 
 if __name__ == "__main__":
-    root = Path(__file__).resolve().parents[2]
+    root = REPO_ROOT
     build(SOURCE / "bc_boundary.geojson", SOURCE / "bc_outside.geojson")

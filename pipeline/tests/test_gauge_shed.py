@@ -7,6 +7,8 @@ disappointment; a confident wrong discharge is how someone wades into a river.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from pipeline.gauges.generate.match import waterbody_name
@@ -350,12 +352,27 @@ class TestMatchProvenance:
             Decision(verdict="bind", note="onto what?")
         assert Decision(verdict="bind", wsc=("100-1",)).keys == ("100-1",)
 
-    def test_the_override_file_is_empty_and_should_stay_that_way(self):
-        # It once held seven entries. Every one was a name the atlas already carried in
-        # `name_tuples`; teaching the matcher to read them removed the need for all seven.
-        # A line appearing here again is a signal to look for that fix first.
-        from pipeline.gauges.generate.match import load_aliases
-        assert load_aliases() == {}
+    def test_a_binding_names_fwa_keys_never_a_node_id(self):
+        # The rule the alias file broke. A node id is build output; an FWA key is not, so a
+        # human's decision has to be recorded in keys or it expires with the next build.
+        from pipeline.gauges.review import Decision
+
+        d = Decision(verdict="bind", wsc=("100-064535",), note="the outlet stream")
+        assert d.keys == ("100-064535",)
+        assert not any(":" in k for k in d.keys), "an FWA key, not a {blk}:{measure} node id"
+
+    def test_there_is_no_node_id_alias_mechanism_any_more(self):
+        # It bound a station to a NODE ID, which is build output: `{blk}:{down_m}` moves the
+        # moment the sectionizer cuts differently, so an alias was stale by construction. It
+        # had also already emptied itself — all seven entries were names the atlas carried
+        # once the matcher read every name a node answers to.
+        #
+        # `bind` in the curated review replaces it and names FWA keys instead, which survive
+        # a re-sectioning. Two mechanisms answering one question is how the loser goes quiet.
+        from pipeline.gauges.generate import match as _m
+
+        assert not hasattr(_m, "load_aliases")
+        assert not (Path(_m.__file__).parent / "aliases.json").exists()
 
     def test_the_matcher_reads_every_name_a_node_answers_to(self):
         # The bug that produced the alias file: a node displayed as "Lower Arrow Lake"
@@ -374,13 +391,6 @@ class TestMatchProvenance:
         assert got[0] == "lower arrow lake"          # display name leads
         assert len(got) == len(set(got))             # deduped
 
-    def test_an_override_binds_to_a_node_never_to_a_name(self):
-        # A name-keyed override is a second guess at the same ambiguous question: it breaks
-        # when two waters share the string and silently follows the wrong one on a rename.
-        from pathlib import Path
-        import pipeline.gauges.generate.match as m
-        src = Path(m.__file__).read_text(encoding="utf-8")
-        assert "override in graph.nodes" in src
 
     def test_a_wrong_match_is_a_gap_to_close_not_a_permanent_absence(self):
         # THE TWO REFUSALS ARE DIFFERENT CLAIMS. `wrong` says the match is bad and the right
@@ -397,13 +407,6 @@ class TestMatchProvenance:
         # And they are NOT declared absent.
         assert all(d.verdict != "none" for d in todo)
 
-    def test_no_station_is_both_curated_and_aliased(self):
-        # An alias binds a station to a node id; the review binds it to FWA keys. A station
-        # in both is two mechanisms answering the same question, and the loser is silent.
-        from pipeline.gauges.generate.match import load_aliases
-        from pipeline.gauges.review import load
-
-        assert not (set(load_aliases()) & set(load().stations))
     def test_the_alias_file_is_never_the_shared_name_variants_file(self):
         # v1 corrupted display names by letting a matcher write into the variants file that
         # decides what waters are CALLED. This file is read here and nowhere else.

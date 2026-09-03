@@ -50,6 +50,12 @@ from pydantic import BaseModel, ConfigDict, DirectoryPath, FilePath, field_valid
 #: everywhere else, so it gets an assertion rather than a comment.
 ROOT = Path(__file__).resolve().parents[2]
 assert (ROOT / "config.yaml").is_file(), f"repo root wrong: no config.yaml under {ROOT}"
+
+#: THE repo root, for the handful of modules that legitimately need one. Import this instead
+#: of counting `parents[N]` yourself: the count depends on how deep the module sits, so it
+#: silently becomes wrong the moment a package moves — which is exactly what happened to
+#: bundle/, tiles/ and parsing/ when they were grouped, and none of them raised.
+REPO_ROOT = ROOT
 CONFIG = ROOT / "config.yaml"
 
 

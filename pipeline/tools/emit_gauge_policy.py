@@ -36,8 +36,9 @@ import sys
 from pathlib import Path
 
 from pipeline.gauges.consume.shed import TRUST_BANDS
+from pipeline.common.curated import REPO_ROOT
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = REPO_ROOT
 OUT = ROOT / "app" / "packages" / "core" / "src" / "gauge-policy.generated.ts"
 
 #: The same constant as JSON, for the build tools. `app/tools/build-fixture.mjs` is a plain

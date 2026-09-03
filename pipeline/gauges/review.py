@@ -53,8 +53,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import REPO_ROOT
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = REPO_ROOT
 REVIEW_FILE = CURATED.gauges.review
 
 Verdict = Literal["confirmed", "bind", "wrong", "none"]

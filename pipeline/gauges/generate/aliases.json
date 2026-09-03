@@ -1,5 +1,0 @@
-{
-  "$comment": "Station id -> NODE ID. The last resort, for stations nothing else can resolve. Binds to the water itself, never to a name: a name-keyed override is a second guess at the same ambiguous question, breaks when two waters share the string, and silently follows the wrong one when the FWA renames something.",
-  "$empty": "Deliberately empty. This file once held seven entries — Arrow, Revelstoke, Duncan, Nechako, Blakeny, Blackwater — every one of which was a name the atlas already carried in name_tuples. Teaching the matcher to read every name a node answers to, instead of only its display name, removed the need for all of them. Prefer that fix again before adding a line here.",
-  "$never": "Never written back into pipeline/name_variants.json."
-}

@@ -27,6 +27,15 @@ WHAT COMES OUT
     without a record of which rows leaned on which mechanism there is no way to tell a
     match that is holding from one that is about to break.
 
+    THERE IS NO ALIAS FILE ANY MORE. It mapped a station id straight to a NODE ID, and a
+    node id is build output — `{blk}:{down_m}` moves the moment the sectionizer cuts
+    differently, which the gauge cuts do on the very next build. So an alias was stale by
+    construction, and it had already emptied itself: all seven entries turned out to be
+    names the atlas carried in `name_tuples` once the matcher read every name a node
+    answers to. What replaced it is `bind` in the curated review, which names FWA keys —
+    `wsc`/`wbk` survive a re-sectioning, so a human's decision outlives the build it was
+    made against. See `pipeline/gauges/review.py`.
+
     Three statuses, and the third is the point. ``matched`` resolved. ``unresolved`` has not
     yet — a gap to close. ``no_match`` was CHECKED and genuinely has nothing: Comox Harbour
     is tidal, and no amount of alias work will find it a freshwater node. Collapsing those
@@ -226,15 +235,9 @@ def _matched(station: str, node, node_id: str, how: str, distance: float | None,
 
 
 def match_stations(stations: list[dict], geoms: dict, graph, *,
-                   radius_m: float = RADIUS_M,
-                   aliases: dict[str, str] | None = None) -> list[StationMatch]:
+                   radius_m: float = RADIUS_M) -> list[StationMatch]:
     """Match each station to the node it sits on, recording how.
 
-    ``aliases`` is the LAST RESORT and maps a station id straight to a ``node_id``. It binds
-    to the water itself, not to a name: a name-keyed override is a second guess at the same
-    ambiguous question, and would break the moment two waters shared the string or the FWA
-    renamed one. A station resolving through it is marked ``resolved_by="override"`` so the
-    dependence stays visible.
 
     ``geoms`` is the ``geometries.pkl`` sidecar (node_id -> shapely geometry, EPSG:3005).
 
@@ -257,7 +260,6 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
         [Point(s["lon"], s["lat"]) for s in stations], crs=4326
     ).to_crs(3005)
 
-    aliases = aliases or {}
     reviewed = _review.load().stations
     out: list[StationMatch] = []
     for station, pt in zip(stations, pts):
@@ -290,15 +292,6 @@ def match_stations(stations: list[dict], geoms: dict, graph, *,
                 name=decided.station_name,
                 also=tuple(decided.keys[1:]),
             ))
-            continue
-        override = aliases.get(sid)
-        if override:
-            if override in graph.nodes:
-                out.append(_matched(sid, graph.nodes[override], override, "override",
-                                    None, station.get("lon"), station.get("lat")))
-            else:
-                out.append(StationMatch(sid, "unresolved", None, None,
-                                        f"override names {override!r}, not in this graph"))
             continue
         want = waterbody_name(station.get("name", ""))
         if not want:
@@ -495,26 +488,6 @@ def nodes_for(matches: list[StationMatch], graph, geoms: dict,
     return out
 
 
-def load_aliases(path: Path | None = None) -> dict[str, str]:
-    """Station id -> a NODE ID, for the handful nothing else can resolve.
-
-    Binds to the water, never to a name. A name-keyed override is a second guess at the
-    same ambiguous question — it breaks when two waters share the string, and it silently
-    follows the wrong one when the FWA renames something.
-
-    Expected to stay near-empty. It emptied entirely once the matcher started reading every
-    name a node carries rather than only its display name: all seven entries it once held
-    turned out to be names the atlas already knew.
-
-    Read only here, and never written back into `pipeline/name_variants.json` — that file
-    decides what waters are CALLED, and letting a matcher edit it is what corrupted v1's
-    display names.
-    """
-    path = path or Path(__file__).parent / "aliases.json"
-    if not path.exists():
-        return {}
-    return {k: v for k, v in json.loads(path.read_text(encoding="utf-8")).items()
-            if not k.startswith("$")}
 
 
 
@@ -558,8 +531,7 @@ def main() -> None:
     with (a.build / "geometries.pkl").open("rb") as fh:
         geoms = pickle.load(fh)
 
-    matches = match_stations(load_stations(a.stations), geoms, graph,
-                             aliases=load_aliases())
+    matches = match_stations(load_stations(a.stations), geoms, graph)
     print(summarise(matches))
     write_match(matches, a.out)
     riv = sum(1 for m in matches if m.status == "matched" and m.wsc and not m.wbk)

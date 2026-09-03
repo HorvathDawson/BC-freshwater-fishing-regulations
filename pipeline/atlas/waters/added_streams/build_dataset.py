@@ -32,6 +32,7 @@ from pipeline.atlas.waters.added_streams.validate import validate_propagation
 from pipeline.atlas.waters.added_streams.wsc import mint_wsc
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.models import BlkChain
+from pipeline.common.curated import CURATED
 
 _TO_ALBERS = Transformer.from_crs("EPSG:4326", "EPSG:3005", always_xy=True)
 _CONNECT_TOL = 80.0        # a novel mouth must be within this of its receiver / the tidal boundary
@@ -1490,7 +1491,7 @@ def build(sources: list[str], gpkg: str, pad: float = 3000.0, out_dir: Optional[
     report = {"counts": counts, "minted": minted, "unresolved": unresolved,
               "fwa_exclude": exclude, "name_variants": name_variants,
               "nonlinear_blks": nonlinear, "name_conflicts": name_conflicts, "diagnostics": []}
-    out_dir = out_dir or Path(__file__).resolve().parents[2]   # pipeline/ (sibling of splits.json)
+    out_dir = out_dir or CURATED.waters.added_streams.parent   # data/curated/waters/
     out = write(all_streams, all_candidates, report, out_dir)
     print(f"  sources={sources}  {counts}  minted={minted}  streams={len(all_streams)}  -> {out}")
     return out

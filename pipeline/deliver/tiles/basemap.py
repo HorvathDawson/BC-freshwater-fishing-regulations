@@ -110,7 +110,22 @@ def _run(cmd: list[str]) -> None:
 
 
 if __name__ == "__main__":
-    root = Path(__file__).resolve().parents[2]
+    # DELIBERATELY ITS OWN ENTRY POINT, and nothing else calls it.
+    #
+    # This is the OSM half: take Protomaps' 4.36 GB planet extract, clip it to BC and drop
+    # the layers we do not draw. It depends on `data/source/bc.pmtiles` and on NOTHING this
+    # pipeline builds — no graph, no registry, no atlas — so it must never be a step of
+    # `python -m pipeline.deliver.tiles`, which is the ATLAS build and runs on every
+    # geometry change. The basemap changes when Protomaps publishes, which is rarely.
+    #
+    #     python -m pipeline.deliver.tiles.basemap   the OSM ground: clip + reduce
+    #     python -m pipeline.deliver.tiles           the atlas: our water, from a build
+    #
+    # `parents[3]`, not [2]: this module sits at pipeline/deliver/tiles/, and the move that
+    # added `deliver/` silently repointed the output at pipeline/output/. Asserted rather
+    # than trusted, for the same reason `common/curated.py` asserts its root.
+    root = Path(__file__).resolve().parents[3]
+    assert (root / "config.yaml").is_file(), f"repo root wrong: no config.yaml under {root}"
     build(SOURCE / "bc.pmtiles",
           root / "output" / "tiles" / "basemap.pmtiles",
           SOURCE / "bc_boundary.geojson")

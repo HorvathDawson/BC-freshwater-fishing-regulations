@@ -6,8 +6,9 @@ import argparse
 from pathlib import Path
 
 from pipeline.deliver.bundle.build import build
+from pipeline.common.curated import REPO_ROOT
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = REPO_ROOT
 
 ap = argparse.ArgumentParser(prog="pipeline.deliver.bundle", description=__doc__)
 ap.add_argument("--build", type=Path, default=ROOT / "output" / "v2" / "full",

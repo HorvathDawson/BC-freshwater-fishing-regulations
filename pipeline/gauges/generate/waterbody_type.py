@@ -45,8 +45,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import REPO_ROOT
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = REPO_ROOT
 
 #: The roster this enriches. Kept SEPARATE from `bc_hydrometric_stations.json` rather than
 #: merged into it: that file is what `data/fetch_data.py` writes, and a second writer would

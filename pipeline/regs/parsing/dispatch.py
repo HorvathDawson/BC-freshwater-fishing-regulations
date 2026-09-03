@@ -27,6 +27,7 @@ from pathlib import Path
 
 from pipeline.regs.parsing import io
 from pipeline.regs.parsing import io as _io
+from pipeline.common.curated import REPO_ROOT
 
 
 class CreditExhausted(RuntimeError):
@@ -253,7 +254,7 @@ def main() -> None:
         work = default_work_dir()
     batches_dir, responses_dir, reviews_dir = work / "batches", work / "responses", work / "reviews"
     manifest = json.loads((work / "manifest.json").read_text(encoding="utf-8"))
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = REPO_ROOT
 
     cli_flags = _cli_flags(args.model, args.permission_mode, args.allowed_tools,
                            args.dangerously_skip_permissions)

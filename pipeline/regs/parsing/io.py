@@ -22,8 +22,9 @@ from typing import Iterable
 
 from pipeline.regs.parsing.entry_models import Entry, EntryFile
 from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import REPO_ROOT
 
-_ROOT = Path(__file__).resolve().parents[2]
+_ROOT = REPO_ROOT
 
 
 # --------------------------------------------------------------------------- #

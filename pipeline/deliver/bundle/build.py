@@ -27,8 +27,10 @@ import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pipeline.common.curated import REPO_ROOT
+
 HERE = Path(__file__).parent
-_ROOT = HERE.parents[1]
+_ROOT = REPO_ROOT
 SCHEMA = HERE / "schema.sql"
 INDEXES = HERE / "indexes.sql"
 
