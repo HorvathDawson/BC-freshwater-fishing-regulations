@@ -90,7 +90,11 @@ jobs:
             [ "$n" -eq 0 ] || { hits "$2" "${3:-^$}" | sed 's/^/      /'; fail=1; }
           }
           check "quoted pipeline/*.json as a value" '[=(,]\s*"pipeline/[a-z_]+\.json"'
-          check "parents[N] / a curated file"       'parents\[[0-9]\]\s*/\s*"(splits|name_variants|gauge_match|gauge_review|added_streams|added_lakes|areas|ungazetted)'
+          # `.parent /` as well as `parents[N] /`. The build found this hole the hard way:
+          # `_DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"` survived the
+          # migration, and the first full build after it stopped dead — correctly, because
+          # the missing-splits guard fired, but the gate should have caught it first.
+          check "a __file__-relative curated file"  '(parents\[[0-9]\]|\.parent)\s*/\s*"(splits|name_variants|gauge_match|gauge_review|added_streams|added_lakes|areas|ungazetted)'
           check "quoted data/<file> as a value"     '[=(,]\s*"data/[a-z_]+\.(json|sqlite3|geojson|gpkg|csv|pmtiles)"'
           check "ROOT / \"data\" / a bare file"      '/\s*"data"\s*/\s*"[a-z]' '"(source|curated|generated)"|project_config\.py'
           check "/ \"entries\" outside a tmp fixture" '(_ROOT|__file__|parents\[[0-9]\])[^\n]*/ "entries"'

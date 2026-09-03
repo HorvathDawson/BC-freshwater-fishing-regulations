@@ -241,7 +241,7 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
 
 _ADDED_STREAMS_JSON = CURATED.waters.added_streams
 _ADDED_LAKES_GEOJSON = CURATED.waters.added_lakes
-_DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"
+_DEFAULT_SPLITS = CURATED.waters.splits
 
 
 def _apply_fwa_exclude(fids: list, prefixes: list[str]) -> tuple[list, int]:
@@ -424,7 +424,7 @@ def main() -> None:
     # a section boundary). The other 3,656 name a whole blk, waterbody, gnis or watershed code and can
     # be applied the moment the graph exists. So the pass is split in two, and `protected_blks` goes.
     from pipeline.atlas.graph.names import apply_name_variants, load_name_variants
-    _nv_path = args.name_variants or (Path(__file__).resolve().parent / "name_variants.json")
+    _nv_path = args.name_variants or CURATED.waters.name_variants
     _nv_all = load_name_variants(_nv_path) + _added_name_variant_entries(add_nv)
     _nv_reach = [e for e in _nv_all if e.get("reach") or (e.get("target") or {}).get("reach")]
     _nv_now = [e for e in _nv_all if e not in _nv_reach]
