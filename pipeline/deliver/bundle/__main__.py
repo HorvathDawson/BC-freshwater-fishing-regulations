@@ -16,4 +16,6 @@ ap.add_argument("--build", type=Path, default=ROOT / "output" / "v2" / "full",
 ap.add_argument("--out", type=Path, default=ROOT / "output" / "bundle" / "bundle.sqlite")
 a = ap.parse_args()
 print(f"bundling {a.build} -> {a.out}")
-build(a.build, a.out, data_dir=ROOT / "data")
+# No data_dir: it comes from config. Passing `ROOT / "data"` here is what made the
+# fetched-source move invisible — build() had the right default and this overrode it.
+build(a.build, a.out)

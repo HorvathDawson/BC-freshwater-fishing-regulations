@@ -208,9 +208,26 @@ class _Lazy:
     def __repr__(self) -> str:
         return f"<lazy {self._loader.__name__} {CONFIG}>"
 
+    # --- so a lazy DIRECTORY behaves like the Path it stands for -----------------------
+    #
+    # `SOURCE` is meant to be usable anywhere a Path is. Without these, `str(SOURCE)` gives
+    # the repr above and `Path(str(SOURCE))` silently becomes a relative path named
+    # "<lazy ...>" — which is how the bundler ended up looking for its roster in a directory
+    # that could never exist, and reporting success with five tables missing.
+
+    def _dir(self):
+        got = self._loader()
+        return got.source if hasattr(got, "source") else got
+
     def __truediv__(self, other):
         """So `SOURCE / "roster.json"` reads naturally where SOURCE is a directory."""
-        return self._loader().source / other
+        return self._dir() / other
+
+    def __fspath__(self) -> str:
+        return str(self._dir())
+
+    def __str__(self) -> str:
+        return str(self._dir())
 
 
 #: The curated tree. Import this, not the loader.

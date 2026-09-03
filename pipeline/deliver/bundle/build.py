@@ -27,7 +27,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pipeline.common.curated import REPO_ROOT
+from pipeline.common.curated import REPO_ROOT, SOURCE
 from pipeline.common.registry_kinds import is_water
 
 HERE = Path(__file__).parent
@@ -418,17 +418,33 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     """Write the bundle. Returns the path written.
 
-    ``data_dir`` is the REPO's `data/`, not anything derived from the build directory. It
-    used to default to `build_dir.parents[1] / "data"`, which for the standard build
-    `output/v2/full` resolves to `output/data` — a directory that has never existed. A caller
-    that omitted the argument therefore skipped `gauge`, `section_gauge`, `section_down`,
-    `place` and `place_water` and still reported success, which is doc 16's `--splits`
-    incident in a second place. It raises now.
+    ``data_dir`` is where FETCHED source lives, and it comes from config — not from anything
+    derived from the build directory, and not from a literal.
+
+    THIS HAS NOW BEEN WRONG TWICE, in opposite directions, and both times it was silent:
+
+      · it defaulted to `build_dir.parents[1] / "data"`, which for `output/v2/full` resolves
+        to `output/data` — a directory that has never existed;
+      · then to a literal `<repo>/data`, which was right until the fetched files moved into
+        `data/source/` and stopped being found.
+
+    Both produced a bundle missing `gauge`, `section_gauge`, `section_down`, `place` and
+    `place_water` — and a cheerful success message. That is the `--splits` incident twice
+    over, so the path comes from `SOURCE` and a missing file is now a hard error rather than
+    a skipped table.
     """
-    data_dir = Path(data_dir) if data_dir else _ROOT / "data"
+    data_dir = Path(data_dir) if data_dir else Path(SOURCE)
     if not data_dir.is_dir():
         raise FileNotFoundError(
-            f"data dir not found: {data_dir} — pass data_dir=<repo>/data")
+            f"source data not found: {data_dir} — check `data_tree.source` in config.yaml")
+    _need = ["bc_hydrometric_stations.json", "bc_places.json"]
+    _missing = [n for n in _need if not (data_dir / n).exists()]
+    if _missing:
+        raise FileNotFoundError(
+            f"{data_dir} is missing {', '.join(_missing)}.\n"
+            "  A bundle without these silently loses gauge, section_gauge, section_down, "
+            "place and place_water\n"
+            "  and still reports success. Fetch them: python data/fetch_data.py")
     cov = Coverage()
     db = _connect(out)
 
