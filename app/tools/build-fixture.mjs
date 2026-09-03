@@ -119,7 +119,7 @@ counts.rule_section = insert("INSERT INTO rule_section VALUES (?,?,?,?)",
 // the band by position so the ordering has something to order. Deterministic, and it never
 // contradicts the band the design actually recorded.
 const NOMINAL_GAUGE_MAG = 1000;
-// The floors come from @app/core, which generates them from pipeline/hydro/shed.py. There
+// The floors come from @app/core, which generates them from pipeline/gauges/consume/shed.py. There
 // used to be a literal here — a THIRD copy of the trust vocabulary after the pipeline's and
 // the app's — and it carried a `none: 0` band that the pipeline has never written, which is
 // how 1,785 `trust = 'none'` rows got into the fixture bundle and into the assertions three
@@ -159,7 +159,7 @@ counts.gauge = insert("INSERT INTO gauge VALUES (?,?,?,?,?,?,?,?,?,?)",
 // One station per section, which is also what the production bundler emits: a second
 // gauge on the same reach drains more or less country than the first, so it is a worse
 // answer to the same question rather than a second opinion.
-// A REACH NO GAUGE REPRESENTS GETS NO ROW, exactly as `pipeline/hydro/shed.py` does it:
+// A REACH NO GAUGE REPRESENTS GETS NO ROW, exactly as `pipeline/gauges/consume/shed.py` does it:
 // `trust_for` returns None below the `weak` floor and the bundler writes nothing. Defaulting
 // to a "none" band here invented a fourth value, and because three test files asserted
 // against this file rather than against a real bundle, that invention looked like the

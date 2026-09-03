@@ -58,7 +58,7 @@ class AnchorType(str, Enum):
     area_boundary = "area_boundary"  # an admin/park polygon boundary; cut a named water + its WSC
                                 # descendants where they cross it, then flag INSIDE pieces (in_areas).
     gauge = "gauge"             # a hydrometric station's own position on the blue line it measures.
-                                # GENERATED, not authored — see pipeline/hydro/splits.py. A reach
+                                # GENERATED, not authored — see pipeline/gauges/consume/cuts.py. A reach
                                 # that runs past a gauge claims that gauge's reading for water the
                                 # gauge never saw; cutting there is what stops one number colouring
                                 # 300 km of the Fraser.

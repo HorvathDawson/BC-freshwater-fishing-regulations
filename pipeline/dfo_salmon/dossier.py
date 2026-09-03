@@ -22,10 +22,11 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from pipeline.curated import CURATED, SOURCE
 
-ENTRIES = Path(__file__).resolve().parent / "entries"
-SPLITS = Path(__file__).resolve().parents[1] / "splits.json"
-OVERRIDES = Path(__file__).resolve().parents[1] / "matching" / "overrides.json"
+ENTRIES = CURATED.regulations.entries.dfo_salmon
+SPLITS = CURATED.waters.splits
+OVERRIDES = CURATED.regulations.overrides
 
 
 def _regions() -> list[dict]:

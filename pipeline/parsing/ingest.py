@@ -20,6 +20,7 @@ from pathlib import Path
 from pipeline.parsing import io
 from pipeline.parsing.entry_models import Entry, EntryFile
 from pipeline.parsing.validate import load_batch_items, validate_candidate
+from pipeline.parsing import io as _io
 
 _load_all_batch_items = io.load_all_batch_items          # shared helper (io is the single home)
 
@@ -204,7 +205,7 @@ def main() -> None:
         from pipeline.parsing.batch_exporter import default_work_dir
         batches_dir = default_work_dir() / "batches"
     reviews_dir = Path(args.reviews_dir) if args.reviews_dir else (batches_dir.parent / "reviews")
-    entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
+    entries_dir = Path(args.entries_dir) if args.entries_dir else _io.entries_dir()
 
     if args.clear_reviews:
         print(f"Cleared parse_review on {clear_parse_review(entries_dir)} entr(ies).")

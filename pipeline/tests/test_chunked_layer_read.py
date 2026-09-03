@@ -21,8 +21,9 @@ import os
 import pytest
 
 from data.data_extractor import FWADataAccessor
+from pipeline.curated import CURATED, SOURCE
 
-_DATA = "data/bc_fisheries_data.gpkg"
+_DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
 
 

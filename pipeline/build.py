@@ -24,6 +24,7 @@ from pipeline.graph.graph import build_section_geometries, build_stream_graph
 from pipeline.graph.names import resolve_names
 from pipeline.io.serialize import write_artifact
 from pipeline.splits.splits import load_split_defs
+from pipeline.curated import CURATED, SOURCE
 
 _DEFAULT_GPKG = str(get_config().fwa_data_gpkg)
 
@@ -238,8 +239,8 @@ def summarize(chains, graph, fids, pruned_fids=None) -> str:
     return "\n".join(lines)
 
 
-_ADDED_STREAMS_JSON = Path(__file__).resolve().parent / "added_streams.build.json"
-_ADDED_LAKES_GEOJSON = Path(__file__).resolve().parent / "added_lakes.geojson"
+_ADDED_STREAMS_JSON = CURATED.waters.added_streams
+_ADDED_LAKES_GEOJSON = CURATED.waters.added_lakes
 _DEFAULT_SPLITS = Path(__file__).resolve().parent / "splits.json"
 
 
@@ -557,8 +558,8 @@ def main() -> None:
         #
         # They are `gauge` point anchors scoped by WSC, derived here from
         # `pipeline/gauge_match.json` — the one frozen record of where BC's gauges are,
-        # written by `python -m pipeline.hydro.match --build <a completed build>` and read
-        # by this and by `pipeline.bundle`. `pipeline/hydro/splits.py` draws the flow.
+        # written by `python -m pipeline.gauges.generate.match --build <a completed build>` and read
+        # by this and by `pipeline.bundle`. `pipeline/gauges/consume/cuts.py` draws the flow.
         #
         # AFTER the curated ones, and that order is load-bearing rather than tidy: proximity
         # pickup means a station near a hand-authored boundary REUSES it instead of cutting a
@@ -569,18 +570,43 @@ def main() -> None:
         # about braids and offsets and proximity, and one place a curator reviews every cut in
         # the province — splits.resolved.json and the gpkg both.
         if not args.no_gauge_splits:
-            from pipeline.hydro.match import read_match
-            from pipeline.hydro.shed import load_stations
-            from pipeline.hydro.splits import split_defs as _gauge_defs
+            # READ ONLY. `pipeline.gauges.matches` is the frozen record and its IO; the
+            # MATCHER lives in `gauges.generate` and is deliberately not importable from
+            # here — a build that could re-derive a match is a build that can silently
+            # change one, and 206 of these were confirmed by a person against a map.
+            from pipeline.gauges.matches import MATCH_FILE, read_match
+            from pipeline.gauges.consume.cuts import split_defs as _gauge_defs
+            from pipeline.gauges.consume.shed import load_stations
+            from pipeline.gauges.review import load as _load_review
             from pipeline.models.splits import SplitDef
             _matches = read_match()
-            if _matches:
-                _rows = _gauge_defs(_matches, load_stations(Path("data") /
-                                                            "bc_hydrometric_stations.json"))
-                splits = list(splits) + [SplitDef.from_dict(r) for r in _rows]
-                print(f"gauge cuts:     {len(_rows)} from gauge_match.json")
-            else:
-                print("gauge cuts:     none — run `python -m pipeline.hydro.match --build …`")
+            if not _matches:
+                # ABSENT IS LOUD, NOT A DEFAULT. A graph with no gauge boundaries looks
+                # perfectly healthy and is wrong everywhere it matters: every long river
+                # claims one station's reading for its whole length, because one section
+                # runs between Hope and Lillooet. This is the `--splits` incident exactly —
+                # an omission that produces a plausible result — so it stops the build.
+                raise SystemExit(
+                    f"no gauge matches at {MATCH_FILE}\n"
+                    "  generate them:  python -m pipeline.gauges.generate.match "
+                    "--build <a completed build>\n"
+                    "  or build without cutting rivers at their gauges: --no-gauge-splits\n"
+                    "  (a build without them is valid and wrong: a river of 20 sections "
+                    "with 18 stations on it\n"
+                    "   reports the reading at Hope for water at Lillooet)")
+            _rows = _gauge_defs(_matches, load_stations(
+                SOURCE / "bc_hydrometric_stations.json"))
+            splits = list(splits) + [SplitDef.from_dict(r) for r in _rows]
+            # THE TRUST MIX, not just the count. A build cutting at 1,864 unreviewed
+            # guesses is in a different state from one cutting at 206 human-confirmed
+            # matches, and the finished graph cannot tell you afterwards which it was.
+            _rev = _load_review().stations
+            _by = {}
+            for _r in _rows:
+                _d = _rev.get(_r["station"])
+                _by[_d.verdict if _d else "auto"] = _by.get(_d.verdict if _d else "auto", 0) + 1
+            _mix = ", ".join(f"{n} {k}" for k, n in sorted(_by.items(), key=lambda kv: -kv[1]))
+            print(f"gauge cuts:     {len(_rows)} offered from {MATCH_FILE.name}  ({_mix})")
     applied_splits: list = []
     if splits:
         from pipeline.splits.anchors import resolve_split_defs

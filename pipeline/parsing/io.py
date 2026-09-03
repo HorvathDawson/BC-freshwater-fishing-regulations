@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Iterable
 
 from pipeline.parsing.entry_models import Entry, EntryFile
+from pipeline.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
 
@@ -36,8 +37,13 @@ def default_work_dir() -> Path:
 
 
 def entries_dir() -> Path:
-    """The checked-in EntryFiles dir — the single source of truth for parsed entries."""
-    return Path(__file__).resolve().parent / "entries"
+    """The checked-in EntryFiles dir — the single source of truth for parsed entries.
+
+    THE ONE PLACE THIS IS RESOLVED. Four modules used to re-derive it as
+    `Path(__file__).parent / "entries"`, so the corpus had five definitions of where it
+    lived and moving it would have moved only one of them. They all call this now.
+    """
+    return CURATED.regulations.entries.synopsis
 
 
 def region_ids(dir_: Path | None = None) -> list[str]:

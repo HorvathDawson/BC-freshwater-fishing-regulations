@@ -1,2 +1,18 @@
-temp_bc_data/
+# Fetched data is REPRODUCIBLE — re-downloadable from the authority — so the big ones stay
+# out of git. Everything under source/ is a fetch away; everything under ../curated/ is not
+# and is tracked deliberately.
+#
+# These patterns used to be bare names (`temp_bc_data/`, `*.gpkg`) and did not survive the
+# move into source/: hydat.sqlite3 (1.2 GB) and 2,600 bathymetry PDFs were staged in one
+# `git add`. Anchored and explicit now.
+source/temp_bc_data/
+source/bathymetry_pdfs/
+source/hydat.sqlite3
+source/*.gpkg
+source/*.pmtiles
 *.gpkg
+*.pmtiles
+
+# Generated: candidates awaiting promotion, cleaned municipal layers. Regenerable by
+# definition — the promoted answers live in ../curated/.
+generated/

@@ -34,21 +34,22 @@ from pipeline.reach.build import build_reach as _build_reach, resolve_carve_outs
 from pipeline.reach.classify import wants_tributaries as _wants_tributaries
 from pipeline.reach import extent as _resolve
 from pipeline.utils.wsc import trim_wsc
+from pipeline.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-ENTRIES_DIR = _ROOT / "pipeline" / "parsing" / "entries"
+ENTRIES_DIR = CURATED.regulations.entries.synopsis
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it, shared with
 # rebuild.py (which writes this same directory) — see config.yaml `output.review_build`. Hard-coding
 # it here meant the app could serve a build months older than the pipeline and say nothing: every
 # reach still renders, just against a stale graph, so a reviewer signs off on the wrong water.
 _BUILD = get_config().review_build_dir
 REGISTRY_PATH = _BUILD / "registry.json"
-OVERRIDES_PATH = _ROOT / "pipeline" / "matching" / "overrides.json"
+OVERRIDES_PATH = CURATED.regulations.overrides
 SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
 GRAPH_GPKG_PATH = _BUILD / "graph.gpkg"
 GRAPH_PKL_PATH = _BUILD / "graph.pkl"
-BASEMAP_PMTILES = _ROOT / "data" / "bc.pmtiles"          # the webapp's basemap (web-mercator)
-SPLITS_JSON_PATH = _ROOT / "pipeline" / "splits.json"    # THE hand-curated split source (editable here)
+BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
+SPLITS_JSON_PATH = CURATED.waters.splits                 # THE hand-curated split source (editable here)
 ROW_IMAGES_DIR = _ROOT / "output" / "pipeline" / "extraction" / "row_images"  # source synopsis row crops
 
 

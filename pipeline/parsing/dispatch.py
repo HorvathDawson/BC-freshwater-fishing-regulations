@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pipeline.parsing import io
+from pipeline.parsing import io as _io
 
 
 class CreditExhausted(RuntimeError):
@@ -280,7 +281,7 @@ def main() -> None:
                 rev.unlink()
     else:
         entries_dir = Path(args.entries_dir) if args.entries_dir else \
-            (Path(__file__).resolve().parent / "entries")
+            _io.entries_dir()
         covered = set() if args.force else _covered_batch_ids(manifest, batches_dir, entries_dir)
         todo = [b for b in bids if b not in covered
                 and (args.force or not (responses_dir / f"batch_{b:03d}.json").exists())]

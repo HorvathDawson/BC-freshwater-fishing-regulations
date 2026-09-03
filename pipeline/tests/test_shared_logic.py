@@ -76,7 +76,7 @@ def test_the_trust_bands_agree_across_the_language_boundary():
     import re
     from pathlib import Path
 
-    from pipeline.hydro.shed import TRUST_BANDS
+    from pipeline.gauges.consume.shed import TRUST_BANDS
 
     core = Path(__file__).resolve().parents[2] / "app/packages/core/src"
     if not core.exists():                       # the pipeline may be checked out alone
@@ -87,7 +87,7 @@ def test_the_trust_bands_agree_across_the_language_boundary():
     flow = (core / "flow.ts").read_text(encoding="utf-8")
     assert "gauge-policy.generated" in flow, (
         "flow.ts no longer reads the generated policy — if the floors moved, they must "
-        "still come from pipeline/hydro/shed.py via emit_gauge_policy")
+        "still come from pipeline/gauges/consume/shed.py via emit_gauge_policy")
     assert "function gaugeTrust" not in flow, (
         "a second implementation of the trust rule is back in flow.ts. The app reads "
         "`section_gauge.trust`; it cannot band anything itself, because the drainage gate "

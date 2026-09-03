@@ -51,10 +51,11 @@ import pickle
 from pathlib import Path
 
 from pipeline.tiles.names import normalise
+from pipeline.curated import CURATED, SOURCE
 
-GPKG = Path("data/bc_fisheries_data.gpkg")
+GPKG = SOURCE / "bc_fisheries_data.gpkg"
 GRAPH = Path("output/v2/full/graph.pkl")
-BATHY = Path("data/wsa_bathymetry_maps.csv")
+BATHY = SOURCE / "wsa_bathymetry_maps.csv"
 
 CODE = "WATERBODY_KEY_GROUP_CODE_50K"
 WSC50 = "WATERSHED_CODE_50K"
@@ -199,7 +200,7 @@ def main() -> None:
         for c in r["conflicts"][:10]:
             print(f"    {c['identifier']}  {c['name']:<26} "
                   f"name would agree: {c['name_would_agree']}")
-    out = Path("pipeline/hydro/../stocking/identifier_audit.json").resolve()
+    out = Path("pipeline/gauges/../stocking/identifier_audit.json").resolve()
     out.write_text(json.dumps(r, indent=1, sort_keys=True), encoding="utf-8")
     print(f"\n  wrote {out}")
 

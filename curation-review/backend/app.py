@@ -203,5 +203,5 @@ def basemap():
     """Serve the webapp's PMTiles basemap (data/bc.pmtiles). FileResponse honours HTTP Range requests,
     which the pmtiles protocol needs to fetch byte ranges."""
     if not reuse.BASEMAP_PMTILES.exists():
-        raise HTTPException(404, "data/bc.pmtiles not found")
+        raise HTTPException(404, f"{reuse.BASEMAP_PMTILES} not found")
     return FileResponse(reuse.BASEMAP_PMTILES, media_type="application/octet-stream")

@@ -42,10 +42,11 @@ from pipeline.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.dfo_salmon.cascade import Scope, build_scopes, resolution_chain
 from pipeline.parsing.entry_models import Extent, Tributaries
 from pipeline.dfo_salmon.locations import Location, normalize
+from pipeline.curated import CURATED, SOURCE
 
 logger = logging.getLogger(__name__)
 
-ENTRIES_DIR = Path(__file__).parent / "entries"
+ENTRIES_DIR = CURATED.regulations.entries.dfo_salmon
 
 #: Fraction of a region's locations that may go unbound before the whole region is held.
 _STRUCTURAL_UNBOUND = 0.25

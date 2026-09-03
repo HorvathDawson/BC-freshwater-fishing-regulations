@@ -32,11 +32,12 @@ from collections import defaultdict
 from pathlib import Path
 
 from data.data_extractor import FWADataAccessor
+from pipeline.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
 _NV = _ROOT / "pipeline" / "name_variants.json"
 _OVR = _ROOT / "archive" / "pipeline" / "matching" / "overrides.json"
-_GPKG = "data/bc_fisheries_data.gpkg"
+_GPKG = str(SOURCE / "bc_fisheries_data.gpkg")
 
 
 def build_gnis_to_wbk(fwa: FWADataAccessor) -> dict[str, set[str]]:

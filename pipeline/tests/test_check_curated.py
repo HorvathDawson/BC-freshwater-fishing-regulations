@@ -110,4 +110,4 @@ class TestTheRealDeclarations:
         if gauge.roster.exists() and gauge.frozen.exists():
             assert C.check(gauge)[0] == "fresh", (
                 "pipeline/gauge_match.json is stale — run "
-                "`python -m pipeline.hydro.match --build <a completed build>`")
+                "`python -m pipeline.gauges.generate.match --build <a completed build>`")

@@ -32,7 +32,7 @@ describe("pentad bands", () => {
 
 describe("the trust bands are the pipeline's, not ours", () => {
   // THERE IS NO `gaugeTrust()` HERE ANY MORE, and its absence is the test. The band is
-  // decided once, in pipeline/hydro/shed.py, against the full graph and the FWA watershed
+  // decided once, in pipeline/gauges/consume/shed.py, against the full graph and the FWA watershed
   // codes — neither of which ships to a client. What used to live here banded `reach/gauge`
   // asymmetrically with no drainage gate, which is precisely the rule that let SLESSE CREEK
   // NEAR VEDDER CROSSING speak for the Chilliwack.

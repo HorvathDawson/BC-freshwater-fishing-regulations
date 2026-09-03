@@ -28,6 +28,8 @@ from pipeline.parsing.parse_context import (
 )
 from pipeline.registry import default_registry_path, load_registry
 from pipeline.parsing.rows import load_synopsis_rows
+from pipeline.parsing import io as _io
+from pipeline.curated import CURATED, SOURCE
 
 
 def _slug(text: str) -> str:
@@ -252,10 +254,10 @@ def main() -> None:
 
     rows = load_synopsis_rows()
     registry = load_registry(Path(args.registry) if args.registry else default_registry_path())
-    default_ov = Path(__file__).resolve().parents[1] / "matching" / "overrides.json"
+    default_ov = CURATED.regulations.overrides
     overrides = load_overrides(args.overrides or (default_ov if default_ov.exists() else None))
     out_dir = Path(args.out_dir) if args.out_dir else default_work_dir()
-    entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
+    entries_dir = Path(args.entries_dir) if args.entries_dir else _io.entries_dir()
     existing_regs = load_existing_entry_regs(entries_dir)
     existing = set(existing_regs)
 

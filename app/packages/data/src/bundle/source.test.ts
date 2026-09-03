@@ -110,7 +110,7 @@ describe("the bundle source", () => {
   });
 
   it("stores only bands the pipeline can produce — a refusal is an absent row", async () => {
-    // There is no `none` band. `pipeline/hydro/shed.py` writes NO ROW for a reach the gauge
+    // There is no `none` band. `pipeline/gauges/consume/shed.py` writes NO ROW for a reach the gauge
     // drains far too much to describe, so the refusal reaches the client as a null link.
     // A stored `none` would mean the opposite: a row asserting a station and then
     // retracting it, which is what the app used to test for and the bundler never wrote.

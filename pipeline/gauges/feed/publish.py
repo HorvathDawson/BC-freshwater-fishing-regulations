@@ -1,6 +1,6 @@
 """The gauge feed publisher: ECCC readings in, `id -> data` out.
 
-    python -m pipeline.hydro.publish --out app/packages/data/dev/feeds/gauge
+    python -m pipeline.gauges.feed.publish --out app/packages/data/dev/feeds/gauge
 
 WHAT MAKES THIS A FEED. It knows station ids and nothing else. No atlas, no graph, no
 bundle, no matching — it fetches by id and writes files named for that id. That is the whole
@@ -40,6 +40,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
+from pipeline.curated import CURATED, SOURCE
 
 BASE = "https://dd.weather.gc.ca/today/hydrometric/csv/BC"
 UA = "BC-FishRegs-Hydro/1.0"
@@ -335,7 +336,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Publish the gauge feed")
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--stations", type=Path,
-                    default=Path("data/bc_hydrometric_stations.json"))
+                    default=SOURCE / "bc_hydrometric_stations.json")
     ap.add_argument("--clim", type=Path,
                     help="envelope from the HYDAT tier; percentiles are null without it")
     ap.add_argument("--limit", type=int, help="fetch only the first N — for a dev run")
@@ -367,13 +368,13 @@ def main() -> None:
             latest = None
 
     # THE FORECAST IS A DIFFERENT AGENCY AND A DIFFERENT KIND OF CLAIM — see
-    # `pipeline.hydro.forecast`. Three requests, seasonal, and frequently empty: outside
+    # `pipeline.gauges.feed.forecast`. Three requests, seasonal, and frequently empty: outside
     # freshet, fall floods and low-flow season no model is running, which is normal and not
     # a failure. A forecast pull that fails costs the map nothing.
     fcast: dict = {}
     if not args.no_forecast:
         try:
-            from pipeline.hydro import forecast as _forecast   # noqa: PLC0415
+            from pipeline.gauges.feed import forecast as _forecast   # noqa: PLC0415
             fcast = _forecast.fetch()
             # THE SERIES, not just the summary. One number per station drawn on a chart is a
             # single point, and a single point joined to today's reading is a triangle —
@@ -407,7 +408,7 @@ def main() -> None:
         print(f"  ⚠️  A NEWER HYDAT IS OUT: {summary['latest']} (envelope is on "
               f"{summary['release']}). Refresh with:\n"
               f"       python data/fetch_data.py --layers hydat\n"
-              f"       python -m pipeline.hydro.climatology --out <clim.json>")
+              f"       python -m pipeline.gauges.feed.climatology --out <clim.json>")
 
 
 if __name__ == "__main__":

@@ -17,8 +17,9 @@ from shapely.geometry import LineString
 from pipeline.graph import cutting
 from pipeline.graph.blk_chains import FidRow, build_blk_chains
 from pipeline.graph.graph import ancestors, build_stream_graph
+from pipeline.curated import CURATED, SOURCE
 
-_DATA = "data/bc_fisheries_data.gpkg"
+_DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
 
 

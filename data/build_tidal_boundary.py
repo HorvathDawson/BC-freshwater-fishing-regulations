@@ -35,7 +35,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-DFO_GPKG = Path("data/DFO_TIDAL_BOUNDARY.gpkg")
+DFO_GPKG = Path("data/source/DFO_TIDAL_BOUNDARY.gpkg")
 SOURCE_LAYER = "dfodfooy__dfo_bc_pfma_subareas_chs_v3_gshp"
 HOLE_AREA_THRESHOLD_M2 = 10_000  # 1 ha — holes smaller than this are filled
 BUFFER_OUT_M = 1.0  # morphological smooth: expand

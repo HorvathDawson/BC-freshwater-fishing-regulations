@@ -7,6 +7,7 @@ import pytest
 
 from pipeline.models import SplitDef
 from pipeline.splits.splits import load_split_defs
+from pipeline.curated import CURATED, SOURCE
 
 # The anchor/target forms the loader must accept, inline (was splits.example.json — removed).
 _SAMPLE_SPLITS = {
@@ -143,7 +144,7 @@ def test_every_waterbody_block_targets_a_real_registry_item():
     # is not itself an item key — `gnis:29662` is the Vedder Canal's gnis and resolves to
     # `wbk:329707189`. Checking membership in `reg` alone flags those as broken when they are fine.
     idx = build_id_index(reg)
-    body = json.loads((Path(__file__).resolve().parents[1] / "splits.json").read_text())
+    body = json.loads(CURATED.waters.splits.read_text())
 
     bad = []
     for wb in body.get("waterbodies", []):

@@ -17,8 +17,8 @@ It fetches by id and writes `id → data`.
 | Producer | Runs | Reads | Writes |
 |---|---|---|---|
 | `data/fetch_data.py --layers hydrometric_stations` | per build | ECCC OGC API + today's transmitting roster | `data/bc_hydrometric_stations.json` |
-| `pipeline.hydro.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `pipeline/gauge_match.json` (every station, with provenance) |
-| `pipeline.hydro.shed` | per build | `graph.pkl` + the match | `section_gauge`, `lake_gauge`, `section_down` |
+| `pipeline.gauges.generate.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `pipeline/gauge_match.json` (every station, with provenance) |
+| `pipeline.gauges.consume.shed` | per build | `graph.pkl` + the match | `section_gauge`, `lake_gauge`, `section_down` |
 | hydro job — HYDAT tier | **yearly**, gated on the release listing date | the 266 MB HYDAT release | `gauge/clim.json` — 325 KB, all stations |
 | hydro job — reading tier | **30 min** | ECCC readings, BCRFC CLEVER | `gauge/index.json`, `gauge/{station}.json` |
 
@@ -213,7 +213,7 @@ into a name file.**
 
 A fourth source, and the only one in this document that is not a measurement.
 
-    BC River Forecast Centre (Province of BC)  ->  pipeline/hydro/forecast.py
+    BC River Forecast Centre (Province of BC)  ->  pipeline/gauges/forecast.py
                                                ->  rides in the same feed files
 
 Three seasonal models, each an ArcGIS FeatureServer layer read in **one request**:
@@ -241,7 +241,7 @@ Three things this deliberately does NOT do:
   three cues, because one is a legend nobody read.
 
 The Province's attribution is required **verbatim** wherever a forecast appears. It lives in
-`pipeline/hydro/forecast.ATTRIBUTION` and in the app's attribution list, and the two must
+`pipeline/gauges/forecast.ATTRIBUTION` and in the app's attribution list, and the two must
 stay identical.
 
 ## Where a gauge IS — one frozen fact, two consumers
@@ -252,7 +252,7 @@ matches anything anywhere else.
 ```
 data/bc_hydrometric_stations.json        fetched roster (fetch_data --layers hydrometric_stations)
   │
-  │   python -m pipeline.hydro.match --build <a completed build>
+  │   python -m pipeline.gauges.generate.match --build <a completed build>
   ▼
 pipeline/gauge_match.json                COMMITTED. One row per station:
   │                                        streams  wsc + blk + measure

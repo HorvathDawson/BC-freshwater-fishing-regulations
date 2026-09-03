@@ -41,7 +41,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from pipeline.curated import ROOT, load
+from pipeline.curated import ROOT, SOURCE, load
 
 #: The reviewed artifacts come from `config.yaml`, so there is ONE place naming them and a
 #: typo fails at load with the key rather than here with a confusing "not built". The
@@ -59,6 +59,12 @@ class Artifact:
     regenerate: str         # the command a human runs
     roster_ids: str         # see `ids` for the three spellings
     frozen_ids: str
+    #: A generated file whose ids also count as "known". A candidate is a decision IN
+    #: PROGRESS — the matcher produced it and something disagreed, so it is in the review
+    #: queue rather than promoted. Counting those as undecided would leave the gate red
+    #: forever and teach everyone to ignore it; only a station in NEITHER file is stale.
+    candidates: Path | None = None
+    candidate_ids: str = "stations.*"
 
     def ids(self, path: Path, spec: str) -> set[str] | None:
         """Ids out of a file, or None if the file is not there at all.
@@ -98,35 +104,35 @@ class Artifact:
 ARTIFACTS = [
     Artifact(
         name="gauge match",
-        roster=ROOT / "data" / "bc_hydrometric_stations.json",
-        frozen=_C.matches.gauge or ROOT / "pipeline" / "gauge_match.json",
-        regenerate="python -m pipeline.hydro.match --build output/v2/full",
+        roster=SOURCE / "bc_hydrometric_stations.json",
+        frozen=_C.gauges.matches or ROOT / "pipeline" / "gauge_match.json",
+        regenerate="python -m pipeline.gauges.generate.match --build output/v2/full && python -m pipeline.gauges.generate.promote",
         roster_ids="station",
-        frozen_ids="stations.station",
+        frozen_ids="stations.*",
+        candidates=ROOT / "data" / "generated" / "gauges" / "candidates.json",
     ),
     Artifact(
         name="gauge water-body type",
-        roster=ROOT / "data" / "bc_hydrometric_stations.json",
-        frozen=(_C.matches.waterbody_type
-                or ROOT / "data" / "bc_station_waterbody_type.json"),
-        regenerate="python -m pipeline.hydro.waterbody_type",
+        roster=SOURCE / "bc_hydrometric_stations.json",
+        frozen=(_C.gauges.waterbody_type
+                or SOURCE / "bc_station_waterbody_type.json"),
+        regenerate="python -m pipeline.gauges.generate.waterbody_type",
         roster_ids="station",
         frozen_ids="stations.*",
     ),
     Artifact(
         name="stocking waterbody match",
-        roster=ROOT / "data" / "bc_stocked_waterbodies.json",
-        frozen=_C.matches.stocking or ROOT / "pipeline" / "stock_match.json",
-        regenerate="python -m pipeline.stocking.match --build output/v2/full  (not wired yet)",
+        roster=SOURCE / "bc_stocked_waterbodies.json",
+        frozen=_C.stocking.matches or ROOT / "data/curated/stocking/matches.json",
+        regenerate="python -m pipeline.stocking.generate.match  (not wired yet)",
         roster_ids="waterbody_id",
         frozen_ids="waterbodies.waterbody_id",
     ),
     Artifact(
         name="bathymetry sheet match",
-        roster=ROOT / "data" / "bc_bathymetry_sheets.json",
-        frozen=_C.matches.charts or ROOT / "pipeline" / "chart_match.json",
-        regenerate="python -m pipeline.stocking.identifiers --build output/v2/full"
-                   "  (not wired yet)",
+        roster=SOURCE / "bc_bathymetry_sheets.json",
+        frozen=_C.bathymetry.matches or ROOT / "data/curated/bathymetry/matches.json",
+        regenerate="python -m pipeline.bathymetry.generate.match  (not wired yet)",
         roster_ids="waterbody_identifier",
         frozen_ids="sheets.waterbody_identifier",
     ),
@@ -151,10 +157,15 @@ def check(a: Artifact) -> tuple[str, str]:
         return "absent", (f"not built: {_short(a.frozen)} does not exist "
                           f"({len(roster):,} in the roster)")
 
-    new, gone = sorted(roster - frozen), sorted(frozen - roster)
+    queued = (self_ids := a.ids(a.candidates, a.candidate_ids)
+              if a.candidates else None) or set()
+    new, gone = sorted(roster - frozen - queued), sorted(frozen - roster)
     if not new:
-        tail = f"; {len(gone)} dropped from the roster" if gone else ""
-        return "fresh", f"{len(frozen & roster):,} of {len(roster):,} decided{tail}"
+        bits = []
+        if queued: bits.append(f"{len(queued & roster)} in the review queue")
+        if gone: bits.append(f"{len(gone)} dropped from the roster")
+        tail = ("; " + "; ".join(bits)) if bits else ""
+        return "fresh", f"{len(frozen & roster):,} of {len(roster):,} promoted{tail}"
     show = ", ".join(new[:8]) + (f" … +{len(new) - 8}" if len(new) > 8 else "")
     return "STALE", (f"{len(new)} in the roster with no decision: {show}"
                      + (f"; {len(gone)} dropped" if gone else ""))

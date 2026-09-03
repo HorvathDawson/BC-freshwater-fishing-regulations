@@ -1,6 +1,6 @@
 """The percentile envelope: what a river USUALLY does, by time of year.
 
-    python -m pipeline.hydro.climatology --hydat data/hydat.sqlite3 --out output/feeds/gauge/clim.json
+    python -m pipeline.gauges.feed.climatology --hydat data/hydat.sqlite3 --out output/feeds/gauge/clim.json
 
 WHAT IT IS FOR. "12 m³/s" tells a person nothing. "12 m³/s, which is the 4th percentile for
 early September" tells them the river is very low. That second sentence needs 97 years of
@@ -49,6 +49,7 @@ import sqlite3
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
+from pipeline.curated import CURATED, SOURCE
 
 MIN_YEARS = 3
 MIN_OBS = 10
@@ -211,10 +212,10 @@ def build(hydat: Path, stations: list[str] | None = None,
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Build the percentile envelope from HYDAT")
-    ap.add_argument("--hydat", type=Path, default=Path("data/hydat.sqlite3"))
+    ap.add_argument("--hydat", type=Path, default=SOURCE / "hydat.sqlite3")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--stations", type=Path,
-                    default=Path("data/bc_hydrometric_stations.json"),
+                    default=SOURCE / "bc_hydrometric_stations.json",
                     help="restrict to this roster; BC only, so the file stays small")
     args = ap.parse_args()
 

@@ -17,8 +17,9 @@ from shapely.ops import linemerge, unary_union
 from pyproj import Transformer
 
 from data.data_extractor import FWADataAccessor
+from pipeline.curated import CURATED, SOURCE
 
-_GPKG = "data/bc_fisheries_data.gpkg"
+_GPKG = str(SOURCE / "bc_fisheries_data.gpkg")
 _TO_4326 = Transformer.from_crs(3005, 4326, always_xy=True)
 
 # (locator_id, stream GNIS_NAME, lake GNIS_NAME_1, offset_m downstream)

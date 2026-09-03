@@ -46,11 +46,12 @@ from pipeline.dfo_salmon.entries import ENTRIES_DIR, EntryLocation, load, save
 from pipeline.dfo_salmon.fetch import ALL_SLUGS, PAGES, normalize_slug
 from pipeline.dfo_salmon.locations import normalize
 from pipeline.dfo_salmon.untangle import named_streams
+from pipeline.curated import CURATED, SOURCE
 
 logger = logging.getLogger(__name__)
 
 REGISTRY = Path("output/v2/full/registry.json")
-SPLITS = Path("pipeline/splits.json")
+SPLITS = CURATED.waters.splits
 
 _FEATURES = ("River", "Creek", "Lake", "Slough", "Channel")
 

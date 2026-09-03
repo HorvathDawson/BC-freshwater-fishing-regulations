@@ -15,8 +15,9 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from pipeline.curated import CURATED, SOURCE
 
-_OVERRIDES = "pipeline/matching/overrides.json"
+_OVERRIDES = str(CURATED.regulations.overrides)
 _PARSED = "output/pipeline/parsing/synopsis_parsed.json"
 _OUT = "output/v2/complex_regulations.md"
 

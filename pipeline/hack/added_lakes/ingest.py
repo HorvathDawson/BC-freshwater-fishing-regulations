@@ -16,8 +16,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+from pipeline.curated import CURATED, SOURCE
 
-GEOJSON = Path(__file__).resolve().parents[2] / "added_lakes.geojson"
+GEOJSON = CURATED.waters.added_lakes
 
 
 def load(path: str | Path | None = None) -> list[dict]:

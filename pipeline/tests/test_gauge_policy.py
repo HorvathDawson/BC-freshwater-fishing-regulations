@@ -1,6 +1,6 @@
 """The trust policy is generated, and the generated copies must not drift.
 
-THE FAILURE THIS REPLACES. The rule was implemented three times: `pipeline/hydro/shed.py`
+THE FAILURE THIS REPLACES. The rule was implemented three times: `pipeline/gauges/consume/shed.py`
 (symmetric ratio, then a watershed-descent gate), `app/packages/core/src/flow.ts`
 (asymmetric, no gate, plus a fourth band), and `app/tools/build-fixture.mjs` (its own
 `BAND_FLOOR` literal, with `none: 0`). The last one wrote 1,785 `trust = 'none'` rows into
@@ -16,7 +16,7 @@ import json
 
 import pytest
 
-from pipeline.hydro.shed import TRUST_BANDS
+from pipeline.gauges.consume.shed import TRUST_BANDS
 from pipeline.tools import emit_gauge_policy as E
 
 

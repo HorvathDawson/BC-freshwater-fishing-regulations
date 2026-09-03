@@ -1,7 +1,7 @@
 """What KIND of water each gauge sits on, as the Water Office itself states it.
 
-    python -m pipeline.hydro.waterbody_type            # fetch/resume, writes the artifact
-    python -m pipeline.hydro.waterbody_type --check    # what is missing, no requests
+    python -m pipeline.gauges.generate.waterbody_type            # fetch/resume, writes the artifact
+    python -m pipeline.gauges.generate.waterbody_type --check    # what is missing, no requests
 
 WHY THIS IS WORTH 2,300 REQUESTS. Every other signal the matcher has is either derived from
 the candidate it is trying to choose, or is a guess:
@@ -20,7 +20,7 @@ found by hand so far was the match being wrong: STELLAKO RIVER AT GLENANNAN plac
 François Lake, TROUT CREEK AT OUTLET OF TROUT LAKE placed on Trout Lake.
 
 WHY IT IS A COMMITTED ARTIFACT AND NOT A BUILD STEP. It changes when ECCC commissions a
-station, which is a handful of times a year — `pipeline.hydro.roster` reports when that has
+station, which is a handful of times a year — `pipeline.gauges.roster` reports when that has
 happened. Re-fetching it on every build would be thousands of requests against a government
 site for an answer that has not moved since the last one. Fetch it when the roster gains a
 station; otherwise read the file.
@@ -44,14 +44,15 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from pipeline.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
 
 #: The roster this enriches. Kept SEPARATE from `bc_hydrometric_stations.json` rather than
 #: merged into it: that file is what `data/fetch_data.py` writes, and a second writer would
 #: make "re-fetch the roster" silently destroy this.
-TYPES_FILE = ROOT / "data" / "bc_station_waterbody_type.json"
-STATIONS = ROOT / "data" / "bc_hydrometric_stations.json"
+TYPES_FILE = CURATED.gauges.waterbody_type
+STATIONS = SOURCE / "bc_hydrometric_stations.json"
 
 _URL = "https://wateroffice.ec.gc.ca/report/real_time_e.html?stn={}"
 _UA = "BC-FishRegs-Hydro/1.0 (freshwater fishing regulations; contact via repo)"
@@ -110,7 +111,7 @@ def _save(rows: dict[str, str | None], path: Path) -> None:
                   "matched node's kind are all outputs of the match and cannot referee it. "
                   "null means the page carried no such field (usually a discontinued "
                   "station, which has no real-time page). Regenerate with "
-                  "`python -m pipeline.hydro.waterbody_type` when the roster gains a "
+                  "`python -m pipeline.gauges.generate.waterbody_type` when the roster gains a "
                   "station; it resumes and never re-fetches what it already has.",
         "stations": dict(sorted(rows.items())),
     }, indent=1) + "\n", encoding="utf-8")

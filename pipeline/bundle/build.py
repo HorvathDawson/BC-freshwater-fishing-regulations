@@ -32,7 +32,7 @@ _ROOT = HERE.parents[1]
 SCHEMA = HERE / "schema.sql"
 INDEXES = HERE / "indexes.sql"
 
-#: The envelope, written by `pipeline.hydro.climatology` and read by BOTH the feed publisher
+#: The envelope, written by `pipeline.gauges.feed.climatology` and read by BOTH the feed publisher
 #: and this. Anchored on the repo root rather than derived from `data_dir`, which is how it
 #: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
 CLIM_PATH = _ROOT / "output" / "feeds" / "gauge" / "clim.json"
@@ -295,9 +295,9 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 
     import pickle
 
-    from pipeline.hydro import build_gauge_sheds, lake_gauge_links
-    from pipeline.hydro.match import nodes_for, read_match, summarise
-    from pipeline.hydro.shed import downstream_map, load_stations
+    from pipeline.gauges import build_gauge_sheds, lake_gauge_links
+    from pipeline.gauges.generate.match import nodes_for, read_match, summarise
+    from pipeline.gauges.consume.shed import downstream_map, load_stations
 
     stations = load_stations(stations_path)
     with graph_path.open("rb") as fh:
@@ -311,7 +311,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     matches = read_match()
     if not matches:
         cov.skip("section_gauge", "no pipeline/gauge_match.json — run "
-                                  "`python -m pipeline.hydro.match --build <build>`")
+                                  "`python -m pipeline.gauges.generate.match --build <build>`")
         cov.skip("section_down", "needs section_gauge")
         return
 
@@ -379,7 +379,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
 
     # THE ENVELOPE, from the same file the feed publisher reads.
     #
-    # ONE PRODUCER, TWO CONSUMERS. `pipeline.hydro.climatology` reads HYDAT and writes
+    # ONE PRODUCER, TWO CONSUMERS. `pipeline.gauges.feed.climatology` reads HYDAT and writes
     # clim.json; the 30-minute feed job turns today's discharge into a percentile with it,
     # and the bundle snapshots it here so a client can draw a seasonal band and date an old
     # spot offline. Building it twice would be two envelopes that can disagree about the
@@ -403,7 +403,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         print(f"     envelope: HYDAT {clim.get('release')}")
     else:
         cov.skip("gauge_clim", f"no {clim_path.name} — "
-                               "run pipeline.hydro.climatology (needs HYDAT)")
+                               "run pipeline.gauges.feed.climatology (needs HYDAT)")
         cov.skip("gauge_stats", "same file as gauge_clim")
 
     down = downstream_map(graph, (l.section_id for l in links))
@@ -419,7 +419,7 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     _report("placed but spoke for no section", shed_lost, live)
     print(f"     match: {summarise(matches)}")
     print(f"     bands: " + ", ".join(f"{bands.get(b, 0):,} {b}" for b, _ in
-                                      __import__("pipeline.hydro",
+                                      __import__("pipeline.gauges",
                                                  fromlist=["x"]).TRUST_BANDS))
 
 
@@ -474,7 +474,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     # rather than beside it. The generated TypeScript is a compile-time convenience — a
     # browser cannot import shed.py, and a union type has to exist before the bundle is
     # opened — and `pipeline.tools.emit_gauge_policy --check` is what keeps THAT honest.
-    from pipeline.hydro.shed import TRUST_BANDS
+    from pipeline.gauges.consume.shed import TRUST_BANDS
 
     db.executemany("INSERT INTO meta VALUES (?,?)", [
         ("schema", SCHEMA.read_text().split("\n")[0]),

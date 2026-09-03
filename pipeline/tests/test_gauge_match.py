@@ -9,7 +9,7 @@ import geopandas as gpd
 import pytest
 from shapely.geometry import LineString, Point
 
-from pipeline.hydro import match as M
+from pipeline.gauges.generate import match as M
 
 
 def _graph(nodes):

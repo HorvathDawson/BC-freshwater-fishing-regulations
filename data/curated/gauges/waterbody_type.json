@@ -1,5 +1,5 @@
 {
- "_about": "ECCC's own `Type of water body` for each station, scraped once from the Water Office real-time page. INDEPENDENT of anything this pipeline derives, which is the whole reason it exists \u2014 `wsc`, `wbk` and the matched node's kind are all outputs of the match and cannot referee it. null means the page carried no such field (usually a discontinued station, which has no real-time page). Regenerate with `python -m pipeline.hydro.waterbody_type` when the roster gains a station; it resumes and never re-fetches what it already has.",
+ "_about": "ECCC's own `Type of water body` for each station, scraped once from the Water Office real-time page. INDEPENDENT of anything this pipeline derives, which is the whole reason it exists \u2014 `wsc`, `wbk` and the matched node's kind are all outputs of the match and cannot referee it. null means the page carried no such field (usually a discontinued station, which has no real-time page). Regenerate with `python -m pipeline.gauges.generate.waterbody_type` when the roster gains a station; it resumes and never re-fetches what it already has.",
  "stations": {
   "07EA001": "River",
   "07EA002": "River",

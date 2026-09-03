@@ -20,12 +20,13 @@ from typing import Optional
 
 from data.data_extractor import FWADataAccessor
 from pipeline.utils.wsc import trim_wsc
+from pipeline.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]   # pipeline/oneoff/ -> repo root
 _FDN = _ROOT / "archive" / "pipeline" / "matching" / "feature_display_names.json"
 _OVR = _ROOT / "archive" / "pipeline" / "matching" / "overrides.json"
 _ANG = _ROOT / "output" / "pipeline" / "anglerinfo" / "anglerinfo_matches.json"
-_GPKG = "data/bc_fisheries_data.gpkg"
+_GPKG = str(SOURCE / "bc_fisheries_data.gpkg")
 
 
 def _clean(s) -> str:

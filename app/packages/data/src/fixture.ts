@@ -152,7 +152,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async gaugeForSection(s): Promise<GaugeLink | null> {
       if (!sectionRules.has(s)) return null;
       // THE BAND IS READ, NOT COMPUTED — because that is what the real source does. It
-      // selects `section_gauge.trust`, a value `pipeline/hydro/shed.py` decided against the
+      // selects `section_gauge.trust`, a value `pipeline/gauges/consume/shed.py` decided against the
       // full graph. This used to call a `gaugeTrust()` in @app/core, so the suite asserted
       // against a SECOND implementation of the rule (asymmetric, and with no drainage gate)
       // rather than against anything the province bundle could produce. That function is

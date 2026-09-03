@@ -59,17 +59,19 @@ output:
 # Input Data Directories
 # ============================================================================
 data:
-  base: "data"
+  base: "data/source"
 
-  # Data Fetch Settings (for downloading BC GIS data)
+  # Data Fetch Settings (for downloading BC GIS data). Everything fetch_data.py writes lands
+  # under data/source/ — a fetcher that wrote somewhere a reader does not look is how a
+  # freshness gate goes quiet about a roster nobody is reading.
   fetch:
-    output_gpkg: "data/bc_fisheries_data.gpkg"
-    temp_dir: "data/temp_bc_data"
+    output_gpkg: "data/source/bc_fisheries_data.gpkg"
+    temp_dir: "data/source/temp_bc_data"
 
 
 # Unified Data Accessor
 data_accessor:
-  gpkg_path: "data/bc_fisheries_data.gpkg"
+  gpkg_path: "data/source/bc_fisheries_data.gpkg"
 
 # ============================================================================
 # LLM Parsing Settings
@@ -99,52 +101,64 @@ graph_builder:
   enable_caching: true
 
 # ============================================================================
-# Curated data — everything a human's time is embedded in
+# Data — three kinds, and the difference is what it costs to lose
 # ============================================================================
 #
-# NOTHING UNDER HERE IS REGENERABLE BY A REBUILD. Losing a file here loses curation that
-# cost human hours; losing anything under output/ costs CPU. That is the whole distinction,
-# and it is why these have their own tree rather than sitting next to the code that reads
-# them.
+#   source/     fetched from an authority. Re-downloadable; costs bandwidth.
+#   generated/  computed from source + curated. Re-runnable; costs CPU.
+#   curated/    human-owned. NOTHING here is regenerable — losing a file loses hours.
 #
-# READ THROUGH `pipeline.curated`, never as a literal. Every path below is validated the
-# moment the process starts — a typo fails at import with the key that is wrong, instead of
-# at runtime with an empty list. This repo has paid for the alternative: a `--splits` flag
-# with no default silently dropped all 376 curated cuts from three full builds and nothing
-# looked wrong.
+# The third splits again, and the split is invisible without this comment:
 #
-# ⚠️ These still point at the CURRENT locations. Step 1 of pipeline/docs/16 is to introduce
-# the accessors WITHOUT moving anything, so the migration is reversible at every step; the
-# `git mv` is the last commit, not the first.
+#   authored    a person typed it (splits, name_variants, added_lakes)
+#   promoted    a machine produced it and a person APPROVED it (gauge matches,
+#               added_streams). It LOOKS generated, which is the whole danger — someone
+#               re-runs the generator to check something and destroys the review.
+#
+# Reach every one of these through `pipeline.curated` — never as a literal, never as
+# `parents[N] / "..."`. A curated path is NEVER overridable by an environment variable:
+# that is the `review_build` failure again, where the app rebuilt one directory and read
+# another and neither said so.
+data_tree:
+  source: "data/source"
+  generated: "data/generated"
+
 curated:
-  base: "pipeline"
+  base: "data/curated"
 
-  # --- authored by hand: a person typed every one of these -------------------------
-  splits: "pipeline/splits.json"
-  name_variants: "pipeline/name_variants.json"
-  overrides: "pipeline/matching/overrides.json"
-  areas: "pipeline/areas.json"
-  added_lakes: "pipeline/added_lakes.geojson"
-  added_streams: "pipeline/added_streams.build.json"
+  # --- the shape of the atlas itself ---------------------------------------------
+  waters:
+    splits: "data/curated/waters/splits.json"                      # authored
+    name_variants: "data/curated/waters/name_variants.json"        # authored
+    areas: "data/curated/waters/areas.json"                        # authored
+    added_lakes: "data/curated/waters/added_lakes.geojson"         # authored — hand-drawn polygons
+    # PROMOTED, not authored. 361 minted streams whose negative blk ids are a live ABI;
+    # re-running build_dataset.py remints them and strands every split bound to the old.
+    added_streams: "data/curated/waters/added_streams.json"
+    # The worklist for minting MORE added lakes. Zero code references BY DESIGN — the
+    # minting is a hand process. Do not delete it in a dead-file sweep.
+    ungazetted: "data/curated/waters/ungazetted.json"
 
-  entries:
-    synopsis: "pipeline/parsing/entries"
-    dfo_salmon: "pipeline/dfo_salmon/entries"
+  # --- regulations ---------------------------------------------------------------
+  regulations:
+    overrides: "data/curated/regulations/overrides.json"
+    entries:
+      synopsis: "data/curated/regulations/entries/synopsis"
+      dfo_salmon: "data/curated/regulations/entries/dfo_salmon"
 
-  # --- machine-produced, HUMAN-REVIEWED --------------------------------------------
+  # --- matches: machine-produced, human-reviewed ---------------------------------
   #
-  # The third category, and the one doc 16 was missing. A slow pass produced these, a person
-  # checked them, and everything downstream only reads them. Not curated (nobody typed it);
-  # not generated (a rebuild must NEVER recreate it — that discards the review).
-  #
-  # Regenerate deliberately, review the diff, commit. `pipeline.tools.check_curated --ci`
-  # fails the build when a roster has moved past one of these.
-  # The hand review of gauge matches. An INPUT to matching, not output — `gauge_match.json`
-  # is rewritten wholesale every run, so a decision recorded there would not survive.
-  gauge_review: "pipeline/gauge_review.json"
-
-  matches:
-    gauge: "pipeline/gauge_match.json"
-    waterbody_type: "data/bc_station_waterbody_type.json"
-    stocking: null        # not built — needs the FIDQ fetch
-    charts: null          # not built — needs the bathymetry fetch
+  # One shape for three domains: an external id -> FWA keys + trust. `review` is an INPUT
+  # to matching and is never written by a program; `matches` is regenerated wholesale.
+  # Keeping them in separate files is what makes a regenerate physically unable to harm
+  # the review.
+  gauges:
+    matches: "data/curated/gauges/matches.json"
+    review: "data/curated/gauges/review.json"
+    waterbody_type: "data/curated/gauges/waterbody_type.json"
+  stocking:
+    matches: null       # not built — needs the FIDQ fetch
+    review: null
+  bathymetry:
+    matches: null       # not built — needs the sheet matcher
+    review: null

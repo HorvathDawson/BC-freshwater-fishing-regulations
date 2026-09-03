@@ -28,9 +28,10 @@ from pipeline.splits.splits import load_split_defs
 from pipeline.splits.anchors import resolve_split_defs
 from pipeline.graph.blk_chains import load_stream_fids, build_blk_chains
 from pipeline.build import get_lake_wbk_kind
+from pipeline.curated import CURATED, SOURCE
 
 ROOT = get_config().project_root
-_DATA = str(ROOT / "data/bc_fisheries_data.gpkg")
+_DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _TR = Transformer.from_crs(4326, 3005, always_xy=True)
 
 
@@ -52,7 +53,7 @@ def _target_bounds(fwa: FWADataAccessor, applies: Optional[dict]):
 
 def audit_splits(splits_path: Optional[Path] = None) -> list[dict]:
     """Return one row per split: {id, wb, type, dist_m|None, offset_m|None, resolved}."""
-    splits_path = splits_path or (ROOT / "pipeline/splits.json")
+    splits_path = splits_path or CURATED.waters.splits
     fwa = FWADataAccessor(_DATA)
     defs = {d.id: d for d in load_split_defs(str(splits_path))}
     j = json.loads(Path(splits_path).read_text())

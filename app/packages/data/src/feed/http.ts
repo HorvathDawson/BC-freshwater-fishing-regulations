@@ -2,7 +2,7 @@
  * The live gauge feed, over HTTP.
  *
  * ONE IMPLEMENTATION, TWO ORIGINS. In dev the base URL is the local tile server serving
- * files that `python -m pipeline.hydro.publish` wrote; in production it is the R2 bucket the
+ * files that `python -m pipeline.gauges.feed.publish` wrote; in production it is the R2 bucket the
  * cron syncs that same directory to. The bytes are identical, so a bug cannot hide on one
  * side — and nothing in the app ever talks to ECCC directly, which is what stops a browser
  * full of users hammering the source we scrape.

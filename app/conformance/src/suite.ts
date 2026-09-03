@@ -124,7 +124,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>) {
   T("a gauge refuses to speak for water it does not measure", async (s) => {
     // The Fraser at Hope drains 216,600 km2; it knows nothing about a 12-magnitude creek.
     //
-    // THE REFUSAL IS A NULL LINK, NOT A BAND CALLED "none". `pipeline/hydro/shed.py` bands
+    // THE REFUSAL IS A NULL LINK, NOT A BAND CALLED "none". `pipeline/gauges/consume/shed.py` bands
     // only what it will vouch for and writes NO `section_gauge` ROW below the `weak` floor,
     // so there is nothing for the source to return. This asserted `"none"` for as long as
     // three separate implementations of the trust rule existed — the pipeline's, one in

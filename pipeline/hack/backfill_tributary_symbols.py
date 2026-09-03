@@ -23,9 +23,10 @@ from pathlib import Path
 
 from pipeline.parsing.entry_models import EntryFile
 from pipeline.parsing.rows import load_synopsis_rows, symbols_include_tributaries
+from pipeline.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-_ENTRIES_DIR = _ROOT / "pipeline" / "parsing" / "entries"
+_ENTRIES_DIR = CURATED.regulations.entries.synopsis
 
 
 def _symbol_index() -> dict[str, list[tuple[str, list[str]]]]:

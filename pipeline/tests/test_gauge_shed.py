@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.hydro.match import waterbody_name
-from pipeline.hydro.shed import (
+from pipeline.gauges.generate.match import waterbody_name
+from pipeline.gauges.consume.shed import (
     drains_through,
     TRUST_BANDS,
     build_gauge_sheds,
@@ -312,7 +312,7 @@ class TestMatchProvenance:
         # This lived in a `NO_MATCH` dict in match.py until the hand review outgrew it. The
         # decisions are curation, so they live in a curated file that people and tools edit
         # and that is reviewed in a diff — `matching/overrides.json`'s argument exactly.
-        from pipeline.hydro.review import load
+        from pipeline.gauges.review import load
 
         comox = load().stations.get("08HB087")
         assert comox is not None and comox.verdict == "none"
@@ -323,7 +323,7 @@ class TestMatchProvenance:
         # water, so an atlas release that quietly moves the station fails loudly instead of
         # silently; keeping only the refusals throws that half away and leaves no way to
         # tell "checked and correct" from "never looked at".
-        from pipeline.hydro.review import load
+        from pipeline.gauges.review import load
 
         r = load()
         counts = r.counts()
@@ -336,7 +336,7 @@ class TestMatchProvenance:
         # A refused row still carries the wsc/wbk it was WRONGLY matched to, as evidence.
         # Reading those as a binding would point the station at the very water the review
         # threw out.
-        from pipeline.hydro.review import Decision
+        from pipeline.gauges.review import Decision
 
         d = Decision(verdict="wrong", wbk=("329070038",), note="not this lake")
         assert d.keys == ()
@@ -344,7 +344,7 @@ class TestMatchProvenance:
 
     def test_a_binding_must_name_a_water(self):
         import pytest as _pytest
-        from pipeline.hydro.review import Decision
+        from pipeline.gauges.review import Decision
 
         with _pytest.raises(Exception):
             Decision(verdict="bind", note="onto what?")
@@ -354,7 +354,7 @@ class TestMatchProvenance:
         # It once held seven entries. Every one was a name the atlas already carried in
         # `name_tuples`; teaching the matcher to read them removed the need for all seven.
         # A line appearing here again is a signal to look for that fix first.
-        from pipeline.hydro.match import load_aliases
+        from pipeline.gauges.generate.match import load_aliases
         assert load_aliases() == {}
 
     def test_the_matcher_reads_every_name_a_node_answers_to(self):
@@ -363,7 +363,7 @@ class TestMatchProvenance:
         # display_name threw that away.
         from pipeline.models.enums import NameSource
         from pipeline.models.names import NameTuple
-        from pipeline.hydro.match import _names
+        from pipeline.gauges.generate.match import _names
 
         node = StreamNode(node_id="lake:1", kind=NodeKind.lake,
                           display_name="Lower Arrow Lake",
@@ -378,7 +378,7 @@ class TestMatchProvenance:
         # A name-keyed override is a second guess at the same ambiguous question: it breaks
         # when two waters share the string and silently follows the wrong one on a rename.
         from pathlib import Path
-        import pipeline.hydro.match as m
+        import pipeline.gauges.generate.match as m
         src = Path(m.__file__).read_text(encoding="utf-8")
         assert "override in graph.nodes" in src
 
@@ -388,7 +388,7 @@ class TestMatchProvenance:
         # Filing a `wrong` as no_match retires the station permanently on the strength of a
         # review that said "this needs the outlet stream, which we cannot address yet", and
         # the Kootenay below Corra Linn stays ungauged forever.
-        from pipeline.hydro.review import load
+        from pipeline.gauges.review import load
 
         r = load()
         todo = [d for d in r.stations.values() if d.is_todo]
@@ -400,20 +400,20 @@ class TestMatchProvenance:
     def test_no_station_is_both_curated_and_aliased(self):
         # An alias binds a station to a node id; the review binds it to FWA keys. A station
         # in both is two mechanisms answering the same question, and the loser is silent.
-        from pipeline.hydro.match import load_aliases
-        from pipeline.hydro.review import load
+        from pipeline.gauges.generate.match import load_aliases
+        from pipeline.gauges.review import load
 
         assert not (set(load_aliases()) & set(load().stations))
     def test_the_alias_file_is_never_the_shared_name_variants_file(self):
         # v1 corrupted display names by letting a matcher write into the variants file that
         # decides what waters are CALLED. This file is read here and nowhere else.
         from pathlib import Path
-        import pipeline.hydro.match as m
+        import pipeline.gauges.generate.match as m
         src = Path(m.__file__).read_text(encoding="utf-8")
         assert "name_variants" not in src.replace("name_variants.json`", "")
 
     def test_summarise_counts_by_outcome(self):
-        from pipeline.hydro.match import StationMatch, summarise
+        from pipeline.gauges.generate.match import StationMatch, summarise
         got = summarise([
             StationMatch("a", "matched", "name+radius", 12.0, node_id="n1"),
             StationMatch("b", "matched", "alias", 40.0, node_id="n2"),
@@ -426,7 +426,7 @@ class TestMatchProvenance:
     def test_summarise_can_report_only_the_stations_that_matter(self):
         # The roster-wide rate is 89%; among TRANSMITTING stations it is 99%. Reporting the
         # first as the headline hides the only number a user can be affected by.
-        from pipeline.hydro.match import StationMatch, summarise
+        from pipeline.gauges.generate.match import StationMatch, summarise
         rows = [StationMatch("live", "matched", "name+radius", 1.0, node_id="n"),
                 StationMatch("dead", "unresolved", None, None, "x")]
         assert "1/1 matched (100.0%)" in summarise(rows, live={"live"})

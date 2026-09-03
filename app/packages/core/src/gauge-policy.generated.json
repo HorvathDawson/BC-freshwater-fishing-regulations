@@ -1,6 +1,6 @@
 {
   "_generated_by": "python -m pipeline.tools.emit_gauge_policy",
-  "_source": "pipeline/hydro/shed.py :: TRUST_BANDS",
+  "_source": "pipeline/gauges/consume/shed.py :: TRUST_BANDS",
   "bands": [
     "good",
     "fair",

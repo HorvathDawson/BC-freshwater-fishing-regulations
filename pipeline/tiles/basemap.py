@@ -44,6 +44,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
+from pipeline.curated import CURATED, SOURCE
 
 KEEP = ("earth", "water", "landcover", "landuse", "roads", "places", "boundaries")
 DROP = ("buildings", "pois")
@@ -110,6 +111,6 @@ def _run(cmd: list[str]) -> None:
 
 if __name__ == "__main__":
     root = Path(__file__).resolve().parents[2]
-    build(root / "data" / "bc.pmtiles",
+    build(SOURCE / "bc.pmtiles",
           root / "output" / "tiles" / "basemap.pmtiles",
-          root / "data" / "bc_boundary.geojson")
+          SOURCE / "bc_boundary.geojson")

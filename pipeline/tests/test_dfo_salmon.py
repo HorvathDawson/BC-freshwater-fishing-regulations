@@ -20,6 +20,7 @@ from pipeline.dfo_salmon.parse import (
     _expand_grid,
     parse_region,
 )
+from pipeline.curated import CURATED, SOURCE
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dfo_salmon"
 
@@ -1940,7 +1941,7 @@ def test_a_dfo_answer_never_reaches_a_provincial_row():
 
     from pipeline.matching.matcher import load_overrides
 
-    path = Path(__file__).resolve().parents[1] / "matching" / "overrides.json"
+    path = CURATED.regulations.overrides
     prov, dfo = load_overrides(path), load_overrides(path, source="dfo")
     tagged = [e for e in dfo if (e.get("source") or "") == "dfo"]
     assert tagged, "expected DFO-tagged overrides"
@@ -2019,7 +2020,7 @@ def test_a_dfo_tagged_override_is_invisible_to_the_provincial_matcher():
 
     from pipeline.matching.matcher import load_overrides
 
-    p = Path(__file__).resolve().parents[1] / "matching" / "overrides.json"
+    p = CURATED.regulations.overrides
     prov, dfo = load_overrides(p), load_overrides(p, source="dfo")
     tagged = [e for e in dfo if (e.get("source") or "") == "dfo"]
     assert tagged, "expected DFO-tagged overrides"
@@ -2048,7 +2049,7 @@ def test_a_dfo_name_variant_never_relabels_a_gazetted_water():
 
     from pipeline.models.enums import NameSource
 
-    nv = json.loads((Path(__file__).resolve().parents[1] / "name_variants.json")
+    nv = json.loads((CURATED.waters.name_variants)
                     .read_text(encoding="utf-8"))
     by_wsc = {w: e for e in nv for w in (e.get("target") or {}).get("wscs", [])}
 

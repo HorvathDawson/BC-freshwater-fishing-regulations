@@ -122,7 +122,7 @@ pipeline/hack/added_streams/build_dataset.py:1346    Path(out_dir) / "added_stre
 ### `gauge_match.json` — 1 real site
 
 ```
-pipeline/hydro/match.py:349              MATCH_FILE = parents[1] / "gauge_match.json"
+pipeline/gauges/generate/match.py:349              MATCH_FILE = parents[1] / "gauge_match.json"
 ```
 
 `bundle/build.py:274-281` and `build.py:559-581` reach it through `read_match()`, so they need no
@@ -356,8 +356,8 @@ curated:
 Path sites to add to §2's checklist:
 
 ```
-pipeline/hydro/match.py            MATCH_FILE      (already listed — 1 site)
-pipeline/hydro/waterbody_type.py   TYPES_FILE, STATIONS
+pipeline/gauges/generate/match.py            MATCH_FILE      (already listed — 1 site)
+pipeline/gauges/waterbody_type.py   TYPES_FILE, STATIONS
 pipeline/tools/check_curated.py    ARTIFACTS[].roster / .frozen   ← 8 literals, all in one list
 ```
 
@@ -367,7 +367,7 @@ list, so it is one edit rather than a hunt.
 ### Also decided
 
 **The hand review is part of the artifact.** 22 stations were reviewed against the map and
-the Water Office on 2026-09-03 and recorded in `NO_MATCH` in `pipeline/hydro/match.py` — lake
+the Water Office on 2026-09-03 and recorded in `NO_MATCH` in `pipeline/gauges/generate/match.py` — lake
 outlets, diversions and tributaries that all matched confidently and were all on different
 water. That dict is authored curation living inside a code file. It is small enough to leave
 there for now, but if it grows past a screen it should become a curated JSON beside the match

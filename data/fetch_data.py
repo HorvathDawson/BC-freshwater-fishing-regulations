@@ -1484,7 +1484,7 @@ def fetch_osm_places(short_name: str, dest_path: Path) -> None:
     # British Columbia. Filtering downstream meant every consumer had to remember to do it,
     # and the one that forgot put Calgary in the tile labels and resolved "Hope" to a hamlet
     # in Idaho. The file on disk should simply be right.
-    boundary = Path(__file__).resolve().parents[1] / "data" / "bc_boundary.geojson"
+    boundary = Path(config.fetch_output_gpkg_path).parent / "bc_boundary.geojson"
     if boundary.exists():
         import geopandas as gpd
         from shapely.geometry import Point

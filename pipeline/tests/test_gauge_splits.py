@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pipeline.hydro.match import StationMatch
-from pipeline.hydro.splits import split_defs
+from pipeline.gauges.generate.match import StationMatch
+from pipeline.gauges.consume.cuts import split_defs
 from pipeline.models import AnchorType
 from pipeline.models.splits import SplitDef
 

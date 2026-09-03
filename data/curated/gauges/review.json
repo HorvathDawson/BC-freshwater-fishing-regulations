@@ -1,5 +1,5 @@
 {
- "_about": "Hand review of gauge matches, and an INPUT to `pipeline.hydro.match` rather than output: `gauge_match.json` is rewritten wholesale on every run, so a decision recorded there would not survive. verdict is `confirmed` (the automatic match is right — pinned so a later atlas release cannot move it silently), `bind` (force this station onto these FWA keys; several is legal, a lake outlet describes both the lake and the stream below it), or `refused` (there is no such water). Edited by hand and by the gauge review page.",
+ "_about": "Hand review of gauge matches, and an INPUT to `pipeline.gauges.generate.match` rather than output: `gauge_match.json` is rewritten wholesale on every run, so a decision recorded there would not survive. verdict is `confirmed` (the automatic match is right — pinned so a later atlas release cannot move it silently), `bind` (force this station onto these FWA keys; several is legal, a lake outlet describes both the lake and the stream below it), or `refused` (there is no such water). Edited by hand and by the gauge review page.",
  "stations": {
   "07EA006": {
    "verdict": "confirmed",

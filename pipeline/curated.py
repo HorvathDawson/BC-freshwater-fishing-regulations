@@ -1,7 +1,8 @@
-"""Where the curated data is — validated once, at import, by pydantic.
+"""Where the data is — validated once, at import, by pydantic.
 
-    from pipeline.curated import CURATED
-    defs = load_split_defs(CURATED.splits)
+    from pipeline.curated import CURATED, SOURCE
+    defs = load_split_defs(CURATED.waters.splits)
+    roster = SOURCE / "bc_hydrometric_stations.json"
 
 WHY A MODEL AND NOT `get_path("curated", "splits")`.
 
@@ -13,22 +14,26 @@ three full builds, one of which was promoted, and nothing anywhere looked wrong.
 
 pydantic's `FilePath` and `DirectoryPath` refuse to construct if the path is not there. So
 the failure moves from "a quiet wrong answer, three builds later" to "the process will not
-start, and names the key". That is the entire argument for the dependency, and pydantic is
-already in `requirements.txt` for the parsing models.
+start, and it names the key". That is the entire argument for the dependency, and pydantic
+is already in `requirements.txt` for the parsing models.
 
-THREE KINDS OF PATH, AND THEY VALIDATE DIFFERENTLY:
+THREE KINDS OF DATA, AND THE DIFFERENCE IS WHAT IT COSTS TO LOSE:
 
-    authored        FilePath / DirectoryPath. A human typed it; if it is missing, something
-                    is deeply wrong and the process must stop.
-    reviewed        FilePath where built, `None` where not. `stock_match.json` and
-                    `chart_match.json` do not exist yet and are declared as null on purpose,
-                    so the day they land there is one place to point at them.
-    optional        `Path` with no existence check — nothing today, kept for the shape.
+    source      fetched from an authority. Re-downloadable.
+    generated   computed. Re-runnable.
+    curated     human-owned. Not recreatable at any price.
 
-WHAT THIS IS NOT. It is not a general config layer. `ProjectConfig` still owns `output:`,
-`llm:` and the rest; this covers the tree where a wrong path costs human work rather than
-CPU. Widening it is fine, but the value here is the strictness, and strictness is only
-affordable where every file genuinely must exist.
+The third splits again, and the split is what this module exists to make visible:
+
+    authored    a person typed it — splits, name_variants, added_lakes
+    promoted    a machine produced it and a person APPROVED it — the gauge matches,
+                added_streams. It LOOKS generated, which is exactly the danger: someone
+                re-runs the generator "just to check" and destroys the review.
+
+A CURATED PATH IS NEVER OVERRIDABLE BY AN ENVIRONMENT VARIABLE. That is the
+`review_build` failure with a new coat of paint — the app rebuilt one directory and read
+another and neither said so. There is one answer to "where is the curated data" and it
+lives in `config.yaml`. Env override is for `output/` and for which build to read.
 """
 
 from __future__ import annotations
@@ -48,13 +53,31 @@ def _absolute(v: object) -> object:
 
     `pipeline/dfo_salmon/match.py` used a bare `Path("pipeline/splits.json")`, which worked
     only because everything happens to be run from the repo root. A path that is correct
-    from one directory and silently wrong from another is the same class of bug as a missing
-    one, and harder to see.
+    from one directory and silently wrong from another is the same class of bug as a
+    missing one, and harder to see.
     """
     if isinstance(v, str):
         p = Path(v)
         return p if p.is_absolute() else ROOT / p
     return v
+
+
+class Waters(BaseModel):
+    """Curation that shapes the atlas itself."""
+
+    model_config = ConfigDict(frozen=True)
+
+    splits: FilePath
+    name_variants: FilePath
+    areas: FilePath
+    added_lakes: FilePath
+    #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
+    added_streams: FilePath
+    #: The worklist for minting more added lakes. Zero code references BY DESIGN; the
+    #: minting is a hand process. Declared here so a dead-file sweep cannot delete it.
+    ungazetted: FilePath
+
+    _abs = field_validator("*", mode="before")(_absolute)
 
 
 class Entries(BaseModel):
@@ -68,15 +91,32 @@ class Entries(BaseModel):
     _abs = field_validator("*", mode="before")(_absolute)
 
 
-class Matches(BaseModel):
-    """Machine-produced, human-reviewed. `None` means "declared, not built yet"."""
+class Regulations(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    overrides: FilePath
+    entries: Entries
+
+    _abs = field_validator("overrides", mode="before")(_absolute)
+
+
+class Domain(BaseModel):
+    """One matching domain: an external id -> FWA keys, plus the hand review of it.
+
+    `review` is an INPUT to matching and is never written by a program. `matches` is
+    regenerated wholesale. Two files rather than one is what makes a regenerate PHYSICALLY
+    unable to harm the review — the safety is in the filesystem, not in code remembering.
+
+    `None` means "declared, not built yet". Stocking and bathymetry are named before they
+    exist so the freshness gate is already waiting for them.
+    """
 
     model_config = ConfigDict(frozen=True)
 
-    gauge: FilePath | None = None
+    matches: FilePath | None = None
+    review: FilePath | None = None
+    #: Gauges only: ECCC's stated water-body type, scraped once. An input to matching.
     waterbody_type: FilePath | None = None
-    stocking: FilePath | None = None
-    charts: FilePath | None = None
 
     _abs = field_validator("*", mode="before")(_absolute)
 
@@ -87,24 +127,38 @@ class Curated(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     base: DirectoryPath
-    splits: FilePath
-    name_variants: FilePath
-    overrides: FilePath
-    areas: FilePath
-    added_lakes: FilePath
-    added_streams: FilePath
-    gauge_review: FilePath
-    entries: Entries
-    matches: Matches
+    waters: Waters
+    regulations: Regulations
+    gauges: Domain
+    stocking: Domain
+    bathymetry: Domain
 
-    _abs = field_validator("base", "splits", "name_variants", "overrides", "areas",
-                           "added_lakes", "added_streams", "gauge_review",
-                           mode="before")(_absolute)
+    _abs = field_validator("base", mode="before")(_absolute)
+
+    def domain(self, name: str) -> Domain:
+        """`c.domain("gauges")` — for tools that loop over all three."""
+        got = getattr(self, name, None)
+        if not isinstance(got, Domain):
+            raise KeyError(f"{name!r} is not a matching domain; "
+                           f"try one of gauges, stocking, bathymetry")
+        return got
 
 
-@functools.lru_cache(maxsize=1)
+class DataTree(BaseModel):
+    """Where fetched and computed data live. Not curated; losing either costs machine time."""
+
+    model_config = ConfigDict(frozen=True)
+
+    source: DirectoryPath
+    #: Created on demand — a fresh checkout has run nothing, so this must not require it.
+    generated: Path
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
+@functools.lru_cache(maxsize=2)
 def load(config: Path | None = None) -> Curated:
-    """The validated tree. Cached, because validation stats every file.
+    """The validated curated tree. Cached, because validation stats every file.
 
     Raises `pydantic.ValidationError` naming the offending key when a path is wrong — which
     is the whole point, and is why nothing here has a fallback default.
@@ -112,24 +166,52 @@ def load(config: Path | None = None) -> Curated:
     path = config or CONFIG
     blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     if "curated" not in blob:
-        raise KeyError(f"{path} has no `curated:` tree — see pipeline/docs/16")
+        raise KeyError(f"{path} has no `curated:` tree — see the restructure plan")
     return Curated.model_validate(blob["curated"])
 
 
-class _Lazy:
-    """`CURATED.splits` without paying validation at import of an unrelated module.
+@functools.lru_cache(maxsize=2)
+def load_data_tree(config: Path | None = None) -> DataTree:
+    """Where `source/` and `generated/` are."""
+    path = config or CONFIG
+    blob = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if "data_tree" not in blob:
+        raise KeyError(f"{path} has no `data_tree:` — see the restructure plan")
+    return DataTree.model_validate(blob["data_tree"])
 
-    Importing `pipeline.curated` must not stat twelve files just because something wanted a
+
+class _Lazy:
+    """`CURATED.waters.splits` without paying validation at import of an unrelated module.
+
+    Importing `pipeline.curated` must not stat twenty files just because something wanted a
     type from this module. The first ATTRIBUTE access loads and validates; everything after
     is cached.
     """
 
+    def __init__(self, loader):
+        self._loader = loader
+
     def __getattr__(self, name: str):
-        return getattr(load(), name)
+        return getattr(self._loader(), name)
 
     def __repr__(self) -> str:
-        return f"<CURATED {CONFIG}>"
+        return f"<lazy {self._loader.__name__} {CONFIG}>"
+
+    def __truediv__(self, other):
+        """So `SOURCE / "roster.json"` reads naturally where SOURCE is a directory."""
+        return self._loader().source / other
 
 
-#: The tree. Import this, not the loader.
-CURATED = _Lazy()
+#: The curated tree. Import this, not the loader.
+CURATED = _Lazy(load)
+
+#: `SOURCE / "bc_hydrometric_stations.json"` — fetched data, addressed through config so a
+#: fetcher and a reader cannot disagree about where a file went.
+SOURCE = _Lazy(load_data_tree)
+
+
+def generated(*parts: str) -> Path:
+    """A path under `data/generated/`, creating the directory. Nothing here is precious."""
+    p = load_data_tree().generated.joinpath(*parts)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    return p

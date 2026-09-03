@@ -118,7 +118,7 @@ class ProjectConfig:
     @property
     def synopsis_pdf_path(self) -> Path:
         """Get path to fishing synopsis PDF."""
-        return self.project_root / "data" / "fishing_synopsis.pdf"
+        return self.project_root / "data" / "source" / "fishing_synopsis.pdf"
 
     @property
     def synopsis_raw_data_path(self) -> Path:

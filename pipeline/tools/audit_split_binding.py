@@ -34,6 +34,7 @@ from pathlib import Path
 from pipeline.registry import load_registry
 from pipeline.io.serialize import read_artifact
 from pipeline.splits.splits import load_split_defs
+from pipeline.curated import CURATED, SOURCE
 
 
 def _bare(x) -> str:
@@ -42,11 +43,11 @@ def _bare(x) -> str:
     return x.split(":", 1)[1] if x.startswith("split:") else x
 
 
-def audit(build: Path, splits_path: str = "pipeline/splits.json") -> list[dict]:
+def audit(build: Path, splits_path: str | None = None) -> list[dict]:
     registry = load_registry(str(build / "registry.json"))
     graph = read_artifact(str(build / "graph.pkl"))
     resolved = json.loads((build / "splits.resolved.json").read_text(encoding="utf-8"))
-    defs = {d.id: d for d in load_split_defs(splits_path)}
+    defs = {d.id: d for d in load_split_defs(str(splits_path or CURATED.waters.splits))}
 
     carried: set[str] = set()
     for it in registry.values():
@@ -108,7 +109,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--build", default="output/v2/full")
-    ap.add_argument("--splits", default="pipeline/splits.json")
+    ap.add_argument("--splits", default=str(CURATED.waters.splits))
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
 

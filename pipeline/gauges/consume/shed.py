@@ -211,7 +211,7 @@ def build_gauge_sheds(graph, stations: list[dict], node_for_station: dict[str, s
                       *, report: list[str] | None = None) -> list[GaugeLink]:
     """Every (section, gauge) pair worth storing — ALL gauges per section, best first.
 
-    ``node_for_station`` comes from the spatial match (``pipeline.hydro.match``) and is kept
+    ``node_for_station`` comes from the spatial match (``pipeline.gauges.generate.match``) and is kept
     a separate argument on purpose: matching needs geometry and a 5 GB atlas, this needs
     neither, so the expensive half can be cached and this half re-run freely.
 

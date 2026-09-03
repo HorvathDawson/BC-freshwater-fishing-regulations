@@ -31,10 +31,11 @@ import re
 from pathlib import Path
 
 from pipeline.tiles.names import normalise
+from pipeline.curated import CURATED, SOURCE
 
-CSV_PATH = Path("data/wsa_bathymetry_maps.csv")
-WFS_PATH = Path("data/bc_bathymetry_sheets.json")
-GPKG = Path("data/bc_fisheries_data.gpkg")
+CSV_PATH = SOURCE / "wsa_bathymetry_maps.csv"
+WFS_PATH = SOURCE / "bc_bathymetry_sheets.json"
+GPKG = SOURCE / "bc_fisheries_data.gpkg"
 GRAPH = Path("output/v2/full/graph.pkl")
 
 

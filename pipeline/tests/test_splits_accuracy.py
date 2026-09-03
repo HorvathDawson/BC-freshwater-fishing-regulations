@@ -11,8 +11,9 @@ import os
 import pytest
 from pyproj import Transformer
 from shapely.geometry import Point
+from pipeline.curated import CURATED, SOURCE
 
-_DATA = "data/bc_fisheries_data.gpkg"
+_DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
 
 # split_id -> max acceptable distance (m) from its curated _coord (offset-accounted).
@@ -34,8 +35,8 @@ def test_bella_coola_splits_resolve_near_curated_coords():
     from pipeline.graph.blk_chains import load_stream_fids, build_blk_chains
     from pipeline.build import get_lake_wbk_kind
 
-    defs = {d.id: d for d in load_split_defs("pipeline/splits.json")}
-    j = json.loads(open("pipeline/splits.json").read())
+    defs = {d.id: d for d in load_split_defs(str(CURATED.waters.splits))}
+    j = json.loads(CURATED.waters.splits.read_text())
     coords = {s["id"]: s.get("_coord") for wb in j["waterbodies"] for s in wb["splits"]}
     for sid in _EXPECT:
         assert sid in defs, f"{sid} missing from splits.json"

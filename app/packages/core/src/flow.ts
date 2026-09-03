@@ -57,7 +57,7 @@ export function bandAt(pentads: readonly (Band | null)[], dayOfYear: number): Ba
  * CROSSING speaking for the Chilliwack. It could not have had one: the gate needs FWA
  * watershed codes for two million nodes, and none of that ships to a client.
  *
- * So the band is read, never computed. `pipeline/hydro/shed.py` decides it once and writes
+ * So the band is read, never computed. `pipeline/gauges/consume/shed.py` decides it once and writes
  * it to `section_gauge.trust`; the names and floors below are generated from that same file
  * so the two cannot drift, and `pipeline.tools.emit_gauge_policy --check` fails the build if
  * they do. Changing the rule means changing `shed.py` and rebuilding — which is the point.

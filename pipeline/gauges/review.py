@@ -52,9 +52,10 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pipeline.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
-REVIEW_FILE = ROOT / "pipeline" / "gauge_review.json"
+REVIEW_FILE = CURATED.gauges.review
 
 Verdict = Literal["confirmed", "bind", "wrong", "none"]
 
@@ -159,7 +160,7 @@ def save(review: Review, path: Path | None = None) -> Path:
     path = path or REVIEW_FILE
     body = {
         "_about": review.about or (
-            "Hand review of gauge matches, and an INPUT to `pipeline.hydro.match` rather "
+            "Hand review of gauge matches, and an INPUT to `pipeline.gauges.generate.match` rather "
             "than output: `gauge_match.json` is rewritten wholesale on every run, so a "
             "decision recorded there would not survive. verdict is `confirmed` (the "
             "automatic match is right — pinned so a later atlas release cannot move it "

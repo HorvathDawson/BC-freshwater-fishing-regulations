@@ -24,13 +24,14 @@ from pathlib import Path
 from pipeline.matching.matcher import (
     build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
+from pipeline.curated import CURATED, SOURCE
 
 #: The hand-curated match overrides the BUILD uses. Defaulting to this is not a
 #: convenience: without it the matcher returns `ambiguous` for every entry an override
 #: disambiguates ("Yakoun River" -> gnis:3485), the builder loses those items, and the
 #: bundle silently disagrees with the review app about which water a rule is even on.
 #: Passing None here cost 82 rules before it was caught.
-DEFAULT_OVERRIDES = Path(__file__).resolve().parents[2] / "pipeline" / "matching" / "overrides.json"
+DEFAULT_OVERRIDES = CURATED.regulations.overrides
 
 
 def make_matcher(registry, overrides_path="__default__"):

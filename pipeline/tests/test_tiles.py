@@ -13,6 +13,7 @@ from pathlib import Path
 from pipeline.tiles import ladder
 from pipeline.tiles.layers import ALL, BY_NAME
 from pipeline.tiles.names import display, haystack, normalise
+from pipeline.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -93,7 +94,7 @@ def test_normalise_is_what_search_compares():
 # ------------------------------------------------- areas.json <-> layers contract
 
 def _areas():
-    return json.loads((ROOT / "pipeline/areas.json").read_text())["areas"]
+    return json.loads(CURATED.waters.areas.read_text())["areas"]
 
 
 def test_every_area_declares_a_tile_layer_that_exists():

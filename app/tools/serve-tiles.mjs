@@ -70,7 +70,7 @@ createServer((req, res) => {
     //
     //   /feeds/gauge/*  the fixture feed, matching the fixture bundle. Five stations, and
     //                   `tools/feed-contract.test.ts` holds it to the contract.
-    //   /feeds/live/*   whatever `python -m pipeline.hydro.publish` last wrote — real ECCC
+    //   /feeds/live/*   whatever `python -m pipeline.gauges.feed.publish` last wrote — real ECCC
     //                   data, matching the PROVINCE bundle.
     //
     // They were briefly one directory, and the gate caught it immediately: real stations

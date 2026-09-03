@@ -24,6 +24,7 @@ import json
 from pathlib import Path
 
 from pipeline.parsing.ingest import _load_all_batch_items, load_batch_items
+from pipeline.parsing import io as _io
 
 
 def _entries_by_id(entries_dir: Path) -> dict[str, dict]:
@@ -68,7 +69,7 @@ def main() -> None:
     else:
         from pipeline.parsing.batch_exporter import default_work_dir
         out_dir = default_work_dir()
-    entries_dir = Path(args.entries_dir) if args.entries_dir else (Path(__file__).resolve().parent / "entries")
+    entries_dir = Path(args.entries_dir) if args.entries_dir else _io.entries_dir()
 
     rep = synth(out_dir / "batches", out_dir / "responses", entries_dir)
     print(f"synthesized responses for {rep['batches']} batch(es) from {entries_dir}")

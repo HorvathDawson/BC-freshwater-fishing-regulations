@@ -12,7 +12,7 @@ code — is in the frozen match, which is the single place a station is ever loc
 
     data/bc_hydrometric_stations.json        fetched, the roster
       │
-      │  python -m pipeline.hydro.match --build <a completed build>
+      │  python -m pipeline.gauges.generate.match --build <a completed build>
       ▼
     pipeline/gauge_match.json                frozen: station -> coord + wsc (or wbk)
       │                        │
@@ -54,7 +54,7 @@ def split_defs(matches, stations: list[dict], *, live_only: bool = True) -> list
             continue
         # A LAKE STATION IS NOT A CUT. It reports a level for a body of water; there is no
         # "above it" and "below it" along a channel to separate. Lake gauges are linked to
-        # the lake itself by `pipeline.hydro.shed.lake_gauge_links`, which is the question
+        # the lake itself by `pipeline.gauges.consume.shed.lake_gauge_links`, which is the question
         # they can actually answer. The match records them with a `wbk` and no `blk`.
         if m.status != "matched" or m.wbk or not m.wsc:
             continue

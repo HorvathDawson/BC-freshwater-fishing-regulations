@@ -14,13 +14,14 @@ from pathlib import Path
 from project_config import get_config
 from pipeline.models import AnchorType, BlkChain, SplitPoint
 from pipeline.splits.anchors import _area_transition_measures
+from pipeline.curated import CURATED, SOURCE
 
 ROOT = get_config().project_root
 _GPKG = str(get_config().fwa_data_gpkg)
 
 
 def load_area_split_defs(path: str | None = None) -> list[dict]:
-    p = Path(path) if path else ROOT / "pipeline/areas.json"
+    p = Path(path) if path else CURATED.waters.areas
     if not p.exists():
         return []
     return json.loads(p.read_text()).get("areas", [])

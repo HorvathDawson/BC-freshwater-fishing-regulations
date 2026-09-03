@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pipeline.hydro import forecast as F
+from pipeline.gauges.feed import forecast as F
 
 
 class TestIssuedAt:

@@ -12,7 +12,7 @@ still open. Nothing here is a plan.
 
 ```
 data/bc_hydrometric_stations.json          fetched roster
-  │   python -m pipeline.hydro.match --build <a completed build>
+  │   python -m pipeline.gauges.generate.match --build <a completed build>
   ▼
 pipeline/gauge_match.json                  coord + wsc (streams) · coord + wbk (lakes)
   ├──► pipeline.build     a `gauge` point anchor at the coord, scoped by wsc, appended
@@ -24,7 +24,7 @@ Two-pass because matching compares a station's name against every name a node ca
 those include `name_variants.json`, applied *during* a build. 2,097 of 2,324 stations
 matched; 438 of 439 *transmitting* ones (99.8%).
 
-**Feed.** `pipeline.hydro.publish` every 30 minutes: ECCC observations, percentiles against
+**Feed.** `pipeline.gauges.feed.publish` every 30 minutes: ECCC observations, percentiles against
 a HYDAT envelope, this year's daily record accumulated by the feed itself, and BC River
 Forecast Centre runs (all models per station, series fetched only when the issue time
 moves). `index.json` is ~70 KB and carries both a discharge and a level percentile.

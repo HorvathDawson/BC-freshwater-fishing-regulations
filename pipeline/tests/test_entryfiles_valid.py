@@ -15,8 +15,9 @@ from pathlib import Path
 import pytest
 
 from pipeline.parsing.entry_models import Entry
+from pipeline.curated import CURATED, SOURCE
 
-ENTRIES = sorted((Path(__file__).resolve().parents[1] / "parsing" / "entries").glob("region-*.json"))
+ENTRIES = sorted(CURATED.regulations.entries.synopsis.glob("region-*.json"))
 
 
 @pytest.mark.parametrize("path", ENTRIES, ids=lambda p: p.name)

@@ -15,6 +15,7 @@ import pytest
 from pipeline.graph.blk_chains import FidRow
 from pipeline.graph.graph import _assign_owners, _lake_name_pairs
 from pipeline.hack.added_lakes import ingest
+from pipeline.curated import CURATED
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,7 +29,7 @@ def _fid(fid, down, up, geom, wbk="riverpoly"):
 def test_the_curated_file_is_loadable_and_every_id_is_negative():
     """Both synthetic ids must be negative: a positive one could collide with a real FWA key and
     silently re-home its fids, which is the one failure this whole package could cause."""
-    lakes = ingest.load(ROOT / "added_lakes.geojson")
+    lakes = ingest.load(CURATED.waters.added_lakes)
     assert lakes, "expected at least one curated lake"
     for lk in lakes:
         assert lk["wbk"].startswith("-"), lk["wbk"]
@@ -59,7 +60,7 @@ def test_the_polygon_cuts_the_stream_it_covers():
     import geopandas as gpd
     from shapely.geometry import LineString, shape
 
-    lakes = ingest.load(ROOT / "added_lakes.geojson")
+    lakes = ingest.load(CURATED.waters.added_lakes)
     poly = gpd.GeoSeries([shape(lakes[0]["geometry"])], crs=4326).to_crs(3005)[0]
     c = poly.centroid
 
@@ -70,7 +71,7 @@ def test_the_polygon_cuts_the_stream_it_covers():
         _fid("f2", 100, 200, line(-20, 20)), _fid("f3", 200, 300, line(800, 900))
     fids = [below, through, above]
     lake_kind, lake_names, polys = {}, {}, {}
-    rep = ingest.merge(fids, lake_kind, lake_names, polys, ROOT / "added_lakes.geojson")
+    rep = ingest.merge(fids, lake_kind, lake_names, polys, CURATED.waters.added_lakes)
 
     assert rep["claimed"] == {lakes[0]["wbk"]: ["f2"]}, "only the fid INSIDE is claimed"
     assert through.wbk == lakes[0]["wbk"] and below.wbk == "riverpoly" and above.wbk == "riverpoly"
@@ -109,7 +110,7 @@ def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     assert TRESTON not in (idx.get(_norm("Redsand Lake")) or []), \
         "Treston must never answer to the bare name 'Redsand Lake'"
 
-    nv = json.loads((ROOT / "name_variants.json").read_text(encoding="utf-8"))
+    nv = json.loads((CURATED.waters.name_variants).read_text(encoding="utf-8"))
     by_wbk = {w: e for e in nv for w in (e.get("target") or {}).get("wbks", [])}
     redsand = by_wbk["-1"]["names"][0]
     assert redsand["name"] == "Redsand Lake" and redsand["display"] is True, \
@@ -147,7 +148,7 @@ def test_a_wsc_target_can_be_confined_to_streams():
 
 def test_every_dfo_wsc_name_variant_is_confined_to_streams():
     """Guarding the data, not just the mechanism: one un-confined entry silently renames a lake."""
-    nv = json.loads((ROOT / "name_variants.json").read_text(encoding="utf-8"))
+    nv = json.loads((CURATED.waters.name_variants).read_text(encoding="utf-8"))
     bad = [e["target"]["wscs"] for e in nv
            if (e.get("target") or {}).get("wscs")
            and any((n.get("source") or "") == "dfo" for n in e["names"])

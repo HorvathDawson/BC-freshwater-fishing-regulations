@@ -46,8 +46,10 @@ from pathlib import Path
 
 from dataclasses import asdict, dataclass, fields, replace
 
-from pipeline.hydro import review as _review
+from pipeline.gauges import review as _review
 from pipeline.tiles.names import normalise
+from pipeline.curated import CURATED, SOURCE
+from pipeline.gauges.matches import MATCH_FILE, StationMatch, read_match, write_match
 
 # Longest first, so "ABOVE THE" wins over "ABOVE" and "UPSTREAM OF" over "AT".
 #
@@ -125,7 +127,7 @@ KM2_PER_MAGNITUDE = 0.80
 AREA_TOLERANCE_DECADES = 1.0
 
 # WHERE THE HAND REVIEW LIVES: `pipeline/gauge_review.json`, loaded by
-# `pipeline.hydro.review`. It used to be a dict right here, and it outgrew that the moment a
+# `pipeline.gauges.review`. It used to be a dict right here, and it outgrew that the moment a
 # person sat down with the map — 23 entries, each needing the station's name, what the
 # matcher had said, and why the human disagreed. Curation belongs in a curated file for the
 # same reason `matching/overrides.json` is not a Python literal: it is edited by people and
@@ -136,54 +138,9 @@ AREA_TOLERANCE_DECADES = 1.0
 # station fails loudly instead of silently. Half of a review is in the rows that were already
 # fine, and keeping only the corrections throws that half away.
 #
-# See `pipeline/hydro/review.py`.
+# See `pipeline/gauges/review.py`.
 
 
-@dataclass(frozen=True)
-class StationMatch:
-    """One station's outcome, addressed by keys the FWA owns rather than by a node id.
-
-    NODE IDS ARE BUILD OUTPUT. `{blk}:{down_m}` is assigned by the sectionizer, so it moves
-    the moment a river is cut differently — which the gauge splits do, deliberately, on the
-    very next build. A match frozen as node ids is therefore stale by construction: it names
-    sections the graph it is being read against does not have.
-
-    THE ADDRESS IS A PLACE AND A WATER, and nothing derived.
-
-        streams   the station's published coordinate + `wsc`, the FWA watershed code
-        lakes     the station's published coordinate + `wbk`, the FWA waterbody key
-
-    A route measure would work too — FWA measures survive re-sectioning — but it is a number
-    WE compute from the coordinate, and freezing a derived value means every consumer
-    inherits whatever we believed about projection on the day the file was written. The
-    coordinate is the primary fact: ECCC publishes it, it does not move, and each consumer
-    projects it itself against the graph in front of it.
-
-        the build   a `gauge` point anchor at the coordinate, scoped by `wsc`
-        the bundle  the nearest section on that water, taking the UPSTREAM one where the
-                    gauge sits on a boundary — that is the water it has just measured
-
-    One frozen fact, no cached derivative that can disagree with it.
-    """
-    station: str
-    status: str                  # matched | no_match | unresolved
-    resolved_by: str | None      # name+radius | alias | override
-    distance_m: float | None
-    reason: str | None = None
-    # --- the address (empty when unmatched) ---
-    lon: float | None = None     # the station's own published position
-    lat: float | None = None
-    wsc: str = ""                # FWA watershed code: the river and its side channels
-    wbk: str = ""                # FWA waterbody key, when the station is on a lake
-    # --- review aids, never an input to anything ---
-    name: str = ""               # the water the atlas calls this, at the time of matching
-    blk: str = ""                # the blue line it matched. Diagnostic; see the note above.
-    node_id: str | None = None   # the node it matched IN THAT BUILD. Diagnostic only.
-    #: Additional FWA keys a curated `bind` named, beyond the one in `wsc`/`wbk`. A lake
-    #: outlet describes both the lake and the stream leaving it. RECORDED, NOT YET CONSUMED
-    #: — widening the match to several waters reaches split_defs, nodes_for and the shed
-    #: walk, so the curation is captured now and acted on when those are ready.
-    also: tuple[str, ...] = ()
 
 
 def _area_km2(station: dict) -> float | None:
@@ -560,45 +517,10 @@ def load_aliases(path: Path | None = None) -> dict[str, str]:
             if not k.startswith("$")}
 
 
-#: THE ONE FROZEN FACT about where BC's gauges are, committed and reviewable.
-#:
-#: Beside `splits.json` and `added_streams.build.json`, and generated the same way: run it
-#: against a completed build, commit the answer, and the NEXT build reads it. It has to be
-#: two-pass because matching compares a station's name against every name a node carries,
-#: and those include `name_variants.json`, which is applied during the build.
-MATCH_FILE = Path(__file__).resolve().parents[1] / "gauge_match.json"
 
 
-def write_match(matches: list[StationMatch], path: Path | None = None) -> Path:
-    """Freeze the match. Sorted by station, so a diff reads as a list of gauges."""
-    path = path or MATCH_FILE
-    path.write_text(json.dumps({
-        "_about": "Where each hydrometric station sits: its own published coordinate plus "
-                  "the FWA key for the water it is on — `wsc` for a stream, `wbk` for a "
-                  "lake. NOT node ids, which are build output and move whenever a river is "
-                  "re-sectioned, and NOT a route measure, which is a number we derive from "
-                  "the coordinate rather than a fact anyone published. GENERATED by "
-                  "`python -m pipeline.hydro.match --build <a completed build>`; do not "
-                  "hand-edit. Read by pipeline.build (to cut rivers at their gauges) and by "
-                  "pipeline.bundle (to place each station on a section).",
-        "stations": [asdict(m) for m in sorted(matches, key=lambda m: m.station)],
-    }, indent=1) + "\n", encoding="utf-8")
-    return path
 
 
-def read_match(path: Path | None = None) -> list[StationMatch]:
-    """The frozen match, or an empty list if it has never been generated."""
-    path = path or MATCH_FILE
-    if not path.exists():
-        return []
-    rows = json.loads(path.read_text(encoding="utf-8")).get("stations", [])
-    known = {f.name for f in fields(StationMatch)}
-    # JSON has no tuples. `also` comes back a list, and a list-vs-tuple difference makes two
-    # otherwise identical matches compare unequal — which is how a round-trip test starts
-    # failing for a reason that has nothing to do with the data.
-    return [StationMatch(**{k: (tuple(v) if k == "also" else v)
-                            for k, v in r.items() if k in known})
-            for r in rows]
 
 
 def summarise(matches: list[StationMatch], live: set[str] | None = None) -> str:
@@ -619,13 +541,13 @@ def main() -> None:
     import argparse
     import pickle
 
-    from pipeline.hydro.shed import load_stations
+    from pipeline.gauges.consume.shed import load_stations
 
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--build", type=Path, default=Path("output/v2/full"),
                     help="a completed build directory (graph.pkl, geometries.pkl)")
     ap.add_argument("--stations", type=Path,
-                    default=Path("data/bc_hydrometric_stations.json"))
+                    default=SOURCE / "bc_hydrometric_stations.json")
     ap.add_argument("--out", type=Path, default=MATCH_FILE)
     a = ap.parse_args()
 

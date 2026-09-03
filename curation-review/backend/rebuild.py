@@ -22,6 +22,7 @@ import time
 from collections import deque
 
 import reuse
+from pipeline.curated import CURATED, SOURCE
 
 # The stages build.py prints a "[label: Ns]" completion line for, IN ORDER — drives the progress bar.
 # (Border runs automatically under --full; area/mu/registry/write always run.)
@@ -39,7 +40,7 @@ _TICK_RE = re.compile(r"\[(?P<label>[^\]]+?):\s*(?P<sec>[\d.]+)s\]")
 # Rebuilds INTO the directory reuse.py serves. Both read `project_config.review_build_dir`, so the
 # two cannot drift — this used to be a second, independent hard-coding of "output/v2/full".
 _CMD = [sys.executable, "-m", "pipeline.build", "--full",
-        "--out", str(get_config().review_build_dir), "--splits", "pipeline/splits.json"]
+        "--out", str(get_config().review_build_dir), "--splits", str(CURATED.waters.splits)]
 
 
 class _Rebuild:
