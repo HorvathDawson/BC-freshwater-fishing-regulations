@@ -17,26 +17,26 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_mainstem_edge_kinds_is_defined_once():
-    from pipeline.graph.tributaries import _MAINSTEM_EDGE_KINDS as a
-    from pipeline.models.graph import MAINSTEM_EDGE_KINDS as canonical
-    from pipeline.reach.tributaries import MAINSTEM_EDGE_KINDS as b
+    from pipeline.atlas.graph.tributaries import _MAINSTEM_EDGE_KINDS as a
+    from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS as canonical
+    from pipeline.atlas.reach.tributaries import MAINSTEM_EDGE_KINDS as b
 
     assert a is canonical and b is canonical, "a module is redeclaring the mainstem set"
 
-    for mod in ("pipeline/graph/tributaries.py", "pipeline/reach/tributaries.py"):
+    for mod in ("pipeline/atlas/graph/tributaries.py", "pipeline/atlas/reach/tributaries.py"):
         src = (ROOT / mod).read_text()
         assert "frozenset({\"continuation\"" not in src, f"{mod} declares its own copy"
 
 
 def test_the_bundle_normalises_names_the_way_the_tiles_do():
-    src = (ROOT / "pipeline/bundle/build.py").read_text()
-    assert "from pipeline.tiles.names import normalise" in src, (
+    src = (ROOT / "pipeline/deliver/bundle/build.py").read_text()
+    assert "from pipeline.deliver.tiles.names import normalise" in src, (
         "the bundle is comparing names raw again; the tile folds case and punctuation, so "
         "the two indexes would disagree about what counts as a distinct name")
 
 
 def test_normalise_folds_the_case_that_caused_it():
-    from pipeline.tiles.names import normalise
+    from pipeline.deliver.tiles.names import normalise
 
     # The actual bug: the registry carries both cases of ~3,000 names.
     assert normalise("EAST WHITE RIVER") == normalise("East White River")
@@ -51,7 +51,7 @@ def test_normalise_does_not_yet_fold_a_possessive():
     Changing it would change the tile's search haystack as well as the bundle's — which is
     now the point: there is one function, so it is one decision, made once.
     """
-    from pipeline.tiles.names import normalise
+    from pipeline.deliver.tiles.names import normalise
 
     assert normalise("St. Mary's Lake") != normalise("St Marys Lake")
 

@@ -11,7 +11,7 @@ import os
 import pytest
 from pyproj import Transformer
 from shapely.geometry import Point
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
@@ -30,10 +30,10 @@ _EXPECT = {
 @_needs_data
 def test_bella_coola_splits_resolve_near_curated_coords():
     from data.data_extractor import FWADataAccessor
-    from pipeline.splits.splits import load_split_defs
-    from pipeline.splits.anchors import resolve_split_defs
-    from pipeline.graph.blk_chains import load_stream_fids, build_blk_chains
-    from pipeline.build import get_lake_wbk_kind
+    from pipeline.atlas.splits.splits import load_split_defs
+    from pipeline.atlas.splits.anchors import resolve_split_defs
+    from pipeline.atlas.graph.blk_chains import load_stream_fids, build_blk_chains
+    from pipeline.atlas.build import get_lake_wbk_kind
 
     defs = {d.id: d for d in load_split_defs(str(CURATED.waters.splits))}
     j = json.loads(CURATED.waters.splits.read_text())

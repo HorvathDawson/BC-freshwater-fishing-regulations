@@ -15,8 +15,8 @@ from __future__ import annotations
 import inspect
 import re
 
-from pipeline.tiles import export as E
-from pipeline.tiles.layers import ALL, BY_NAME
+from pipeline.deliver.tiles import export as E
+from pipeline.deliver.tiles.layers import ALL, BY_NAME
 
 
 def _emitted_prop_keys(fn) -> set[str]:

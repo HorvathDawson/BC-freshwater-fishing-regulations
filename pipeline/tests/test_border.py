@@ -10,11 +10,11 @@ from dataclasses import replace
 
 from shapely.geometry import LineString, box
 
-from pipeline.graph import cutting
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.splits.border import border_split_points, mark_inside_area, mark_inside_areas, mark_out_of_bc
-from pipeline.graph.graph import build_section_geometries, build_stream_graph
-from pipeline.splits.sectionizer import split_graph_at
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.splits.border import border_split_points, mark_inside_area, mark_inside_areas, mark_out_of_bc
+from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
+from pipeline.atlas.splits.sectionizer import split_graph_at
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m):
@@ -146,8 +146,8 @@ def test_area_flags_a_minted_waterbody_from_its_own_polygon():
     """A minted waterbody (isolated lake, marsh) has NO line geometry, so the membership pass has
     nothing to measure — and a pond or marsh inside a park is exactly the water an area closure names.
     `extra` supplies its FWA polygon, keyed by node id."""
-    from pipeline.models import NameSource, NodeKind
-    from pipeline.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, NodeKind
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
 
     graph, geoms, park = _area_setup()
     mint_waterbody_nodes(graph, {"777": (("Hidden Marsh", "1"),)}, NameSource.gazette, NodeKind.wetland)

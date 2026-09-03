@@ -14,13 +14,13 @@ closure gate marker), not the outside ones, and the inside pieces get the "withi
 
 from shapely.geometry import LineString, box
 
-from pipeline.graph import cutting
-from pipeline.splits.anchors import _target_blks, resolve_split_defs
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.splits.border import mark_inside_area
-from pipeline.graph.graph import build_section_geometries, build_stream_graph
-from pipeline.models import AnchorType, SplitAnchor, SplitDef
-from pipeline.splits.sectionizer import split_graph_at
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.splits.anchors import _target_blks, resolve_split_defs
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.splits.border import mark_inside_area
+from pipeline.atlas.graph.graph import build_section_geometries, build_stream_graph
+from pipeline.common.models import AnchorType, SplitAnchor, SplitDef
+from pipeline.atlas.splits.sectionizer import split_graph_at
 
 PARK = box(0, 0, 100, 100)
 PARK_WSC = "100-025956"          # "Pitt River" trunk; descendants share the prefix

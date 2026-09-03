@@ -27,7 +27,7 @@ before adopting it, build to a staging directory and swap — see `pipeline/docs
 
 ## Why
 
-The parser (`pipeline/parsing/`) turns each synopsis row into an `Entry` with `rules`, each bound to a
+The parser (`pipeline/regs/parsing/`) turns each synopsis row into an `Entry` with `rules`, each bound to a
 reach by `extents` (op + curated split ids). The parse is validated structurally, but a rule can be
 **confident-but-wrong** (bound to the wrong reach, wrong species, missed a restriction). A human needs
 to eyeball each entry against the source text — and, where the parser flagged uncertainty
@@ -49,7 +49,7 @@ couldn't. This tool is that review surface.
    - **Flag** → leave a note in `audit_log` and move on (still unlocked).
 
 > **Entry-model change needed:** add `reviewed_by: str` and `reviewed_at: str` (ISO) to
-> `pipeline/parsing/entry_models.py::Entry` (default empty). Confirm sets `locked=true` + both stamps;
+> `pipeline/regs/parsing/entry_models.py::Entry` (default empty). Confirm sets `locked=true` + both stamps;
 > ingest already preserves `locked` entries, so the stamps ride along untouched.
 
 ---
@@ -58,14 +58,14 @@ couldn't. This tool is that review surface.
 
 | Source | Path | Role |
 |---|---|---|
-| Entries (read **and write**) | `pipeline/parsing/entries/region-*.json` | the review surface; the app edits `locked`, extents, `matched`, `audit_log` |
+| Entries (read **and write**) | `pipeline/regs/parsing/entries/region-*.json` | the review surface; the app edits `locked`, extents, `matched`, `audit_log` |
 | Registry (read) | `output/v2/full/registry.json` | item identity, **`boundaries`** (the bindable splits), `variants`, `mus`, `section_ids` |
 | Split detail (read) | `output/v2/full/splits.resolved.json` | `{split_id, blk, route_measure, label, anchor_type}` — split metadata |
 | Geometry (read) | `output/v2/full/graph.gpkg` | layers: `streams`, `split_points`, `lakes`, `areas` — served as GeoJSON for the map |
 | Batch parse artifacts (read, optional) | `output/parse/{batches,responses,reviews}` | show the reviewer's findings + the raw parse for provenance |
 
 **Write model:** edits go back into `region-*.json` through the **same validators the pipeline uses**
-(`pipeline.parsing.entry_models.Entry` + `validate_entry_splits`) so the app can never write an invalid
+(`pipeline.regs.parsing.entry_models.Entry` + `validate_entry_splits`) so the app can never write an invalid
 entry. Writes are atomic (temp file + rename). **Git is the backstop, committed manually** by the
 curator before/after a session — the app does not auto-commit.
 
@@ -129,7 +129,7 @@ resolver slips.
 ## Tech stack (proposed — keep it small)
 
 - **Backend:** Python **FastAPI**, run locally (`uvicorn`). It imports the repo's own modules
-  (`pipeline.parsing.entry_models`, `pipeline.parsing.validate`, `pipeline.registry`) so load / edit /
+  (`pipeline.regs.parsing.entry_models`, `pipeline.regs.parsing.validate`, `pipeline.atlas.registry`) so load / edit /
   validate / save all reuse pipeline code — no logic is re-implemented. Serves the entries API + the
   per-item GeoJSON.
 - **Frontend:** a single lightweight page — plain HTML/JS or a minimal Vite setup — with MapLibre GL for

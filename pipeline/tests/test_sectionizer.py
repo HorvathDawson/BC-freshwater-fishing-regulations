@@ -6,13 +6,13 @@ Proves the ordering requirement: splits become graph nodes BEFORE the tributary 
 
 from shapely.geometry import LineString
 
-from pipeline.graph import cutting
-from pipeline.splits.anchors import resolve_split_defs
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.graph.graph import build_stream_graph
-from pipeline.models import AnchorType, SplitAnchor, SplitDef, SplitPoint
-from pipeline.splits.sectionizer import split_graph_at
-from pipeline.graph.tributaries import tributaries_between, tributary_node_ids
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.splits.anchors import resolve_split_defs
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.graph.graph import build_stream_graph
+from pipeline.common.models import AnchorType, SplitAnchor, SplitDef, SplitPoint
+from pipeline.atlas.splits.sectionizer import split_graph_at
+from pipeline.atlas.graph.tributaries import tributaries_between, tributary_node_ids
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, gnis_name=""):
@@ -127,7 +127,7 @@ def test_anchor_point_proximity_gate_skips_far_blk():
 def _split_env():
     """A 1,000 m mainstem piece with a side channel leaving it at 800 m and rejoining at 700 m."""
     from shapely.geometry import LineString
-    from pipeline.models import AnchorType, FlowEdge, NodeKind, SplitPoint, StreamGraph, StreamNode
+    from pipeline.common.models import AnchorType, FlowEdge, NodeKind, SplitPoint, StreamGraph, StreamNode
 
     g = StreamGraph()
     g.nodes["M:0"] = StreamNode(node_id="M:0", kind=NodeKind.stream, blk="M",
@@ -150,7 +150,7 @@ def _split_env():
 def test_outgoing_edge_moves_to_the_upper_piece():
     """The braid leaves at 800 m, above a cut at 500 m — so the edge must leave the UPPER piece.
     Left on the lower piece, the braid's two ends straddle a cut it is nowhere near."""
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     g, geoms, sp = _split_env()
     split_graph_at(g, geoms, [sp])
@@ -160,7 +160,7 @@ def test_outgoing_edge_moves_to_the_upper_piece():
 
 
 def test_incoming_edge_still_moves_by_at_measure():
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     g, geoms, sp = _split_env()
     split_graph_at(g, geoms, [sp])
@@ -170,7 +170,7 @@ def test_incoming_edge_still_moves_by_at_measure():
 
 def test_both_ends_of_the_braid_name_the_same_piece():
     """The whole point: a channel entirely above the cut must not appear to span it."""
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     g, geoms, sp = _split_env()
     split_graph_at(g, geoms, [sp])
@@ -180,8 +180,8 @@ def test_both_ends_of_the_braid_name_the_same_piece():
 
 
 def test_an_edge_without_a_coordinate_is_left_alone():
-    from pipeline.models import FlowEdge
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.common.models import FlowEdge
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     g, geoms, sp = _split_env()
     g.edges[0] = FlowEdge(from_node="M:0", to_node="B:0", at_measure=120.0, x=0.0, y=0.0)
@@ -196,10 +196,10 @@ def test_split_inside_a_lake_run_is_aliased_not_dropped():
     name for the boundary that stands at that place instead."""
     from dataclasses import replace
 
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.models.enums import AnchorType
-    from pipeline.models.splits import SplitPoint
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.common.models.enums import AnchorType
+    from pipeline.common.models.splits import SplitPoint
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     lake_bnd = SectionBoundary(boundary_id="lake:999", kind=BoundaryKind.lake,
                                route_measure=1000.0, label="Duncan Lake")
@@ -227,10 +227,10 @@ def test_split_inside_a_lake_run_is_aliased_not_dropped():
 def test_a_split_deep_inside_a_lake_is_not_aliased_to_its_edge():
     """The alias means "this is the lake's edge, just projected past it". A point 49 km into the lake
     is not that, so it stays missing and visible rather than binding to the wrong place."""
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.models.enums import AnchorType
-    from pipeline.models.splits import SplitPoint
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.common.models.enums import AnchorType
+    from pipeline.common.models.splits import SplitPoint
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     bnd = SectionBoundary(boundary_id="lake:999", kind=BoundaryKind.lake, route_measure=1000.0)
     below = StreamNode(node_id="10:0", kind=NodeKind.stream, blk="10", down_m=0.0, up_m=1000.0,
@@ -251,10 +251,10 @@ def test_a_split_in_a_non_lake_gap_is_never_aliased():
     """The narrow contract: only a LAKE run yields an alias. A gap between two pieces whose bounds are
     a confluence and a curated split is not the same place at all, and attaching the split to one of
     them would create a confident wrong binding — worse than a visibly missing one."""
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.models.enums import AnchorType
-    from pipeline.models.splits import SplitPoint
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.common.models.enums import AnchorType
+    from pipeline.common.models.splits import SplitPoint
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     lo = SectionBoundary(boundary_id="split:some_confluence", kind=BoundaryKind.confluence,
                          route_measure=1000.0, label="Some Creek")
@@ -279,10 +279,10 @@ def test_a_split_in_a_non_lake_gap_is_never_aliased():
 def test_alias_attaches_to_the_nearer_lake_edge():
     """A lake has two bounds. Aliasing both would give the split two route measures and make every
     reach that binds it ambiguous, so only the edge the point actually sits against gets the name."""
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.models.enums import AnchorType
-    from pipeline.models.splits import SplitPoint
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.common.models.enums import AnchorType
+    from pipeline.common.models.splits import SplitPoint
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     down_edge = SectionBoundary(boundary_id="lake:7", kind=BoundaryKind.lake, route_measure=1000.0)
     up_edge = SectionBoundary(boundary_id="lake:7", kind=BoundaryKind.lake, route_measure=4000.0)
@@ -307,10 +307,10 @@ def test_a_caller_that_did_not_ask_gets_no_aliases():
     """`split_graph_at` is shared by the CURATED pass and the BORDER pass. Border splits mint
     `border:{blk}:{m}` ids that no rule ever binds, so aliasing them onto lakes is pure noise in the
     registry. Only a caller that passes an `aliased` collector opts in."""
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.models.enums import AnchorType
-    from pipeline.models.splits import SplitPoint
-    from pipeline.splits.sectionizer import split_graph_at
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.common.models.enums import AnchorType
+    from pipeline.common.models.splits import SplitPoint
+    from pipeline.atlas.splits.sectionizer import split_graph_at
 
     lake = SectionBoundary(boundary_id="lake:999", kind=BoundaryKind.lake, route_measure=1000.0)
     below = StreamNode(node_id="10:0", kind=NodeKind.stream, blk="10", down_m=0.0, up_m=1000.0,
@@ -333,9 +333,9 @@ def test_pickup_keeps_the_id_of_the_boundary_it_reuses():
     relabels the boundary it reuses, so without carrying the displaced id forward the second split
     silently erases the first, and any rule bound to the loser resolves to nothing."""
     from dataclasses import replace
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.splits.sectionizer import _pickup
-    from pipeline.models.splits import SplitPoint
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.atlas.splits.sectionizer import _pickup
+    from pipeline.common.models.splits import SplitPoint
 
     first = SectionBoundary(boundary_id="split:spuzzum", kind=BoundaryKind.confluence,
                             route_measure=500.0, label="Spuzzum Creek")
@@ -346,7 +346,7 @@ def test_pickup_keeps_the_id_of_the_boundary_it_reuses():
         "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1", down_m=500.0, up_m=900.0,
                             lower_bound=first),
     }
-    from pipeline.models.splits import AnchorType
+    from pipeline.common.models.splits import AnchorType
     sp = SplitPoint(split_id="region_2_to_3", blk="1", route_measure=500.0, fid="",
                     label="Region 2/3", anchor_type=AnchorType.point)
     assert _pickup(g, "1", sp, {"1": ["1:0", "1:500"]}) is True

@@ -1,11 +1,11 @@
 {
   "$schema": "./schema/layers.schema.json",
-  "$comment": "AUTHORED \u2014 the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads. Source layer names and featureIdProperty must match pipeline/tiles/layers.py exactly \u2014 they did not, and a mismatch draws nothing while erroring nowhere.",
+  "$comment": "AUTHORED \u2014 the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads. Source layer names and featureIdProperty must match pipeline/deliver/tiles/layers.py exactly \u2014 they did not, and a mismatch draws nothing while erroring nowhere.",
   "sources": {
     "atlas": {
       "type": "vector",
       "url": "pmtiles://atlas",
-      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data \u2014 see pipeline/tiles/layers.py."
+      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data \u2014 see pipeline/deliver/tiles/layers.py."
     }
   },
   "groups": [

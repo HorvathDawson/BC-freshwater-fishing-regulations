@@ -6,9 +6,9 @@ locators (with the info block an author needs), then BACKFILL the curation we've
 WARN about any curated row that no longer maps to a source locator (drift).
 
 Sources
-  - SPINE   output/pipeline/extraction/synopsis_raw_data.json  (the raw synopsis rows: water, mu,
+  - SPINE   output/pipeline/regs/extraction/synopsis_raw_data.json  (the raw synopsis rows: water, mu,
             region, raw_regs, symbols, page, image — the authoritative entry list, 1395 entries)
-  - PARSE   output/pipeline/parsing/synopsis_parsed.json       (per-reg `rules`; a rule with a
+  - PARSE   output/pipeline/regs/parsing/synopsis_parsed.json       (per-reg `rules`; a rule with a
             non-empty `location_text` is a boundary = a split)   join: normalize(raw_regs)==regs_verbatim
   - CURATE  pipeline/docs/14-locators-to-curate.json     (our curation; backfilled in, never mutated)
 
@@ -40,8 +40,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW = ROOT / "output/pipeline/extraction/synopsis_raw_data.json"
-PARSE = ROOT / "output/pipeline/parsing/synopsis_parsed.json"
+RAW = ROOT / "output/pipeline/regs/extraction/synopsis_raw_data.json"
+PARSE = ROOT / "output/pipeline/regs/parsing/synopsis_parsed.json"
 CURATED = ROOT / "pipeline/docs/14-locators-to-curate.json"
 OUT_JSON = ROOT / "pipeline/docs/waterbody-splits.json"
 OUT_MD = ROOT / "pipeline/docs/waterbody-splits.md"

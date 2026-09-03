@@ -1,11 +1,11 @@
 # UPDATE — Splits build & old→new accuracy audit (2026-08-14)
 
-Status of the `waterbody-splits.json` → `pipeline/splits.json` conversion, the accuracy audit
+Status of the `waterbody-splits.json` → `pipeline/atlas/splits.json` conversion, the accuracy audit
 that validates it against the curated coordinates, and every fix applied on top. This is a
 point-in-time state doc; the authoritative design is [DESIGN-regs-to-sections.md](DESIGN-regs-to-sections.md)
 and the curation contract is [CURATION-HANDOFF.md](CURATION-HANDOFF.md).
 
-**TL;DR** — `pipeline/splits.json` now holds **394 splits across 197 waterbodies**
+**TL;DR** — `pipeline/atlas/splits.json` now holds **394 splits across 197 waterbodies**
 (confluence 93, point 295, area_boundary 4, lake 2). The old→new audit resolves **388/394**
 and lands **332 (86%) within 25 m** of the curated ground-truth coord; the only 4 non-resolving
 in the audit harness are parks (their polygons exist in the GPKG — the harness just doesn't pass
@@ -52,12 +52,12 @@ them). **Full suite: 121 passed, 11 skipped.**
 }
 ```
 
-`load_split_defs()` ([pipeline/splits/splits.py](../splits/splits.py)) flattens this: each
+`load_split_defs()` ([pipeline/atlas/splits/splits.py](../splits/splits.py)) flattens this: each
 waterbody's `applies_to` becomes the split's target **unless the split overrides it** with its own
 `blk`/`wsc`/`gnis_id`. Keys prefixed `_` are review/provenance and ignored by `SplitDef.from_dict`.
 
 ### Anchor types (resolution → `SplitPoint(blk, route_measure)`)
-See [pipeline/splits/anchors.py](../splits/anchors.py) for the authoritative logic.
+See [pipeline/atlas/splits/anchors.py](../splits/anchors.py) for the authoritative logic.
 
 - **point** — project `coord` onto the target channel (kept iff within `proximity_m`); optional
   `offset_m`/`offset_dir` then shifts the cut along-channel ("100 m downstream of the falls").
@@ -219,8 +219,8 @@ audit harness deliberately doesn't, which is why parks show "unresolved" there.
 
 ```bash
 # regenerate splits.json from the curated source
-PYTHONPATH=. .venv/bin/python scratchpad/convert_splits.py   # writes pipeline/splits.new.json
-cp pipeline/splits.new.json pipeline/splits.json
+PYTHONPATH=. .venv/bin/python scratchpad/convert_splits.py   # writes pipeline/atlas/splits.new.json
+cp pipeline/atlas/splits.new.json pipeline/atlas/splits.json
 
 # old→new accuracy audit (resolve every split, compare to curated _coord)
 PYTHONPATH=. .venv/bin/python scratchpad/audit_old_new.py

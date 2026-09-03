@@ -9,8 +9,8 @@ nothing on the review map, which defeats the point of minting them.
 import pyogrio
 from shapely.geometry import LineString, Polygon
 
-from pipeline.io.export_gpkg import export_graph_gpkg
-from pipeline.models import NodeKind, StreamGraph, StreamNode
+from pipeline.common.io.export_gpkg import export_graph_gpkg
+from pipeline.common.models import NodeKind, StreamGraph, StreamNode
 
 
 def _square(x=0.0, y=0.0, s=10.0):

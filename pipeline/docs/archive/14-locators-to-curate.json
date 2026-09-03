@@ -1,5 +1,5 @@
 {
-  "_readme": "Editable source of truth for BC freshwater fishing-regulation POINT CURATION. One entry per distinct (regulation, locator string), grouped by the split anchor kind it maps to in pipeline/splits.json. To curate a row: fill `target` and/or `coord`/`split_id`, optionally set `label`, move any research into `notes`, then set `status` to \"curated\". Converted 1:1 from 17-locators-to-curate.md; see that file for the how-to.",
+  "_readme": "Editable source of truth for BC freshwater fishing-regulation POINT CURATION. One entry per distinct (regulation, locator string), grouped by the split anchor kind it maps to in pipeline/atlas/splits.json. To curate a row: fill `target` and/or `coord`/`split_id`, optionally set `label`, move any research into `notes`, then set `status` to \"curated\". Converted 1:1 from 17-locators-to-curate.md; see that file for the how-to.",
   "_schema": {
     "id": "stable unique slug (kebab of name + short content hash)",
     "name_verbatim": "regulation title exactly as it appears in the md (may be truncated)",

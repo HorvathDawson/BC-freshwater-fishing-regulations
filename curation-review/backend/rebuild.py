@@ -1,4 +1,4 @@
-"""Run the full graph rebuild (`pipeline.build --full`) as a background subprocess, with progress.
+"""Run the full graph rebuild (`pipeline.atlas.build --full`) as a background subprocess, with progress.
 
 CPU-only, makes NO LLM calls / spends NO credits — safe to trigger from the UI. splits.json edits
 (and name_variants) are baked into the graph's section boundaries at build time, so a curated split
@@ -6,7 +6,7 @@ only takes effect after this runs. On a SUCCESSFUL build the reuse-layer caches 
 subsequent request serves the freshly-rebuilt registry / splits.resolved / gpkg — the app updates all
 items with no restart.
 
-Progress is derived from the per-stage `[label: Ns]` lines pipeline.build prints (see build.py `_tick`).
+Progress is derived from the per-stage `[label: Ns]` lines pipeline.atlas.build prints (see build.py `_tick`).
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import time
 from collections import deque
 
 import reuse
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 # The stages build.py prints a "[label: Ns]" completion line for, IN ORDER — drives the progress bar.
 # (Border runs automatically under --full; area/mu/registry/write always run.)
@@ -39,7 +39,7 @@ _EXPECTED_STAGES = [
 _TICK_RE = re.compile(r"\[(?P<label>[^\]]+?):\s*(?P<sec>[\d.]+)s\]")
 # Rebuilds INTO the directory reuse.py serves. Both read `project_config.review_build_dir`, so the
 # two cannot drift — this used to be a second, independent hard-coding of "output/v2/full".
-_CMD = [sys.executable, "-m", "pipeline.build", "--full",
+_CMD = [sys.executable, "-m", "pipeline.atlas.build", "--full",
         "--out", str(get_config().review_build_dir), "--splits", str(CURATED.waters.splits)]
 
 

@@ -2,10 +2,10 @@
 
 from shapely.geometry import LineString, box
 
-from pipeline.models import (
+from pipeline.common.models import (
     BoundaryKind, NameSource, NameTuple, NodeKind, SectionBoundary, StreamGraph, StreamNode,
 )
-from pipeline.registry import add_mu_sets, add_waterbody_items, build_registry
+from pipeline.atlas.registry import add_mu_sets, add_waterbody_items, build_registry
 
 
 def _node(nid, *, blk="", wsc="", gnis="", name="", tuples=(), in_areas=(),
@@ -134,7 +134,7 @@ def test_add_curated_wbk_items_names_isolated_unnamed_lake():
     reg = _reg()
     nv = [{"target": {"wbks": ["329343983", "329343806"]},
            "names": [{"name": "Redstart Lake", "source": "regulation", "display": True}]}]
-    from pipeline.registry import add_curated_wbk_items
+    from pipeline.atlas.registry import add_curated_wbk_items
     add_curated_wbk_items(reg, nv)
     it = reg["wbk:329343983"]
     assert it.kind == "lake" and it.name == "Redstart Lake"
@@ -143,7 +143,7 @@ def test_add_curated_wbk_items_names_isolated_unnamed_lake():
 
 def test_add_curated_wbk_items_skips_existing():
     reg = _reg()                                          # has wbk:W1 (Bar Lake)
-    from pipeline.registry import add_curated_wbk_items
+    from pipeline.atlas.registry import add_curated_wbk_items
     add_curated_wbk_items(reg, [{"target": {"wbks": ["W1"]},
                                  "names": [{"name": "Renamed", "source": "regulation"}]}])
     assert reg["wbk:W1"].name == "Bar Lake"              # existing item not overwritten
@@ -239,8 +239,8 @@ def test_a_lakes_other_gazetted_name_stays_searchable():
 def test_boundary_aliases_survive_the_registry_round_trip(tmp_path):
     """The alias is minted in the graph but consumed by the review app through registry.json. Leaving
     it out of the serializer meant the split resolved in the build and was still dangling in the app."""
-    from pipeline.models.registry import RegistryBoundary, RegistryItem
-    from pipeline.registry.io import load_registry, write_registry
+    from pipeline.common.models.registry import RegistryBoundary, RegistryItem
+    from pipeline.atlas.registry.io import load_registry, write_registry
 
     item = RegistryItem(
         id="gnis:1", name="Duncan River", kind="stream",
@@ -267,8 +267,8 @@ def test_an_alias_on_either_edge_of_a_lake_reaches_the_registry():
     reaches build_registry twice — but the alias sits on only ONE of those two instances. Keeping the
     first and skipping the rest dropped the alias whenever the un-aliased edge came first, which is
     how Duncan Dam, the Mitchell dam and the Babine weir stayed dangling after being aliased."""
-    from pipeline.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
-    from pipeline.registry.build import build_registry
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.atlas.registry.build import build_registry
 
     def graph_with_alias_on(which: str) -> StreamGraph:
         plain = SectionBoundary(boundary_id="lake:99", kind=BoundaryKind.lake, route_measure=1000.0,

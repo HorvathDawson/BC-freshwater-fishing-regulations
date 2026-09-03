@@ -327,7 +327,7 @@ export interface GeoJSON {
   _todo?: string;
 }
 
-// ---- Graph rebuild (pipeline.build --full, run as a background subprocess) ----
+// ---- Graph rebuild (pipeline.atlas.build --full, run as a background subprocess) ----
 
 export interface RebuildStage {
   label: string;

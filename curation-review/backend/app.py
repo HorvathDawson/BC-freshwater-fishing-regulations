@@ -175,7 +175,7 @@ def rename_split(split_id: str, body: RenamePayload):
 
 @app.get("/api/row-image/{filename}")
 def row_image(filename: str):
-    """Serve a source synopsis row-crop image (output/pipeline/extraction/row_images/<name>.png)."""
+    """Serve a source synopsis row-crop image (output/pipeline/regs/extraction/row_images/<name>.png)."""
     if not re.fullmatch(r"[A-Za-z0-9_]+\.png", filename):
         raise HTTPException(400, "bad filename")
     path = reuse.ROW_IMAGES_DIR / filename
@@ -186,7 +186,7 @@ def row_image(filename: str):
 
 @app.post("/api/rebuild")
 def start_rebuild():
-    """Kick off the full graph rebuild (pipeline.build --full) in the background. CPU-only, no credits.
+    """Kick off the full graph rebuild (pipeline.atlas.build --full) in the background. CPU-only, no credits.
     Bakes splits.json edits into the graph; on success the reuse caches drop so every item refreshes.
     Idempotent while one is running (returns the in-flight status)."""
     return rebuild.MANAGER.start()

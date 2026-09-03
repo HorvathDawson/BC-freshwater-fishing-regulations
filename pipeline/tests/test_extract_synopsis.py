@@ -8,7 +8,7 @@ from project_config import get_config
 pytestmark = pytest.mark.slow
 
 # Import the main class from v2 extraction package
-from pipeline.extraction.extract_synopsis import FishingSynopsisParser
+from pipeline.regs.extraction.extract_synopsis import FishingSynopsisParser
 
 # --- CONFIGURATION ---
 _PROJECT_ROOT = str(get_config().project_root)

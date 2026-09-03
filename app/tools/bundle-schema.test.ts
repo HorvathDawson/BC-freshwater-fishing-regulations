@@ -2,7 +2,7 @@
  * The development fixture and the production bundler must be the same format.
  *
  * They are different programs in different languages — `tools/build-fixture.mjs` in Node
- * and `python -m pipeline.bundle` — and the whole point of the SQLite decision is that a
+ * and `python -m pipeline.deliver.bundle` — and the whole point of the SQLite decision is that a
  * client reads one shape whichever produced it. Two DDLs would diverge the first time one
  * was edited, and the failure would appear as a client query returning nothing.
  *
@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
-const schema = readFileSync(here("../../pipeline/bundle/schema.sql"), "utf8");
+const schema = readFileSync(here("../../pipeline/deliver/bundle/schema.sql"), "utf8");
 /** The DDL alone. The comments EXPLAIN what is excluded, so they name it. */
 const ddl = schema.replace(/^\s*--.*$/gm, "").replace(/--.*$/gm, "");
 const fixture = here("../packages/data/dev/bundle.sqlite");
@@ -26,7 +26,7 @@ const TABLES = [...ddl.matchAll(/CREATE TABLE (\w+)/g)].map((m) => m[1]!);
 describe("the bundle format", () => {
   it("is defined in exactly one place", () => {
     const builder = readFileSync(here("build-fixture.mjs"), "utf8");
-    expect(builder).toContain("pipeline/bundle/schema.sql");
+    expect(builder).toContain("pipeline/deliver/bundle/schema.sql");
     // no second DDL hiding in the packager
     expect(builder, "the fixture builder declares its own tables").not.toMatch(/CREATE TABLE/);
   });

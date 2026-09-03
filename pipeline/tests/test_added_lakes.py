@@ -1,4 +1,4 @@
-"""Curated non-FWA lake polygons (pipeline/hack/added_lakes).
+"""Curated non-FWA lake polygons (pipeline/atlas/waters/added_lakes).
 
 The mechanism is one field. `graph.graph._assign_owners` hands a fid whose `wbk` is a known lake key
 to that lake node and BREAKS the stream run there — so re-stamping the fids inside a polygon is what
@@ -12,10 +12,10 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.graph.blk_chains import FidRow
-from pipeline.graph.graph import _assign_owners, _lake_name_pairs
-from pipeline.hack.added_lakes import ingest
-from pipeline.curated import CURATED
+from pipeline.atlas.graph.blk_chains import FidRow
+from pipeline.atlas.graph.graph import _assign_owners, _lake_name_pairs
+from pipeline.atlas.waters.added_lakes import ingest
+from pipeline.common.curated import CURATED
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -97,8 +97,8 @@ def test_a_double_space_name_tuple_does_not_claim_the_names_inside_it():
     they are not one convention: several lakes ('ELINOR L.  NARAMATA L.'), a qualifier ('LOON LAKE
     NEAR AINSWORTH'), a typo ('Waller  Creek'). Redsand needed a polygon, not a name rescue.
     """
-    from pipeline.matching.matcher import _norm, build_name_index
-    from pipeline.registry import load_registry
+    from pipeline.regs.matching.matcher import _norm, build_name_index
+    from pipeline.atlas.registry import load_registry
 
     reg = Path("output/v2/full/registry.json")
     if not reg.exists():
@@ -129,8 +129,8 @@ def test_a_wsc_target_can_be_confined_to_streams():
     the Docee drains. `blks` is stream-only by construction; `wscs` was not. The `kinds` filter makes
     the intent expressible, and every DFO wsc entry now carries `kinds: ["stream"]`.
     """
-    from pipeline.graph.names import _node_matches
-    from pipeline.models import NodeKind, StreamNode
+    from pipeline.atlas.graph.names import _node_matches
+    from pipeline.common.models import NodeKind, StreamNode
 
     stream = StreamNode(node_id="s", kind=NodeKind.stream, blk="B", wsc="910-020688",
                         down_m=0, up_m=1, length_m=1)

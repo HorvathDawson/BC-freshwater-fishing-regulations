@@ -55,7 +55,7 @@ needs the resolver.
 2. **API contract:** exact JSON shapes for entry/queue/geojson/search + the PUT payload. Written as a
    short `API.md` + Pydantic response models the backend and a TS types file share by hand.
 3. **Entry model change:** add `reviewed_by: str = ""`, `reviewed_at: str = ""` to
-   `pipeline/parsing/entry_models.py::Entry` (+ ingest already preserves them via `locked`). One tiny
+   `pipeline/regs/parsing/entry_models.py::Entry` (+ ingest already preserves them via `locked`). One tiny
    test.
 4. **Fixture data:** trimmed `region-1.json` (≈5 entries incl. one no-registry + one needs_review) and a
    trimmed registry + a small gpkg slice, so agents run without the big artifacts.

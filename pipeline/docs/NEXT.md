@@ -58,7 +58,7 @@ its locators are shown on their sheets, and nothing is applied.
 **Section 0's old warning about `full_named` is resolved and gone.** That build was never
 adopted; it has been deleted along with `full_v4`. The blocker it described — 163 new
 fine-grained `area:` items *replacing* the 4 legacy ones, which would have dangled
-`pitt_river.r1` — was fixed in `pipeline/registry/build.py` by preserving an already-`area:`
+`pitt_river.r1` — was fixed in `pipeline/atlas/registry/build.py` by preserving an already-`area:`
 prefixed id instead of re-slugging it:
 
 ```python
@@ -86,7 +86,7 @@ Unresolved 112 = `no_registry` 93 · `no_extents` 16 · `empty_after_scope` 1 ·
 
 ### Why 309 items gained sections
 
-`pipeline/graph/names.py::mint_waterbody_nodes` now mints an **edgeless node** for any named
+`pipeline/atlas/graph/names.py::mint_waterbody_nodes` now mints an **edgeless node** for any named
 waterbody no stream runs through. Two distinct causes had one symptom (empty `section_ids`):
 
 * **isolated lakes** — no stream connection at all, so the graph never noded them;
@@ -118,8 +118,8 @@ completion, so stale artifacts are not a problem — but the in-flight window is
 you want to verify before adopting:
 
 ```bash
-.venv/bin/python -m pipeline.build --full --out output/v2/_full_staging \
-    --splits pipeline/splits.json
+.venv/bin/python -m pipeline.atlas.build --full --out output/v2/_full_staging \
+    --splits pipeline/atlas/splits.json
 # verify, then:  rm -rf full_prev_bak && mv full full_prev_bak && mv _full_staging full
 ```
 
@@ -203,13 +203,13 @@ wbk:329524100                                     -> wbk:329524100, wbk:32898916
 ```
 
 ```bash
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.parsing.backfill_matched \
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.backfill_matched \
     --registry output/v2/full/registry.json
 ```
 
 It replays `batch_exporter` locally — **no credits, no `claude` CLI** — and touches only
 `matched`, so locked entries keep their curated content. It is nonetheless blocked by the
-agent auto-mode classifier (the `pipeline.parsing.*` path matches the parser-run guard), so
+agent auto-mode classifier (the `pipeline.regs.parsing.*` path matches the parser-run guard), so
 **a human runs this one.**
 
 ### 2b. 52 `noreg_*` entries with EMPTY `matched` — `backfill_matched` cannot fix these
@@ -226,7 +226,7 @@ Two of them now resolve against the active build, both unambiguously **by MU ove
 | `noreg_pitt_lake_347` (MU 2-8, unlocked) | `wbk:329291806` Pitt Lake, MU 2-8 | MU overlap, `also: ()` |
 
 Both exist *because* minting created their lake node — they are the payoff of §0. Nothing is
-broken today: `pipeline.reach.covered` falls back to a live re-match and the builder and the
+broken today: `pipeline.atlas.reach.covered` falls back to a live re-match and the builder and the
 review app agree exactly. But **attaching an item to a `no_registry` entry is a curation
 decision, not a migration.** Do it through the review app's attach-item flow, or write a
 tool that stamps from the live match — deliberately, not as a chore. Green Lake in
@@ -267,7 +267,7 @@ use to at least 3.
 
 ```python
 import json, glob, re
-for p in glob.glob("pipeline/parsing/entries/region-*.json"):
+for p in glob.glob("pipeline/regs/parsing/entries/region-*.json"):
     for e in json.load(open(p))["entries"]:
         for r in e.get("rules") or []:
             txt = f"{r.get('details') or ''} {r.get('rule_text') or ''}"
@@ -323,7 +323,7 @@ A lake boundary carrying a split id as an **alias** resolves both ids to the sam
 collapsing `between` to nothing. Full trace: `RESOLVER-HANDOFF.md` §3.
 
 **This no longer needs a resolver change.** `lake` anchors now honour `offset_m` /
-`offset_dir` (`pipeline/splits/anchors.py`), so the intended cut can simply be authored:
+`offset_dir` (`pipeline/atlas/splits/anchors.py`), so the intended cut can simply be authored:
 
 ```json
 {"type": "lake", "wbk": 329480767, "offset_m": 100, "offset_dir": "upstream"}
@@ -413,7 +413,7 @@ Carried forward from `RESOLVER-HANDOFF.md` §6. These are **unexamined, not clea
   dropped. Likely rule-type dependent — include for a closure, exclude for an opening.
 * **Determinism.** `_by_measure` iterates a `set`; `_cut_at` tie-breaks on `(length, blk)`.
   Byte-identical builds depend on order-independence that has never been proven. Cheap test:
-  resolve N times, compare the digest (`pipeline.reach.cli` prints one).
+  resolve N times, compare the digest (`pipeline.atlas.reach.cli` prints one).
 * **9 multi-extent rules.** Union semantics assumed, never specified or tested.
 * **`sections_override`** — 0 uses, and `entry_reaches` ignores it entirely.
 
@@ -442,6 +442,6 @@ those rules were confirmed against a 1-section river.
   returns: (1) defer to an explicitly-named anchor type rather than re-anchoring it, and
   (2) never re-anchor a row that carries its own surveyed coordinate. Both were written
   after converting the Lardeau and Nahatlatch anchors *wrongly*.
-* **JSON formatting is per-file and diffs explode if you get it wrong.** `pipeline/splits.json`
+* **JSON formatting is per-file and diffs explode if you get it wrong.** `pipeline/atlas/splits.json`
   is `indent=1`; entry files are `indent=2`; both are `ensure_ascii=False` with **no trailing
   newline**. Writing with the wrong settings produces a 45,000-line diff.

@@ -1,8 +1,8 @@
 /**
  * Packages the development bundle. `pnpm fixture`.
  *
- * FORMAT: SQLite, from `pipeline/bundle/schema.sql` — the SAME file the production bundler
- * (`python -m pipeline.bundle`) executes, so a development fixture cannot drift from the
+ * FORMAT: SQLite, from `pipeline/deliver/bundle/schema.sql` — the SAME file the production bundler
+ * (`python -m pipeline.deliver.bundle`) executes, so a development fixture cannot drift from the
  * artifact a real build produces.
  * One file serves both platforms — resident on the phone, range-read from R2 on the web —
  * and the tables are written in the order the queries read them, so one reach's rules land
@@ -17,7 +17,7 @@
  *
  * WHAT IS NOT HERE, and where it lives instead:
  *
- *   geometry, name, alias,     the TILES. `pipeline/tiles/tile-contract.json` puts
+ *   geometry, name, alias,     the TILES. `pipeline/deliver/tiles/tile-contract.json` puts
  *   magnitude, order, mus         section_id, item, name, alt, mag, ord, mus, areas on the
  *                                 stream layer. A second copy is a second source of truth.
  *   the current reading         a FEED. Written beside the bundle as feeds/gauge/*.json,
@@ -49,10 +49,10 @@ const db = new DatabaseSync(dbPath);
 db.exec("PRAGMA page_size = 4096");
 db.exec("PRAGMA journal_mode = OFF");
 
-// THE SCHEMA IS NOT DEFINED HERE. `pipeline/bundle/schema.sql` is the one definition of
+// THE SCHEMA IS NOT DEFINED HERE. `pipeline/deliver/bundle/schema.sql` is the one definition of
 // the bundle format, and the production bundler executes the same file. A second copy of a
 // DDL is a second contract, and they diverge the first time one is edited.
-db.exec(readFileSync(here("../../pipeline/bundle/schema.sql"), "utf8"));
+db.exec(readFileSync(here("../../pipeline/deliver/bundle/schema.sql"), "utf8"));
 
 const insert = (sql, rows) => {
   const st = db.prepare(sql);
@@ -237,7 +237,7 @@ for (const p of places)
 counts.place_water = insert("INSERT INTO place_water VALUES (?,?,?)", nearRows);
 
 // ---- indexes, written AFTER the rows so they are built once ------------------------
-db.exec(readFileSync(here("../../pipeline/bundle/indexes.sql"), "utf8"));
+db.exec(readFileSync(here("../../pipeline/deliver/bundle/indexes.sql"), "utf8"));
 insert("INSERT INTO meta VALUES (?,?)", [
   ["version", `riffle-${src.report?.build ?? "full"}`],
   ["source", "design/riffle.html — build 54ea0bb4, Chilliwack/Harrison valley"],

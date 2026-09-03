@@ -1,4 +1,4 @@
-"""Parser regression tests for pipeline/dfo_salmon.
+"""Parser regression tests for pipeline/regs/dfo_salmon.
 
 Fixtures are real snapshots taken 2026-08-29 and live in
 `pipeline/tests/fixtures/dfo_salmon/`. They are committed on purpose: two of the
@@ -15,12 +15,12 @@ from pathlib import Path
 import json
 import pytest
 
-from pipeline.dfo_salmon.parse import (
+from pipeline.regs.dfo_salmon.parse import (
     _RE_SECTION,
     _expand_grid,
     parse_region,
 )
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dfo_salmon"
 
@@ -135,7 +135,7 @@ def test_precedence_ranks(r6):
     # Every rank-1 row either declares itself a catch-all ("All waters in section
     # B(i)...", "All streams and lakes flowing into tidal waters of Areas 3, 4, 5,
     # and 6") or is a rule synthesised from a section banner.
-    from pipeline.dfo_salmon.parse import _RE_CATCHALL
+    from pipeline.regs.dfo_salmon.parse import _RE_CATCHALL
 
     for rank in (1, 2):
         for row in by_rank[rank]:
@@ -211,7 +211,7 @@ def test_derived_flags(r6):
 
 def test_grid_rows_are_rectangular_or_banners():
     from bs4 import BeautifulSoup
-    from pipeline.dfo_salmon.parse import N_COLS, _RE_TABLE, _strip_comments
+    from pipeline.regs.dfo_salmon.parse import N_COLS, _RE_TABLE, _strip_comments
 
     html = _load(6)
     table = BeautifulSoup(_strip_comments(_RE_TABLE.search(html).group(0)), "html.parser").find("table")
@@ -266,7 +266,7 @@ def test_cariboo_split_pages(slug, part, rows):
 
 
 def test_region5_stub_has_no_table():
-    from pipeline.dfo_salmon.fetch import PAGES
+    from pipeline.regs.dfo_salmon.fetch import PAGES
 
     assert PAGES["5"].is_stub is True
     assert PAGES["5a"].region == PAGES["5b"].region == 5
@@ -279,21 +279,21 @@ def test_region5_stub_has_no_table():
 
 @pytest.fixture(scope="module")
 def u6(r6):
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     return untangle(r6)
 
 
 def test_untangle_loses_nothing(r6, u6):
     """Every parsed row must land in exactly one rule — no drops, no duplicates."""
-    from pipeline.dfo_salmon.untangle import verify
+    from pipeline.regs.dfo_salmon.untangle import verify
 
     verify(r6, u6)
 
 
 @pytest.mark.parametrize("slug", ["4", "5a", "5b", "6", "7", "8"])
 def test_untangle_round_trips_every_region(slug):
-    from pipeline.dfo_salmon.untangle import untangle, verify
+    from pipeline.regs.dfo_salmon.untangle import untangle, verify
 
     parsed = parse_region(_load(slug), slug)
     verify(parsed, untangle(parsed))
@@ -369,7 +369,7 @@ def test_confluence_closure_is_not_a_directional_cut(u6):
     ("Meziadin Lake", "Meziadin Lake", [], None),
 ])
 def test_split_name(raw, name, aliases, tribs):
-    from pipeline.dfo_salmon.untangle import split_name
+    from pipeline.regs.dfo_salmon.untangle import split_name
 
     got_name, got_aliases, _, got_tribs, _ = split_name(raw)
     assert (got_name, got_aliases, got_tribs) == (name, aliases, tribs)
@@ -412,7 +412,7 @@ def test_drift_matcher_separates_rewording_from_real_change():
     """DFO rewords the same reach constantly — "Highway 37 Bridge" becomes
     "Highway 37 bridge", and the count of boundary signs has flipped 3 <-> 4 and
     back. Keying a curated binding on the scope string would orphan it every time."""
-    from pipeline.dfo_salmon.churn import compare_reaches
+    from pipeline.regs.dfo_salmon.churn import compare_reaches
 
     prev = {
         ("B(i)", "Skeena River", "mainstem waters near the Kitwanga River mouth, "
@@ -432,7 +432,7 @@ def test_drift_matcher_separates_rewording_from_real_change():
 
 
 def test_drift_matcher_does_not_pair_across_waters():
-    from pipeline.dfo_salmon.churn import compare_reaches
+    from pipeline.regs.dfo_salmon.churn import compare_reaches
 
     prev = {("C", "Nass River", "upstream of the Highway 37 bridge")}
     cur = {("C", "Kiteen River", "upstream of the Highway 37 bridge")}
@@ -451,7 +451,7 @@ def test_drift_matcher_does_not_pair_across_waters():
 HISTORICAL = ["region6_20170703172154", "region6_20180524134448",
               "region6_20200408190304"]
 
-#: Optional deeper corpus, populated by `python -m pipeline.dfo_salmon.churn`.
+#: Optional deeper corpus, populated by `python -m pipeline.regs.dfo_salmon.churn`.
 HISTORY_CACHE = Path("cache/dfo_salmon/history")
 
 
@@ -466,7 +466,7 @@ def _load_historical(stem: str) -> str:
 def test_parser_still_reads_decade_old_markup(stem):
     """A parser change that only works on today's page is a regression. Nobody reads
     2017 data, but it is free proof the parser is not overfitted to the current HTML."""
-    from pipeline.dfo_salmon.untangle import untangle, verify
+    from pipeline.regs.dfo_salmon.untangle import untangle, verify
 
     parsed = parse_region(_load_historical(stem), "6")
     assert parsed.table_found is True
@@ -495,7 +495,7 @@ def test_water_names_are_append_only(stem):
     """Measured across 2017, 2018 and 2024-2026: no Region 6 water name has ever
     disappeared. If this fails, either DFO broke a nine-year pattern or we broke the
     parser — both need a human, so it must not fail silently."""
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     old = {w.name for w in untangle(parse_region(_load_historical(stem), "6")).waters}
     now = {w.name for w in untangle(parse_region(_load(6), 6)).waters}
@@ -505,7 +505,7 @@ def test_water_names_are_append_only(stem):
 def test_region_baseline_is_stable_across_the_decade():
     """Section A's limits are substantively unchanged since 2017. Everything that did
     move is cosmetic — and each instance is a reason not to key anything on this text."""
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     def baseline(u, normalize):
         d = next(x for x in u.defaults if x.kind == "region")
@@ -529,11 +529,11 @@ def test_region_baseline_is_stable_across_the_decade():
 @pytest.mark.slow
 def test_every_cached_historical_snapshot_parses():
     """Opportunistic sweep of the full history cache when one has been built."""
-    from pipeline.dfo_salmon.untangle import untangle, verify
+    from pipeline.regs.dfo_salmon.untangle import untangle, verify
 
     files = sorted(HISTORY_CACHE.glob("region*_*.html")) if HISTORY_CACHE.exists() else []
     if len(files) < 2:
-        pytest.skip("no history cache; run pipeline.dfo_salmon.churn to build one")
+        pytest.skip("no history cache; run pipeline.regs.dfo_salmon.churn to build one")
     for f in files:
         slug = f.name.split("_")[0].replace("region", "")
         parsed = parse_region(f.read_text(encoding="utf-8", errors="replace"), slug)
@@ -547,8 +547,8 @@ def test_rows_nested_by_malformed_markup_are_not_dropped():
     error, the same silent failure as the unterminated comment in Regions 4/7/5a."""
     from bs4 import BeautifulSoup
 
-    from pipeline.dfo_salmon.parse import _RE_TABLE, _row_tags, _strip_comments
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.parse import _RE_TABLE, _row_tags, _strip_comments
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     html = _load_historical("region6_20200408190304")
     frag = _strip_comments(_RE_TABLE.search(html).group(0))
@@ -570,7 +570,7 @@ def test_rows_nested_by_malformed_markup_are_not_dropped():
 def test_nested_row_text_does_not_leak_into_its_parent_cell():
     """Rows nested by malformed markup are emitted separately, so their text must not
     also appear in the cell that (incorrectly) contains them."""
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     u = untangle(parse_region(_load_historical("region6_20200408190304"), "6"))
     babine = next(w for w in u.waters if w.name == "Babine Lake")
@@ -584,8 +584,8 @@ def test_nested_row_text_does_not_leak_into_its_parent_cell():
 
 
 def _extract(stem_or_slug, historical=False):
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     html = _load_historical(stem_or_slug) if historical else _load(stem_or_slug)
     slug = "6" if historical else str(stem_or_slug)
@@ -600,7 +600,7 @@ def _extract(stem_or_slug, historical=False):
 ])
 def test_fingerprint_survives_observed_drift(drifted, same):
     """Every pair here is a real rewording from the archives."""
-    from pipeline.dfo_salmon.locations import fingerprint
+    from pipeline.regs.dfo_salmon.locations import fingerprint
 
     assert fingerprint("B(i)", "Skeena River", drifted) == fingerprint("B(i)", "Skeena River", same)
 
@@ -613,7 +613,7 @@ def test_fingerprint_survives_observed_drift(drifted, same):
 def test_fingerprint_is_sensitive_to_real_change(a, b):
     """Numbers are deliberately NOT normalised: "three signs" vs "4 signs" is a real
     difference in what the source claims and must reach a human."""
-    from pipeline.dfo_salmon.locations import fingerprint
+    from pipeline.regs.dfo_salmon.locations import fingerprint
 
     assert fingerprint("B(i)", "Skeena River", a) != fingerprint("B(i)", "Skeena River", b)
 
@@ -668,8 +668,8 @@ def test_spatial_notes_only_caveat_when_they_narrow_the_extent():
 
 
 def _seeded(slug, historical=False):
-    from pipeline.dfo_salmon.entries import EntryFile, apply_seed
-    from pipeline.dfo_salmon.fetch import PAGES
+    from pipeline.regs.dfo_salmon.entries import EntryFile, apply_seed
+    from pipeline.regs.dfo_salmon.fetch import PAGES
 
     locs, _, sig = _extract(slug, historical)
     base = "6" if historical else str(slug)
@@ -679,13 +679,13 @@ def _seeded(slug, historical=False):
 
 
 def test_seed_is_idempotent_and_never_edits_a_curated_record():
-    from pipeline.dfo_salmon.entries import Binding, apply_seed
+    from pipeline.regs.dfo_salmon.entries import Binding, apply_seed
 
     locs, _, sig = _extract("6")
     ef = _seeded("6")
     n = len(ef.locations)
 
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.parsing.entry_models import Extent
 
     victim = next(l for l in ef.locations if l.water == "Babine Lake")
     victim.binding = Binding(extents=[Extent(op="whole")])
@@ -708,7 +708,7 @@ def test_location_ids_are_readable_and_unique():
 
 
 def test_reconcile_clean_run_needs_nobody():
-    from pipeline.dfo_salmon.entries import reconcile
+    from pipeline.regs.dfo_salmon.entries import reconcile
 
     locs, _, sig = _extract("6")
     rep = reconcile(_seeded("6"), locs, sig)
@@ -719,8 +719,8 @@ def test_reconcile_clean_run_needs_nobody():
 
 
 def test_reconcile_flags_a_reworded_location_as_drift_with_candidates():
-    from pipeline.dfo_salmon.entries import reconcile
-    from pipeline.dfo_salmon.locations import fingerprint
+    from pipeline.regs.dfo_salmon.entries import reconcile
+    from pipeline.regs.dfo_salmon.locations import fingerprint
 
     ef = _seeded("6")
     locs, _, sig = _extract("6")
@@ -737,7 +737,7 @@ def test_reconcile_flags_a_reworded_location_as_drift_with_candidates():
 
 
 def test_reconcile_marks_absent_locations_dormant_and_revives_them():
-    from pipeline.dfo_salmon.entries import apply_seed, reconcile
+    from pipeline.regs.dfo_salmon.entries import apply_seed, reconcile
 
     ef = _seeded("6")
     locs, _, sig = _extract("6")
@@ -760,7 +760,7 @@ def test_reconcile_marks_absent_locations_dormant_and_revives_them():
 
 
 def SEVERITY_OK(outcome):
-    from pipeline.dfo_salmon.entries import SEVERITY
+    from pipeline.regs.dfo_salmon.entries import SEVERITY
 
     return SEVERITY[outcome.status] == 0
 
@@ -768,7 +768,7 @@ def SEVERITY_OK(outcome):
 def test_reconcile_escalates_a_section_move():
     """Section B became B(i)/B(ii) once in nine years. A curated binding must survive
     it, but the re-scoping must reach a human."""
-    from pipeline.dfo_salmon.entries import SEVERITY, reconcile
+    from pipeline.regs.dfo_salmon.entries import SEVERITY, reconcile
 
     ef = _seeded("6")
     locs, _, sig = _extract("6")
@@ -784,7 +784,7 @@ def test_reconcile_escalates_a_section_move():
 def test_the_2020_restructure_holds_the_whole_region():
     """Seeded on 2018 and shown 2020, the reconciler must refuse to publish rather than
     quietly rebind 59 locations. All three structural signals should fire."""
-    from pipeline.dfo_salmon.entries import SEVERITY, reconcile
+    from pipeline.regs.dfo_salmon.entries import SEVERITY, reconcile
 
     ef = _seeded("region6_20180524134448", historical=True)
     locs, _, sig = _extract("region6_20200408190304", historical=True)
@@ -801,7 +801,7 @@ def test_the_2020_restructure_holds_the_whole_region():
 def test_a_normal_seasonal_update_does_not_hold_the_region():
     """The counterpart to the test above: an ordinary in-season change must stay
     publishable, or the cron is useless."""
-    from pipeline.dfo_salmon.entries import reconcile
+    from pipeline.regs.dfo_salmon.entries import reconcile
 
     ef = _seeded("6")
     locs, _, sig = _extract("6")
@@ -820,14 +820,14 @@ def test_to_reach_input_shapes_a_watershed_above_a_point():
     """Kispiox River (including tributaries), upstream of a point, is the case the
     whole model exists for: `upstream_of` resolved first, then the tributary walk from
     that window = the watershed above the point."""
-    from pipeline.dfo_salmon.entries import Binding, to_reach_input
+    from pipeline.regs.dfo_salmon.entries import Binding, to_reach_input
 
     ef = _seeded("6")
     loc = next(l for l in ef.locations
                if l.water == "Kispiox River" and "downstream" in l.source_text["specific_area"])
-    from pipeline.dfo_salmon.entries import WaterBinding
+    from pipeline.regs.dfo_salmon.entries import WaterBinding
 
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.parsing.entry_models import Extent
 
     loc.binding = Binding(
         extents=[Extent(op="downstream_of", splits=["split:kispiox-resort"])],
@@ -851,11 +851,11 @@ def test_to_reach_input_shapes_a_watershed_above_a_point():
 def test_to_reach_input_carries_tributary_carve_outs():
     """Bulkley: "all tributaries other than Morice and tributaries, Suskwa and
     tributaries, and Two Mile Creek"."""
-    from pipeline.dfo_salmon.entries import Binding, to_reach_input
+    from pipeline.regs.dfo_salmon.entries import Binding, to_reach_input
 
     ef = _seeded("6")
     loc = next(l for l in ef.locations if l.water == "Bulkley River")
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.parsing.entry_models import Extent
 
     loc.binding = Binding(
         extents=[Extent(op="whole")],
@@ -863,7 +863,7 @@ def test_to_reach_input_carries_tributary_carve_outs():
         tributary_excludes=[Extent(op="whole", item_id="item:morice"),
                             Extent(op="whole", item_id="item:suskwa")],
     )
-    from pipeline.dfo_salmon.entries import WaterBinding
+    from pipeline.regs.dfo_salmon.entries import WaterBinding
 
     water = WaterBinding(water_id=loc.water_id, region="6", region_number=6,
                          name="Bulkley River", item_ids=["item:bulkley"])
@@ -878,7 +878,7 @@ def test_to_reach_input_carries_tributary_carve_outs():
 def test_unbound_water_resolves_to_nothing():
     """A location whose water has no registry item must resolve to nothing rather than
     silently binding the whole river."""
-    from pipeline.dfo_salmon.entries import to_reach_input
+    from pipeline.regs.dfo_salmon.entries import to_reach_input
 
     ef = _seeded("6")
     loc = next(l for l in ef.locations if l.kind == "water")
@@ -894,8 +894,8 @@ def test_unbound_water_resolves_to_nothing():
 
 @pytest.fixture(scope="module")
 def scopes6(r6):
-    from pipeline.dfo_salmon.cascade import build_scopes
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.cascade import build_scopes
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     return build_scopes(untangle(r6))
 
@@ -931,7 +931,7 @@ def test_e_is_the_else_branch_and_needs_no_binding_of_its_own(scopes6):
     """"Other Mainland Watersheds, except for the Fraser" reads like a set difference,
     but nothing computes one: a listed water declares its section, and an unlisted one
     falls through B/C/D/F — which are bound anyway."""
-    from pipeline.dfo_salmon.cascade import needs_binding, needs_new_machinery
+    from pipeline.regs.dfo_salmon.cascade import needs_binding, needs_new_machinery
 
     e = next(s for s in scopes6 if s.scope_id == "E")
     assert e.kind == "residual"
@@ -960,7 +960,7 @@ def test_tidal_area_scopes_carry_their_area_numbers(scopes6):
     ("A", ["A"]),
 ])
 def test_resolution_chain_is_narrowest_first(scopes6, scope_id, chain):
-    from pipeline.dfo_salmon.cascade import resolution_chain
+    from pipeline.regs.dfo_salmon.cascade import resolution_chain
 
     assert resolution_chain(scopes6, scope_id) == chain
 
@@ -968,15 +968,15 @@ def test_resolution_chain_is_narrowest_first(scopes6, scope_id, chain):
 def test_only_the_tidal_area_scopes_need_new_machinery(scopes6):
     """Everything else is a named water plus at most two cut points. A tidal-area
     scope is about a stream's OUTLET, which needs the PFMA polygons."""
-    from pipeline.dfo_salmon.cascade import needs_new_machinery
+    from pipeline.regs.dfo_salmon.cascade import needs_new_machinery
 
     assert {s.scope_id for s in needs_new_machinery(scopes6)} == {
         "E:areas-3-4-5-6", "E:areas-5", "E:areas-6"}
 
 
 def test_regions_without_sections_have_no_scope_tree():
-    from pipeline.dfo_salmon.cascade import build_scopes
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.cascade import build_scopes
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     assert build_scopes(untangle(parse_region(_load(8), 8))) == []
 
@@ -993,10 +993,10 @@ def test_superset_seeding_turns_a_revival_into_an_exact_hit():
     Measured across the archives: seeding from one version costs 102 reviews on Region
     6; seeding from the superset costs 3.
     """
-    from pipeline.dfo_salmon.entries import EntryFile, apply_seed, reconcile
-    from pipeline.dfo_salmon.fetch import PAGES
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.entries import EntryFile, apply_seed, reconcile
+    from pipeline.regs.dfo_salmon.fetch import PAGES
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     live = extract(untangle(parse_region(_load(6), 6)))
     old = extract(untangle(parse_region(_load_historical("region6_20200408190304"), "6")))
@@ -1020,10 +1020,10 @@ def test_superset_seeding_turns_a_revival_into_an_exact_hit():
 
 def test_superset_pass_does_not_retire_current_locations():
     """`mark_dormant=False` — absence from a 2017 page says nothing about today."""
-    from pipeline.dfo_salmon.entries import EntryFile, apply_seed
-    from pipeline.dfo_salmon.fetch import PAGES
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.entries import EntryFile, apply_seed
+    from pipeline.regs.dfo_salmon.fetch import PAGES
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     live = extract(untangle(parse_region(_load(6), 6)))
     ef = EntryFile(region="6", region_number=6, region_name=PAGES["6"].name)
@@ -1040,10 +1040,10 @@ def test_superset_pass_does_not_retire_current_locations():
 
 
 def test_scopes_round_trip_through_the_entry_file(tmp_path):
-    from pipeline.dfo_salmon.cascade import build_scopes
-    from pipeline.dfo_salmon.entries import EntryFile, apply_seed, load, save
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.cascade import build_scopes
+    from pipeline.regs.dfo_salmon.entries import EntryFile, apply_seed, load, save
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     u = untangle(parse_region(_load(6), 6))
     locs, _, sig = extract(u)
@@ -1065,7 +1065,7 @@ def test_a_cell_spanning_the_rule_columns_is_a_note_not_a_rule():
     """`<td>Tlell River</td><td colspan="4">Anglers should note …</td>` read as a rule
     produces a phantom whose species, dates AND limits are all one sentence of prose —
     and a phantom waterbody to hang it on."""
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     assert '<td colspan="4">Anglers should note' in _load(6)
     parsed = parse_region(_load(6), 6)
@@ -1078,7 +1078,7 @@ def test_unmarked_continuation_rows_are_right_aligned():
     """The 2025-03 Region 5a page gives Quesnel Lake all five columns but no
     `rowspan`, so the Chinook and Coho rows below carry only (species, dates, limits).
     Left-aligned, "Chinook" becomes a waterbody."""
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     hist = HISTORY_CACHE / "region5a_20250320090549.html"
     if not hist.exists():
@@ -1097,7 +1097,7 @@ def test_a_full_width_row_is_never_shifted_right():
     fills the width and must stay where it is."""
     from bs4 import BeautifulSoup
 
-    from pipeline.dfo_salmon.parse import N_COLS, _expand_grid
+    from pipeline.regs.dfo_salmon.parse import N_COLS, _expand_grid
 
     html = ('<table><tbody>'
             '<tr><td>Water A</td><td>area</td><td>Coho</td><td>Apr 1</td><td>2 per day</td></tr>'
@@ -1121,8 +1121,8 @@ def test_a_full_width_row_is_never_shifted_right():
 
 
 def test_live_pages_validate_clean():
-    from pipeline.dfo_salmon.validate import check_region
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.validate import check_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     for slug in ("1", "2", "3", "4", "5a", "5b", "6", "7", "8"):
         parsed = parse_region(_load(slug), slug)
@@ -1133,8 +1133,8 @@ def test_live_pages_validate_clean():
 
 @pytest.mark.parametrize("stem", HISTORICAL)
 def test_archived_versions_validate_clean(stem):
-    from pipeline.dfo_salmon.validate import check_region
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.validate import check_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     parsed = parse_region(_load_historical(stem), "6")
     errors = [f for f in check_region("6", parsed, untangle(parsed)) if f.severity == "ERROR"]
@@ -1143,8 +1143,8 @@ def test_archived_versions_validate_clean(stem):
 
 def test_validator_catches_a_note_read_as_a_rule():
     """The Tlell shape: species == dates == limits, all one sentence of prose."""
-    from pipeline.dfo_salmon.untangle import untangle
-    from pipeline.dfo_salmon.validate import check_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.validate import check_region
 
     parsed = parse_region(_load(6), 6)
     prose = "Anglers should note that tidal water regulations apply below the sign."
@@ -1158,8 +1158,8 @@ def test_validator_catches_a_note_read_as_a_rule():
 
 def test_validator_catches_a_species_filed_as_a_waterbody():
     """The Region 5a shape: an unmarked continuation row left-aligned."""
-    from pipeline.dfo_salmon.untangle import untangle
-    from pipeline.dfo_salmon.validate import check_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.validate import check_region
 
     parsed = parse_region(_load(6), 6)
     u = untangle(parsed)
@@ -1169,8 +1169,8 @@ def test_validator_catches_a_species_filed_as_a_waterbody():
 
 
 def test_validator_catches_a_lost_rule():
-    from pipeline.dfo_salmon.untangle import untangle
-    from pipeline.dfo_salmon.validate import check_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.validate import check_region
 
     parsed = parse_region(_load(6), 6)
     u = untangle(parsed)
@@ -1195,7 +1195,7 @@ def test_validator_catches_a_lost_rule():
 def test_interpret_dates(text, start, end, open_ended):
     """"until further notice" is a real shape — an announced start with no announced
     end — not a parse failure. It appears 35+ times across the archives."""
-    from pipeline.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.locations import interpret_dates
 
     got = interpret_dates(text)
     assert got["open_ended"] is open_ended
@@ -1215,7 +1215,7 @@ def test_unambiguous_typos_are_repaired_and_recorded(text, start, end):
     """All three are real strings from archived pages, and each has exactly one
     possible reading — so repairing them is safe. `repaired_from` keeps the verbatim
     original, so the repair is auditable rather than invisible."""
-    from pipeline.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.locations import interpret_dates
 
     got = interpret_dates(text)
     assert got["parsed"] is True
@@ -1227,7 +1227,7 @@ def test_unambiguous_typos_are_repaired_and_recorded(text, start, end):
 def test_ambiguous_text_is_never_repaired_into_a_window(text):
     """The guard on the repair: only ONE candidate month may match. Anything else
     stays unparsed rather than becoming a window the page does not state."""
-    from pipeline.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.locations import interpret_dates
 
     got = interpret_dates(text)
     assert got["parsed"] is False
@@ -1235,16 +1235,16 @@ def test_ambiguous_text_is_never_repaired_into_a_window(text):
 
 
 def test_a_clean_date_is_never_marked_repaired():
-    from pipeline.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.locations import interpret_dates
 
     for t in ("Apr 1 to Mar 31", "Aug 1 to Aug 27", "Sept 1 to Oct 15"):
         assert interpret_dates(t)["repaired_from"] is None
 
 
 def test_every_live_rule_has_a_window_or_a_reason():
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
-    from pipeline.dfo_salmon.validate import NO_WINDOW_DATES
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.validate import NO_WINDOW_DATES
 
     for slug in ("1", "2", "6"):
         _locs, rules, _ = extract(untangle(parse_region(_load(slug), slug)))
@@ -1273,7 +1273,7 @@ def test_every_live_rule_has_a_window_or_a_reason():
     ("", "whole_water"),
 ])
 def test_op_classification(scope, kind):
-    from pipeline.dfo_salmon.untangle import classify_scope
+    from pipeline.regs.dfo_salmon.untangle import classify_scope
 
     assert classify_scope(scope)[0] == kind
 
@@ -1283,8 +1283,8 @@ def test_no_location_has_a_contradictory_op():
     one-sided op, and no `between` may lack a two-ended phrase."""
     import re as _re
 
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     for slug in ("1", "2", "3", "5a", "5b", "6", "7", "8"):
         locs, _, _ = extract(untangle(parse_region(_load(slug), slug)))
@@ -1320,7 +1320,7 @@ def test_no_location_has_a_contradictory_op():
 def test_anchor_types(scope, expected):
     """Types drive triage — a confluence is derivable from the stream graph, a physical
     boundary sign is not. Order is first appearance in the sentence."""
-    from pipeline.dfo_salmon.untangle import anchor_types
+    from pipeline.regs.dfo_salmon.untangle import anchor_types
 
     assert anchor_types(scope) == expected
 
@@ -1328,7 +1328,7 @@ def test_anchor_types(scope, expected):
 def test_named_streams_feed_confluence_matching():
     """`splits.json` stores a confluence as "Parker Creek → Nitinat River", so matching
     a DFO scope to it needs the stream name out of the sentence."""
-    from pipeline.dfo_salmon.untangle import named_streams
+    from pipeline.regs.dfo_salmon.untangle import named_streams
 
     assert named_streams("upstream of Parker Creek") == ["Parker Creek"]
     assert named_streams("from Gosnell Creek to Lamprey Creek") == ["Gosnell Creek", "Lamprey Creek"]
@@ -1338,7 +1338,7 @@ def test_named_streams_feed_confluence_matching():
 def test_types_are_not_taken_from_an_except_clause():
     """"…downstream to the tidal boundary, except for the canyon as listed below" —
     the canyon belongs to a different reach."""
-    from pipeline.dfo_salmon.untangle import classify_scope
+    from pipeline.regs.dfo_salmon.untangle import classify_scope
 
     kind, types, _, _ = classify_scope(
         "from the confluence with Crag Creek downstream to the tidal boundary, "
@@ -1349,8 +1349,8 @@ def test_types_are_not_taken_from_an_except_clause():
 
 
 def test_every_location_carries_types_it_can_be_triaged_on():
-    from pipeline.dfo_salmon.locations import extract
-    from pipeline.dfo_salmon.untangle import untangle
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.untangle import untangle
 
     directional = {"upstream_of", "downstream_of", "between"}
     typed = untyped = 0
@@ -1380,7 +1380,7 @@ def test_every_location_carries_types_it_can_be_triaged_on():
 def test_name_candidate_ladder_reaches_the_real_name(name, expect_rung):
     """DFO writes scope into the name column, compounds two waters, and disagrees with
     the FWA gazetteer on the feature word. Each is a rung on the ladder."""
-    from pipeline.dfo_salmon.match import name_candidates
+    from pipeline.regs.dfo_salmon.match import name_candidates
 
     assert expect_rung in [c for c, _ in name_candidates(name)]
 
@@ -1390,7 +1390,7 @@ def test_lake_is_never_swapped_for_river_or_creek():
     so swapping the feature word silently binds the wrong one. Measured: it turned
     Yakoun River into Yakoun Lake, Lakelse River into Lakelse Lake, and Long Lake into
     Long Creek."""
-    from pipeline.dfo_salmon.match import name_candidates
+    from pipeline.regs.dfo_salmon.match import name_candidates
 
     # endswith, not `in` — "Lakelse River" contains "Lake" as a substring.
     for name in ("Yakoun River", "Lakelse River"):
@@ -1401,14 +1401,14 @@ def test_lake_is_never_swapped_for_river_or_creek():
 
 
 def test_river_creek_swap_is_still_offered():
-    from pipeline.dfo_salmon.match import name_candidates
+    from pipeline.regs.dfo_salmon.match import name_candidates
 
     assert "Braverman Creek" in [c for c, _ in name_candidates("Braverman River")]
     assert "Rainy River" in [c for c, _ in name_candidates("Rainy Creek")]
 
 
 def test_the_ladder_is_ordered_most_faithful_first():
-    from pipeline.dfo_salmon.match import name_candidates
+    from pipeline.regs.dfo_salmon.match import name_candidates
 
     rungs = [c for c, _ in name_candidates("Somass River tributaries")]
     assert rungs[0] == "Somass River tributaries"
@@ -1420,13 +1420,13 @@ def test_match_report_against_the_real_registry():
     """Needs output/v2/full/registry.json. Guards the two failure modes that matter:
     an ambiguous name must never be 'resolved' by a less faithful rung, and a fuzzy
     near-spelling must never auto-bind."""
-    from pipeline.dfo_salmon.entries import load
-    from pipeline.dfo_salmon.match import REGISTRY, propose
+    from pipeline.regs.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.match import REGISTRY, propose
 
     if not REGISTRY.exists():
         pytest.skip("registry not built")
-    from pipeline.matching.matcher import build_id_index, build_name_index, load_overrides
-    from pipeline.registry.io import load_registry
+    from pipeline.regs.matching.matcher import build_id_index, build_name_index, load_overrides
+    from pipeline.atlas.registry.io import load_registry
 
     reg = load_registry(str(REGISTRY))
     ni, ii = build_name_index(reg), build_id_index(reg)
@@ -1448,7 +1448,7 @@ def test_match_report_against_the_real_registry():
 
 
 def test_worklist_shows_existing_splits_and_the_full_scope(tmp_path):
-    from pipeline.dfo_salmon.match import worklist
+    from pipeline.regs.dfo_salmon.match import worklist
 
     text = worklist("6")
     assert "Babine River" in text
@@ -1465,7 +1465,7 @@ def test_worklist_shows_existing_splits_and_the_full_scope(tmp_path):
 
 
 def _ef_with(scopes, water="Test River", section="B(i)", op="upstream_of", tribs=None):
-    from pipeline.dfo_salmon.entries import Binding, EntryFile, EntryLocation
+    from pipeline.regs.dfo_salmon.entries import Binding, EntryFile, EntryLocation
 
     ef = EntryFile(region="6", region_number=6, region_name="Skeena")
     for i, (sc, status) in enumerate(scopes):
@@ -1478,7 +1478,7 @@ def _ef_with(scopes, water="Test River", section="B(i)", op="upstream_of", tribs
 
 
 def test_grouping_folds_a_reworded_scope():
-    from pipeline.dfo_salmon.entries import propose_groups
+    from pipeline.regs.dfo_salmon.entries import propose_groups
 
     ef = _ef_with([("within a 400 m radius of the mouth of Pinkut Creek", "active"),
                    ("within a 400m radius of the mouth of Pinkut Creek", "dormant")])
@@ -1494,8 +1494,8 @@ def test_grouping_never_folds_opposite_sides_of_the_same_landmark():
     """"upstream of the 112th Street bridge" and "downstream of the 112th Street
     bridge" score 0.92 on text alone — four characters apart, and the two opposite
     halves of the river. `op` has to gate the comparison."""
-    from pipeline.dfo_salmon.entries import EntryFile, propose_groups
-    from pipeline.dfo_salmon.entries import Binding, EntryLocation
+    from pipeline.regs.dfo_salmon.entries import EntryFile, propose_groups
+    from pipeline.regs.dfo_salmon.entries import Binding, EntryLocation
 
     ef = EntryFile(region="2", region_number=2, region_name="Lower Mainland")
     for i, (sc, op) in enumerate([
@@ -1512,7 +1512,7 @@ def test_grouping_never_folds_opposite_sides_of_the_same_landmark():
 def test_grouping_never_folds_across_tributary_scope():
     """Meziadin Lake publishes "including tributaries" and "excluding tributaries" —
     0.90 on text, and opposite in meaning."""
-    from pipeline.dfo_salmon.entries import Binding, EntryFile, EntryLocation, propose_groups
+    from pipeline.regs.dfo_salmon.entries import Binding, EntryFile, EntryLocation, propose_groups
 
     ef = EntryFile(region="6", region_number=6, region_name="Skeena")
     for i, (sc, tr) in enumerate([("including tributaries", True),
@@ -1526,7 +1526,7 @@ def test_grouping_never_folds_across_tributary_scope():
 
 
 def test_a_contested_variant_stays_separate_forever():
-    from pipeline.dfo_salmon.entries import contest, propose_groups
+    from pipeline.regs.dfo_salmon.entries import contest, propose_groups
 
     ef = _ef_with([("within a 400 m radius of the mouth of Pinkut Creek", "active"),
                    ("within a 400m radius of the mouth of Pinkut Creek", "dormant")])
@@ -1542,7 +1542,7 @@ def test_a_contested_variant_stays_separate_forever():
 
 
 def test_grouping_is_idempotent():
-    from pipeline.dfo_salmon.entries import propose_groups
+    from pipeline.regs.dfo_salmon.entries import propose_groups
 
     ef = _ef_with([("within a 400 m radius of the mouth of Pinkut Creek", "active"),
                    ("within a 400m radius of the mouth of Pinkut Creek", "dormant")])
@@ -1561,7 +1561,7 @@ def test_automatic_groupings_never_pair_different_ops():
     property of the WORDING; the reach is a property of the geometry. Only a human (or a resolved
     section comparison) can see past that, which is exactly what `duplicate_confirmed` records.
     """
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     checked = 0
     for slug in ("1", "2", "6", "8"):
@@ -1580,7 +1580,7 @@ def test_automatic_groupings_never_pair_different_ops():
 
 def test_a_curator_confirmed_grouping_records_why_it_crossed_an_op():
     """An exemption that carries no reasoning is indistinguishable from a mistake."""
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     for slug in ("1", "2", "5b", "6"):
         for loc in load(slug).locations:
@@ -1595,7 +1595,7 @@ def test_a_curator_confirmed_grouping_records_why_it_crossed_an_op():
 
 
 def test_a_water_is_bound_once_and_serves_every_reach_on_it():
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     ef = load("6")
     skeena = [l for l in ef.locations if l.water == "Skeena River"]
@@ -1612,7 +1612,7 @@ def test_only_an_exact_hit_is_ever_written():
     answered the question the matcher refused to guess at. The rule this protects is that the
     MATCHER never writes a binding it did not get exactly right — see the module docstring.
     """
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     for slug in ("1", "2", "6"):
         for w in load(slug).waters:
@@ -1635,8 +1635,8 @@ def test_suggestions_are_recorded_but_never_applied():
     Every water resolved so far was answered EXPLICITLY — a name_variants entry, an override, or
     both — never by letting the ladder through.
     """
-    from pipeline.dfo_salmon.entries import load
-    from pipeline.dfo_salmon.match import ENTRIES_DIR
+    from pipeline.regs.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.match import ENTRIES_DIR
 
     seen_any = False
     for path in sorted(ENTRIES_DIR.glob("region-*.json")):
@@ -1654,7 +1654,7 @@ def test_ambiguous_names_are_left_for_a_curator():
     """Bear River and Lakelse River are no longer here: the SHARED overrides file
     already answers them (Bear River in Region 6 is gnis:15535). That is the argument
     for one overrides file rather than a DFO copy."""
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     # Long Lake was the LAST genuinely-ambiguous water, and the only one of the four whose candidates
     # were all real: Region 5 has FIVE gazetted Long Lakes (gnis 17503/17508/17509/17513/31514), one
@@ -1698,8 +1698,8 @@ def test_the_shared_overrides_file_is_actually_loaded():
     """`load_overrides("__default__")` treats the sentinel as a path, finds nothing and
     returns [] — every match run did that until it was caught. The sentinel belongs to
     `reach.covered.make_matcher`."""
-    from pipeline.matching.matcher import load_overrides
-    from pipeline.reach.covered import DEFAULT_OVERRIDES
+    from pipeline.regs.matching.matcher import load_overrides
+    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
 
     assert load_overrides("__default__") == []
     assert DEFAULT_OVERRIDES.exists()
@@ -1715,7 +1715,7 @@ def test_item_ids_is_a_list_so_one_name_can_be_several_waters():
     "(does not include Sumas River)", so the two answers genuinely differ and the DFO one is tagged
     source=dfo. "Adam and Eve Rivers" is two, the Eve flowing into the Adam.
     """
-    from pipeline.dfo_salmon.entries import WaterBinding, load
+    from pipeline.regs.dfo_salmon.entries import WaterBinding, load
 
     ef = load("2")
     chilliwack = next(w for w in ef.waters if w.name.startswith("Chilliwack/Vedder"))
@@ -1732,7 +1732,7 @@ def test_item_ids_is_a_list_so_one_name_can_be_several_waters():
 
 
 def test_a_locked_water_is_never_overwritten_by_a_later_match_run():
-    from pipeline.dfo_salmon.entries import load, save
+    from pipeline.regs.dfo_salmon.entries import load, save
 
     import tempfile
     from pathlib import Path as _P
@@ -1756,8 +1756,8 @@ def test_a_locked_water_is_never_overwritten_by_a_later_match_run():
 def test_binding_holds_real_extent_objects():
     """One definition of "upstream of split s" in the repo. Storing dicts let the DFO
     side drift from what the resolver implements."""
-    from pipeline.dfo_salmon.entries import Binding
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.dfo_salmon.entries import Binding
+    from pipeline.regs.parsing.entry_models import Extent
 
     b = Binding(extents=[Extent(op="between", splits=["a", "b"])])
     assert isinstance(b.extents[0], Extent)
@@ -1772,15 +1772,15 @@ def test_binding_holds_real_extent_objects():
 ])
 def test_the_entry_file_cannot_hold_a_malformed_extent(op, splits):
     """Arity is enforced by the model, so a bad extent cannot be written at all."""
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.parsing.entry_models import Extent
 
     with pytest.raises(Exception):
         Extent(op=op, splits=splits)
 
 
 def test_binding_round_trips_through_json():
-    from pipeline.dfo_salmon.entries import Binding
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.dfo_salmon.entries import Binding
+    from pipeline.regs.parsing.entry_models import Extent
 
     b = Binding(extents=[Extent(op="upstream_of", splits=["s1"])],
                 tributaries=True, tributaries_only=False,
@@ -1794,8 +1794,8 @@ def test_binding_round_trips_through_json():
 
 def test_reach_input_dumps_models_at_the_boundary():
     """We STORE models and hand build_reach plain dicts."""
-    from pipeline.dfo_salmon.entries import Binding, WaterBinding, to_reach_input, load
-    from pipeline.parsing.entry_models import Extent
+    from pipeline.regs.dfo_salmon.entries import Binding, WaterBinding, to_reach_input, load
+    from pipeline.regs.parsing.entry_models import Extent
 
     ef = load("6")
     loc = next(l for l in ef.locations if l.kind == "water")
@@ -1813,9 +1813,9 @@ def test_skip_overrides_are_ignored_on_the_dfo_side():
     """A `skip` is a synopsis-LAYOUT fact ("this row points at another row"), not a
     name fact. All three DFO hit are names the registry resolves on its own; honouring
     the skip only suppressed a good match."""
-    from pipeline.dfo_salmon.match import drop_skips
-    from pipeline.matching.matcher import load_overrides
-    from pipeline.reach.covered import DEFAULT_OVERRIDES
+    from pipeline.regs.dfo_salmon.match import drop_skips
+    from pipeline.regs.matching.matcher import load_overrides
+    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
 
     allo = load_overrides(DEFAULT_OVERRIDES)
     kept = drop_skips(allo)
@@ -1835,7 +1835,7 @@ def test_skip_overrides_are_ignored_on_the_dfo_side():
 def test_renamed_rivers_bind_to_the_same_item(slug, name, item_id):
     """An old name and its current gazetted name are the SAME water. The registry
     already carries the old name as a variant, so it binds — no override needed."""
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     w = next(x for x in load(slug).waters if x.name == name)
     assert w.bound is True, name
@@ -1846,7 +1846,7 @@ def test_a_multi_item_override_binds():
     """Requiring exactly one item id silently refused every curated multi-water
     override — Fraser River in Region 2 names 13 items, Nicomen Slough names 7.
     A curated list is the opposite of ambiguous."""
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
     fraser = next(w for w in load("2").waters if w.name == "Fraser River")
     assert fraser.bound is True
@@ -1857,7 +1857,7 @@ def test_a_multi_item_override_binds():
 def test_ambiguous_is_still_refused():
     """The guard that matters: several items the matcher could not choose between is
     NOT the same as several items a curator chose."""
-    from pipeline.dfo_salmon.match import Proposal
+    from pipeline.regs.dfo_salmon.match import Proposal
 
     curated = Proposal("w", "6", "Fraser River", "matched", item_ids=["a", "b"], via="override")
     guessed = Proposal("w", "6", "Bear River", "ambiguous",
@@ -1875,8 +1875,8 @@ def test_no_override_uses_skip_any_more():
     """`skip` conflated two different things: "this name IS that water" (a variant,
     which should LINK) and "there is no correct item" (which should be `not_found`).
     Neither is a reason to refuse a name outright."""
-    from pipeline.matching.matcher import load_overrides
-    from pipeline.reach.covered import DEFAULT_OVERRIDES
+    from pipeline.regs.matching.matcher import load_overrides
+    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
 
     ov = load_overrides(DEFAULT_OVERRIDES)
     assert ov, "overrides file should not be empty"
@@ -1891,10 +1891,10 @@ def test_not_found_does_not_fall_through_to_a_wrong_name_match():
     """`not_found` is a PLACEHOLDER, so it must block matching. The name usually does
     resolve — just to the wrong water: "REDFERN LAKE" in MU 5-15 finds the MU 7-42
     Redfern Lake. Falling through would bind the wrong lake."""
-    from pipeline.matching.matcher import (build_id_index, build_name_index,
+    from pipeline.regs.matching.matcher import (build_id_index, build_name_index,
                                            build_override_index, load_overrides, match_row)
-    from pipeline.reach.covered import DEFAULT_OVERRIDES
-    from pipeline.registry.io import load_registry
+    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
+    from pipeline.atlas.registry.io import load_registry
 
     reg = load_registry("output/v2/full/registry.json")
     ni, ii = build_name_index(reg), build_id_index(reg)
@@ -1908,10 +1908,10 @@ def test_not_found_does_not_fall_through_to_a_wrong_name_match():
 
 
 def test_a_renamed_water_links_instead_of_being_refused():
-    from pipeline.matching.matcher import (build_id_index, build_name_index,
+    from pipeline.regs.matching.matcher import (build_id_index, build_name_index,
                                            build_override_index, load_overrides, match_row)
-    from pipeline.reach.covered import DEFAULT_OVERRIDES
-    from pipeline.registry.io import load_registry
+    from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
+    from pipeline.atlas.registry.io import load_registry
 
     reg = load_registry("output/v2/full/registry.json")
     ni, ii = build_name_index(reg), build_id_index(reg)
@@ -1939,7 +1939,7 @@ def test_a_dfo_answer_never_reaches_a_provincial_row():
     """
     from pathlib import Path
 
-    from pipeline.matching.matcher import load_overrides
+    from pipeline.regs.matching.matcher import load_overrides
 
     path = CURATED.regulations.overrides
     prov, dfo = load_overrides(path), load_overrides(path, source="dfo")
@@ -1968,9 +1968,9 @@ def test_no_water_is_left_ambiguous_without_a_curator_answer():
       Long Lake                     five real Long Lakes in one region -> a curator binding on the
                                     entry, because the name does NOT determine the water.
     """
-    from pipeline.dfo_salmon.entries import load
+    from pipeline.regs.dfo_salmon.entries import load
 
-    from pipeline.dfo_salmon.match import ENTRIES_DIR
+    from pipeline.regs.dfo_salmon.match import ENTRIES_DIR
 
     still = []
     for p in sorted(ENTRIES_DIR.glob("region-*.json")):
@@ -1993,7 +1993,7 @@ def test_a_lake_does_not_answer_to_the_river_that_threads_it():
     Asserted on the build rule rather than the built registry, because the registry on disk predates
     the fix until the next full build.
     """
-    from pipeline.registry.build import FLOW_RE, STILL_RE, _norm_name
+    from pipeline.atlas.registry.build import FLOW_RE, STILL_RE, _norm_name
 
     for lake, river in (("Yakoun Lake", "YAKOUN RIVER"), ("Mosquito Lake", "PALLANT CREEK"),
                         ("Lakelse Lake", "LAKELSE RIVER"), ("Nation Lakes", "NATION RIVER")):
@@ -2018,7 +2018,7 @@ def test_a_dfo_tagged_override_is_invisible_to_the_provincial_matcher():
     """
     from pathlib import Path
 
-    from pipeline.matching.matcher import load_overrides
+    from pipeline.regs.matching.matcher import load_overrides
 
     p = CURATED.regulations.overrides
     prov, dfo = load_overrides(p), load_overrides(p, source="dfo")
@@ -2047,7 +2047,7 @@ def test_a_dfo_name_variant_never_relabels_a_gazetted_water():
     import json
     from pathlib import Path
 
-    from pipeline.models.enums import NameSource
+    from pipeline.common.models.enums import NameSource
 
     nv = json.loads((CURATED.waters.name_variants)
                     .read_text(encoding="utf-8"))

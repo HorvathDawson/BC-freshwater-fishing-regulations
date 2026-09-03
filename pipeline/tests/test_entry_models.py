@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from pipeline.parsing.entry_models import (
+from pipeline.regs.parsing.entry_models import (
     Entry, EntryFile, Extent, Identity, Op, Rule, Tributaries,
     unused_splits, validate_entry_splits,
 )
@@ -171,7 +171,7 @@ def test_species_codes_validated():
         _rule(species=["NOTAFISH"])
 
 def test_rule_dates_parse_to_windows():
-    from pipeline.parsing.dates import DateWindow
+    from pipeline.regs.parsing.dates import DateWindow
     r = _rule(location_text="upstream of Hunlen Falls", dates=["Apr 1 - Jun 30"])
     assert r.date_windows() == [DateWindow(4, 1, 6, 30)]
 

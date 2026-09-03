@@ -165,7 +165,7 @@ export const api = {
     return await res.json();
   },
 
-  // --- graph rebuild (pipeline.build --full; CPU-only, no credits) ---
+  // --- graph rebuild (pipeline.atlas.build --full; CPU-only, no credits) ---
   startRebuild: async (): Promise<RebuildStatus> => {
     const res = await fetch("/api/rebuild", { method: "POST" });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);

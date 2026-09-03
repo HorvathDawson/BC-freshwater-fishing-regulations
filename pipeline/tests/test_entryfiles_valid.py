@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.parsing.entry_models import Entry
-from pipeline.curated import CURATED, SOURCE
+from pipeline.regs.parsing.entry_models import Entry
+from pipeline.common.curated import CURATED, SOURCE
 
 ENTRIES = sorted(CURATED.regulations.entries.synopsis.glob("region-*.json"))
 
@@ -67,7 +67,7 @@ def test_entry_id_agrees_with_identity(path):
 
 @pytest.mark.parametrize("path", ENTRIES, ids=lambda p: p.name)
 def test_every_rule_is_written_in_the_corpus_standard(path):
-    """One regulation must read the same way everywhere — `pipeline/parsing/prompts/RULE_STANDARDS.md`.
+    """One regulation must read the same way everywhere — `pipeline/regs/parsing/prompts/RULE_STANDARDS.md`.
 
     Before the standard existed the corpus held 80 distinct quota grammars (`daily quota = 2` /
     `daily quota 2` / `quota = 2` / `quota 2`), three spellings of one motor limit, and 6 statements
@@ -77,7 +77,7 @@ def test_every_rule_is_written_in_the_corpus_standard(path):
     `normalize_details` is the executable half of the standard, so "off-standard" is defined as
     "that module would rewrite it".
     """
-    from pipeline.parsing.normalize_details import normalize_details, normalize_type
+    from pipeline.regs.parsing.normalize_details import normalize_details, normalize_type
 
     data = json.loads(path.read_text(encoding="utf-8"))
     bad = []

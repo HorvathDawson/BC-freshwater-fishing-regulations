@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.models import SplitDef
-from pipeline.splits.splits import load_split_defs
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.models import SplitDef
+from pipeline.atlas.splits.splits import load_split_defs
+from pipeline.common.curated import CURATED, SOURCE
 
 # The anchor/target forms the loader must accept, inline (was splits.example.json — removed).
 _SAMPLE_SPLITS = {
@@ -80,7 +80,7 @@ def test_duplicate_ids_rejected(tmp_path):
 def test_inherited_multi_gnis_target_uses_the_primary_water():
     """A waterbody spanning several rivers resolves an INHERITED target to the first (primary) one;
     a split that belongs to another member names it in its own applies_to."""
-    from pipeline.splits.splits import _flatten_waterbodies
+    from pipeline.atlas.splits.splits import _flatten_waterbodies
 
     flat, untargeted = _flatten_waterbodies({"waterbodies": [{
         "name": "CHILLIWACK / VEDDER RIVERS",
@@ -103,7 +103,7 @@ def test_lake_anchor_accepts_an_offset():
     cut that must travel with the lake. Model validation used to refuse it, and `load_split_defs`
     downgraded that refusal to a warning about targeting, so six curated cuts silently vanished from a
     full build."""
-    from pipeline.models import AnchorType, SplitAnchor
+    from pipeline.common.models import AnchorType, SplitAnchor
 
     a = SplitAnchor.from_dict({"type": "lake", "wbk": "329216614",
                                "offset_m": 1500, "offset_dir": "downstream"})
@@ -113,7 +113,7 @@ def test_lake_anchor_accepts_an_offset():
 
 def test_lake_anchor_offset_still_needs_a_direction():
     import pytest as _pytest
-    from pipeline.models import SplitAnchor
+    from pipeline.common.models import SplitAnchor
 
     with _pytest.raises(ValueError, match="offset_dir"):
         SplitAnchor.from_dict({"type": "lake", "wbk": "1", "offset_m": 100})
@@ -132,12 +132,12 @@ def test_every_waterbody_block_targets_a_real_registry_item():
     import json
     from pathlib import Path
 
-    from pipeline.registry import load_registry
+    from pipeline.atlas.registry import load_registry
 
     reg_path = Path(__file__).resolve().parents[2] / "output" / "v2" / "full" / "registry.json"
     if not reg_path.exists():
         pytest.skip("no built registry")
-    from pipeline.matching.matcher import build_id_index
+    from pipeline.regs.matching.matcher import build_id_index
 
     reg = load_registry(reg_path)
     # Resolve through the ID INDEX, not the item ids: a target may legitimately name an FWA id that

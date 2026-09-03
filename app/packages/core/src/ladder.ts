@@ -12,11 +12,11 @@
  *
  * So a dot appears exactly when the reach it measures appears. Same input (FWA stream
  * magnitude), same stops, and the stops are NOT retyped here from memory: they are generated
- * into `pipeline/tiles/tile-contract.json` and `app/tools/tile-contract.test.ts` fails if
+ * into `pipeline/deliver/tiles/tile-contract.json` and `app/tools/tile-contract.test.ts` fails if
  * this copy and that one disagree. Drift is a red test rather than a floating dot.
  */
 
-/** (minimum magnitude, first zoom drawn), descending — mirrors `pipeline/tiles/ladder.py`. */
+/** (minimum magnitude, first zoom drawn), descending — mirrors `pipeline/deliver/tiles/ladder.py`. */
 export const MAGNITUDE_LADDER: readonly (readonly [number, number])[] = [
   [20000, 4], [5000, 5], [1000, 6], [250, 7], [100, 8],
   [50, 9], [20, 10], [10, 11], [5, 12], [2, 13], [0, 14],

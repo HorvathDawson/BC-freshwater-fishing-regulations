@@ -2,7 +2,7 @@
 
 import json
 
-from pipeline.parsing.prune_remapped import prune
+from pipeline.regs.parsing.prune_remapped import prune
 
 
 def _entry(eid, name, *, locked=False, registry_status="matched"):

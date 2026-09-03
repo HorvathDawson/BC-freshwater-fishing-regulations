@@ -17,7 +17,7 @@ It **does not cut rivers** — it only selects among sections the sectionizer al
 ## Parts
 
 ```
-pipeline/reach/
+pipeline/atlas/reach/
   __init__.py
   models.py      RuleBinding · Unresolved · Diagnostic · BuildReport      (pure dataclasses)
   build.py       the pass: entries + ResolveContext -> bindings           (orchestration only)
@@ -25,7 +25,7 @@ pipeline/reach/
   cache.py       sha256(entry ‖ build_id) -> cached result                (incremental)
   diff.py        two runs -> what changed, ranked by blast radius
   io.py          read entries · write tables · write report.json
-  cli.py         python -m pipeline.reach.build
+  cli.py         python -m pipeline.atlas.reach.build
 ```
 
 Six small modules, one job each. `build.py` orchestrates and holds no rules; `classify.py` holds every
@@ -97,8 +97,8 @@ graph load. There is no performance problem to solve.
 ## Diff mode — the reason it is next
 
 ```bash
-python -m pipeline.reach.build --build output/v2/full     --out output/reaches/full
-python -m pipeline.reach.build --build output/v2/full_new --out output/reaches/full_new \
+python -m pipeline.atlas.reach.build --build output/v2/full     --out output/reaches/full
+python -m pipeline.atlas.reach.build --build output/v2/full_new --out output/reaches/full_new \
                                --against output/reaches/full
 ```
 

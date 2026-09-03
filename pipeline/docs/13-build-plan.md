@@ -135,7 +135,7 @@ diverge — but it applies to *logic*, not *packaging*.
 ```
                     ┌───────────────────────────────┐
   registry ────────▶│  pipeline/resolve   (step 1)  │  ONE resolver — never forks
-  entries  ────────▶│  pipeline/reach     (§6)      │
+  entries  ────────▶│  pipeline/atlas/reach     (§6)      │
   base regs ───────▶└──────────────┬────────────────┘
                                    ▼
                     ┌──────────────────────────────┐
@@ -535,13 +535,13 @@ the area catalog `area_catalog.gpkg` (**code**).
 ### 6.1 — Contract
 
 ```
-python -m pipeline.reach.build --build output/v2/full --out output/reaches/full
-python -m pipeline.reach.build --build output/v2/full_new --against output/reaches/full
+python -m pipeline.atlas.reach.build --build output/v2/full --out output/reaches/full
+python -m pipeline.atlas.reach.build --build output/v2/full_new --against output/reaches/full
 ```
 
 ```
 inputs    ResolveContext(graph, registry)    one build's output   (step 1)
-          pipeline/parsing/entries/*.json    curated truth
+          pipeline/regs/parsing/entries/*.json    curated truth
 outputs   rule_section(entry_id, rule_id, section_id)
           rule_extent(...)                   the AUTHORED form, preserved for audit + rebuild
           rule_unresolved(entry_id, rule_id, reason)

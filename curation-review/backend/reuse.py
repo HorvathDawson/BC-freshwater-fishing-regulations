@@ -1,12 +1,12 @@
 """Data layer for the curation-review app — **reuses pipeline code, reimplements nothing.**
 
-- Matching an entry -> registry item is done by `pipeline.matching.matcher` (the exact matcher the
+- Matching an entry -> registry item is done by `pipeline.regs.matching.matcher` (the exact matcher the
   pipeline uses), so the review tool resolves geometry/boundaries the same way the build does.
-- Validation on save is `pipeline.parsing.entry_models.Entry` + `validate_entry_splits`.
+- Validation on save is `pipeline.regs.parsing.entry_models.Entry` + `validate_entry_splits`.
 - "Unused curated splits" reuses `entry_models.unused_splits`, restricted to curated (`ref="split:*"`)
   boundaries so lake/outlet/headwaters auto-boundaries don't count.
 
-Write model: `pipeline/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator decisions
+Write model: `pipeline/regs/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator decisions
 are written straight back to them (the old separate reviewed/ overlay has been merged in and retired).
 A parser re-run preserves `locked` entries and, with --skip-existing, skips entries already present —
 so curator edits are safe as long as re-parses stay targeted.
@@ -22,19 +22,19 @@ from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
 
-from pipeline.matching.matcher import (
+from pipeline.regs.matching.matcher import (
     MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
-from pipeline.parsing import io
-from pipeline.parsing.entry_models import Entry, unused_splits, validate_entry_splits
-from pipeline.parsing.rows import load_synopsis_rows
+from pipeline.regs.parsing import io
+from pipeline.regs.parsing.entry_models import Entry, unused_splits, validate_entry_splits
+from pipeline.regs.parsing.rows import load_synopsis_rows
 from project_config import get_config
-from pipeline.registry import load_registry
-from pipeline.reach.build import build_reach as _build_reach, resolve_carve_outs
-from pipeline.reach.classify import wants_tributaries as _wants_tributaries
-from pipeline.reach import extent as _resolve
-from pipeline.utils.wsc import trim_wsc
-from pipeline.curated import CURATED, SOURCE
+from pipeline.atlas.registry import load_registry
+from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
+from pipeline.atlas.reach.classify import wants_tributaries as _wants_tributaries
+from pipeline.atlas.reach import extent as _resolve
+from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
 ENTRIES_DIR = CURATED.regulations.entries.synopsis
@@ -445,7 +445,7 @@ def item_tributaries(item_id: str) -> list[dict]:
 # --------------------------------------------------------------------------- #
 # Nothing in the pipeline resolves an Extent to sections yet; the ops are recorded intent. The review
 # tool needs the answer NOW, because a curator cannot confirm a reach they cannot see — so this is the
-# reference implementation of the contract documented on `pipeline.parsing.entry_models.Op`:
+# reference implementation of the contract documented on `pipeline.regs.parsing.entry_models.Op`:
 #
 #   whole            every section of every covered item (or of `item_id`, if scoped)
 #   upstream_of X    follow the WATER up from X, crossing between covered items
@@ -461,14 +461,14 @@ def item_tributaries(item_id: str) -> list[dict]:
 def _graph():
     """The built StreamGraph — node bounds + flow adjacency. Big (~0.7 GB) but loaded once per
     process and only when a reach is actually requested."""
-    from pipeline.io.serialize import read_artifact
+    from pipeline.common.io.serialize import read_artifact
     return read_artifact(str(GRAPH_PKL_PATH))
 
 
 def resolve_extent(covered_ids: list[str], ex: dict) -> dict | None:
     """The app's binding of the shared resolver: same code the builder runs, this app's cached pair.
 
-    The implementation lives in `pipeline.reach.extent` so the review app and the artifact builder
+    The implementation lives in `pipeline.atlas.reach.extent` so the review app and the artifact builder
     can never drift. Callers here keep the two-argument form they always had."""
     return _resolve.resolve_extent(_registry(), _graph(), covered_ids, ex)
 
@@ -588,8 +588,8 @@ def _json_safe(obj):
 def entry_reaches(entry_id: str) -> dict:
     """What each rule selects, for the review UI — AND what the bundle will actually ship.
 
-    The per-extent geometry comes from `pipeline.reach.extent`; the OUTCOME of each
-    rule comes from `pipeline.reach`, the same builder that writes the artifact. That
+    The per-extent geometry comes from `pipeline.atlas.reach.extent`; the OUTCOME of each
+    rule comes from `pipeline.atlas.reach`, the same builder that writes the artifact. That
     matters: the builder makes decisions the raw resolver does not — a straddling piece is
     included for a closure and excluded otherwise, an empty reach after the row's scope is
     a distinct failure from an unresolvable one. If the curator confirmed against the raw
@@ -784,7 +784,7 @@ def entry_detail(entry_id: str) -> dict | None:
 def species_list() -> list[dict]:
     """All species/group codes with their common names — for the species picker. `is_group` marks a
     group code (e.g. AO = All Salmon)."""
-    from pipeline.parsing.species import COMMON_NAME, GROUPS
+    from pipeline.regs.parsing.species import COMMON_NAME, GROUPS
     return sorted(
         ({"code": c, "name": n, "is_group": c in GROUPS} for c, n in COMMON_NAME.items()),
         key=lambda d: d["name"].lower(),
@@ -833,7 +833,7 @@ def rule_resolved_reach(entry_id: str, rule_id: str, limit: int = 6000) -> dict:
     """**What this rule actually covers, and what it excepts** — drawn from the reach builder.
 
     One question, asked once: *what is IN this rule and what is OUT?* The answer is
-    `pipeline.reach.build.build_reach`, the same call the artifact build makes, so what a
+    `pipeline.atlas.reach.build.build_reach`, the same call the artifact build makes, so what a
     curator confirms here is exactly what ships.
 
     ## Why this cannot come from the item layer
@@ -1109,7 +1109,7 @@ def item_geojson(item_id: str) -> dict:
 # Editing splits.json (the hand-curated split source of truth)
 # --------------------------------------------------------------------------- #
 # splits.json is now hand-curated directly (waterbody-splits.json + build_splits are gone). Edits here
-# write it in place; they take effect only after a graph rebuild (pipeline.build --full — CPU only, no
+# write it in place; they take effect only after a graph rebuild (pipeline.atlas.build --full — CPU only, no
 # credits), because splits are baked into the graph's section boundaries.
 
 _SPLIT_EDITABLE = {"label", "note", "kind", "anchor"}

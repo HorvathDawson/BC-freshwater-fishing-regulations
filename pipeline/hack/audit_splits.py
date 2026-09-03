@@ -1,4 +1,4 @@
-"""OLD -> NEW split accuracy audit: for every split in pipeline/splits.json, resolve it and measure
+"""OLD -> NEW split accuracy audit: for every split in pipeline/atlas/splits.json, resolve it and measure
 how far the RESOLVED cut landed from the CURATED coord (`_coord`) in waterbody-splits.json (ground
 truth). The curated coords were hand-verified, so a large distance flags a bad conversion.
 
@@ -24,11 +24,11 @@ from shapely.geometry import Point
 
 from project_config import get_config
 from data.data_extractor import FWADataAccessor
-from pipeline.splits.splits import load_split_defs
-from pipeline.splits.anchors import resolve_split_defs
-from pipeline.graph.blk_chains import load_stream_fids, build_blk_chains
-from pipeline.build import get_lake_wbk_kind
-from pipeline.curated import CURATED, SOURCE
+from pipeline.atlas.splits.splits import load_split_defs
+from pipeline.atlas.splits.anchors import resolve_split_defs
+from pipeline.atlas.graph.blk_chains import load_stream_fids, build_blk_chains
+from pipeline.atlas.build import get_lake_wbk_kind
+from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = get_config().project_root
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")

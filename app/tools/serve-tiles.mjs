@@ -24,7 +24,7 @@ const ARCHIVES = {
   "/bundle.sqlite": `${repo}app/packages/data/dev/bundle.sqlite`,
   "/province.sqlite": `${repo}output/bundle/bundle.sqlite`,
   // The outside-BC mask. A file rather than a tile layer so changing how it looks does
-  // not need a fifteen-minute rebuild — see pipeline/tiles/boundary.py.
+  // not need a fifteen-minute rebuild — see pipeline/deliver/tiles/boundary.py.
   "/bc_outside.geojson": `${repo}data/bc_outside.geojson`,
 };
 

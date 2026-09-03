@@ -133,7 +133,7 @@ class FWADataAccessor:
         # same format_wsc_50k() on the stream value. Only fires on the obstacles layer (nothing
         # else carries NEW_WATERSHED_CODE), so this is a no-op elsewhere.
         if "NEW_WATERSHED_CODE" in df.columns and "WATERSHED_CODE_50K" not in df.columns:
-            from pipeline.utils.wsc import format_wsc_50k
+            from pipeline.common.utils.wsc import format_wsc_50k
             df["NEW_WATERSHED_CODE"] = df["NEW_WATERSHED_CODE"].apply(
                 lambda v: format_wsc_50k(str(v).replace("-", "")))
             df = df.rename(columns={"NEW_WATERSHED_CODE": "WATERSHED_CODE_50K"})

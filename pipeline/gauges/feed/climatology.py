@@ -49,7 +49,7 @@ import sqlite3
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 MIN_YEARS = 3
 MIN_OBS = 10

@@ -2,7 +2,7 @@
 
 import json
 
-from pipeline.parsing.backfill_matched import backfill
+from pipeline.regs.parsing.backfill_matched import backfill
 
 
 def _entry(eid, name, *, locked=False, matched=None):

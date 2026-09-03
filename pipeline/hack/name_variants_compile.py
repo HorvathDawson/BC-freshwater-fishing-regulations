@@ -19,8 +19,8 @@ from pathlib import Path
 from typing import Optional
 
 from data.data_extractor import FWADataAccessor
-from pipeline.utils.wsc import trim_wsc
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.utils.wsc import trim_wsc
+from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]   # pipeline/oneoff/ -> repo root
 _FDN = _ROOT / "archive" / "pipeline" / "matching" / "feature_display_names.json"

@@ -969,7 +969,7 @@ def fetch_csv_download(short_name: str, url: str, dest_path: Path) -> None:
     Used for tabular BC Data Catalogue datasets such as the WSA lake bathymetry
     reference table (one row per bathymetric survey map: waterbody identifier,
     gazetted name, watershed code, and the PDF map URL), consumed by
-    ``pipeline.matching.bathymetry_matcher``.
+    ``pipeline.regs.matching.bathymetry_matcher``.
     """
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"\n[CSV] Fetching '{short_name}' -> {dest_path}")

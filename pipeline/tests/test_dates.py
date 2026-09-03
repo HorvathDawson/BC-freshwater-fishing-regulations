@@ -1,6 +1,6 @@
-"""Date-window parsing (pipeline/parsing/dates.py)."""
+"""Date-window parsing (pipeline/regs/parsing/dates.py)."""
 
-from pipeline.parsing.dates import DateWindow, date_parse_errors, parse_date_window
+from pipeline.regs.parsing.dates import DateWindow, date_parse_errors, parse_date_window
 
 
 def test_parse_range_variants():

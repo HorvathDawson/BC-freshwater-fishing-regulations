@@ -2,8 +2,8 @@
 
 from dataclasses import replace
 
-from pipeline.graph.prune import loop_nodes, prune_mainstem_loops
-from pipeline.models import FlowEdge, NameSource, NameTuple, NodeKind, StreamGraph, StreamNode
+from pipeline.atlas.graph.prune import loop_nodes, prune_mainstem_loops
+from pipeline.common.models import FlowEdge, NameSource, NameTuple, NodeKind, StreamGraph, StreamNode
 
 MAIN = "100-0001"          # the river's watershed code
 TRIB = "100-0001-0002"     # a DIFFERENT water draining into it
@@ -112,8 +112,8 @@ def test_a_name_variants_channel_is_never_pruned():
     after this prune. At prune time a curated channel still carries only its host's inherited name and
     looks anonymous — which silently deleted all four blue lines of "Seabird Island North Side
     Channel" before they could ever be named. The prune is told the targets up front instead."""
-    from pipeline.models import NodeKind, StreamGraph, StreamNode
-    from pipeline.graph.prune import loop_nodes, nv_blks
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    from pipeline.atlas.graph.prune import loop_nodes, nv_blks
 
     def piece(nid, blk, name="Fraser River"):
         return StreamNode(node_id=nid, kind=NodeKind.stream, blk=blk, wsc="100",
@@ -138,7 +138,7 @@ def test_a_name_variants_channel_is_never_pruned():
 
 
 def test_nv_blks_reads_both_singular_and_plural_targets():
-    from pipeline.graph.prune import nv_blks
+    from pipeline.atlas.graph.prune import nv_blks
     assert nv_blks([{"target": {"blks": ["1", "2"]}}, {"target": {"blk": "3"}}]) == {"1", "2", "3"}
     assert nv_blks([{"target": {"wbks": ["9"]}}]) == set(), "a lake target names no braid piece"
 
@@ -285,7 +285,7 @@ def test_a_named_slough_does_not_immunise_the_braids_hanging_off_it():
 def test_the_river_flowing_through_its_own_lake_is_not_a_foreign_water():
     """Lakes were left out of the watershed-code index, so a lake inflow read as "another water
     discharges here" and the braid below it was kept as if it carried a tributary."""
-    from pipeline.models import StreamNode
+    from pipeline.common.models import StreamNode
     lake = StreamNode(node_id="lake:1", kind=NodeKind.lake, blk="", wsc=MAIN, display_name="Big Lake")
     g = _graph([("M:hi", "lake:1"), ("lake:1", "M:lo"), ("lake:1", "C:0"), ("C:0", "M:lo")],
                [_n("M:hi", "M", length=5000.0), _n("M:lo", "M", length=5000.0), lake, _n("C:0", "C")])
@@ -379,7 +379,7 @@ def test_a_component_that_exits_into_a_lake_is_still_capped():
     gap read as zero — which exempted every lake-bound component from the cap. 154 removed components
     exit into a lake, and the promise has to hold for them too."""
     from shapely.geometry import LineString, Polygon
-    from pipeline.models import StreamNode
+    from pipeline.common.models import StreamNode
     lake = StreamNode(node_id="lake:1", kind=NodeKind.lake, blk="", wsc=MAIN, display_name="Big Lake")
     g = _graph([("M:hi", "M:lo"), ("N:0", "C:0"), ("C:0", "lake:1"), ("lake:1", "M:lo")],
                [_n("M:hi", "M", length=5000.0), _n("M:lo", "M", length=5000.0), lake,

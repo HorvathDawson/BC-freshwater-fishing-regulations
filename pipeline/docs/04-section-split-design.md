@@ -4,7 +4,7 @@ The "define a split location that is carried into the section description" idea,
 **general**: one side ("downstream of X"), both sides ("between X and Y"), N splits → N+1
 sections — from one declarative definition per stream.
 
-> **Authoritative mechanics live in `pipeline/splits.schema.md`** (anchor kinds, target
+> **Authoritative mechanics live in `pipeline/atlas/splits.schema.md`** (anchor kinds, target
 > scope, proximity). This doc covers the *concepts* and the auto-`location_identifier` rule.
 > Where the two differ, the schema wins.
 

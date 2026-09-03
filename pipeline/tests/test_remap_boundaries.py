@@ -2,8 +2,8 @@
 
 import json
 
-from pipeline.models import RegistryBoundary, RegistryItem
-from pipeline.parsing.remap_boundaries import apply_remap, build_remap
+from pipeline.common.models import RegistryBoundary, RegistryItem
+from pipeline.regs.parsing.remap_boundaries import apply_remap, build_remap
 
 
 def _item(iid, name, boundaries):

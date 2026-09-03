@@ -37,14 +37,14 @@ import math
 from collections import Counter
 from pathlib import Path
 
-from pipeline.curated import SOURCE, generated
+from pipeline.common.curated import SOURCE, generated
 from pipeline.gauges import review as _review
 from pipeline.gauges.generate.match import (
     AREA_TOLERANCE_DECADES, KM2_PER_MAGNITUDE, _contains_word, waterbody_name,
 )
 from pipeline.gauges.generate.waterbody_type import load_types
 from pipeline.gauges.matches import MATCH_FILE, read_match
-from pipeline.tiles.names import normalise
+from pipeline.deliver.tiles.names import normalise
 
 #: Highest first. A promote may only ever RAISE a row's trust, never lower it.
 ORDER = ("bound", "reviewed", "wrong", "none", "auto", "candidate")

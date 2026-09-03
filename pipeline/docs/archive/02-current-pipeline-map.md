@@ -36,7 +36,7 @@ CONTENT CHAIN (PDF → structured regs)          GEOMETRY CHAIN (FWA → atlas �
 | tiles | `deploy/freshwater_atlas.pmtiles` (**770 MB**), `layer_manifest.json` | PMTiles |
 | enrich | `deploy/tier0.json` (**24.9 MB**), `shards/v2/{fids,reaches,polys}/*`, `mobile/vN/regulations.sqlite`, `poly_reaches.json` (20 MB) | JSON + SQLite |
 
-## Graph build — `pipeline/graph/graph_builder.py` (`FWAPrimalGraphIGraph`)
+## Graph build — `pipeline/atlas/graph/graph_builder.py` (`FWAPrimalGraphIGraph`)
 
 Directed igraph, **edges stored reversed** so `reverse_adj` walks **upstream**. Vertices =
 stream endpoints keyed by rounded coord strings; edges = stream segments carrying
@@ -62,7 +62,7 @@ as a separate class. Assigns **minzoom** per feature:
 
 Record types (`atlas/models.py`): `StreamRecord, PolygonRecord, AdminRecord, PointRecord, RoadRecord`. Versioned by `_ATLAS_VERSION`.
 
-## Tiles — `pipeline/tiles/tile_exporter.py`
+## Tiles — `pipeline/deliver/tiles/tile_exporter.py`
 
 **Pure IO, zero geographic logic** — all geometry decisions already baked into atlas.
 atlas records → per-layer `.geojsonseq` → single `tippecanoe` → `.pmtiles`

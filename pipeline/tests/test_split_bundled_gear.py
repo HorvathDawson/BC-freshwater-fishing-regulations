@@ -11,7 +11,7 @@ and splitting too much invents restrictions that the synopsis never stated.
 
 from __future__ import annotations
 
-from pipeline.parsing.split_bundled_gear import classify, split_entry
+from pipeline.regs.parsing.split_bundled_gear import classify, split_entry
 
 
 def _details(parts) -> list[str]:
@@ -199,8 +199,8 @@ def test_the_rule_standard_is_actually_delivered_to_both_agents():
     the parse prompt defers the canonical forms to it. Both loaders read only their own file, so the
     citation pointed at nothing until the standard was appended to each.
     """
-    from pipeline.parsing.parse_context import load_system_prompt
-    from pipeline.parsing.review_exporter import render_review_prompt
+    from pipeline.regs.parsing.parse_context import load_system_prompt
+    from pipeline.regs.parsing.review_exporter import render_review_prompt
 
     for text in (load_system_prompt(), render_review_prompt([], {})):
         assert "Rule statement standards" in text

@@ -9,7 +9,7 @@ run_state with all batches done; a CreditExhausted stops cleanly and cancels the
 import json
 from pathlib import Path
 
-import pipeline.parsing.dispatch as d
+import pipeline.regs.parsing.dispatch as d
 
 
 def _work(tmp_path: Path, n_batches: int) -> Path:

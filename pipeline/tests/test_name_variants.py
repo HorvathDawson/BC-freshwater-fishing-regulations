@@ -7,10 +7,10 @@ the lower piece's fids (a wetland is NOT a node/split — just an overlay via me
 
 from shapely.geometry import LineString
 
-from pipeline.graph import cutting
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.graph.graph import build_stream_graph
-from pipeline.graph.names import _display_case, apply_name_variants
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.graph.graph import build_stream_graph
+from pipeline.atlas.graph.names import _display_case, apply_name_variants
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, wbk="", gnis_name=""):

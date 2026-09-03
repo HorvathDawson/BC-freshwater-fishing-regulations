@@ -11,8 +11,8 @@ the water above it drains only through the excepted stretch.
 
 from __future__ import annotations
 
-from pipeline.models import FlowEdge, NodeKind, StreamGraph, StreamNode
-from pipeline.reach.build import resolve_carve_outs
+from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
+from pipeline.atlas.reach.build import resolve_carve_outs
 
 
 def _n(nid, *, order=1):

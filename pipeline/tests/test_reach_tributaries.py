@@ -12,10 +12,10 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.models import (
+from pipeline.common.models import (
     BoundaryKind, FlowEdge, NodeKind, SectionBoundary, StreamGraph, StreamNode,
 )
-from pipeline.reach.tributaries import (
+from pipeline.atlas.reach.tributaries import (
     _breaks_strahler, _mouths_at_lower_bound, expand, tributaries_of_reach,
 )
 
@@ -429,7 +429,7 @@ def test_agrees_with_graph_lake_tributaries_across_many_lakes(real):
     """`graph.tributaries.lake_tributaries` is the tested primitive for a single lake.
     Compared UNGUARDED so the Strahler guard is not the variable."""
     import random
-    from pipeline.graph.tributaries import lake_tributaries
+    from pipeline.atlas.graph.tributaries import lake_tributaries
     g, reg = real
     lakes = [it.section_ids[0] for it in reg.values()
              if it.kind == "lake" and it.section_ids
@@ -449,7 +449,7 @@ def test_the_op_only_decides_the_REACH_the_trib_rule_is_the_same(real):
     So the halves must nest inside the whole, and must not overlap: a creek joining above
     the cut cannot also join below it.
     """
-    from pipeline.reach import extent as R
+    from pipeline.atlas.reach import extent as R
     g, reg = real
     iid = "gnis:12227"                                   # Cowichan River
     cut = next(b.id for b in reg[iid].boundaries if b.kind == "split")
@@ -481,7 +481,7 @@ def test_agrees_with_the_existing_single_section_primitive(real):
     self-edge (470 exist in the graph).
     """
     import random
-    from pipeline.graph.tributaries import tributaries_between
+    from pipeline.atlas.graph.tributaries import tributaries_between
     g, reg = real
     random.seed(7)
     pool = [s for it in list(reg.values())[:4000] for s in it.section_ids]
@@ -503,7 +503,7 @@ def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(re
     derivations disagree.
     """
     import random
-    from pipeline.reach.tributaries import MAINSTEM_EDGE_KINDS
+    from pipeline.atlas.reach.tributaries import MAINSTEM_EDGE_KINDS
     g, reg = real
     random.seed(13)
     pool = [s for it in list(reg.values())[:3000] for s in it.section_ids]

@@ -1,6 +1,6 @@
 """Unit tests for trim_wsc — WSC zero-padding normalisation."""
 
-from pipeline.utils.wsc import trim_wsc
+from pipeline.common.utils.wsc import trim_wsc
 
 
 class TestTrimWsc:

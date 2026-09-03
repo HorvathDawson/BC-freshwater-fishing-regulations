@@ -3,9 +3,9 @@
 import json
 import re
 
-from pipeline.models import RegistryBoundary, RegistryItem
-from pipeline.parsing.entry_models import Entry, validate_entry_splits
-from pipeline.parsing.parse_context import (
+from pipeline.common.models import RegistryBoundary, RegistryItem
+from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
+from pipeline.regs.parsing.parse_context import (
     build_parse_context, load_system_prompt, render_user_message,
 )
 
@@ -61,7 +61,7 @@ def test_prompt_examples_are_valid_entries():
 # --------------------------------------------------------------------------- #
 
 def _ritem(iid, name, boundaries=(), mus=(), variants=()):
-    from pipeline.models import RegistryBoundary, RegistryItem
+    from pipeline.common.models import RegistryBoundary, RegistryItem
     bs = tuple(RegistryBoundary(id=b, label=b.replace("_", " "), kind="split", ref=f"split:{b}")
                for b in boundaries)
     return RegistryItem(id=iid, name=name, kind="stream", variants=variants, mus=mus,
@@ -71,7 +71,7 @@ def _ritem(iid, name, boundaries=(), mus=(), variants=()):
 def test_combined_override_unions_the_boundary_menu():
     """'CHILLIWACK / VEDDER RIVERS' is ONE row over three items; only the first pin used to survive,
     so the entry covered the Chilliwack with no Vedder cut-point to bind."""
-    from pipeline.parsing.parse_context import build_parse_context
+    from pipeline.regs.parsing.parse_context import build_parse_context
 
     chwk = _ritem("gnis:8634", "Chilliwack River", ("slesse_creek",), mus=("2-4",))
     vedd = _ritem("gnis:3062", "Vedder River", ("vedder_crossing_bridge",), mus=("2-3",))
@@ -86,7 +86,7 @@ def test_combined_override_unions_the_boundary_menu():
 
 
 def test_uncombined_entry_is_unchanged():
-    from pipeline.parsing.parse_context import build_parse_context
+    from pipeline.regs.parsing.parse_context import build_parse_context
 
     ctx = build_parse_context(_ritem("gnis:8634", "Chilliwack River", ("slesse_creek",), mus=("2-4",)),
                               raw_regs="x")
@@ -94,7 +94,7 @@ def test_uncombined_entry_is_unchanged():
 
 
 def test_combined_entry_is_announced_in_the_prompt():
-    from pipeline.parsing.parse_context import build_parse_context, render_user_message
+    from pipeline.regs.parsing.parse_context import build_parse_context, render_user_message
 
     msg = render_user_message(build_parse_context(
         _ritem("gnis:8634", "Chilliwack River"), raw_regs="x",
@@ -105,7 +105,7 @@ def test_combined_entry_is_announced_in_the_prompt():
 def test_item_id_scoped_extent_must_bind_a_cutpoint_on_that_item():
     """A combined entry's flat menu is a UNION, so the union check accepted a reach scoped to the
     Atnarko but bounded by a confluence that only exists on the Bella Coola."""
-    from pipeline.parsing.entry_models import Entry, validate_entry_splits
+    from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
 
     entry = Entry(**{
         "entry_id": "gnis:11611#x",
@@ -127,7 +127,7 @@ def test_item_id_scoped_extent_must_bind_a_cutpoint_on_that_item():
 def test_item_ids_lets_one_reach_span_two_waters():
     """A reach whose two ends sit on DIFFERENT waters must be scoped to both — scoping it to either
     alone puts the other end out of scope and the reach cannot resolve at all."""
-    from pipeline.parsing.entry_models import Entry, validate_entry_splits
+    from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
 
     def _entry(scope: dict) -> Entry:
         return Entry(**{
@@ -151,7 +151,7 @@ def test_item_ids_lets_one_reach_span_two_waters():
 
 
 def test_unscoped_extent_may_span_both_waters():
-    from pipeline.parsing.entry_models import Entry, validate_entry_splits
+    from pipeline.regs.parsing.entry_models import Entry, validate_entry_splits
 
     entry = Entry(**{
         "entry_id": "gnis:11611#x",
@@ -166,7 +166,7 @@ def test_unscoped_extent_may_span_both_waters():
 
 
 def test_menu_names_the_owning_item_only_for_combined_entries():
-    from pipeline.parsing.parse_context import build_parse_context, render_user_message
+    from pipeline.regs.parsing.parse_context import build_parse_context, render_user_message
 
     a = _ritem("gnis:11611", "Bella Coola River", ("talchako",))
     b = _ritem("gnis:17209", "Atnarko River", ("goat_creek",))

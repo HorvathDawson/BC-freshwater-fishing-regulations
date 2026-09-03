@@ -11,11 +11,11 @@ import pytest
 from shapely.geometry import LineString, box
 
 from data.data_extractor import FWADataAccessor
-from pipeline.graph import cutting
-from pipeline.splits.anchors import resolve_split_defs
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.models import AnchorType, SplitAnchor, SplitDef
-from pipeline.curated import CURATED, SOURCE
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.splits.anchors import resolve_split_defs
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.common.models import AnchorType, SplitAnchor, SplitDef
+from pipeline.common.curated import CURATED, SOURCE
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
@@ -261,9 +261,9 @@ def test_real_splits_json_resolves_on_bella_coola_extract():
       AND the WSC-descendant self-validation passes (no concern), because the tributary WSC
       910-275583-777225-504013 is a strict descendant of the parent's 910-275583-777225.
     """
-    from pipeline.graph.blk_chains import load_stream_fids
-    from pipeline.build import bbox_from_gnis, get_lake_wbk_kind
-    from pipeline.splits.splits import load_split_defs
+    from pipeline.atlas.graph.blk_chains import load_stream_fids
+    from pipeline.atlas.build import bbox_from_gnis, get_lake_wbk_kind
+    from pipeline.atlas.splits.splits import load_split_defs
 
     fwa = FWADataAccessor(_DATA)
     defs = load_split_defs(str(CURATED.waters.splits))
@@ -289,7 +289,7 @@ def test_real_splits_json_resolves_on_bella_coola_extract():
 def test_perpendicular_cut_uses_the_averaged_bearing():
     """One kinked vertex at the cut must not throw the line off square to the valley."""
     from shapely.geometry import LineString
-    from pipeline.splits.anchors import perpendicular_cut
+    from pipeline.atlas.splits.anchors import perpendicular_cut
 
     straight = LineString([(0, 0), (500, 0), (1000, 0)])
     kinked = LineString([(0, 0), (490, 0), (500, 18), (510, 0), (1000, 0)])
@@ -306,7 +306,7 @@ def test_only_a_channel_crossing_the_line_is_cut():
     """A side channel passing from one side to the other spans it; an oxbow bulging across and
     returning does not."""
     from shapely.geometry import LineString
-    from pipeline.splits.anchors import _spans, perpendicular_cut
+    from pipeline.atlas.splits.anchors import _spans, perpendicular_cut
 
     main = LineString([(0, 0), (1000, 0)])
     cut = perpendicular_cut(main, 500.0, half_len=400.0)

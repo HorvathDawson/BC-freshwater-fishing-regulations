@@ -1,6 +1,6 @@
-"""BC species reference table (pipeline/parsing/species.py), loaded from the authoritative CSV."""
+"""BC species reference table (pipeline/regs/parsing/species.py), loaded from the authoritative CSV."""
 
-from pipeline.parsing.species import (
+from pipeline.regs.parsing.species import (
     COMMON_NAME, GROUPS, KNOWN_SPECIES_CODES, SPECIES, expand_group,
     normalize_species, resolve_species_phrase,
 )

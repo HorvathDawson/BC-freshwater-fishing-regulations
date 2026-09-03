@@ -1,4 +1,4 @@
-"""Reach resolution (`pipeline.reach.extent`), driven through the review app's `entry_reaches`.
+"""Reach resolution (`pipeline.atlas.reach.extent`), driven through the review app's `entry_reaches`.
 
 The helpers were lifted out of `curation-review/backend/reuse.py` so the app and the artifact builder
 run one implementation; they now take the graph explicitly instead of reaching for a module cache.
@@ -19,13 +19,13 @@ from pathlib import Path
 
 import pytest
 
-from pipeline.models import BoundaryKind, FlowEdge, NodeKind, SectionBoundary, StreamGraph, StreamNode
+from pipeline.common.models import BoundaryKind, FlowEdge, NodeKind, SectionBoundary, StreamGraph, StreamNode
 
 _BACKEND = Path(__file__).resolve().parents[2] / "curation-review" / "backend"
 if str(_BACKEND) not in sys.path:
     sys.path.insert(0, str(_BACKEND))
 
-from pipeline.reach import extent as resolve
+from pipeline.atlas.reach import extent as resolve
 
 reuse = pytest.importorskip("reuse", reason="curation-review backend not importable")
 
@@ -204,7 +204,7 @@ def test_a_reach_can_be_bound_by_an_aliased_split(monkeypatch):
     boundary — there is no boundary whose own id is `duncan_river__duncan_dam`. Matching the bound id
     against `b.id` alone therefore found nothing and the reach stayed unresolvable even after the
     alias reached the registry."""
-    from pipeline.models.registry import RegistryBoundary, RegistryItem
+    from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 
     lake = SectionBoundary(boundary_id="lake:99", kind=BoundaryKind.lake, route_measure=1000.0,
                            label="Duncan Lake")
@@ -241,7 +241,7 @@ def test_a_rows_scope_clips_every_rule_in_it(braided, monkeypatch):
     rules inside it are written relative to that stretch, so a rule reading "whole" means the whole of
     THIS row. Unapplied, the two Adams rows resolved to the same river, and so did the Fraser's four
     regional rows: `whole` in the region 5 row and `whole` in the region 7 row came back identical."""
-    from pipeline.models.registry import RegistryItem
+    from pipeline.common.models.registry import RegistryItem
 
     item = RegistryItem(id="gnis:1", name="Adams River", kind="stream",
                         section_ids=tuple(sorted(braided)))
@@ -262,7 +262,7 @@ def test_a_rows_scope_clips_every_rule_in_it(braided, monkeypatch):
 
 def test_an_unresolvable_scope_clips_nothing_rather_than_everything(braided, monkeypatch):
     """Silently returning empty reaches for every rule would read as "this row regulates nothing"."""
-    from pipeline.models.registry import RegistryItem
+    from pipeline.common.models.registry import RegistryItem
 
     item = RegistryItem(id="gnis:1", name="Adams River", kind="stream",
                         section_ids=tuple(sorted(braided)))
@@ -283,7 +283,7 @@ def test_a_broken_scope_is_reported_not_swallowed(braided, monkeypatch):
     read None as "do not clip". A regional row whose boundary stopped resolving would silently widen
     from its region to the whole river — fail-open, in the direction that tells someone a rule applies
     where it does not."""
-    from pipeline.models.registry import RegistryItem
+    from pipeline.common.models.registry import RegistryItem
 
     item = RegistryItem(id="gnis:1", name="Fraser River", kind="stream",
                         section_ids=tuple(sorted(braided)))
@@ -344,7 +344,7 @@ def test_upstream_of_a_lake_runs_to_the_headwaters_and_the_polygon_is_a_separate
     POLYGON, which is a different registry item; and since a rule's `extents` are UNIONed, including
     it needs no new machinery — a second extent scoped to the polygon already does it.
     """
-    from pipeline.models.registry import RegistryBoundary, RegistryItem
+    from pipeline.common.models.registry import RegistryBoundary, RegistryItem
 
     lake = SectionBoundary(boundary_id="lake:77", kind=BoundaryKind.lake, route_measure=1000.0,
                            label="Sumas River")

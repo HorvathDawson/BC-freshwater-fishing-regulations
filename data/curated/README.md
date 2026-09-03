@@ -19,7 +19,7 @@ them strands every split bound to the old ones.
 ## Reach these through config, never as a literal
 
 ```python
-from pipeline.curated import CURATED
+from pipeline.common.curated import CURATED
 CURATED.waters.splits            # pydantic-validated at first access
 CURATED.gauges.matches
 ```

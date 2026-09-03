@@ -16,7 +16,7 @@ import yaml
 import pytest
 from pydantic import ValidationError
 
-from pipeline import curated as C
+from pipeline.common import curated as C
 
 
 @pytest.fixture(scope="module")
@@ -63,7 +63,7 @@ class TestItResolves:
         assert tree.gauges.matches != tree.gauges.review
 
     def test_paths_are_absolute_so_the_working_directory_cannot_matter(self, tree):
-        # `pipeline/dfo_salmon/match.py` used a bare Path("pipeline/splits.json"), correct
+        # `pipeline/regs/dfo_salmon/match.py` used a bare Path("pipeline/atlas/splits.json"), correct
         # only when run from the repo root. Same class of bug as a missing path, harder to
         # see.
         assert tree.waters.splits.is_absolute()

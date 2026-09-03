@@ -21,9 +21,9 @@ import argparse
 import json
 from pathlib import Path
 
-from pipeline.parsing.entry_models import EntryFile
-from pipeline.parsing.rows import load_synopsis_rows, symbols_include_tributaries
-from pipeline.curated import CURATED, SOURCE
+from pipeline.regs.parsing.entry_models import EntryFile
+from pipeline.regs.parsing.rows import load_synopsis_rows, symbols_include_tributaries
+from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
 _ENTRIES_DIR = CURATED.regulations.entries.synopsis

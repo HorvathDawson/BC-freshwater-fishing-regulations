@@ -10,10 +10,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pipeline.tiles import ladder
-from pipeline.tiles.layers import ALL, BY_NAME
-from pipeline.tiles.names import display, haystack, normalise
-from pipeline.curated import CURATED, SOURCE
+from pipeline.deliver.tiles import ladder
+from pipeline.deliver.tiles.layers import ALL, BY_NAME
+from pipeline.deliver.tiles.names import display, haystack, normalise
+from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -154,7 +154,7 @@ def test_a_waterbody_is_drawn_as_its_polygon_not_its_under_lake_line():
     # Behavioural, not a source grep. The previous version matched a literal line that was
     # refactored away, so it had been red for days — and a red suite trains everyone to
     # ignore the next failure.
-    src = (ROOT / "pipeline/tiles/export.py").read_text()
+    src = (ROOT / "pipeline/deliver/tiles/export.py").read_text()
     fn = src[src.index("def export_waterbodies"):src.index("def _kind(")]
     assert "waterbody_polys" in fn, (
         "export_waterbodies no longer reads the polygon sidecar; if it went back to the "
@@ -167,11 +167,11 @@ def test_everything_reads_one_source():
     """Membership is a property of a node, and every waterbody is a node. The exporter must
     not stream the gpkg or merge a side artifact — two places that can disagree about which
     management unit a pond is in."""
-    src = (ROOT / "pipeline/tiles/export.py").read_text()
+    src = (ROOT / "pipeline/deliver/tiles/export.py").read_text()
     fn = src[src.index("def export_waterbodies"):src.index("def _kind(")]
     assert "waterbody_membership" not in src
     assert "fiona.open" not in fn and "read_file" not in fn
-    build = (ROOT / "pipeline/build.py").read_text()
+    build = (ROOT / "pipeline/atlas/build.py").read_text()
     assert "get_all_waterbody_wbks" in build
     assert "allow_unnamed=True" in build
 
@@ -179,7 +179,7 @@ def test_everything_reads_one_source():
 def test_tiles_refuse_to_build_without_management_units():
     """Tiles with no MU stamp look completely normal and make every zone regulation
     invisible. That must fail loudly, not ship."""
-    src = (ROOT / "pipeline/tiles/export.py").read_text()
+    src = (ROOT / "pipeline/deliver/tiles/export.py").read_text()
     assert "def _require_membership" in src
     assert "raise SystemExit" in src
 
@@ -187,7 +187,7 @@ def test_tiles_refuse_to_build_without_management_units():
 def test_simplification_keeps_the_network_stitched():
     """If simplification may move the point where two sections meet, the river gets visible
     gaps and the two features stop sharing a node."""
-    src = (ROOT / "pipeline/tiles/tippe.py").read_text()
+    src = (ROOT / "pipeline/deliver/tiles/tippe.py").read_text()
     assert "--no-simplification-of-shared-nodes" in src
     assert "--no-feature-limit" in src and "--no-tile-size-limit" in src
 
@@ -199,7 +199,7 @@ def test_under_lake_route_is_its_own_layer():
     spec = BY_NAME["under_lake"]
     assert spec.geometry == "line"
     assert "mus" not in spec.attrs, "the route is not water anyone regulates"
-    src = (ROOT / "pipeline/tiles/export.py").read_text()
+    src = (ROOT / "pipeline/deliver/tiles/export.py").read_text()
     assert 'ul_write' in src
 
 
@@ -207,9 +207,9 @@ def test_every_waterbody_becomes_a_node_so_zone_rules_can_reach_it():
     """A zone regulation targets water by WHERE IT IS, not what it is called, and only a node
     carries `mus`. 417,111 waterbodies had no node — 333,468 of 333,526 wetlands — so every
     zone rule was invisible on exactly the small water people fish."""
-    names = (ROOT / "pipeline/graph/names.py").read_text()
+    names = (ROOT / "pipeline/atlas/graph/names.py").read_text()
     assert "allow_unnamed" in names
-    build = (ROOT / "pipeline/build.py").read_text()
+    build = (ROOT / "pipeline/atlas/build.py").read_text()
     assert "def get_all_waterbody_wbks" in build
     # and the minted node's POLYGON must be written, or membership has nothing to test
     # against. It moved from the geometry sidecar into its own file (waterbody_polys.pkl)

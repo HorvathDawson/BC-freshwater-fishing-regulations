@@ -1,11 +1,11 @@
-"""Blanket area-split resolution (pipeline/splits/area_splits.py) — synthetic, no FWA."""
+"""Blanket area-split resolution (pipeline/atlas/splits/area_splits.py) — synthetic, no FWA."""
 
 from shapely.geometry import LineString, box
 
 from data.data_extractor import FWADataAccessor  # noqa: F401 (kept parallel to other suites)
-from pipeline.graph import cutting
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.splits.area_splits import resolve_area_splits
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.splits.area_splits import resolve_area_splits
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, gnis_name=""):

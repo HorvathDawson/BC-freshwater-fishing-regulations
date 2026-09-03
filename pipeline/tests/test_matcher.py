@@ -1,7 +1,7 @@
 """Matcher: diacritics folding, MU disambiguation, and override resolutions."""
 
-from pipeline.models import RegistryItem
-from pipeline.matching.matcher import _norm, match_rows, parse_reg_mus
+from pipeline.common.models import RegistryItem
+from pipeline.regs.matching.matcher import _norm, match_rows, parse_reg_mus
 
 
 def _it(iid, name, mus=(), variants=(), ref_ids=(), kind="stream"):
@@ -160,8 +160,8 @@ def test_id_index_self_identity_beats_an_inherited_ref():
     """Every Fraser side channel carries the mainstem's gnis on its name tuples, so `gnis:39325`
     appears in 15 items' ref_ids. Plain first-writer-wins handed it to whichever was built first
     (Annacis Channel, ONE section), so the Fraser overrides pinned the river onto a side channel."""
-    from pipeline.matching.matcher import build_id_index
-    from pipeline.models import RegistryItem
+    from pipeline.regs.matching.matcher import build_id_index
+    from pipeline.common.models import RegistryItem
 
     reg = {
         "gnis:10494": RegistryItem(id="gnis:10494", name="Annacis Channel", kind="stream",

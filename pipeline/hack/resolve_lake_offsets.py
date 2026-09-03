@@ -17,7 +17,7 @@ from shapely.ops import linemerge, unary_union
 from pyproj import Transformer
 
 from data.data_extractor import FWADataAccessor
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 _GPKG = str(SOURCE / "bc_fisheries_data.gpkg")
 _TO_4326 = Transformer.from_crs(3005, 4326, always_xy=True)

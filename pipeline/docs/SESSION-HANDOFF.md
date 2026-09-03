@@ -8,7 +8,7 @@ Full test suite: **152 passed, 8 skipped**.
 
 ## 0. Where coverage stands now
 
-`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.matching.coverage --registry output/v2/full/registry.json`
+`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry output/v2/full/registry.json`
 
 ```
 registry           19,335 items  (stream 11,645 / lake 7,640 / wetland 46 / area 4)
@@ -39,7 +39,7 @@ same MU** → ambiguous matches. Removed the harmful tuples only (cross-MU alias
 - **7 more (user-confirmed)**: Truda, Knouff (×2 sources), Darke, Drum, Turner, "Unnamed near Vanderhoof",
   Bear Creek. The other same-MU cases were left ("the rest are real" — chains / legit alt names).
 
-### 1b. Side-channel name handling (`pipeline/graph/names.py`, `pipeline/registry/build.py`)
+### 1b. Side-channel name handling (`pipeline/atlas/graph/names.py`, `pipeline/atlas/registry/build.py`)
 - **Direction gate** (names.py): a side channel only inherits the mainstem name when the mainstem is
   genuinely bigger (`_mag(main) > _mag(c)`). Stops the Stave from grabbing "Blind Slough".
 - **Foreign-name exclusion** (build.py `build_registry`): a borrowed side-channel name (its gnis is not
@@ -60,7 +60,7 @@ dropping names equal to the polygon's GNIS name, "Unnamed lake" placeholders, an
   ASCII-for-accented (Brûlé→Brule, François→Francois) and English names for renamed lakes
   (Chilko→Tŝilhqox Biny, Tatlayoko, Stum, Anah, Alexis, Chilcotin, Eagle, Puntzi — each backed by a
   `(formerly)` GNIS_NAME_2). Kept suspects Surprise + Wolfe.
-- **New `NameSource` members** (`pipeline/models/enums.py`): `vessel_restriction`, `lake_survey`
+- **New `NameSource` members** (`pipeline/common/models/enums.py`): `vessel_restriction`, `lake_survey`
   (low priority, searchable, never beat gazette — provenance recorded instead of degrading to `alias`).
 
 ### 1d. Collision guard on the additions
@@ -74,18 +74,18 @@ Backups of every name_variants edit are in the session scratchpad (`name_variant
 
 ## 2. How to run the parser (it is READY once this rebuild lands)
 
-Flow (`pipeline/parsing/run_parse.sh`): **export batches → dispatch to Claude CLI → validate → ingest**.
+Flow (`pipeline/regs/parsing/run_parse.sh`): **export batches → dispatch to Claude CLI → validate → ingest**.
 ```
-REGISTRY=output/v2/full/registry.json bash pipeline/parsing/run_parse.sh
+REGISTRY=output/v2/full/registry.json bash pipeline/regs/parsing/run_parse.sh
 # knobs: BATCH_SIZE=40  MODEL=opus  CONCURRENCY=3  CLAUDE_BIN=claude
 ```
-Prereqs (all satisfied): registry.json ✓, `pipeline/matching/overrides.json` (480) ✓, synopsis rows
+Prereqs (all satisfied): registry.json ✓, `pipeline/regs/matching/overrides.json` (480) ✓, synopsis rows
 (1,393) ✓, `parse_context` + PARSE/REVIEW prompts ✓, `bc_species.csv` ✓, `claude` CLI v2.1.233 ✓,
-`pipeline/parsing/entries/` empty (fresh full parse).
+`pipeline/regs/parsing/entries/` empty (fresh full parse).
 
 The **matcher is the gate**: `batch_exporter` matches each row, batches the ~1,330 HITs, and **excludes**
 the ~60 unmatched/ambiguous/feature_pin rows (hand-curate later — never guessed). Output is `EntryFiles`
-in `pipeline/parsing/entries/`.
+in `pipeline/regs/parsing/entries/`.
 
 ## 2b. Edge-case features (2026-08-17) — ungazetted, potholes, inlet/outlet, reservoirs
 
@@ -95,7 +95,7 @@ in `pipeline/parsing/entries/`.
   TEMPORARY — to be replaced by proper polygon subdivision later, then removed.
 - **Bluey Lake Potholes — FIXED.** Its override used dead `waterbody_poly_ids` (old-FWA
   WATERBODY_POLY_IDs, stored as float in the gpkg). Re-resolved all 10 → live `waterbody_keys`
-  (added to `pipeline/matching/overrides.json`), then dropped the redundant poly_ids; now a feature-pin
+  (added to `pipeline/regs/matching/overrides.json`), then dropped the redundant poly_ids; now a feature-pin
   like Okanagan Oxbows / Moss Pothole (`status=override`).
 - **Override `name_variants` field — fully removed.** The matcher/coverage/batch_exporter never read it
   (vestigial migration data). Stripped from ALL overrides. Two carried names worth keeping were moved
@@ -131,7 +131,7 @@ in `pipeline/parsing/entries/`.
   329657333 + **329657984** (both polygons) — added an override feature-pin (REGION 7B, 7-31 →
   waterbody_keys both) so the reg row resolves to the group (not ambiguous) + a name_variants group;
   South Cameron = 329657328. (Puntzi handled via Bendziny.)
-- **Reach proximity/snap.** Two guards in `pipeline/graph/names.py`: `_snap_reach` snaps an authored
+- **Reach proximity/snap.** Two guards in `pipeline/atlas/graph/names.py`: `_snap_reach` snaps an authored
   reach bound onto the nearest section boundary within `_REACH_SNAP_M = 50` m (reuse of split-proximity
   pickup, so approximate/rounded measures align to the real cut), and `_node_matches` still requires
   `> _REACH_MIN_OVERLAP_M = 1` m real overlap. Together they killed the Seven Mile Reservoir 0.01 m leak.
@@ -150,14 +150,14 @@ The parser emits `EntryFile`s (species/dates/extent per registry item). The **re
 (`Entry × registry × sections → SectionRegs + CoverageReport`) that turns those into actual reach/section
 assignments is **not built** — it is the biggest remaining piece. `feature_pin` rows (13) and the
 multi-feature misses above all wait on it. Also open: lazy area-catalog wiring into `build.py`
-(`pipeline/splits/area_catalog.py` exists but isn't called; membership layer defs not added).
+(`pipeline/atlas/splits/area_catalog.py` exists but isn't called; membership layer defs not added).
 
 ## 4. Commands
 ```
 # full production rebuild (~14 min; bakes name_variants + splits):
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.build --full --out output/v2/full --splits pipeline/splits.json
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out output/v2/full --splits pipeline/atlas/splits.json
 # coverage (no build):
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.matching.coverage --registry output/v2/full/registry.json
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry output/v2/full/registry.json
 # tests:
 PYTHONPATH="$PWD" .venv/bin/python -m pytest pipeline/tests/ -q
 # refresh the code graph after edits:
@@ -188,17 +188,17 @@ registry). Only ~18 live overrides steer to a different item than plain matching
 ## Profiling (2026-08-16)
 `PIPELINE_PROFILE=1 --full`. Two slow stages were O(items × all-nodes) scans:
 `apply_name_variants` (indexed by target id → each entry touches only its nodes) and `split_graph_at`
-(index nodes by blk, edges by to_node). `pipeline/utils/profiling.py` is wired in; set `PIPELINE_PROFILE=1`.
+(index nodes by blk, edges by to_node). `pipeline/common/utils/profiling.py` is wired in; set `PIPELINE_PROFILE=1`.
 
 ## Border (cached BC boundary)
 Border splits matter (Kootenay/Columbia leave and re-enter BC — regs stop at the line). The union of
 full-res WMU polygons was the bottleneck; the province never changes, so the outline is precomputed once
-to `data/bc_boundary.geojson` (`pipeline/splits/bc_boundary.py`). `--no-border` is a dev shortcut only;
+to `data/bc_boundary.geojson` (`pipeline/atlas/splits/bc_boundary.py`). `--no-border` is a dev shortcut only;
 production is `--full`. Regenerate only if the WMU layer changes:
-`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.splits.bc_boundary --gpkg data/bc_fisheries_data.gpkg`
+`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.splits.bc_boundary --gpkg data/bc_fisheries_data.gpkg`
 
 ## Area work (designed, partially built)
 `cut: true|false` in `areas.json` is the sole cut trigger; cut areas stay eager, everything else is
-membership-only. `pipeline/splits/area_catalog.py` (lazy catalog) built but **not wired into build.py**;
+membership-only. `pipeline/atlas/splits/area_catalog.py` (lazy catalog) built but **not wired into build.py**;
 membership layer defs (parks_bc, wma, land_access, named watersheds, historic) not yet added.
 `Extent.feature_types` (stream/lake/wetland) added + tested.

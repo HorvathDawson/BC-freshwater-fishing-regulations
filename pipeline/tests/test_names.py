@@ -1,7 +1,7 @@
 """(name, source) tuple tests (03 S2) — side-channel name inheritance."""
 
-from pipeline.models import BlkChain, NameSource, NameTuple
-from pipeline.graph.names import resolve_names
+from pipeline.common.models import BlkChain, NameSource, NameTuple
+from pipeline.atlas.graph.names import resolve_names
 
 
 def _chain(blk, wsc, gnis_id="", gnis_name="", order=1, mag=1):
@@ -44,8 +44,8 @@ def test_mint_waterbody_nodes_gives_an_unnoded_water_a_section():
     in or out) and an overlaid wetland (the fids record it in member_wbks, not as a node) both ended
     up with an EMPTY section_ids — `op=whole` then resolved against an empty universe and the rule
     silently bound nothing. Minting gives the item exactly one section to answer with."""
-    from pipeline.graph.names import mint_waterbody_nodes
-    from pipeline.models import NameSource, NodeKind, StreamGraph
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, NodeKind, StreamGraph
 
     g = StreamGraph()
     n = mint_waterbody_nodes(g, {"111": (("Frazer Lake", "27804"),)}, NameSource.gazette)
@@ -58,8 +58,8 @@ def test_mint_waterbody_nodes_gives_an_unnoded_water_a_section():
 
 
 def test_mint_waterbody_nodes_never_overwrites_a_real_node():
-    from pipeline.graph.names import mint_waterbody_nodes
-    from pipeline.models import NameSource, NodeKind, StreamGraph, StreamNode
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, NodeKind, StreamGraph, StreamNode
 
     g = StreamGraph()
     g.nodes["lake:111"] = StreamNode(node_id="lake:111", kind=NodeKind.lake, wbk="111",
@@ -71,8 +71,8 @@ def test_mint_waterbody_nodes_never_overwrites_a_real_node():
 def test_mint_waterbody_nodes_skips_the_unnamed():
     """The name is the whole point — a nameless polygon can never be targeted by a regulation, and
     minting one would just add an unmatchable item."""
-    from pipeline.graph.names import mint_waterbody_nodes
-    from pipeline.models import NameSource, StreamGraph
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, StreamGraph
 
     g = StreamGraph()
     assert mint_waterbody_nodes(g, {"222": (("", "999"),)}, NameSource.gazette) == 0
@@ -82,8 +82,8 @@ def test_mint_waterbody_nodes_skips_the_unnamed():
 def test_mint_waterbody_nodes_takes_the_longest_gazetted_name():
     """Matches what add_waterbody_items put on the item, so no display name churns when the water
     becomes a node instead."""
-    from pipeline.graph.names import mint_waterbody_nodes
-    from pipeline.models import NameSource, StreamGraph
+    from pipeline.atlas.graph.names import mint_waterbody_nodes
+    from pipeline.common.models import NameSource, StreamGraph
 
     g = StreamGraph()
     mint_waterbody_nodes(g, {"333": (("Tsayta", "1"), ("Nation Lakes", "2"))}, NameSource.gazette)

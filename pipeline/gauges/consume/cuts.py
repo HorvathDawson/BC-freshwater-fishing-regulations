@@ -16,7 +16,7 @@ code — is in the frozen match, which is the single place a station is ever loc
       ▼
     pipeline/gauge_match.json                frozen: station -> coord + wsc (or wbk)
       │                        │
-      │  pipeline.build        │  pipeline.bundle
+      │  pipeline.atlas.build        │  pipeline.deliver.bundle
       ▼                        ▼
     a `gauge` point anchor     the section that BEGINS at that coordinate and runs
     at the coord, scoped       upstream on that water — what the gauge has just

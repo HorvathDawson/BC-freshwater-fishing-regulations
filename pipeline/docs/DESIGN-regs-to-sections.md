@@ -163,17 +163,17 @@ partial carve-out references the boundary split(s). Consumed at the resolve step
 
 ```
 1. DOWNLOAD    fetch the BC synopsis PDF(s)
-2. EXTRACTION  pipeline/extraction: PDF → rows. Row = {name:"Chemainus River", region:1,
+2. EXTRACTION  pipeline/regs/extraction: PDF → rows. Row = {name:"Chemainus River", region:1,
                mus:["1-5"], raw_regs:"No fishing between Copper Canyon Falls and the signs…"}
                → output/ (ephemeral, regenerable)
 3. FWA DATA    data/: Freshwater Atlas geometry (every stream/lake)
-4. SPLITS      pipeline/splits.json (by waterbody, curated FIRST): Chemainus →
+4. SPLITS      pipeline/atlas/splits.json (by waterbody, curated FIRST): Chemainus →
                bannon_confluence, copper_canyon_falls, signs_100m  (id+label+note+anchor)
 5. GRAPH BUILD pipeline/build: FWA + splits + name_variants → StreamGraph. Chemainus cut into
                sections chem_1..chem_4 (each with location_identifier)
                → REGISTRY item gnis:chemainus {variants, MU-set, its sections}
 6. PARSE       revived agent_parsing (given raw_regs + Chemainus's splits as context) →
-               pipeline/parsing/entries/region-1.json:
+               pipeline/regs/parsing/entries/region-1.json:
                  Entry{ name:"Chemainus", rules:[{closure, extents:[{between,[falls,signs]}]}] }
 7. MATCH       matcher: "Chemainus River"(reg1, mu1-5) → gnis:chemainus (unique) → entry.matched
 8. RESOLVE     resolver: rule → matched item's sections → extents pick chem_3 → append reg_id
@@ -236,7 +236,7 @@ registry; a rule references a split by `id`, and "which sections" is read off se
 The entries file is both the parser's output **and** the file a curator hand-edits (fix an `extent`,
 add a `sections_override`, correct a `matched`). It is **self-contained**: it embeds the verbatim
 source (`regs_verbatim` + per-rule `rule_text`), so you never need the ephemeral extraction to read
-or curate it. Store as per-region files (`pipeline/parsing/entries/region-2.json`) for small diffs.
+or curate it. Store as per-region files (`pipeline/regs/parsing/entries/region-2.json`) for small diffs.
 - **`Entry`** — `{entry_id, identity{name, region, mus[]}, regs_verbatim, source_symbols[], matched:[registry_id], tributaries{included,only,excludes[Extent]}, scope:[Extent], rules:[Rule], parse_review{verdict,model,issues[]}, locked, reviewed_by, revisit, revisit_note}`. `source_symbols`/`matched`/`registry_*` are ingest/matcher provenance; `parse_review` is the durable agent-review pass; `locked`/`reviewed_by`/`revisit*` are human curation.
 - **`Rule`** — `{rule_id, type, details, dates[], extents:[Extent], includes_tributaries: bool|null, tributary_excludes:[Extent], sections_override:[section_id]?, needs_review: bool, review_reason?, rule_text, location_text}` (last two = verbatim provenance). `needs_review` = the parser couldn't confidently bind it → hand-curation queue. `tributary_excludes` = per-rule hand-curated carve-outs from THIS rule's tributary set (parser leaves `[]`).
 - **`Extent`** — `{op: whole|upstream_of|downstream_of|between|within, splits:[split_id], item_id?: registry_id, area_id?, area_kind?}`. The `op+split` binding. A rule's `extents` is a **list → union** (covers "A plus B"); `item_id` scopes an extent to a *different* registry item than the entry's `matched` (covers "plus Tenas Lake" / named side channels). Entry `scope` ∩ each rule extent composes.
@@ -249,12 +249,12 @@ or curate it. Store as per-region files (`pipeline/parsing/entries/region-2.json
 
 ## The parser — rebuild on Claude Code, freeze, consume
 
-**Today:** `pipeline/parsing/parser.py` sends synopsis-row batches to **Gemini**, validates against the
-`ParsedBatch` pydantic models, and writes `output/pipeline/parsing/synopsis_parsed.json` (ephemeral);
+**Today:** `pipeline/regs/parsing/parser.py` sends synopsis-row batches to **Gemini**, validates against the
+`ParsedBatch` pydantic models, and writes `output/pipeline/regs/parsing/synopsis_parsed.json` (ephemeral);
 `region`/`mu` come out null. (An archived `agent_parsing/` shows a chat-driven flow already existed.)
 
 **New — drive the parse through Claude Code (chat + subagents), emit the `Entry` shape, freeze it in
-`pipeline/parsing/`:**
+`pipeline/regs/parsing/`:**
 
 - **Why Claude Code, not an API batch:** the parse is a **one-time frozen artifact**, so agentic care +
   in-context access to the curated files + human review beats fire-and-forget. Subagents parse batches
@@ -264,7 +264,7 @@ or curate it. Store as per-region files (`pipeline/parsing/entries/region-2.json
   `batch_exporter` (pending rows → `batch_NNN.json` + rendered prompt + digest manifest) → subagent per
   batch → `review_exporter` (independent reviewer subagent) → `ingest` (validate through the **same**
   pydantic gate, apply successes, fail loud) → `compare` (engine A/B diff). Revive it and change three
-  things: emit the new `Entry` shape, feed the extra inputs below, and write to `pipeline/parsing/`.
+  things: emit the new `Entry` shape, feed the extra inputs below, and write to `pipeline/regs/parsing/`.
 - **Unit = one waterbody, with its splits as context.** The parse unit is a single waterbody entry:
   `raw_regs` + row metadata (region/mu → `identity`) + **its curated splits** (id, label, note, anchor
   kind) + the op enum. Binding a rule to a reach is then a **constrained selection** among the provided
@@ -278,21 +278,21 @@ or curate it. Store as per-region files (`pipeline/parsing/entries/region-2.json
   bind (no split matches "the 2nd bridge"; nested harvest; freeform polygon) is emitted with
   `needs_review:true` + a reason → the coverage report's hand-curation queue. Expectation: nearly
   everything auto; Atnarko/Bella-Coola-class → flagged.
-- **Output → `pipeline/parsing/` (checked-in), not `output/`.** Because the parse **freezes** and is then
+- **Output → `pipeline/regs/parsing/` (checked-in), not `output/`.** Because the parse **freezes** and is then
   hand-curated (extents, overrides), it must be version-controlled. `output/` stays for regenerable,
-  ephemeral artifacts (raw extraction). Suggest per-region files (`pipeline/parsing/entries/region-2.json`
+  ephemeral artifacts (raw extraction). Suggest per-region files (`pipeline/regs/parsing/entries/region-2.json`
   …) for small, reviewable diffs.
 - **Keep the pydantic gate:** the chain-of-custody checks (`location_text ⊆ rule_text`, verbatim fields,
   dates) still validate every emitted `Entry`.
 
 **How it's consumed (interaction with everything).** Two clean tiers:
-- **Frozen, checked-in, hand-curated:** `splits.json` (by waterbody) · `pipeline/parsing/entries/…` (parse)
+- **Frozen, checked-in, hand-curated:** `splits.json` (by waterbody) · `pipeline/regs/parsing/entries/…` (parse)
   · `match_overrides.json` · `name_variants.json`.
 - **Derived each build (ephemeral):** graph → sections → registry → `SectionRegs` + coverage → client.
 
 ```
 FWA + splits.json + name_variants ─► graph build ─► sections + registry
-pipeline/parsing/entries ──► matcher (+ match_overrides) ──► entry.matched
+pipeline/regs/parsing/entries ──► matcher (+ match_overrides) ──► entry.matched
    then  resolver( entries × registry_index × sections ) ──► SectionRegs (+ CoverageReport) ──► client
 ```
 
@@ -317,12 +317,12 @@ It doesn't survive as one file; each lever moves to its natural new home:
 | `only_within_zones` | region prune (`identity.mus`) or explicit `within(mu)` |
 | `ungazetted_waterbody_id` / `ungazetted_location` | synthetic `RegistryItem` (blk/area id) + authored geometry |
 
-The current `overrides.json` stays in `archive/pipeline/matching/` as the source to port from.
+The current `overrides.json` stays in `archive/pipeline/regs/matching/` as the source to port from.
 
 ## Worked example — Atnarko / Bella Coola system
 
-Real parsed entry (today `output/pipeline/parsing/synopsis_parsed.json`; the rebuilt parser writes the
-frozen `Entry` form to `pipeline/parsing/`): `includes_tributaries: true`,
+Real parsed entry (today `output/pipeline/regs/parsing/synopsis_parsed.json`; the rebuilt parser writes the
+frozen `Entry` form to `pipeline/regs/parsing/`): `includes_tributaries: true`,
 `entry_location_text: "EXCEPT: Burnt Bridge Creek upstream of Sitkatapa Creek, Hunlen Creek
 upstream of Hunlen Falls, and Young Creek upstream of Hwy 20"`, plus 8 rules. Printed under both
 "Atnarko" and "Bella Coola" (one reg, a two-river system).
@@ -438,18 +438,18 @@ from `overrides.json`, 480 entries):
 
 ## Building it — required pieces (in dependency order)
 
-1. **New splits file** — convert `waterbody-splits.json` → by-waterbody `pipeline/splits.json`
+1. **New splits file** — convert `waterbody-splits.json` → by-waterbody `pipeline/atlas/splits.json`
    (`applies_to`, `splits[{id, label, note, _note, anchor}]`); update `load_split_defs` to read +
    flatten it.
 2. **New models** — `Entry` / `Rule` / `Extent` (with `extents[]`, `item`, `needs_review`,
-   `regs_verbatim`/`rule_text`) in `pipeline/parsing/models.py`; validation = chain-of-custody +
+   `regs_verbatim`/`rule_text`) in `pipeline/regs/parsing/models.py`; validation = chain-of-custody +
    "every `extent.split` exists".
 3. **Registry build** — `RegistryItem` + `registry_index` + per-item MU-set. Needed both as **parse
    context** and for match.
 4. **New prompt + examples** — rewrite `prompt.txt` / `examples.json` for "split into rules + bind
    `extents` from the **provided** splits + flag `needs_review`."
 5. **Revive `agent_parsing`** — adapt `batch_exporter` (unit = waterbody + its splits),
-   `prompt_render`, `review_exporter`, `ingest` (new schema; writes to `pipeline/parsing/`), `compare`.
+   `prompt_render`, `review_exporter`, `ingest` (new schema; writes to `pipeline/regs/parsing/`), `compare`.
 6. **Matcher** — `entry → registry_id` (unique-hit) + `match_overrides` (ported from `overrides.json`).
 7. **Resolver/join** — `Entry × registry_index × Section → SectionRegs`, region-pruned; + coverage /
    `needs_review` report.
@@ -466,7 +466,7 @@ Splits (1) + registry (3) must exist before the parse (4–5); models (2) before
   be rebuilt later from the archive). Kept: `extraction/`, `parsing/`, `utils/`.
 - **Merged `stream_sections/` into `pipeline/`** (flat): the stream/section modules, `oneoff/`,
   `docs/`, tests, and data files now live under `pipeline/`. Imports repointed
-  (`stream_sections.*` → `pipeline.*`); `wsc` consolidated to the single `pipeline/utils/wsc.py`
+  (`stream_sections.*` → `pipeline.*`); `wsc` consolidated to the single `pipeline/common/utils/wsc.py`
   (the duplicate `stream_sections/wsc.py` deleted, `anchors.py` repointed). Full suite green
   (121 passed, 11 skipped). No webapp/mobile breakage (they consume built artifacts, not Python).
 - **Docs:** deleted `DRAFT-split-model-unification.md`, `10-matching-and-invariants.md` (watch-list
@@ -474,7 +474,7 @@ Splits (1) + registry (3) must exist before the parse (4–5); models (2) before
 - **Grouped** the root modules into subpackages: `graph/` (blk_chains, names, graph, tributaries,
   cutting), `splits/` (anchors, splits, sectionizer, border), `io/` (serialize, export_gpkg);
   `models.py` / `build.py` / `run.py` + curated data (`splits.json`, `name_variants.json`) stay at
-  root. Imports use explicit `pipeline.graph.graph` / `pipeline.splits.splits` (module-in-package).
+  root. Imports use explicit `pipeline.atlas.graph.graph` / `pipeline.atlas.splits.splits` (module-in-package).
   Added `pipeline/__main__.py` → `build.main`. Suite green (121 passed).
 - **Dropped `feature_display_names.json`** — its data is already compiled into `name_variants.json`
   (the single graph-gen name-variant input). `overrides.json` stays in the archive (old matching).
@@ -517,7 +517,7 @@ binds with no `needs_review`.
 
 **Splits.json schema (this commit):** a split's per-split target override now uses a nested
 `applies_to: {gnis_id|blk|wsc}` (same shape as the waterbody level), not floating keys. The loader
-(`pipeline/splits/splits.py`) **validates** the file: a split under a `applies_to: null` waterbody must
+(`pipeline/atlas/splits/splits.py`) **validates** the file: a split under a `applies_to: null` waterbody must
 carry its own `applies_to`, else load fails loud.
 
 **Entry shape refinements (this commit):**
@@ -566,7 +566,7 @@ closure" semantics:
   all `land_access` levels (Malcolm Knapp incl.), named `watersheds` (Liard incl.), `historic_sites`.
 
 **Lazy catalog (not eager membership).** The build writes a lightweight **area catalog** —
-`{area_id, name, kind, polygon}` only, NOT per-area section lists (`pipeline/splits/area_catalog.py` →
+`{area_id, name, kind, polygon}` only, NOT per-area section lists (`pipeline/atlas/splits/area_catalog.py` →
 a gpkg layer). Membership (intersects + `feature_types` filter) is computed at **resolve time**, only
 for the few areas a reg references — so the registry stays lean and the build fast, yet any area (Liard
 included) is referenceable. `area_id = area:{kind}:{slug}` (collision-safe).
@@ -579,19 +579,19 @@ row at an `area_id`; a rule binds `within(area, feature_types=[stream|lake|…])
 
 The Entry/Rule/Extent shapes now carry more than the doc's §"Data types" lists — reconcile there later:
 - **`Rule`** adds `display_location` (user-facing, curator-editable, non-verbatim), `unresolved_locators`
-  (unbound locator phrases → forces `needs_review`), `species` (codes; validated vs `pipeline/parsing/species.py`),
+  (unbound locator phrases → forces `needs_review`), `species` (codes; validated vs `pipeline/regs/parsing/species.py`),
   and `date_windows()` (structured, validated from verbatim `dates` — hallucination guard).
 - **`Extent`** adds `feature_types` (op=within only).
 - **`Entry`** adds `locked` (human-freeze; re-parse must not overwrite).
-- **Matcher/overrides** live in **`pipeline/matching/`** (`matcher.py` + `overrides.json`, migrated from
+- **Matcher/overrides** live in **`pipeline/regs/matching/`** (`matcher.py` + `overrides.json`, migrated from
   the archive, `name_variants` dropped). Overrides are region/MU-scoped: `{norm_name: [{region, mus,
   item_ids|skip|alias_of}]}`.
 
 ## Session structural cleanup (2026-08-15, no logic changes)
 
-- `pipeline/models.py` → **`pipeline/models/` package** (enums · names · chains · graph · splits ·
+- `pipeline/common/models.py` → **`pipeline/common/models/` package** (enums · names · chains · graph · splits ·
   sections · regs · registry), re-exported from `__init__` so all imports are unchanged.
-- `pipeline/parsing/` prompts/docs → `pipeline/parsing/prompts/`.
+- `pipeline/regs/parsing/` prompts/docs → `pipeline/regs/parsing/prompts/`.
 - **Perf:** border uses a vectorized `covered_by` prefilter; area membership uses one STRtree batch
   (`mark_inside_areas`); build cuts-then-marks-once. (Border stage still gated on the `bc_outline`
   WMU-union cost — flagged for a follow-up: STRtree tiling or a simplified/cached province outline.)
@@ -630,7 +630,7 @@ typed-id overrides fully resolve; the dead tail is nameless features + version-d
 
 ### Layer B — Override format = the archive schema — ✅ IMPLEMENTED 2026-08-16
 
-`pipeline/matching/overrides.json` is the **archive file verbatim** (a LIST of 480 override objects):
+`pipeline/regs/matching/overrides.json` is the **archive file verbatim** (a LIST of 480 override objects):
 `{type, criteria: {name_verbatim, region, mus}, note, skip, skip_reason, variant_of, gnis_ids,
 waterbody_keys, fwa_watershed_codes, blue_line_keys, linear_feature_ids, waterbody_poly_ids,
 admin_targets, admin_feature_types, only_within_zones, ungazetted_waterbody_id/location}`. The archive is
@@ -693,7 +693,7 @@ The matcher picks the item; the **resolver** applies scope. Table of the tricky 
 The parser sets `tributaries.only` / `.included` from the "tributaries"/"watershed" wording; `within`
 comes from an override's `admin_targets`. So **"X Lake's tributaries" is NOT an unmatched row** — it
 matches the LAKE, with a trib scope. (`inlet_outlet` is the one new `Op` to add; the tributary and
-lake-inlet/outlet mechanisms already exist and are tested in `pipeline/graph/tributaries.py`.)
+lake-inlet/outlet mechanisms already exist and are tested in `pipeline/atlas/graph/tributaries.py`.)
 
 ### Layer E — the parser context (Goal 1): the splits menu per entry
 
@@ -716,7 +716,7 @@ Binding a rule is a **constrained selection** among provided boundary ids / ops 
 Two guards, belt-and-suspenders:
 - **Per-entry** `Entry.locked: bool` (already in the model) — the merge tool applies a re-parse only to
   **unlocked** entries; a locked entry's changes are reported for manual review, never auto-written.
-- **Per-file lock** — a sidecar `pipeline/parsing/entries/region-N.json.lock` (presence = locked). The
+- **Per-file lock** — a sidecar `pipeline/regs/parsing/entries/region-N.json.lock` (presence = locked). The
   ingest/writer **refuses to overwrite** a locked region file at all; only the explicit merge tool may,
   and only into unlocked entries. This makes "the parse is a one-time frozen artifact" enforceable, not
   just conventional. (A `parsing/entries/LOCKED` manifest listing locked regions is the equivalent.)

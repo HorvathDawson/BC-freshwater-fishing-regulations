@@ -39,10 +39,10 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pipeline.io.serialize import read_artifact
-from pipeline.parsing import io as parse_io
-from pipeline.reach.covered import covered_ids, make_matcher
-from pipeline.registry import load_registry
+from pipeline.common.io.serialize import read_artifact
+from pipeline.regs.parsing import io as parse_io
+from pipeline.atlas.reach.covered import covered_ids, make_matcher
+from pipeline.atlas.registry import load_registry
 
 
 def main() -> int:
@@ -134,7 +134,7 @@ def main() -> int:
             path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
             print(f"  region {region}: {before} -> {len(data['entries'])} entries")
         print("\nNow re-parse the deleted rows (HUMAN-ONLY — spends credits):")
-        print("    bash pipeline/parsing/run_parse.sh parse-missing")
+        print("    bash pipeline/regs/parsing/run_parse.sh parse-missing")
     return 0
 
 

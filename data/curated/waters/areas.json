@@ -85,5 +85,5 @@
     }
   ],
   "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut.",
-  "_tile_note": "`tile_layer` names the vector-tile layer this area's POLYGONS are drawn in (pipeline/tiles/layers.py). It is here, not in the tile exporter, so a selector is written once: the graph build uses it to stamp `in_areas` and the exporter uses the same def to draw the boundary. Two copies of a selector is two things that can disagree about what a park is."
+  "_tile_note": "`tile_layer` names the vector-tile layer this area's POLYGONS are drawn in (pipeline/deliver/tiles/layers.py). It is here, not in the tile exporter, so a selector is written once: the graph build uses it to stamp `in_areas` and the exporter uses the same def to draw the boundary. Two copies of a selector is two things that can disagree about what a park is."
 }

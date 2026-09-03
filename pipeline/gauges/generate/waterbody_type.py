@@ -44,7 +44,7 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
 

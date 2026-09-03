@@ -2,7 +2,7 @@
 
 from shapely.geometry import LineString
 
-from pipeline.graph import cutting
+from pipeline.atlas.graph import cutting
 
 
 def test_endpoint_id_rounds_to_3dp():

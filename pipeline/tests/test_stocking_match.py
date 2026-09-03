@@ -10,9 +10,9 @@ from __future__ import annotations
 import pytest
 from shapely.geometry import Point
 
-from pipeline.models.enums import NodeKind
-from pipeline.models.graph import StreamGraph, StreamNode
-from pipeline.stocking.match import RADIUS_M, StockMatch, match_waterbodies
+from pipeline.common.models.enums import NodeKind
+from pipeline.common.models.graph import StreamGraph, StreamNode
+from pipeline.stocking.generate.match import RADIUS_M, StockMatch, match_waterbodies
 
 pytest.importorskip("geopandas")
 
@@ -172,7 +172,7 @@ def test_the_alias_file_is_never_the_shared_name_variants_file():
     # corrupted display names elsewhere. No matcher may write into that file.
     from pathlib import Path
 
-    import pipeline.stocking.match as m
+    import pipeline.stocking.generate.match as m
 
     src = Path(m.__file__).read_text(encoding="utf-8")
     assert "name_variants.json`" in src          # mentioned only in the warning
@@ -198,7 +198,7 @@ class TestIdentifierIndex:
     def test_a_missing_gpkg_is_an_empty_index_not_a_crash(self):
         from pathlib import Path
 
-        from pipeline.stocking.identifiers import build_identifier_index
+        from pipeline.stocking.generate.identifiers import build_identifier_index
         assert build_identifier_index(Path("does/not/exist.gpkg"),
                                       self._graph_with({})) == {}
 
@@ -206,7 +206,7 @@ class TestIdentifierIndex:
         # FWA's own multi-part grouping — 4.2% of codes on the real atlas. Collapsing to
         # one here would hide the ambiguity at the only place it can still be resolved
         # honestly, which is against FIDQ's own anchor point.
-        from pipeline.stocking.match import match_waterbodies
+        from pipeline.stocking.generate.match import match_waterbodies
         g, geoms = _world({"A": (-120.10, 49.90), "B": (-120.30, 49.90)})
         [m] = match_waterbodies(
             [{**_water("W1", "A", -120.10, 49.90), "identifier": "00001ADMS"}], geoms, g,
@@ -215,7 +215,7 @@ class TestIdentifierIndex:
 
     def test_a_node_the_graph_does_not_have_is_ignored(self):
         # The index is built from the source layer, which may be newer than the graph.
-        from pipeline.stocking.match import match_waterbodies
+        from pipeline.stocking.generate.match import match_waterbodies
         g, geoms = _world({"A": (-120.10, 49.90)})
         [m] = match_waterbodies(
             [{**_water("W1", "A", -120.10, 49.90), "identifier": "00001ADMS"}], geoms, g,

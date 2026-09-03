@@ -41,7 +41,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from pipeline.curated import ROOT, SOURCE, load
+from pipeline.common.curated import ROOT, SOURCE, load
 
 #: The reviewed artifacts come from `config.yaml`, so there is ONE place naming them and a
 #: typo fails at load with the key rather than here with a confusing "not built". The

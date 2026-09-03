@@ -1,6 +1,6 @@
 # 08 — Data Structures, Serialization, Layout
 
-The **authoritative schema lives in code**: [`pipeline/models.py`](../models.py).
+The **authoritative schema lives in code**: [`pipeline/common/models.py`](../models.py).
 This doc records the rationale, split-indexing rules, serialization, and layout so the code
 is understandable if revisited cold. (Everything lives in top-level `pipeline/`, outside
 `pipeline/`; run with `.venv/bin/python`.)
@@ -82,7 +82,7 @@ real-data regressions (Chehalis/Harrison, Columbia/Kootenay), un-skipped and gre
 
 ## Reuse vs build-new
 
-**Reuse:** `pipeline.utils.wsc.trim_wsc`; `data.data_extractor.FWADataAccessor` (all GPKG reads
+**Reuse:** `pipeline.common.utils.wsc.trim_wsc`; `data.data_extractor.FWADataAccessor` (all GPKG reads
 + id normalization); the `"x_y"` endpoint convention; lake-wbk grouping + lake-outlet machinery
 from `atlas/freshwater_atlas.py`; per-magnitude minzoom percentiles;
 `effective_includes_tributaries`; `MatchTable`/`OverrideEntry`/`BaseEntry` (extend override

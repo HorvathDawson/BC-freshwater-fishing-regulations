@@ -8,8 +8,8 @@
  * instinct sends you looking at the tiles, the network, the camera, anywhere but a
  * mismatched string.
  *
- * `pipeline/tiles/tile-contract.json` is generated from pipeline/tiles/layers.py by
- * `python -m pipeline.tiles --write-contract`. Both sides read it, so drift is a failing
+ * `pipeline/deliver/tiles/tile-contract.json` is generated from pipeline/deliver/tiles/layers.py by
+ * `python -m pipeline.deliver.tiles --write-contract`. Both sides read it, so drift is a failing
  * test rather than a blank screen.
  */
 import { describe, expect, it } from "vitest";
@@ -21,7 +21,7 @@ import { join } from "node:path";
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const contract = JSON.parse(
-  readFileSync(join(ROOT, "pipeline/tiles/tile-contract.json"), "utf8"),
+  readFileSync(join(ROOT, "pipeline/deliver/tiles/tile-contract.json"), "utf8"),
 ) as { layers: Record<string, { geometry: string; attrs: string[]; featureId: string }>;
         magnitudeLadder: [number, number][] };
 

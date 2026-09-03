@@ -15,9 +15,9 @@ data/bc_hydrometric_stations.json          fetched roster
   │   python -m pipeline.gauges.generate.match --build <a completed build>
   ▼
 pipeline/gauge_match.json                  coord + wsc (streams) · coord + wbk (lakes)
-  ├──► pipeline.build     a `gauge` point anchor at the coord, scoped by wsc, appended
+  ├──► pipeline.atlas.build     a `gauge` point anchor at the coord, scoped by wsc, appended
   │                       after splits.json and resolved by the same resolver
-  └──► pipeline.bundle    the section that begins at that coord and runs upstream
+  └──► pipeline.deliver.bundle    the section that begins at that coord and runs upstream
 ```
 
 Two-pass because matching compares a station's name against every name a node carries, and
@@ -89,8 +89,8 @@ display name and variant fixed. Cripple → Nendatoo confirmed a real rename. Ca
 plurals may already be fixed in `name_variants.json` — the audit reads the *built* graph, so
 it needs re-running after a full build.
 
-**Bundle tables not wired:** `entry`, `rule`, `rule_section` (need `pipeline.parsing.io` and
-`pipeline.reach.covered` over the full corpus), `chart` (needs the bathymetry contour fetch),
+**Bundle tables not wired:** `entry`, `rule`, `rule_section` (need `pipeline.regs.parsing.io` and
+`pipeline.atlas.reach.covered` over the full corpus), `chart` (needs the bathymetry contour fetch),
 `stock_water` / `stock_code` (need the FIDQ fetch — no waterbody roster on disk).
 
 **A parse run was stopped on credits.** `output/parse.credit-stopped-2026-09-01/`.

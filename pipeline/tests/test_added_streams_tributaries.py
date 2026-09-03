@@ -5,9 +5,9 @@ River. Once the frozen `added_streams.build.json` is merged into the build (excl
 fids, add the synthetic fids, wire the connectors), those minted streams must show up in
 `ancestors(Brunette River)` — i.e. they are genuine tributaries, not orphaned nodes.
 
-This walks the SAME build path `pipeline/build.py` uses (load fids -> apply added streams ->
+This walks the SAME build path `pipeline/atlas/build.py` uses (load fids -> apply added streams ->
 build graph -> attach connectors), scoped to a Brunette/Still Creek bbox so it stays a few seconds.
-Skipped without the gpkg. See pipeline/hack/added_streams.
+Skipped without the gpkg. See pipeline/atlas/waters/added_streams.
 """
 
 import json
@@ -15,12 +15,12 @@ import os
 
 import pytest
 
-import pipeline.build as b
-from pipeline.graph.blk_chains import build_blk_chains, load_stream_fids
-from pipeline.graph.graph import ancestors, build_section_geometries, build_stream_graph
-from pipeline.graph.names import resolve_names
-from pipeline.hack.added_streams.build_dataset import to_graph_inputs
-from pipeline.hack.added_streams.ingest import attach_connectors
+import pipeline.atlas.build as b
+from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
+from pipeline.atlas.graph.graph import ancestors, build_section_geometries, build_stream_graph
+from pipeline.atlas.graph.names import resolve_names
+from pipeline.atlas.waters.added_streams.build_dataset import to_graph_inputs
+from pipeline.atlas.waters.added_streams.ingest import attach_connectors
 
 _DATA = b._DEFAULT_GPKG
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")

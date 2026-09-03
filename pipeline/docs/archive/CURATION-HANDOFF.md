@@ -10,7 +10,7 @@ differently-regulated reaches) to a coordinate, one reg entry ("waterbody") at a
   `pipeline/oneoff/waterbody_splits.py`; `save_curation` rebuilds the grouped file and the
   two generated views (`waterbody-splits.md`, `-regs.md`). Never hand-edit the JSON/MD.
 - `load_curation()` returns **flat rows**; mutate by `id`, then `save_curation(rows)`.
-- Source spine (read-only): `output/pipeline/extraction/synopsis_raw_data.json` (raw regs) +
+- Source spine (read-only): `output/pipeline/regs/extraction/synopsis_raw_data.json` (raw regs) +
   `synopsis_parsed.json` (parsed boundaries).
 - FWA geodata: `data/bc_fisheries_data.gpkg` (EPSG:3005) — layers `streams`
   (`GNIS_NAME`, `BLUE_LINE_KEY`, `FWA_WATERSHED_CODE`, `DOWNSTREAM_ROUTE_MEASURE` mouth→source),

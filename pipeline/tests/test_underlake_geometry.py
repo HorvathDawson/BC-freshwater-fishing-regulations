@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from shapely.geometry import LineString, MultiLineString
 
-from pipeline.graph import cutting
+from pipeline.atlas.graph import cutting
 
 
 def test_contiguous_pieces_still_become_one_line():
@@ -58,7 +58,7 @@ def test_empty_input_is_an_empty_line_not_a_crash():
 def test_lake_nodes_use_merge_runs():
     """Pin the call site: the fix is worthless if the builder goes back to merge_ordered."""
     import inspect
-    from pipeline.graph import graph as G
+    from pipeline.atlas.graph import graph as G
 
     src = inspect.getsource(G.build_section_geometries)
     lake_half = src.split("lake_fids.items()")[1]

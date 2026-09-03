@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pipeline.gauges.generate.match import StationMatch
 from pipeline.gauges.consume.cuts import split_defs
-from pipeline.models import AnchorType
-from pipeline.models.splits import SplitDef
+from pipeline.common.models import AnchorType
+from pipeline.common.models.splits import SplitDef
 
 
 def _m(station="08AA001", **kw):

@@ -31,10 +31,10 @@ import collections
 import json
 from pathlib import Path
 
-from pipeline.registry import load_registry
-from pipeline.io.serialize import read_artifact
-from pipeline.splits.splits import load_split_defs
-from pipeline.curated import CURATED, SOURCE
+from pipeline.atlas.registry import load_registry
+from pipeline.common.io.serialize import read_artifact
+from pipeline.atlas.splits.splits import load_split_defs
+from pipeline.common.curated import CURATED, SOURCE
 
 
 def _bare(x) -> str:

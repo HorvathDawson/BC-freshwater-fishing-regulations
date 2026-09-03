@@ -6,7 +6,7 @@ Run everything with the venv: `.venv/bin/python`. Order below is the usual flow.
 
 ```bash
 # Rebuild splits.json from the curated source (deterministic, no API cost)
-.venv/bin/python -m pipeline.oneoff.build_splits            # writes pipeline/splits.json
+.venv/bin/python -m pipeline.oneoff.build_splits            # writes pipeline/atlas/splits.json
 .venv/bin/python -m pipeline.oneoff.build_splits --dry-run  # preview stats only
 ```
 
@@ -14,12 +14,12 @@ Run everything with the venv: `.venv/bin/python`. Order below is the usual flow.
 
 ```bash
 # Whole province (heavy, ~15–20 min). Applies splits, writes registry.json.
-.venv/bin/python -m pipeline.build --full \
-  --splits pipeline/splits.json --out output/v2/full
+.venv/bin/python -m pipeline.atlas.build --full \
+  --splits pipeline/atlas/splits.json --out output/v2/full
 
 # Small area (fast) — scope by GNIS name or bbox
-.venv/bin/python -m pipeline.build --gnis "Campbell River" --out output/v2/validate
-.venv/bin/python -m pipeline.build --bbox MINX MINY MAXX MAXY --out output/v2/validate
+.venv/bin/python -m pipeline.atlas.build --gnis "Campbell River" --out output/v2/validate
+.venv/bin/python -m pipeline.atlas.build --bbox MINX MINY MAXX MAXY --out output/v2/validate
 ```
 
 Output: `output/v2/<name>/registry.json` (+ graph artifacts / `graph.gpkg`).
@@ -27,11 +27,11 @@ Output: `output/v2/<name>/registry.json` (+ graph artifacts / `graph.gpkg`).
 ## 3. Parse regulations (⛔ HUMAN-ONLY — spends credits)
 
 ```bash
-REGISTRY=output/v2/full/registry.json bash pipeline/parsing/run_parse.sh
+REGISTRY=output/v2/full/registry.json bash pipeline/regs/parsing/run_parse.sh
 ```
 
 Resumable, row-granular (`--skip-existing`): only entries missing from
-`pipeline/parsing/entries/` are re-parsed. Finish a run before re-exporting.
+`pipeline/regs/parsing/entries/` are re-parsed. Finish a run before re-exporting.
 Do NOT run this from an agent — hand it to a human to run in their terminal.
 
 ## 4. Curation review app (edit/confirm parsed entries)

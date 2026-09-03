@@ -18,8 +18,8 @@ from pipeline.gauges.consume.shed import (
     lake_gauge_links,
     trust_for,
 )
-from pipeline.models.enums import NodeKind
-from pipeline.models.graph import FlowEdge, StreamGraph, StreamNode
+from pipeline.common.models.enums import NodeKind
+from pipeline.common.models.graph import FlowEdge, StreamGraph, StreamNode
 
 
 #: One watershed unless a test says otherwise. A shed is bounded by the FWA watershed code
@@ -361,8 +361,8 @@ class TestMatchProvenance:
         # The bug that produced the alias file: a node displayed as "Lower Arrow Lake"
         # carries "Arrow Reservoir", which is the name ECCC uses. Comparing only against
         # display_name threw that away.
-        from pipeline.models.enums import NameSource
-        from pipeline.models.names import NameTuple
+        from pipeline.common.models.enums import NameSource
+        from pipeline.common.models.names import NameTuple
         from pipeline.gauges.generate.match import _names
 
         node = StreamNode(node_id="lake:1", kind=NodeKind.lake,

@@ -14,10 +14,10 @@ import os
 import pytest
 from shapely.geometry import LineString
 
-from pipeline.graph import cutting
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.graph.graph import ancestors, build_stream_graph
-from pipeline.curated import CURATED, SOURCE
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.graph.graph import ancestors, build_stream_graph
+from pipeline.common.curated import CURATED, SOURCE
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")
 _needs_data = pytest.mark.skipif(not os.path.exists(_DATA), reason="needs data/bc_fisheries_data.gpkg")
@@ -169,9 +169,9 @@ def test_2300_barrier_stops_guarded_walk_only():
 
 def _extract_chains(names=None, lake_gnis=None, pad=None):
     from data.data_extractor import FWADataAccessor
-    from pipeline.graph.blk_chains import load_stream_fids
-    from pipeline.build import bbox_from_gnis, get_lake_names, get_lake_wbk_kind
-    from pipeline.graph.names import resolve_names
+    from pipeline.atlas.graph.blk_chains import load_stream_fids
+    from pipeline.atlas.build import bbox_from_gnis, get_lake_names, get_lake_wbk_kind
+    from pipeline.atlas.graph.names import resolve_names
 
     fwa = FWADataAccessor(_DATA)
     if lake_gnis is not None:

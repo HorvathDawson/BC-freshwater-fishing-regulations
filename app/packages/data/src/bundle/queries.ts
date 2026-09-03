@@ -1,7 +1,7 @@
 /**
  * Every query the client makes, in one file.
  *
- * Written against `pipeline/bundle/schema.sql` and nothing else. The SQL lives here rather
+ * Written against `pipeline/deliver/bundle/schema.sql` and nothing else. The SQL lives here rather
  * than in the source implementation so that the shape of a read — how many statements, in
  * what order, over which indexes — is reviewable in one place. That matters more than it
  * looks: on the web each of these is a range request, and `regsForItem` is budgeted at

@@ -259,11 +259,11 @@ pipeline/gauge_match.json                COMMITTED. One row per station:
   │                                        lakes    wbk
   │                                        neither  status=unresolved, with the reason
   │
-  ├──► pipeline.build      a `gauge` point anchor at the station's coordinate, scoped by
-  │                        `wsc`, appended AFTER pipeline/splits.json and resolved by the
+  ├──► pipeline.atlas.build      a `gauge` point anchor at the station's coordinate, scoped by
+  │                        `wsc`, appended AFTER pipeline/atlas/splits.json and resolved by the
   │                        same resolver → rivers get cut at their gauges
   │
-  └──► pipeline.bundle     the node on `blk` whose measure range contains `measure`
+  └──► pipeline.deliver.bundle     the node on `blk` whose measure range contains `measure`
                            (or `lake:{wbk}`) in THAT build's graph → sheds, gauge table
 ```
 

@@ -6,7 +6,7 @@
     "atlas": {
       "type": "vector",
       "url": "pmtiles://atlas",
-      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data — see pipeline/tiles/layers.py."
+      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data — see pipeline/deliver/tiles/layers.py."
     }
   },
   "layers": [

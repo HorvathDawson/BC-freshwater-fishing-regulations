@@ -5,7 +5,7 @@ actively misleading, so read this first:
 
 - **Root `README.md`** describes `pipeline/atlas/`, `tiles/`, `enrichment/`, `deploy/`. None of those
   exist under `pipeline/` any more — they are v1 and live in `archive/pipeline/`. `python -m pipeline`
-  no longer runs v1's `--step all`; it runs the v2 section build (`pipeline/build.py`).
+  no longer runs v1's `--step all`; it runs the v2 section build (`pipeline/atlas/build.py`).
 - **`12-testing.md` → "What's next"** lists the match step as not built. Matching, LLM parsing, the
   registry and the whole curation-review app were built after it was written. Its "73 tests (62 pass,
   11 skip)" is now **275 passing, 8 skipped**.
@@ -19,10 +19,10 @@ splits ─▶ graph+registry ─▶ parse (human) ─▶ curation review ─▶ 
 
 | Stage | State |
 |---|---|
-| `pipeline/splits/` + `splits.json` | 391 curated split definitions; anchors incl. `mu_boundary`, `confluence`, `area_boundary` |
-| `pipeline/build.py` → graph + registry | Whole province, ~18 min. **19,722 registry items** (12,000 stream, 7,672 lake, 46 wetland, 4 area) over **49,639 sections**; `registry.json` is 12 MB |
-| `pipeline/graph/nests.py` | Braid-nest reduction: one route per water per destination it would otherwise lose (see its docstring for the rules that were tried and failed) |
-| `pipeline/parsing/` | 1,392 entries parsed from the synopsis. HUMAN-ONLY to run — spends credits |
+| `pipeline/atlas/splits/` + `splits.json` | 391 curated split definitions; anchors incl. `mu_boundary`, `confluence`, `area_boundary` |
+| `pipeline/atlas/build.py` → graph + registry | Whole province, ~18 min. **19,722 registry items** (12,000 stream, 7,672 lake, 46 wetland, 4 area) over **49,639 sections**; `registry.json` is 12 MB |
+| `pipeline/atlas/graph/nests.py` | Braid-nest reduction: one route per water per destination it would otherwise lose (see its docstring for the rules that were tried and failed) |
+| `pipeline/regs/parsing/` | 1,392 entries parsed from the synopsis. HUMAN-ONLY to run — spends credits |
 | `curation-review/` | The review app. Reaches, splits editing, tributary carve-outs, rebuild |
 | **bundle / tiles / deploy for v2** | **Does not exist.** No `deploy` or `bundle` path in `project_config.py` |
 | `webapp/`, `mobile/` | Both consume **v1** artifacts (`tier0.json`, `regulations.sqlite`) |
@@ -57,7 +57,7 @@ Closing that is `16-bundle-and-clients.md`.
 | Artifact | Size | Note |
 |---|---|---|
 | `registry.json` | 12 MB | 19,722 items / 49,639 sections |
-| `pipeline/parsing/entries/` | 4.2 MB | all 1,392 entries, all regions |
+| `pipeline/regs/parsing/entries/` | 4.2 MB | all 1,392 entries, all regions |
 | `data/bc.pmtiles` | **4.1 GB** | every FWA stream in BC. The offline blocker |
 | `data/bc_fisheries_data.gpkg` | 9.6 GB | source, never shipped |
 

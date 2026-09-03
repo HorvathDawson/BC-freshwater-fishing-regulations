@@ -470,7 +470,7 @@ bundle. <b>Adding it gives the bundle a realistic worst case to be sized against
 worth more than the 1.58 MB costs.</p>
 
 <h3>Some areas cut the streams that cross them; some do not. The switch already exists.</h3>
-<p><code>pipeline/build.py</code>, in the blanket-area pass:</p>
+<p><code>pipeline/atlas/build.py</code>, in the blanket-area pass:</p>
 <pre>if ad.get(<span class="k">"cut"</span>, True):        <span class="c"># `cut` flag is the SOLE cut trigger (default on)</span>
     apts = resolve_area_splits(polys, chains)
     split_graph_at(...)

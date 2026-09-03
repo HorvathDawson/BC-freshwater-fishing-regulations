@@ -47,8 +47,8 @@ from pathlib import Path
 from dataclasses import asdict, dataclass, fields, replace
 
 from pipeline.gauges import review as _review
-from pipeline.tiles.names import normalise
-from pipeline.curated import CURATED, SOURCE
+from pipeline.deliver.tiles.names import normalise
+from pipeline.common.curated import CURATED, SOURCE
 from pipeline.gauges.matches import MATCH_FILE, StationMatch, read_match, write_match
 
 # Longest first, so "ABOVE THE" wins over "ABOVE" and "UPSTREAM OF" over "AT".
@@ -459,7 +459,7 @@ def nodes_for(matches: list[StationMatch], graph, geoms: dict,
         return out
 
     # Candidate nodes, grouped by watershed: only water the station is actually on.
-    from pipeline.utils.wsc import trim_wsc
+    from pipeline.common.utils.wsc import trim_wsc
     by_wsc: dict[str, list[str]] = {}
     for nid, n in graph.nodes.items():
         if nid.startswith("lake:") or nid not in geoms:
@@ -565,8 +565,8 @@ def main() -> None:
     riv = sum(1 for m in matches if m.status == "matched" and m.wsc and not m.wbk)
     lak = sum(1 for m in matches if m.status == "matched" and m.wbk)
     print(f"wrote {a.out}  ({riv} on streams by coord + wsc, {lak} on lakes by wbk)")
-    print("  next: python -m pipeline.build   (cuts rivers at their gauges)")
-    print("        python -m pipeline.bundle  (reads the same file for its sheds)")
+    print("  next: python -m pipeline.atlas.build   (cuts rivers at their gauges)")
+    print("        python -m pipeline.deliver.bundle  (reads the same file for its sheds)")
 
 
 if __name__ == "__main__":

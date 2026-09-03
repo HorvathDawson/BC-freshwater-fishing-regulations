@@ -52,7 +52,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 ROOT = Path(__file__).resolve().parents[2]
 REVIEW_FILE = CURATED.gauges.review

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.reach.classify import classify
-from pipeline.reach.models import Diagnostic, Outcome, Reason, RuleBinding
+from pipeline.atlas.reach.classify import classify
+from pipeline.atlas.reach.models import Diagnostic, Outcome, Reason, RuleBinding
 
 
 class _Item:
@@ -183,8 +183,8 @@ def test_sections_are_sorted_so_output_is_deterministic():
 
 def _result(rows):
     """rows: [(entry_id, rule_id, sections|None, reason)] -> a ReachResult-alike."""
-    from pipeline.reach.build import ReachResult
-    from pipeline.reach.models import BuildReport
+    from pipeline.atlas.reach.build import ReachResult
+    from pipeline.atlas.reach.models import BuildReport
     bindings = []
     for eid, rid, secs, reason in rows:
         if secs:
@@ -198,7 +198,7 @@ def _result(rows):
 
 
 def test_a_run_is_byte_identical_when_written_twice(tmp_path):
-    from pipeline.reach.io import write_run
+    from pipeline.atlas.reach.io import write_run
     res = _result([("e1", "r1", ["s2", "s1"], None), ("e2", "r1", None, Reason.no_registry)])
     write_run(tmp_path / "a", res, [])
     write_run(tmp_path / "b", res, [])
@@ -209,7 +209,7 @@ def test_a_run_is_byte_identical_when_written_twice(tmp_path):
 
 
 def test_the_digest_ignores_timing_but_tracks_sections(tmp_path):
-    from pipeline.reach.io import digest
+    from pipeline.atlas.reach.io import digest
     base = _result([("e1", "r1", ["s1"], None)])
     same = _result([("e1", "r1", ["s1"], None)])
     moved = _result([("e1", "r1", ["s2"], None)])
@@ -219,8 +219,8 @@ def test_the_digest_ignores_timing_but_tracks_sections(tmp_path):
 
 
 def test_diff_reports_gained_and_lost_sections(tmp_path):
-    from pipeline.reach.diff import diff_runs
-    from pipeline.reach.io import write_run
+    from pipeline.atlas.reach.diff import diff_runs
+    from pipeline.atlas.reach.io import write_run
     write_run(tmp_path / "before", _result([("e1", "r1", ["s1", "s2"], None)]), [])
     rep = diff_runs(tmp_path / "before", _result([("e1", "r1", ["s2", "s3"], None)]))
     assert len(rep.changes) == 1
@@ -231,8 +231,8 @@ def test_diff_reports_gained_and_lost_sections(tmp_path):
 def test_diff_flags_a_change_inside_a_CONFIRMED_entry_first(tmp_path):
     """A small change to signed-off work outranks a large change to unreviewed work —
     the curator's question is 'does what I confirmed still mean what I confirmed?'"""
-    from pipeline.reach.diff import diff_runs
-    from pipeline.reach.io import write_run
+    from pipeline.atlas.reach.diff import diff_runs
+    from pipeline.atlas.reach.io import write_run
     before = _result([("locked_e", "r1", ["s1"], None), ("open_e", "r1", ["a"], None)])
     after = _result([("locked_e", "r1", ["s1", "s2"], None),
                      ("open_e", "r1", ["a", "b", "c", "d", "e", "f"], None)])
@@ -244,8 +244,8 @@ def test_diff_flags_a_change_inside_a_CONFIRMED_entry_first(tmp_path):
 
 
 def test_diff_notices_an_outcome_flip_not_just_section_churn(tmp_path):
-    from pipeline.reach.diff import diff_runs
-    from pipeline.reach.io import write_run
+    from pipeline.atlas.reach.diff import diff_runs
+    from pipeline.atlas.reach.io import write_run
     write_run(tmp_path / "before", _result([("e1", "r1", ["s1"], None)]), [])
     rep = diff_runs(tmp_path / "before",
                     _result([("e1", "r1", None, Reason.cut_not_found)]))
@@ -266,7 +266,7 @@ def _entry(**over):
 
 
 def test_cache_key_changes_when_the_extent_changes():
-    from pipeline.reach.cache import entry_key
+    from pipeline.atlas.reach.cache import entry_key
     a = _entry()
     b = _entry(rules=[{"rule_id": "r1", "restriction_type": "closure",
                        "extents": [{"op": "upstream_of", "splits": ["x"]}]}])
@@ -275,18 +275,18 @@ def test_cache_key_changes_when_the_extent_changes():
 
 def test_cache_key_changes_with_the_BUILD():
     """Section ids churn ~6% per rebuild, so the same entry resolves differently."""
-    from pipeline.reach.cache import entry_key
+    from pipeline.atlas.reach.cache import entry_key
     assert entry_key(_entry(), "full") != entry_key(_entry(), "full_new")
 
 
 def test_cache_key_changes_with_the_CLASSIFIER_POLICY():
     """A straddler-policy change alters outcomes without touching entry or build."""
-    from pipeline.reach.cache import entry_key
+    from pipeline.atlas.reach.cache import entry_key
     assert entry_key(_entry(), "full", "1") != entry_key(_entry(), "full", "2")
 
 
 def test_cache_key_changes_with_matched_and_tributary_flags():
-    from pipeline.reach.cache import entry_key
+    from pipeline.atlas.reach.cache import entry_key
     base = entry_key(_entry(), "full")
     assert entry_key(_entry(matched=["i2"]), "full") != base
     assert entry_key(_entry(tributaries={"included": True}), "full") != base
@@ -295,13 +295,13 @@ def test_cache_key_changes_with_matched_and_tributary_flags():
 def test_cache_key_IGNORES_curation_metadata():
     """`reviewed_at` changes on every save; keying on it would evict constantly for
     answers that did not move."""
-    from pipeline.reach.cache import entry_key
+    from pipeline.atlas.reach.cache import entry_key
     assert entry_key(_entry(reviewed_at="x", revisit_note="n", locked=True), "full") \
         == entry_key(_entry(reviewed_at="y", revisit_note="m", locked=False), "full")
 
 
 def test_cache_serves_a_hit_and_recomputes_after_invalidate():
-    from pipeline.reach.cache import ReachCache
+    from pipeline.atlas.reach.cache import ReachCache
     c = ReachCache("full")
     calls = {"n": 0}
 
@@ -350,7 +350,7 @@ def test_without_an_expander_a_tributary_rule_is_flagged_INCOMPLETE():
 def test_policy_version_is_bumped_when_classify_changes():
     """A stale POLICY_VERSION serves confidently wrong cached answers. This pins the
     classifier's observable policy so the constant cannot silently fall behind."""
-    from pipeline.reach import cache, classify
+    from pipeline.atlas.reach import cache, classify
     policy = {
         "straddlers_included_for": sorted(classify.STRADDLERS_INCLUDED_FOR),
         "ambiguous_cut_is_fatal": classify.AMBIGUOUS_CUT_IS_FATAL,

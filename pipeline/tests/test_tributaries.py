@@ -11,12 +11,12 @@ Each lake gets one side creek (tSA/tSB/tSC) plus the through-river inflow/outflo
 
 from shapely.geometry import LineString
 
-from pipeline.graph import cutting
-from pipeline.graph.blk_chains import FidRow, build_blk_chains
-from pipeline.graph.graph import build_stream_graph
-from pipeline.models import AnchorType, SplitPoint
-from pipeline.splits.sectionizer import split_graph_at
-from pipeline.graph.tributaries import (lake_inlets, lake_outlets, lake_tributaries,
+from pipeline.atlas.graph import cutting
+from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
+from pipeline.atlas.graph.graph import build_stream_graph
+from pipeline.common.models import AnchorType, SplitPoint
+from pipeline.atlas.splits.sectionizer import split_graph_at
+from pipeline.atlas.graph.tributaries import (lake_inlets, lake_outlets, lake_tributaries,
                                          piece_above, reach_except, sections_in_reach,
                                          tributary_node_ids, with_tributaries)
 

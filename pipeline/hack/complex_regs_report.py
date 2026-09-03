@@ -15,10 +15,10 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from pipeline.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, SOURCE
 
 _OVERRIDES = str(CURATED.regulations.overrides)
-_PARSED = "output/pipeline/parsing/synopsis_parsed.json"
+_PARSED = "output/pipeline/regs/parsing/synopsis_parsed.json"
 _OUT = "output/v2/complex_regulations.md"
 
 # Section/location language that implies a stream needs splitting or careful matching.

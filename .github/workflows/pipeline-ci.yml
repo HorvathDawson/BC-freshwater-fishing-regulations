@@ -44,7 +44,7 @@ jobs:
       # This is the `--splits` incident's tripwire. That flag had no default, silently
       # dropped all 376 curated cuts from three full builds, and nothing looked wrong.
       - name: Every curated path resolves
-        run: python -c "from pipeline.curated import load; c = load(); print(c.model_dump_json(indent=1))"
+        run: python -c "from pipeline.common.curated import load, load_data_tree; load_data_tree(); print(load().model_dump_json(indent=1))"
 
       # Are the committed match artifacts still in step with the rosters they were built
       # from? A new station appearing with nobody re-running the match is invisible
@@ -62,14 +62,14 @@ jobs:
         run: python -m pipeline.tools.emit_gauge_policy --check
 
       - name: Tests
-        run: python -m pytest pipeline/tests -q
+        run: python -m pytest -q
 
       # NO HARDCODED PATH MAY BYPASS THE CONFIG. Everything curated, and everything
-      # fetched, is reached through `pipeline.curated`.
+      # fetched, is reached through `pipeline.common.curated`.
       #
       # The patterns match CODE, not prose: lines that are comments, or that contain a
       # backtick (this repo's docstring convention), are excluded — a docstring saying
-      # "it used to be `Path(\"pipeline/splits.json\")`" is documentation of a fixed bug and
+      # "it used to be `Path(\"pipeline/atlas/splits.json\")`" is documentation of a fixed bug and
       # should stay. `project_config.py` is exempt from the data/ check because naming
       # paths is what that file is FOR.
       #

@@ -13,23 +13,23 @@ Curated, hand-authored data — the stuff a human decided, that no rebuild can r
 scattered across `pipeline/` with no marker distinguishing it from code:
 
 ```
-pipeline/splits.json                404K   curated cut-points
+pipeline/atlas/splits.json                404K   curated cut-points
 pipeline/name_variants.json         964K   curated names (3,676 entries)
 pipeline/added_lakes.geojson        4.0K   curated non-FWA lake polygons
 pipeline/added_streams.build.json   1.4M   frozen added-streams dataset
 pipeline/areas.json                 8.0K   curated area definitions
 pipeline/gauge_match.json           720K   gauge -> stream matches
 pipeline/ungazetted.json            4.0K   NO CODE REFERENCES IT — see "loose ends"
-pipeline/matching/overrides.json    181K   curated name -> item bindings
-pipeline/parsing/entries/           8 files provincial synopsis entries
-pipeline/dfo_salmon/entries/        9 files DFO salmon entries
+pipeline/regs/matching/overrides.json    181K   curated name -> item bindings
+pipeline/regs/parsing/entries/           8 files provincial synopsis entries
+pipeline/regs/dfo_salmon/entries/        9 files DFO salmon entries
 ```
 
 Two costs, both already paid once:
 
 * **Paths are hardcoded, in five different shapes.** For `splits.json` alone: 7× the literal
-  `"pipeline/splits.json"`, 3× `<something> / "splits.json"`, 2× `parents[1] / "splits.json"`, 1×
-  `parents[2] / ...`, 1× `Path("pipeline/splits.json")`, and exactly 1 that goes through config.
+  `"pipeline/atlas/splits.json"`, 3× `<something> / "splits.json"`, 2× `parents[1] / "splits.json"`, 1×
+  `parents[2] / ...`, 1× `Path("pipeline/atlas/splits.json")`, and exactly 1 that goes through config.
   `config.yaml` already carries the scar from the same class of bug, on `review_build`: *"These were
   two independent hard-codings of `output/v2/full` in reuse.py and rebuild.py: the app could rebuild
   one directory and read another, and neither would say so."*
@@ -44,14 +44,14 @@ Two costs, both already paid once:
 pipeline/curated/                  # everything a human authored; nothing here is regenerable
     splits.json
     name_variants.json
-    overrides.json                 # moves from pipeline/matching/
+    overrides.json                 # moves from pipeline/regs/matching/
     areas.json
     added_lakes.geojson
     added_streams.build.json
     gauge_match.json
     entries/
-        synopsis/                  # from pipeline/parsing/entries/    (region-1..8.json)
-        dfo_salmon/                # from pipeline/dfo_salmon/entries/ (region-1..8,5a,5b.json)
+        synopsis/                  # from pipeline/regs/parsing/entries/    (region-1..8.json)
+        dfo_salmon/                # from pipeline/regs/dfo_salmon/entries/ (region-1..8,5a,5b.json)
 ```
 
 `entries/` is nested rather than split into two top-level dirs because the two sets are the same
@@ -114,11 +114,11 @@ Counted by `grep -rl` over `*.py|*.ts|*.tsx|*.sh|*.yaml|*.md`, excluding `.venv`
 | `added_streams.build.json` | 4 | |
 | `added_lakes.geojson` | 3 | |
 | `ungazetted.json` | 0 | see loose ends |
-| `pipeline/parsing/entries/` | 8+ | incl. `curation-review/backend/reuse.py` |
-| `pipeline/dfo_salmon/entries/` | 8+ | incl. `curation-review/backend/reuse.py` |
+| `pipeline/regs/parsing/entries/` | 8+ | incl. `curation-review/backend/reuse.py` |
+| `pipeline/regs/dfo_salmon/entries/` | 8+ | incl. `curation-review/backend/reuse.py` |
 
 Roughly **60 code references** plus ~20 doc mentions. The docs matter: `AGENTS.md` rule 2 names
-`pipeline/parsing/entries/*.json` explicitly, and several design docs cite paths in prose.
+`pipeline/regs/parsing/entries/*.json` explicitly, and several design docs cite paths in prose.
 
 Areas needing care, in order of risk:
 
@@ -129,7 +129,7 @@ Areas needing care, in order of risk:
    paths (`SplitEditor.tsx`, `api.ts`, `types.ts`). The frontend reaches the file through the
    backend API. Update the prose; no behaviour change.
 3. **`pipeline/hack/`** — 8 refs across one-off scripts. Lowest risk, easy to miss.
-4. **`pipeline/build.py`** — `_DEFAULT_SPLITS`, `_ADDED_LAKES_GEOJSON`, `_ADDED_STREAMS_JSON`, the
+4. **`pipeline/atlas/build.py`** — `_DEFAULT_SPLITS`, `_ADDED_LAKES_GEOJSON`, `_ADDED_STREAMS_JSON`, the
    `--name-variants` default. Shared with the other agent right now.
 5. **Tests** — `test_splits.py`, `test_entryfiles_valid.py`, `test_dfo_salmon.py`,
    `test_added_lakes.py` all resolve paths via `parents[N]`, which is exactly the brittle shape
@@ -153,7 +153,7 @@ un-runnable while they were fixed one by one.
 
 ## Risks
 
-* **A missed reference fails at RUNTIME, not import.** `Path("pipeline/splits.json")` that no longer
+* **A missed reference fails at RUNTIME, not import.** `Path("pipeline/atlas/splits.json")` that no longer
   exists gives an empty load, not a crash — the `--splits` incident again, where a build with zero
   curated cuts looked healthy. Mitigation: step 3's grep must return empty before step 4, and
   `load_split_defs` should raise on a missing file rather than return `[]`.
@@ -179,6 +179,6 @@ un-runnable while they were fixed one by one.
   should be deleted, or
   something stopped reading it and that is a bug. Decide before the move rather than relocating a
   file nobody loads.
-* **`pipeline/matching/overrides.json` is curated but lives with matcher code**, unlike every other
+* **`pipeline/regs/matching/overrides.json` is curated but lives with matcher code**, unlike every other
   curated file. The move fixes that, but it is the file with the most concurrent edits (DFO
   curation) — sequence it carefully.

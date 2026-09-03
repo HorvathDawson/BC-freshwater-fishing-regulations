@@ -58,7 +58,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
-from pipeline.utils.wsc import trim_wsc as _trim
+from pipeline.common.utils.wsc import trim_wsc as _trim
 
 # Fraction of the gauge's own drainage that this section accounts for.
 #
@@ -356,7 +356,7 @@ def downstream_map(graph, sections: Iterable[str]) -> dict[str, str]:
     A section with several outgoing edges (a braid, a distributary) takes the mainstem one
     if there is one — a trace must follow the river, not wander into a side channel.
     """
-    from pipeline.models.graph import MAINSTEM_EDGE_KINDS
+    from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS
 
     want = set(sections)
     out: dict[str, str] = {}

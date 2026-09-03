@@ -1,8 +1,8 @@
-"""Area catalog assembly (pipeline/splits/area_catalog.py) — pure, synthetic polygons."""
+"""Area catalog assembly (pipeline/atlas/splits/area_catalog.py) — pure, synthetic polygons."""
 
 from shapely.geometry import box
 
-from pipeline.splits.area_catalog import area_id, catalog_entries
+from pipeline.atlas.splits.area_catalog import area_id, catalog_entries
 
 
 def test_area_id_scheme():

@@ -4,7 +4,7 @@ Backend base URL (dev): `http://127.0.0.1:8787`. All responses JSON. No auth. St
 `bash curation-review/backend/run.sh`. Makes **no LLM calls** — pure local file review, safe to run
 out of parsing credits.
 
-**Write model:** `pipeline/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator
+**Write model:** `pipeline/regs/parsing/entries/region-*.json` are the SINGLE SOURCE OF TRUTH. Curator
 decisions are written straight back to them; the old separate `reviewed/` overlay has been merged in
 and retired.
 
@@ -36,7 +36,7 @@ covers all of them. `reference_only` marks a "See X" pointer row that carries no
 ### GET /api/entries/{entry_id}
 ```json
 {
-  "entry": { ...full Entry — see pipeline/parsing/entry_models.py... },
+  "entry": { ...full Entry — see pipeline/regs/parsing/entry_models.py... },
   "region": "2",
   "match": { "item_id":"gnis:8634", "status":"matched|override|skip|ambiguous|no_registry|feature_pin",
              "reason":"", "candidates":[], "also":["gnis:3062","wbk:329707189"] },
@@ -164,7 +164,7 @@ connection to the river. At the old cap of 400 the Fraser drew 125 of its 389 tr
 reporting 389, so two thirds were missing with nothing to say so.
 
 ### GET /api/entries/{entry_id}/rules/{rule_id}/resolved?limit=6000
-**What is IN this rule, and what is OUT** — from `pipeline.reach.build.build_reach`, the same call the
+**What is IN this rule, and what is OUT** — from `pipeline.atlas.reach.build.build_reach`, the same call the
 artifact build makes, so what a curator confirms here is what ships.
 
 Exists because the map cannot answer this from the item layer. It draws the entry's own item geometry
@@ -207,7 +207,7 @@ walked it.
 ~3,200 sections, ~4 s and ~12 MB. `truncated` is reported, never hidden.
 
 ### GET /api/row-image/{filename}
-The source synopsis row-crop PNG (`output/pipeline/extraction/row_images/`). Filename must match
+The source synopsis row-crop PNG (`output/pipeline/regs/extraction/row_images/`). Filename must match
 `[A-Za-z0-9_]+\.png`.
 
 ### GET /basemap/bc.pmtiles
@@ -242,7 +242,7 @@ rewrites every rule that binds it, so a rename never strands a binding.
 ## Rebuild
 
 ### POST /api/rebuild
-Kicks off `pipeline.build --full --out output/v2/full --splits pipeline/splits.json` as a background
+Kicks off `pipeline.atlas.build --full --out output/v2/full --splits pipeline/atlas/splits.json` as a background
 subprocess — CPU-only, **no credits**. Bakes splits.json edits into the section boundaries. Idempotent
 while one is running (returns the in-flight status). On success the backend drops its reuse caches —
 registry, splits.resolved, gpkg split_points, **and the in-memory graph** — so every subsequent request

@@ -3,7 +3,7 @@
 Written 2026-09-02, mid-corpus. This says **where the work is, how a sitting is run, and what
 was learned the hard way**. It does not say what to do next.
 
-`pipeline/dfo_salmon/CURATION.md` is the *design* — what is manual, what is not, and why. This is
+`pipeline/regs/dfo_salmon/CURATION.md` is the *design* — what is manual, what is not, and why. This is
 the *operating manual*: the exact commands, the per-water loop, and the traps.
 
 ---
@@ -31,14 +31,14 @@ In flight: **Skeena** — 23 cuts already exist, 9 more needed, and it is blocke
 
 ## 2. The two tools
 
-Both read `pipeline/dfo_salmon/entries/region-*.json` (the match + locator state) and
-`pipeline/splits.json`. Neither writes anything — **you** write the JSON.
+Both read `pipeline/regs/dfo_salmon/entries/region-*.json` (the match + locator state) and
+`pipeline/atlas/splits.json`. Neither writes anything — **you** write the JSON.
 
 ### `dossier.py` — "which registry item is this water?"
 
 ```bash
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.dfo_salmon.dossier list
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.dfo_salmon.dossier "Yakoun River"
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.dossier list
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.dossier "Yakoun River"
 ```
 
 Prints different evidence per status, because the question is different:
@@ -54,10 +54,10 @@ With matching at 99% this tool is now mostly for re-checks; `splitwork` is the d
 ### `splitwork.py` — "which cut-points does this water's regulation need?"
 
 ```bash
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.dfo_salmon.splitwork              # the worklist
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.dfo_salmon.splitwork "Morice"     # one water
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.dfo_salmon.splitwork --all        # every water
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.dfo_salmon.splitwork "Somass" --extents
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.splitwork              # the worklist
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.splitwork "Morice"     # one water
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.splitwork --all        # every water
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.dfo_salmon.splitwork "Somass" --extents
 ```
 
 Grouped **by water**, on purpose: a river's locators reference each other ("from the signs 200 m
@@ -103,24 +103,24 @@ resolve to **identical sections**. Geometry beats text; never dedupe locators by
 
 | what | file — **after the restructure** | before |
 |---|---|---|
-| cut-points | `data/curated/waters/splits.json` | `pipeline/splits.json` |
+| cut-points | `data/curated/waters/splits.json` | `pipeline/atlas/splits.json` |
 | a DFO name DFO uses and the province does not | `data/curated/waters/name_variants.json` | `pipeline/name_variants.json` |
-| a forced item binding | `data/curated/regulations/overrides.json`, **tagged `"source": "dfo"`** | `pipeline/matching/overrides.json` |
-| DFO entry files | `data/curated/regulations/entries/dfo_salmon/` | `pipeline/dfo_salmon/entries/` |
-| synopsis entry files | `data/curated/regulations/entries/synopsis/` | `pipeline/parsing/entries/` |
+| a forced item binding | `data/curated/regulations/overrides.json`, **tagged `"source": "dfo"`** | `pipeline/regs/matching/overrides.json` |
+| DFO entry files | `data/curated/regulations/entries/dfo_salmon/` | `pipeline/regs/dfo_salmon/entries/` |
+| synopsis entry files | `data/curated/regulations/entries/synopsis/` | `pipeline/regs/parsing/entries/` |
 | extents / bindings | ⛔ **not yet decided — see §7** | |
 
-⚠️ **Reach every one of these through `pipeline.curated`, never as a literal path.**
+⚠️ **Reach every one of these through `pipeline.common.curated`, never as a literal path.**
 
 ```python
-from pipeline.curated import CURATED
+from pipeline.common.curated import CURATED
 CURATED.waters.splits            # data/curated/waters/splits.json
 CURATED.entries.dfo_salmon       # data/curated/regulations/entries/dfo_salmon/
 ```
 
 The paths are validated by pydantic when the process starts, so a typo fails naming the key
 instead of returning an empty list. `dossier.py` and `splitwork.py` both resolved these by hand
-(`Path(__file__).parents[1] / "splits.json"`, and one bare `Path("pipeline/splits.json")` that
+(`Path(__file__).parents[1] / "splits.json"`, and one bare `Path("pipeline/atlas/splits.json")` that
 only worked from the repo root); both go through config now.
 
 `load_overrides(path, source="dfo")` — the **provincial matcher never loads DFO overrides**. Keep
@@ -222,7 +222,7 @@ edit to an entry file. So:
   renamed from `test_real_…` and exempts `duplicate_confirmed`, because a curator confirmed an
   island grouping that legitimately crosses. A companion test requires the note.
 * **Added lakes**: negative wbk (`-1, -2, …`) + negative gnis (`-9000001, …`), documented in
-  `pipeline/hack/added_lakes/README.md`. The mechanism is re-stamping `FidRow.wbk` inside a
+  `pipeline/atlas/waters/added_lakes/README.md`. The mechanism is re-stamping `FidRow.wbk` inside a
   polygon, which **breaks the fid run in `_assign_owners`** — that is the part to watch.
 * **Waters never move; rules do.** Region 6 held 77/77 waters over 2.3 years while rules turned over
   ~50%/yr and scope text drifted. **Curate geography once; re-scrape rules.** This is why a sitting
@@ -232,10 +232,10 @@ edit to an entry file. So:
 
 ## 9. House rules that apply to this work
 
-* ⛔ **Never run the LLM parser** — `pipeline/parsing/run_parse.sh parse`,
-  `python -m pipeline.parsing.dispatch`, or anything spawning `claude -p`. It spends the user's
+* ⛔ **Never run the LLM parser** — `pipeline/regs/parsing/run_parse.sh parse`,
+  `python -m pipeline.regs.parsing.dispatch`, or anything spawning `claude -p`. It spends the user's
   credits and is human-only. Hand over the command, even when told "run it."
-* **Never write `pipeline/parsing/entries/*.json` (or DFO entries) without backing up and diffing.**
+* **Never write `pipeline/regs/parsing/entries/*.json` (or DFO entries) without backing up and diffing.**
 * **Prefix shell commands with `rtk`.**
 * **Run `graphify query` before grepping.**
 * A concurrent agent commits with `git add -A`. **Add files explicitly, never `-A`** — otherwise

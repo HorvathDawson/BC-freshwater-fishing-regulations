@@ -3,12 +3,12 @@ Synthetic registry + rows; no FWA data, no network."""
 
 import json
 
-from pipeline.models import RegistryBoundary, RegistryItem
-from pipeline.parsing import ingest as ingest_mod
-from pipeline.parsing import validate as validate_mod
-from pipeline.parsing.batch_exporter import export
-from pipeline.matching.matcher import match_rows
-from pipeline.registry import load_registry, write_registry
+from pipeline.common.models import RegistryBoundary, RegistryItem
+from pipeline.regs.parsing import ingest as ingest_mod
+from pipeline.regs.parsing import validate as validate_mod
+from pipeline.regs.parsing.batch_exporter import export
+from pipeline.regs.matching.matcher import match_rows
+from pipeline.atlas.registry import load_registry, write_registry
 
 
 def _registry():
@@ -168,7 +168,7 @@ def test_ingest_persists_agent_review(tmp_path):
 
 
 def test_entry_review_stamps_default_empty_and_roundtrip():
-    from pipeline.parsing.entry_models import Entry
+    from pipeline.regs.parsing.entry_models import Entry
     e = Entry(entry_id="x", identity={"name": "A"}, regs_verbatim="No fishing.",
               rules=[{"rule_id": "x.r1", "restriction_type": "closure", "details": "No fishing",
                       "rule_text": "No fishing.", "extents": [{"op": "whole"}]}])
