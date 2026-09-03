@@ -16,7 +16,7 @@ from collections import Counter
 from pathlib import Path
 
 from project_config import get_config
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 
 from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
 from pipeline.common.io.export_gpkg import export_graph_gpkg, export_lake_io, export_tributaries
@@ -37,7 +37,9 @@ def get_wetland_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
     to nothing — the exact failure minting exists to prevent."""
     out: set[str] = set()
     if "wetlands" in fwa.layer_names:
-        gdf = fwa.get_layer("wetlands", columns=["WATERBODY_KEY"], bbox=bbox)
+        # ATTRIBUTES ONLY. `columns=` narrows the attributes and says nothing about the
+        # shapes, so this used to deserialise all 375,178 wetland polygons to read one key.
+        gdf = fwa.get_layer("wetlands", columns=["WATERBODY_KEY"], bbox=bbox, geometry=False)
         out = {str(w) for w in gdf["WATERBODY_KEY"] if w}
     return out
 
@@ -54,7 +56,7 @@ def get_all_waterbody_wbks(fwa: FWADataAccessor, bbox=None) -> set[str]:
     for layer in ("lakes", "manmade", "wetlands"):
         if layer not in fwa.layer_names:
             continue
-        gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox)
+        gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox, geometry=False)
         out |= {str(w) for w in gdf["WATERBODY_KEY"] if w}
     return out
 
@@ -63,7 +65,7 @@ def get_lake_wbk_kind(fwa: FWADataAccessor, bbox=None) -> dict[str, str]:
     kind: dict[str, str] = {}
     for layer, k in (("lakes", "lake"), ("manmade", "manmade")):
         if layer in fwa.layer_names:
-            gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox)
+            gdf = fwa.get_layer(layer, columns=["WATERBODY_KEY"], bbox=bbox, geometry=False)
             for wbk in gdf["WATERBODY_KEY"]:
                 if wbk:
                     kind.setdefault(str(wbk), k)
@@ -94,7 +96,7 @@ def _gnis_name_pairs(fwa: FWADataAccessor, layers, bbox=None) -> dict[str, tuple
     acc: dict[str, list] = {}
     for layer in layers:
         if layer in fwa.layer_names:
-            gdf = fwa.get_layer(layer, columns=cols, bbox=bbox)
+            gdf = fwa.get_layer(layer, columns=cols, bbox=bbox, geometry=False)
             for row in gdf.itertuples():
                 wbk = str(row.WATERBODY_KEY) if row.WATERBODY_KEY else ""
                 if not wbk:
@@ -317,6 +319,11 @@ def main() -> None:
     ap.add_argument("--name-variants", help="path to a compiled name_variants.json (docs/13)")
     ap.add_argument("--added-streams", default=None,
                     help="path to a frozen added_streams.build.json (default: the packaged one)")
+    ap.add_argument("--write-gpkg", action="store_true",
+                    help="also write graph.gpkg (4.7 GB, ~40%% of the build). OFF BY "
+                         "DEFAULT: it is a CURATION artifact — QGIS, the dossier tool, the "
+                         "review backend — and nothing downstream reads it. Pass it when "
+                         "you are about to curate.")
     ap.add_argument("--no-gauge-splits", action="store_true",
                     help="do not section rivers at their hydrometric stations")
     ap.add_argument("--added-lakes", help="path to an added_lakes.geojson (default: the packaged one)")
@@ -798,11 +805,60 @@ def main() -> None:
             columns=["FISH_OBSTACLE_POINT_ID", "OBSTACLE_NAME", "GAZETTED_NAME",
                      "WATERSHED_CODE_50K", "HEIGHT", "geometry"])
         print(f"  loaded {len(obstacles)} fish-passage obstacle(s) for the obstacles layer")
-    gpkg_path = str(out / "graph.gpkg")
-    export_graph_gpkg(graph, geoms, gpkg_path, splits=splits, split_points=applied_splits,
-                      obstacles=obstacles, area_polys=area_polys if splits else None,
-                      wbk_polys=wbk_polys)
-    _tick("write artifacts + gpkg")
+    # ITEM PINS: item_id -> (lon, lat), a representative point per registry item.
+    #
+    # ~21k rows and about a megabyte. It exists so that wanting a MAP PIN does not mean
+    # keeping a 4.7 GB GeoPackage alive: `dfo_salmon.dossier` needs one coordinate per water
+    # to print an OSM link, and used to open graph.gpkg with a WHERE clause to get it.
+    #
+    # A REPRESENTATIVE POINT, never a centroid — the centroid of a bent river lands on dry
+    # ground, and a curator following that pin ends up looking at a hillside.
+    _pins: dict[str, list[float]] = {}
+    for _it in registry.values() if isinstance(registry, dict) else registry:
+        _iid = getattr(_it, "id", None) or (_it.get("id") if isinstance(_it, dict) else None)
+        _secs = getattr(_it, "section_ids", None)
+        if _secs is None and isinstance(_it, dict):
+            _secs = _it.get("section_ids") or ()
+        _parts = [geoms[n] for n in (_secs or ()) if geoms.get(n) is not None
+                  and not geoms[n].is_empty]
+        if not _iid or not _parts:
+            continue
+        from shapely.ops import unary_union
+        _g = _parts[0] if len(_parts) == 1 else unary_union(_parts)
+        _pt = _g.representative_point()
+        _pins[_iid] = [round(_pt.x, 2), round(_pt.y, 2)]
+    import geopandas as _gpd
+    if _pins:
+        _ser = _gpd.GeoSeries(
+            [__import__("shapely.geometry", fromlist=["Point"]).Point(*v) for v in _pins.values()],
+            crs=3005).to_crs(4326)
+        _pins = {k: [round(g.x, 5), round(g.y, 5)] for k, g in zip(_pins, _ser)}
+    (out / "item_points.json").write_text(json.dumps(_pins, separators=(",", ":")))
+    print(f"  item pins: {len(_pins):,} -> {out.name}/item_points.json")
+    _tick("item pins")
+
+    # graph.gpkg IS FOR HUMANS, and it is 41% of this build.
+    #
+    # 4.7 GB and 742 seconds of the 1,810 measured on the province — more than the splits
+    # and the graph construction put together. Nothing downstream reads it: not the bundle,
+    # not the tiles, not the app. Its readers are the CURATION tools — `dfo_salmon.dossier`
+    # and the review backend — which want to open a river in QGIS.
+    #
+    # So a build made to bundle, to tile, or to check parity should not pay for it, and a
+    # build made to curate asks for it. OFF BY DEFAULT: most builds are not curation builds,
+    # and 742 seconds is most of the difference between a 30-minute build and an 18-minute
+    # one. `dossier.py` and the review backend both name the file they need, so a curator
+    # who forgets gets a clear missing-file error rather than a wrong answer.
+    if not args.write_gpkg:
+        print("graph.gpkg:     skipped — pass --write-gpkg when you are about to curate "
+              "(4.7 GB, ~40% of the build)")
+        _tick("write artifacts (no gpkg)")
+    else:
+        gpkg_path = str(out / "graph.gpkg")
+        export_graph_gpkg(graph, geoms, gpkg_path, splits=splits, split_points=applied_splits,
+                          obstacles=obstacles, area_polys=area_polys if splits else None,
+                          wbk_polys=wbk_polys)
+        _tick("write artifacts + gpkg")
 
     if args.tributaries_of:
         nid = resolve_node(graph, args.tributaries_of)

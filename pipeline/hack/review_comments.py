@@ -29,7 +29,7 @@ from pathlib import Path
 
 TAG = re.compile(r"@(REVIEW|BLOCKER|Q|QUESTION|TODO|REPLY)\b[:\-\s]*(.*)", re.I)
 _OPEN = {"REVIEW", "BLOCKER", "Q", "QUESTION", "TODO"}
-DEFAULT = ["pipeline/docs", "pipeline/atlas/splits.schema.md"]
+DEFAULT = ["pipeline/docs"]   # splits.schema.md has not existed for some time
 _MARK = {"BLOCKER": "🔴", "Q": "❓", "QUESTION": "❓", "REPLY": "  ↳", "TODO": "☐"}
 
 

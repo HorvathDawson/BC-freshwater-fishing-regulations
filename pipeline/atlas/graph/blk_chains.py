@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.common.utils.wsc import trim_wsc
 
 from pipeline.atlas.graph import cutting

@@ -675,7 +675,7 @@ def approved_lake_polys(gpkg, bbox, source: str) -> list:
     names = {n.strip().lower() for n in APPROVED_LAKE_NAMES_BY_SOURCE.get(source, ())}
     if not names:
         return []
-    from data.data_extractor import FWADataAccessor
+    from pipeline.atlas.fwa import FWADataAccessor
     fwa = FWADataAccessor(gpkg)
     out = []
     for lyr in ("lakes", "manmade"):
@@ -1383,7 +1383,7 @@ def _report_md(report: dict) -> str:
 # ---------------------------------------------------------------- gpkg-loading wrapper + CLI
 
 def _load_fwa(gpkg, bbox):
-    from data.data_extractor import FWADataAccessor
+    from pipeline.atlas.fwa import FWADataAccessor
     from pipeline.atlas.build import get_lake_wbk_kind
     from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids
     fwa = FWADataAccessor(gpkg)

@@ -168,7 +168,7 @@ def test_2300_barrier_stops_guarded_walk_only():
 # ----------------------------------------------------------------- real-data regressions
 
 def _extract_chains(names=None, lake_gnis=None, pad=None):
-    from data.data_extractor import FWADataAccessor
+    from pipeline.atlas.fwa import FWADataAccessor
     from pipeline.atlas.graph.blk_chains import load_stream_fids
     from pipeline.atlas.build import bbox_from_gnis, get_lake_names, get_lake_wbk_kind
     from pipeline.atlas.graph.names import resolve_names

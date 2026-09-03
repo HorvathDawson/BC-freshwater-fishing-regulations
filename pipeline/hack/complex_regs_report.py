@@ -16,9 +16,10 @@ import json
 import re
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from project_config import get_config
 
 _OVERRIDES = str(CURATED.regulations.overrides)
-_PARSED = "output/pipeline/regs/parsing/synopsis_parsed.json"
+_PARSED = str(get_config().parsing_dir / "synopsis_parsed.json")
 _OUT = "output/v2/complex_regulations.md"
 
 # Section/location language that implies a stream needs splitting or careful matching.

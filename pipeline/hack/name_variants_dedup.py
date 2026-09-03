@@ -31,7 +31,7 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]

@@ -2,7 +2,7 @@
 
 from shapely.geometry import LineString, box
 
-from data.data_extractor import FWADataAccessor  # noqa: F401 (kept parallel to other suites)
+from pipeline.atlas.fwa import FWADataAccessor  # noqa: F401 (kept parallel to other suites)
 from pipeline.atlas.graph import cutting
 from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
 from pipeline.atlas.splits.area_splits import resolve_area_splits

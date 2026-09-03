@@ -20,7 +20,7 @@ import os
 
 import pytest
 
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.common.curated import CURATED, SOURCE
 
 _DATA = str(SOURCE / "bc_fisheries_data.gpkg")

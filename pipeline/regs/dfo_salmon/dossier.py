@@ -20,9 +20,11 @@ a place is a split that has to exist before the rule can bind. They are printed 
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
+from project_config import get_config
 
 ENTRIES = CURATED.regulations.entries.dfo_salmon
 SPLITS = CURATED.waters.splits
@@ -78,7 +80,7 @@ def _locations_for(water: dict, doc: dict) -> list[dict]:
 
 
 DEFAULT_REGISTRY = Path("output/v2/full/registry.json")
-GRAPH_GPKG = Path("output/v2/full/graph.gpkg")
+ITEM_POINTS = get_config().review_build_dir / "item_points.json"
 
 
 def osm_link(lat: float, lon: float, zoom: int = 14) -> str:
@@ -86,28 +88,29 @@ def osm_link(lat: float, lon: float, zoom: int = 14) -> str:
     return f"https://www.openstreetmap.org/?mlat={lat:.5f}&mlon={lon:.5f}#map={zoom}/{lat:.5f}/{lon:.5f}"
 
 
-def item_pin(item_id: str) -> tuple[float, float] | None:
-    """A representative (lat, lon) for a registry item, from the build's own geometry.
+@functools.lru_cache(maxsize=1)
+def _item_points() -> dict[str, list[float]]:
+    """`{item_id: [lon, lat]}` — the build's own pin precompute, about a megabyte."""
+    p = ITEM_POINTS
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
 
-    `registry.json` carries no coordinates, so this reads `graph.gpkg` with a WHERE clause —
-    `streams.gnis_id` / `lakes.wbk` — rather than loading 1.7M features. A representative point,
-    not a centroid: a centroid of a bent river can land on dry ground.
+
+def item_pin(item_id: str) -> tuple[float, float] | None:
+    """A representative (lat, lon) for a registry item.
+
+    READS `item_points.json`, a ~21k-row precompute the build writes from geometry it
+    already has in memory. This used to open `graph.gpkg` with a WHERE clause — which meant
+    a curator wanting one coordinate kept a 4.7 GB GeoPackage alive, and that file is 40% of
+    a build. Nothing else needed it.
+
+    A representative point, never a centroid: the centroid of a bent river lands on dry
+    ground, and a curator following that pin ends up looking at a hillside.
     """
-    if not GRAPH_GPKG.exists():
+    pt = _item_points().get(item_id)
+    if pt is None:
         return None
-    kind, _, val = item_id.partition(":")
-    layer, col = {"gnis": ("streams", "gnis_id"), "wbk": ("lakes", "wbk")}.get(kind, (None, None))
-    if layer is None:
-        return None
-    try:
-        from pyogrio import read_dataframe
-        df = read_dataframe(GRAPH_GPKG, layer=layer, where=f"{col} = '{val}'")
-        if not len(df):
-            return None
-        pt = df.to_crs(4326).geometry.union_all().representative_point()
-        return (pt.y, pt.x)
-    except Exception:                                     # noqa: BLE001 — a pin is a nicety
-        return None
+    lon, lat = pt
+    return (lat, lon)
 
 
 def _registry(path: str | Path | None = None):

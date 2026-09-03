@@ -29,7 +29,7 @@ _EXPECT = {
 
 @_needs_data
 def test_bella_coola_splits_resolve_near_curated_coords():
-    from data.data_extractor import FWADataAccessor
+    from pipeline.atlas.fwa import FWADataAccessor
     from pipeline.atlas.splits.splits import load_split_defs
     from pipeline.atlas.splits.anchors import resolve_split_defs
     from pipeline.atlas.graph.blk_chains import load_stream_fids, build_blk_chains

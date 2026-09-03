@@ -10,7 +10,7 @@ import os
 import pytest
 from shapely.geometry import LineString, box
 
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.atlas.graph import cutting
 from pipeline.atlas.splits.anchors import resolve_split_defs
 from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains

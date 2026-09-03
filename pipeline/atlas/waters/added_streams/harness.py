@@ -19,7 +19,7 @@ from pathlib import Path
 
 from pyproj import Transformer
 
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.atlas.waters.added_streams.ingest import attach_connectors, ingest, load_features
 from pipeline.atlas.build import get_lake_names, get_lake_wbk_kind
 from pipeline.atlas.graph.blk_chains import build_blk_chains, load_stream_fids

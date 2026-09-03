@@ -5,7 +5,7 @@ import geopandas as gpd, pandas as pd, numpy as np, urllib.request, json, time
 from shapely.geometry import Point, LineString, MultiLineString, box as BOX
 from shapely.ops import unary_union, linemerge, nearest_points, substring
 
-GPKG = 'data/bc_fisheries_data.gpkg'
+GPKG = 'data/source/bc_fisheries_data.gpkg'
 _cache = {}
 
 def _streams():

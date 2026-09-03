@@ -5,7 +5,7 @@ from shapely.geometry import Point, LineString, box as BOX
 from shapely.ops import unary_union, linemerge, nearest_points, transform
 import pyproj
 
-GPKG = 'data/bc_fisheries_data.gpkg'
+GPKG = 'data/source/bc_fisheries_data.gpkg'
 _cache = {}
 
 def L(name):

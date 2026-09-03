@@ -1,3 +1,16 @@
+"""Reading the Freshwater Atlas GeoPackage — the one door to 5 GB of provincial geometry.
+
+WAS `data/data_extractor.py`, v1-era code living in the DATA folder. `data/` now holds
+source, curated and generated data and no code at all; this is the pipeline's, and every
+real caller is under `atlas/` — the graph builder, the blk chains, the boundary, the
+added-streams minting.
+
+`get_layer(geometry=False)` is the one thing worth knowing: `columns=` narrows the
+ATTRIBUTES and says nothing about the shapes, so a caller wanting one key column still
+deserialised every polygon in the layer. `wetlands` was read five times that way, at
+375,178 polygons a time.
+"""
+
 import geopandas as gpd
 import pandas as pd
 import pyogrio
@@ -146,6 +159,7 @@ class FWADataAccessor:
         layer_name: str,
         columns: Optional[List[str]] = None,
         bbox: Optional[Tuple[float, float, float, float]] = None,
+        geometry: bool = True,
     ) -> gpd.GeoDataFrame:
         """
         Loads a full layer or a spatial subset, with a progress bar.
@@ -153,8 +167,29 @@ class FWADataAccessor:
 
         :param columns: List of specific columns to load (saves memory).
         :param bbox: Tuple of (minx, miny, maxx, maxy) to filter spatially.
+        :param geometry: read the geometry column. **Pass False when you only want
+            attributes** — `columns=` narrows the ATTRIBUTES and does nothing about the
+            shapes, so a caller asking for one key column still deserialised every polygon
+            in the layer.
+
+            Measured on the province: `lakes` is read four times and `wetlands` five, all
+            but one of them for a key or a name, and each was paying for 386,025 / 375,178
+            polygons it discarded. `streams` is read once and does want its geometry, which
+            is why this is a parameter and not a blanket change.
         """
         self._check_layer(layer_name)
+        if not geometry:
+            # pyogrio directly: `gpd.read_file` has no way to say "attributes only", and
+            # this is the whole point of the flag. Returns a plain DataFrame.
+            import pyogrio
+
+            df = pyogrio.read_dataframe(
+                self.gpkg_path, layer=layer_name, columns=columns, bbox=bbox,
+                read_geometry=False, use_arrow=True,
+            )
+            df = self._normalize_columns(df)
+            print(f"  loaded '{layer_name}': {len(df):,} rows (attributes only)")
+            return df
         gdf = gpd.read_file(
             self.gpkg_path,
             layer=layer_name,

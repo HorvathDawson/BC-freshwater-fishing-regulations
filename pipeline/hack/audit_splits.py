@@ -23,7 +23,7 @@ from pyproj import Transformer
 from shapely.geometry import Point
 
 from project_config import get_config
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.atlas.splits.splits import load_split_defs
 from pipeline.atlas.splits.anchors import resolve_split_defs
 from pipeline.atlas.graph.blk_chains import load_stream_fids, build_blk_chains

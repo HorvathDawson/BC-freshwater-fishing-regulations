@@ -114,7 +114,7 @@ def main() -> None:
     ap.add_argument("--gpkg", default=str(get_config().fwa_data_gpkg))
     args = ap.parse_args()
 
-    from data.data_extractor import FWADataAccessor
+    from pipeline.atlas.fwa import FWADataAccessor
 
     fwa = FWADataAccessor(args.gpkg)
     out = boundary_path(args.gpkg)

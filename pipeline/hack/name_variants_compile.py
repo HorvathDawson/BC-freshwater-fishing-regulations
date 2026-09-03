@@ -18,7 +18,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Optional
 
-from data.data_extractor import FWADataAccessor
+from pipeline.atlas.fwa import FWADataAccessor
 from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.curated import CURATED, SOURCE
 

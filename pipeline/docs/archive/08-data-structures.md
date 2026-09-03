@@ -82,7 +82,7 @@ real-data regressions (Chehalis/Harrison, Columbia/Kootenay), un-skipped and gre
 
 ## Reuse vs build-new
 
-**Reuse:** `pipeline.common.utils.wsc.trim_wsc`; `data.data_extractor.FWADataAccessor` (all GPKG reads
+**Reuse:** `pipeline.common.utils.wsc.trim_wsc`; `pipeline.atlas.fwa.FWADataAccessor` (all GPKG reads
 + id normalization); the `"x_y"` endpoint convention; lake-wbk grouping + lake-outlet machinery
 from `atlas/freshwater_atlas.py`; per-magnitude minzoom percentiles;
 `effective_includes_tributaries`; `MatchTable`/`OverrideEntry`/`BaseEntry` (extend override
