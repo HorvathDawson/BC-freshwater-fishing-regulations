@@ -27,7 +27,7 @@ Contract is documented in `curation-review/API.md` under `GET /api/entries/{entr
 
 **Design invariant worth preserving:** the resolver **never creates a section**. `_by_measure` only
 filters pre-existing graph nodes by route measure. Splitting happens upstream in the sectionizer from
-`pipeline/atlas/splits.json`. If the resolver could split, a regulation edit would silently change section
+`data/curated/waters/splits.json`. If the resolver could split, a regulation edit would silently change section
 geometry — the coupling doc 10 explicitly forbids.
 
 ---

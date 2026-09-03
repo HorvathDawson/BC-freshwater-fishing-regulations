@@ -26,7 +26,7 @@ Written 2026-09-02 by the agent that surveyed it. Nothing has been moved.
 never edited, and excluded from every grep in this document. The same goes for `.venv/`,
 `node_modules/`, `__pycache__/`, `graphify-out/`.
 
-**`project_config.py` is at the REPO ROOT**, not `pipeline/project_config.py`. `config.yaml` is
+**`project_config.py` is at the REPO ROOT**, not `project_config.py`. `config.yaml` is
 beside it. Its top-level keys today are `output`, `data`, `data_accessor`, `llm`, `graph_builder` —
 `curated:` becomes a sixth.
 
@@ -49,23 +49,23 @@ Everything below resolves a path at runtime. Everything *not* below is prose.
 
 ```
 curation-review/backend/reuse.py:51      SPLITS_JSON_PATH = _ROOT / "pipeline" / "splits.json"
-curation-review/backend/rebuild.py:42    "--splits", "pipeline/atlas/splits.json"      ← literal CLI arg
+curation-review/backend/rebuild.py:42    "--splits", "data/curated/waters/splits.json"      ← literal CLI arg
 pipeline/atlas/build.py:243                    _DEFAULT_SPLITS = Path(__file__)...parent / "splits.json"
-pipeline/tools/audit_split_binding.py:45     def audit(..., splits_path: str = "pipeline/atlas/splits.json")
-pipeline/tools/audit_split_binding.py:111    ap.add_argument("--splits", default="pipeline/atlas/splits.json")
+pipeline/tools/audit_split_binding.py:45     def audit(..., splits_path: str = "data/curated/waters/splits.json")
+pipeline/tools/audit_split_binding.py:111    ap.add_argument("--splits", default="data/curated/waters/splits.json")
 pipeline/regs/dfo_salmon/dossier.py:27        SPLITS = Path(__file__)...parents[1] / "splits.json"
-pipeline/regs/dfo_salmon/match.py:53          SPLITS = Path("pipeline/atlas/splits.json")   ← cwd-dependent
-pipeline/hack/audit_splits.py:55         splits_path or (ROOT / "pipeline/atlas/splits.json")
+pipeline/regs/dfo_salmon/match.py:53          SPLITS = Path("data/curated/waters/splits.json")   ← cwd-dependent
+pipeline/hack/audit_splits.py:55         splits_path or (ROOT / "data/curated/waters/splits.json")
 pipeline/tests/test_splits.py:146        parents[1] / "splits.json"
-pipeline/tests/test_splits_accuracy.py:37,38     "pipeline/atlas/splits.json" ×2
-pipeline/tests/test_anchors.py:268       load_split_defs("pipeline/atlas/splits.json")
+pipeline/tests/test_splits_accuracy.py:37,38     "data/curated/waters/splits.json" ×2
+pipeline/tests/test_anchors.py:268       load_split_defs("data/curated/waters/splits.json")
 ```
 
 `rebuild.py:42` is **the `review_build` bug repeating verbatim** — the app hands the builder a
 hardcoded path string while `get_config()` sits one import away in the same file. Fix that one
 first; it is the single clearest justification for the whole exercise.
 
-`dfo_salmon/match.py:53` is `Path("pipeline/atlas/splits.json")` — relative to the **current working
+`dfo_salmon/match.py:53` is `Path("data/curated/waters/splits.json")` — relative to the **current working
 directory**. It works only because everything is run from the repo root.
 
 ### `overrides.json` — 10 sites
@@ -74,10 +74,10 @@ directory**. It works only because everything is run from the repo root.
 curation-review/backend/reuse.py:46      OVERRIDES_PATH = _ROOT / "pipeline" / "matching" / "overrides.json"
 pipeline/atlas/reach/covered.py:33             DEFAULT_OVERRIDES = parents[2] / "pipeline" / "matching" / ...
 pipeline/regs/parsing/batch_exporter.py:255   parents[1] / "matching" / "overrides.json"
-pipeline/regs/parsing/backfill_matched.py:81      default="pipeline/regs/matching/overrides.json"
-pipeline/regs/parsing/backfill_identity.py:102    default="pipeline/regs/matching/overrides.json"
-pipeline/regs/parsing/prune_remapped.py:74        default="pipeline/regs/matching/overrides.json"
-pipeline/hack/complex_regs_report.py:19  _OVERRIDES = "pipeline/regs/matching/overrides.json"
+pipeline/regs/parsing/backfill_matched.py:81      default="data/curated/regulations/overrides.json"
+pipeline/regs/parsing/backfill_identity.py:102    default="data/curated/regulations/overrides.json"
+pipeline/regs/parsing/prune_remapped.py:74        default="data/curated/regulations/overrides.json"
+pipeline/hack/complex_regs_report.py:19  _OVERRIDES = "data/curated/regulations/overrides.json"
 pipeline/regs/dfo_salmon/dossier.py:28        parents[1] / "matching" / "overrides.json"
 pipeline/tests/test_dfo_salmon.py:1943,2022    parents[1] / "matching" / "overrides.json"
 ```
@@ -98,8 +98,8 @@ pipeline/tests/test_dfo_salmon.py:2051   parents[1] / "name_variants.json"
 ### `areas.json` — 2 sites
 
 ```
-pipeline/atlas/splits/area_splits.py:23        ROOT / "pipeline/areas.json"
-pipeline/tests/test_tiles.py:96          ROOT / "pipeline/areas.json"
+pipeline/atlas/splits/area_splits.py:23        ROOT / "data/curated/waters/areas.json"
+pipeline/tests/test_tiles.py:96          ROOT / "data/curated/waters/areas.json"
 ```
 
 ### `added_lakes.geojson` — 5 sites
@@ -226,7 +226,7 @@ So, alongside the grep gate:
 
 ## 5. Decide before moving
 
-**`pipeline/ungazetted.json` has zero references in live code** — the only mention is a matcher
+**`data/curated/waters/ungazetted.json` has zero references in live code** — the only mention is a matcher
 docstring. Either it is dead and should be deleted, or something stopped reading it and *that* is
 the bug. **Ask the user** — do not relocate a file nothing loads, and do not delete curated data on
 your own judgement.
@@ -268,7 +268,7 @@ it is the one that keeps going stale in silence.
 **A machine produced it, a human reviewed it, and from then on everything only reads it.**
 
 ```
-pipeline/gauge_match.json              2,324 stations   station -> coord + wsc/wbk
+data/curated/gauges/matches.json              2,324 stations   station -> coord + wsc/wbk
 data/bc_station_waterbody_type.json    2,324 stations   ECCC's own "Type of water body"
 pipeline/stock_match.json              NOT BUILT        FIDQ waterbody_id -> item_id
 pipeline/chart_match.json              NOT BUILT        bathymetry sheet -> item_id

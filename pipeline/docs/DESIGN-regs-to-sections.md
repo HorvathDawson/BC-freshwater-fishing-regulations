@@ -167,7 +167,7 @@ partial carve-out references the boundary split(s). Consumed at the resolve step
                mus:["1-5"], raw_regs:"No fishing between Copper Canyon Falls and the signs…"}
                → output/ (ephemeral, regenerable)
 3. FWA DATA    data/: Freshwater Atlas geometry (every stream/lake)
-4. SPLITS      pipeline/atlas/splits.json (by waterbody, curated FIRST): Chemainus →
+4. SPLITS      data/curated/waters/splits.json (by waterbody, curated FIRST): Chemainus →
                bannon_confluence, copper_canyon_falls, signs_100m  (id+label+note+anchor)
 5. GRAPH BUILD pipeline/build: FWA + splits + name_variants → StreamGraph. Chemainus cut into
                sections chem_1..chem_4 (each with location_identifier)
@@ -438,7 +438,7 @@ from `overrides.json`, 480 entries):
 
 ## Building it — required pieces (in dependency order)
 
-1. **New splits file** — convert `waterbody-splits.json` → by-waterbody `pipeline/atlas/splits.json`
+1. **New splits file** — convert `waterbody-splits.json` → by-waterbody `data/curated/waters/splits.json`
    (`applies_to`, `splits[{id, label, note, _note, anchor}]`); update `load_split_defs` to read +
    flatten it.
 2. **New models** — `Entry` / `Rule` / `Extent` (with `extents[]`, `item`, `needs_review`,
@@ -589,7 +589,7 @@ The Entry/Rule/Extent shapes now carry more than the doc's §"Data types" lists 
 
 ## Session structural cleanup (2026-08-15, no logic changes)
 
-- `pipeline/common/models.py` → **`pipeline/common/models/` package** (enums · names · chains · graph · splits ·
+- `pipeline/common/models/` → **`pipeline/common/models/` package** (enums · names · chains · graph · splits ·
   sections · regs · registry), re-exported from `__init__` so all imports are unchanged.
 - `pipeline/regs/parsing/` prompts/docs → `pipeline/regs/parsing/prompts/`.
 - **Perf:** border uses a vectorized `covered_by` prefilter; area membership uses one STRtree batch
@@ -630,7 +630,7 @@ typed-id overrides fully resolve; the dead tail is nameless features + version-d
 
 ### Layer B — Override format = the archive schema — ✅ IMPLEMENTED 2026-08-16
 
-`pipeline/regs/matching/overrides.json` is the **archive file verbatim** (a LIST of 480 override objects):
+`data/curated/regulations/overrides.json` is the **archive file verbatim** (a LIST of 480 override objects):
 `{type, criteria: {name_verbatim, region, mus}, note, skip, skip_reason, variant_of, gnis_ids,
 waterbody_keys, fwa_watershed_codes, blue_line_keys, linear_feature_ids, waterbody_poly_ids,
 admin_targets, admin_feature_types, only_within_zones, ungazetted_waterbody_id/location}`. The archive is

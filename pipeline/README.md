@@ -6,7 +6,7 @@ Run everything with the venv: `.venv/bin/python`. Order below is the usual flow.
 
 ```bash
 # Rebuild splits.json from the curated source (deterministic, no API cost)
-.venv/bin/python -m pipeline.oneoff.build_splits            # writes pipeline/atlas/splits.json
+.venv/bin/python -m pipeline.oneoff.build_splits            # writes data/curated/waters/splits.json
 .venv/bin/python -m pipeline.oneoff.build_splits --dry-run  # preview stats only
 ```
 
@@ -15,7 +15,7 @@ Run everything with the venv: `.venv/bin/python`. Order below is the usual flow.
 ```bash
 # Whole province (heavy, ~15–20 min). Applies splits, writes registry.json.
 .venv/bin/python -m pipeline.atlas.build --full \
-  --splits pipeline/atlas/splits.json --out output/v2/full
+  --splits data/curated/waters/splits.json --out output/v2/full
 
 # Small area (fast) — scope by GNIS name or bbox
 .venv/bin/python -m pipeline.atlas.build --gnis "Campbell River" --out output/v2/validate
@@ -42,6 +42,6 @@ bash curation-review/run.sh        # backend + frontend
 
 ## Notes
 
-- `data/bc_fisheries_data.gpkg` (~9.6 GB FWA source) must be present for build/splits.
+- `data/source/bc_fisheries_data.gpkg` (~9.6 GB FWA source) must be present for build/splits.
 - Merge/pickup radius for splits is 5 m route-measure (distinct cuts stay distinct).
 - After editing code, `graphify update .` keeps the knowledge graph current.

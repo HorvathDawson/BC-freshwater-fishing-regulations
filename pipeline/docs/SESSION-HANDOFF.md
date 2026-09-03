@@ -29,7 +29,7 @@ The 6 true misses are structural, not name gaps:
 - `WHITESWAN/WHITETAIL LAKE'S INLET & OUTLET STREAMS`, `SKEENA/KISPIOX CONFLUENCE`, `MARSH POND`,
   `"BLUEY LAKE POTHOLES"` — multi-feature / ungazetted rows → the **resolver**, not the row matcher.
 
-## 1. What this session changed (all in `pipeline/name_variants.json` + a little code)
+## 1. What this session changed (all in `data/curated/waters/name_variants.json` + a little code)
 
 ### 1a. Contamination cleanup (lake name collisions)
 The bathymetry/stocking/marker survey feeds had cross-attributed neighbour-lake names (a survey sheet
@@ -79,7 +79,7 @@ Flow (`pipeline/regs/parsing/run_parse.sh`): **export batches → dispatch to Cl
 REGISTRY=output/v2/full/registry.json bash pipeline/regs/parsing/run_parse.sh
 # knobs: BATCH_SIZE=40  MODEL=opus  CONCURRENCY=3  CLAUDE_BIN=claude
 ```
-Prereqs (all satisfied): registry.json ✓, `pipeline/regs/matching/overrides.json` (480) ✓, synopsis rows
+Prereqs (all satisfied): registry.json ✓, `data/curated/regulations/overrides.json` (480) ✓, synopsis rows
 (1,393) ✓, `parse_context` + PARSE/REVIEW prompts ✓, `bc_species.csv` ✓, `claude` CLI v2.1.233 ✓,
 `pipeline/regs/parsing/entries/` empty (fresh full parse).
 
@@ -89,13 +89,13 @@ in `pipeline/regs/parsing/entries/`.
 
 ## 2b. Edge-case features (2026-08-17) — ungazetted, potholes, inlet/outlet, reservoirs
 
-- **Ungazetted waterbodies → `pipeline/ungazetted.json`** (5): Marsh Pond, Skeena/Kispiox
+- **Ungazetted waterbodies → `data/curated/waters/ungazetted.json`** (5): Marsh Pond, Skeena/Kispiox
   confluence (no FWA feature); Nation Arm + Davis Bay (link to Williston gnis:28522); Hall Road Pond
   (links wbk:329460964). ids are `ungaz:{slug}` (old archive id kept as `_archive_id`). These are
   TEMPORARY — to be replaced by proper polygon subdivision later, then removed.
 - **Bluey Lake Potholes — FIXED.** Its override used dead `waterbody_poly_ids` (old-FWA
   WATERBODY_POLY_IDs, stored as float in the gpkg). Re-resolved all 10 → live `waterbody_keys`
-  (added to `pipeline/regs/matching/overrides.json`), then dropped the redundant poly_ids; now a feature-pin
+  (added to `data/curated/regulations/overrides.json`), then dropped the redundant poly_ids; now a feature-pin
   like Okanagan Oxbows / Moss Pothole (`status=override`).
 - **Override `name_variants` field — fully removed.** The matcher/coverage/batch_exporter never read it
   (vestigial migration data). Stripped from ALL overrides. Two carried names worth keeping were moved
@@ -155,7 +155,7 @@ multi-feature misses above all wait on it. Also open: lazy area-catalog wiring i
 ## 4. Commands
 ```
 # full production rebuild (~14 min; bakes name_variants + splits):
-PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out output/v2/full --splits pipeline/atlas/splits.json
+PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.build --full --out output/v2/full --splits data/curated/waters/splits.json
 # coverage (no build):
 PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.matching.coverage --registry output/v2/full/registry.json
 # tests:
@@ -193,9 +193,9 @@ registry). Only ~18 live overrides steer to a different item than plain matching
 ## Border (cached BC boundary)
 Border splits matter (Kootenay/Columbia leave and re-enter BC — regs stop at the line). The union of
 full-res WMU polygons was the bottleneck; the province never changes, so the outline is precomputed once
-to `data/bc_boundary.geojson` (`pipeline/atlas/splits/bc_boundary.py`). `--no-border` is a dev shortcut only;
+to `data/source/bc_boundary.geojson` (`pipeline/atlas/splits/bc_boundary.py`). `--no-border` is a dev shortcut only;
 production is `--full`. Regenerate only if the WMU layer changes:
-`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.splits.bc_boundary --gpkg data/bc_fisheries_data.gpkg`
+`PYTHONPATH="$PWD" .venv/bin/python -m pipeline.atlas.splits.bc_boundary --gpkg data/source/bc_fisheries_data.gpkg`
 
 ## Area work (designed, partially built)
 `cut: true|false` in `areas.json` is the sole cut trigger; cut areas stay eager, everything else is

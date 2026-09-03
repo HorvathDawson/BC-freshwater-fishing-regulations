@@ -153,7 +153,7 @@ into it), so it is both source AND writable. Then `14` is redundant.
 **Rivers/lakes/confluences come from FWA; OSM is ONLY for man-made crossings we don't have in the
 gpkg.** Never geolocate a river reach or confluence from OSM.
 
-- **FWA (`data/bc_fisheries_data.gpkg`)** — river geometry (`streams`), lake outlets/edges (`lakes`),
+- **FWA (`data/source/bc_fisheries_data.gpkg`)** — river geometry (`streams`), lake outlets/edges (`lakes`),
   confluences (tributary mouth), MU polygons (`wmu`, `WILDLIFE_MGMT_UNIT_ID`). Used for confluence
   splits, lake-outlet points (e.g. Strathcona Dam = Upper Campbell Lake outlet), offsets.
 - **OSM Overpass** — ONLY highways/roads (`highway`, by `ref` or road name), rail

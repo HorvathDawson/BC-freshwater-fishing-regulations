@@ -11,11 +11,11 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 
 ## ⛔ Absolute
 
-1. **Never run the LLM parser.** `pipeline/parsing/run_parse.sh`,
-   `python -m pipeline.parsing.dispatch`, anything that spawns `claude -p`. It spends the
+1. **Never run the LLM parser.** `pipeline/regs/parsing/run_parse.sh`,
+   `python -m pipeline.regs.parsing.dispatch`, anything that spawns `claude -p`. It spends the
    user's credits. Hand over the command; the human runs it. This holds even if the user
    says "run it" — that means *they* will.
-2. **Never write to `pipeline/parsing/entries/*.json` without backing them up first.**
+2. **Never write to `pipeline/regs/parsing/entries/*.json` without backing them up first.**
    They hold in-progress curation that is not committed. `cp` them to the scratchpad, make
    the change, then diff to prove only what you intended moved. A lock was lost in this
    repo once; do not be the second time.
@@ -28,7 +28,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 ## The data model
 
 5. **`item_id` is durable (99.88% across a rebuild). `section_id` is not (94%).**
-   Measured, `pipeline/tools/id_churn.py`. Anything crossing a version boundary — live
+   Measured, `pipeline/tools/build_parity.py`. Anything crossing a version boundary — live
    feeds, deep links, saved pins, bathymetry sheets — binds to `item_id`.
    **`section_id` and `dense_id` must never leave the bundle**: not in a URL, a saved
    preference, a feed, or an API contract.
@@ -45,9 +45,9 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 
 ## Resolution
 
-10. **The resolver never creates a section.** `pipeline/registry/resolve.py` filters
+10. **The resolver never creates a section.** `pipeline/atlas/registry/build.py` filters
     pre-existing graph nodes by route measure. Splitting happens upstream in the
-    sectionizer from `pipeline/splits.json`. If resolution could split, editing a
+    sectionizer from `data/curated/waters/splits.json`. If resolution could split, editing a
     regulation would silently change section geometry.
 11. **Reaches resolve by ROUTE MEASURE on the cut's own blue line, never by a flow walk.**
     A `between` spanning two blue lines is the intersection of two half-lines. A flow walk
@@ -69,7 +69,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 15. **A rule extending to tributaries is `tributaries_pending`** — the reach-scoped walk
     does not exist. 547 rules. Nothing downstream may treat such a binding as complete.
 16. **The review app and the builder share one implementation.** `entry_reaches` calls
-    `pipeline.reach.classify`; covered items come from `pipeline.reach.covered`. Verified:
+    `pipeline.atlas.reach.classify`; covered items come from `pipeline.atlas.reach.covered`. Verified:
     **3,038 of 3,038 rules identical**. If you change one, re-run that parity check — the
     app is where a human signs off, so divergence is invisible until a user hits it.
 
@@ -82,7 +82,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     guards live there, so CI must run `-m slow` explicitly or they never run.
 19. **Determinism is a precondition, not a nice-to-have.** Sorted iteration everywhere;
     no clocks in output. The reach builder's digest must be identical across runs.
-20. **`pipeline.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an
+20. **`pipeline.atlas.reach.cache.POLICY_VERSION` must be bumped when `classify.py` changes an
     outcome.** A test fails if it goes stale — a cache serving confidently wrong answers is
     worse than no cache.
 
@@ -136,8 +136,8 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     and **re-running the generator throws that review away**. It is curated data that
     happens to have been typed by a program.
 
-36. **Read curated paths through `pipeline.curated.CURATED`, never as a literal.**
-    `from pipeline.curated import CURATED` then `CURATED.splits`. The tree is pydantic-
+36. **Read curated paths through `pipeline.common.curated.CURATED`, never as a literal.**
+    `from pipeline.common.curated import CURATED` then `CURATED.splits`. The tree is pydantic-
     validated at first access, so a bad path fails naming the key instead of returning an
     empty list four builds later. `ProjectConfig.get_path` returns `Path()` for a missing
     key — silently the current directory — which is how a `--splits` flag with no default
@@ -161,7 +161,7 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     is 10, and a job that fails for unrelated reasons is one people learn to ignore.
 
 40. **A value that exists on both sides of the Python/TypeScript boundary is generated,
-    not typed twice.** `pipeline/hydro/shed.py::TRUST_BANDS` is the source;
+    not typed twice.** `pipeline/gauges/consume/shed.py::TRUST_BANDS` is the source;
     `python -m pipeline.tools.emit_gauge_policy` writes the TypeScript and JSON, and
     `--check` fails CI when they drift. Three copies of the trust rule once existed — the
     pipeline's, one in `@app/core`, one in `build-fixture.mjs` with a band the pipeline has

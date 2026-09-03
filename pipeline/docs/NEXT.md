@@ -119,7 +119,7 @@ you want to verify before adopting:
 
 ```bash
 .venv/bin/python -m pipeline.atlas.build --full --out output/v2/_full_staging \
-    --splits pipeline/atlas/splits.json
+    --splits data/curated/waters/splits.json
 # verify, then:  rm -rf full_prev_bak && mv full full_prev_bak && mv _full_staging full
 ```
 
@@ -161,7 +161,7 @@ hard rule is the manifest pins tiles and data together and the client refuses a 
 
 1. **Regulable water** — measured: **180.5 MB of WKB out of 2,180.7 MB (8.3%)**. Through
    tippecanoe at v1's settings that is **~15–30 MB**: shippable offline. Not the problem.
-2. **The basemap** — this is the blocker. `data/bc.pmtiles` is the **Protomaps basemap**
+2. **The basemap** — this is the blocker. `data/source/bc.pmtiles` is the **Protomaps basemap**
    (z0–15, `buildings/pois/landuse/…`), not BC's water; doc 10 ⑲'s original framing of this
    was simply wrong. Needs a stripped extract: **earth / water / roads / places, z4–12**.
 3. **Bathymetry contours** (`archive/…/bathymetry_polygons.gpkg`, 2,744 polygons, 17.3 MB)
@@ -442,6 +442,6 @@ those rules were confirmed against a 1-section river.
   returns: (1) defer to an explicitly-named anchor type rather than re-anchoring it, and
   (2) never re-anchor a row that carries its own surveyed coordinate. Both were written
   after converting the Lardeau and Nahatlatch anchors *wrongly*.
-* **JSON formatting is per-file and diffs explode if you get it wrong.** `pipeline/atlas/splits.json`
+* **JSON formatting is per-file and diffs explode if you get it wrong.** `data/curated/waters/splits.json`
   is `indent=1`; entry files are `indent=2`; both are `ensure_ascii=False` with **no trailing
   newline**. Writing with the wrong settings produces a 45,000-line diff.

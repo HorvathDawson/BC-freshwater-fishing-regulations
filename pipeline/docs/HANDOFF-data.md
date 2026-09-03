@@ -8,13 +8,13 @@ still open. Nothing here is a plan.
 ## Where things stand
 
 **Gauges.** Hydrometric stations are matched to waters once, frozen in
-`pipeline/gauge_match.json`, and read by two consumers that match nothing themselves:
+`data/curated/gauges/matches.json`, and read by two consumers that match nothing themselves:
 
 ```
-data/bc_hydrometric_stations.json          fetched roster
+data/source/bc_hydrometric_stations.json          fetched roster
   │   python -m pipeline.gauges.generate.match --build <a completed build>
   ▼
-pipeline/gauge_match.json                  coord + wsc (streams) · coord + wbk (lakes)
+data/curated/gauges/matches.json                  coord + wsc (streams) · coord + wbk (lakes)
   ├──► pipeline.atlas.build     a `gauge` point anchor at the coord, scoped by wsc, appended
   │                       after splits.json and resolved by the same resolver
   └──► pipeline.deliver.bundle    the section that begins at that coord and runs upstream
@@ -68,7 +68,7 @@ station per section with a band and two magnitudes; it does not record the *rela
 (which direction, how far along the channel, same watercourse or not), so no alternative
 policy can be tried without a schema change.
 
-**No build has run since the gauge cuts were written.** `pipeline/gauge_match.json` exists
+**No build has run since the gauge cuts were written.** `data/curated/gauges/matches.json` exists
 and resolves (403 defs → 440 cuts against the current chains, 20 on the Fraser mainstem),
 but no graph has been built with them. Sequence is build → bundle → tiles.
 

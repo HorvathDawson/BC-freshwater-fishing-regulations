@@ -1,6 +1,6 @@
 # 02 — Domain Model & Terms (verified)
 
-All claims here verified against `data/bc_fisheries_data.gpkg` (`streams` = 4,907,441
+All claims here verified against `data/source/bc_fisheries_data.gpkg` (`streams` = 4,907,441
 features) and source on 2026-07-25. This replaces any earlier looser terminology.
 
 ## The FWA identifiers — what each really keys

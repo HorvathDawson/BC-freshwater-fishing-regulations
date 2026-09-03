@@ -16,8 +16,8 @@ It fetches by id and writes `id → data`.
 
 | Producer | Runs | Reads | Writes |
 |---|---|---|---|
-| `data/fetch_data.py --layers hydrometric_stations` | per build | ECCC OGC API + today's transmitting roster | `data/bc_hydrometric_stations.json` |
-| `pipeline.gauges.generate.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `pipeline/gauge_match.json` (every station, with provenance) |
+| `data/fetch_data.py --layers hydrometric_stations` | per build | ECCC OGC API + today's transmitting roster | `data/source/bc_hydrometric_stations.json` |
+| `pipeline.gauges.generate.match` | per build | that roster, `graph.pkl`, `geometries.pkl`, `aliases.json` | `data/curated/gauges/matches.json` (every station, with provenance) |
 | `pipeline.gauges.consume.shed` | per build | `graph.pkl` + the match | `section_gauge`, `lake_gauge`, `section_down` |
 | hydro job — HYDAT tier | **yearly**, gated on the release listing date | the 266 MB HYDAT release | `gauge/clim.json` — 325 KB, all stations |
 | hydro job — reading tier | **30 min** | ECCC readings, BCRFC CLEVER | `gauge/index.json`, `gauge/{station}.json` |
@@ -130,7 +130,7 @@ never writes to them. Letting a matcher edit that file is what corrupted v1's di
 the same ambiguous question: it breaks when two waters share the string, and silently follows
 the wrong one when the FWA renames something. `aliases.json` is expected to stay empty.
 
-The **complete** record is `pipeline/gauge_match.json` — every station with its status and
+The **complete** record is `data/curated/gauges/matches.json` — every station with its status and
 how it resolved. A new station that matches needs no action; one that does not appears as
 `unresolved` in the build's own summary line.
 
@@ -246,21 +246,21 @@ stay identical.
 
 ## Where a gauge IS — one frozen fact, two consumers
 
-Everything about a station's position lives in **`pipeline/gauge_match.json`**, and nothing
+Everything about a station's position lives in **`data/curated/gauges/matches.json`**, and nothing
 matches anything anywhere else.
 
 ```
-data/bc_hydrometric_stations.json        fetched roster (fetch_data --layers hydrometric_stations)
+data/source/bc_hydrometric_stations.json        fetched roster (fetch_data --layers hydrometric_stations)
   │
   │   python -m pipeline.gauges.generate.match --build <a completed build>
   ▼
-pipeline/gauge_match.json                COMMITTED. One row per station:
+data/curated/gauges/matches.json                COMMITTED. One row per station:
   │                                        streams  wsc + blk + measure
   │                                        lakes    wbk
   │                                        neither  status=unresolved, with the reason
   │
   ├──► pipeline.atlas.build      a `gauge` point anchor at the station's coordinate, scoped by
-  │                        `wsc`, appended AFTER pipeline/atlas/splits.json and resolved by the
+  │                        `wsc`, appended AFTER data/curated/waters/splits.json and resolved by the
   │                        same resolver → rivers get cut at their gauges
   │
   └──► pipeline.deliver.bundle     the node on `blk` whose measure range contains `measure`

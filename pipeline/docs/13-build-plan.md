@@ -21,7 +21,7 @@ template. Where it is cited it is because it measured something or failed instru
 
 ## 0. Measurements taken before planning
 
-Re-runnable via `pipeline/tools/id_churn.py` (step 2). Measured across the only two real builds that
+Re-runnable via `pipeline/tools/build_parity.py` (step 2). Measured across the only two real builds that
 exist: `output/v2/full` → `output/v2/full_new` (the added-streams work, 49,542 → 64,128 sections).
 
 ### 0.1 — Identifier durability: a 3-tier hierarchy
@@ -661,7 +661,7 @@ drawing a curator a picture). The reach-scoped walk is step 8.
   caller. A function whose only caller is a test and which collapses 7,409 lakes into one id does not
   stay as-is.
 - **2.3** Non-slow test: registry section ids unique within a build (0 dupes over 49,542 and 64,128).
-- **2.4** `pipeline/tools/id_churn.py` prints §0.1 + §0.3 for any build pair in one command.
+- **2.4** `pipeline/tools/build_parity.py` prints §0.1 + §0.3 for any build pair in one command.
 - **2.5 Reopen gate:** run 2.4 after the next **re-anchoring** build. Reopen ⑥ only if hash survival
   beats measure survival by **> 2 points**.
 

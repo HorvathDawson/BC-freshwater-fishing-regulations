@@ -32,7 +32,7 @@ In flight: **Skeena** — 23 cuts already exist, 9 more needed, and it is blocke
 ## 2. The two tools
 
 Both read `pipeline/regs/dfo_salmon/entries/region-*.json` (the match + locator state) and
-`pipeline/atlas/splits.json`. Neither writes anything — **you** write the JSON.
+`data/curated/waters/splits.json`. Neither writes anything — **you** write the JSON.
 
 ### `dossier.py` — "which registry item is this water?"
 
@@ -103,9 +103,9 @@ resolve to **identical sections**. Geometry beats text; never dedupe locators by
 
 | what | file — **after the restructure** | before |
 |---|---|---|
-| cut-points | `data/curated/waters/splits.json` | `pipeline/atlas/splits.json` |
-| a DFO name DFO uses and the province does not | `data/curated/waters/name_variants.json` | `pipeline/name_variants.json` |
-| a forced item binding | `data/curated/regulations/overrides.json`, **tagged `"source": "dfo"`** | `pipeline/regs/matching/overrides.json` |
+| cut-points | `data/curated/waters/splits.json` | `data/curated/waters/splits.json` |
+| a DFO name DFO uses and the province does not | `data/curated/waters/name_variants.json` | `data/curated/waters/name_variants.json` |
+| a forced item binding | `data/curated/regulations/overrides.json`, **tagged `"source": "dfo"`** | `data/curated/regulations/overrides.json` |
 | DFO entry files | `data/curated/regulations/entries/dfo_salmon/` | `pipeline/regs/dfo_salmon/entries/` |
 | synopsis entry files | `data/curated/regulations/entries/synopsis/` | `pipeline/regs/parsing/entries/` |
 | extents / bindings | ⛔ **not yet decided — see §7** | |
@@ -120,7 +120,7 @@ CURATED.entries.dfo_salmon       # data/curated/regulations/entries/dfo_salmon/
 
 The paths are validated by pydantic when the process starts, so a typo fails naming the key
 instead of returning an empty list. `dossier.py` and `splitwork.py` both resolved these by hand
-(`Path(__file__).parents[1] / "splits.json"`, and one bare `Path("pipeline/atlas/splits.json")` that
+(`Path(__file__).parents[1] / "splits.json"`, and one bare `Path("data/curated/waters/splits.json")` that
 only worked from the repo root); both go through config now.
 
 `load_overrides(path, source="dfo")` — the **provincial matcher never loads DFO overrides**. Keep
