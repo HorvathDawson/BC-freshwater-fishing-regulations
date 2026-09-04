@@ -1,6 +1,6 @@
 """Trim the OSM basemap to what a fishing map in British Columbia actually draws.
 
-`data/bc.pmtiles` is a full Protomaps build of OpenStreetMap for the region: 4.36 GB, nine
+`data/source/bc.pmtiles` is a full Protomaps build of OpenStreetMap for the region: 4.36 GB, nine
 layers, everything from building footprints to ATMs, over a bounding box that is mostly not
 British Columbia. Shipping it whole is the single largest cost in the product — larger than
 every regulation, every gauge and our own 875 MB atlas combined.
@@ -44,7 +44,7 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from pipeline.common.curated import CURATED, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 KEEP = ("earth", "water", "landcover", "landuse", "roads", "places", "boundaries")
 DROP = ("buildings", "pois")
@@ -124,8 +124,6 @@ if __name__ == "__main__":
     # `parents[3]`, not [2]: this module sits at pipeline/deliver/tiles/, and the move that
     # added `deliver/` silently repointed the output at pipeline/output/. Asserted rather
     # than trusted, for the same reason `common/curated.py` asserts its root.
-    root = Path(__file__).resolve().parents[3]
-    assert (root / "config.yaml").is_file(), f"repo root wrong: no config.yaml under {root}"
     build(SOURCE / "bc.pmtiles",
-          root / "output" / "tiles" / "basemap.pmtiles",
+          GENERATED.tiles / "basemap.pmtiles",
           SOURCE / "bc_boundary.geojson")

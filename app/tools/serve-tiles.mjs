@@ -17,15 +17,15 @@ import { fileURLToPath } from "node:url";
 
 const repo = fileURLToPath(new URL("../..", import.meta.url));
 const ARCHIVES = {
-  "/atlas.pmtiles": `${repo}output/tiles/atlas.pmtiles`,
-  "/basemap.pmtiles": `${repo}output/tiles/basemap.pmtiles`,
+  "/atlas.pmtiles": `${repo}data/generated/tiles/atlas.pmtiles`,
+  "/basemap.pmtiles": `${repo}data/generated/tiles/basemap.pmtiles`,
   // The bundle rides along on the same server. In production it sits beside the tiles on
   // R2 for the same reason: one origin, one set of CORS rules, one thing to make fast.
   "/bundle.sqlite": `${repo}app/packages/data/dev/bundle.sqlite`,
-  "/province.sqlite": `${repo}output/bundle/bundle.sqlite`,
+  "/province.sqlite": `${repo}data/generated/bundle/bundle.sqlite`,
   // The outside-BC mask. A file rather than a tile layer so changing how it looks does
   // not need a fifteen-minute rebuild — see pipeline/deliver/tiles/boundary.py.
-  "/bc_outside.geojson": `${repo}data/bc_outside.geojson`,
+  "/bc_outside.geojson": `${repo}data/source/bc_outside.geojson`,
 };
 
 /**
@@ -79,7 +79,7 @@ createServer((req, res) => {
     ?? (/^\/feeds\/gauge\/[\w-]+\.json$/.test(route)
           ? `${repo}app/packages/data/dev${route}` : undefined)
     ?? (/^\/feeds\/live\/[\w-]+\.json$/.test(route)
-          ? `${repo}output/feeds/gauge/${route.split("/").pop()}` : undefined);
+          ? `${repo}data/generated/gauges/feeds/${route.split("/").pop()}` : undefined);
   if (!file || !existsSync(file)) return res.writeHead(404).end("no such archive");
 
   const total = statSync(file).size;

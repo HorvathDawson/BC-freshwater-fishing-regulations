@@ -25,7 +25,10 @@ from pipeline.common.curated import CURATED, SOURCE
 _ROOT = Path(__file__).resolve().parents[2]   # pipeline/oneoff/ -> repo root
 _FDN = _ROOT / "archive" / "pipeline" / "matching" / "feature_display_names.json"
 _OVR = _ROOT / "archive" / "pipeline" / "matching" / "overrides.json"
-_ANG = _ROOT / "output" / "pipeline" / "anglerinfo" / "anglerinfo_matches.json"
+#: The archived anglerinfo matches. `add_anglerinfo` skips a file that is not there,
+#: which is why this pointed at `output/pipeline/anglerinfo/` — a directory that never
+#: existed — for as long as it did without anyone noticing the source was silently absent.
+_ANG = _ROOT / "archive" / "pipeline" / "recurring" / "anglerinfo" / "anglerinfo_matches.json"
 _GPKG = str(SOURCE / "bc_fisheries_data.gpkg")
 
 

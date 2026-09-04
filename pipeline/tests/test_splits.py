@@ -134,7 +134,8 @@ def test_every_waterbody_block_targets_a_real_registry_item():
 
     from pipeline.atlas.registry import load_registry
 
-    reg_path = Path(__file__).resolve().parents[2] / "output" / "v2" / "full" / "registry.json"
+    from pipeline.common.curated import GENERATED
+    reg_path = GENERATED.build() / "registry.json"
     if not reg_path.exists():
         pytest.skip("no built registry")
     from pipeline.regs.matching.matcher import build_id_index

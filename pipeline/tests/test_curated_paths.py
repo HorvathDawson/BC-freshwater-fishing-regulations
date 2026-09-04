@@ -186,7 +186,11 @@ class TestNoLiteralOutputPaths:
         skip = ("archive", ".venv", "node_modules", "graphify-out", "__pycache__",
                 "docs/archive")
         # Prose that EXPLAINS the retirement is allowed; a path used as a value is not.
-        code = re.compile(r"""["'](?:\./)?output/""")
+        # TWO shapes, because the first version of this test only caught the first and a
+        # real `root / "output" / "tiles" / "basemap.pmtiles"` survived the sweep:
+        #   "output/tiles/x"      a path inside one string
+        #   "output" / "tiles"    the same path as joined Path segments
+        code = re.compile(r"""["'](?:\./)?output/|["']output["']\s*/""")
         bad = []
         for f in root.rglob("*.py"):
             rel = f.relative_to(root).as_posix()
