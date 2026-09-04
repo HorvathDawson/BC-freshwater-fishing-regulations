@@ -47,6 +47,18 @@ interface IndexFile {
     observedAt: string | null;
     forecast: (number | null)[] | null;
     /**
+     * BOTH PERCENTILES, each against its own envelope — `percentile` above is only the
+     * station's own default. A regulated river can sit at its normal STAGE while its
+     * discharge is in the bottom tenth, because the dam is holding the pond and letting
+     * nothing through, so one number per station makes the two impossible to offer
+     * honestly. Either may be absent: 361 stations publish a discharge percentile and 419
+     * a level, and they are not nested sets.
+     */
+    discharge?: number | null;
+    level?: number | null;
+    /** Which quantity `percentile` above is about — the station's own default. */
+    parameter?: Parameter;
+    /**
      * DEGREES, NOT A RANKING — and that asymmetry against every other value in this file
      * is deliberate. There is no historical water-temperature record anywhere to rank
      * against: HYDAT carries level, flow and sediment and nothing else. And a ranking

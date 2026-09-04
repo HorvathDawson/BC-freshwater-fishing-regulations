@@ -10,13 +10,17 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { useDataFacts, useGaugeGeoJSON, useStandings, useStatuses } from "@app/ui";
+import { useDataFacts, useGaugeGeoJSON, useStandings, useStatuses,
+         type GaugeQuantity } from "@app/ui";
+
+/** What the Conditions view is showing. `both` colours the water by either percentile. */
+type FlowParam = Parameter | "both" | "temperature";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { toggleableGroups, type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { DateSheet } from "./DateSheet";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
-import { gaugeChoices, LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
+import { LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
          type LayersState } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
@@ -118,8 +122,24 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
     (ids: readonly string[]) => setVisible(ids as readonly SectionId[]), []);
   // Which quantity the Conditions map is coloured by. Held here rather than in the map,
   // because the sheet a tap opens has to be about the same thing the map is showing.
-  const [flowParam, setFlowParam] = useState<Parameter | "both">("both");
-  const standings = useStandings(source, feed, visible, flowParam);
+  /*
+   * WHICH QUESTION THE CONDITIONS VIEW IS ASKING — one control for all of them.
+   *
+   * This already existed as Both/Flow/Level and drove the water colouring. Temperature
+   * joins it rather than getting a picker of its own: a second control offering Flow and
+   * Depth beside one offering Flow and Level is two answers to "where do I change this",
+   * which is how a screen stops being learnable. `both` stays because the WATER can be
+   * coloured by either percentile at once; temperature cannot join that, because it is
+   * not a percentile and nothing can carry it to the water yet.
+   */
+  const [flowParam, setFlowParam] = useState<FlowParam>("both");
+  const quantity: GaugeQuantity =
+    flowParam === "temperature" ? "temperature"
+      : flowParam === "level" ? "level" : "flow";
+  // The water keeps its last percentile question under temperature — there is nothing to
+  // colour it with, so `standings` is simply not asked for.
+  const standings = useStandings(source, feed, visible,
+                                 flowParam === "temperature" ? "both" : flowParam);
   // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
   // `useStandings` beside it — the whole table is far too big to hold to answer a question
   // about the few hundred reaches actually rendered.
@@ -139,10 +159,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   // initialiser is a ReferenceError at render — which is a blank screen, not a type error,
   // so the compiler said nothing and only opening the page found it.
   const [layers, setLayers] = useState<LayersState>(
-    { stream: "rules", lake: "rules", basemap: "map", gauges: "standing" });
-  const gaugeChoice = gaugeChoices(palette).find((c) => c.k === layers.gauges);
-  const showTemp = gaugeChoice?.mode === "temperature";
-  const gauges = useGaugeGeoJSON(source, feed, tab === "conditions" || showTemp, showTemp);
+    { stream: "rules", lake: "rules", basemap: "map" });
+  /*
+   * WHAT THE CONDITIONS VIEW IS ASKING. Flow, depth or temperature — a question about the
+   * water, so it is asked ON the map rather than filed in the Layers sheet, and it only
+   * exists while the Conditions view is open. `flow` on every other tab, so the dots never
+   * appear somewhere the reader did not ask a question.
+   */
+  const onConditions = tab === "conditions";
+  const gauges = useGaugeGeoJSON(source, feed, onConditions, quantity);
+
   // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
   // "gauged but no history") are excluded: they are a state, not a point on the scale.
   const visibleMarks = useMemo(
@@ -189,10 +215,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
     // Nothing here can carry a temperature from a station to the water around it yet, and
     // colouring a river from a gauge 40 km away would be inventing a reading for water
     // nobody measured. The dots say what they know; the rivers say nothing.
-    stream: showTemp ? "plain"
-      : tab === "conditions" ? "standing" : streamChoice?.mode ?? "plain",
-    lake: showTemp ? "plain" : lakeChoice?.mode ?? "plain",
-    gauges: gaugeChoice?.mode ?? "standing",
+    // THE RIVERS ARE ONLY COLOURED FOR FLOW. Nothing here can carry a depth or a
+    // temperature from a station to the water around it yet — that needs the donor panel —
+    // and colouring a river from a gauge 40 km away would be inventing a reading for water
+    // nobody measured. Under those two the dots say what they know and the rivers say
+    // nothing, which is the truth today.
+    stream: onConditions
+      ? (quantity === "flow" ? "standing" : "plain")
+      : streamChoice?.mode ?? "plain",
+    lake: onConditions && quantity !== "flow" ? "plain" : lakeChoice?.mode ?? "plain",
+    gauges: quantity === "temperature" ? "temperature" : "standing",
   };
   const activeGroups = { ...groups };
   for (const c of [streamChoice, lakeChoice])
@@ -278,7 +310,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                             // "both" is a MAP setting, not a chart one: a chart has to be
                             // about one quantity or its axis means nothing. The sheet then
                             // falls back to whatever the station itself leads with.
-                            parameter={flowParam === "both" ? undefined : flowParam}
+                            parameter={flowParam === "both" || flowParam === "temperature"
+                                         ? undefined : flowParam}
                             onParameter={setFlowParam}
                             from={condAt}
                             // The same section -> item resolution a map tap uses, so the
@@ -294,7 +327,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      // The dots belong to the Conditions tab — AND to the temperature
                      // choice, which is a question about the stations themselves and so
                      // must be answerable from the map without changing tab.
-                     gauges={tab === "conditions" || showTemp ? gauges ?? undefined : undefined}
+                     gauges={onConditions ? gauges ?? undefined : undefined}
                      onVisible={noteVisible}
                      onMoved={(at) => { camera.current = at; }}
                      view="plain" modes={modes} groups={activeGroups}
@@ -325,11 +358,22 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
           ask the other question without opening something first. Sits above the legend
           because it is what the legend is measuring. */}
       {showLegend && tab === "conditions" && (
-        <View style={{ position: "absolute", right: 14, bottom: 74 }}>
-          <ChartControls<Parameter | "both"> palette={palette} value={flowParam}
-                                    label="Colour by" onPick={setFlowParam}
+        /*
+         * ABOVE THE LEGEND, AND ABOVE IT IN THE STACK TOO.
+         *
+         * The legend is a horizontally scrolling strip, and a ScrollView captures pointer
+         * events across its whole box whether or not anything is drawn there. At `bottom:
+         * 74` the fourth option sat inside that box: visible, apparently enabled, and
+         * silently unclickable — which is the worst kind of broken, because nothing looks
+         * wrong. Cleared vertically AND given a z-index, so neither a taller legend nor a
+         * fifth option can put it back underneath.
+         */
+        <View style={{ position: "absolute", right: 14, bottom: 92, zIndex: 5 }}>
+          <ChartControls<FlowParam> palette={palette} value={flowParam}
+                                    label="Showing" onPick={setFlowParam}
                                     options={[["both", "Both"], ["discharge", "Flow"],
-                                              ["level", "Level"]] as const} />
+                                              ["level", "Level"],
+                                              ["temperature", "Temp"]] as const} />
         </View>
       )}
       {showLegend && (
@@ -339,12 +383,23 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
             // written out here while the map's own ramp resolved to three shades of one
             // blue — so the legend promised red-through-cyan and the map drew a wash of
             // blue. A legend that disagrees with its map is worse than no legend.
-            <LegendRamp palette={palette}
-                        low={flowParam === "level" ? "low stage for the date"
-                             : flowParam === "discharge" ? "low flow for the date"
-                             : "low for the date"}
-                        mid="normal" high="high"
-                        stops={flowRamp(theme)} marks={visibleMarks} />
+            flowParam === "temperature" ? (
+              // A DIFFERENT SCALE ENTIRELY, so a different legend. The flow ramp under
+              // temperature dots was the map promising a ranking it was not drawing —
+              // and these thresholds are absolute degrees, not positions in a record.
+              <>
+                <LegendCount palette={palette} colour={palette.open} label="under 18 °C" />
+                <LegendCount palette={palette} colour={palette.restricted} label="18–20 °C" />
+                <LegendCount palette={palette} colour={palette.closed} label="20 °C and over" />
+              </>
+            ) : (
+              <LegendRamp palette={palette}
+                          low={flowParam === "level" ? "low stage for the date"
+                               : flowParam === "discharge" ? "low flow for the date"
+                               : "low for the date"}
+                          mid="normal" high="high"
+                          stops={flowRamp(theme)} marks={visibleMarks} />
+            )
           ) : layers.lake === "stocked" ? (
             palette.stock.map((c, i) => (
               <LegendCount key={c} palette={palette} colour={c}

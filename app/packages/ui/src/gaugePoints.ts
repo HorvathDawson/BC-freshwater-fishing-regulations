@@ -24,6 +24,9 @@ export interface GaugePoint {
 
 type Index = Awaited<ReturnType<GaugeFeed["index"]>>;
 
+/** Which question the dots are answering. Three different sets of stations, not one. */
+export type GaugeQuantity = "flow" | "level" | "temperature";
+
 /** "15.7 m³/s · p4th", or "16.3 °C" in the temperature view. Null when nothing to draw. */
 export function gaugeLabel(now: { discharge: number | null; level: number | null;
                                   parameter?: string } | undefined,
@@ -66,17 +69,34 @@ function ordinal(n: number): string {
  * rather than recolouring.
  */
 export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
-                             showTemperature = false): string | null {
+                             quantity: GaugeQuantity = "flow"): string | null {
   if (!index) return null;
   const features = [];
   for (const p of points) {
     const row = index.stations[p.station];
     if (!row) continue;                     // not transmitting: draw nothing at all
-    const tC = showTemperature ? row.temperatureC ?? null : null;
-    // In the temperature view a station with no sensor is not drawn at all, rather than
-    // drawn with its flow number under a temperature heading.
-    if (showTemperature && tC === null) continue;
-    const label = gaugeLabel(undefined, row.percentile ?? null, tC);
+    const tC = quantity === "temperature" ? row.temperatureC ?? null : null;
+    /*
+     * A STATION THAT CANNOT ANSWER THIS QUESTION IS NOT DRAWN.
+     *
+     * These are three different rosters, not three colourings of one: 361 stations publish
+     * a discharge percentile, 419 a level one and 274 a temperature, and they are not
+     * nested sets. Drawing a station's flow number under a temperature heading — or a
+     * bare dot where it has nothing to say — both read as the map having failed.
+     */
+    // `percentile` is the station's OWN default and `parameter` says which quantity it is
+    // about — so it can stand in for whichever of the two that is, and must never stand in
+    // for the other. A level percentile shown under "Flow" is arithmetic across two units.
+    // An index row from before the publisher wrote `parameter` carries a bare percentile,
+    // and the publisher's own default for one was discharge — so that is what it means.
+    const param = row.parameter ?? "discharge";
+    const own = (q: "discharge" | "level") =>
+      row[q] ?? (param === q ? row.percentile ?? null : null);
+    const pct = quantity === "level" ? own("level")
+      : quantity === "flow" ? own("discharge")
+      : row.percentile ?? null;
+    if (quantity === "temperature" ? tC === null : pct === null) continue;
+    const label = gaugeLabel(undefined, pct, tC);
     if (!label) continue;                   // quiet station: a bare dot would read as a bug
     features.push({
       type: "Feature" as const,
@@ -90,7 +110,9 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
       // comparison, and keeps the ladder itself in ONE place (`@app/core/ladder`) that a
       // test holds equal to the pipeline's.
       properties: { station: p.station, name: p.name, label,
-                    percentile: row.percentile,
+                    // The percentile the DOT is about, which is not always the station's
+                    // own default — a level gauge asked about flow has nothing to say.
+                    percentile: pct,
                     ...(tC !== null ? { temperatureC: tC,
                                         temperatureBand: row.temperatureBand ?? null } : {}),
                     minz: zoomForMagnitude(p.mag ?? null) },

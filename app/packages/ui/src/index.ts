@@ -21,4 +21,5 @@ export type FormFactor = "phone" | "desktop";
 export function formFactorFor(widthPx: number): FormFactor {
   return widthPx < 900 ? "phone" : "desktop";
 }
-export { gaugeGeoJSON, gaugeLabel, type GaugePoint } from "./gaugePoints";
+export { gaugeGeoJSON, gaugeLabel, type GaugePoint, type GaugeQuantity }
+  from "./gaugePoints";

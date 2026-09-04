@@ -11,7 +11,7 @@ import type {
 } from "@app/data";
 import { useAsync, useDebounced, type Async } from "./async";
 import { buildHydrograph, type Hydrograph } from "./hydrograph";
-import { gaugeGeoJSON } from "./gaugePoints";
+import { gaugeGeoJSON, type GaugeQuantity } from "./gaugePoints";
 
 /** A date as a stable string, for query identity. */
 const day = (d: PlainDate): string => `${d.year}-${d.month}-${d.day}`;
@@ -221,7 +221,8 @@ export function useWaterGauge(
 export function useStandings(
   source: RegsSource,
   feed: { index(): Promise<{ stations: Record<string, {
-            percentile: number | null; discharge?: number; level?: number }> } | null> }
+            percentile: number | null; discharge?: number | null;
+            level?: number | null; parameter?: "discharge" | "level" }> } | null> }
         | undefined,
   sections: readonly SectionId[],
   /**
@@ -281,19 +282,19 @@ export function useGaugeGeoJSON(
   source: RegsSource,
   feed: { index(): Promise<Parameters<typeof gaugeGeoJSON>[1]> } | undefined,
   enabled: boolean,
-  showTemperature = false,
+  quantity: GaugeQuantity = "flow",
 ): string | null {
   const got = useAsync(
     async () => {
       if (!feed) return null;
       const [points, idx] = await Promise.all([source.gaugePoints(), feed.index()]);
-      return gaugeGeoJSON(points, idx, showTemperature);
+      return gaugeGeoJSON(points, idx, quantity);
     },
-    // TEMPERATURE IS PART OF THE CACHE KEY. It is a different set of features, not a
-    // recolouring — 274 stations publish a temperature against 361 that publish a
-    // discharge — so a cache shared between the two would show the flow roster with
-    // temperature labels, or drop the stations that only have one of the two.
-    `gaugepoints${showTemperature ? ":temp" : ""}`,
+    // THE QUANTITY IS PART OF THE CACHE KEY. These are different sets of features, not
+    // three colourings of one — 361 stations publish a discharge percentile, 419 a level
+    // and 274 a temperature, and they are not nested. A shared cache would show one
+    // roster under another's heading.
+    `gaugepoints:${quantity}`,
     enabled,
   );
   return got.state === "ready" ? got.value : null;
