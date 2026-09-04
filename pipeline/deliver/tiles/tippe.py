@@ -61,9 +61,11 @@ worth another pass.
 
 TWO TRAPS, both of which produced a wrong measurement before producing a right one:
 
-  * `--simplification-at-maximum-zoom` applies at the band's OWN maximum. Give the low band
-    the production value of 1 and its top zoom is left almost unsimplified, which is worth
-    more bytes than the flag ever cost. It gets `--simplification` instead.
+  * `--simplification-at-maximum-zoom` applies at the band's OWN maximum, not the
+    archive's. The low band's top zoom (z8) is an ordinary zoom in the finished archive and
+    must be simplified like one; leaving it at tippecanoe's near-nothing default cost more
+    bytes than the shared-node flag ever saved. Both bands now pass `SIMPLIFICATION`, which
+    is also why the archive's own top zoom is no longer special — see that constant.
   * tippecanoe's mbtiles exposes `tiles` as a VIEW. Deleting a zoom range from it silently
     does nothing, and `tile-join` then MERGES the overlapping band rather than replacing
     it — every feature twice. The bands are cut by `--minimum-zoom`/`--maximum-zoom` at
@@ -84,13 +86,35 @@ from pipeline.deliver.tiles.layers import ALL
 #: The last zoom built from a pre-filtered input. See the module docstring for why 8.
 LOW_BAND_MAX = 8
 
-#: Douglas-Peucker tolerance, in tile units, at every zoom below the maximum.
+#: Douglas-Peucker tolerance, in tile units. AT EVERY ZOOM, the maximum included.
 #:
 #: MEASURED, not guessed. On 6,000 low-zoom stream sections at the z6/10/21 tile:
 #:   -S 4  (was)   20.5 points per feature, 2,634 KB archive
 #:   -S 10 (now)   10.5 points per feature, 2,026 KB  -- half the vertices, 23% smaller
 #: At z6 a tile is 4,096 units across and renders ~512 px wide, so 20 points on a river
 #: crossing it puts a vertex every 4 px: detail nobody can see, paid for in every fetch.
+#:
+#: AND THE MAXIMUM ZOOM IS NOT SPECIAL HERE, which is the whole point of this constant
+#: being used twice. Tippecanoe leaves the top zoom nearly unsimplified by default because
+#: the top zoom is normally what gets OVERZOOMED — magnified 2x, 4x, 8x past the last tile
+#: built, where a 10-unit tolerance becomes 10, 20, 40 px of visible corner-cutting.
+#:
+#: That does not happen here. `MAX_ZOOM` in app/packages/core/src/ladder.ts is 14 and the
+#: camera is constructed with it, so the reader cannot go past the last zoom we build:
+#: z14 geometry is only ever drawn at 1:1, where 10 units of 4,096 is about 1.25 px.
+#: `test_tiles.py` pins the two numbers together, because the day the camera is allowed
+#: past 14 this stops being free.
+#:
+#: MEASURED on a Fraser Valley slice (10,246 streams, 1,158 lakes, 354 wetlands), z13-14,
+#: varying ONLY the maximum-zoom tolerance -- z13 came out byte-identical every time,
+#: which is the check that the flag does what the docstring below says:
+#:     -S(max) 1 (was)   z14  2.864 MiB
+#:     -S(max) 4         z14  2.363 MiB   -17.5%
+#:     -S(max) 7         z14  2.161 MiB   -24.5%
+#:     -S(max) 10 (now)  z14  2.043 MiB   -28.7%
+#:     -S(max) 14        z14  1.944 MiB   -32.1%
+#: z14 is 68% of the province archive, so -28.7% there is about 139 MiB off the download
+#: -- for a tolerance nobody can see at the only scale it is ever drawn at.
 SIMPLIFICATION = 10
 
 
@@ -159,7 +183,8 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
         print(f"  tippecanoe -> {out.name}  ({len(files)} layers, single pass)")
         _run(["tippecanoe", "-o", str(out), "--force", f"--name={name}",
               f"--attribution={attribution}",
-              *_common(minzoom, maxzoom, 1, verbose), *[str(f) for f in files]])
+              *_common(minzoom, maxzoom, SIMPLIFICATION, verbose),
+              *[str(f) for f in files]])
         return out
 
     with tempfile.TemporaryDirectory(prefix="tiles-lowband-") as tmp:
@@ -186,9 +211,12 @@ def build(layer_dir: Path, out: Path, *, minzoom: int = 4, maxzoom: int = 14,
               *[str(f) for f in low_files]])
 
         print(f"  tippecanoe -> z{LOW_BAND_MAX + 1}-{maxzoom}  ({len(files)} layers, all features)")
+        # SIMPLIFICATION here too, not 1 — see the constant. The band's maximum IS the
+        # archive's maximum, and the camera cannot go past it, so there is nothing to hold
+        # detail in reserve for.
         _run(["tippecanoe", "-o", str(high), "--force", f"--name={name}",
               f"--attribution={attribution}",
-              *_common(LOW_BAND_MAX + 1, maxzoom, 1, verbose),
+              *_common(LOW_BAND_MAX + 1, maxzoom, SIMPLIFICATION, verbose),
               *[str(f) for f in files]])
 
         # tile-join names the output after its inputs unless told otherwise, so the name

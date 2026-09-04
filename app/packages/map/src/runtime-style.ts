@@ -16,7 +16,7 @@
  * real URL.
  */
 import { layers as basemapLayers, namedFlavor } from "@protomaps/basemaps";
-import { MAP_STYLE, STYLE_META, defaultView, resolveTheme } from "./style";
+import { MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme } from "./style";
 import { paintFor } from "./adapters/contract";
 
 export interface TileEndpoints {
@@ -89,11 +89,57 @@ function rampExpression(theme: string): unknown {
   return out;
 }
 
+/** The basemap's layers, cut at its first symbol layer so ours can be placed first. */
+function splitBasemap(flavor: Parameters<typeof basemapLayers>[1]) {
+  /*
+   * THE BASEMAP'S OWN PARKS COME OUT — AND NOTHING ELSE DOES.
+   *
+   * We draw parks from the province's own boundaries now, knowing which are national
+   * (closed), which are provincial (open) and which are ecological reserves. The basemap
+   * cannot tell those apart, so its green competes with ours and its labels used to win
+   * every collision against ours.
+   *
+   * BUT `landuse_park` IS NOT A PARK LAYER. It is Protomaps' green-space layer, and its
+   * filter takes wood, forest, scrub, grassland, glacier and sand along with the parks.
+   * Hiding it — which is what this did first — removed about 80% of British Columbia's
+   * ground colour to suppress 3%: measured on our own extract, `wood` is 62.6% of the
+   * landuse layer's bytes and every park kind together is 3.1%. The map went beige, and
+   * `landcover` cannot fill in for it because Protomaps ships that only to z7.
+   *
+   * So the filter is narrowed rather than the layer dropped. Out go the kinds we now draw
+   * ourselves and draw better — the parks, and `military`/`naval_base`, which are
+   * `no_access` on our side and must read as closed rather than as green space.
+   */
+  /*
+   * AND ITS WATER LABELS GO, because we draw those now — from the FWA, which is the same
+   * gazette the regulations name water by. Two sets of river and lake names on one map is
+   * worse than either alone: OSM and the FWA disagree about spellings, about which channel
+   * of a braid carries the name, and about whether a widening is a lake at all, so a reader
+   * gets a river labelled twice, slightly differently, and no way to tell which name a
+   * regulation means. `water_label_ocean` and the island labels stay — we do not draw the
+   * sea, and nobody is fishing a regulation on the Strait of Georgia.
+   */
+  const BASEMAP_NAMES_WATER = new Set(["water_label_lakes", "water_waterway_label"]);
+  const OURS_NOW = ["national_park", "park", "protected_area", "nature_reserve",
+                    "military", "naval_base"];
+  const all = (basemapLayers("basemap", flavor, { lang: "en" }) as
+               { id: string; type?: string; filter?: unknown[] }[])
+    .filter((l) => !BASEMAP_NAMES_WATER.has(l.id))
+    .map((l) => (l.id === "landuse_park" && Array.isArray(l.filter)
+      ? { ...l, filter: (l.filter as unknown[]).filter(
+            (v) => typeof v !== "string" || !OURS_NOW.includes(v)) }
+      : l));
+  const i = all.findIndex((l) => l.type === "symbol");
+  return i < 0 ? { below: all, labels: [] as typeof all }
+               : { below: all.slice(0, i), labels: all.slice(i) };
+}
+
 export function runtimeStyle(at: TileEndpoints, theme: string,
                              modes: Record<string, string> = {}) {
     // The BASEMAP has two flavours; ours has three. A colour-blind reader needs our outcome
   // hues changed, not the ground under them, so cvd rides on the light ground.
   const flavor = namedFlavor(theme === "dark" ? "black" : "light");
+  const { below: baseBelowLabels, labels: baseLabels } = splitBasemap(flavor);
   const paper = resolveTheme(theme)["color.outside"] as string;
 
   return {
@@ -168,7 +214,19 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
        */
       { id: "outside-bc", type: "background" as const,
         paint: { "background-color": resolveTheme(theme)["color.outside"] as string } },
-      ...basemapLayers("basemap", flavor, { lang: "en" }),
+      // THE BASEMAP, SPLIT AT ITS FIRST LABEL — and our own labels go in the seam.
+      //
+      // MapLibre places symbols in layer order and the FIRST one to claim a spot keeps it.
+      // Spread whole, the basemap's own park and place labels are all ahead of ours, so
+      // every name this app adds loses the collision and is silently dropped: measured,
+      // `park_closed__label` rendered ZERO features over Glacier National Park while
+      // Protomaps' pale-green "Glacier National Park of Canada" sat on top of it. v1 hit
+      // exactly this and its comment says so — waterbody names losing to land-use labels.
+      //
+      // Ours are the ones that carry a consequence: which water is closed, which land you
+      // may not cross, which river you are standing on. They go first; the basemap's
+      // decorative labels fill in around them.
+      ...baseBelowLabels,
       /**
        * A SHEET OF PAPER OVER THE GROUND, for the Conditions view only.
        *
@@ -229,12 +287,34 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
                            8, resolveTheme(theme)["opacity.outside"] as number],
         },
       }] : []),
-      ...MAP_STYLE.layers.map((l) => {
+      ...MAP_STYLE.layers.flatMap((l) => {
         const view = defaultView();
         const mode = modes[l.id] ?? view?.modes[l.id];
-        if (!mode) return l;
-        return { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) };
+        const painted = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
+        // THE GLOW GOES DIRECTLY UNDER THE RIVER IT LIGHTS, which is why it is spliced into
+        // the atlas layers here rather than appended with the gauges. Appended, it was
+        // painted OVER the crisp line — so every river was washed out by its own halo and
+        // the network read as hatched rather than lit.
+        if (l.id !== "stream") return [painted];
+        return [{
+          id: "stream-glow", type: "line" as const, source: "atlas",
+          "source-layer": "stream", maxzoom: 9,
+          layout: { "line-cap": "round" as const, "line-join": "round" as const },
+          paint: {
+            "line-color": colorExpression("stream", "standing", resolveTheme(theme)),
+            "line-width": ["interpolate", ["linear"], ["zoom"],
+                           4, 11, 5.5, 9, 7, 6, 9, 2],
+            // Enough blur to read as light, not so much that the colour washes out. At
+            // 0.55 of the width the core of the line still shows its own value.
+            "line-blur": ["interpolate", ["linear"], ["zoom"],
+                          4, 6, 7, 4, 9, 2],
+            "line-opacity": ["interpolate", ["linear"], ["zoom"],
+                             4, 0.62, 7, 0.5, 9, 0],
+          }}, painted];
       }),
+      // The basemap's own labels, AFTER ours — see the split above. They still draw; they
+      // just no longer get first refusal on every position on the map.
+      ...baseLabels,
       /**
        * WHICH WAY THE WATER GOES, on a highlighted route only.
        *
@@ -294,41 +374,30 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         /**
          * THE PROVINCE, BELOW THE ZOOM WHERE INDIVIDUAL RIVERS MEAN ANYTHING.
          *
-         * The atlas thins itself out as you zoom away — by z6 most of BC's water is gone,
-         * which is correct for a map of rivers and useless for a map of CONDITIONS. What
-         * is left is a handful of mainstems and a scatter of dots too small to read, and
-         * the question at that zoom is not "what is this creek doing" but "is the country
-         * I am driving to wet or dry".
+         * The question at that zoom is not "what is this creek doing" but "is the country
+         * I am driving to wet or dry". The first answer to that was a soft disc per
+         * station, blurred and blended, scattered over the map. It was wrong in three ways
+         * at once and it looked it:
          *
-         * So below z7 the rivers fade out and each station becomes a soft disc of its own
-         * colour. It is NOT an interpolation and does not pretend to be one: every disc is
-         * centred on a real gauge and coloured by that gauge's own reading, and where they
-         * overlap they simply blend. Nothing is claimed about the country between two
-         * stations except that two stations are near it.
+         *   · IT WAS ON LAND. A disc around a gauge paints country the gauge says nothing
+         *     about, and the claim a percentile actually makes is about a CATCHMENT being
+         *     wet — which is a shape, not a radius.
+         *   · OVERLAPS INVENTED COLOURS. Two discs blending produced a hue that is not on
+         *     the scale at all, so the reader was shown a value nobody computed.
+         *   · A BLURRED EDGE IS A LIGHTER SHADE, and on a sequential ramp a lighter shade
+         *     is a different number. Every disc faded through half the legend on its way
+         *     out.
          *
-         * Discs shrink to nothing by z7.5, exactly as the dots and the rivers come in, so
-         * the two never argue on screen.
+         * So the light moved onto the water. This is the same ramp, the same values, drawn
+         * as a wide soft line along the RIVER — which is the only thing we have a reading
+         * for. Where there is no water there is no colour, which is the honest picture:
+         * the atlas at z5 keeps the mainstems and the mainstems are exactly what carries a
+         * gauge, so the province reads as a lit river network on quiet ground.
+         *
+         * It is drawn UNDER `stream` so the crisp line stays crisp on top of its own glow,
+         * and it is gone by z9, where the rivers are wide enough to carry the colour
+         * themselves.
          */
-        { id: "gauge-haze", type: "circle" as const, source: "gauges",
-          maxzoom: 7.5,
-          paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"],
-                              4, 30, 5.5, 26, 7, 12, 7.5, 0],
-            "circle-color": rampExpression(theme),
-            "circle-blur": 0.85,
-            "circle-opacity": ["interpolate", ["linear"], ["zoom"],
-                               4, 0.5, 6.5, 0.42, 7.5, 0],
-          } },
-        // THE DOT IS THE SAME COLOUR AS ITS RIVER. It reads the percentile off the
-        // feature and runs it through the same ramp the stream layer uses, so a gauge and
-        // the water it measures can never disagree on screen. A dot in a colour of its own
-        // would be a second scale the reader has to learn.
-        //
-        // THE FILTER IS THE ZOOM LADDER. Tile features thin out on their own because
-        // tippecanoe stamped a minzoom on each; a GeoJSON source does not, so every station
-        // in the province drew at every zoom and a creek gauge sat over country where its
-        // creek disappeared four zooms ago. `minz` comes from `@app/core/ladder`, which a
-        // test holds equal to the pipeline's — so a dot appears exactly when its water does.
         { id: "gauge-dot", type: "circle" as const, source: "gauges",
           // Nothing below z7: at that scale a 5 px dot is noise, and the haze above is
           // saying the same thing in a form a person can actually read.

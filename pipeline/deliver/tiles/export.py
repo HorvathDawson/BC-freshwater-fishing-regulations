@@ -136,9 +136,10 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
                     if diag > 0 and g.length > diag * _MAX_ROUTE_OVER_DIAGONAL:
                         dropped_routes += 1
                         continue
-                ul_write(_to4326(g, tf),
-                         {"section_id": sec, "item": item_of.get(sec),
-                          "name": display(node.display_name)},
+                # NOTHING AT ALL — the route has no identity and no size (see layers.py).
+                # It is a construction line: it says the river continues through this lake,
+                # and it is drawn at a small constant width so it cannot be read as river.
+                ul_write(_to4326(g, tf), {},
                          ladder.zoom_for_area(g.length * g.length, ul_spec.minzoom))
             continue
         nm = display(node.display_name)
@@ -303,7 +304,18 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
             # coloured, and nothing anywhere errored. Exactly the failure the tile
             # contract was created to stop, one seam further along.
             props = {"area_id": name, "name": display(name), "kind": ad.get("tile_kind")}
-            mz = (ladder.zoom_for_area(geom.area, spec.minzoom)
+            # A CLOSURE EARNS FEWER PIXELS BEFORE IT MUST BE SHOWN.
+            #
+            # The ladder draws a polygon once its side exceeds `visible_px` on screen, which
+            # is the right rule for "is this worth the bytes" and the wrong one for "may I
+            # fish here". A provincial park appearing late costs a reader nothing; a
+            # national park, an ecological reserve or land with no public access appearing
+            # late means they plan a trip into water that is closed. So the def may lower
+            # its own threshold — same derivation, a policy in the number — and the effect
+            # is that closures survive two or three zooms further out than open parks.
+            vpx = ad.get("tile_visible_px")
+            mz = (ladder.zoom_for_area(geom.area, spec.minzoom,
+                                       **({"visible_px": vpx} if vpx else {}))
                   if spec.ladder == "area" else spec.minzoom)
             write(_to4326(geom, tf), props, mz)
         print(f"  {lname:<16} <- {ad['id']:<26} {len(polys):>6,}")
@@ -326,6 +338,52 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
               {"mu_id": str(row.get("WILDLIFE_MGMT_UNIT_ID") or "").strip()},
               spec.minzoom)
     print(f"  {'mu':<16} <- {'wmu (geography)':<26} {len(gdf):>6,}")
+
+    # And the same fabric dissolved one level up. Eight regions, unioned from the units, so
+    # the low-zoom map has a shape a person can navigate by instead of 225 boundaries no
+    # tile can draw legibly -- and so the region is stated ONCE rather than on every unit.
+    spec = BY_NAME["region"]
+    write = writer_for("region")
+    rid = "REGION_RESPONSIBLE_ID"
+    rnm = "REGION_RESPONSIBLE_NAME"
+    n_reg = 0
+    if rid in gdf.columns:
+        for key, part in gdf.dissolve(by=rid).iterrows():
+            g = part.geometry
+            if g is None or g.is_empty:
+                continue
+            write(_to4326(g, tf),
+                  {"region_id": str(key).strip(),
+                   "name": display(str(part.get(rnm) or "").strip())},
+                  spec.minzoom)
+            n_reg += 1
+    print(f"  {'region':<16} <- {'wmu dissolved by region':<26} {n_reg:>6,}")
+
+    # Private land: same reasoning as `mu`. Nothing regulates fishing by who holds title, so
+    # it is not an area — but you still have to cross the ground to reach the water.
+    #
+    # THE DISSOLVED LAYER, NOT THE PARCELS. `land_parcels_private` is 1,290,764 individual
+    # lots and 297 MiB of raw geometry; `land_parcels_crown` is the same fabric already
+    # unioned into one polygon per ownership class, which is the only form that can ship.
+    #
+    # AND ONLY THE PRIVATE ONE. Writing all nine classes produced a 308 MB layer file —
+    # bigger than every park, unit and region put together — to say "Crown land" over most
+    # of British Columbia, which is its default state and not news. See layers.py.
+    spec = BY_NAME["parcel"]
+    write = writer_for("parcel")
+    gdf = gpd.read_file(gpkg, layer="land_parcels_crown", engine="pyogrio")
+    if gdf.crs and gdf.crs.to_epsg() != 3005:
+        gdf = gdf.to_crs(3005)
+    n_priv = 0
+    for _, row in gdf.iterrows():
+        g = row.geometry
+        if g is None or g.is_empty:
+            continue
+        if str(row.get("OWNER_TYPE") or "").strip() != "Private":
+            continue
+        write(_to4326(g, tf), {}, spec.minzoom)
+        n_priv += 1
+    print(f"  {'parcel':<16} <- {'private title (dissolved)':<26} {n_priv:>6,}")
 
     return {lname: close() for lname, (_, close) in writers.items()}
 

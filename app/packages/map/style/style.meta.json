@@ -16,20 +16,26 @@
     {
       "id": "protected",
       "label": "Parks and reserves",
-      "toggleable": true,
-      "defaultVisible": false,
+      "toggleable": false,
+      "defaultVisible": true,
       "$comment": "Off by default. Parks and ecological reserves are large opaque areas and they buried the water they sit around — the map's job is to say which water is open, and an overlay that hides the water fails at it. Behind Layers."
     },
     {
       "id": "access",
       "label": "Land access",
-      "toggleable": true,
-      "defaultVisible": false,
+      "toggleable": false,
+      "defaultVisible": true,
       "$comment": "Off by default, for the same reason as `protected`: these are big fills, and the answer is the water. A user who needs to know where they may not go turns it on, and then it is the point of the screen rather than noise on it."
     },
     {
       "id": "admin",
-      "label": "Management units",
+      "label": "Regions and units",
+      "toggleable": false,
+      "defaultVisible": true
+    },
+    {
+      "id": "ownership",
+      "label": "Land ownership",
       "toggleable": true,
       "defaultVisible": false
     }
@@ -50,12 +56,29 @@
         "no_access": "plain",
         "indigenous_land": "plain",
         "mu": "plain",
-        "mu__edge": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain",
+        "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
+        "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
-        "park__edge": "plain",
-        "lake__edge": "plain"
+        "park_closed__edge": "plain",
+        "lake__edge": "plain",
+        "region__edge": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__label": "plain",
+        "no_access__label": "plain",
+        "no_access_permit__label": "plain",
+        "eco_reserve__label": "plain",
+        "park__label": "plain",
+        "park_closed__label": "plain",
+        "lake__label": "plain",
+        "stream__label": "plain",
+        "region__label": "plain",
+        "mu__label": "plain"
       },
       "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
     },
@@ -73,12 +96,29 @@
         "no_access": "plain",
         "indigenous_land": "plain",
         "mu": "plain",
-        "mu__edge": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain",
+        "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
+        "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
-        "park__edge": "plain",
-        "lake__edge": "plain"
+        "park_closed__edge": "plain",
+        "lake__edge": "plain",
+        "region__edge": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__label": "plain",
+        "no_access__label": "plain",
+        "no_access_permit__label": "plain",
+        "eco_reserve__label": "plain",
+        "park__label": "plain",
+        "park_closed__label": "plain",
+        "lake__label": "plain",
+        "stream__label": "plain",
+        "region__label": "plain",
+        "mu__label": "plain"
       }
     },
     {
@@ -95,12 +135,29 @@
         "no_access": "plain",
         "indigenous_land": "plain",
         "mu": "plain",
-        "mu__edge": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain",
+        "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
+        "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
-        "park__edge": "plain",
-        "lake__edge": "plain"
+        "park_closed__edge": "plain",
+        "lake__edge": "plain",
+        "region__edge": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__label": "plain",
+        "no_access__label": "plain",
+        "no_access_permit__label": "plain",
+        "eco_reserve__label": "plain",
+        "park__label": "plain",
+        "park_closed__label": "plain",
+        "lake__label": "plain",
+        "stream__label": "plain",
+        "region__label": "plain",
+        "mu__label": "plain"
       }
     },
     {
@@ -117,12 +174,29 @@
         "no_access": "plain",
         "indigenous_land": "plain",
         "mu": "plain",
-        "mu__edge": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain",
+        "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
+        "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
-        "park__edge": "plain",
-        "lake__edge": "plain"
+        "park_closed__edge": "plain",
+        "lake__edge": "plain",
+        "region__edge": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__label": "plain",
+        "no_access__label": "plain",
+        "no_access_permit__label": "plain",
+        "eco_reserve__label": "plain",
+        "park__label": "plain",
+        "park_closed__label": "plain",
+        "lake__label": "plain",
+        "stream__label": "plain",
+        "region__label": "plain",
+        "mu__label": "plain"
       }
     }
   ],
@@ -166,22 +240,39 @@
     }
   },
   "layerGroup": {
-    "mu": "admin",
+    "parcel_private": "ownership",
     "indigenous_land": "access",
     "no_access": "access",
+    "no_access_permit": "access",
     "eco_reserve": "protected",
     "park": "protected",
+    "park_closed": "protected",
     "wetland": "water",
     "lake": "water",
     "contour": "depth",
     "under_lake": "water",
     "stream": "water",
-    "mu__edge": "admin",
+    "region": "admin",
+    "mu": "admin",
+    "parcel_private__edge": "ownership",
     "indigenous_land__edge": "access",
     "no_access__edge": "access",
+    "no_access_permit__edge": "access",
     "eco_reserve__edge": "protected",
-    "park__edge": "protected",
-    "lake__edge": "water"
+    "park_closed__edge": "protected",
+    "lake__edge": "water",
+    "region__edge": "admin",
+    "mu__edge": "admin",
+    "indigenous_land__label": "access",
+    "no_access__label": "access",
+    "no_access_permit__label": "access",
+    "eco_reserve__label": "protected",
+    "park__label": "protected",
+    "park_closed__label": "protected",
+    "lake__label": "water",
+    "stream__label": "water",
+    "region__label": "admin",
+    "mu__label": "admin"
   },
   "highlightable": [
     {
@@ -198,21 +289,21 @@
     }
   ],
   "colorModes": {
-    "mu": {
+    "parcel_private": {
       "plain": {
-        "label": "Management units",
+        "label": "Private land",
         "scale": "static",
         "color": {
-          "token": "color.mu.edge"
+          "token": "color.parcel.private"
         }
       }
     },
     "indigenous_land": {
       "plain": {
-        "label": "Reserves and treaty land",
+        "label": "Indigenous land",
         "scale": "static",
         "color": {
-          "token": "color.indigenous.edge"
+          "token": "color.indigenous.fill"
         }
       }
     },
@@ -221,7 +312,16 @@
         "label": "No public access",
         "scale": "static",
         "color": {
-          "token": "color.noaccess.fill"
+          "token": "color.status.closed"
+        }
+      }
+    },
+    "no_access_permit": {
+      "plain": {
+        "label": "Permission needed",
+        "scale": "static",
+        "color": {
+          "token": "color.status.restricted"
         }
       }
     },
@@ -230,7 +330,7 @@
         "label": "Ecological reserves",
         "scale": "static",
         "color": {
-          "token": "color.reserve.fill"
+          "token": "color.status.closed"
         }
       }
     },
@@ -240,6 +340,15 @@
         "scale": "static",
         "color": {
           "token": "color.park.fill"
+        }
+      }
+    },
+    "park_closed": {
+      "plain": {
+        "label": "No fishing",
+        "scale": "static",
+        "color": {
+          "token": "color.status.closed"
         }
       }
     },
@@ -499,12 +608,30 @@
         "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement."
       }
     },
-    "mu__edge": {
+    "region": {
       "plain": {
-        "label": "mu outline",
+        "label": "Regions",
+        "scale": "static",
+        "color": {
+          "token": "color.region.edge"
+        }
+      }
+    },
+    "mu": {
+      "plain": {
+        "label": "Management units",
         "scale": "static",
         "color": {
           "token": "color.mu.edge"
+        }
+      }
+    },
+    "parcel_private__edge": {
+      "plain": {
+        "label": "parcel_private outline",
+        "scale": "static",
+        "color": {
+          "token": "color.parcel.private"
         }
       }
     },
@@ -513,7 +640,7 @@
         "label": "indigenous_land outline",
         "scale": "static",
         "color": {
-          "token": "color.indigenous.edge"
+          "token": "color.indigenous.fill"
         }
       }
     },
@@ -522,7 +649,16 @@
         "label": "no_access outline",
         "scale": "static",
         "color": {
-          "token": "color.noaccess.fill"
+          "token": "color.status.closed"
+        }
+      }
+    },
+    "no_access_permit__edge": {
+      "plain": {
+        "label": "no_access_permit outline",
+        "scale": "static",
+        "color": {
+          "token": "color.status.restricted"
         }
       }
     },
@@ -531,16 +667,16 @@
         "label": "eco_reserve outline",
         "scale": "static",
         "color": {
-          "token": "color.park.edge"
+          "token": "color.status.closed"
         }
       }
     },
-    "park__edge": {
+    "park_closed__edge": {
       "plain": {
-        "label": "park outline",
+        "label": "park_closed outline",
         "scale": "static",
         "color": {
-          "token": "color.park.edge"
+          "token": "color.status.closed"
         }
       }
     },
@@ -552,23 +688,150 @@
           "token": "color.water.mapped"
         }
       }
+    },
+    "region__edge": {
+      "plain": {
+        "label": "region outline",
+        "scale": "static",
+        "color": {
+          "token": "color.region.edge"
+        }
+      }
+    },
+    "mu__edge": {
+      "plain": {
+        "label": "mu outline",
+        "scale": "static",
+        "color": {
+          "token": "color.mu.edge"
+        }
+      }
+    },
+    "indigenous_land__label": {
+      "plain": {
+        "label": "indigenous_land label",
+        "scale": "static",
+        "color": {
+          "token": "color.indigenous.fill"
+        }
+      }
+    },
+    "no_access__label": {
+      "plain": {
+        "label": "no_access label",
+        "scale": "static",
+        "color": {
+          "token": "color.status.closed"
+        }
+      }
+    },
+    "no_access_permit__label": {
+      "plain": {
+        "label": "no_access_permit label",
+        "scale": "static",
+        "color": {
+          "token": "color.status.restricted"
+        }
+      }
+    },
+    "eco_reserve__label": {
+      "plain": {
+        "label": "eco_reserve label",
+        "scale": "static",
+        "color": {
+          "token": "color.status.closed"
+        }
+      }
+    },
+    "park__label": {
+      "plain": {
+        "label": "park label",
+        "scale": "static",
+        "color": {
+          "token": "color.park.edge"
+        }
+      }
+    },
+    "park_closed__label": {
+      "plain": {
+        "label": "park_closed label",
+        "scale": "static",
+        "color": {
+          "token": "color.status.closed"
+        }
+      }
+    },
+    "lake__label": {
+      "plain": {
+        "label": "lake label",
+        "scale": "static",
+        "color": {
+          "token": "color.label.water"
+        }
+      }
+    },
+    "stream__label": {
+      "plain": {
+        "label": "stream label",
+        "scale": "static",
+        "color": {
+          "token": "color.label.water"
+        }
+      }
+    },
+    "region__label": {
+      "plain": {
+        "label": "region label",
+        "scale": "static",
+        "color": {
+          "token": "color.region.edge"
+        }
+      }
+    },
+    "mu__label": {
+      "plain": {
+        "label": "mu label",
+        "scale": "static",
+        "color": {
+          "token": "color.mu.edge"
+        }
+      }
     }
   },
   "featureIds": {
-    "mu": "mu_id",
     "indigenous_land": "area_id",
     "no_access": "area_id",
+    "no_access_permit": "area_id",
     "eco_reserve": "area_id",
     "park": "area_id",
+    "park_closed": "area_id",
     "wetland": "section_id",
     "lake": "section_id",
     "contour": "item",
-    "under_lake": "section_id",
-    "stream": "section_id"
+    "stream": "section_id",
+    "region": "region_id",
+    "mu": "mu_id"
   },
   "widths": {
     "contour": "width.lake.edge",
-    "under_lake": "width.underlake",
+    "under_lake": {
+      "token": "width.underlake",
+      "mode": "zoom",
+      "ramp": [
+        [
+          10,
+          0.5
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          16,
+          1.5
+        ]
+      ]
+    },
     "stream": {
       "token": "width.stream.base",
       "by": "ord",
@@ -606,11 +869,12 @@
         ]
       ]
     },
-    "mu__edge": "width.admin.edge",
+    "parcel_private__edge": "width.parcel.edge",
     "indigenous_land__edge": "width.admin.edge",
-    "no_access__edge": "width.admin.edge",
-    "eco_reserve__edge": "width.admin.edge",
-    "park__edge": "width.admin.edge",
+    "no_access__edge": "width.closure.edge",
+    "no_access_permit__edge": "width.closure.edge",
+    "eco_reserve__edge": "width.closure.edge",
+    "park_closed__edge": "width.closure.edge",
     "lake__edge": {
       "token": "width.stream.base",
       "by": "area_m2",
@@ -641,21 +905,129 @@
           4
         ]
       ]
-    }
+    },
+    "region__edge": "width.region.edge",
+    "mu__edge": "width.admin.edge"
   },
   "opacities": {
+    "parcel_private": "opacity.parcel",
+    "indigenous_land": "opacity.admin.area",
+    "no_access": "opacity.closure",
+    "no_access_permit": "opacity.closure",
+    "eco_reserve": "opacity.closure",
+    "park": "opacity.park",
+    "park_closed": "opacity.closure",
     "wetland": "opacity.wetland",
-    "lake": "opacity.lake"
+    "lake": "opacity.lake",
+    "under_lake": "opacity.route",
+    "region": "opacity.admin.fill",
+    "mu": "opacity.admin.fill"
   },
   "dashes": {
-    "under_lake": "dash.route"
+    "under_lake": "dash.route",
+    "mu__edge": "dash.mu"
+  },
+  "edgeOpacities": {
+    "indigenous_land__edge": "opacity.admin.edge",
+    "no_access__edge": "opacity.admin.edge",
+    "no_access_permit__edge": "opacity.admin.edge",
+    "eco_reserve__edge": "opacity.admin.edge",
+    "park_closed__edge": "opacity.admin.edge"
+  },
+  "labelHalos": {
+    "indigenous_land__label": {
+      "color": "color.outside",
+      "width": 1.6
+    },
+    "no_access__label": {
+      "color": "color.outside",
+      "width": 1.6
+    },
+    "no_access_permit__label": {
+      "color": "color.outside",
+      "width": 1.6
+    },
+    "eco_reserve__label": {
+      "color": "color.outside",
+      "width": 1.6
+    },
+    "park__label": {
+      "color": "color.outside",
+      "width": 1.6
+    },
+    "park_closed__label": {
+      "color": "color.outside",
+      "width": 1.6
+    },
+    "lake__label": {
+      "color": "color.outside",
+      "width": 1.2
+    },
+    "stream__label": {
+      "color": "color.outside",
+      "width": 2
+    },
+    "region__label": {
+      "color": "color.outside",
+      "width": 2.5
+    },
+    "mu__label": {
+      "color": "color.outside",
+      "width": 2
+    }
+  },
+  "patterns": {
+    "no_access": {
+      "token": "color.status.closed",
+      "ground": 0,
+      "stripe": 0.55,
+      "darken": 0,
+      "spacing": 11,
+      "weight": 1.3,
+      "cross": true
+    },
+    "no_access_permit": {
+      "token": "color.status.restricted",
+      "ground": 0,
+      "stripe": 0.55,
+      "darken": 0,
+      "spacing": 11,
+      "weight": 1.3,
+      "cross": true
+    },
+    "eco_reserve": {
+      "token": "color.status.closed",
+      "ground": 0,
+      "stripe": 0.55,
+      "darken": 0,
+      "spacing": 11,
+      "weight": 1.3,
+      "cross": true
+    },
+    "park_closed": {
+      "token": "color.status.closed",
+      "ground": 0,
+      "stripe": 0.55,
+      "darken": 0,
+      "spacing": 10,
+      "weight": 1.6,
+      "cross": false
+    },
+    "wetland": {
+      "token": "color.wetland.fill",
+      "ground": 0.45,
+      "stripe": 0.7,
+      "darken": 0.35,
+      "spacing": 4,
+      "weight": 1.2,
+      "cross": false
+    }
   },
   "themes": {
     "cvd": {
       "color.water.mapped": "#0B6987",
       "color.water.unmapped": "#7F8C99",
       "color.highlight": "#c2187a",
-      "color.parcel.line": "#8a6d3b",
       "color.status.open": "#0B6BB0",
       "color.status.restricted": "#D98C00",
       "color.status.closed": "#B03A00",
@@ -672,7 +1044,6 @@
       "color.park.edge": "#7d9c5c",
       "color.reserve.fill": "#e0b48c",
       "color.noaccess.fill": "#d2a2a2",
-      "color.indigenous.edge": "#6B4E71",
       "color.mu.edge": "#8A7A62",
       "color.stock.fresh": "#12873f",
       "color.stock.recent": "#5e9b12",
@@ -682,7 +1053,7 @@
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.3,
       "opacity.lake": 0.9,
-      "width.underlake": 0.5,
+      "width.underlake": 1.6,
       "dash.route": [
         1,
         2.5
@@ -701,13 +1072,30 @@
       "color.gauge.dot": "#0A1116",
       "color.flow.nobaseline": "#7B4FBF",
       "color.water.ungauged": "#D5D5D5",
-      "color.mask": "#505950"
+      "color.mask": "#505950",
+      "opacity.route": 0.35,
+      "color.label.water": "#123C63",
+      "color.parcel.private": "#6E5140",
+      "opacity.parcel": 0.22,
+      "width.parcel.edge": 1.5,
+      "color.region.edge": "#8E2F52",
+      "width.region.edge": 2.4,
+      "opacity.admin.fill": 0.04,
+      "dash.mu": [
+        2,
+        3
+      ],
+      "color.indigenous.fill": "#8B5A2B",
+      "opacity.closure": 0.55,
+      "opacity.park": 0.12,
+      "opacity.admin.area": 0.14,
+      "width.closure.edge": 1.6,
+      "opacity.admin.edge": 0.35
     },
     "dark": {
       "color.water.mapped": "#38B6DE",
       "color.water.unmapped": "#93A0AB",
       "color.highlight": "#ff77b8",
-      "color.parcel.line": "#c9a86a",
       "color.status.open": "#48b07a",
       "color.status.restricted": "#e8a733",
       "color.status.unknown": "#a78bd0",
@@ -724,7 +1112,6 @@
       "color.park.edge": "#4e7a44",
       "color.reserve.fill": "#4d3320",
       "color.noaccess.fill": "#4a2a2a",
-      "color.indigenous.edge": "#C58A4A",
       "color.mu.edge": "#A6947A",
       "color.stock.fresh": "#2ed573",
       "color.stock.recent": "#94d82d",
@@ -734,10 +1121,10 @@
       "width.admin.edge": 1.2,
       "opacity.wetland": 0.28,
       "opacity.lake": 0.85,
-      "width.underlake": 0.5,
+      "width.underlake": 1.6,
       "dash.route": [
-        1,
-        2.5
+        4,
+        3
       ],
       "color.survey.digitised": "#30D0D4",
       "color.survey.sheet": "#617C8C",
@@ -753,13 +1140,30 @@
       "color.gauge.dot": "#F4F8F5",
       "color.flow.nobaseline": "#A97CFF",
       "color.water.ungauged": "#39434B",
-      "color.mask": "#595956"
+      "color.mask": "#595956",
+      "opacity.route": 0.4,
+      "color.label.water": "#A8CDF2",
+      "color.parcel.private": "#D6A08A",
+      "opacity.parcel": 0.24,
+      "width.parcel.edge": 1.5,
+      "color.region.edge": "#E29AB4",
+      "width.region.edge": 2.4,
+      "opacity.admin.fill": 0.06,
+      "dash.mu": [
+        2,
+        3
+      ],
+      "color.indigenous.fill": "#C9945E",
+      "opacity.closure": 0.6,
+      "opacity.park": 0.14,
+      "opacity.admin.area": 0.16,
+      "width.closure.edge": 1.6,
+      "opacity.admin.edge": 0.45
     },
     "light": {
-      "color.water.mapped": "#0B6987",
+      "color.water.mapped": "#4A90E2",
       "color.water.unmapped": "#7F8C99",
       "color.highlight": "#c2187a",
-      "color.parcel.line": "#8a6d3b",
       "color.status.open": "#2e8b57",
       "color.status.restricted": "#8f5c00",
       "color.status.closed": "#c0392b",
@@ -767,16 +1171,15 @@
       "width.stream.base": 1,
       "width.stream.highlight": 3.2,
       "opacity.overlay": 0.55,
-      "color.water.route": "#A3AEB4",
-      "color.lake.fill": "#94C9E0",
+      "color.water.route": "#2E62A8",
+      "color.lake.fill": "#64B5F6",
       "color.lake.edge": "#4E88A6",
-      "color.wetland.fill": "#75AE8C",
+      "color.wetland.fill": "#81C784",
       "color.contour.line": "#2FA9C9",
       "color.park.fill": "#cfe3b4",
       "color.park.edge": "#7d9c5c",
       "color.reserve.fill": "#e0b48c",
       "color.noaccess.fill": "#d2a2a2",
-      "color.indigenous.edge": "#6B4E71",
       "color.mu.edge": "#8A7A62",
       "color.stock.fresh": "#12873f",
       "color.stock.recent": "#5e9b12",
@@ -784,12 +1187,12 @@
       "color.label.place": "#3a4043",
       "width.lake.edge": 0.8,
       "width.admin.edge": 1.2,
-      "opacity.wetland": 0.3,
-      "opacity.lake": 0.9,
-      "width.underlake": 0.5,
+      "opacity.wetland": 0.45,
+      "opacity.lake": 0.4,
+      "width.underlake": 1.6,
       "dash.route": [
-        1,
-        2.5
+        4,
+        3
       ],
       "color.survey.digitised": "#0E7C86",
       "color.survey.sheet": "#7BA4B8",
@@ -799,13 +1202,31 @@
       "color.flow.f2": "#E0552A",
       "color.flow.f3": "#E08A2B",
       "color.flow.f4": "#12857C",
-      "color.flow.f5": "#3E8FD9",
+      "color.flow.f5": "#1E86B8",
       "color.flow.f6": "#1D4ED8",
       "color.flow.f7": "#122A8F",
       "color.gauge.dot": "#0A1116",
       "color.flow.nobaseline": "#7B4FBF",
       "color.water.ungauged": "#D5D5D5",
-      "color.mask": "#505950"
+      "color.mask": "#505950",
+      "opacity.route": 0.35,
+      "color.label.water": "#0D47A1",
+      "color.parcel.private": "#7A4A3A",
+      "opacity.parcel": 0.22,
+      "width.parcel.edge": 1.5,
+      "color.region.edge": "#8E2F52",
+      "width.region.edge": 2.4,
+      "opacity.admin.fill": 0.04,
+      "dash.mu": [
+        2,
+        3
+      ],
+      "color.indigenous.fill": "#8B5A2B",
+      "opacity.closure": 0.55,
+      "opacity.park": 0.12,
+      "opacity.admin.area": 0.14,
+      "width.closure.edge": 1.6,
+      "opacity.admin.edge": 0.35
     }
   },
   "tokens": {
@@ -821,21 +1242,19 @@
       "type": "color",
       "themeable": true
     },
-    "color.parcel.line": {
-      "type": "color",
-      "themeable": true
-    },
     "color.status.open": {
       "type": "color",
       "themeable": true
     },
     "color.status.restricted": {
       "type": "color",
-      "themeable": true
+      "themeable": true,
+      "$comment": "RESTRICTED — a rule with conditions, or land you may enter with permission. Amber, v1's second tier, and never the same colour as a closure."
     },
     "color.status.closed": {
       "type": "color",
-      "themeable": true
+      "themeable": true,
+      "$comment": "CLOSED — and it is one colour for one meaning, whichever way the water got closed. A rule that says so, a national park boundary, an ecological reserve, land with no public access: all crimson, all the same crimson. A second near-identical red for 'the AREA that closes it' was written and then deleted; the palette guard caught it at delta-E 5.4, which is the right complaint about two names for one idea."
     },
     "color.status.unknown": {
       "type": "color",
@@ -925,11 +1344,6 @@
       "themeable": true,
       "$comment": "land the public may not enter"
     },
-    "color.indigenous.edge": {
-      "type": "color",
-      "themeable": true,
-      "$comment": "reserves and treaty land — an access advisory, never a fishing closure"
-    },
     "color.mu.edge": {
       "type": "color",
       "themeable": true,
@@ -975,7 +1389,7 @@
     "width.underlake": {
       "type": "number",
       "themeable": true,
-      "$comment": "Thinner than a 1st-order stream on purpose: it is not a stream."
+      "$comment": "A MULTIPLIER on the stream width ramp, not a width. The route through a lake is the same river continuing, so it is drawn at the river's weight and told apart by its dash and its opacity. It was a flat 0.5 px, which made every mainstem appear to thin to a hairline and come back at the far shore."
     },
     "dash.route": {
       "type": "dash",
@@ -1019,6 +1433,80 @@
       "type": "color",
       "themeable": true,
       "$comment": "the fill over everything that is NOT British Columbia. A separate token from color.outside, which it used to share: that one is the PAPER — the ground under a missing tile and the fill of a gauge label's pill — so darkening the mask darkened the pill and the loading state with it. One colour cannot be both 'we have no answers here' and 'this is the page'."
+    },
+    "opacity.route": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "The under-lake route is a construction line. v1 drew it at 0.35 and that is the whole reason a lake with six inflows does not read as a spider."
+    },
+    "color.label.water": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "Every water name, stream and lake alike. ONE token, not two: v1 drew rivers in #0D47A1 and lakes in #1565C0, which is a distinction a reader cannot make and does not need — the shape under the word already says which it is. Darker than the water it names, so the name reads as a caption rather than as another channel."
+    },
+    "color.parcel.private": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "Private title — the only ownership class drawn. Warm and earthy against a map that is otherwise blue and green, so it reads as land rather than as another kind of water."
+    },
+    "opacity.parcel": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "A WASH, and a faint one. Ownership covers essentially all the land, so it sits under every other overlay; anything heavier and the water it exists to get you to disappears under it."
+    },
+    "width.parcel.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "The border carries the shape at this opacity — the fill alone is too faint to read a boundary from."
+    },
+    "color.region.edge": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "The region boundary — the line that changes which regulation table applies. Heavier and solid where a unit's is light and dotted."
+    },
+    "width.region.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "Thicker than width.admin.edge on purpose: region outranks unit."
+    },
+    "opacity.admin.fill": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "Barely there. An administrative area is a BOUNDARY, not a region of colour — the fill exists so the shape can be tapped and so a label has somewhere to sit, not to be looked at."
+    },
+    "dash.mu": {
+      "type": "dash",
+      "themeable": false,
+      "$comment": "v1's [2,3]. A unit edge is drawn dotted so it never reads as a feature of the ground, the way a solid line of the same weight would."
+    },
+    "color.indigenous.fill": {
+      "type": "color",
+      "themeable": true,
+      "$comment": "Reserves and treaty lands, in brown — the OSM convention, and v1's. ONE token for the fill and its border, because there is one thing to say. It sits deliberately OUTSIDE the crimson/amber restriction language: this is an access advisory, never a fishing closure, and it is the nearest brown to v1's #8B6508 that a reader can still tell apart from `status.restricted`, which is a genuinely different claim."
+    },
+    "opacity.closure": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "v1's hatch fill-opacity, and it is FOUR TIMES what this started at. The stripe carries its own alpha (0.55) and this multiplies it, so 0.16 gave an effective 0.09 — a closure you had to go looking for. v1 shipped 0.50-0.60 and was right: this is the one mark on the map that has to be seen before the reader has decided to look."
+    },
+    "opacity.park": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "Provincial parks: open water, so the quietest tint on the map."
+    },
+    "opacity.admin.area": {
+      "type": "number",
+      "themeable": true
+    },
+    "width.closure.edge": {
+      "type": "number",
+      "themeable": false,
+      "$comment": "Heavier than an ordinary admin edge. Crossing this line changes what you may do; crossing a provincial park's does not, which is why that one has no edge at all."
+    },
+    "opacity.admin.edge": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "v1's ADMIN_BORDER_OPACITY. A boundary is an annotation on the ground, not a feature of it — at full strength it cuts across the water it surrounds and reads as something you could walk along."
     }
   },
   "enums": {

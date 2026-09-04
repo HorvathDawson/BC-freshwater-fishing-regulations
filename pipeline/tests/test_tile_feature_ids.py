@@ -35,7 +35,8 @@ EXPORTERS = {
     "lake": E.export_waterbodies, "wetland": E.export_waterbodies,
     "park": E.export_admin, "eco_reserve": E.export_admin, "wma": E.export_admin,
     "indigenous_land": E.export_admin, "no_access": E.export_admin,
-    "watershed": E.export_admin, "mu": E.export_admin,
+    "watershed": E.export_admin, "mu": E.export_admin, "region": E.export_admin,
+    "parcel": E.export_admin,
     "place": E.export_places, "contour": E.export_contours,
     "outside": E.export_outside,
 }
@@ -44,6 +45,8 @@ EXPORTERS = {
 def test_every_layer_emits_its_declared_feature_id():
     missing = []
     for spec in ALL:
+        if spec.decorative:
+            continue          # drawn and nothing else; see LayerSpec.decorative
         fn = EXPORTERS.get(spec.name)
         if fn is None:
             missing.append(f"{spec.name}: no exporter is mapped in this test")
@@ -67,5 +70,5 @@ def test_writer_drops_anything_not_declared():
 
 def test_the_contract_names_a_feature_id_for_every_layer():
     for spec in ALL:
-        assert spec.attrs, f"{spec.name} declares no attributes at all"
+        assert spec.attrs or spec.decorative, f"{spec.name} declares no attributes at all"
         assert BY_NAME[spec.name] is spec

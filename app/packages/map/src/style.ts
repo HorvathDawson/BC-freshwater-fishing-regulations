@@ -38,18 +38,27 @@ export const STYLE_META = meta as unknown as {
   featureIds: Record<string, string>;
   widths: Record<string, string | {
     token: string;
-    /** The tile attribute the width is linear in — Strahler order, for streams. */
-    by: string;
+    /** The tile attribute the width is linear in — Strahler order, for streams. Absent
+     *  for mode "zoom", where the width depends on nothing but the camera. */
+    by?: string;
     /**
      * "linear": width = base + attr * slope        (streams, by Strahler order)
      * "sqrt":   width = clamp(base + k*sqrt(attr)) (lakes and areas, by area)
+     * "zoom":   width = base                       (no attribute; the route through a lake)
      */
-    mode?: "linear" | "sqrt";
+    mode?: "linear" | "sqrt" | "zoom";
     /** [zoom, base px, slope-or-k, max px for sqrt]. Scaled by the token. */
     ramp: [number, number, number, number?][];
   }>;
   opacities: Record<string, string>;
   dashes: Record<string, string>;
+  /** layer id -> the halo behind its text: a paper token and a width in px. */
+  labelHalos: Record<string, { color: string; width: number }>;
+  /** layer id -> the colour its hatch is woven from, and how that weave is set. */
+  patterns: Record<string, { token: string; ground: number; stripe: number; darken: number;
+                             spacing: number; weight: number; cross: boolean }>;
+  /** generated edge id -> a token for its line-opacity, when it should not be a hard edge. */
+  edgeOpacities: Record<string, string>;
   themes: Record<string, Tokens>;
   tokens: Record<string, { type: string; themeable: boolean }>;
   enums: Record<string, string[]>;

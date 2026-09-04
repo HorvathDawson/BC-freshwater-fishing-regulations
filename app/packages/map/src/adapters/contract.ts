@@ -46,7 +46,8 @@ export interface MapAdapter {
 /** The MapLibre paint property that carries colour, per layer type. */
 // Module-private: an implementation detail of `paintFor`.
 function colourPropFor(type: string | undefined): string {
-  return type === "line" ? "line-color" : type === "fill" ? "fill-color" : "circle-color";
+  return type === "line" ? "line-color" : type === "fill" ? "fill-color"
+    : type === "symbol" ? "text-color" : "circle-color";
 }
 
 /**
@@ -97,7 +98,12 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
       // never changes, so line weight must not wait on the app pushing anything.
       const scale = Number(tokens[spec.token] ?? 1);
       const z: unknown[] = ["interpolate", ["linear"], ["zoom"]];
-      if (spec.mode === "sqrt") {
+      if (spec.mode === "zoom") {
+        // NO ATTRIBUTE AT ALL — a curve in the camera and nothing else. The route through a
+        // lake is a construction line: it says the river continues, not how big it is, and
+        // drawing it at the river's own weight makes it read as more river.
+        for (const [at, base] of spec.ramp) z.push(at, scale * base);
+      } else if (spec.mode === "sqrt") {
         // v1's lake/area outline: base + k * sqrt(area), clamped. Square-rooted because
         // area grows as the square of a shoreline, so a linear ramp makes one big lake
         // enormous and every small one invisible. MapLibre has no clamp, hence max(min()).
@@ -142,24 +148,64 @@ export function paintFor(layerId: string, mode: string, tokens: Tokens):
   }
 
   /**
-   * THE WATER STANDS ASIDE FOR THE REGIONAL VIEW.
+   * THE WATER IS THE ANSWER IN THE REGIONAL VIEW — it used to be faded out.
    *
-   * In `standing` mode below z7 the atlas has already dropped all but a few mainstems, and
-   * what survives is a thin scribble that reads as noise beside the station haze drawn over
-   * it (see `gauge-haze`). Fading it out is what lets the low-zoom answer be one thing
-   * rather than two competing ones; by z7 the rivers are back at full weight and the haze
-   * is gone.
+   * `standing` mode below z7 used to drop the rivers to 12% opacity so they would not
+   * compete with a haze of blurred discs drawn over the land. That was the wrong thing
+   * made quiet to protect the wrong thing: the discs claimed a condition for country no
+   * gauge speaks for, while the water that DOES carry a reading was hidden.
    *
-   * Only in this mode. The Regulations view at the same zoom is answering a question about
-   * specific water, so its lines must not disappear.
+   * The discs are gone (see `stream-glow` in runtime-style) and the rivers are at full
+   * weight at every zoom. The atlas has already thinned itself to the mainstems by z5, and
+   * a mainstem is exactly the water most likely to be gauged — so what is left is what we
+   * can actually answer for.
    */
-  if (mode === "standing" && type === "line")
-    out["line-opacity"] = ["interpolate", ["linear"], ["zoom"], 5, 0.12, 7, 1];
+
+  const edgeOpacity = (STYLE_META.edgeOpacities ?? {})[layerId];
+  if (edgeOpacity !== undefined && type === "line") {
+    const o = tokens[edgeOpacity];
+    if (o !== undefined) out["line-opacity"] = o;
+  }
 
   const opacity = (STYLE_META.opacities ?? {})[layerId];
   if (opacity !== undefined && type) {
     const o = tokens[opacity];
     if (o !== undefined) out[`${type}-opacity`] = o;
+  }
+
+  /**
+   * A LABEL'S HALO — the paper showing through behind the word.
+   *
+   * Not part of the colour mode, because it is not an encoding: it is what makes a name
+   * legible over landcover, a road and a contour at once. v1 drew every water label with
+   * one, and a river name without one is readable on open ground and gone the moment it
+   * crosses anything.
+   */
+  const halo = (STYLE_META.labelHalos ?? {})[layerId];
+  if (halo !== undefined) {
+    const c = tokens[halo.color];
+    if (c !== undefined) {
+      out["text-halo-color"] = c;
+      out["text-halo-width"] = halo.width;
+      out["text-halo-blur"] = 0.5;
+    }
+  }
+
+  /**
+   * A FILL PATTERN, AND ONLY OVER A STATIC COLOURING.
+   *
+   * MapLibre's `fill-pattern` overrides `fill-color` outright. So hatching the wetland
+   * unconditionally would draw "open", "closed" and "we could not parse this" as the same
+   * green weave — the answer replaced by the texture. The texture is for the mode that is
+   * NOT answering anything, which is exactly `scale: "static"`.
+   *
+   * The token names a COLOUR, and the image is woven from it at runtime (src/hatch.ts).
+   * The adapter registers it under `<layer>-hatch` before the style is applied.
+   */
+  const pattern = (STYLE_META.patterns ?? {})[layerId];
+  if (pattern !== undefined && type === "fill"
+      && STYLE_META.colorModes[layerId]?.[mode]?.scale === "static") {
+    out["fill-pattern"] = `${layerId}-hatch`;
   }
   return out;
 }

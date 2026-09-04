@@ -22,7 +22,8 @@ import { join } from "node:path";
 const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 const contract = JSON.parse(
   readFileSync(join(ROOT, "pipeline/deliver/tiles/tile-contract.json"), "utf8"),
-) as { layers: Record<string, { geometry: string; attrs: string[]; featureId: string }>;
+) as { layers: Record<string, { geometry: string; attrs: string[];
+                              featureId: string | null; decorative: boolean }>;
         magnitudeLadder: [number, number][] };
 
 const readStyle = (f: string) =>
@@ -35,8 +36,8 @@ const STYLE_META = readStyle("style.meta.json") as
 const source = JSON.parse(
   readFileSync(join(ROOT, "app/packages/map/style/layers.source.json"), "utf8"),
 ) as {
-  layers: { id: string; sourceLayer: string; geometry: string; featureIdProperty: string;
-            outline?: unknown;
+  layers: { id: string; sourceLayer: string; geometry: string; featureIdProperty?: string;
+            outline?: unknown; label?: { priority?: number }; highlightable?: boolean;
             colorModes: Record<string, { data?: { field: string } }> }[];
   providers: Record<string, { key?: string }>;
 };
@@ -53,7 +54,29 @@ describe("the style and the tiles agree", () => {
     // means setFeatureState silently addresses nothing.
     for (const l of source.layers) {
       const t = contract.layers[l.sourceLayer]!;
+      // A DECORATIVE LAYER MUST NOT NAME ONE. It ships no attributes at all, so promoting
+      // a property would give every feature `id: undefined` — and MapLibre reports that as
+      // a hit like any other, so a tap would resolve to nothing with no error anywhere.
+      if (t.decorative) {
+        expect(l.featureIdProperty,
+               `${l.id} draws a decorative tile layer, which carries no attributes, but ` +
+               `promotes "${l.featureIdProperty}"`).toBeUndefined();
+        continue;
+      }
       expect(t.attrs, `${l.id}.featureIdProperty`).toContain(l.featureIdProperty);
+    }
+  });
+
+  it("nothing decorative is tappable, highlightable, or given an id", () => {
+    // Three separate places have to agree and they are in three files. The route through a
+    // lake was second in the tap order for months while its own comment said it must never
+    // be tapped as though it were open water.
+    for (const l of source.layers) {
+      if (!contract.layers[l.sourceLayer]?.decorative) continue;
+      expect(STYLE_META.featureIds[l.id], `${l.id} is decorative but promotes an id`)
+        .toBeUndefined();
+      expect(l.highlightable ?? false, `${l.id} is decorative but is highlightable`)
+        .toBe(false);
     }
   });
 
@@ -91,8 +114,73 @@ describe("the style and the tiles agree", () => {
     for (const l of outlined)
       expect(built.has(`${l.id}__edge`), `${l.id} declares an outline but has no edge layer`)
         .toBe(true);
+
+    // And one companion SYMBOL layer per layer that declares a label — the water's own
+    // name, drawn along the line or set inside the polygon. Same reason as the edge:
+    // generated, so a name cannot end up over a different source-layer than its geometry.
+    const labelled = source.layers.filter((l) => l.label);
+    for (const l of labelled)
+      expect(built.has(`${l.id}__label`), `${l.id} declares a label but has no symbol layer`)
+        .toBe(true);
     expect(Object.keys(STYLE_META.colorModes).length)
-      .toBe(source.layers.length + outlined.length);
+      .toBe(source.layers.length + outlined.length + labelled.length);
+  });
+
+  it("the layers that say where you may not go cannot be switched off", () => {
+    /*
+     * A CLOSURE IS NOT A PREFERENCE.
+     *
+     * `protected`, `access` and `admin` were all toggleable AND hidden by default, so the
+     * map's normal state showed no national park, no ecological reserve, no Indian reserve,
+     * no land the public may not enter — and no region or unit boundary, which is the line
+     * that decides WHICH REGULATION TABLE applies. Every one of those is a reason a person
+     * can be doing something they should not be, and a reader who never opens the layer
+     * menu is exactly the reader who most needs to see them.
+     *
+     * `ownership` is deliberately the other way round — title is context, not an
+     * instruction, and most of the province is Crown land — so it is checked here too, to
+     * pin the asymmetry rather than leave it to whoever edits the file next.
+     */
+    const byId = new Map((source as unknown as { groups: { id: string; toggleable: boolean;
+                          defaultVisible: boolean }[] }).groups.map((g) => [g.id, g]));
+    for (const id of ["water", "protected", "access", "admin"]) {
+      const g = byId.get(id)!;
+      expect(g, `group "${id}" is gone`).toBeDefined();
+      expect(g.toggleable, `group "${id}" may be switched off`).toBe(false);
+      expect(g.defaultVisible, `group "${id}" is hidden by default`).toBe(true);
+    }
+    const own = byId.get("ownership")!;
+    expect(own.toggleable).toBe(true);
+    expect(own.defaultVisible).toBe(false);
+
+    // and the generated style must actually paint them, not just declare them visible
+    const drawn = new Map(MAP_STYLE.layers.map((l) => [l.id, l]));
+    for (const l of source.layers) {
+      const grp = (l as unknown as { group: string }).group;
+      if (!["protected", "access", "admin"].includes(grp)) continue;
+      const layer = drawn.get(l.id) as { layout?: { visibility?: string } } | undefined;
+      expect(layer?.layout?.visibility, `${l.id} is not visible in the built style`)
+        .toBe("visible");
+    }
+  });
+
+  it("every label is drawn after every piece of geometry", () => {
+    // Draw order IS array order, and it decides two things at once: what paints over what,
+    // and which symbol layer wins a collision. A label emitted beside its own geometry sits
+    // eighth of ten, so every river drawn afterwards crosses out the lake names underneath.
+    const ids = MAP_STYLE.layers.map((l) => l.id);
+    const firstLabel = ids.findIndex((id) => id.endsWith("__label"));
+    expect(firstLabel, "no label layer in the built style").toBeGreaterThan(-1);
+    for (const id of ids.slice(firstLabel))
+      expect(id.endsWith("__label"), `${id} is drawn after a label`).toBe(true);
+
+    // And among themselves, in DECLARED priority order — not in whatever order the source
+    // happens to list the geometry. A river name beats a lake name, as v1 had it.
+    const prio = new Map(source.layers.filter((l) => l.label)
+      .map((l) => [`${l.id}__label`, (l.label as { priority?: number }).priority ?? 0]));
+    const drawn = ids.slice(firstLabel).map((id) => prio.get(id) ?? 0);
+    expect(drawn, "labels are not in priority order")
+      .toEqual([...drawn].sort((a, b) => a - b));
   });
 
   it("every generated edge draws over the same source-layer as its fill", () => {
@@ -217,15 +305,43 @@ describe("the gauges draw on top of the water", () => {
     }
   });
 
-  it("hands the low zooms to the haze and the high ones to the dots, with no overlap", () => {
-    // Two answers to one question on screen at once is the failure. The regional haze is
-    // for the zooms where individual rivers have already thinned out of the atlas; the dots
-    // are for the zooms where they are back. They must not both be drawn.
-    const haze = style.layers[at("gauge-haze")] as { maxzoom?: number };
+  it("hands the low zooms to the glow and the high ones to the dots, with no gap", () => {
+    /*
+     * Two answers to one question on screen at once is one failure; a zoom with NEITHER
+     * answer is the other. The glow carries the regional picture where individual rivers
+     * have thinned out of the atlas; the dots take over where they are back.
+     *
+     * It replaced a blurred disc per station, which was drawn over LAND — country no gauge
+     * speaks for — and whose overlaps blended into colours that were not on the scale at
+     * all. The glow is the same ramp painted along the water, so it can only claim a value
+     * where there is water to claim it for. It is a LINE over the atlas, not a circle over
+     * the gauges, so this test also pins that it reads the right source.
+     */
+    const glow = style.layers[at("stream-glow")] as
+      { maxzoom?: number; type?: string; source?: string; "source-layer"?: string };
     const dot = style.layers[at("gauge-dot")] as { minzoom?: number };
-    expect(haze.maxzoom).toBeDefined();
+    expect(glow.type).toBe("line");
+    expect(glow.source).toBe("atlas");
+    expect(glow["source-layer"]).toBe("stream");
+    expect(glow.maxzoom).toBeDefined();
     expect(dot.minzoom).toBeDefined();
-    expect(dot.minzoom!).toBeLessThanOrEqual(haze.maxzoom!);
+    expect(dot.minzoom!).toBeLessThanOrEqual(glow.maxzoom!);
+
+    // and it is UNDER the crisp line it lights, or the river disappears into its own glow
+    expect(at("stream-glow")).toBeLessThan(at("stream"));
+  });
+
+  it("no layer claims a condition for country that has no water in it", () => {
+    // The rule the haze broke. Anything painted from the flow ramp must be drawn over the
+    // atlas's own water, never over the ground between two stations.
+    const ramp = JSON.stringify(STYLE_META.colorModes.stream?.standing ?? {});
+    expect(ramp).toContain("flow.");
+    for (const l of style.layers as { id: string; source?: string; paint?: unknown }[]) {
+      const paint = JSON.stringify(l.paint ?? {});
+      if (!paint.includes("flow.f")) continue;
+      expect(["atlas", "gauges"], `${l.id} paints a flow colour from "${l.source}"`)
+        .toContain(l.source);
+    }
   });
 
   it("draws the route arrows above the water and below the gauges", () => {

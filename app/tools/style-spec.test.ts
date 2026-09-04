@@ -38,10 +38,12 @@ describe("the generated style", () => {
   });
 
   it("gives every layer the paint property the adapter will set on it", () => {
-    // baseAdapter picks line-color / fill-color / circle-color from the type. A layer whose
-    // type it does not recognise silently gets circle-color, which a fill layer ignores —
-    // so the area draws in its default colour and nothing reports a problem.
+    // colourPropFor picks line-color / fill-color / text-color / circle-color from the
+    // type. A layer whose type it does not recognise silently gets circle-color, which a
+    // fill layer ignores — so the area draws in its default colour and nothing reports a
+    // problem. "symbol" is here because water labels are text and text takes text-color.
     for (const l of style.layers)
-      expect(["line", "fill", "circle"], `${l.id} is drawn as ${l.type}`).toContain(l.type);
+      expect(["line", "fill", "circle", "symbol"], `${l.id} is drawn as ${l.type}`)
+        .toContain(l.type);
   });
 });

@@ -24,52 +24,60 @@
     {
       "id": "protected",
       "label": "Parks and reserves",
-      "toggleable": true,
-      "defaultVisible": false,
+      "toggleable": false,
+      "defaultVisible": true,
       "$comment": "Off by default. Parks and ecological reserves are large opaque areas and they buried the water they sit around \u2014 the map's job is to say which water is open, and an overlay that hides the water fails at it. Behind Layers."
     },
     {
       "id": "access",
       "label": "Land access",
-      "toggleable": true,
-      "defaultVisible": false,
+      "toggleable": false,
+      "defaultVisible": true,
       "$comment": "Off by default, for the same reason as `protected`: these are big fills, and the answer is the water. A user who needs to know where they may not go turns it on, and then it is the point of the screen rather than noise on it."
     },
     {
       "id": "admin",
-      "label": "Management units",
+      "label": "Regions and units",
+      "toggleable": false,
+      "defaultVisible": true
+    },
+    {
+      "id": "ownership",
+      "label": "Land ownership",
       "toggleable": true,
       "defaultVisible": false
     }
   ],
   "layers": [
     {
-      "id": "mu",
-      "group": "admin",
+      "id": "parcel_private",
+      "group": "ownership",
       "source": "atlas",
-      "sourceLayer": "mu",
+      "sourceLayer": "parcel",
       "geometry": "polygon",
-      "featureIdProperty": "mu_id",
       "highlightable": false,
+      "minzoom": 12,
       "colorModes": {
         "plain": {
-          "label": "Management units",
+          "label": "Private land",
           "scale": "static",
           "color": {
-            "token": "color.mu.edge"
+            "token": "color.parcel.private"
           }
         }
       },
-      "$comment": "Drawn as a filled area. An OUTLINE would need a companion line layer over the same source-layer \u2014 MapLibre fills cannot be stroked, and declaring a width here produced a style that threw on load and killed the whole recolouring pass.",
+      "opacity": {
+        "token": "opacity.parcel"
+      },
       "outline": {
         "color": {
-          "token": "color.mu.edge"
+          "token": "color.parcel.private"
         },
         "width": {
-          "token": "width.admin.edge"
-        },
-        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
-      }
+          "token": "width.parcel.edge"
+        }
+      },
+      "$comment": "PRIVATE TITLE, dissolved to one polygon. The question a person has at a gate: is the ground in front of me somebody's?\n\nIt sits at the BOTTOM of the draw order, under everything. It is the ground: a park is Crown land, a lake is nobody's, and a wash over either would say a general thing louder than the specific one.\n\nThe other eight ownership classes are not drawn. Crown, agency, federal, municipal and untitled is most of British Columbia \u2014 the default state, not news \u2014 and drawing them cost 308 MB of layer file to say 'as you were'.\n\nTOGGLEABLE AND OFF BY DEFAULT, and that asymmetry against `protected` and `access` is the point: a closure is an instruction and title is context. This is the layer you open deliberately when you are working out where to park and which bank to walk."
     },
     {
       "id": "indigenous_land",
@@ -81,22 +89,57 @@
       "highlightable": false,
       "colorModes": {
         "plain": {
-          "label": "Reserves and treaty land",
+          "label": "Indigenous land",
           "scale": "static",
           "color": {
-            "token": "color.indigenous.edge"
+            "token": "color.indigenous.fill"
           }
         }
       },
-      "$comment": "Drawn as a filled area. An OUTLINE would need a companion line layer over the same source-layer \u2014 MapLibre fills cannot be stroked, and declaring a width here produced a style that threw on load and killed the whole recolouring pass.",
+      "$comment": "Reserves and treaty lands, in v1's dark goldenrod. AN ACCESS ADVISORY, NEVER A FISHING CLOSURE \u2014 which is why it is brown and not hatched: the crimson-and-hatch language on this map means the water is closed, and saying that here would be both wrong and offensive. Brown is the OSM convention for it and carries no restriction meaning.",
       "outline": {
         "color": {
-          "token": "color.indigenous.edge"
+          "token": "color.indigenous.fill"
         },
         "width": {
           "token": "width.admin.edge"
         },
-        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+        "minzoom": 11,
+        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "opacity": {
+          "token": "opacity.admin.edge"
+        }
+      },
+      "opacity": {
+        "token": "opacity.admin.area"
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 9,
+        "priority": 10,
+        "font": [
+          "Noto Sans Regular"
+        ],
+        "size": [
+          [
+            9,
+            10
+          ],
+          [
+            13,
+            12
+          ]
+        ],
+        "maxWidth": 9,
+        "letterSpacing": 0.04,
+        "color": {
+          "token": "color.indigenous.fill"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.6
       }
     },
     {
@@ -112,19 +155,151 @@
           "label": "No public access",
           "scale": "static",
           "color": {
-            "token": "color.noaccess.fill"
+            "token": "color.status.closed"
           }
         }
       },
       "outline": {
         "color": {
-          "token": "color.noaccess.fill"
+          "token": "color.status.closed"
         },
         "width": {
-          "token": "width.admin.edge"
+          "token": "width.closure.edge"
         },
-        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+        "minzoom": 11,
+        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "opacity": {
+          "token": "opacity.admin.edge"
+        }
+      },
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "closed"
+      ],
+      "opacity": {
+        "token": "opacity.closure"
+      },
+      "pattern": {
+        "token": "color.status.closed",
+        "ground": 0,
+        "stripe": 0.55,
+        "darken": 0,
+        "spacing": 11,
+        "weight": 1.3,
+        "cross": true
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 9,
+        "priority": 8,
+        "font": [
+          "Noto Sans Regular"
+        ],
+        "size": [
+          [
+            9,
+            10
+          ],
+          [
+            13,
+            12
+          ]
+        ],
+        "maxWidth": 8,
+        "letterSpacing": 0.04,
+        "color": {
+          "token": "color.status.closed"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.6
       }
+    },
+    {
+      "id": "no_access_permit",
+      "group": "access",
+      "source": "atlas",
+      "sourceLayer": "no_access",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "permit"
+      ],
+      "colorModes": {
+        "plain": {
+          "label": "Permission needed",
+          "scale": "static",
+          "color": {
+            "token": "color.status.restricted"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.closure"
+      },
+      "pattern": {
+        "token": "color.status.restricted",
+        "ground": 0,
+        "stripe": 0.55,
+        "darken": 0,
+        "spacing": 11,
+        "weight": 1.3,
+        "cross": true
+      },
+      "outline": {
+        "color": {
+          "token": "color.status.restricted"
+        },
+        "width": {
+          "token": "width.closure.edge"
+        },
+        "minzoom": 11,
+        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "opacity": {
+          "token": "opacity.admin.edge"
+        }
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 9,
+        "priority": 9,
+        "font": [
+          "Noto Sans Regular"
+        ],
+        "size": [
+          [
+            9,
+            10
+          ],
+          [
+            13,
+            12
+          ]
+        ],
+        "maxWidth": 8,
+        "letterSpacing": 0.04,
+        "color": {
+          "token": "color.status.restricted"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.6
+      },
+      "$comment": "LAND YOU MAY ENTER, WITH PERMISSION \u2014 the UBC Malcolm Knapp Research Forest and three others. AMBER, NOT CRIMSON, and hatched like a closure because it is one until you have asked. v1 used the same two-tier red/amber language. These four were dropped from the map entirely until the `permit_land_access` area def existed."
     },
     {
       "id": "eco_reserve",
@@ -139,19 +314,63 @@
           "label": "Ecological reserves",
           "scale": "static",
           "color": {
-            "token": "color.reserve.fill"
+            "token": "color.status.closed"
           }
         }
       },
       "$comment": "Its own layer, not a park variant: it is a blanket closure and must never be styled like somewhere you may fish.",
       "outline": {
         "color": {
-          "token": "color.park.edge"
+          "token": "color.status.closed"
         },
         "width": {
-          "token": "width.admin.edge"
+          "token": "width.closure.edge"
         },
-        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
+        "minzoom": 11,
+        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "opacity": {
+          "token": "opacity.admin.edge"
+        }
+      },
+      "opacity": {
+        "token": "opacity.closure"
+      },
+      "pattern": {
+        "token": "color.status.closed",
+        "ground": 0,
+        "stripe": 0.55,
+        "darken": 0,
+        "spacing": 11,
+        "weight": 1.3,
+        "cross": true
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 8,
+        "priority": 6,
+        "font": [
+          "Noto Sans Regular"
+        ],
+        "size": [
+          [
+            8,
+            10
+          ],
+          [
+            12,
+            12
+          ]
+        ],
+        "maxWidth": 8,
+        "letterSpacing": 0.04,
+        "color": {
+          "token": "color.status.closed"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.6
       }
     },
     {
@@ -171,15 +390,132 @@
           }
         }
       },
-      "outline": {
+      "filter": [
+        "==",
+        [
+          "get",
+          "kind"
+        ],
+        "provincial"
+      ],
+      "opacity": {
+        "token": "opacity.park"
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 8,
+        "priority": 7,
+        "font": [
+          "Noto Sans Regular"
+        ],
+        "size": [
+          [
+            8,
+            10
+          ],
+          [
+            12,
+            12
+          ]
+        ],
+        "maxWidth": 8,
+        "letterSpacing": 0.04,
         "color": {
           "token": "color.park.edge"
         },
-        "width": {
-          "token": "width.admin.edge"
+        "halo": {
+          "token": "color.outside"
         },
-        "$comment": "A boundary you can see. v1 gave every admin area a -fill AND a -line; without the line a management unit is an invisible tint and its edge \u2014 the thing that actually matters \u2014 is not drawn at all."
-      }
+        "haloWidth": 1.6
+      },
+      "$comment": "PROVINCIAL PARKS AND PROTECTED AREAS \u2014 open water, in v1's green. NO OUTLINE, deliberately: a border is an assertion that the line matters, and here it does not. You may fish on both sides of it. Every bordered area on this map is one where crossing the line changes what you may do, and provincial parks would have been the only exception, which is exactly how a reader learns to stop trusting borders."
+    },
+    {
+      "id": "park_closed",
+      "group": "protected",
+      "source": "atlas",
+      "sourceLayer": "park",
+      "geometry": "polygon",
+      "featureIdProperty": "area_id",
+      "highlightable": false,
+      "filter": [
+        "in",
+        [
+          "get",
+          "kind"
+        ],
+        [
+          "literal",
+          [
+            "national",
+            "historic"
+          ]
+        ]
+      ],
+      "colorModes": {
+        "plain": {
+          "label": "No fishing",
+          "scale": "static",
+          "color": {
+            "token": "color.status.closed"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.closure"
+      },
+      "pattern": {
+        "token": "color.status.closed",
+        "ground": 0,
+        "stripe": 0.55,
+        "darken": 0,
+        "spacing": 10,
+        "weight": 1.6,
+        "cross": false
+      },
+      "outline": {
+        "color": {
+          "token": "color.status.closed"
+        },
+        "width": {
+          "token": "width.closure.edge"
+        },
+        "minzoom": 11,
+        "$comment": "v1's ADMIN_BORDER_MINZOOM. The hatch and the tint carry this area at a distance; the border is for when you are close enough to want to know exactly where it runs. Drawn from z4 it is one more line in a province already full of them.",
+        "opacity": {
+          "token": "opacity.admin.edge"
+        }
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 7,
+        "priority": 5,
+        "font": [
+          "Noto Sans Regular"
+        ],
+        "size": [
+          [
+            7,
+            10
+          ],
+          [
+            11,
+            13
+          ]
+        ],
+        "maxWidth": 8,
+        "letterSpacing": 0.04,
+        "color": {
+          "token": "color.status.closed"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.6
+      },
+      "$comment": "NATIONAL PARKS AND THE CHILKOOT TRAIL \u2014 federal closures, drawn in v1's crimson and HATCHED. The hatch is the message: on a paper chart diagonal lines mean keep out, and a flat red tint would read as merely another kind of area. `kind` is what separates these from provincial parks in the same tile layer \u2014 a park with a kind of its own is a park with its own closing authority."
     },
     {
       "id": "wetland",
@@ -233,7 +569,13 @@
       "opacity": {
         "token": "opacity.wetland"
       },
-      "$comment": "Wetland is the largest layer by area in the province and it is CONTEXT, not an answer \u2014 at full opacity it painted over every river it surrounds. It is always translucent."
+      "$comment": "Marsh and swamp \u2014 the largest layer by area in the province, and CONTEXT rather than an answer. It is HATCHED (see src/hatch.ts): texture is what lets it read at 45% where a flat wash needs 60% and buries every river it surrounds. The pattern applies to the static colouring ONLY \u2014 the moment the fill is carrying a regulation status, the status colour must win, or 'closed' and 'open' look like the same green weave.",
+      "pattern": {
+        "token": "color.wetland.fill",
+        "spacing": 4,
+        "weight": 1.2,
+        "cross": false
+      }
     },
     {
       "id": "lake",
@@ -375,6 +717,51 @@
           ]
         },
         "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area \u2014 area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible."
+      },
+      "label": {
+        "field": "name",
+        "placement": "point",
+        "minzoom": 8,
+        "font": [
+          "Noto Sans Italic"
+        ],
+        "size": [
+          [
+            8,
+            10
+          ],
+          [
+            14,
+            14
+          ]
+        ],
+        "letterSpacing": 0.1,
+        "maxWidth": 9,
+        "sortBy": "area_m2",
+        "showAll": 11,
+        "showAbove": [
+          [
+            10,
+            100000
+          ],
+          [
+            9,
+            1000000
+          ],
+          [
+            8,
+            5000000
+          ]
+        ],
+        "color": {
+          "token": "color.label.water"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 1.2,
+        "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder \u2014 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 \u2014 and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
+        "priority": 1
       }
     },
     {
@@ -404,10 +791,25 @@
       "source": "atlas",
       "sourceLayer": "under_lake",
       "geometry": "line",
-      "featureIdProperty": "section_id",
       "highlightable": false,
       "width": {
-        "token": "width.underlake"
+        "token": "width.underlake",
+        "mode": "zoom",
+        "ramp": [
+          [
+            10,
+            0.5
+          ],
+          [
+            13,
+            1.0
+          ],
+          [
+            16,
+            1.5
+          ]
+        ],
+        "$comment": "v1's exact curve, and NO ATTRIBUTE. A route through a lake is a construction line: it says the river continues, not how big it is. Drawn at the mainstem's own Strahler weight \u2014 which it briefly was \u2014 it stops reading as a note and starts reading as more river, which is the one confusion this layer exists to avoid. The lake's own outline already carries the size."
       },
       "colorModes": {
         "plain": {
@@ -418,9 +820,12 @@
           }
         }
       },
-      "$comment": "The route a river takes THROUGH a lake \u2014 connectivity, not water you can fish. A lake with several inflows has a route from each, so at full weight the layer reads as a spider web over every lake in the province. It has to be the thinnest, faintest thing on the map: a dotted hairline that says 'the river continues' and nothing more.",
+      "$comment": "The route a river takes THROUGH a lake \u2014 connectivity, not water you can fish. A lake with several inflows has a route from each, so at full weight the layer reads as a spider web over every lake in the province. It has to be the thinnest, faintest thing on the map: a dotted hairline that says 'the river continues' and nothing more.\n\nIT HAS NO featureIdProperty, deliberately. It is decoration: a person tapping the dotted thread means the LAKE, so the route is out of the tap query, out of `highlightable`, and its tile carries no attributes at all (pipeline layers.py marks it `decorative`). Promoting an id it does not ship would leave every feature with id `undefined` and a tap resolving to nothing.",
       "dash": {
         "token": "dash.route"
+      },
+      "opacity": {
+        "token": "opacity.route"
       }
     },
     {
@@ -571,6 +976,162 @@
           },
           "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' \u2014 the middle half of the record \u2014 into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement."
         }
+      },
+      "label": {
+        "field": "name",
+        "placement": "line",
+        "minzoom": 11,
+        "font": [
+          "Noto Sans Italic"
+        ],
+        "size": [
+          [
+            11,
+            11
+          ],
+          [
+            14,
+            14
+          ]
+        ],
+        "letterSpacing": 0.12,
+        "maxAngle": 25,
+        "spacing": 300,
+        "color": {
+          "token": "color.label.water"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 2,
+        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 \u2014 at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
+        "priority": 0
+      }
+    },
+    {
+      "id": "region",
+      "group": "admin",
+      "source": "atlas",
+      "sourceLayer": "region",
+      "geometry": "polygon",
+      "featureIdProperty": "region_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Regions",
+          "scale": "static",
+          "color": {
+            "token": "color.region.edge"
+          }
+        }
+      },
+      "opacity": {
+        "token": "opacity.admin.fill"
+      },
+      "outline": {
+        "color": {
+          "token": "color.region.edge"
+        },
+        "width": {
+          "token": "width.region.edge"
+        }
+      },
+      "label": {
+        "field": "region_id",
+        "placement": "point",
+        "minzoom": 4,
+        "maxzoom": 7,
+        "priority": 2,
+        "font": [
+          "Noto Sans Bold"
+        ],
+        "size": [
+          [
+            4,
+            14
+          ],
+          [
+            6,
+            18
+          ]
+        ],
+        "color": {
+          "token": "color.region.edge"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 2.5,
+        "$comment": "The big number in the middle, z4 to z7 \u2014 and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table."
+      },
+      "$comment": "SOLID AND HEAVIER THAN A UNIT. The regulations are organised by region, so this is the boundary that changes which table you are reading; the unit boundary inside it only refines it. v1 drew regions solid at 2-4.5 px and units dotted at 1.2-1.8, and that weight difference is the whole hierarchy."
+    },
+    {
+      "id": "mu",
+      "group": "admin",
+      "source": "atlas",
+      "sourceLayer": "mu",
+      "geometry": "polygon",
+      "featureIdProperty": "mu_id",
+      "highlightable": false,
+      "colorModes": {
+        "plain": {
+          "label": "Management units",
+          "scale": "static",
+          "color": {
+            "token": "color.mu.edge"
+          }
+        }
+      },
+      "$comment": "DRAWN ABOVE THE WATER, not under it. Source order is draw order, and `mu` used to be first of ten \u2014 so its boundary was painted under every lake fill, every wetland hatch and every river on the map. An administrative line the ground is drawn on top of is not a line anybody can follow. v1 put the region and unit boundaries above the water for the same reason.\n\nThe fill is near-invisible (`opacity.admin.fill`); it exists so the shape can be tapped and so a label has an anchor, not to be looked at.",
+      "outline": {
+        "color": {
+          "token": "color.mu.edge"
+        },
+        "width": {
+          "token": "width.admin.edge"
+        },
+        "$comment": "DOTTED, as v1 drew it, and from z7 only. A unit boundary is an administrative line over country, not a feature of the country; solid it competes with every river it crosses. Below z7 there are 225 of them on one screen and `region` is drawn instead.",
+        "dash": {
+          "token": "dash.mu"
+        }
+      },
+      "minzoom": 7,
+      "opacity": {
+        "token": "opacity.admin.fill"
+      },
+      "label": {
+        "field": "mu_id",
+        "placement": "line",
+        "minzoom": 8,
+        "priority": 3,
+        "font": [
+          "Noto Sans Bold"
+        ],
+        "size": [
+          [
+            8,
+            11
+          ],
+          [
+            9,
+            13
+          ],
+          [
+            12,
+            15
+          ]
+        ],
+        "maxAngle": 15,
+        "spacing": 200,
+        "color": {
+          "token": "color.mu.edge"
+        },
+        "halo": {
+          "token": "color.outside"
+        },
+        "haloWidth": 2,
+        "$comment": "ALONG THE BOUNDARY, repeated \u2014 v1's `management_units-label`. A unit is a shape you meet at its edge: you are walking up a river and you cross from 3-16 into 3-17, and the number has to be AT the line you crossed. One label in the middle of a polygon the size of a valley is invisible at the moment you need it. Lowest label priority, so a river's name always wins the collision \u2014 the water is what is being read."
       }
     }
   ],
@@ -589,7 +1150,11 @@
         "eco_reserve": "plain",
         "no_access": "plain",
         "indigenous_land": "plain",
-        "mu": "plain"
+        "mu": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain"
       },
       "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
     },
@@ -606,7 +1171,11 @@
         "eco_reserve": "plain",
         "no_access": "plain",
         "indigenous_land": "plain",
-        "mu": "plain"
+        "mu": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain"
       }
     },
     {
@@ -622,7 +1191,11 @@
         "eco_reserve": "plain",
         "no_access": "plain",
         "indigenous_land": "plain",
-        "mu": "plain"
+        "mu": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain"
       }
     },
     {
@@ -638,7 +1211,11 @@
         "eco_reserve": "plain",
         "no_access": "plain",
         "indigenous_land": "plain",
-        "mu": "plain"
+        "mu": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain"
       }
     }
   ],
@@ -682,6 +1259,6 @@
       "$comment": "Per-lake facts from the bundle: whether the lake was surveyed, and when it was last stocked. Keyed by section because that is what the tile carries; the fanout resolves it to the item the fact belongs to."
     }
   },
-  "$toggleable_groups": "No third-party overlay ships yet. Private parcels was drafted here and REMOVED: its attribution was the string 'TODO', which the old guard accepted because it only checked the field was non-empty. A licensed layer must not reach a store on a placeholder. To add one: declare the source with external:true and a real provider + licence, add a toggleable group, add a layer whose colorModes use water.* or a family matching its provider. The build will refuse anything less.",
-  "$comment_order": "Layer order IS the draw order, bottom to top. Generated edge layers are emitted immediately after the fill they outline."
+  "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY \u2014 most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",
+  "$comment_order": "DRAW ORDER IS SOURCE ORDER. Areas, then water, then the administrative boundaries that are drawn OVER the water, then ownership, and labels last (the generator appends those itself). A boundary painted under a lake is a boundary nobody can trace."
 }

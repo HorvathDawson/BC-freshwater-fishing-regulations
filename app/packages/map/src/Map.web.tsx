@@ -19,7 +19,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import "./controls.css";
 import { baseAdapter } from "./adapters/contract";
 import { pillImage } from "./pill";
-import { resolveTheme } from "./style";
+import { hatchImage } from "./hatch";
+import { resolveTheme, STYLE_META } from "./style";
 import { runtimeStyle } from "./runtime-style";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM } from "@app/core";
 
@@ -142,10 +143,23 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       m.addImage("gauge-pill", img as unknown as ImageData,
                  { pixelRatio: img.pixelRatio, stretchX: img.stretchX,
                    stretchY: img.stretchY, content: img.content });
+      /*
+       * AND THE HATCHES, on exactly the same rails and for the same reasons. A patterned
+       * layer whose image is missing draws NOTHING — not a fallback colour, nothing — so
+       * a wetland would silently disappear rather than look wrong, which is the harder
+       * bug to notice. `styleimagemissing` below covers whichever ordering we get.
+       */
+      for (const [layerId, w] of Object.entries(STYLE_META.patterns ?? {})) {
+        const id = `${layerId}-hatch`;
+        const img2 = hatchImage(t[w.token] ?? "#808080", w.ground, w.stripe, w.darken,
+                                w.spacing, w.weight, w.cross);
+        if (m.hasImage(id)) m.removeImage(id);
+        m.addImage(id, img2 as unknown as ImageData, { pixelRatio: img2.pixelRatio });
+      }
     };
     pill.current = addPill;
     m.on("styleimagemissing", (e: { id: string }) => {
-      if (e.id === "gauge-pill") pill.current?.();
+      if (e.id === "gauge-pill" || e.id.endsWith("-hatch")) pill.current?.();
     });
     m.on("load", addPill);
     map.current = m;
@@ -366,7 +380,21 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       const box: [maplibregl.PointLike, maplibregl.PointLike] = [
         [e.point.x - T, e.point.y - T], [e.point.x + T, e.point.y + T],
       ];
-      const layers = adapter.current.layerIds().filter((id) => m.getLayer(id));
+      /*
+       * ONLY LAYERS THAT CAN NAME WHAT WAS HIT.
+       *
+       * `featureIds` says which tile property a layer promotes into `feature.id`; a layer
+       * with no entry has no id to hand back, so a hit on it resolves to nothing. That is
+       * every label, and it is the under-lake route — the dotted thread through a lake is
+       * the topology's path, not water anybody fishes, and a person aiming at it means the
+       * LAKE. The route used to rank SECOND in the order below, so a tap on a lake with a
+       * river through it answered with the route.
+       *
+       * Derived rather than listed so the two cannot drift: dropping a layer's id in the
+       * style source takes it out of the tap order in the same commit.
+       */
+      const layers = adapter.current.layerIds()
+        .filter((id) => m.getLayer(id) && STYLE_META.featureIds[id] !== undefined);
       const hits = m.queryRenderedFeatures(box, { layers });
 
       /**
@@ -378,8 +406,8 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
        * a creek means the creek.
        */
       const rank = (layerId: string) =>
-        layerId === "stream" ? 0 : layerId === "under_lake" ? 1
-        : layerId === "lake" || layerId === "wetland" ? 2 : 3;
+        layerId === "stream" ? 0
+        : layerId === "lake" || layerId === "wetland" ? 1 : 2;
       const best = hits
         .filter((f) => f.id !== undefined && f.layer?.id)
         .sort((a, b) => rank(a.layer!.id) - rank(b.layer!.id))[0];

@@ -4,7 +4,6 @@
     "color.water.mapped": "#38B6DE",
     "color.water.unmapped": "#93A0AB",
     "color.highlight": "#ff77b8",
-    "color.parcel.line": "#c9a86a",
     "color.status.open": "#48b07a",
     "color.status.restricted": "#e8a733",
     "color.status.unknown": "#a78bd0",
@@ -21,7 +20,6 @@
     "color.park.edge": "#4e7a44",
     "color.reserve.fill": "#4d3320",
     "color.noaccess.fill": "#4a2a2a",
-    "color.indigenous.edge": "#C58A4A",
     "color.mu.edge": "#A6947A",
     "color.stock.fresh": "#2ed573",
     "color.stock.recent": "#94d82d",
@@ -31,10 +29,10 @@
     "width.admin.edge": 1.2,
     "opacity.wetland": 0.28,
     "opacity.lake": 0.85,
-    "width.underlake": 0.5,
+    "width.underlake": 1.6,
     "dash.route": [
-      1,
-      2.5
+      4,
+      3
     ],
     "color.survey.digitised": "#30D0D4",
     "color.survey.sheet": "#617C8C",
@@ -50,6 +48,24 @@
     "color.gauge.dot": "#F4F8F5",
     "color.flow.nobaseline": "#A97CFF",
     "color.water.ungauged": "#39434B",
-    "color.mask": "#595956"
+    "color.mask": "#595956",
+    "opacity.route": 0.4,
+    "color.label.water": "#A8CDF2",
+    "color.parcel.private": "#D6A08A",
+    "opacity.parcel": 0.24,
+    "width.parcel.edge": 1.5,
+    "color.region.edge": "#E29AB4",
+    "width.region.edge": 2.4,
+    "opacity.admin.fill": 0.06,
+    "dash.mu": [
+      2,
+      3
+    ],
+    "color.indigenous.fill": "#C9945E",
+    "opacity.closure": 0.6,
+    "opacity.park": 0.14,
+    "opacity.admin.area": 0.16,
+    "width.closure.edge": 1.6,
+    "opacity.admin.edge": 0.45
   }
 }

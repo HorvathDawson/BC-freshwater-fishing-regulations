@@ -71,6 +71,19 @@ for (const t of themes)
 //
 // Steps WITHIN the flow ramp are exempt: a sequential ramp is meant to be ordered and
 // close, and its members never encode different meanings.
+//
+// AND THE COMPARISON IS SCOPED TO WHAT IS ON SCREEN TOGETHER. Two colour modes of one
+// layer are ALTERNATIVES — MapLibre paints exactly one of them — so the stream's plain
+// blue and the flow ramp's blues are never both drawn, and a reader has no opportunity to
+// confuse them. Comparing every token against every other treated the union of all views
+// as though it were one picture, and the blue band is crowded enough that it made whole
+// palettes unreachable: `water.mapped` at v1's #4A90E2 collides with `flow.f5` and with
+// nothing a reader will ever see beside it.
+//
+// So a pair is checked when SOME VIEW can paint both. Chrome — a colour no colour mode
+// references, like the paper, the mask or the highlight — is in every view by definition,
+// and is still compared against everything, which is what catches "the selected reach
+// looks like a restricted one".
 const MIN_DELTA_E = 12;
 const _lab = (hex) => {
   const h = hex.replace("#", "");
@@ -86,6 +99,33 @@ const deltaE = (a, b) => Math.hypot(...
   _lab(a).map((v, i) => v - _lab(b)[i]));
 const family = (name) => name.split(".")[1];
 
+/** Every token a colour mode can paint, so the rest are chrome and always present. */
+const modeTokens = (m) => [
+  m?.color, m?.missing, ...Object.values(m?.categories ?? {}),
+  ...(m?.stops ?? []).map(([, r]) => r),
+].filter((r) => r && typeof r === "object" && r.token).map((r) => r.token);
+
+const srcById = new Map((src.layers ?? []).map((l) => [l.id, l]));
+const inSomeMode = new Set((src.layers ?? [])
+  .flatMap((l) => Object.values(l.colorModes ?? {}).flatMap(modeTokens)));
+/** A generated edge or label appears in EVERY view, so its colour rides along in each. */
+const companionTokens = (src.layers ?? []).flatMap((l) => [
+  ...(l.outline ? [l.outline.color?.token] : []),
+  ...(l.label ? [l.label.color?.token, l.label.halo?.token] : []),
+]).filter(Boolean);
+
+const viewSets = (src.views ?? []).map((v) => {
+  const seen = new Set(companionTokens);
+  for (const [layerId, mode] of Object.entries(v.modes ?? {}))
+    for (const tok of modeTokens(srcById.get(layerId)?.colorModes?.[mode])) seen.add(tok);
+  return seen;
+});
+const together = (a, b) => {
+  const chromeA = !inSomeMode.has(a), chromeB = !inSomeMode.has(b);
+  if (chromeA || chromeB) return true;                 // chrome is on screen in every view
+  return viewSets.some((s) => s.has(a) && s.has(b));
+};
+
 for (const t of themes) {
   const cols = Object.entries(t.values)
     .filter(([, v]) => typeof v === "string" && v.startsWith("#"));
@@ -93,6 +133,7 @@ for (const t of themes) {
     for (let j = i + 1; j < cols.length; j++) {
       const [n1, v1] = cols[i], [n2, v2] = cols[j];
       if (family(n1) === family(n2) && family(n1) === "flow") continue;   // sequential ramp
+      if (!together(n1, n2)) continue;                 // never drawn in the same picture
       const d = deltaE(v1, v2);
       if (d < MIN_DELTA_E)
         err(`theme "${t.name}": ${n1} (${v1}) and ${n2} (${v2}) are ΔE ${d.toFixed(1)} apart ` +
@@ -179,6 +220,23 @@ const layersById = new Map();
 const outLayers = [];
 /** Generated companion line layers: edge layer id -> the polygon layer it outlines. */
 const edges = new Map();
+/** Generated companion symbol layers: label layer id -> the layer it names. */
+const labels = new Map();
+/**
+ * The symbol layers themselves, held back until every geometry layer has been emitted.
+ *
+ * TWO REASONS, and the second is the one that bites. Draw order is array order, so a label
+ * emitted next to its own geometry is painted UNDER every layer after it — the lake sits
+ * eighth and the streams tenth, so lake names would be crossed out by every river drawn
+ * over them. And MapLibre decides symbol COLLISION priority by the same order: whichever
+ * label layer comes first gets the ground, and the later one is dropped where they overlap.
+ * v1 hit exactly this and fixed it the same way (see `fwaLabels` in
+ * archive/webapp/src/map/styles.ts) — water names were losing to park labels.
+ *
+ * So they are appended at the end, ordered by a declared `priority` rather than by where
+ * the layer happens to sit in the source. Lower goes first and therefore wins.
+ */
+const labelLayers = [];
 
 for (const l of src.layers ?? []) {
   const where = `layer "${l.id}"`;
@@ -251,6 +309,7 @@ for (const l of src.layers ?? []) {
     }
   }
   if (l.opacity) tokenValue(l.opacity, `${where} opacity`);
+  if (l.pattern) tokenValue({ token: l.pattern.token }, `${where} pattern colour`);
   if (l.dash) tokenValue(l.dash, `${where} dash`);
   if (l.width) {
     tokenValue(l.width, `${where} width`);
@@ -260,6 +319,9 @@ for (const l of src.layers ?? []) {
     if (l.geometry === "polygon")
       err(`${where}: a polygon has no width. MapLibre fills cannot be stroked; an outline ` +
            `needs a companion line layer over the same source-layer.`);
+    if (l.width.ramp && !l.width.by && l.width.mode !== "zoom")
+      err(`${where}: a width ramp with no "by" must declare mode "zoom" — otherwise it is ` +
+          `a ramp over an attribute that was never named, which reads as null everywhere.`);
   }
   layersById.set(l.id, l);
 
@@ -271,7 +333,17 @@ for (const l of src.layers ?? []) {
     ...(l.maxzoom !== undefined ? { maxzoom: l.maxzoom } : {}),
     layout: { visibility: g?.defaultVisible ? "visible" : "none" },
   };
-  outLayers.push({ id: l.id, type: MAPLIBRE_TYPE[l.geometry], ...geom });
+  /*
+   * A FILTER, when several style layers draw ONE source-layer.
+   *
+   * Land ownership ships as a single tile layer with an `owner` attribute, because it is
+   * one dissolved fabric; but private land and Crown land are different pieces of advice
+   * and a reader wants to see one without the other. Three style layers over one source
+   * layer, each filtered, is how MapLibre expresses that — and it is the only way, since a
+   * colour mode reads FEATURE-STATE and this value is in the tile.
+   */
+  outLayers.push({ id: l.id, type: MAPLIBRE_TYPE[l.geometry], ...geom,
+                   ...(l.filter ? { filter: l.filter } : {}) });
 
   /**
    * A COMPANION LINE LAYER over the same source-layer.
@@ -289,8 +361,114 @@ for (const l of src.layers ?? []) {
     const id = `${l.id}__edge`;
     tokenValue(l.outline.color, `${where} outline colour`);
     if (l.outline.width) tokenValue({ token: l.outline.width.token }, `${where} outline width`);
-    outLayers.push({ id, type: "line", ...geom });
+    if (l.outline.dash) tokenValue(l.outline.dash, `${where} outline dash`);
+    if (l.outline.opacity) tokenValue(l.outline.opacity, `${where} outline opacity`);
+    /*
+     * The edge inherits the fill's filter. Without it the outline is a different SHAPE from
+     * the thing it outlines.
+     *
+     * AND IT MAY START LATER THAN ITS FILL. v1 drew every admin border from z11 and nothing
+     * below, which is the right instinct: zoomed out, a province full of outlined polygons
+     * is a mesh of competing lines and none of them is the answer to anything. The FILL is
+     * what says "an area is here" at a distance — for a closure, a hatch — and the border
+     * only earns its place once you are close enough to care exactly where it runs.
+     * `max` of the two, so an edge can never draw before the fill it belongs to.
+     */
+    const edgeMinzoom = l.outline.minzoom !== undefined
+      ? Math.max(l.outline.minzoom, l.minzoom ?? 0) : l.minzoom;
+    outLayers.push({ id, type: "line", ...geom,
+                     ...(edgeMinzoom !== undefined ? { minzoom: edgeMinzoom } : {}),
+                     ...(l.filter ? { filter: l.filter } : {}) });
     edges.set(id, l);
+  }
+
+  /**
+   * A COMPANION SYMBOL LAYER over the same source-layer — the water's own name.
+   *
+   * v1 drew these (`archive/webapp/src/map/styles.ts`) and losing them is most of why the
+   * new map read as a diagram: a river map whose rivers have no names is a picture of
+   * drainage, not somewhere you can find the Vedder. The names are already in the tile —
+   * `stream.name` and `lake.name` were being shipped and nothing was drawing them.
+   *
+   * Generated rather than authored for the same reason the edge is: it must not drift
+   * from the geometry it names. Same source-layer, same group (so one toggle moves both),
+   * and everything a MapLibre symbol needs is derived here so no adapter has to invent it.
+   *
+   * LAYOUT IS BAKED, PAINT IS NOT. Placement, font, size and the zoom ladder never change
+   * with the theme, so they belong in style.json where they cost nothing to apply. Colour
+   * and halo are themeable and follow the same runtime path as every other paint value.
+   */
+  if (l.label) {
+    const lab = l.label;
+    const id = `${l.id}__label`;
+    const lw = `${where} label`;
+    tokenValue(lab.color, `${lw} colour`);
+    tokenValue(lab.halo, `${lw} halo`);
+    if (!lab.field) err(`${lw}: needs "field" — the tile property holding the name`);
+    if (!["line", "point"].includes(lab.placement))
+      err(`${lw}: placement must be "line" or "point"`);
+    if (lab.sortBy && lab.placement !== "point")
+      err(`${lw}: sortBy orders collision priority between POINT labels; a line label is ` +
+          `placed along its own geometry and has nothing to sort against`);
+    if (lab.showAbove && !lab.sortBy)
+      err(`${lw}: showAbove filters on a magnitude, so it must be the same property ` +
+          `sortBy ranks — otherwise the layer shows one set and prioritises another`);
+
+    const size = ["interpolate", ["linear"], ["zoom"], ...(lab.size ?? []).flat()];
+    /*
+     * THE ZOOM LADDER, as a filter rather than a minzoom.
+     *
+     * `showAbove` says "at this zoom, only things bigger than this". Expressed as
+     * `any(zoom >= showAll, ...steps)` so the big water appears early and everything
+     * arrives together at `showAll`. Without the ladder a z8 tile of the Interior draws
+     * every pothole's name at once and MapLibre drops them by collision, which means WHICH
+     * lakes get named is decided by geometry order — a different set every pan.
+     */
+    const ladder = lab.showAbove
+      ? ["any",
+         [">=", ["zoom"], lab.showAll ?? (lab.minzoom ?? 0)],
+         ...lab.showAbove.map(([z, min]) =>
+           ["all", [">=", ["zoom"], z], [">=", ["get", lab.sortBy], min]])]
+      : null;
+    /*
+     * AND IT INHERITS THE LAYER'S OWN FILTER. `park_closed` and `park` draw the same tile
+     * layer split by `kind`; without this both label layers name EVERY park, so a national
+     * park gets a crimson label and a green one on top of each other, and a provincial park
+     * gets labelled as a closure. A label that does not name the same features as the shape
+     * it belongs to is worse than no label.
+     */
+    const filter = ["all", ["has", lab.field], ["!=", ["get", lab.field], ""],
+                    ...(l.filter ? [l.filter] : []),
+                    ...(ladder ? [ladder] : [])];
+
+    labelLayers.push({
+      $priority: lab.priority ?? 0,
+      id, type: "symbol", ...geom,
+      ...(lab.minzoom !== undefined ? { minzoom: lab.minzoom } : {}),
+      // A label may STOP as well as start. The region number is drawn while the region is
+      // the thing on screen and hands over to the unit numbers at z7; without a maxzoom it
+      // would keep drawing "3" across a valley the reader is looking at unit 3-17 in.
+      ...(lab.maxzoom !== undefined ? { maxzoom: lab.maxzoom } : {}),
+      filter,
+      layout: {
+        ...geom.layout,
+        "symbol-placement": lab.placement,
+        "text-field": ["get", lab.field],
+        "text-font": lab.font ?? ["Noto Sans Regular"],
+        "text-size": size,
+        ...(lab.letterSpacing !== undefined ? { "text-letter-spacing": lab.letterSpacing } : {}),
+        ...(lab.maxWidth !== undefined ? { "text-max-width": lab.maxWidth } : {}),
+        ...(lab.placement === "line"
+          ? { "text-max-angle": lab.maxAngle ?? 25, "symbol-spacing": lab.spacing ?? 300 }
+          : {}),
+        // Negated: MapLibre places the LOWEST sort key first, and first placed wins the
+        // collision. Biggest-first is the only ordering that is stable as you pan.
+        ...(lab.sortBy ? { "symbol-sort-key": ["-", 0, ["get", lab.sortBy]] } : {}),
+        "text-allow-overlap": false,
+        "text-padding": lab.placement === "line" ? 6 : 3,
+      },
+    });
+    labels.set(id, l);
   }
 }
 
@@ -344,6 +522,18 @@ for (const [id, l] of edges) {
   });
   for (const v of src.views ?? []) v.modes[id] = "plain";
 }
+/**
+ * A name is a NAME IN EVERY VIEW. It does not change with the colouring, because it is
+ * not answering the question the colouring answers — the Vedder is the Vedder whether it
+ * is drawn open, closed or by percentile. One static mode, present in every view.
+ */
+for (const [id, l] of labels) {
+  layersById.set(id, {
+    ...l, id, geometry: "symbol",
+    colorModes: { plain: { label: `${l.id} label`, scale: "static", color: l.label.color } },
+  });
+  for (const v of src.views ?? []) v.modes[id] = "plain";
+}
 
 for (const v of src.views ?? [])
   for (const [layerId, mode] of Object.entries(v.modes ?? {})) {
@@ -356,6 +546,10 @@ if (errs.length) {
   console.error("✗ map style source is invalid:\n  " + errs.join("\n  "));
   process.exit(1);
 }
+
+// Labels last, and among themselves in priority order. See `labelLayers`.
+labelLayers.sort((a, b) => a.$priority - b.$priority);
+for (const l of labelLayers) { const { $priority, ...rest } = l; outLayers.push(rest); }
 
 const style = {
   $comment: "GENERATED by tools/build-style.mjs. Do not hand-edit.",
@@ -371,12 +565,15 @@ const meta = {
     ...(src.layers ?? []).map((l) => [l.id, l.group]),
     // an edge belongs to the group of the fill it outlines, so one toggle moves both
     ...[...edges].map(([id, l]) => [id, l.group]),
+    // and a name belongs to the water it names, for exactly the same reason
+    ...[...labels].map(([id, l]) => [id, l.group]),
   ]),
   highlightable: (src.layers ?? []).filter((l) => l.highlightable)
     .map((l) => ({ id: l.id, featureIdProperty: l.featureIdProperty })),
   colorModes: Object.fromEntries([
     ...(src.layers ?? []).map((l) => [l.id, l.colorModes]),
     ...[...edges].map(([id]) => [id, layersById.get(id).colorModes]),
+    ...[...labels].map(([id]) => [id, layersById.get(id).colorModes]),
   ]),
   // WHICH PROPERTY carries the feature id, per layer. The style knew a property had been
   // named; nothing knew which one, so nothing could tell MapLibre to promote it.
@@ -385,9 +582,9 @@ const meta = {
     .map((l) => [l.id, l.featureIdProperty])),
   widths: Object.fromEntries([
     ...(src.layers ?? []).filter((l) => l.width)
-      .map((l) => [l.id, l.width.by
-        ? { token: l.width.token, by: l.width.by, mode: l.width.mode ?? "linear",
-            ramp: l.width.ramp }
+      .map((l) => [l.id, (l.width.by || l.width.mode === "zoom")
+        ? { token: l.width.token, ...(l.width.by ? { by: l.width.by } : {}),
+            mode: l.width.mode ?? "linear", ramp: l.width.ramp }
         : l.width.token]),
     ...[...edges].filter(([, l]) => l.outline.width)
       .map(([id, l]) => [id, l.outline.width.by
@@ -404,8 +601,42 @@ const meta = {
   // A dash pattern. The under-lake layer's comment said "drawn dotted" for months while
   // the style had no way to express a dash, so it drew solid — and 303,932 solid routes
   // over every lake in the province is a spider web.
-  dashes: Object.fromEntries((src.layers ?? []).filter((l) => l.dash)
-    .map((l) => [l.id, l.dash.token])),
+  dashes: Object.fromEntries([
+    ...(src.layers ?? []).filter((l) => l.dash).map((l) => [l.id, l.dash.token]),
+    // AND THE GENERATED EDGES. A dash declared on an outline is a dash on a companion LINE
+    // layer, which is the only kind that can carry one — the fill it belongs to is a fill.
+    // Declared and then dropped, the management-unit boundary drew solid and read as a
+    // river, which is the exact failure the under-lake route already had once.
+    ...[...edges].filter(([, l]) => l.outline.dash)
+      .map(([id, l]) => [id, l.outline.dash.token]),
+  ]),
+  // A BORDER THAT IS NOT A HARD EDGE. v1 drew every admin boundary at 0.35, and at full
+  // strength ours cut across the water it surrounds — a crisp line reads as a feature of
+  // the ground rather than as an annotation on it.
+  edgeOpacities: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity)
+    .map(([id, l]) => [id, l.outline.opacity.token])),
+  // A label's HALO — the only paint property no other layer type has. Text colour rides
+  // the ordinary colorModes rail; the halo needs its own entry or a name is legible on
+  // open ground and invisible the moment it crosses a road.
+  labelHalos: Object.fromEntries([...labels].map(([id, l]) =>
+    [id, { color: l.label.halo.token, width: l.label.haloWidth ?? 1.2 }])),
+  /*
+   * A FILL PATTERN, by layer. The token names the COLOUR the pattern is woven from, not
+   * an image: the image is generated at runtime from the resolved theme (src/hatch.ts),
+   * the same way the gauge pill is, because a sprite sheet belongs to the basemap.
+   *
+   * It applies to STATIC colourings only, and that rule lives in paintFor. A pattern
+   * overrides fill-color outright in MapLibre, so a patterned closure view would draw
+   * "open" and "closed" as the same weave.
+   */
+  patterns: Object.fromEntries((src.layers ?? []).filter((l) => l.pattern)
+    .map((l) => [l.id, { token: l.pattern.token,
+                         ground: l.pattern.ground ?? 0.45,
+                         stripe: l.pattern.stripe ?? 0.70,
+                         darken: l.pattern.darken ?? 0.35,
+                         spacing: l.pattern.spacing ?? 4,
+                         weight: l.pattern.weight ?? 1.2,
+                         cross: l.pattern.cross === true }])),
   themes: Object.fromEntries(themes.map((t) => [t.name, t.values])),
   tokens, enums,
 };

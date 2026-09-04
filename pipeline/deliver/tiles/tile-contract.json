@@ -5,7 +5,6 @@
       "geometry": "line",
       "attrs": [
         "section_id",
-        "item",
         "name",
         "alt",
         "ord",
@@ -13,6 +12,7 @@
         "areas"
       ],
       "featureId": "section_id",
+      "decorative": false,
       "minzoom": 4,
       "maxzoom": 14,
       "ladder": "magnitude"
@@ -21,7 +21,6 @@
       "geometry": "polygon",
       "attrs": [
         "section_id",
-        "item",
         "name",
         "alt",
         "area_m2",
@@ -29,18 +28,16 @@
         "areas"
       ],
       "featureId": "section_id",
+      "decorative": false,
       "minzoom": 4,
       "maxzoom": 14,
       "ladder": "area"
     },
     "under_lake": {
       "geometry": "line",
-      "attrs": [
-        "section_id",
-        "item",
-        "name"
-      ],
-      "featureId": "section_id",
+      "attrs": [],
+      "featureId": null,
+      "decorative": true,
       "minzoom": 10,
       "maxzoom": 14,
       "ladder": "area"
@@ -49,11 +46,10 @@
       "geometry": "polygon",
       "attrs": [
         "section_id",
-        "item",
-        "name",
-        "area_m2"
+        "name"
       ],
       "featureId": "section_id",
+      "decorative": false,
       "minzoom": 9,
       "maxzoom": 14,
       "ladder": "area"
@@ -66,6 +62,7 @@
         "index"
       ],
       "featureId": "item",
+      "decorative": false,
       "minzoom": 11,
       "maxzoom": 14,
       "ladder": "contour"
@@ -78,6 +75,7 @@
         "kind"
       ],
       "featureId": "area_id",
+      "decorative": false,
       "minzoom": 6,
       "maxzoom": 14,
       "ladder": "area"
@@ -89,6 +87,7 @@
         "name"
       ],
       "featureId": "area_id",
+      "decorative": false,
       "minzoom": 7,
       "maxzoom": 14,
       "ladder": "area"
@@ -100,6 +99,7 @@
         "name"
       ],
       "featureId": "area_id",
+      "decorative": false,
       "minzoom": 7,
       "maxzoom": 14,
       "ladder": "area"
@@ -113,6 +113,7 @@
         "group"
       ],
       "featureId": "area_id",
+      "decorative": false,
       "minzoom": 8,
       "maxzoom": 14,
       "ladder": "area"
@@ -121,9 +122,11 @@
       "geometry": "polygon",
       "attrs": [
         "area_id",
-        "name"
+        "name",
+        "kind"
       ],
       "featureId": "area_id",
+      "decorative": false,
       "minzoom": 9,
       "maxzoom": 14,
       "ladder": "area"
@@ -135,9 +138,31 @@
         "name"
       ],
       "featureId": "area_id",
+      "decorative": false,
       "minzoom": 5,
       "maxzoom": 14,
       "ladder": "area"
+    },
+    "parcel": {
+      "geometry": "polygon",
+      "attrs": [],
+      "featureId": null,
+      "decorative": true,
+      "minzoom": 12,
+      "maxzoom": 14,
+      "ladder": "none"
+    },
+    "region": {
+      "geometry": "polygon",
+      "attrs": [
+        "region_id",
+        "name"
+      ],
+      "featureId": "region_id",
+      "decorative": false,
+      "minzoom": 4,
+      "maxzoom": 11,
+      "ladder": "none"
     },
     "mu": {
       "geometry": "polygon",
@@ -145,7 +170,8 @@
         "mu_id"
       ],
       "featureId": "mu_id",
-      "minzoom": 4,
+      "decorative": false,
+      "minzoom": 7,
       "maxzoom": 14,
       "ladder": "none"
     }

@@ -8,6 +8,7 @@ appears, and in both cases the map looks fine and answers wrong.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from pipeline.deliver.tiles import ladder
@@ -126,7 +127,17 @@ def test_the_regulated_areas_the_synopsis_names_all_exist():
 def test_no_layer_ships_an_attribute_nothing_declares():
     """layers.py is the whole property list; a tile cannot grow a field nobody decided on."""
     for spec in ALL:
-        assert spec.attrs, f"{spec.name} declares no attributes"
+        if spec.decorative:
+            # Decorative means no IDENTITY, not no attributes: the route through a lake
+            # still carries the order that sets its width. What it may not carry is
+            # anything that names it — an id, a registry item, a name to search for.
+            identity = {"section_id", "area_id", "mu_id", "item", "name", "alt"}
+            assert not (set(spec.attrs) & identity), (
+                f"{spec.name} is decorative but ships "
+                f"{sorted(set(spec.attrs) & identity)} — nothing can select it, so a "
+                f"promoted id would give every feature `id: undefined`")
+        else:
+            assert spec.attrs, f"{spec.name} declares no attributes"
         assert len(set(spec.attrs)) == len(spec.attrs), f"{spec.name} repeats an attribute"
 
 
@@ -192,13 +203,47 @@ def test_simplification_keeps_the_network_stitched():
     assert "--no-feature-limit" in src and "--no-tile-size-limit" in src
 
 
+def test_the_top_zoom_is_simplified_because_the_camera_cannot_go_past_it():
+    """The archive's maximum zoom is simplified like every other zoom, and that is only
+    safe while the app refuses to zoom past it.
+
+    Tippecanoe holds its top zoom at near-full detail by default because the top zoom is
+    normally OVERZOOMED — magnified 2x, 4x, 8x beyond the last tile built, where a tolerance
+    that is invisible at 1:1 becomes visible corner-cutting. We build z14 and the camera
+    stops at z14, so that never happens, and the tolerance is worth about 139 MiB.
+
+    The day someone raises MAX_ZOOM, this stops being free. That is why the two numbers are
+    checked against each other here rather than left to agree by luck.
+    """
+    from pipeline.deliver.tiles import tippe
+    src = (ROOT / "pipeline/deliver/tiles/tippe.py").read_text()
+    assert "simplify_at_max=1" not in src and ", 1, verbose" not in src, (
+        "a band is still passing tippecanoe's near-nothing tolerance at its maximum zoom")
+
+    ladder = (ROOT / "app/packages/core/src/ladder.ts").read_text()
+    m = re.search(r"export const MAX_ZOOM = (\d+)", ladder)
+    assert m, "app ladder no longer declares MAX_ZOOM"
+    camera_max = int(m.group(1))
+    tile_max = max(spec.maxzoom for spec in ALL)
+    assert camera_max == tile_max, (
+        f"the app can zoom to z{camera_max} but the atlas stops at z{tile_max}. Past the "
+        f"last tile MapLibre magnifies z{tile_max} geometry, and it is simplified at "
+        f"{tippe.SIMPLIFICATION} units — about {tippe.SIMPLIFICATION / 4096 * 512:.2f} px "
+        f"at 1:1 and {tippe.SIMPLIFICATION / 4096 * 512 * 2 ** (camera_max - tile_max):.2f} "
+        f"px there. Either lower MAX_ZOOM, build another zoom, or give the top zoom a "
+        f"tighter tolerance of its own.")
+
+
 def test_under_lake_route_is_its_own_layer():
     """A lake node's sidecar geometry is the route THROUGH the lake, not the lake. It has to
     be drawn or a chain of lakes stops reading as one river — and it has to be a separate
     layer, or it gets styled and tapped as though it were fishable open water."""
     spec = BY_NAME["under_lake"]
     assert spec.geometry == "line"
-    assert "mus" not in spec.attrs, "the route is not water anyone regulates"
+    # ITS WIDTH AND NOTHING ELSE. A person tapping the dotted thread through a lake means
+    # the lake, so the route needs no id, no name and no membership — but it IS the same
+    # river continuing, so it keeps the Strahler order that draws it at the river's weight.
+    assert spec.decorative and spec.attrs == ("ord",)
     src = (ROOT / "pipeline/deliver/tiles/export.py").read_text()
     assert 'ul_write' in src
 

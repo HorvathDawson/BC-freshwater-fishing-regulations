@@ -58,7 +58,7 @@ class LeafPruneRule:
     #: Stop peeling once a section drains more than this many headwaters.
     max_magnitude: int = 3
     #: Only peel sections at least this many junctions above the nearest named water.
-    min_hops: int = 5
+    min_hops: int = 3
     #: Never peel a section longer than this. `None` for no limit.
     max_length_m: float | None = None
     #: WSC codes starting with any of these are tidal. `()` disables the exemption.
@@ -201,12 +201,31 @@ def prune_leaves(graph: StreamGraph, rule: LeafPruneRule | None,
 #: MEASURED on the province at these settings, before the tidal exemption:
 #:
 #:     max_mag  min_hops   sections       km   share of stream vertices
+#:           3         3    ~572,000      ---   ~20.0%   <- this
 #:           1         3    514,714  314,563   18.0%
 #:           3         4    343,763  243,989   13.3%
-#:           3         5    233,564  172,640    9.2%   <- this
+#:           3         5    233,564  172,640    9.2%
 #:           5         6    188,258  148,599    7.9%
 #:
 #: The tidal exemption then puts 44,161 of those back: a third of the candidates are in a
 #: 9xx drainage, and their median length is 555 m against 396 m for unnamed leaves overall.
-DEFAULT_RULE = LeafPruneRule(max_magnitude=3, min_hops=5, max_length_m=None,
+#:
+#: HOW THE SETTING MOVED, and what each step cost. Five was a fixpoint — rerunning it
+#: found 584 more sections, which is nothing. Four found 103,129 more (4.0% of stream
+#: vertices) at a cost measured against the rule extents the rebuilt graph produces: 475
+#: rules lost SOME water, exactly one lost more than a quarter, none lost all. Three finds
+#: 338,432 more again, and 45 rules pass the quarter mark.
+#:
+#: THREE IS A DELIBERATE CHOICE, not a discovered safe point. A rule losing a quarter of
+#: its extent here is losing unnamed capillaries three junctions above the nearest named
+#: water — headwater trickle that "and its tributaries" swept up because the sweep does
+#: not know where a person can stand. The extent gets smaller; the water anybody fishes
+#: does not. What must never happen is a rule losing EVERYTHING, and none does at any
+#: setting on this ladder, because a named water is never removable and every rule is
+#: anchored to one.
+#:
+#: Magnitude barely matters at this depth: at 4 hops, max_magnitude 3/5/8 removes
+#: 103k/108k/110k. The hop count is doing all the work, which is what you would expect —
+#: distance from a named water is the thing a person can actually stand next to.
+DEFAULT_RULE = LeafPruneRule(max_magnitude=3, min_hops=3, max_length_m=None,
                              tidal_wsc_prefixes=("9",), tidal_min_length_m=500.0)

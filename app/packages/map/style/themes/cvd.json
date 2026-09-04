@@ -5,7 +5,6 @@
     "color.water.mapped": "#0B6987",
     "color.water.unmapped": "#7F8C99",
     "color.highlight": "#c2187a",
-    "color.parcel.line": "#8a6d3b",
     "color.status.open": "#0B6BB0",
     "color.status.restricted": "#D98C00",
     "color.status.closed": "#B03A00",
@@ -22,7 +21,6 @@
     "color.park.edge": "#7d9c5c",
     "color.reserve.fill": "#e0b48c",
     "color.noaccess.fill": "#d2a2a2",
-    "color.indigenous.edge": "#6B4E71",
     "color.mu.edge": "#8A7A62",
     "color.stock.fresh": "#12873f",
     "color.stock.recent": "#5e9b12",
@@ -32,7 +30,7 @@
     "width.admin.edge": 1.2,
     "opacity.wetland": 0.3,
     "opacity.lake": 0.9,
-    "width.underlake": 0.5,
+    "width.underlake": 1.6,
     "dash.route": [
       1,
       2.5
@@ -51,6 +49,24 @@
     "color.gauge.dot": "#0A1116",
     "color.flow.nobaseline": "#7B4FBF",
     "color.water.ungauged": "#D5D5D5",
-    "color.mask": "#505950"
+    "color.mask": "#505950",
+    "opacity.route": 0.35,
+    "color.label.water": "#123C63",
+    "color.parcel.private": "#6E5140",
+    "opacity.parcel": 0.22,
+    "width.parcel.edge": 1.5,
+    "color.region.edge": "#8E2F52",
+    "width.region.edge": 2.4,
+    "opacity.admin.fill": 0.04,
+    "dash.mu": [
+      2,
+      3
+    ],
+    "color.indigenous.fill": "#8B5A2B",
+    "opacity.closure": 0.55,
+    "opacity.park": 0.12,
+    "opacity.admin.area": 0.14,
+    "width.closure.edge": 1.6,
+    "opacity.admin.edge": 0.35
   }
 }
