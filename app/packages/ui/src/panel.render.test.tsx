@@ -31,15 +31,28 @@ const idx = (over: Record<string, number | null> = {}) => ({
 });
 
 describe("turning a panel into an answer", () => {
-  it("weights the nearest donor far above the distant ones", () => {
+  it("keeps the three donors within a factor of two of each other", () => {
+    /*
+     * THE POINT OF INVERSE-VARIANCE WEIGHTING, on the row that motivated it.
+     *
+     * These are 2.5x, 24x and 155x from a 1.34 km² reach, with 10, 16 and 76 years of
+     * record. The old `share` weighting made that 0.83 / 0.14 / 0.03 — it threw the
+     * 76-year gauge away on the strength of catchment size alone. The calibration says
+     * those distances cost 11.7, 13.4 and 16.1 percentile points, so they are all worth
+     * hearing and none of them is worth eight times another.
+     *
+     * DISTANCE IS NOT THE ONLY VARIANCE. The 155x gauge slightly outweighs the 2.5x one
+     * here, because it has 76 years against 10 and record length is variance too. That is
+     * the formula working, not a slip: both terms are precision, and both are priced.
+     */
     const { rows } = answerFrom(REAL, idx());
-    // Sorted by weight, and the 3.4 km² gauge — 2.5x away — must lead.
-    expect(rows[0]!.station).toBe("08HA020");
-    // 0.83 / 0.14 / 0.03. The nearest donor does not take everything, because it has only
-    // ten years of record and the record gate halves its weight — a 76-year gauge 155x away
-    // still gets a small say, which is the intended shape.
-    expect(rows[0]!.weight).toBeCloseTo(0.83, 2);
-    expect(rows[rows.length - 1]!.weight).toBeLessThan(0.05);
+    const ws = rows.map((r) => r.weight);
+    expect(Math.max(...ws) / Math.min(...ws)).toBeLessThan(2);
+    // A FLAT spread, and that is the measurement rather than a slackening. The old `share`
+    // weighting made this 0.83 / 0.14 / 0.03 by assuming a 155x donor is 1/155th as good;
+    // the calibration says it is out by 18.5 points against 11.7, which is about half as
+    // good. Nothing is thrown away any more.
+    expect(rows[rows.length - 1]!.weight).toBeGreaterThan(0.2);
   });
 
   it("does not let a near-weightless donor set the label", () => {
@@ -55,8 +68,10 @@ describe("turning a panel into an answer", () => {
     expect(without.answer.ok).toBe(true);
     if (!without.answer.ok) return;
     expect(without.answer.value.trust).toBe("near");
-    expect(without.answer.value.plusMinus)
-      .toBeCloseTo(answer.value.plusMinus, 0);
+    // It tightens by about a point and a half — the distant donor was widening the honest
+    // interval, which is exactly what it should do now that it is actually counted.
+    expect(Math.abs(without.answer.value.plusMinus - answer.value.plusMinus))
+      .toBeLessThan(2);
   });
 
   it("keeps a quiet station in the table, with no vote", () => {
@@ -72,12 +87,21 @@ describe("turning a panel into an answer", () => {
     expect(answer.ok).toBe(true);                     // 0.83 of the weight is untouched
   });
 
-  it("refuses when the only representative donor goes quiet", () => {
-    // Silencing the 3.4 km2 gauge leaves 24x and 155x, together worth 0.04 of a weight —
-    // under MIN_TOTAL_WEIGHT. Two distant gauges reporting is not the same as coverage,
-    // and this is the case where saying nothing is the honest answer.
+  it("still answers from the distant pair when the nearest donor goes quiet", () => {
+    /*
+     * THIS USED TO REFUSE, and refusing was the bug. Under the old `share` weighting the
+     * 24x and 155x gauges were worth 0.04 together — below MIN_TOTAL_WEIGHT — so the
+     * answer vanished the moment the nearest gauge fell silent. Measured province-wide,
+     * that arithmetic left 244,719 of 249,237 sections holding a panel and saying nothing.
+     *
+     * They are out by 15.5 and 18.5 points against a best case of 11.7. That is a wide
+     * answer, not an absent one, and the interval says so.
+     */
     const { answer, rows } = answerFrom(REAL, idx({ "08HA020": null }));
-    expect(answer).toMatchObject({ ok: false, why: "too-uncertain" });
+    expect(answer.ok).toBe(true);
+    // Wider than the best case of 11.7 by a clear margin, because the two that remain are
+    // 24x and 155x away — a wide answer, not an absent one.
+    if (answer.ok) expect(answer.value.plusMinus).toBeGreaterThan(13.5);
     expect(rows.length).toBe(3);                      // and the reader still sees why
   });
 

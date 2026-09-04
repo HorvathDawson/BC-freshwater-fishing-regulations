@@ -121,8 +121,11 @@ describe("combining a panel", () => {
                                     near(0.3, { areaKm2: 207 })]);
     expect(alone.ok && withFar.ok).toBe(true);
     if (alone.ok && withFar.ok) {
-      // it may loosen a little — it must not fall off a cliff
-      expect(withFar.value.plusMinus - alone.value.plusMinus).toBeLessThan(1);
+      // IT MAY LOOSEN A LITTLE — it must not fall off a cliff. About a point and a half
+      // now, and more than it used to be: under the old `share` weighting a far donor was
+      // valued near zero and so could barely move the interval either. Counting it
+      // properly means it widens the honest answer properly.
+      expect(withFar.value.plusMinus - alone.value.plusMinus).toBeLessThan(2.5);
     }
   });
 

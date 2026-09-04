@@ -178,11 +178,75 @@ class Donor:
         return (self.station, self.role, round(self.share, 4), round(self.weight, 4))
 
 
+#: The error of the best donor there is, in percentile points — the top row of the ladder.
+#: Weights are expressed against it, so a donor of identical catchment weighs 1.
+BEST_ERROR = ERROR_BY_RATIO[0][2]
+
+
+def error_for(area_ratio: float) -> float:
+    """The donor's error in percentile points, INTERPOLATED between the measured rows.
+
+    `trust_of` returns the row a ratio falls in, which is what a LABEL needs: "close" is a
+    word and a word cannot be interpolated. A WEIGHT needs the number, and taking the row's
+    number makes the ladder a step function — every donor between 1x and 10x weighs exactly
+    the same, so a gauge on nearly the same catchment counts no more than one draining six
+    times as much. Measured on the Harrison: a 4,313 km2 donor for a 4,584 km2 reach tied
+    with a 795 km2 one, and the tie was an artefact of the bins rather than of the data.
+
+    The measurement is five points on a log axis, so this is linear in log10(ratio) between
+    them: 11.7 at 10x, 15.5 at 100x, 18.5 at 1,000x, 20.6 at 10,000x, 22.3 beyond. Below
+    10x it is flat at 11.7, because that is the best the method was ever measured to do and
+    pretending otherwise would invent precision the calibration does not support.
+    """
+    r = area_ratio if area_ratio and area_ratio >= 1.0 else 1.0
+    lo_limit, _lo_name, lo_err = ERROR_BY_RATIO[0]
+    if r <= lo_limit:
+        return lo_err
+    prev_limit, prev_err = float(lo_limit), lo_err
+    for limit, _name, err in ERROR_BY_RATIO[1:]:
+        if not math.isfinite(limit):
+            return err
+        if r <= limit:
+            f = ((math.log10(r) - math.log10(prev_limit))
+                 / (math.log10(limit) - math.log10(prev_limit)))
+            return prev_err + (err - prev_err) * f
+        prev_limit, prev_err = float(limit), err
+    return ERROR_BY_RATIO[-1][2]
+
+
 def weight_of(share: float, role: str, years: int) -> float:
-    """`share^alpha * direction * record`. See the module docstring for each term."""
+    """`(best error / this donor's error)^2 * direction * record` — inverse variance.
+
+    IT WAS `share`, AND `share` CONTRADICTS THE MEASUREMENT.
+
+    Using the catchment overlap as the weight assumes the error grows in proportion to the
+    size difference: a donor ten times bigger is a tenth as good, a hundred times bigger a
+    hundredth. The 9,495-pair calibration says otherwise — the error goes 11.7, 15.5, 18.5,
+    20.6, 22.3 points across FOUR ORDERS OF MAGNITUDE of size difference. A 1,000x donor is
+    not a thousandth as informative; it is about half as informative.
+
+    The two disagreements compounded into a visible failure. `MAX_AREA_RATIO` was widened to
+    1,000 on the strength of that calibration, so panels were built from donors the weighting
+    then valued at 0.001 — below `MIN_TOTAL_WEIGHT` on their own and usually together. The
+    result: 244,719 of 249,237 sections had a panel and said nothing, and the map drew the
+    "no baseline" purple across most of the province while a tap on the same water answered
+    perfectly well.
+
+    Inverse variance is also simply the right combiner for what this does. Averaging
+    estimates of differing precision, the weight that minimises the variance of the result is
+    1/sigma^2, and sigma is exactly what `trust_of` returns. Squaring the ratio of errors
+    keeps a perfect donor at 1 and puts the most distant at 0.28 — the spread the measurement
+    actually found, rather than the thousandfold spread the old formula invented.
+
+    `direction` and `record` stay multiplicative: one is a fact about where the donor sits,
+    the other about how well its own percentile is pinned, and neither is captured by the
+    area ratio.
+    """
     rec = min(1.0, max(0.0, years / RECORD_FULL_YEARS))
     direction = 1.0 if role == "up" else DOWNSTREAM_PENALTY
-    return (share ** SHARE_ALPHA) * direction * rec
+    if share <= 0.0:
+        return 0.0
+    return ((BEST_ERROR / error_for(1.0 / share)) ** 2) * direction * rec
 
 
 def eligible(area_target: float | None, area_donor: float | None,

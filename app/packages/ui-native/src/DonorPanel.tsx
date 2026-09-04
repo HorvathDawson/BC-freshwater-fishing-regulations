@@ -85,7 +85,13 @@ function share(r: { weight: number; percentile: number | null }): string {
  * used, so this can restate the arithmetic without being able to disagree with it.
  */
 function because(r: DonorRow): string {
-  const bits = [`its watershed overlaps this one by ${Math.round(r.factors.share * 100)}%`];
+  // The factor is "how informative, against the best possible donor", which is not the
+  // overlap — see `weightFactors`. Said as a comparison, because a bare percentage of an
+  // abstract quantity is not something a reader can check against anything.
+  const bits = [r.factors.share >= 0.99
+    ? "it drains almost exactly the same country"
+    : `it is ${Math.round(r.factors.share * 100)}% as informative as a gauge on this very `
+      + "water"];
   if (r.factors.role < 1) bits.push("it sits downstream, so it carries extra water");
   if (r.factors.record < 1)
     // THE RECORD IS THE THING A READER CANNOT GUESS. A percentile from six years is not
@@ -210,11 +216,14 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
     // Measured on the ROOT, which renders on the first pass — so the width is known before
     // the map mounts and the map never has to remount to be framed correctly.
     <View style={{ paddingVertical: 14 }} onLayout={onLayout}>
-      <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                     color: palette.faint }}>
-        {horizon === 0 ? "ESTIMATE FOR THIS SPOT"
-                       : `FORECAST FOR THIS SPOT · ${horizon} DAY`
-                         + (horizon === 1 ? "" : "S") + " AHEAD"}
+      {/* ONE LINE, ALWAYS. "FORECAST FOR THIS SPOT · 3 DAYS AHEAD" wraps where "ESTIMATE
+          FOR THIS SPOT" does not, so the whole panel jumped a line every time the horizon
+          changed — and the horizon chips are right below it, so the thing a reader had
+          just tapped moved under their finger. The word carries the difference; the length
+          does not have to. */}
+      <Text numberOfLines={1} style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
+                                       color: palette.faint }}>
+        {horizon === 0 ? "ESTIMATE FOR THIS SPOT" : `FORECAST · ${horizon} DAYS AHEAD`}
       </Text>
       {/*
         THE PLAIN SENTENCE COMES FIRST, and the percentile second.
@@ -226,8 +235,12 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
         down, for a reader who wants it. Nothing was removed and nothing was rounded — the
         same numbers are saying the same thing in the order a person reads them.
       */}
+      {/* TWO LINES' WORTH OF ROOM, whatever it says. "Very low for the time of year by
+          then" is two lines and "About normal for the time of year" is one, so the panel
+          below shifted as the reader moved between horizons. Reserving the space costs a
+          few pixels on the short strings and keeps everything under them still. */}
       <Text style={{ ...TYPE.name, fontSize: 22, color: palette.ink, marginTop: 3,
-                     lineHeight: 27 }}>
+                     lineHeight: 27, minHeight: 54 }}>
         {plainStanding(standing(e.percentile))}
         {horizon > 0 ? (
           <Text style={{ color: palette.sub }}>{" "}by then</Text>
@@ -292,6 +305,17 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
                         + `${camera.zoom.toFixed(1)}`}
                    at={at} palette={palette} theme={theme} camera={camera} height={MAP_H}
                    bare view="conditions" highlight={chain} data={data}
+                   /*
+                    * WATER ONLY. This map has one job — show where the gauges are and how
+                    * the water between here and them is running — and at 210 px every
+                    * other layer is competing for the same pixels. The management-unit
+                    * boundaries in particular are a dark web across the whole province
+                    * with a numeral in every cell, which reads as the subject of the map
+                    * rather than as context. They are still on the big map, where there is
+                    * room for them and a reason to want them.
+                    */
+                   groups={{ water: true, admin: false, protected: false, access: false,
+                             ownership: false, depth: false }}
                    pins={[
                      ...(showFrom ? [{ lat: from!.lat, lon: from!.lon, tone: palette.accent,
                                        title: "you are here" }] : []),

@@ -301,7 +301,7 @@ export function usePanel(
   source: RegsSource,
   feed: { index(): Promise<Index> } | undefined,
   section: SectionId | null,
-  quantity: "discharge" | "level" = "discharge",
+  quantity: Quantity = "discharge",
   horizon: Horizon = 0,
 ): PanelAnswer {
   const got = useAsync(

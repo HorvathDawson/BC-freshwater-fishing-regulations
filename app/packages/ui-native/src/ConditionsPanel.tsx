@@ -89,10 +89,18 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * on purpose, because the trace is how a reader checks the panel's claim about direction
    * and distance against the map.
    */
+  /*
+   * THE SAME QUANTITY THE MAP IS PAINTING — including "both".
+   *
+   * This asked for "discharge" whenever the map was on "both", so a reach the map coloured
+   * from its station's own level was answered here from a discharge it may not have. One
+   * arithmetic, two questions, and the reader sees a colour and a number that disagree.
+   * `parameter` is undefined exactly when the caller is on "both", and "both" is a real
+   * value of this argument now.
+   */
   const panel = usePanelRoutes(
     source, section,
-    usePanel(source, feed, section, parameter === "level" ? "level" : "discharge",
-             horizon));
+    usePanel(source, feed, section, parameter ?? "both", horizon));
   /*
    * THE WATER BETWEEN HERE AND EACH GAUGE, COLOURED BY WHAT IT IS DOING.
    *

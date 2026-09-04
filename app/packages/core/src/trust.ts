@@ -45,13 +45,46 @@ export interface Trust {
   plusMinus: number;
 }
 
-/** The class and error bars for a donor this far from the target in catchment size. */
+/**
+ * The donor's error in percentile points, INTERPOLATED between the measured rows.
+ *
+ * MIRRORS `error_for` in panel.py. The rows are five points on a log axis, so this is
+ * linear in log10(ratio) between them. Taking the row's number instead makes the ladder a
+ * step function, and every donor inside one band then weighs exactly the same.
+ *
+ * Below 10x it is FLAT at 11.7 — the best the method was ever measured to do. Two donors
+ * closer than that are genuinely indistinguishable to this arithmetic, and inventing an
+ * ordering between them would be precision the calibration does not support.
+ */
+export function errorFor(areaRatio: number): number {
+  const r = Number.isFinite(areaRatio) && areaRatio >= 1 ? areaRatio : Infinity;
+  const [loLimit, , loErr] = ERROR_BY_RATIO[0]!;
+  if (r <= loLimit) return loErr;
+  let prevLimit = loLimit, prevErr = loErr;
+  for (const [limit, , err] of ERROR_BY_RATIO.slice(1)) {
+    if (!Number.isFinite(limit)) return err;
+    if (r <= limit) {
+      const f = (Math.log10(r) - Math.log10(prevLimit))
+              / (Math.log10(limit) - Math.log10(prevLimit));
+      return prevErr + (err - prevErr) * f;
+    }
+    prevLimit = limit; prevErr = err;
+  }
+  return ERROR_BY_RATIO[ERROR_BY_RATIO.length - 1]![2];
+}
+
+/**
+ * The class and error bars for a donor this far from the target in catchment size.
+ *
+ * The CLASS is the row the ratio falls in — a word, and a word cannot be interpolated. The
+ * error bars are `errorFor`, which can be and is.
+ */
 export function trustFor(areaRatio: number): Trust {
   const r = Number.isFinite(areaRatio) && areaRatio >= 1 ? areaRatio : Infinity;
-  for (const [limit, klass, plusMinus] of ERROR_BY_RATIO)
-    if (r <= limit) return { klass, plusMinus };
+  for (const [limit, klass] of ERROR_BY_RATIO)
+    if (r <= limit) return { klass, plusMinus: errorFor(r) };
   const last = ERROR_BY_RATIO[ERROR_BY_RATIO.length - 1]!;
-  return { klass: last[1], plusMinus: last[2] };
+  return { klass: last[1], plusMinus: errorFor(r) };
 }
 
 /**
@@ -124,7 +157,14 @@ const MIN_TOTAL_WEIGHT = 0.05;
  * is this multiplied out, and nothing else may reimplement either.
  */
 export interface WeightFactors {
-  /** Catchment overlap: the smaller area over the larger, 0–1. Dominates the product. */
+  /**
+   * How informative this donor is, against the best possible one — `(11.7 / its error)²`.
+   *
+   * NOT the catchment overlap, which is what it used to be and what the name still suggests
+   * from a distance. The overlap is the INPUT (it gives the area ratio); this is what the
+   * measured error ladder makes of it. A donor of identical size is 1; the most distant one
+   * admitted is 0.28.
+   */
   share: number;
   /** 1 upstream, `DOWNSTREAM_PENALTY` below — a gauge below you has extra water in it. */
   role: number;
@@ -132,10 +172,19 @@ export interface WeightFactors {
   record: number;
 }
 
+/** The error of the best donor there is. Weights are expressed against it. */
+const BEST_ERROR = ERROR_BY_RATIO[0]![2];
+
 export function weightFactors(share: number, role: "up" | "down",
                               years: number): WeightFactors {
   return {
-    share,
+    // INVERSE VARIANCE, not the catchment overlap — see `weight_of` in panel.py for the
+    // whole argument. In short: `share` assumes the error grows in proportion to the size
+    // difference, and the 9,495-pair calibration says it goes 11.7 -> 22.3 points across
+    // four orders of magnitude. A 1,000x donor is about half as informative, not a
+    // thousandth, and treating it as a thousandth is what left 244,719 of 249,237 sections
+    // holding a panel that said nothing.
+    share: share > 0 ? (BEST_ERROR / errorFor(1 / share)) ** 2 : 0,
     role: role === "up" ? 1 : DOWNSTREAM_PENALTY,
     record: Math.min(1, Math.max(0, years / RECORD_FULL_YEARS)),
   };

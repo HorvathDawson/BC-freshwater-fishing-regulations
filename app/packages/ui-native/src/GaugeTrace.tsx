@@ -76,6 +76,10 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
                  // highlighted chain is the only thing with colour in it. Under "plain"
                  // every river was the same blue and the route did not stand out.
                  view="conditions" highlight={trace.path}
+                 // Water only — see DonorPanel. At 190 px every other layer competes for
+                 // the pixels this map exists to spend on the route.
+                 groups={{ water: true, admin: false, protected: false, access: false,
+                           ownership: false, depth: false }}
                  pins={[
                    // TWO ENDS, TWO COLOURS, and each says which it is when tapped. One
                    // marker on a route map is worse than none: the reader cannot tell

@@ -121,7 +121,7 @@ describe("the donor panel", () => {
     render(<DonorPanel palette={LIGHT} value={{ ...v, rows: [
       row("08MH001", { factors: { share: 0.42, role: 0.85, record: 0.5 }, years: 10 }),
     ] }} />);
-    expect(screen.getByText(/its watershed overlaps this one by 42%/)).toBeTruthy();
+    expect(screen.getByText(/42% as informative as a gauge on this very water/)).toBeTruthy();
     expect(screen.getByText(/it sits downstream, so it carries extra water/)).toBeTruthy();
     expect(screen.getByText(/only 10 years of record, so it counts 50%/)).toBeTruthy();
   });
