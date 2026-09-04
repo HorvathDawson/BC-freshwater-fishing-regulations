@@ -328,7 +328,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                             // two cannot answer differently.
                             onRegulations={(sec) => { setCondSection(null);
                                                       void onPressFeature("stream", sec); }}
-                            onBack={() => setCondSection(null)} />
+                            onBack={() => setCondSection(null)} feed={feed} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
                      camera={camera.current}

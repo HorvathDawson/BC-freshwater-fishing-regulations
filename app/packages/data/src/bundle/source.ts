@@ -15,7 +15,7 @@ import { bandAt, evaluate, type Band, type PlainDate, type Rule,
 import { forecastFor, type Observations } from "../feed/http";
 import type {
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
-  PanelMember, PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series,
+  Panel, PanelMember, PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series,
   StationId,
 } from "../index";
 import * as Q from "./queries";
@@ -223,22 +223,26 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     },
 
     async panelsFor(sections) {
-      const out = new Map<SectionId, PanelMember[]>();
+      const out = new Map<SectionId, Panel>();
       if (!sections.length) return out;
       for (let i = 0; i < sections.length; i += 500) {
         const chunk = sections.slice(i, i + 500);
         for (const r of await db.all(Q.panelsForSections(chunk.length), ...chunk)) {
           const sec = str(r.section_id) as SectionId;
-          let list = out.get(sec);
-          if (!list) out.set(sec, (list = []));
-          // Trusting the ORDER BY rather than re-sorting: `ord` is the weight order and
-          // the display order at once, and re-deriving one of them here is how the number
-          // on screen and the row list beneath it start to disagree.
-          list.push({
+          let panel = out.get(sec);
+          if (!panel) {
+            panel = { areaKm2: r.target_area === null ? null : Number(r.target_area),
+                      members: [] };
+            out.set(sec, panel);
+          }
+          // Not sorted here. `ord` is a stable member index and NOT a ranking — the order
+          // depends on weights and weights depend on the target, so the caller sorts by
+          // what it computes. See the Panel doc.
+          (panel.members as PanelMember[]).push({
             station: str(r.station) as StationId,
             role: str(r.role) === "down" ? "down" : "up",
-            weight: Number(r.weight),
-            areaRatio: Number(r.area_ratio),
+            areaKm2: Number(r.donor_area),
+            years: Number(r.years),
           });
         }
       }

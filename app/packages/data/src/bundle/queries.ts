@@ -199,7 +199,8 @@ export const gaugesForSections = (n: number) =>
  * that river's donors once rather than once per reach.
  */
 export const panelsForSections = (n: number) =>
-  `SELECT sp.section_id, pm.ord, pm.station, pm.role, pm.weight, pm.area_ratio
+  `SELECT sp.section_id, sp.area_km2 AS target_area,
+          pm.ord, pm.station, pm.role, pm.area_km2 AS donor_area, pm.years
      FROM section_panel sp JOIN panel_member pm ON pm.panel_id = sp.panel_id
     WHERE sp.section_id IN (${placeholders(n)})
     ORDER BY sp.section_id, pm.ord`;

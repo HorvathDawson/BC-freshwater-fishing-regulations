@@ -91,49 +91,53 @@ CREATE TABLE section_gauge (section_id TEXT PRIMARY KEY, station TEXT NOT NULL,
 -- THE DONOR PANEL ------------------------------------------------------------------
 --
 -- `section_gauge` above answers "which ONE station speaks for this reach". These two answer
--- "which stations speak for it, and how loudly" -- which is the same question asked of a
--- province whose gauge network is far sparser than its stream network.
+-- "which stations speak for it, and how loudly" -- the same question asked of a province
+-- whose gauge network is far sparser than its stream network.
 --
--- A DICTIONARY, because a panel is a property of a stretch of river rather than of a reach:
--- everything between two confluences has the same donors, so the members are stored once
--- and each section holds a pointer. The rules work found the same shape (2.24M rule rows,
--- 1,656 distinct rule sets) and this is the same trick.
+-- THE DICTIONARY STORES THE DONOR SET AND NOTHING DERIVED FROM IT, which is the decision
+-- that makes it small. A weight depends on the TARGET's catchment as well as the donor's,
+-- so baking weights into the panel gives adjacent reaches on one river slightly different
+-- panels and the dictionary stops collapsing. Measured over the province:
 --
--- `panel_id` is INTEGER and not TEXT: it is a dictionary index with no meaning outside this
--- file, it is joined on for every coloured section on screen, and an integer key on a
--- WITHOUT ROWID table is the difference between a pointer and a string compare.
+--     weights baked in    16,127 panels    34,984 member rows    11.8x
+--     donor set only       1,898 panels     4,337 member rows   100.6x
+--
+-- Eight times smaller, and the weights come out EXACT rather than rounded to whatever the
+-- interning key kept. It also means the weighting formula and the error calibration can be
+-- changed in a release rather than a rebuild.
+--
+-- `area_km2` ON THE SECTION is what makes that work: the target's own drainage, so a client
+-- has both halves of every ratio. It is the value at the section's OUTLET; a tap partway up
+-- is refined by `section_profile` (the staircase), which is why this is stored per section
+-- rather than folded into the panel.
 CREATE TABLE section_panel (section_id TEXT PRIMARY KEY,
-                            panel_id INTEGER NOT NULL) WITHOUT ROWID;
+                            panel_id INTEGER NOT NULL,
+                            area_km2 REAL) WITHOUT ROWID;
 
--- One row per donor. `ord` is the display order AND the weight order -- they are the same
--- thing, so storing one number rather than sorting at read time keeps the screen's order
--- and the arithmetic's order from ever disagreeing.
+-- One row per donor in a panel.
 --
--- `role` is TEXT rather than a code because the table is small (thousands of rows, not
--- millions) and 'up' read in a query beats 0 looked up in a comment. It is exactly two
--- values today; a neighbour donor -- one that shares weather rather than water -- would be
--- a third, and is deliberately not built yet (see pipeline/atlas/gauges/panel.py).
+-- `ord` IS A STABLE MEMBER INDEX AND NOT A RANKING. It cannot be a ranking here: the order
+-- depends on weights, and weights depend on the target, so two sections sharing a panel can
+-- legitimately rank the same donors differently. The client sorts by the weight it computes
+-- -- which is also the order it must display, so the number and the table beneath it still
+-- come from one calculation.
 --
--- `weight` is 0..1 and REAL. It is a product of terms none of which is exact, and it is
--- multiplied by a percentile that is itself +/- 12 points at best, so the storage precision
--- is not the limiting factor and an integer scaling would only add a conversion to get
--- wrong.
+-- `role` is TEXT because the table is small and 'up' read in a query beats 0 looked up in a
+-- comment. Exactly two values today; a NEIGHBOUR donor -- one that shares weather rather
+-- than water -- would be a third and is deliberately not built (see panel.py).
 --
--- `area_ratio` IS THE ONE THAT MATTERS, and it is stored instead of a trust band. It is a
--- PHYSICAL FACT about the pair -- how many times bigger one catchment is than the other --
--- and the trust class and its error bars are DERIVED from it by a ladder that lives in one
--- place (`ERROR_BY_RATIO`, mirrored into the app and pinned by a test, exactly as the
--- magnitude zoom ladder is). Storing the class instead would freeze a calibration into the
--- bundle: re-measuring the error curve would then need a rebuild rather than a release, and
--- the number a screen shows could drift from the number the pipeline used.
---
--- >= 1.0 always: it is max/min, so it is symmetric and never below one.
+-- `area_km2` and `years` ARE THE DONOR'S OWN FACTS, and everything a screen shows is
+-- derived from them at read time: the share is min/max against the section's area, the
+-- weight follows from the share and the role and the record, and the trust class and its
+-- error bars come from the ratio through one ladder mirrored into the app and pinned by a
+-- test. Storing any of those instead would freeze a calibration into the bundle -- and the
+-- calibration is a measurement over 9,495 gauge pairs that will be redone.
 CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            ord INTEGER NOT NULL,
                            station TEXT NOT NULL,
-                           role TEXT NOT NULL,          -- up | down
-                           weight REAL NOT NULL,        -- 0..1
-                           area_ratio REAL NOT NULL,    -- >= 1.0
+                           role TEXT NOT NULL,        -- up | down
+                           area_km2 REAL NOT NULL,    -- the DONOR's catchment
+                           years INTEGER NOT NULL,    -- its record length
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,

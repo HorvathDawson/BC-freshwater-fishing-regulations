@@ -27,6 +27,9 @@ import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pipeline.atlas.gauges.build_panels import build as build_panels
+from pipeline.atlas.gauges.panel import MIN_RECORD_YEARS
+from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
 from pipeline.common.curated import GENERATED, REPO_ROOT, SOURCE
 from pipeline.common.registry_kinds import is_water
 
@@ -39,6 +42,21 @@ INDEXES = HERE / "indexes.sql"
 #: and this. Anchored on the repo root rather than derived from `data_dir`, which is how it
 #: used to resolve to `output/output/feeds/...` whenever `data_dir` was defaulted.
 CLIM_PATH = GENERATED.gauges.feeds / "clim.json"
+
+
+def _area_model(gpkg: Path) -> AreaModel:
+    """Magnitude -> catchment area, fitted per basin from the named watersheds.
+
+    THE SAME 11,580 POLYGONS THE MAP ALREADY DRAWS, and the reason to fit against them
+    rather than against the gauges is that they measure area directly instead of inferring
+    it through a station's own catchment: 5.7 times the sample, and splittable by basin, so
+    a wet coastal drainage and a dry plateau stop sharing one constant.
+    """
+    with sqlite3.connect(f"file:{gpkg}?mode=ro", uri=True) as gp:
+        pts = [(a * 0.01, m, w) for a, m, w in gp.execute(
+            "SELECT AREA_HA, STREAM_MAGNITUDE, FWA_WATERSHED_CODE FROM watersheds "
+            "WHERE AREA_HA > 0 AND STREAM_MAGNITUDE > 0 AND FWA_WATERSHED_CODE IS NOT NULL")]
+    return fit_area_model(pts)
 
 
 @dataclass
@@ -395,6 +413,52 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         cov.skip("gauge_clim", f"no {clim_path.name} — "
                                "run pipeline.gauges.feed.climatology (needs HYDAT)")
         cov.skip("gauge_stats", "same file as gauge_clim")
+
+    # THE DONOR PANELS, AFTER `gauge_stats` BECAUSE THEY READ IT. Built earlier, the record
+    # lengths came back empty and every panel was silently skipped — the only symptom was a
+    # "not wired" line that looked like a missing input rather than an ordering bug.
+    #
+    # `section_gauge` above is one station per reach; this is the SET that
+    # can each say something, which is the same question asked of a province whose gauge
+    # network is far sparser than its stream network.
+    #
+    # THE GATES NEED FACTS FROM TWO OTHER FILES, and a panel built without them is worse
+    # than no panel: a regulated donor reports a dam's release schedule as if it were
+    # rainfall, and a three-year record cannot carry a percentile at all. So this is skipped
+    # rather than approximated when either is missing.
+    hydat = Path(SOURCE) / "hydat.sqlite3"
+    years_by_station = {r[0]: int(r[1] or 0) for r in db.execute(
+        "SELECT station, max(years) FROM gauge_stats GROUP BY station")}
+    regulated: set[str] = set()
+    if hydat.exists():
+        with sqlite3.connect(f"file:{hydat}?mode=ro", uri=True) as hy:
+            # ANY regulated period bars the station. `STN_REGULATION` carries year ranges,
+            # so a gauge that was natural until a dam was built could in principle speak for
+            # its own early record — but the percentile it publishes today is computed over
+            # the whole record, so today it cannot.
+            regulated = {r[0] for r in hy.execute(
+                "SELECT DISTINCT STATION_NUMBER FROM STN_REGULATION WHERE REGULATED=1")}
+    else:
+        print("     panels: no HYDAT — cannot screen regulated donors, skipping")
+
+    if not years_by_station or not hydat.exists():
+        cov.skip("section_panel", "no gauge_stats — needs clim.json for record lengths")
+        cov.skip("panel_member", "needs section_panel")
+    else:
+        model = _area_model(Path(SOURCE) / "bc_fisheries_data.gpkg")
+        donors = [(st, matched[st], years_by_station.get(st, 0), st in regulated)
+                  for st in matched
+                  if years_by_station.get(st, 0) >= MIN_RECORD_YEARS and st not in regulated]
+        panels = build_panels(graph, model, donors)
+        db.executemany("INSERT INTO section_panel VALUES (?,?,?)", panels.section_rows())
+        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?)", panels.member_rows())
+        cov.filled("section_panel", len(panels.by_section))
+        cov.filled("panel_member", sum(len(v) for v in panels.members.values()))
+        print(f"     panels: {len(panels.by_section):,} sections share "
+              f"{len(panels.members):,} donor sets "
+              f"({len(panels.by_section)/max(len(panels.members),1):.0f}x), "
+              f"from {len(donors):,} eligible stations")
+
 
     down = downstream_map(graph, (l.section_id for l in links))
     db.executemany("INSERT INTO section_down VALUES (?,?)",

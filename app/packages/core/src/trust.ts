@@ -72,7 +72,7 @@ export interface Estimate {
   percentile: number;
   /** Percentile POINTS. Half-width of the honest interval around `percentile`. */
   plusMinus: number;
-  /** The weakest donor's class — a panel is only as trustworthy as what it leans on. */
+  /** The class matching `plusMinus`: the donors' error averaged BY WEIGHT, not the worst. */
   trust: TrustClass;
   /** How much the donors disagreed, in percentile POINTS. Wide means show a range. */
   spread: number;
@@ -95,4 +95,117 @@ export function interval(e: Estimate): readonly [number, number] {
   const mid = e.percentile * 100;
   const half = Math.max(e.plusMinus, e.spread / 2);
   return [Math.max(0, mid - half), Math.min(100, mid + half)];
+}
+
+
+/* ------------------------------------------------------------------ combining ---- */
+
+/** What a donor contributes: its own percentile for the day, and its facts. */
+export interface Contribution {
+  /** 0–1, the donor's percentile today, against its OWN record. */
+  percentile: number;
+  role: "up" | "down";
+  /** The donor's catchment, km². */
+  areaKm2: number;
+  years: number;
+}
+
+/** Mirrors `weight_of` in panel.py; `tools/trust-ladder.test.ts` holds the two together. */
+const DOWNSTREAM_PENALTY = 0.85;
+const RECORD_FULL_YEARS = 20;
+const MIN_TOTAL_WEIGHT = 0.05;
+
+export function weightFor(share: number, role: "up" | "down", years: number): number {
+  const rec = Math.min(1, Math.max(0, years / RECORD_FULL_YEARS));
+  return share * (role === "up" ? 1 : DOWNSTREAM_PENALTY) * rec;
+}
+
+/** Φ, the normal CDF, via the error function. */
+function normCdf(z: number): number {
+  // Abramowitz & Stegun 7.1.26 — good to 1.5e-7, which is far past what a percentile
+  // rounded to a whole point can notice.
+  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t
+                  - 0.284496736) * t + 0.254829592) * t * Math.exp(-(z * z) / 2);
+  return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+}
+
+/** Φ⁻¹, by bisection. Called a handful of times per tap, so clarity beats a rational fit. */
+function probit(p: number): number {
+  const q = Math.min(0.999, Math.max(0.001, p));
+  let lo = -6, hi = 6;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (normCdf(mid) < q) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+/**
+ * A panel plus today's readings → one answer, or a reason there is none.
+ *
+ * COMBINED IN PROBIT SPACE. Percentiles are uniform on [0,1] and averaging uniforms
+ * concentrates toward 0.5 — so a point served by three donors would report closer to normal
+ * than one served by one, which is backwards: the app would play down extremes exactly
+ * where it knows the most. Mapping each to a normal quantile, averaging there, and mapping
+ * back removes that.
+ *
+ * THE INTERVAL IS THE WIDER OF TWO THINGS: how far apart the donors are, and how wrong a
+ * donor at this distance is known to be. Donor agreement alone would report maximum
+ * confidence when three gauges on one river agree — which they do because they are the same
+ * river, not because the answer is certain.
+ */
+export function estimate(targetAreaKm2: number | null,
+                         contributions: readonly Contribution[]): Answer {
+  if (!contributions.length) return { ok: false, why: "no-station" };
+  if (!targetAreaKm2 || targetAreaKm2 <= 0) return { ok: false, why: "no-station" };
+
+  const votes: { z: number; w: number; ratio: number }[] = [];
+  for (const c of contributions) {
+    if (!(c.percentile > 0 && c.percentile < 1)) continue;
+    if (!c.areaKm2 || c.areaKm2 <= 0) continue;
+    const ratio = Math.max(targetAreaKm2, c.areaKm2) / Math.min(targetAreaKm2, c.areaKm2);
+    const w = weightFor(Math.min(targetAreaKm2, c.areaKm2)
+                        / Math.max(targetAreaKm2, c.areaKm2), c.role, c.years);
+    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio });
+  }
+  if (!votes.length) return { ok: false, why: "no-record" };
+  const total = votes.reduce((a, v) => a + v.w, 0);
+  if (total < MIN_TOTAL_WEIGHT) return { ok: false, why: "too-uncertain" };
+
+  const mean = votes.reduce((a, v) => a + v.z * v.w, 0) / total;
+  const varZ = votes.reduce((a, v) => a + v.w * (v.z - mean) ** 2, 0) / total;
+  const sd = Math.sqrt(varZ);
+  const spread = (normCdf(mean + sd) - normCdf(mean - sd)) * 100;
+
+  /*
+   * TRUST FOLLOWS THE WEIGHTS, not the worst member.
+   *
+   * This took the most distant donor, on the reasoning that a close gauge does not redeem
+   * a far one because they all voted. True in principle and wrong in proportion: weight
+   * falls with distance, so the far ones barely vote. Real example from the built bundle —
+   * a 1.34 km2 section with donors at 3.4, 32 and 207 km2. The nearest is 2.5x away and
+   * carries almost all the weight; the farthest is 155x away and carries 0.006 of it. The
+   * worst-member rule reported that panel as "distant" on the strength of a donor that
+   * moved the answer by a fraction of a point.
+   *
+   * So the error is the weighted mean of each donor's own error, which is what "they all
+   * voted" actually means once you account for how much.
+   */
+  const plusMinus = votes.reduce((a, v) => a + trustFor(v.ratio).plusMinus * v.w, 0) / total;
+  // The CLASS is a word, and a word cannot be averaged — so it is the class of the ratio
+  // that error corresponds to, which keeps the two halves of the label consistent.
+  const klass = ERROR_BY_RATIO.find(([, , e]) => plusMinus <= e)?.[1]
+    ?? ERROR_BY_RATIO[ERROR_BY_RATIO.length - 1]![1];
+
+  const value: Estimate = {
+    percentile: normCdf(mean),
+    plusMinus,
+    trust: klass,
+    spread,
+    donors: votes.length,
+  };
+  const [lo, hi] = interval(value);
+  if (hi - lo > MAX_USEFUL_SPREAD) return { ok: false, why: "too-uncertain" };
+  return { ok: true, value };
 }

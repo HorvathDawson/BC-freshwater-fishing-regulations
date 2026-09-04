@@ -14,7 +14,7 @@ import { FaceBar } from "./Faces";
 import type { Palette } from "./theme";
 
 export function ConditionsScreen({ source, section, palette, onBack, tiles, theme,
-                                   parameter, onParameter, from, onRegulations }: {
+                                   parameter, onParameter, from, onRegulations, feed }: {
   source: RegsSource; section: SectionId; palette: Palette; onBack: () => void;
   tiles?: TileEndpoints; theme?: string;
   /** Kept in step with the map's own flow/level switch — see ConditionsPanel. */
@@ -31,6 +31,8 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
    * and a control that is never dead.
    */
   onRegulations?: (section: SectionId) => void;
+  /** The live index, for the donor panel — see ConditionsPanel. */
+  feed?: { index(): Promise<any> };
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
@@ -39,7 +41,7 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
                  onFace={(f) => { if (f === "regulations") onRegulations?.(section); }} />
       </View>
       <ConditionsPanel source={source} section={section} palette={palette}
-                       tiles={tiles} theme={theme}
+                       tiles={tiles} theme={theme} feed={feed}
                        parameter={parameter} onParameter={onParameter} from={from} />
     </View>
   );

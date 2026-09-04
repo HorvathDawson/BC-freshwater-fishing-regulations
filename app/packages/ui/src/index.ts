@@ -12,6 +12,7 @@
  */
 export * from "./async";
 export * from "./hooks";
+export * from "./panel";
 export * from "./hydrograph";
 export * from "./sprite";
 

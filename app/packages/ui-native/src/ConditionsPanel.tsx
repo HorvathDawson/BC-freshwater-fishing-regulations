@@ -16,10 +16,11 @@ import { ScrollView, Text, View } from "react-native";
 import { standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph,
+import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
          useSeries } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { FishSpinner } from "./FishSpinner";
+import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { Hydrograph } from "./Hydrograph";
 import { TYPE } from "./type";
@@ -33,8 +34,11 @@ export const UNIT: Record<Parameter, string> = { discharge: "m³/s", level: "m" 
 export type Span = "72h" | "year";
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
-                                  parameter, onParameter, from, scroll = true, footer }: {
+                                  parameter, onParameter, from, feed, scroll = true,
+                                  footer }: {
   source: RegsSource; section: SectionId | null; palette: Palette;
+  /** The live index, for the donor panel. Absent offline — it then says so. */
+  feed?: { index(): Promise<Parameters<typeof usePanel>[1] extends undefined ? never : any> };
   /** Present, the route panel draws the chain of reaches down to the station. */
   tiles?: TileEndpoints; theme?: string;
   /** The trace colour, so a sheet can tint the chart to its own outcome. */
@@ -55,6 +59,16 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 }) {
   const conditions = useConditions(source, section);
   const trace = useGaugeTrace(source, section);
+  /*
+   * EVERY GAUGE THAT CAN SPEAK, not only the nearest one.
+   *
+   * `useGaugeTrace` above answers "which single station was matched to this reach, and how
+   * do I walk to it" — the design that answers for 9.7% of the water. This is the panel:
+   * the set that each know something, weighted, with the working shown. They sit together
+   * on purpose, because the trace is how a reader checks the panel's claim about direction
+   * and distance against the map.
+   */
+  const panel = usePanel(source, feed, section, parameter === "level" ? "level" : "discharge");
   const c = conditions.state === "ready" ? conditions.value : null;
   const station = c?.station ?? null;
 
@@ -193,6 +207,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
           )}
         </View>
       )}
+
+      <DonorPanel palette={palette} value={panel} />
 
       {trace.state === "ready" && (
         <GaugeTrace trace={trace.value} palette={palette} at={tiles} theme={theme}

@@ -98,37 +98,45 @@ export interface GaugeLink {
 }
 
 /**
- * One gauge's place in a panel, exactly as `panel_member` stores it.
+ * One donor's own facts, exactly as `panel_member` stores them.
  *
- * `areaRatio` AND NOT A TRUST BAND, which is the decision this type exists to make
- * visible. The ratio is a physical fact about the pair — how many times bigger one
- * catchment is than the other — and the class and its error bars are DERIVED from it by
- * `trustFor` in core, which the pipeline mirrors and a test pins. Storing a band instead
- * would freeze a calibration into the bundle: re-measuring the error curve would need a
- * rebuild rather than a release, and the number on screen could drift from the number the
- * pipeline gated on.
+ * NOTHING DERIVED IS STORED — not the weight, not the ratio, not a trust band. Each of
+ * those is a calibration, and freezing a calibration into the bundle means re-measuring it
+ * needs a rebuild rather than a release. The client has both catchments and derives all
+ * three, which is also what keeps the number on screen and the number the pipeline gated
+ * on from ever being two different numbers.
+ *
+ * It is also what makes the dictionary small: a weight depends on the TARGET as well as
+ * the donor, so baking weights in gave adjacent reaches on one river different panels —
+ * 16,127 of them where the donor sets collapse to 1,898.
  */
 export interface PanelMember {
   station: StationId;
   /** Where the donor sits relative to the tapped point. */
   role: "up" | "down";
-  /** 0–1. Its share of the answer, already normalised against the other members. */
-  weight: number;
-  /** `max(area) / min(area)`, so always ≥ 1 and symmetric. Feeds `trustFor`. */
-  areaRatio: number;
+  /** The DONOR's catchment, km². Half of every ratio; the other half is on the section. */
+  areaKm2: number;
+  /** Its record length, in years. A percentile from ten is not one from ninety. */
+  years: number;
 }
 
 /**
- * The panel for one section: who may speak for it, in the order they matter.
+ * The panel for one section: who may speak for it, and the section's own catchment.
  *
- * Ordered by weight, descending, because that is both the arithmetic's order and the
- * screen's — storing one order rather than sorting at read time is what keeps the table a
- * reader sees from disagreeing with the number above it.
+ * `areaKm2` IS HERE AND NOT ON THE MEMBERS because it belongs to the target, and it is what
+ * lets a shared panel still produce exact per-section weights. It is the value at the
+ * section's OUTLET; a tap partway up is refined by the drainage staircase.
  *
- * An EMPTY array is a real answer and not a missing one: it means the panel was built and
- * nothing qualified. `undefined` from a query means the section was never asked about.
+ * MEMBERS ARE IN NO PARTICULAR ORDER. They cannot be: the order depends on weights, and
+ * weights depend on the target, so two sections sharing a panel can legitimately rank the
+ * same donors differently. Sort by the weight you compute — which is also the order to
+ * display, so the number and the table beneath it come from one calculation.
  */
-export type Panel = readonly PanelMember[];
+export interface Panel {
+  /** The target's own catchment, km². Null where the graph had no magnitude for it. */
+  areaKm2: number | null;
+  members: readonly PanelMember[];
+}
 
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */
 export type Parameter = "discharge" | "level";
