@@ -36,6 +36,7 @@ import { MapScreen } from "./MapScreen";
 import { SpotScreen } from "./SpotScreen";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { Button } from "./Button";
 
 type Step = "water" | "point" | "when" | "details" | "saving";
 
@@ -248,7 +249,7 @@ function Step({ palette, label, glyph, onPress, disabled }: {
 }) {
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button"
-               accessibilityLabel={label} accessibilityState={{ disabled: !!disabled }}
+               accessibilityLabel={label} aria-disabled={!!disabled}
                style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center",
                         justifyContent: "center", borderWidth: 1, borderColor: palette.line2,
                         opacity: disabled ? 0.35 : 1 }}>
@@ -279,7 +280,7 @@ function Coach({ palette, title, detail, chose, satellite, onSatellite, onCancel
           )}
         </View>
         <Pressable onPress={() => onSatellite(!satellite)} accessibilityRole="switch"
-                   accessibilityState={{ checked: satellite }}
+                   aria-checked={satellite}
                    accessibilityLabel="Satellite imagery">
           <Pill palette={palette}>
             <Text style={{ ...TYPE.micro, fontSize: 12,
@@ -290,29 +291,13 @@ function Coach({ palette, title, detail, chose, satellite, onSatellite, onCancel
         </Pressable>
       </View>
       <View style={{ flexDirection: "row", gap: 10 }}>
-        <Action palette={palette} label="Cancel" onPress={onCancel} ghost />
-        <Action palette={palette} label="Next" onPress={go} />
+        <Button palette={palette} label="Cancel" onPress={onCancel} kind="ghost" />
+        <Button palette={palette} label="Next" onPress={go} />
       </View>
     </View>
   );
 }
 
-function Action({ palette, label, onPress, ghost = false }: {
-  palette: Palette; label: string; onPress?: () => void; ghost?: boolean;
-}) {
-  const off = onPress === undefined;
-  return (
-    <Pressable onPress={onPress} disabled={off} accessibilityRole="button"
-               accessibilityLabel={label} accessibilityState={{ disabled: off }}
-               style={{ flex: 1, alignItems: "center", borderRadius: 13, paddingVertical: 14,
-                        opacity: off ? 0.4 : 1,
-                        backgroundColor: ghost ? "transparent" : palette.accent,
-                        borderWidth: ghost ? 1 : 0, borderColor: palette.line2 }}>
-      <Text style={{ ...TYPE.bodyStrong, fontSize: 15, fontWeight: "700",
-                     color: ghost ? palette.accent : palette.onAccent }}>{label}</Text>
-    </Pressable>
-  );
-}
 
 function Busy({ palette, label }: { palette: Palette; label: string }) {
   return (

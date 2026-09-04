@@ -10,10 +10,11 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { useGaugeGeoJSON, useStandings } from "@app/ui";
+import { useDataFacts, useGaugeGeoJSON, useStandings, useStatuses } from "@app/ui";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { toggleableGroups, type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
+import { DateSheet } from "./DateSheet";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
 import { LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
          type LayersState } from "./LayersSheet";
@@ -34,20 +35,22 @@ const OUTCOMES: readonly Outcome[] = ["closed", "restricted", "open", "unknown"]
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
 
-export function Shell({ source, palette, theme, themeName, onTheme, on, group, waters, tiles,
+export function Shell({ source, palette, theme, themeName, onTheme, on, onDateChange, group, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
-                       reaches, surveyed, stations,
-                       fetchedAt, attribution }: {
+                       attribution }: {
   source: RegsSource; palette: Palette;
   /** Passed straight to the map. Every theme the style defines is a real map theme,
    *  so nothing has to be laundered into light/dark on the way. */
   theme: string; themeName: ThemeName; onTheme: (t: ThemeName) => void;
   on: PlainDate; group: SpeciesGroup;
-  /** How many named waters the bundle holds, for the search header. */
-  waters?: number;
+  /**
+   * Change the date the whole app is answering for. Absent -> the pill does not react,
+   * which is at least honest; it used to LOOK pressable and do nothing, because MapScreen
+   * declared `onDate` and nothing ever passed one.
+   */
+  onDateChange?: (d: PlainDate) => void;
   /** Where the two pmtiles archives are served from. */
   tiles: TileEndpoints;
-  /** Scale, for the Layers panel: how much map each choice affects. */
   /** The user's pins. Empty is the normal first-run state, not a failure. */
   spots?: readonly Spot[];
   /** Where a captured spot goes. Absent -> the Add button is inert and says nothing. */
@@ -63,13 +66,22 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
    */
   feed?: import("@app/data").GaugeFeed;
   refreshing?: boolean;
-  reaches?: number; surveyed?: number; stations?: number;
-  fetchedAt?: string | null;
   attribution?: readonly string[];
 }) {
+  /*
+   * HOW MUCH DATA IS IN HERE — read, never stated.
+   *
+   * These five figures used to arrive as props from `App.tsx`, hardcoded from the design
+   * mock: 255 waters, 6,967 reaches, 35 surveyed lakes, 5 stations and a fixed timestamp.
+   * The bundle the app actually opens holds 19,699 waters and 2,324 stations. A screen may
+   * not assert a fact about the data it is sitting on; it asks.
+   */
+  const facts = useDataFacts(source, feed);
+  const counts = facts.state === "ready" ? facts.value.counts : null;
   const [tab, setTab] = useState<TabKey>("map");
   const [item, setItem] = useState<ItemId | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
   /** Adding a spot takes over the whole screen: it is a flow, not a mode of the map. */
   const [adding, setAdding] = useState(false);
   const [openSpot, setOpenSpot] = useState<string | null>(null);
@@ -79,8 +91,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   // A pin dropped on the map when you ask to see a spot there. Cleared when you pan away
   // to something else, so it never lingers as a mystery dot.
   const [focus, setFocus] = useState<{ lat: number; lon: number } | null>(null);
-  // The reaches the map currently has rendered. Only the Conditions view needs them, so
-  // nothing is queried while the map is showing regulations.
+  /**
+   * The reaches the map currently has rendered.
+   *
+   * BOTH map tabs report now. It used to be Conditions only — but the legend on the
+   * regulations map is supposed to carry counts ("29 closed · 33 restricted · …"), which is
+   * how `design/riffle.html` draws it and why `LegendCount` has always had an `n` prop with
+   * a comment reading "the count is the point". Nothing ever passed one, so the legend was
+   * a key rather than a reading: it said what the colours mean and not how much of the
+   * screen is each one.
+   */
   const [visible, setVisible] = useState<readonly SectionId[]>([]);
   // The reach tapped while in Conditions. A tap there asks "what is THIS water doing",
   // which is a different question from the regulations sheet a tap on the Map tab opens.
@@ -100,6 +120,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
   // because the sheet a tap opens has to be about the same thing the map is showing.
   const [flowParam, setFlowParam] = useState<Parameter | "both">("both");
   const standings = useStandings(source, feed, visible, flowParam);
+  // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
+  // `useStandings` beside it — the whole table is far too big to hold to answer a question
+  // about the few hundred reaches actually rendered.
+  const shown = useStatuses(source, tab === "map" ? visible : [], on, group);
+  const tally = useMemo(() => {
+    const n = new Map<Outcome, number>();
+    if (shown.state !== "ready") return n;
+    for (const st of shown.value.values())
+      n.set(st.outcome, (n.get(st.outcome) ?? 0) + 1);
+    return n;
+  }, [shown]);
   const gauges = useGaugeGeoJSON(source, feed, tab === "conditions");
   // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
   // "gauged but no history") are excluded: they are a state, not a point on the scale.
@@ -227,8 +258,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
                                             setItem(null); setTab("conditions"); }}
                    onBack={() => setItem(null)} />
     : tab === "search"
-      ? <SearchScreen source={source} palette={palette} onPick={setItem} total={waters}
-                      tiles={tiles} theme={theme} />
+      ? <SearchScreen source={source} palette={palette} onPick={setItem}
+                      total={counts?.waters} tiles={tiles} theme={theme} />
       : tab === "conditions" && condSection
         ? <ConditionsScreen source={source} section={condSection} palette={palette}
                             tiles={tiles} theme={theme}
@@ -249,9 +280,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
                      marker={focus}
                      data={tab === "conditions" ? conditionData : undefined}
                      gauges={tab === "conditions" ? gauges ?? undefined : undefined}
-                     onVisible={tab === "conditions" ? noteVisible : undefined}
+                     onVisible={noteVisible}
                      onMoved={(at) => { camera.current = at; }}
                      view="plain" modes={modes} groups={activeGroups}
+                     onDate={onDateChange ? () => setDateOpen(true) : undefined}
                      onLayers={() => setLayersOpen(true)}
                      onPressFeature={tab === "conditions"
                        // The COORDINATE too: "how does this spot reach the gauge" is a
@@ -309,6 +341,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
             // outcome, in one screen, which is the drift rule 23 exists to stop.
             OUTCOMES.map((k) => (
               <LegendCount key={k} palette={palette} colour={outcomeColour(palette, k)}
+                           /*
+                            * Undefined until the answer arrives; 0 once it has.
+                            *
+                            * The distinction is the same one `count()` makes: before the
+                            * query returns we do not know, and a flashed "0" would say we
+                            * looked. After it returns, an outcome with no reaches on screen
+                            * genuinely has none — and "0 closed" is worth reading, because
+                            * it is the difference between "nothing here is shut" and "we
+                            * did not check". Riffle draws all four for the same reason.
+                            */
+                           n={tab === "map" && shown.state === "ready"
+                             ? tally.get(k) ?? 0 : undefined}
                            label={statusWord({ outcome: k, provenance: "specific",
                                                from: [] }).toLowerCase()} />
             ))
@@ -317,11 +361,19 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, group, w
       )}
       <TabBar active={tab} onChange={(k) => { setItem(null); setTab(k); }} palette={palette} />
 
+      {onDateChange && (
+        <DateSheet open={dateOpen} onClose={() => setDateOpen(false)} palette={palette}
+                   value={on} onChange={onDateChange} />
+      )}
+
       <LayersSheet open={layersOpen} onClose={() => setLayersOpen(false)} palette={palette}
                    state={layers} onState={setLayers}
                    theme={themeName} onTheme={onTheme}
-                   reaches={reaches} surveyed={surveyed} stations={stations}
-                   fetchedAt={fetchedAt} attribution={attribution} />
+                   reaches={counts?.reaches} surveyed={counts?.surveyed ?? undefined}
+                   stations={facts.state === "ready"
+                     ? facts.value.liveStations ?? counts?.stations : undefined}
+                   fetchedAt={facts.state === "ready" ? facts.value.fetchedAt : undefined}
+                   attribution={attribution} />
     </View>
   );
 }

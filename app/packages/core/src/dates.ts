@@ -52,3 +52,18 @@ export function inForce(windows: readonly Window[], on: PlainDate): boolean {
   if (windows.length === 0) return true;
   return windows.some((w) => inWindow(w, on));
 }
+
+/**
+ * Today, as a calendar day in the reader's own zone.
+ *
+ * LOCAL, NOT UTC. `new Date().toISOString()` would put anyone in BC onto tomorrow's date
+ * for the last 7-8 hours of every day — and a date is what decides whether a seasonal
+ * closure is in force, so an off-by-one here opens a river that is shut.
+ *
+ * The app used to carry `const ON = { year: 2026, month: 8, day: 30 }`, a fixed day
+ * transcribed from the design mock, so every answer it gave was about 30 August whatever
+ * the actual date. Injectable for tests, which is the only reason it takes an argument.
+ */
+export function today(now: Date = new Date()): PlainDate {
+  return { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() };
+}

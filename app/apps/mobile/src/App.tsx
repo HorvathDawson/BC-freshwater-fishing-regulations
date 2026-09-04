@@ -24,8 +24,8 @@ import { httpFeed } from "@app/data";
 import { openMeteo, openSpots, refreshSpot, type Spot } from "@app/data/spots";
 import { loadBundle, setSqlWasmUrl, type LoadedBundle } from "@app/data/bundle/open";
 import { FishSpinner, Shell, THEMES, type ThemeName } from "@app/ui-native";
+import { today, type PlainDate } from "@app/core";
 
-const ON = { year: 2026, month: 8, day: 30 } as const;
 
 /**
  * Where the tiles are served from. `pnpm tiles` runs a range-capable server over the two
@@ -106,6 +106,15 @@ export default function App() {
       .catch((e: unknown) => { if (live) setFailed(e instanceof Error ? e.message : String(e)); });
     return () => { live = false; };
   }, []);
+  /**
+   * WHICH DAY THE APP IS ANSWERING FOR, and it starts as TODAY.
+   *
+   * This was `const ON = { year: 2026, month: 8, day: 30 }` — a date lifted from the design
+   * mock — so every regulation the app resolved was for 30 August whatever the real date,
+   * and half of BC's freshwater rules are seasonal. The date pill has always said which day
+   * it meant; now it says the right one, and the sheet behind it can change it.
+   */
+  const [on, setOn] = useState<PlainDate>(() => today());
   const feed = useMemo(() => httpFeed(FEED), []);
   const source = useMemo(
     () => (bundle ? makeBundleSource(bundle, { feed }) : null), [bundle, feed]);
@@ -138,7 +147,8 @@ export default function App() {
           </Text>
         </View>
       ) : ready && source ? (
-        <Shell source={source} palette={palette} on={ON} group="provincial" waters={255}
+        <Shell source={source} palette={palette} on={on} onDateChange={setOn}
+               group="provincial"
                theme={name} themeName={name}
                onTheme={setTheme} tiles={TILES}
                spots={spots}
@@ -163,8 +173,6 @@ export default function App() {
                    setSpots(await spotStore.list());
                  } finally { setRefreshing(false); }
                }}
-               reaches={6967} surveyed={35} stations={5}
-               fetchedAt="2026-08-30T07:20:00Z"
                attribution={[
                  "Basemap © OpenStreetMap contributors · © Protomaps",
                  "Hydrometric data: Environment and Climate Change Canada",

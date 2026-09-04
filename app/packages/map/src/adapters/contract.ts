@@ -44,7 +44,8 @@ export interface MapAdapter {
 }
 
 /** The MapLibre paint property that carries colour, per layer type. */
-export function colourPropFor(type: string | undefined): string {
+// Module-private: an implementation detail of `paintFor`.
+function colourPropFor(type: string | undefined): string {
   return type === "line" ? "line-color" : type === "fill" ? "fill-color" : "circle-color";
 }
 

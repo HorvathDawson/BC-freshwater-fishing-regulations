@@ -32,6 +32,21 @@ export function runConformance(name: string, make: () => Promise<RegsSource>) {
     expect(i.validUntil).toBeTruthy();
   });
 
+  T("reports counts that belong to THIS bundle", async (s) => {
+    // The app used to state these as literals copied from the design mock — 255 waters and
+    // 5 stations, against a province bundle holding 19,699 and 2,324. A count a screen
+    // shows about the data has to come from the data, so every source must answer.
+    const c = await s.counts();
+    expect(c.waters).toBeGreaterThan(0);
+    expect(c.reaches).toBeGreaterThan(0);
+    expect(c.stations).toBeGreaterThan(0);
+    // `null` is the honest answer for something not built yet; 0 would claim we looked.
+    expect(c.surveyed === null || c.surveyed > 0).toBe(true);
+    // Every reach the search can reach belongs to a water, so there is never less than one
+    // reach per named water. A bundle that says otherwise has lost rows.
+    expect(c.reaches).toBeGreaterThanOrEqual(c.waters);
+  });
+
   T("a missing item is absent, never a silent empty answer", async (s) => {
     expect(await s.itemExists("gnis:does-not-exist" as ItemId)).toBe(false);
   });

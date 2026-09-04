@@ -187,6 +187,19 @@ export const RELEASES_FOR_NAME =
 
 export const META = "SELECT k, v FROM meta";
 
+/**
+ * What the bundle holds, in one statement.
+ *
+ * ONE ROUND TRIP, because on the web every statement is a range request and this runs to
+ * fill in a settings panel — four separate counts would be four. Each is a covered count
+ * over a small table or an index, so the whole thing is cheap.
+ */
+export const COUNTS =
+  "SELECT (SELECT COUNT(*) FROM item WHERE name <> '')     AS waters, " +
+  "       (SELECT COUNT(*) FROM item_section)              AS reaches, " +
+  "       (SELECT COUNT(DISTINCT item_id) FROM chart)      AS surveyed, " +
+  "       (SELECT COUNT(*) FROM gauge)                     AS stations";
+
 /** `?,?,?` — SQLite has no array binding, and string interpolation of ids is injection. */
 export function placeholders(n: number): string {
   if (n < 1) throw new Error("placeholders(0): the caller should skip the query entirely");

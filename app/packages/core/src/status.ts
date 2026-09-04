@@ -86,7 +86,8 @@ const OUTCOME_OF: Record<number, Outcome> = { 3: "closed", 2: "restricted", 1: "
  *  present a thing we could not check as a thing we checked. */
 const RANK: Record<Outcome, number> = { closed: 3, unknown: 2, restricted: 1, open: 0 };
 
-export function moreRestrictive(a: Outcome, b: Outcome): Outcome {
+// Module-private: used by `evaluate` in this file and nowhere else.
+function moreRestrictive(a: Outcome, b: Outcome): Outcome {
   return RANK[a] >= RANK[b] ? a : b;
 }
 

@@ -29,7 +29,7 @@ export function TabBar({ active, onChange, palette }:
         const on = k === active;
         return (
           <Pressable key={k} onPress={() => onChange(k)}
-                     accessibilityRole="tab" accessibilityState={{ selected: on }}
+                     accessibilityRole="tab" aria-selected={on}
                      accessibilityLabel={t}
                      style={{ flex: 1, alignItems: "center", gap: 5, paddingVertical: 2 }}>
             <Icon name={k} colour={on ? palette.accent : palette.sub} />

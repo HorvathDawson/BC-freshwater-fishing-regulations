@@ -14,7 +14,7 @@ import { bandAt, evaluate, type Band, type PlainDate, type Rule,
          type RuleKind, type SpeciesGroup, type Status, type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type {
-  Aged, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
+  Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
   PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
 } from "../index";
 import * as Q from "./queries";
@@ -84,6 +84,17 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       await ready;
       return { version: meta.get("version") ?? "unknown",
                validUntil: meta.get("valid_until") ?? null };
+    },
+
+    async counts(): Promise<BundleCounts> {
+      await ready;
+      const r = await db.get(Q.COUNTS);
+      // `surveyed` is 0 until the bathymetry matcher lands and the chart table has rows.
+      // Reported as `null` rather than 0, because "we do not know yet" and "we checked and
+      // there are none" are different claims and the sheet renders them differently.
+      const surveyed = num(r?.surveyed);
+      return { waters: num(r?.waters) ?? 0, reaches: num(r?.reaches) ?? 0,
+               surveyed: surveyed ? surveyed : null, stations: num(r?.stations) ?? 0 };
     },
 
     async itemExists(id) { return (await db.get(Q.ITEM, id)) !== undefined; },

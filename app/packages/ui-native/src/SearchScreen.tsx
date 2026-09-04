@@ -17,6 +17,7 @@ import { FishSpinner } from "./FishSpinner";
 import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { count } from "./format";
 
 /** The valley the fixture covers. A real bundle answers this per result. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 8.9 };
@@ -59,7 +60,9 @@ export function SearchScreen({ source, palette, onPick, onPickPlace, total, tile
           {q.trim().length < 2 ? "Start here" : `${waters.length} found`}
         </Text>
         {total !== undefined && (
-          <Text style={{ ...TYPE.section, color: palette.faint }}>{total} named waters</Text>
+          <Text style={{ ...TYPE.section, color: palette.faint }}>
+            {count(total, "named waters")}
+          </Text>
         )}
       </View>
 

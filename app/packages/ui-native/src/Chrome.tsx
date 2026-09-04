@@ -30,40 +30,6 @@ export function Pill({ palette, children, onPress, style, label }: {
     : body;
 }
 
-/** The stacked +/− and satellite controls on the map's right edge. */
-export function ButtonStack({ palette, items }: {
-  palette: Palette;
-  items: readonly {
-    label: string; glyph?: string; icon?: React.ReactNode;
-    /** Pressed state, for a toggle like satellite. */
-    on?: boolean;
-    onPress: () => void;
-  }[];
-}) {
-  return (
-    <View style={{ borderRadius: 12, overflow: "hidden", backgroundColor: palette.card,
-                   borderWidth: 1, borderColor: palette.line2, ...palette.lift }}>
-      {items.map((it, i) => (
-        <Pressable key={it.label} onPress={it.onPress} accessibilityRole="button"
-                   accessibilityLabel={it.label}
-                   accessibilityState={it.on === undefined ? undefined : { selected: it.on }}
-                   // 36px, from the design. A map control is a thing you reach past to see
-                   // the map; 44 is the touch minimum for a BUTTON you are aiming at, and
-                   // these sit under the thumb by accident far more often than on purpose.
-                   style={{ width: 36, height: 36, alignItems: "center",
-                            justifyContent: "center",
-                            backgroundColor: it.on ? palette.tint : "transparent",
-                            borderTopWidth: i === 0 ? 0 : 1, borderTopColor: palette.line }}>
-          {it.icon ?? (
-            <Text style={{ color: it.on ? palette.accent : palette.sub,
-                           fontSize: 17, lineHeight: 20 }}>{it.glyph}</Text>
-          )}
-        </Pressable>
-      ))}
-    </View>
-  );
-}
-
 /**
  * The strip between the map and the tabs.
  *

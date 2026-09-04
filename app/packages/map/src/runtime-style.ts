@@ -48,6 +48,31 @@ export interface TileEndpoints {
 const PM_ASSETS = "https://protomaps.github.io/basemaps-assets";
 
 /**
+ * GeoJSON for a `geojson` source's `data`, parsed.
+ *
+ * MAPLIBRE TREATS A STRING AS A URL. Handing it the serialised FeatureCollection made the
+ * renderer fetch `/%7B%22type%22:%22FeatureCollection%22...%7D` as a relative path; the dev
+ * server answered with index.html, and the console filled with
+ * `Unexpected token '<', "<!DOCTYPE "... is not valid JSON` — once per map mount, so the
+ * count climbed on every tab switch while the app looked fine. The gauge source then began
+ * empty and was only rescued by the imperative `setData` in Map.web.tsx.
+ *
+ * The value stays a STRING across the props boundary on purpose: it changes every half hour
+ * and a string is what makes React's identity check cheap. Parsing belongs here, at the one
+ * point where it meets the renderer.
+ *
+ * A malformed payload yields an empty collection rather than throwing: a bad feed must not
+ * take the whole map down, and an empty source draws nothing, which is the honest picture.
+ */
+function geojsonData(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { type: "FeatureCollection", features: [] };
+  }
+}
+
+/**
  * The flow ramp, as an expression over a feature's own `percentile` property.
  *
  * Shares the stream layer's stops by construction — read from the same style metadata —
@@ -78,8 +103,13 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
     sources: {
       basemap: { type: "vector" as const, url: `pmtiles://${at.basemap}`, attribution:
         '<a href="https://openstreetmap.org/copyright">© OpenStreetMap</a> · © Protomaps' },
+      // `outside` IS a URL — the mask is fetched. `gauges` is not: it is the GeoJSON
+      // itself, so it has to be parsed. See `geojsonData` below for why that distinction
+      // cost us an error on every map mount.
       ...(at.outside ? { outside: { type: "geojson" as const, data: at.outside } } : {}),
-      ...(at.gauges ? { gauges: { type: "geojson" as const, data: at.gauges } } : {}),
+      ...(at.gauges
+        ? { gauges: { type: "geojson" as const, data: geojsonData(at.gauges) } }
+        : {}),
       atlas: {
         type: "vector" as const,
         url: `pmtiles://${at.atlas}`,

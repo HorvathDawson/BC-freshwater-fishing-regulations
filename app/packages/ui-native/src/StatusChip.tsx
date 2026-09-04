@@ -19,25 +19,6 @@ export function Chip({ palette, label, colour, tone = "wash" }: {
   );
 }
 
-/** A reading with its percentile. Mono, because these line up down a list. */
-export function ReadingChip({ palette, discharge, percentile }:
-  { palette: Palette; discharge: number | null; percentile: number | null }) {
-  if (discharge === null) return null;
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 999,
-                   paddingVertical: 5, paddingHorizontal: 10, backgroundColor: palette.wash }}>
-      <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.live }}>
-        {discharge} m³/s
-      </Text>
-      {percentile !== null && (
-        <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.sub }}>
-          · {ordinal(percentile)}
-        </Text>
-      )}
-    </View>
-  );
-}
-
 /**
  * "p3rd", "p0.4th". A percentile below one still has to read as a number, because
  * rounding it to "p0th" would say the river has never been lower, which is a different

@@ -31,7 +31,7 @@ export function ChartControls<T extends string>({ palette, value, options, onPic
         const on = id === value;
         return (
           <Pressable key={id} onPress={() => onPick(id)} accessibilityRole="radio"
-                     accessibilityState={{ selected: on }} accessibilityLabel={text}
+                     aria-selected={on} accessibilityLabel={text}
                      style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999,
                               borderWidth: 1,
                               borderColor: on ? palette.accent : palette.line,

@@ -36,6 +36,23 @@ const BANNED_IN_SHARED = [
   ["document.", "DOM is absent in React Native"],
   ["window.localStorage", "absent in React Native — use the storage abstraction"],
   ["navigator.geolocation", "differs across RN/RNW — go through a variant file"],
+  /*
+   * react-native-web 0.21 DROPPED `accessibilityState`. It does not warn and it does not
+   * throw — the prop is ignored and the element renders with no aria attribute at all. Ten
+   * components in this package used it, so every radio group, tab and disabled button in
+   * the app was unreadable to a screen reader, and nothing failed: the state was also
+   * carried by a background colour, and every test looked at the DOM the way a sighted
+   * reader looks at the screen.
+   *
+   * The ARIA props work on BOTH targets — RN >= 0.71 and RNW >= 0.19 — so they are the one
+   * spelling that is not a platform difference:
+   *
+   *     accessibilityState={{ checked }}   ->  aria-checked={...}      (role="radio")
+   *     accessibilityState={{ selected }}  ->  aria-selected={...}     (role="tab")
+   *     accessibilityState={{ disabled }}  ->  aria-disabled={...}
+   */
+  ["accessibilityState",
+   "ignored by react-native-web >= 0.21 — use aria-checked / aria-selected / aria-disabled"],
 ];
 
 const walk = (dir, out = []) => {

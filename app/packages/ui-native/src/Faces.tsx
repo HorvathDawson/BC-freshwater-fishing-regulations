@@ -44,7 +44,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
           const on = face === id;
           return (
             <Pressable key={id} onPress={() => onFace(id)} accessibilityRole="button"
-                       accessibilityState={{ selected: on }} accessibilityLabel={label}
+                       aria-selected={on} accessibilityLabel={label}
                        style={{ paddingVertical: 8, paddingHorizontal: 16,
                                 borderRadius: 999, borderWidth: 1,
                                 borderColor: on ? palette.accent : palette.line,

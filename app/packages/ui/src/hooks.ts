@@ -6,15 +6,15 @@ import { useMemo } from "react";
 import type { GaugeTrace, PlainDate, SpeciesGroup, Status } from "@app/core";
 import { statusWord } from "@app/core";
 import type {
-  Forecast, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, Parameter, PlaceHit, PlaceId,
-  RegsSource, SectionId, Series, StationId,
+  BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit,
+  Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId,
 } from "@app/data";
 import { useAsync, useDebounced, type Async } from "./async";
+import { buildHydrograph, type Hydrograph } from "./hydrograph";
+import { gaugeGeoJSON } from "./gaugePoints";
 
 /** A date as a stable string, for query identity. */
 const day = (d: PlainDate): string => `${d.year}-${d.month}-${d.day}`;
-import { buildHydrograph, type Hydrograph } from "./hydrograph";
-import { gaugeGeoJSON } from "./gaugePoints";
 
 /** Map colouring for a viewport's worth of features. */
 export function useStatuses(
@@ -67,15 +67,6 @@ export function useSearch(
       return { waters, places };
     },
     `search:${q}:${limit}`,
-  );
-}
-
-/** Everything near a town, nearest first. Precomputed at 25 km. */
-export function useWatersNear(source: RegsSource, place: PlaceId | null) {
-  return useAsync(
-    () => (place ? source.watersNear(place) : Promise.resolve([])),
-    `near:${place}`,
-    place !== null,
   );
 }
 
@@ -408,14 +399,6 @@ export function useGaugeParameters(
   );
 }
 
-export function useLake(source: RegsSource, item: ItemId | null): Async<LakeInfo | null> {
-  return useAsync(
-    () => (item ? source.lakeInfo(item) : Promise.resolve(null)),
-    `lake:${item}`,
-    item !== null,
-  );
-}
-
 /** The word every surface shows. Never re-worded locally (AGENTS.md rule 23). */
 export { statusWord };
 
@@ -449,3 +432,39 @@ function axisLabels(at: readonly string[], ahead: readonly string[],
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * What the Layers sheet says about the data it is sitting on.
+ *
+ * THE POINT OF THIS HOOK IS THAT THE NUMBERS ARE READ. `App.tsx` used to pass
+ * `waters={255} reaches={6967} surveyed={35} stations={5}` and a `fetchedAt` string, all
+ * five transcribed by hand from `design/riffle.html` — whose fixture is one valley. Against
+ * the shipped province bundle the sheet therefore reported 5 stations where there are
+ * 2,324, and an age three days older than the feed it was showing, under a heading that
+ * reads "EVERY VALUE HAS AN AGE".
+ *
+ * The bundle's counts come from the bundle; the live count and the age come from the feed's
+ * own index. Anything unavailable stays `null` and the sheet omits it — a fabricated figure
+ * is worse than a missing one, because a missing one is visibly missing.
+ */
+export function useDataFacts(source: RegsSource, feed?: GaugeFeed): Async<{
+  counts: BundleCounts | null;
+  /** Stations the LIVE FEED is publishing — not the same as the bundle's roster. */
+  liveStations: number | null;
+  /** When the feed was last built, ISO. Null when it could not be reached. */
+  fetchedAt: string | null;
+}> {
+  return useAsync(async () => {
+    // The bundle is local and always answers; the feed is a network call that may not. Each
+    // is caught on its own, so a feed that is down cannot blank the bundle's counts.
+    const [counts, index] = await Promise.all([
+      source.counts().catch(() => null),
+      feed ? feed.index().catch(() => null) : Promise.resolve(null),
+    ]);
+    return {
+      counts,
+      liveStations: index ? Object.keys(index.stations).length : null,
+      fetchedAt: index?.fetchedAt ?? null,
+    };
+  }, `datafacts:${feed ? "feed" : "nofeed"}`, true);
+}

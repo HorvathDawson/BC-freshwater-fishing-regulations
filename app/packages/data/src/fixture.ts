@@ -90,6 +90,13 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async info(): Promise<BundleInfo> {
       return { version: "54ea0bb4", validUntil: "2027-03-31" };
     },
+    // The fixture is one valley, and these are ITS counts — not the province's. That
+    // distinction is the whole reason the app must read them rather than state them:
+    // the numbers a screen shows have to belong to the bundle it actually opened.
+    async counts() {
+      return { waters: 2, reaches: sectionRules.size, surveyed: null, stations: 1 };
+    },
+
     async itemExists(i) { return i === CHILLIWACK.item || i === JEPERSON.item; },
     async itemForSection(s) {
       if (sectionRules.has(s) && s !== JEPERSON.section) return id<ItemId>(CHILLIWACK.item);

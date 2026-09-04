@@ -15,7 +15,8 @@ export type Async<T> =
   | { state: "ready"; value: T; error: null }
   | { state: "failed"; value: null; error: Error };
 
-export const LOADING = { state: "loading", value: null, error: null } as const;
+// Module-private: the sentinel `useAsync` returns; callers match on `state`.
+const LOADING = { state: "loading", value: null, error: null } as const;
 
 /**
  * `key` is a STRING, not a dependency array, and that is deliberate.

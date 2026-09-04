@@ -62,14 +62,23 @@ carry the reach you tapped, the coordinate behind "you are here", and the map's 
 
 ## Open
 
-**Nothing in this session was verified visually by me.** The pill, the wash, the mask, the
-low-zoom haze, the route arrows and the seasonal chart were all built and reasoned about but
-never seen — there is no browser tool in the session, and `WebFetch` cannot render a canvas.
-Every visual bug found so far came from a pasted screenshot.
+**~~Nothing in this session was verified visually by me.~~ — 2026-09-03: it has been.** The
+app was run against the province bundle, the live feed and the full atlas, and walked with
+Playwright. Seven defects, none of which any of the 323 passing tests saw; all fixed, and
+the walk is written up in the *What the Browser Said* artifact. What is still unseen: the
+native app. Everything here was verified through react-native-web in a desktop browser, so
+gesture feel, font metrics and the native map SDK remain unproven.
 
-**Riffle parity has never been audited screen by screen.** `app/design/riffle.html` is the
-target and individual complaints have been fixed against it, but no pass has gone through it
-systematically.
+**Riffle parity: audited 2026-09-03, two gaps found and closed.** The date pill was inert —
+`MapScreen` declared `onDate` and `Shell` never passed one — so the app showed the qualifier
+on every seasonal answer with no way to change it; `DateSheet` is riffle's "Which day?"
+month grid and day stepper. And the legend carried no counts, though `LegendCount` had an
+`n` prop since it was written, with a comment reading "the count is the point". Both are in.
+
+Riffle's remaining differences are deliberate and should stay: it says "limited" where the
+app says "restricted" (core's `statusWord` is the one vocabulary, and riffle predates it),
+and it puts a satellite toggle on the map where the app keeps that choice in the Layers
+sheet beside the other things that change what is drawn.
 
 **The fixture bundle is still load-bearing for tests.** The app itself reads the province
 bundle, but `tools/bundle-schema.test.ts`, `packages/data/src/bundle/source.test.ts` and

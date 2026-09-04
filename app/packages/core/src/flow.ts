@@ -70,20 +70,56 @@ export { TRUST_BANDS, TRUST_FLOOR, type GaugeTrust } from "./gauge-policy.genera
 import type { GaugeTrust as Trust } from "./gauge-policy.generated";
 
 /**
- * What the sheet says about a band.
+ * What a band is called, in the two places the app says it.
+ *
+ * ONE TABLE, TWO RENDERINGS, and the reason is a bug that shipped: `GaugeBadge` composed
+ * `` `It ${trustWord(t)}.` `` while `trustWord` returned a fragment that only reads after
+ * "It" for ONE of the three bands. `fair` rendered "It a major branch of it." and `weak`
+ * rendered "It the trend, not the level." — 97.7% of gauged sections in the province
+ * bundle, since only 2,724 of 119,103 are `good`.
+ *
+ * A test aimed at that exact line passed the whole time, because it asserted the fragment
+ * it had just interpolated. So the sentence is BUILT HERE, whole, where a test can pin the
+ * finished string — a caller that only concatenates cannot reintroduce the fault.
  *
  * There is no entry for "no gauge", because that is not a band — it is the ABSENCE of a
  * row in `section_gauge`, and the caller has to handle a null link before it gets here.
  * A fourth enum value read like a fourth outcome and invited exactly the bug where a reach
  * with no station showed a word instead of a silence.
  */
+const TRUST_PHRASE: Record<Trust, { shows: string; clause: string }> = {
+  good: { shows: "this water",               clause: "It describes this water" },
+  fair: { shows: "a major branch of it",     clause: "It describes a major branch of it" },
+  weak: { shows: "the trend, not the level", clause: "It shows the trend, not the level" },
+};
+
+/**
+ * The band as a VALUE in a table — the right-hand side of "so it shows …".
+ * Never interpolate this into prose; that is what `gaugeSentence` is for.
+ */
 export function trustWord(t: Trust): string {
-  return {
-    good: "describes this water",
-    fair: "a major branch of it",
-    weak: "the trend, not the level",
-  }[t];
+  return TRUST_PHRASE[t].shows;
+}
+
+/**
+ * The finished sentence a gauge badge shows: the band, qualified by whether the station is
+ * still reporting. All nine combinations are built HERE rather than spliced at the call
+ * site, because splicing at the call site is the bug this replaces.
+ *
+ * `live`: `true` reporting · `false` stopped · `null` we could not check.
+ */
+export function gaugeSentence(t: Trust, live: boolean | null): string {
+  const c = TRUST_PHRASE[t].clause;
+  if (live === true) return `${c}.`;
+  if (live === null)
+    return `${c}. We could not reach the live feed, so whether it is reporting today is ` +
+           "unknown.";
+  return `${c}, but the station has stopped reporting — there is a record here, not a ` +
+         "reading.";
 }
 
 /** What the sheet says when nothing is entitled to speak for this water at all. */
 export const NO_GAUGE = "no station speaks for this water";
+
+/** …and when a station speaks for the water but has nothing to say about this stretch. */
+export const NO_READING_HERE = "no reading on this stretch";

@@ -122,6 +122,31 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
     pdfjs + fuse + suncalc without anyone deciding to.
 31. **`pnpm check` must pass**: boundaries → platform → style → deps → typecheck → test.
 
+32. **A screen may not assert a fact about the data it is sitting on — it asks.**
+    `App.tsx` passed `waters={255} reaches={6967} surveyed={35} stations={5}` and a fixed
+    `fetchedAt`, all transcribed from `design/riffle.html`, whose fixture is one valley. The
+    shipped bundle holds 19,699 waters and 2,324 stations, and the Layers sheet reported
+    five of them under a heading reading "EVERY VALUE HAS AN AGE". Counts come from
+    `source.counts()` and the feed's own index. A figure that is not available renders as
+    NOTHING — `count()` returns undefined for null, because "we have not asked" and "we
+    asked and there are none" are different claims and only one is safe to show.
+
+33. **Assert the whole composed string, never the fragment you interpolated.**
+    `GaugeBadge` built `` `It ${trustWord(t)}.` `` and the fragment only read after "It" for
+    one of three bands — "It a major branch of it." rendered for 97.7% of gauged sections.
+    A test aimed at that exact line passed the entire time, because it matched
+    `/a major branch of it/`, which is equally true of the broken sentence. A regex over a
+    substring you supplied cannot fail. Sentences are composed in `core/` where a test can
+    pin the finished string.
+
+34. **`accessibilityState` is dead — use the ARIA props.** react-native-web 0.21 dropped it
+    silently: the prop is ignored and the element renders with no attribute at all. Ten
+    components used it, so every radio group, tab and disabled button in the app was
+    invisible to a screen reader while looking correct, because the state was also carried
+    by a background colour. `aria-checked` (role=radio) / `aria-selected` (role=tab) /
+    `aria-disabled` work on BOTH targets. `tools/check-platform.mjs` fails on the old
+    spelling.
+
 ## Curated data, and the artifacts you must not regenerate casually
 
 35. **Three kinds of data, and confusing them is the recurring bug in this repo.**
@@ -188,9 +213,12 @@ Deep context: `pipeline/docs/13-build-plan.md` (delivery), `pipeline/docs/10-pla
 
 ## Working style
 
-32. **Measure before asserting.** Every number in the docs is reproducible; several
+<!-- 42-44: these were numbered 32-34, which collided with the app section. The app rules
+     run 21-34 and the curated ones 35-41, so this section continues from there. -->
+
+42. **Measure before asserting.** Every number in the docs is reproducible; several
     "obvious" designs here were killed by one measurement (the hash id, the straddler
     policy, parallelism in the reach builder).
-33. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
-34. **Report honestly what you did not verify.** An unverified claim is worse than a known
+43. **Do not build parallelism in the reach builder.** Full corpus resolves in ~0.1 s.
+44. **Report honestly what you did not verify.** An unverified claim is worse than a known
     gap. Say "scaffolded, not run" when that is what happened.

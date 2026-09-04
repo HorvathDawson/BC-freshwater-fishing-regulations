@@ -31,6 +31,30 @@ export interface BundleInfo {
   validUntil: string | null;
 }
 
+/**
+ * How much is actually in this bundle.
+ *
+ * EXISTS BECAUSE THE APP MADE THESE UP. `App.tsx` passed `waters={255} reaches={6967}
+ * surveyed={35} stations={5}` — figures transcribed from `design/riffle.html`, whose
+ * fixture is one valley. The shipped province bundle holds 19,699 named waters and 2,324
+ * stations, and the Layers sheet reported five of them under a heading that reads
+ * "EVERY VALUE HAS AN AGE".
+ *
+ * A count a screen states about the data must be READ FROM the data. Anything a source
+ * cannot answer is `null`, which renders as an omission — never as a zero, and never as a
+ * number borrowed from somewhere else.
+ */
+export interface BundleCounts {
+  /** Named waters — what search is searching. */
+  waters: number;
+  /** Reaches: rows in `item_section`. What the map draws. */
+  reaches: number;
+  /** Lakes with a bathymetry survey sheet. `null` until the sheet matcher lands. */
+  surveyed: number | null;
+  /** Hydrometric stations the bundle knows a position for. */
+  stations: number;
+}
+
 /** Every live value carries its age. There is no way to read one without it. */
 export interface Aged<T> {
   value: T;
@@ -231,6 +255,8 @@ export interface Release {
 
 export interface RegsSource {
   info(): Promise<BundleInfo>;
+  /** How much this bundle holds. Read, never asserted by a screen. */
+  counts(): Promise<BundleCounts>;
 
   // ---- identity -------------------------------------------------------
   itemExists(id: ItemId): Promise<boolean>;

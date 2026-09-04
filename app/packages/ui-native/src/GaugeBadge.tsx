@@ -21,7 +21,7 @@
  */
 import { Text, View } from "react-native";
 import type { GaugeLink } from "@app/data";
-import { trustWord } from "@app/core";
+import { gaugeSentence } from "@app/core";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -37,12 +37,12 @@ export function GaugeBadge({ gauge, palette, waterName, record }: {
 
   if (!gauge) {
     return (
-      <Row palette={palette} dot={palette.faint} head="Not measured">
+      <DotBlock palette={palette} dot={palette.faint} head="Not measured">
         <Text style={{ ...TYPE.small, color: palette.sub }}>
           No hydrometric station drains enough of {water} to speak for it. The nearest one
           would still give you a number.
         </Text>
-      </Row>
+      </DotBlock>
     );
   }
 
@@ -55,7 +55,7 @@ export function GaugeBadge({ gauge, palette, waterName, record }: {
             : weak ? palette.restricted : palette.live;
 
   return (
-    <Row palette={palette} dot={dot} head={head}>
+    <DotBlock palette={palette} dot={dot} head={head}>
       <Text style={{ ...TYPE.small, color: palette.sub }}>
         <Text style={{ color: palette.ink }}>{gauge.name}</Text>
         {gauge.areaKm2 != null && ` · drains ${Math.round(gauge.areaKm2).toLocaleString()} km²`}
@@ -68,20 +68,17 @@ export function GaugeBadge({ gauge, palette, waterName, record }: {
           {record.years} years of record · {record.fromYear}–{record.toYear}
         </Text>
       )}
+      {/* The WHOLE sentence comes from core. It used to be spliced here — `It ${word}.` —
+          and the fragment only read after "It" for one of the three bands. */}
       <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-        {gauge.live === true
-          ? `It ${trustWord(gauge.trust)}.`
-          : gauge.live === null
-            ? `It ${trustWord(gauge.trust)}. We could not reach the live feed, so whether ` +
-              "it is reporting today is unknown."
-            : `It ${trustWord(gauge.trust)}, but the station has stopped reporting — ` +
-              "there is a record here, not a reading."}
+        {gaugeSentence(gauge.trust, gauge.live ?? null)}
       </Text>
-    </Row>
+    </DotBlock>
   );
 }
 
-function Row({ palette, dot, head, children }: {
+/** A coloured dot, a heading, and whatever the state has to say under it. */
+function DotBlock({ palette, dot, head, children }: {
   palette: Palette; dot: string; head: string; children: React.ReactNode;
 }) {
   return (

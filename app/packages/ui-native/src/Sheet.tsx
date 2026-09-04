@@ -35,29 +35,6 @@ export function Sheet({ open, onClose, title, palette, children }: {
   );
 }
 
-/** A labelled row with a switch-like control. */
-export function Row({ palette, label, hint, on, onPress }: {
-  palette: Palette; label: string; hint?: string; on: boolean; onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="switch" accessibilityState={{ checked: on }}
-               accessibilityLabel={label}
-               style={{ flexDirection: "row", alignItems: "center", gap: 12,
-                        paddingHorizontal: 18, paddingVertical: 12 }}>
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ ...TYPE.body, color: palette.ink }}>{label}</Text>
-        {hint && <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>{hint}</Text>}
-      </View>
-      <View style={{ width: 46, height: 27, borderRadius: 999, padding: 3,
-                     backgroundColor: on ? palette.accent : palette.line,
-                     alignItems: on ? "flex-end" : "flex-start" }}>
-        <View style={{ width: 21, height: 21, borderRadius: 999,
-                       backgroundColor: palette.card }} />
-      </View>
-    </Pressable>
-  );
-}
-
 /** A row of mutually exclusive choices. */
 export function Choice<T extends string>({ palette, options, value, onChange, label }: {
   palette: Palette; options: readonly { k: T; t: string }[]; value: T;
@@ -70,7 +47,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
         const on = o.k === value;
         return (
           <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio"
-                     accessibilityState={{ selected: on }} accessibilityLabel={o.t}
+                     aria-checked={on} accessibilityLabel={o.t}
                      style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999,
                               backgroundColor: on ? palette.accent : palette.wash,
                               borderWidth: 1,

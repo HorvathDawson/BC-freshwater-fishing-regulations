@@ -20,6 +20,7 @@ import { Choice, Sheet } from "./Sheet";
 import { OptionRow, type Option } from "./OptionRow";
 import { TYPE } from "./type";
 import type { Palette, ThemeName } from "./theme";
+import { ago, count } from "./format";
 
 const THEME_OPTIONS = [
   { k: "light" as ThemeName, t: "Light" },
@@ -138,10 +139,10 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
         </Section>
 
         <Section palette={palette} title="Live data" note="every value has an age">
-          <Row palette={palette} title="Stream gauges"
+          <SourceRow palette={palette} title="Stream gauges"
                sub={`${stations ?? 0} stations · Environment Canada`}
                age={fetchedAt ? ago(fetchedAt) : "—"} />
-          <Row palette={palette} title="Stocking releases"
+          <SourceRow palette={palette} title="Stocking releases"
                sub="Province of BC · Fisheries Inventory" age="per season" />
         </Section>
 
@@ -168,16 +169,6 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
   );
 }
 
-const count = (n: number | undefined, word: string) =>
-  n === undefined ? undefined : `${n.toLocaleString()} ${word}`;
-
-/** "7h ago". A live value with no age is a live value you cannot trust. */
-function ago(iso: string): string {
-  const h = Math.round((Date.now() - Date.parse(iso)) / 3.6e6);
-  if (!Number.isFinite(h)) return "—";
-  return h < 1 ? "just now" : h < 48 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
-}
-
 function Section({ palette, title, note, children }: {
   palette: Palette; title: string; note?: string; children: React.ReactNode;
 }) {
@@ -198,7 +189,8 @@ function Section({ palette, title, note, children }: {
   );
 }
 
-function Row({ palette, title, sub, age }: {
+/** A named data source, what it is, and how old it is. */
+function SourceRow({ palette, title, sub, age }: {
   palette: Palette; title: string; sub: string; age: string;
 }) {
   return (

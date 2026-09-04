@@ -52,16 +52,3 @@ export function LayersIcon({ colour, size = 18 }: { colour: string; size?: numbe
 }
 
 
-/** Satellite imagery, from the design. */
-export function SatelliteIcon({ colour, size = 17 }: { colour: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {["M13 7 9 3 3 9l4 4", "M17 11l4 4-6 6-4-4", "M8 12l4 4", "M16 8a4 4 0 0 1 4 4"]
-        .map((d, i) => (
-          <Path key={i} d={d} stroke={colour} strokeWidth={1.9}
-                strokeLinecap="round" strokeLinejoin="round" />
-        ))}
-    </Svg>
-  );
-}
-

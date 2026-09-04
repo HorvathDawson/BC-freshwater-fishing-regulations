@@ -28,6 +28,7 @@ import { GaugeTrace } from "./GaugeTrace";
 import { StatusPill } from "./StatusPill";
 import { TYPE } from "./type";
 import { outcomeColour, type Palette } from "./theme";
+import { Button } from "./Button";
 
 export type SpotMode = "draft" | "view" | "edit";
 
@@ -269,7 +270,7 @@ export function SpotScreen(p: SpotScreenProps) {
       {editable && p.onSave && (
         <View style={{ flexDirection: "row", gap: 10, padding: 16, borderTopWidth: 1,
                        borderTopColor: palette.line }}>
-          <Button palette={palette} ghost label={mode === "draft" ? "Back" : "Cancel"}
+          <Button palette={palette} kind="ghost" label={mode === "draft" ? "Back" : "Cancel"}
                   onPress={mode === "draft" ? p.onBack : leaveEdit} />
           <Button palette={palette}
                   label={mode === "draft" ? "Save spot" : "Save changes"} onPress={p.onSave} />
@@ -387,7 +388,7 @@ function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
           : "Keep them, or throw them away and go back to what was saved."}
       </Text>
       <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
-        <Button palette={palette} ghost label={del ? "Keep it" : "Keep editing"}
+        <Button palette={palette} kind="ghost" label={del ? "Keep it" : "Keep editing"}
                 onPress={onCancel} />
         {/* NOT "Save changes" — the footer already has a button with that label, and two
             identically-named buttons on one screen is how somebody presses the wrong one.
@@ -395,7 +396,7 @@ function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
         {onSaveInstead && (
           <Button palette={palette} label="Save and close" onPress={onSaveInstead} />
         )}
-        <Button palette={palette} danger={del}
+        <Button palette={palette} kind={del ? "danger" : "solid"}
                 label={del ? "Delete" : "Discard"} onPress={onConfirm} />
       </View>
     </View>
@@ -442,17 +443,3 @@ function Link({ palette, label, text, onPress, tone }: {
   );
 }
 
-function Button({ palette, label, onPress, ghost, danger }: {
-  palette: Palette; label: string; onPress?: () => void; ghost?: boolean; danger?: boolean;
-}) {
-  const bg = ghost ? "transparent" : danger ? palette.closed : palette.accent;
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
-               style={{ flexGrow: ghost ? 0 : 1, borderRadius: 12, paddingVertical: 13,
-                        paddingHorizontal: 18, alignItems: "center", backgroundColor: bg,
-                        borderWidth: ghost ? 1 : 0, borderColor: palette.line2 }}>
-      <Text style={{ ...TYPE.bodyStrong,
-                     color: ghost ? palette.ink : palette.onAccent }}>{label}</Text>
-    </Pressable>
-  );
-}

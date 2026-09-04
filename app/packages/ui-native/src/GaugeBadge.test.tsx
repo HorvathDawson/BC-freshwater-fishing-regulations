@@ -52,11 +52,41 @@ describe("<GaugeBadge>", () => {
     expect(getByLabelText("Gauged nearby")).toBeTruthy();
   });
 
-  it("uses the same words for trust the rest of the app does", () => {
-    // trustWord() is the one definition; a second phrasing here is the drift rule 23 bans.
+  /**
+   * THE WHOLE SENTENCE, EXACTLY — every band against every liveness state.
+   *
+   * This replaces a test that rendered `trust: "fair"` and asserted
+   * `getByText(/a major branch of it/)`. It passed for as long as the badge was rendering
+   * "It a major branch of it." — because the fragment it matched was the fragment the
+   * component had just interpolated, and the assertion was therefore true of the broken
+   * string as well as the good one. A regex over a substring you supplied cannot fail.
+   *
+   * So: exact strings, and one row per combination. If a phrase changes in core, these
+   * fail and are meant to — that is the drift rule 23 asks for, made visible.
+   */
+  it.each([
+    ["good", true,  "It describes this water."],
+    ["fair", true,  "It describes a major branch of it."],
+    ["weak", true,  "It shows the trend, not the level."],
+    ["good", null,  "It describes this water. We could not reach the live feed, so whether " +
+                    "it is reporting today is unknown."],
+    ["fair", false, "It describes a major branch of it, but the station has stopped " +
+                    "reporting — there is a record here, not a reading."],
+  ] as const)("says the whole sentence for %s / live=%s", (trust, live, sentence) => {
     const { getByText } = render(
-      <GaugeBadge gauge={link({ trust: "fair" })} palette={LIGHT} />);
-    expect(getByText(/a major branch of it/)).toBeTruthy();
+      <GaugeBadge gauge={link({ trust, live })} palette={LIGHT} />);
+    expect(getByText(sentence)).toBeTruthy();
+  });
+
+  it("never renders a sentence that begins with a bare 'It ' fragment", () => {
+    // The shape of the original bug, pinned directly: whatever the band, the first clause
+    // has to be a verb phrase. "It a major branch of it." is what this refuses.
+    for (const trust of ["good", "fair", "weak"] as const) {
+      const { container } = render(
+        <GaugeBadge gauge={link({ trust })} palette={LIGHT} />);
+      expect(container.textContent ?? "").not.toMatch(/\bIt (?:a|the|an) \w/);
+      cleanup();
+    }
   });
 
   it("omits a drainage area nobody published instead of printing zero", () => {

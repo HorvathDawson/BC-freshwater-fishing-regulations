@@ -14,6 +14,7 @@ import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { needsRefresh, type Spot, spotLabel } from "@app/data/spots";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
+import { Button } from "./Button";
 
 // NO SUMMARY TYPE. This renders `Spot` — the same record the store holds and the capture
 // flow writes. A second, thinner shape meant two definitions of what a spot IS, and the
@@ -83,7 +84,8 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
       )}
       ListFooterComponent={
         <View style={{ padding: 16, paddingHorizontal: 20, alignItems: "flex-start" }}>
-          <Button palette={palette} onPress={onAdd} label="Add a spot" ghost />
+          <Button palette={palette} onPress={onAdd} label="Add a spot" kind="ghost"
+                  grow={false} />
         </View>
       }
     />
@@ -132,16 +134,3 @@ function SpotRow({ spot, palette, onPress }:
   );
 }
 
-function Button({ palette, label, onPress, ghost = false }: {
-  palette: Palette; label: string; onPress: () => void; ghost?: boolean;
-}) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
-               style={{ borderRadius: 13, paddingVertical: 14, paddingHorizontal: 20,
-                        backgroundColor: ghost ? "transparent" : palette.accent,
-                        borderWidth: ghost ? 1 : 0, borderColor: palette.line2 }}>
-      <Text style={{ ...TYPE.bodyStrong, fontSize: 15, fontWeight: "700",
-                     color: ghost ? palette.accent : palette.onAccent }}>{label}</Text>
-    </Pressable>
-  );
-}
