@@ -19,7 +19,8 @@
  */
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
-import { confidenceWord, interval, inTen, metresApart, ordinal, panelCamera,
+import { catchmentLabel, confidenceWord, interval, inTen, metresApart, ordinal,
+         panelCamera,
          plainStanding,
          SAME_PLACE_M, seasonPhrase, standing, type Estimate, type NoEstimate }
   from "@app/core";
@@ -61,12 +62,6 @@ function distance(ratio: number): string {
   if (!Number.isFinite(ratio)) return "—";
   if (ratio < 1.5) return "same size";
   return `${ratio < 10 ? ratio.toFixed(1) : Math.round(ratio)}× apart`;
-}
-
-/** A catchment, at a readable precision. Under 10 km² a whole number says nothing. */
-function area(km2: number): string {
-  if (!Number.isFinite(km2) || km2 <= 0) return "—";
-  return km2 < 10 ? `${km2.toFixed(1)} km²` : `${Math.round(km2).toLocaleString()} km²`;
 }
 
 /**
@@ -262,7 +257,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
       <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 4 }}>
         {bound(lo)}–{bound(hi)} percentile for{" "}
         {seasonPhrase(new Date(Date.now() + horizon * 86_400_000))}
-        {value.areaKm2 != null ? ` · this spot drains ${area(value.areaKm2)}` : ""}
+        {value.areaKm2 != null ? ` · this spot drains ${catchmentLabel(value.areaKm2)}` : ""}
       </Text>
 
       {/* THE SAME DAYS, IN THE SAME ORDER, as the map's own corner control — so a reader
@@ -427,7 +422,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
             </Text>
             <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
                            marginLeft: 18 }}>
-              {ROLE[r.role]} · drains {area(r.areaKm2)} · {distance(r.areaRatio)}
+              {ROLE[r.role]} · drains {catchmentLabel(r.areaKm2)} · {distance(r.areaRatio)}
               {r.regulated ? " · dam-controlled" : ""}
               {r.route && r.route.path.length > 1
                 ? ` · ${r.route.path.length - 1} `

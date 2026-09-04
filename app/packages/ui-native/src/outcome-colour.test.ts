@@ -8,10 +8,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { resolveTheme, themeNames } from "@app/map";
-import { statusWord, type Outcome } from "@app/core";
+import { OUTCOMES, statusWord } from "@app/core";
 import { CVD, DARK, LIGHT, outcomeColour, THEMES } from "./theme";
-
-const OUTCOMES: readonly Outcome[] = ["closed", "restricted", "open", "unknown"];
 
 describe("outcome colour", () => {
   it("matches the map, hex for hex, in every theme", () => {

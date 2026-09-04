@@ -8,7 +8,8 @@
  */
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
+import { OUTCOMES, statusWord, type Outcome, type PlainDate,
+         type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
          useStatuses, type GaugeQuantity, type Horizon } from "@app/ui";
@@ -32,9 +33,6 @@ import { TabBar, type TabKey } from "./TabBar";
 import { WaterScreen } from "./WaterScreen";
 import { TYPE } from "./type";
 import { flowRamp, outcomeColour, type Palette, type ThemeName } from "./theme";
-
-/** Every outcome, in the order a legend reads. Rule 29: each one must be coloured. */
-const OUTCOMES: readonly Outcome[] = ["closed", "restricted", "open", "unknown"];
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
@@ -367,9 +365,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
 
   const body = item !== null
     ? <WaterScreen source={source} item={item} on={on} group={group} palette={palette}
-                   // The SAME feed the Conditions screen reads, so the sheet's one-line
-                   // summary and the screen it links to cannot quote different numbers.
-                   feed={feed}
+                   // NO `feed`. The sheet quotes no number, so it reads no gauge data —
+                   // see the note in WaterScreen about why the hooks came out with the UI.
                    // The toggle LEAVES for the one conditions screen rather than rendering
                    // a second one here. Opening it from a list means there is no tapped
                    // point, so the route map has no "you are here" — which is honest: the
@@ -440,7 +437,20 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                        setZoomedOut((was) => (at.zoom < HANDOVER_Z) === was
                          ? was : at.zoom < HANDOVER_Z);
                      }}
-                     view="plain" modes={modes} groups={activeGroups}
+                     view="plain" modes={modes}
+                     /*
+                      * NO ADMINISTRATIVE BOUNDARIES OVER THE FIELD.
+                      *
+                      * The eight management regions draw as a heavy web with a numeral in
+                      * every cell, and over the basin field they read as the subject of the
+                      * map rather than as context — the reader is looking for a colour and
+                      * finding a border. They are navigation, and the Conditions tab is not
+                      * a screen you navigate by region: it answers one question about
+                      * water. They stay on the Map tab, where there is a reason to want
+                      * them and no field to fight.
+                      */
+                     groups={tab === "conditions"
+                       ? { ...activeGroups, admin: false } : activeGroups}
                      onDate={onDateChange ? () => setDateOpen(true) : undefined}
                      // The Conditions tab swaps the date control for the horizons — see
                      // MapScreen. Temperature has no forecast, so it keeps neither.

@@ -34,9 +34,13 @@
  * which is the whole job of a closure on a map.
  */
 
+import { rgb, SCALE } from "./raster";
+
+/** This file's fallback — see `rgb` in ./raster.ts for why it is a parameter. */
+const RGB = (hex: string) => rgb(hex, [128, 128, 128]);
+
 /** Tile edge in CSS pixels. `spacing` must divide it, or the diagonal seams. */
 const SIZE = 16;
-const SCALE = 2;
 
 export interface HatchImage {
   width: number;
@@ -46,13 +50,6 @@ export interface HatchImage {
 }
 
 /** `#rrggbb` (or `#rgb`) to bytes. Anything else is treated as mid grey. */
-function rgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-  if (full.length < 6) return [128, 128, 128];
-  return [parseInt(full.slice(0, 2), 16), parseInt(full.slice(2, 4), 16),
-          parseInt(full.slice(4, 6), 16)];
-}
 
 /** Toward black by `k`, so the stripe is the same hue as the ground it sits on. */
 function darken([r, g, b]: [number, number, number], k: number): [number, number, number] {
@@ -75,7 +72,7 @@ export function hatchImage(colour: string, groundAlpha = 0.45, stripeAlpha = 0.7
   // every 16 px — so the seam becomes a grid over the whole polygon.
   const pitch = Math.max(1, Math.round(SIZE / Math.max(1, Math.round(SIZE / spacing)))) * SCALE;
   const half = (weight / 2) * SCALE;           // half the stripe width, in device px
-  const ground = rgb(colour);
+  const ground = RGB(colour);
   const stripe = darken(ground, darkenBy);
   const data = new Uint8Array(px * px * 4);
 

@@ -17,11 +17,10 @@
  * this water — read it as a list of the questions the app knows how to ask.
  */
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { NO_GAUGE, NO_READING_HERE, plainStanding, standing, type PlainDate,
-         type SpeciesGroup } from "@app/core";
+import type { PlainDate, SpeciesGroup } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
-import { usePanel, useConditions, useWaterGauge, useWaterSheet } from "@app/ui";
+import { useWaterSheet } from "@app/ui";
 import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
 import { StatusPill } from "./StatusPill";
@@ -31,8 +30,8 @@ import { plural } from "./format";
 
 export type Face = "conditions" | "regulations";
 
-export function WaterScreen({ source, item, on, group, palette, onBack, onConditions,
-                              feed }: {
+export function WaterScreen({ source, item, on, group, palette, onBack,
+                              onConditions }: {
   source: RegsSource; item: ItemId; on: PlainDate; group: SpeciesGroup;
   palette: Palette; onBack?: () => void;
   /**
@@ -43,33 +42,23 @@ export function WaterScreen({ source, item, on, group, palette, onBack, onCondit
    * it useful — the reach you tapped, where on it you tapped, and the map's own quantity.
    */
   onConditions?: (section: SectionId) => void;
-  /**
-   * The live index — for the SAME arithmetic the Conditions screen uses.
-   *
-   * Without it this sheet quoted `section_gauge`'s single matched station while the screen
-   * one tap away quoted the donor panel, so the same water carried two different
-   * percentiles depending on which door you came through. Absent, the cross-link says
-   * nothing numeric rather than saying something else.
-   */
-  feed?: { index(): Promise<any> };
 }) {
   const sheet = useWaterSheet(source, item, on, group);
   // Reaches run mouth -> source; conditions belong to the first, which is the stretch a
   // gauge is most likely to be entitled to speak for.
   const first: SectionId | null =
     sheet.state === "ready" && sheet.value ? sheet.value.reaches[0]?.section ?? null : null;
-  // ONE LINE ONLY. This sheet says what the water is doing in a sentence and offers a way
-  // to the screen that says it properly; it does not answer the question itself.
-  const conditions = useConditions(source, first);
   /*
-   * THE ONE ARITHMETIC. `useConditions` above is the single matched station, kept for the
-   * gauge's own name and reading; the NUMBER a reader sees has to be the panel's, because
-   * that is what the Conditions screen shows and this line is a link to it.
+   * NO CONDITIONS HOOK RUNS HERE, deliberately.
+   *
+   * When the conditions block came out of this screen its DATA did not: `useConditions`,
+   * `usePanel` and `useWaterGauge` all kept running, so opening a water from a search result
+   * still read the gauge index, walked the donor panel and resolved the water's station, and
+   * then rendered none of it. Invisible work is the cheapest kind of drift to reintroduce —
+   * the next person to want a number here finds three hooks already wired and no reason not
+   * to print one, and the two surfaces diverge again. The reach is all this screen needs;
+   * the Conditions screen asks the questions.
    */
-  const panel = usePanel(source, feed, first, "both");
-  // Asked of the WATER, not of `first`: most of a well-gauged river has no station on the
-  // stretch you happen to be looking at, and answering "ungauged" there would be false.
-  const gauged = useWaterGauge(source, item);
 
   if (sheet.state === "loading") {
     return (
@@ -91,7 +80,6 @@ export function WaterScreen({ source, item, on, group, palette, onBack, onCondit
   }
 
   const s = sheet.value;
-  const c = conditions.state === "ready" ? conditions.value : null;
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: palette.card }}

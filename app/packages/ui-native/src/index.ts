@@ -28,7 +28,7 @@ export { OptionRow, type Option } from "./OptionRow";
 export { Button, type ButtonKind } from "./Button";
 export { ago, count, plural } from "./format";
 export { MiniMap } from "./MiniMap";
-export { Chip, ordinal } from "./StatusChip";
+export { Chip } from "./StatusChip";
 export { Icon, LayersIcon, type IconName } from "./icons";
 export * from "./type";
 export { StatusPill } from "./StatusPill";

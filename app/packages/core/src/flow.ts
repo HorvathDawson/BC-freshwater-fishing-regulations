@@ -72,10 +72,41 @@ export function percentileLabel(p: number): string {
   return `p${ordinal(pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct))}`;
 }
 
+/**
+ * A catchment, at a readable precision — "742 km²", or "3.4 km²" for a small one.
+ *
+ * TWO OF THESE DISAGREED. The donor panel kept a decimal below 10 km², because at that size
+ * the difference between 3 and 3.4 is most of the size ratio the reader is being asked to
+ * judge a gauge by; the gauge badge always rounded, so the same creek read "3 km²" under the
+ * map and "3.4 km²" in the panel two taps away. Same class of bug as the four month tables:
+ * both were right on their own and the pair was wrong. The panel's rule is the better one
+ * and it is now the only one.
+ */
+export function catchmentLabel(km2: number | null | undefined): string {
+  if (km2 == null || !Number.isFinite(km2) || km2 <= 0) return "—";
+  return km2 < 10 ? `${km2.toFixed(1)} km²` : `${Math.round(km2).toLocaleString()} km²`;
+}
+
+/**
+ * The months, once.
+ *
+ * THERE WERE FOUR OF THESE: full names here, title-case abbreviations in the chart axis,
+ * and the same upper-case abbreviations written out twice more in the date pill and the
+ * date sheet. Nothing had gone wrong yet — but a calendar is a table every screen needs and
+ * exactly the kind of thing that ends up spelled three ways, the way the percentile did.
+ */
+export const MONTHS: readonly string[] = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/** "Sep". Callers that want SEP uppercase it; the table stays one table. */
+export const monthAbbr = (month0: number): string =>
+  (MONTHS[month0] ?? "").slice(0, 3);
+
 /** The month a reader would name, from a date — "early September", "late June". */
 export function seasonPhrase(when: Date): string {
-  const month = ["January", "February", "March", "April", "May", "June", "July",
-                 "August", "September", "October", "November", "December"][when.getMonth()]!;
+  const month = MONTHS[when.getMonth()]!;
   const d = when.getDate();
   return `${d <= 10 ? "early" : d <= 20 ? "mid" : "late"} ${month}`;
 }

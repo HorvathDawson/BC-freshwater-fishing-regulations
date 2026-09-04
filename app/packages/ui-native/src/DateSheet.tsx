@@ -14,13 +14,14 @@
  * which is the one thing a shared component set exists to avoid.
  */
 import { Pressable, Text, View } from "react-native";
-import type { PlainDate } from "@app/core";
+import { MONTHS, type PlainDate } from "@app/core";
 import { Sheet } from "./Sheet";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
 
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-                "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"] as const;
+// One table, in core — see `MONTHS` there. Upper-cased here because that is a
+// presentation choice this sheet makes, not a second calendar.
+const MONTH_UPPER = MONTHS.map((m) => m.slice(0, 3).toUpperCase());
+import type { Palette } from "./theme";
 
 /** Days in a month, Gregorian. February needs the year, so the year is required. */
 export function daysInMonth(year: number, month: number): number {
@@ -49,7 +50,7 @@ export function DateSheet({ open, onClose, value, onChange, palette }: {
                        color: palette.faint }}>MONTH</Text>
         <View accessibilityRole="radiogroup" accessibilityLabel="Month"
               style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {MONTHS.map((label, i) => {
+          {MONTH_UPPER.map((label, i) => {
             const month = i + 1;
             const on = month === value.month;
             return (

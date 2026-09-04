@@ -17,6 +17,19 @@
 import { inForce, type PlainDate, type Window } from "./dates";
 
 export type Outcome = "closed" | "restricted" | "open" | "unknown";
+
+/**
+ * Every outcome, once, in the order a legend reads them — worst news first.
+ *
+ * THE TYPE AND THE LIST HAVE TO SHIP TOGETHER. `Shell` held one copy to draw the legend and
+ * `outcome-colour.test.ts` held its own to check that every outcome is coloured in every
+ * theme — so the test proved a property of ITS list, not of the app's. Add a fifth outcome
+ * to the union and both copies keep compiling, the legend silently omits it, and the test
+ * that exists to catch exactly that stays green. Derived from the union here, so a new
+ * member is a type error until it is listed.
+ */
+export const OUTCOMES: readonly Outcome[] =
+  ["closed", "restricted", "open", "unknown"] as const;
 export type Provenance = "specific" | "general";
 
 /**

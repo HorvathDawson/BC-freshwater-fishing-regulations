@@ -4,7 +4,7 @@
  */
 import { useMemo } from "react";
 import type { GaugeTrace, PlainDate, SpeciesGroup, Status } from "@app/core";
-import { statusWord } from "@app/core";
+import { monthAbbr, statusWord } from "@app/core";
 import type {
   BundleCounts, Forecast, GaugeFeed, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit,
   Parameter, PlaceHit, PlaceId, RegsSource, SectionId, Series, StationId,
@@ -416,14 +416,12 @@ function axisLabels(at: readonly string[], ahead: readonly string[],
   const hours = (t1 - t0) / 3_600_000;
   const fmt = (t: number): string => {
     const d = new Date(t);
-    const day = `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+    const day = `${d.getUTCDate()} ${monthAbbr(d.getUTCMonth())}`;
     return hours <= 72 ? `${day} ${String(d.getUTCHours()).padStart(2, "0")}h` : day;
   };
   return [0, 0.25, 0.5, 0.75, 1].map((f) => fmt(t0 + (t1 - t0) * f));
 }
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
  * What the Layers sheet says about the data it is sitting on.

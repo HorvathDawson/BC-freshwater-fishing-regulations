@@ -11,11 +11,10 @@ import { Map, type Camera, type TileEndpoints } from "@app/map";
 import type { PlainDate } from "@app/core";
 import { Pill } from "./Chrome";
 import { LayersIcon } from "./icons";
+import { monthAbbr } from "@app/core";
 import { TYPE } from "./type";
 import { mapChrome, type Palette } from "./theme";
 
-const MONTH = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-               "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
                             onDate, onLayers, onPressFeature, onMoved, onMapPoint, horizons,
@@ -103,7 +102,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
           <Pill palette={palette} onPress={onDate} label="Change the date">
             <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600",
                            color: palette.ink }}>
-              {on.day} {MONTH[on.month - 1]}
+              {on.day} {monthAbbr(on.month - 1).toUpperCase()}
             </Text>
             <Text style={{ ...TYPE.micro, fontSize: 9, color: palette.faint }}>▼</Text>
           </Pill>

@@ -20,9 +20,10 @@ export function Chip({ palette, label, colour, tone = "wash" }: {
   );
 }
 
-/**
- * "p3rd", "p0.4th". A percentile below one still has to read as a number, because
- * rounding it to "p0th" would say the river has never been lower, which is a different
- * and much stronger claim.
+/*
+ * THERE IS NO `ordinal` HERE ANY MORE. This file re-exported `percentileLabel` under that
+ * name, so `ordinal` meant "p3rd" imported from @app/ui-native and "3rd" imported from
+ * @app/core — two functions, one name, both correct in isolation. Nothing consumed the
+ * alias; it existed only to be picked by autocomplete one day. Import `percentileLabel`
+ * from core, which is what this file does.
  */
-export const ordinal = percentileLabel;

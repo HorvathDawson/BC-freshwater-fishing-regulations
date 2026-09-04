@@ -21,7 +21,7 @@
  */
 import { Text, View } from "react-native";
 import type { GaugeLink } from "@app/data";
-import { gaugeSentence } from "@app/core";
+import { catchmentLabel, gaugeSentence } from "@app/core";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -58,7 +58,7 @@ export function GaugeBadge({ gauge, palette, waterName, record }: {
     <DotBlock palette={palette} dot={dot} head={head}>
       <Text style={{ ...TYPE.small, color: palette.sub }}>
         <Text style={{ color: palette.ink }}>{gauge.name}</Text>
-        {gauge.areaKm2 != null && ` · drains ${Math.round(gauge.areaKm2).toLocaleString()} km²`}
+        {gauge.areaKm2 != null && ` · drains ${catchmentLabel(gauge.areaKm2)}`}
       </Text>
       {record && (
         // The weight behind any percentile this station reports. "4th percentile" backed

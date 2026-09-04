@@ -16,10 +16,14 @@
  * length. Without them a long reading gives an oval and a short one a circle.
  */
 
+import { rgb, SCALE } from "./raster";
+
+/** This file's fallback — see `rgb` in ./raster.ts for why it is a parameter. */
+const RGB = (hex: string) => rgb(hex, [255, 255, 255]);
+
 /** The nine-patch geometry: a 24x24 button with an 8 px corner radius, at 2x. */
 const R = 8;
 const SIZE = 24;
-const SCALE = 2;
 
 export interface PillImage {
   width: number;
@@ -32,13 +36,6 @@ export interface PillImage {
 }
 
 /** `#rrggbb` (or `#rgb`) to bytes. Anything else is treated as opaque white. */
-function rgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-  if (full.length < 6) return [255, 255, 255];
-  return [parseInt(full.slice(0, 2), 16), parseInt(full.slice(2, 4), 16),
-          parseInt(full.slice(4, 6), 16)];
-}
 
 /**
  * The pill as RGBA pixels: a filled rounded rectangle with a one-pixel border.
@@ -52,8 +49,8 @@ export function pillImage(fill: string, border: string): PillImage {
   const w = SIZE * SCALE;
   const h = SIZE * SCALE;
   const r = R * SCALE;
-  const [fr, fg, fb] = rgb(fill);
-  const [br, bg, bb] = rgb(border);
+  const [fr, fg, fb] = RGB(fill);
+  const [br, bg, bb] = RGB(border);
   const data = new Uint8Array(w * h * 4);
 
   for (let y = 0; y < h; y++) {
