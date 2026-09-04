@@ -17,7 +17,8 @@
  * claim is about geography. A map of ONE gauge under a table of four — which is what this
  * screen showed before — draws the model the panel exists to replace.
  */
-import { Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import { confidenceWord, interval, inTen, metresApart, panelCamera, plainStanding,
          SAME_PLACE_M, seasonPhrase, standing, type Estimate, type NoEstimate }
   from "@app/core";
@@ -41,6 +42,9 @@ const WHY: Record<NoEstimate, string> = {
 };
 
 const ROLE: Record<"up" | "down", string> = { up: "upstream", down: "downstream" };
+
+/** The route map's height. Read by the camera as well as by the map, so they agree. */
+const MAP_H = 210;
 
 function ordinal(n: number): string {
   const v = Math.max(1, Math.min(99, Math.round(n)));
@@ -116,6 +120,17 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
    */
   horizon?: 0 | 1 | 3 | 5;
 }) {
+  /*
+   * MEASURED, NOT ASSUMED. The panel is rendered at every width from a phone to a desktop
+   * column, and the camera has to know which axis is the tight one. Starts at a sensible
+   * width so the first frame is close, and settles on the real one.
+   */
+  const [mapWidth, setMapWidth] = useState(360);
+  const onLayout = (e: LayoutChangeEvent) => {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w > 0 && w !== mapWidth) setMapWidth(w);
+  };
+
   const { answer, rows } = value;
   if (!answer.ok) {
     return (
@@ -145,8 +160,11 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
   // EVERY DONOR ON ONE MAP. The camera is fitted to all of them plus the spot, so a panel
   // spanning three rivers is seen to span three rivers.
   const placed = rows.filter((r) => r.route?.lat != null && r.route?.lon != null);
+  // THE MAP'S REAL SIZE, because the camera fits each axis to its own dimension. The route
+  // map is full-width and MAP_H tall, and a panel running north-south is constrained by the
+  // short axis — pass the wrong shape and the pins go off the top.
   const camera = panelCamera(placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })),
-                             from ?? null);
+                             from ?? null, { width: mapWidth, height: MAP_H });
   /*
    * A GAUGE IS OFTEN THE PLACE YOU TAPPED, and then two pins land on one pixel.
    *
@@ -167,7 +185,9 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
   const chain = [...new Set(rows.flatMap((r) => r.route?.path ?? []))];
 
   return (
-    <View style={{ paddingVertical: 14 }}>
+    // Measured on the ROOT, which renders on the first pass — so the width is known before
+    // the map mounts and the map never has to remount to be framed correctly.
+    <View style={{ paddingVertical: 14 }} onLayout={onLayout}>
       <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
                      color: palette.faint }}>
         {horizon === 0 ? "ESTIMATE FOR THIS SPOT"
@@ -221,7 +241,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
           */}
           <MiniMap key={`${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},`
                         + `${camera.zoom.toFixed(1)}`}
-                   at={at} palette={palette} theme={theme} camera={camera} height={210}
+                   at={at} palette={palette} theme={theme} camera={camera} height={MAP_H}
                    bare view="conditions" highlight={chain}
                    pins={[
                      ...(showFrom ? [{ lat: from!.lat, lon: from!.lon, tone: palette.accent,

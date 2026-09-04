@@ -20,7 +20,10 @@ describe("framing a whole panel", () => {
     const gauges = [{ lat: 49, lon: -122 }];
     const alone = panelCamera(gauges)!;
     const withSpot = panelCamera(gauges, { lat: 50, lon: -122 })!;
-    expect(withSpot.lat).toBeCloseTo(49.5, 6);
+    // The MERCATOR midpoint, not the arithmetic one — a degree of latitude is taller in
+    // pixels the further north it sits, so the centre that actually splits the frame in
+    // half is a little north of the average.
+    expect(withSpot.lat).toBeCloseTo(49.503, 3);
     expect(withSpot.zoom).toBeLessThan(alone.zoom);   // pulled back to hold both
   });
 
@@ -34,9 +37,73 @@ describe("framing a whole panel", () => {
     const same = panelCamera([{ lat: 49, lon: -122 }, { lat: 49, lon: -122 }])!;
     const huge = panelCamera([{ lat: 20, lon: -170 }, { lat: 70, lon: -50 }])!;
     for (const c of [same, huge]) {
-      expect(c.zoom).toBeGreaterThanOrEqual(5);
+      expect(c.zoom).toBeGreaterThanOrEqual(4);
       expect(c.zoom).toBeLessThanOrEqual(13);
     }
+  });
+
+  /**
+   * Project a point the way MapLibre does and say where it lands, in CSS pixels from the
+   * top-left of the map. This is the assertion the old camera could not pass: it fitted
+   * `max(latitude span, longitude span)` in DEGREES against one assumed viewport size, and
+   * a donor on the Fraser landed 136 px above the top of a 210 px map.
+   */
+  function screenXY(cam: { lon: number; lat: number; zoom: number },
+                    p: { lat: number; lon: number },
+                    size: { width: number; height: number }) {
+    const toY = (lat: number) => {
+      const f = (lat * Math.PI) / 180;
+      return (1 - Math.log(Math.tan(f) + 1 / Math.cos(f)) / Math.PI) / 2;
+    };
+    // 512 is MapLibre's vector tile size, so its world is `512 * 2^zoom`. This helper
+    // read 256 and so agreed with a camera that was one zoom level too close — the test
+    // passed while the pins fell off the map. A model of the renderer has to be the
+    // renderer's own arithmetic or it certifies the bug.
+    const world = 512 * 2 ** cam.zoom;
+    return {
+      x: size.width / 2 + ((p.lon + 180) / 360 - (cam.lon + 180) / 360) * world,
+      y: size.height / 2 + (toY(p.lat) - toY(cam.lat)) * world,
+    };
+  }
+
+  it("puts every donor inside a map that is wider than it is tall", () => {
+    // The real shape: the Fraser's panel spans Spences Bridge to Shelley, which is a
+    // north-south panel on a 380x210 map — the axis with the least room.
+    const size = { width: 380, height: 210 };
+    const pts = [{ lat: 50.42, lon: -121.35 }, { lat: 54.0, lon: -122.65 },
+                 { lat: 52.1, lon: -122.1 }];
+    const spot = { lat: 49.38, lon: -121.44 };
+    const cam = panelCamera(pts, spot, size)!;
+    for (const p of [...pts, spot]) {
+      const { x, y } = screenXY(cam, p, size);
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(size.width);
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThanOrEqual(size.height);
+    }
+  });
+
+  it("puts every donor inside a map that is taller than it is wide", () => {
+    // The other axis has to be the constraint when the panel runs east-west.
+    const size = { width: 200, height: 400 };
+    const pts = [{ lat: 49.2, lon: -125.0 }, { lat: 49.3, lon: -118.0 }];
+    const cam = panelCamera(pts, { lat: 49.25, lon: -121.5 }, size)!;
+    for (const p of pts) {
+      const { x, y } = screenXY(cam, p, size);
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(size.width);
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThanOrEqual(size.height);
+    }
+  });
+
+  it("accounts for Mercator stretch, which grows with latitude", () => {
+    // The same span of latitude needs a lower zoom the further north it is drawn. The old
+    // camera treated degrees as pixels and drew a northern panel about half again too big.
+    const size = { width: 380, height: 210 };
+    const south = panelCamera([{ lat: 0, lon: 0 }, { lat: 2, lon: 0 }], null, size)!;
+    const north = panelCamera([{ lat: 58, lon: 0 }, { lat: 60, lon: 0 }], null, size)!;
+    expect(north.zoom).toBeLessThan(south.zoom);
   });
 
   it("ignores donors with no coordinate rather than framing zero", () => {

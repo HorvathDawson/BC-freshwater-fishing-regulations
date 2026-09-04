@@ -1107,7 +1107,7 @@
         "maxzoom": 7,
         "priority": 2,
         "font": [
-          "Noto Sans Bold"
+          "Noto Sans Medium"
         ],
         "size": [
           [
@@ -1126,7 +1126,7 @@
           "token": "color.outside"
         },
         "haloWidth": 2.5,
-        "$comment": "The big number in the middle, z4 to z7 \u2014 and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table."
+        "$comment": "The big number in the middle, z4 to z7 \u2014 and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face \u2014 every range 404s \u2014 so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
       },
       "$comment": "SOLID AND HEAVIER THAN A UNIT. The regulations are organised by region, so this is the boundary that changes which table you are reading; the unit boundary inside it only refines it. v1 drew regions solid at 2-4.5 px and units dotted at 1.2-1.8, and that weight difference is the whole hierarchy."
     },
@@ -1170,7 +1170,7 @@
         "minzoom": 8,
         "priority": 3,
         "font": [
-          "Noto Sans Bold"
+          "Noto Sans Medium"
         ],
         "size": [
           [
@@ -1195,7 +1195,7 @@
           "token": "color.outside"
         },
         "haloWidth": 2,
-        "$comment": "ALONG THE BOUNDARY, repeated \u2014 v1's `management_units-label`. A unit is a shape you meet at its edge: you are walking up a river and you cross from 3-16 into 3-17, and the number has to be AT the line you crossed. One label in the middle of a polygon the size of a valley is invisible at the moment you need it. Lowest label priority, so a river's name always wins the collision \u2014 the water is what is being read."
+        "$comment": "ALONG THE BOUNDARY, repeated \u2014 v1's `management_units-label`. A unit is a shape you meet at its edge: you are walking up a river and you cross from 3-16 into 3-17, and the number has to be AT the line you crossed. One label in the middle of a polygon the size of a valley is invisible at the moment you need it. Lowest label priority, so a river's name always wins the collision \u2014 the water is what is being read.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face \u2014 every range 404s \u2014 so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
       }
     }
   ],

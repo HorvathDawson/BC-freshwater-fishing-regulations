@@ -72,43 +72,74 @@ export function routeCamera(t: GaugeTrace, from?: { lat: number; lon: number } |
   const dLon = Math.abs(t.lon - from.lon) * Math.cos((lat * Math.PI) / 180);
   const spread = Math.max(dLat, dLon);
   // 360 degrees fill the world at z0; each zoom halves it. The 1.6 leaves the markers off
-  // the edge of the frame rather than exactly on it.
+  // the edge of the frame rather than exactly on it, and 512 is MapLibre's tile size — at
+  // 256 this came out a whole zoom level too close and put both ends off the frame.
   const zoom = spread <= 0
     ? 12.5
-    : Math.max(5, Math.min(13, Math.log2(360 / (spread * 1.6 * 256 / 220))));
+    : Math.max(5, Math.min(13, Math.log2(360 / (spread * 1.6 * 512 / 220))));
   return { lon, lat, zoom };
 }
 
 /**
  * Where to point a small map so a WHOLE PANEL fits on it — every donor, and the spot.
  *
- * `routeCamera` above frames one gauge and one point. A panel is four gauges that may sit
- * on three different rivers, and framing only the heaviest one puts the others off the
- * edge — which draws exactly the picture the panel exists to correct, a single gauge
- * standing in for a set.
+ * `routeCamera` above frames one gauge and one point. A panel is up to four gauges that may
+ * sit on three different rivers, and framing only the heaviest puts the others off the edge
+ * — which draws exactly the picture the panel exists to correct, one gauge standing in for
+ * a set.
  *
- * Same arithmetic as the two-point case, over a bounding box: centre on the middle, and
- * take the zoom from the span, with longitude narrowed by latitude. Returns null when
- * there is nothing to frame, so a caller draws no map rather than a map of nowhere.
+ * IN WEB MERCATOR, AND PER AXIS. The first version took `max(latitude span, longitude
+ * span)` in degrees and fitted it to a single assumed viewport size. Both halves of that
+ * are wrong: a degree of latitude occupies about 1.56x more pixels at 50°N than at the
+ * equator, so a north-south panel was drawn about half again too large, and a map 420 px
+ * wide by 210 tall constrains the two axes differently anyway. Measured on the Fraser: a
+ * donor pin landed 136 px ABOVE the top of a 210 px map. Projecting first and fitting each
+ * axis to its own dimension is the whole fix.
+ *
+ * Returns null when there is nothing to frame, so a caller draws no map rather than a map
+ * of nowhere.
  */
 export function panelCamera(
   points: readonly { lat: number | null; lon: number | null }[],
   from?: { lat: number; lon: number } | null,
+  /** The map's size in CSS pixels. Defaults suit the route map under an estimate. */
+  size: { width: number; height: number } = { width: 380, height: 210 },
 ): { lon: number; lat: number; zoom: number } | null {
   const pts = [...points, ...(from ? [from] : [])]
     .filter((p): p is { lat: number; lon: number } => p.lat !== null && p.lon !== null);
   if (!pts.length) return null;
-  const lats = pts.map((p) => p.lat);
-  const lons = pts.map((p) => p.lon);
-  const lat = (Math.min(...lats) + Math.max(...lats)) / 2;
-  const lon = (Math.min(...lons) + Math.max(...lons)) / 2;
-  const dLat = Math.max(...lats) - Math.min(...lats);
-  const dLon = (Math.max(...lons) - Math.min(...lons)) * Math.cos((lat * Math.PI) / 180);
-  const spread = Math.max(dLat, dLon);
-  const zoom = spread <= 0
-    ? 12.5
-    : Math.max(5, Math.min(13, Math.log2(360 / (spread * 1.6 * 256 / 220))));
-  return { lon, lat, zoom };
+
+  // Web Mercator, normalised to [0,1] in each axis — the space tiles are cut in, so a span
+  // here is a span in tile pixels once multiplied by the world size.
+  const CLAMP = 85.05112878;                       // where the projection is cut off
+  const toY = (lat: number) => {
+    const φ = (Math.min(CLAMP, Math.max(-CLAMP, lat)) * Math.PI) / 180;
+    return (1 - Math.log(Math.tan(φ) + 1 / Math.cos(φ)) / Math.PI) / 2;
+  };
+  const toLat = (y: number) =>
+    (Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180) / Math.PI;
+
+  const xs = pts.map((p) => (p.lon + 180) / 360);
+  const ys = pts.map((p) => toY(p.lat));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const lon = ((x0 + x1) / 2) * 360 - 180;
+  const lat = toLat((y0 + y1) / 2);
+
+  /*
+   * 512, NOT 256 — MapLibre's world is `tileSize * 2^zoom` and its vector tile size is 512.
+   * At 256 every camera came out exactly one zoom level too close, which is a factor of two
+   * on every span: measured on the Fraser's panel, the pins needed 311 px of a 210 px map.
+   * The web-mapping literature is full of the 256 figure because that is the raster slippy
+   * tile, and it is the wrong constant for this renderer.
+   */
+  const TILE = 512;
+  const PAD = 1.35;                 // markers sit off the edge of the frame, not on it
+  const fit = (span: number, px: number) =>
+    span <= 0 ? Infinity : Math.log2(px / (TILE * span * PAD));
+  const zoom = Math.min(fit(x1 - x0, size.width), fit(y1 - y0, size.height));
+  // A single point has no span and would fit at any zoom, so it gets a sensible close one.
+  return { lon, lat, zoom: Math.max(4, Math.min(13, Number.isFinite(zoom) ? zoom : 12.5)) };
 }
 
 /**

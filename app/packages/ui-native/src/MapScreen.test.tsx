@@ -7,8 +7,20 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { MapScreen } from "./MapScreen";
 import { LIGHT } from "./theme";
+
+/*
+ * THE RENDERER IS NOT UNDER TEST HERE. MapLibre needs a WebGL context, which jsdom does not
+ * have, and this file is about the control in the map's top-left corner: which one is
+ * offered, which is chosen, and what it reports. Stubbing the map is the difference between
+ * testing that control and testing nothing.
+ */
+vi.mock("@app/map", async (orig) => ({
+  ...(await orig<Record<string, unknown>>()),
+  Map: () => null,
+}));
+
+const { MapScreen } = await import("./MapScreen");
 
 afterEach(cleanup);
 
@@ -22,8 +34,8 @@ const BASE = {
 describe("<MapScreen> corner control", () => {
   it("shows the date when there are no horizons", () => {
     render(<MapScreen {...BASE} onDate={() => {}} />);
-    expect(screen.getByText("4")).toBeTruthy();
-    expect(screen.getByText("SEP")).toBeTruthy();
+    // One Text node — "4 SEP" — so match the line rather than its halves.
+    expect(screen.getByText(/^4\s+SEP$/)).toBeTruthy();
     expect(screen.queryByText("Now")).toBeNull();
   });
 
@@ -33,7 +45,7 @@ describe("<MapScreen> corner control", () => {
     for (const t of ["Now", "+1d", "+3d", "+5d"]) expect(screen.getByText(t)).toBeTruthy();
     // The date is GONE, not merely covered: a date picker on the Conditions tab offers a
     // question with no answer behind it.
-    expect(screen.queryByText("SEP")).toBeNull();
+    expect(screen.queryByText(/SEP/)).toBeNull();
   });
 
   it("reports which horizon is showing to a screen reader, not only in colour", () => {

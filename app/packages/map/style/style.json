@@ -480,7 +480,7 @@
           "region_id"
         ],
         "text-font": [
-          "Noto Sans Bold"
+          "Noto Sans Medium"
         ],
         "text-size": [
           "interpolate",
@@ -530,7 +530,7 @@
           "mu_id"
         ],
         "text-font": [
-          "Noto Sans Bold"
+          "Noto Sans Medium"
         ],
         "text-size": [
           "interpolate",
