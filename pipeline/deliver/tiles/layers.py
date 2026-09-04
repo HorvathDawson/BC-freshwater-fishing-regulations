@@ -25,6 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from . import ladder
+from pipeline.deliver.tiles.prune import PruneRule
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,12 @@ class LayerSpec:
     """Let tippecanoe thin features to keep a tile under budget. NEVER for water:
     a stream that vanishes because a tile was crowded is a stream a person cannot tap."""
 
+
+#: Leaf-first pruning of unnamed headwater capillaries. `None` turns it off entirely and
+#: the export writes what it always wrote — reach for that first if the map looks wrong.
+#: See `prune.py` for the rule, the measurements behind these numbers, and the caveat about
+#: rule extents that reach further up a watershed than anybody stands.
+PRUNE: "PruneRule | None" = PruneRule(max_magnitude=3, min_hops=5, max_length_m=None)
 
 WATER: tuple[LayerSpec, ...] = (
     LayerSpec(

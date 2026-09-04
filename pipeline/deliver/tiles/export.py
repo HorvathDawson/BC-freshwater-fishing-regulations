@@ -20,8 +20,8 @@ import pickle
 from collections import defaultdict
 from pathlib import Path
 
-from pipeline.deliver.tiles import ladder
-from pipeline.deliver.tiles.layers import BY_NAME, LayerSpec
+from pipeline.deliver.tiles import ladder, prune
+from pipeline.deliver.tiles.layers import BY_NAME, PRUNE, LayerSpec
 from pipeline.deliver.tiles.names import display, haystack
 from pipeline.common.registry_kinds import waters
 
@@ -105,6 +105,13 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     item_of, variants = _identity(build_dir)
     _require_membership(graph)
 
+    # Nameless capillaries never reach a tile. Computed once over the whole graph, because
+    # whether a section may go depends on what is above it — see prune.py.
+    skip = prune.prunable(graph, PRUNE)
+    if skip:
+        print(f"  pruning       {len(skip):>9,} unnamed headwater sections "
+              f"({PRUNE.describe()})")
+
     spec = BY_NAME["stream"]
     write, close = _writer(out_dir, spec)
     ul_spec = BY_NAME["under_lake"]
@@ -116,6 +123,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     for sec, g in geoms.items():
         node = graph.nodes.get(sec)
         if node is None:
+            continue
+        if sec in skip:
             continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.
