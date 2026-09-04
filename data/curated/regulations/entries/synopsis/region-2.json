@@ -2602,7 +2602,7 @@
         "issues": []
       },
       "matched": [
-        "wbk:329177896"
+        "wbk:-4"
       ],
       "reference_only": false,
       "registry_status": "matched",
@@ -10564,7 +10564,9 @@
         "reviewed_at": "2026-09-01T19:50:48+00:00",
         "issues": []
       },
-      "matched": [],
+      "matched": [
+        "wbk:-2"
+      ],
       "reference_only": false,
       "registry_status": "no_registry",
       "registry_note": "unmatched: no name/variant match",
@@ -11284,7 +11286,7 @@
         "issues": []
       },
       "matched": [
-        "wbk:329291857"
+        "wbk:-5"
       ],
       "reference_only": false,
       "registry_status": "matched",

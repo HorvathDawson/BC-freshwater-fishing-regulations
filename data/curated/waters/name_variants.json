@@ -1659,20 +1659,6 @@
  {
   "target": {
    "wbks": [
-    "329291857"
-   ]
-  },
-  "names": [
-   {
-    "name": "MINNEKHADA MARSH",
-    "source": "regulation",
-    "note": "Wetland in Minnekhada Regional Park. BC Lakes Database surveys: 'Minnekhada Regional Park Inventory - 2017; SU17-270318' and 'Minnekhada Regional Park Invasives - 2016; SU16-235849'. Regulation MU 2-8.; REGION 2 - Lower Mainland; MU 2-8"
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
     "329522925"
    ]
   },
@@ -1695,20 +1681,6 @@
     "name": "CAP SHEAF LAKES",
     "source": "regulation",
     "note": "Lake in MU 2-16. Location found from map (https://www.alltrails.com/explore/recording/afternoon-hike-at-placer-mountain-0d770c4?p=-1&sh=li9ufv).; REGION 2 - Lower Mainland; MU 2-16"
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
-    "329177896"
-   ]
-  },
-  "names": [
-   {
-    "name": "CHEAM LAKE",
-    "source": "regulation",
-    "note": "Wetland in MU 2-3. Polygon found in FWA wetlands layer. Location found from map.; REGION 2 - Lower Mainland; MU 2-3"
    }
   ]
  },
