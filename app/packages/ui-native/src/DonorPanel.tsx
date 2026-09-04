@@ -223,7 +223,8 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
           does not have to. */}
       <Text numberOfLines={1} style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
                                        color: palette.faint }}>
-        {horizon === 0 ? "ESTIMATE FOR THIS SPOT" : `FORECAST · ${horizon} DAYS AHEAD`}
+        {horizon === 0 ? "ESTIMATE FOR THIS SPOT"
+                       : `FORECAST · ${horizon} DAY${horizon === 1 ? "" : "S"} AHEAD`}
       </Text>
       {/*
         THE PLAIN SENTENCE COMES FIRST, and the percentile second.

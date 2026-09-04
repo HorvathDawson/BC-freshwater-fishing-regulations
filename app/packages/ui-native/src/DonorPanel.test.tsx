@@ -268,6 +268,19 @@ describe("the donor panel", () => {
     expect(screen.queryByText("+3d")).toBeNull();
   });
 
+  it("keeps the heading one line at every horizon", () => {
+    // The horizon chips sit directly under it, so a heading that wraps moves the control
+    // the reader has just tapped out from under their finger.
+    for (const h of [0, 1, 3, 5] as const) {
+      cleanup();
+      render(<DonorPanel palette={LIGHT} value={answer()} horizon={h}
+                         onHorizon={() => {}} />);
+      const head = screen.getByText(h === 0 ? "ESTIMATE FOR THIS SPOT"
+                                            : `FORECAST · ${h} DAY${h === 1 ? "" : "S"} AHEAD`);
+      expect(head).toBeTruthy();
+    }
+  });
+
   it("describes each row for a screen reader, not only for the eye", () => {
     // The weight is drawn as a bar, which is invisible to anything that cannot see it.
     render(<DonorPanel palette={LIGHT} value={answer()} />);
