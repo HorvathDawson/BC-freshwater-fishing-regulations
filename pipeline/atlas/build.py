@@ -335,6 +335,10 @@ def main() -> None:
                     help="export the upstream tributary walk of this node as a 'tributaries' layer")
     ap.add_argument("--lakes", action="store_true",
                     help="export lake inlet/outlet points as a 'lake_io' layer")
+    ap.add_argument("--no-leaf-prune", action="store_true",
+                    help="keep unnamed headwater capillaries. The leaf prune removes ~9%% of "
+                         "stream vertices and is the switch to reach for first if water is "
+                         "missing from the map; see pipeline/atlas/graph/leaf_prune.py.")
     ap.add_argument("--out", default=str(GENERATED.build("validate")))
     args = ap.parse_args()
 
@@ -528,6 +532,32 @@ def main() -> None:
                    and graph.up_adj.get(nid))
     print(f"  fed-but-no-outlet nodes after prune: {_orphans}")
     _tick("prune braid loops")
+
+    # ---- LEAF PRUNE: unnamed headwater capillaries -------------------------------------
+    #
+    # A separate pass, and nothing to do with the braid prune above. That one reduces nests
+    # attached at both ends and has to re-home what flowed through them; this removes leaves,
+    # which orphan nothing. See graph/leaf_prune.py.
+    #
+    # HERE, not in the tile export, so the registry, the bundle, the reach builder and the
+    # tiles all see the same water. Pruning at export time would have left the bundle binding
+    # rules to sections the map does not draw — and because this runs BEFORE the tributary
+    # sweep, no rule ever claims them in the first place.
+    #
+    # AFTER the naming above, and that is what makes a `protected_blks` list unnecessary
+    # here: the braid prune needed one because it ran before anything was named, and the
+    # naming pass was split in two precisely so it no longer does. A curated channel already
+    # carries its own `display_name` by this point, so it is not a candidate at all.
+    from pipeline.atlas.graph.leaf_prune import DEFAULT_RULE
+    LEAF_PRUNE = None if args.no_leaf_prune else DEFAULT_RULE
+    if LEAF_PRUNE is not None:
+        from pipeline.atlas.graph.leaf_prune import prune_leaves
+        print(f"pruning unnamed headwater leaves ({LEAF_PRUNE.describe()}) ...")
+        _before = len(graph.nodes)
+        graph, _leaves = prune_leaves(graph, LEAF_PRUNE)
+        print(f"  {len(_leaves):,} leaf section(s) removed -> {len(graph.nodes):,} nodes "
+              f"({100 * len(_leaves) / max(_before, 1):.1f}% of the graph)")
+        _tick("prune unnamed leaves")
 
     fid_index = {f.fid: (f.down_m, f.up_m, f.stream_order, f.stream_magnitude) for f in fids}
 

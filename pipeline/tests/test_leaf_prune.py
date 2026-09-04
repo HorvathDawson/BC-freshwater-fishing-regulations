@@ -12,7 +12,8 @@ from dataclasses import dataclass, field
 
 import pytest
 
-from pipeline.deliver.tiles.prune import PruneRule, hops_above_named, prunable
+from pipeline.atlas.graph.leaf_prune import (LeafPruneRule as PruneRule, hops_above_named,
+                                             prunable)
 
 
 # --- the smallest thing that looks like a StreamGraph to `prune` ------------------------
@@ -23,6 +24,7 @@ class FakeNode:
     gnis_id: str | None = None
     stream_magnitude: int = 1
     length_m: float = 500.0
+    wsc: str = "100-000000"
 
 
 @dataclass
@@ -47,7 +49,9 @@ def build(chain: list[tuple[str, dict]], flows: list[tuple[str, str]]) -> FakeGr
     return g
 
 
-ALWAYS = PruneRule(max_magnitude=99, min_hops=0, max_length_m=None)
+# tidal off, so the base cases test the thresholds and nothing else
+ALWAYS = PruneRule(max_magnitude=99, min_hops=0, max_length_m=None,
+                   tidal_wsc_prefixes=())
 
 
 def test_off_when_the_rule_is_none():
@@ -156,3 +160,42 @@ def test_hops_are_to_the_NEAREST_named_water():
 def test_describe_says_what_is_configured(rule, expect):
     """The export prints this beside the count, so a build log records which rule ran."""
     assert expect in rule.describe()
+
+
+# --- the tidal exemption -----------------------------------------------------------------
+
+def test_a_long_tidal_channel_is_kept_even_when_everything_else_says_prune():
+    """WSC codes beginning 9 are the coastal drainages — 900, 910, 915, 920, 930, 940, and
+    21% of the graph. An unnamed estuarine slough is fishable water in a way an unnamed draw
+    at 1,400 m is not, and it is longer: median 555 m against 396 m for unnamed leaves
+    overall. A third of what the default rule would remove is in a 9xx drainage.
+    """
+    g = build(
+        [("river", {"display_name": "Big River"}),
+         ("tidal_long",  {"wsc": "915-749008", "length_m": 900.0}),
+         ("tidal_short", {"wsc": "915-749009", "length_m": 200.0}),
+         ("inland_long", {"wsc": "100-190442", "length_m": 900.0})],
+        [("tidal_long", "river"), ("tidal_short", "river"), ("inland_long", "river")])
+    rule = PruneRule(max_magnitude=99, min_hops=0, tidal_min_length_m=500)
+    got = prunable(g, rule)
+    assert "tidal_long" not in got, "a 900 m tidal channel must survive"
+    assert got == {"tidal_short", "inland_long"}
+
+
+def test_the_tidal_exemption_can_be_turned_off():
+    g = build([("river", {"display_name": "Big River"}),
+               ("tidal", {"wsc": "915-749008", "length_m": 900.0})],
+              [("tidal", "river")])
+    off = PruneRule(max_magnitude=99, min_hops=0, tidal_wsc_prefixes=())
+    assert prunable(g, off) == {"tidal"}
+
+
+def test_a_tidal_section_still_protects_what_is_below_it():
+    """Keeping a tidal leaf stops the peel there, because the section under it is no longer
+    a leaf — the guard has to hold the chain, not just the one section."""
+    g = build(
+        [("river", {"display_name": "Big River"}),
+         ("mid",   {"wsc": "915-1", "length_m": 100.0}),
+         ("tidal", {"wsc": "915-2", "length_m": 900.0})],
+        [("tidal", "mid"), ("mid", "river")])
+    assert prunable(g, PruneRule(max_magnitude=99, min_hops=0, tidal_min_length_m=500)) == set()
