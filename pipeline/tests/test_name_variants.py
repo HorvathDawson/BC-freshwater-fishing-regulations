@@ -90,3 +90,38 @@ def test_reach_proximity_ignores_sub_metre_boundary_touch():
                              "names": [{"name": "Lower Reach", "source": "regulation", "display": True}]}])
     assert g.nodes["X:0"].display_name == "Lower Reach"        # full overlap -> named
     assert g.nodes["X:200"].display_name != "Lower Reach"      # 0.5 m touch -> NOT named
+
+
+def test_every_source_is_a_real_NameSource():
+    """An unknown `source` is not an error anywhere — it is silently demoted.
+
+    `names.py` does `NameSource(n["source"])` inside a try, and falls back to
+    `NameSource.alias` when the value is not a member. So a typo, or a plausible-looking
+    word somebody invented while curating, does not fail: the name simply stops being
+    hand-curated provenance and becomes an ordinary searchable alias, ranked second from
+    the bottom of the display priority.
+
+    That happened. Two names were written with `source: "curation"`, which is not a member,
+    and were being read as `alias` — indistinguishable from a name some importer guessed at,
+    which is the exact opposite of what the field was for. `display: true` still carried the
+    label, so nothing looked wrong.
+
+    The enum ALREADY draws the line this file needs: `override` is "manual
+    name_variants.json" and `lake_survey` is "GAZETTED_NAME from the BC lake-survey table".
+    Hand-curated is `override`; the automatic import is `lake_survey`.
+    """
+    import json
+    from pipeline.common.curated import CURATED
+    from pipeline.common.models import NameSource
+
+    valid = {s.value for s in NameSource}
+    bad = []
+    for entry in json.loads(CURATED.waters.name_variants.read_text()):
+        for name in entry.get("names", []):
+            if name.get("source") not in valid:
+                bad.append(f"{entry.get('target')} {name.get('name')!r} "
+                           f"source={name.get('source')!r}")
+    assert not bad, (
+        "name_variants.json uses a `source` that is not a NameSource member, so it will be "
+        "read as `alias` and its provenance lost:\n  " + "\n  ".join(bad)
+        + f"\n\nvalid: {sorted(valid)}")

@@ -43433,9 +43433,9 @@
   "names": [
    {
     "name": "Herby Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329354933, 6.98 ha. Replaces a variant on wetland wbk 329355611, 600 m away."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329354933, 6.98 ha. Replaces a variant on wetland wbk 329355611, 600 m away."
    },
    {
     "name": "HERBY",
@@ -72510,14 +72510,14 @@
   "names": [
    {
     "name": "Beaver Tree Lake",
-    "source": "curation",
+    "source": "override",
     "display": true,
-    "note": "Display name for wbk 329520014, set by hand 3 Sep 2026. The FWA polygon is unnamed, so the resolver promotes this to the label."
+    "note": "HAND-CURATED. Display name for wbk 329520014, 3 Sep 2026. The FWA polygon is unnamed, so the resolver promotes this to the label."
    },
    {
     "name": "Lightning Lake",
-    "source": "curation",
-    "note": "Alias, and a real one: this water is CONNECTED to one of the Lightning Lakes, which is why anglers ask for it under that name. Two other lakes already carry 'Lightning Lake' as their display label (wbk:329316138, wbk:329522909), so it is Beaver Tree Lake on the map — one name per feature — and Lightning Lake in search, where all three should be findable."
+    "source": "override",
+    "note": "HAND-CURATED. Alias, and a real one: this water is CONNECTED to one of the Lightning Lakes, which is why anglers ask for it under that name. Two other lakes already carry 'Lightning Lake' as their display label (wbk:329316138, wbk:329522909), so it is Beaver Tree Lake on the map — one name per feature — and Lightning Lake in search, where all three should be findable."
    }
   ]
  },
@@ -72530,14 +72530,14 @@
   "names": [
    {
     "name": "North Kernaghan",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329534336, 4.19 ha. Replaces a variant on wbk 329534760, which was the wrong FWA feature; blue line key 356349430."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329534336, 4.19 ha. Replaces a variant on wbk 329534760, which was the wrong FWA feature; blue line key 356349430."
    },
    {
     "name": "Kernaghan #2",
-    "source": "lake_survey",
-    "note": "Alias recorded by the same annual BC manual lake survey, 3 Sep 2026. wbk 329534336 is ungazetted; the survey lists this name alongside the display one."
+    "source": "override",
+    "note": "HAND-CURATED 3 Sep 2026; alias recorded by the same annual BC manual lake survey. wbk 329534336 is ungazetted; the survey lists this name alongside the display one."
    }
   ]
  },
@@ -72550,9 +72550,9 @@
   "names": [
    {
     "name": "Upper Lundbom",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329316167, 5.92 ha. Replaces \"UNNAMED N OF LUNDBOM\" on wbk 328947350, a wetland."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329316167, 5.92 ha. Replaces \"UNNAMED N OF LUNDBOM\" on wbk 328947350, a wetland."
    }
   ]
  },
@@ -72565,9 +72565,9 @@
   "names": [
    {
     "name": "Cotty Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329316092, 25.59 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329316092, 25.59 ha."
    }
   ]
  },
@@ -72580,9 +72580,9 @@
   "names": [
    {
     "name": "Center Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329316116, 12.99 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329316116, 12.99 ha."
    }
   ]
  },
@@ -72595,9 +72595,9 @@
   "names": [
    {
     "name": "Earl Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355110, 3.80 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355110, 3.80 ha."
    }
   ]
  },
@@ -72610,9 +72610,9 @@
   "names": [
    {
     "name": "Windy Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329354769, 31.18 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329354769, 31.18 ha."
    }
   ]
  },
@@ -72625,9 +72625,9 @@
   "names": [
    {
     "name": "White Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321176, 5.03 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321176, 5.03 ha."
    }
   ]
  },
@@ -72640,9 +72640,9 @@
   "names": [
    {
     "name": "Smith Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321240, 4.17 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321240, 4.17 ha."
    }
   ]
  },
@@ -72655,9 +72655,9 @@
   "names": [
    {
     "name": "Neil Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321174, 5.06 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321174, 5.06 ha."
    }
   ]
  },
@@ -72670,9 +72670,9 @@
   "names": [
    {
     "name": "George Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 328978028, 10.45 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 328978028, 10.45 ha."
    }
   ]
  },
@@ -72685,9 +72685,9 @@
   "names": [
    {
     "name": "Cathy Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321627, 2.10 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321627, 2.10 ha."
    }
   ]
  },
@@ -72700,9 +72700,9 @@
   "names": [
    {
     "name": "Alan Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321407, 2.86 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321407, 2.86 ha."
    }
   ]
  },
@@ -72715,9 +72715,9 @@
   "names": [
    {
     "name": "Dam Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321413, 2.81 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321413, 2.81 ha."
    }
   ]
  },
@@ -72730,9 +72730,9 @@
   "names": [
    {
     "name": "Carol Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321326, 3.37 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321326, 3.37 ha."
    }
   ]
  },
@@ -72745,9 +72745,9 @@
   "names": [
    {
     "name": "Hegar Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321051, 7.67 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321051, 7.67 ha."
    }
   ]
  },
@@ -72760,9 +72760,9 @@
   "names": [
    {
     "name": "Camer Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321137, 5.64 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329321137, 5.64 ha."
    }
   ]
  },
@@ -72775,9 +72775,9 @@
   "names": [
    {
     "name": "Two Middle Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355004, 5.17 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355004, 5.17 ha."
    }
   ]
  },
@@ -72790,9 +72790,9 @@
   "names": [
    {
     "name": "Twin Lake East",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329354967, 5.86 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329354967, 5.86 ha."
    }
   ]
  },
@@ -72805,9 +72805,9 @@
   "names": [
    {
     "name": "Twin Lake West",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 328980233, 10.73 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 328980233, 10.73 ha."
    }
   ]
  },
@@ -72820,9 +72820,9 @@
   "names": [
    {
     "name": "Deube Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 328980218, 18.59 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 328980218, 18.59 ha."
    }
   ]
  },
@@ -72835,9 +72835,9 @@
   "names": [
    {
     "name": "Downey Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355286, 2.63 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355286, 2.63 ha."
    }
   ]
  },
@@ -72850,14 +72850,14 @@
   "names": [
    {
     "name": "Loch Ness Lake",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355343, 2.40 ha."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329355343, 2.40 ha."
    },
    {
     "name": "Lost Girl Guide Lake",
-    "source": "lake_survey",
-    "note": "Alias recorded by the same annual BC manual lake survey, 3 Sep 2026. wbk 329355343 is ungazetted; the survey lists this name alongside the display one."
+    "source": "override",
+    "note": "HAND-CURATED 3 Sep 2026; alias recorded by the same annual BC manual lake survey. wbk 329355343 is ungazetted; the survey lists this name alongside the display one."
    }
   ]
  },
@@ -72870,9 +72870,9 @@
   "names": [
    {
     "name": "Centaur",
-    "source": "lake_survey",
+    "source": "override",
     "display": true,
-    "note": "Annual BC manual lake survey, transcribed by hand 3 Sep 2026. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329524167, 4.95 ha. Replaces a variant on wetland wbk 329524066, 570 m away."
+    "note": "HAND-CURATED 3 Sep 2026 from the annual BC manual lake survey. The FWA polygon is ungazetted (no GNIS_NAME_1/2/3), so this is the only name it has. wbk 329524167, 4.95 ha. Replaces a variant on wetland wbk 329524066, 570 m away."
    }
   ]
  }
