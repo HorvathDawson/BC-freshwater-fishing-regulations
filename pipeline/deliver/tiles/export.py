@@ -146,7 +146,11 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
             "item": item_of.get(sec),
             "name": nm,
             "alt": haystack(nm, sorted(variants.get(sec, ()))),
-            "mag": node.stream_magnitude,
+            # NO `mag`. It is the input to the zoom ladder, and the ladder has already run
+            # by the time this feature is written — `zoom_for_magnitude` below turns it into
+            # the per-feature minzoom tippecanoe actually uses. Shipping the magnitude too
+            # sent the same fact twice, the second copy to a client that never read it:
+            # 2.3% of the archive, on a property with no consumer in the app or the style.
             "ord": node.stream_order,
             "mus": ",".join(sorted(node.mus)) or None,
             "areas": ",".join(sorted(node.in_areas)) or None,
@@ -313,10 +317,12 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
         g = row.geometry
         if g is None or g.is_empty:
             continue
+        # `mu_id` ONLY. `region` and `region_name` were 3.0% of the archive between them —
+        # a region number and a string like "Region 2 - Lower Mainland" repeated into every
+        # tile the unit touches, read by nothing. A management unit's region is a property
+        # of the unit, and 225 of those fit in the bundle if anything ever needs it.
         write(_to4326(g, tf),
-              {"mu_id": str(row.get("WILDLIFE_MGMT_UNIT_ID") or "").strip(),
-               "region": row.get("REGION_RESPONSIBLE_ID"),
-               "region_name": row.get("REGION_RESPONSIBLE_NAME")},
+              {"mu_id": str(row.get("WILDLIFE_MGMT_UNIT_ID") or "").strip()},
               spec.minzoom)
     print(f"  {'mu':<16} <- {'wmu (geography)':<26} {len(gdf):>6,}")
 

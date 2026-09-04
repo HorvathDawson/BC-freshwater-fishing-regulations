@@ -49,7 +49,7 @@ class LayerSpec:
 WATER: tuple[LayerSpec, ...] = (
     LayerSpec(
         name="stream", geometry="line", ladder="magnitude", maxzoom=14,
-        attrs=("section_id", "item", "name", "alt", "mag", "ord", "mus", "areas"),
+        attrs=("section_id", "item", "name", "alt", "ord", "mus", "areas"),
         why="Every flowing reach. `id` is the section — the feature id the app sets state "
             "on. `item` is the durable registry id, absent on the 96% nothing regulates. "
             "`alt` is the search haystack: lowercased, deduped, '|'-separated.",
@@ -120,7 +120,7 @@ ADMIN: tuple[LayerSpec, ...] = (
     ),
     LayerSpec(
         name="mu", geometry="polygon", ladder="none", minzoom=4, simplify=True,
-        attrs=("mu_id", "region", "region_name"),
+        attrs=("mu_id",),
         why="Wildlife management units, 225 of them. Administrative geography: every "
             "square metre of BC is in one whether or not it is regulated, which is why "
             "this may sit in a tile while a regulated-area membership list may not.",
