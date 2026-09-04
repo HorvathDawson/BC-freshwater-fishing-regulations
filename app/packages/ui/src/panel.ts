@@ -28,6 +28,8 @@ export interface DonorRow {
   years: number;
   /** A dam governs this station's water — see `PanelMember.regulated`. */
   regulated: boolean;
+  /** On the same blue line as this reach — see `PanelMember.sameRiver`. */
+  sameRiver: boolean;
   /**
    * Why this donor is worth what it is worth, before normalising — the three factors the
    * model multiplies. Carried so a screen can show the working rather than assert a
@@ -163,17 +165,18 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
     const share = Number.isFinite(ratio) ? 1 / ratio : 0;
-    const f = weightFactors(share, m.role, m.years);
+    const f = weightFactors(share, m.role, m.years, m.sameRiver);
     // A donor that is not reporting weighs NOTHING, but its factors are still real and are
     // still shown: "this gauge would have carried 60% of the answer and is quiet today" is
     // the most useful thing the table can say on a bad day.
     const w = own === null ? 0 : f.share * f.role * f.record;
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
-               years: m.years, regulated: m.regulated, factors: f, _w: w });
+               years: m.years, regulated: m.regulated, sameRiver: m.sameRiver,
+               factors: f, _w: w });
     if (own !== null && panel.areaKm2)
       contributions.push({ percentile: own, role: m.role, areaKm2: m.areaKm2,
-                           years: m.years });
+                           years: m.years, sameRiver: m.sameRiver });
   }
   const total = raw.reduce((a, r) => a + r._w, 0) || 1;
   const rows = raw
@@ -355,9 +358,17 @@ export function useBasinStandings(
       if (!idx) return out;           // offline: colour nothing rather than colour wrong
       for (const [basin, { station }] of basins) {
         const p = reading(idx.stations[station as string], quantity, horizon);
-        // A catchment whose station is quiet is the sentinel, not absence: somebody
-        // measures the water here and today it cannot say what it is doing.
-        out.set(basin, typeof p === "number" ? p : -0.01);
+        /*
+         * A GROUP WITH NOTHING TO SAY IS LEFT OUT, not marked with the sentinel.
+         *
+         * On a reach the sentinel is worth drawing — "a gauge reports here and has no
+         * record to rank it against" is a state you can tap and be told about. On a
+         * 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot
+         * interrogate, and it reads as chaos across the province. Absent means the same
+         * unmeasured grey a group with no gauge gets, which at this scale is the truthful
+         * pairing: at a province on screen, "we cannot say" is one answer, not two.
+         */
+        if (typeof p === "number") out.set(basin, p);
       }
       return out;
     },
@@ -392,7 +403,10 @@ export function usePanel(
     async () => {
       if (!section) return null;
       const [panels, idx] = await Promise.all([
-        source.panelsFor([section]),
+        // THE SAME FETCH THE MAP USES, cache and all. It called `source.panelsFor`
+        // directly, which is a second door to one table — and a second door is a place the
+        // two can differ. There is one now.
+        cached(source, [section]),
         feed ? feed.index() : Promise.resolve(null),
       ]);
       return answerFrom(panels.get(section), idx, quantity, horizon);

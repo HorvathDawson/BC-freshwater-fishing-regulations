@@ -13,10 +13,10 @@ import { answerFrom } from "./panel";
 const HARRISON: Panel = {
   areaKm2: 4584,
   members: [
-    { station: "08MG013" as never, role: "up", areaKm2: 4313, years: 60, regulated: false },
-    { station: "08MG001" as never, role: "up", areaKm2: 795, years: 70, regulated: false },
-    { station: "08MG022" as never, role: "down", areaKm2: 6200, years: 30, regulated: false },
-    { station: "08MG012" as never, role: "up", areaKm2: 220, years: 25, regulated: false },
+    { station: "08MG013" as never, role: "up", areaKm2: 4313, years: 60, regulated: false, sameRiver: true },
+    { station: "08MG001" as never, role: "up", areaKm2: 795, years: 70, regulated: false, sameRiver: true },
+    { station: "08MG022" as never, role: "down", areaKm2: 6200, years: 30, regulated: false, sameRiver: true },
+    { station: "08MG012" as never, role: "up", areaKm2: 220, years: 25, regulated: false, sameRiver: true },
   ],
 };
 
@@ -69,8 +69,8 @@ describe("colouring a reach from its panel", () => {
     // Below ten times, the 9,495-pair calibration has one number: 11.7 points. Ranking two
     // donors inside that band would be reading a precision out of it that is not there.
     const near: Panel = { areaKm2: 1000, members: [
-      { station: "A" as never, role: "up", areaKm2: 1010, years: 40, regulated: false },
-      { station: "B" as never, role: "up", areaKm2: 4000, years: 40, regulated: false },
+      { station: "A" as never, role: "up", areaKm2: 1010, years: 40, regulated: false, sameRiver: true },
+      { station: "B" as never, role: "up", areaKm2: 4000, years: 40, regulated: false, sameRiver: true },
     ] };
     const { rows } = answerFrom(near, reporting("A", "B"));
     expect(rows[0]!.weight).toBeCloseTo(rows[1]!.weight, 6);

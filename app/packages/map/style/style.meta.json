@@ -420,12 +420,6 @@
         "property": "standing",
         "stops": [
           [
-            -1,
-            {
-              "token": "color.flow.nobaseline"
-            }
-          ],
-          [
             0,
             {
               "token": "color.flow.f1"
@@ -475,7 +469,7 @@
           "provider": "gauges",
           "field": "standing"
         },
-        "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\n`missing` is water.ungauged — the grey a river gets when nothing can speak for it. 13% of the province has no gauge anywhere upstream and is drawn exactly that way."
+        "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\nWITHOUT THE -1 SENTINEL, which the rivers keep. On a reach, \"a gauge reports here but has no record to rank it against\" is worth drawing: you can tap it and be told. On a 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot interrogate, and at this zoom the map should be answering one question in one vocabulary. Such a group falls through to `missing` — the unmeasured grey — which is the same thing the map says about a group with no gauge at all, and at this scale that is the truthful pairing.\n\n`missing` is water.ungauged: the grey a river gets when nothing can speak for it."
       }
     },
     "wetland": {
@@ -1265,12 +1259,12 @@
     "under_lake": "dash.route",
     "mu__edge": "dash.mu"
   },
-  "minzoomByView": {
+  "minzoomByMode": {
     "lake": {
-      "conditions": 9
+      "standing": 9
     },
     "stream": {
-      "conditions": 9
+      "standing": 9
     }
   },
   "edgeOpacities": {

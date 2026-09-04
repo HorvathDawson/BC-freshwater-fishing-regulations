@@ -14,9 +14,9 @@ import { answerFrom } from "./panel";
 const REAL: Panel = {
   areaKm2: 1.338,
   members: [
-    { station: "08HA003" as never, role: "up", areaKm2: 207.206, years: 76, regulated: false },
-    { station: "08HA013" as never, role: "up", areaKm2: 32.216, years: 16, regulated: false },
-    { station: "08HA020" as never, role: "up", areaKm2: 3.408, years: 10, regulated: false },
+    { station: "08HA003" as never, role: "up", areaKm2: 207.206, years: 76, regulated: false, sameRiver: true },
+    { station: "08HA013" as never, role: "up", areaKm2: 32.216, years: 16, regulated: false, sameRiver: true },
+    { station: "08HA020" as never, role: "up", areaKm2: 3.408, years: 10, regulated: false, sameRiver: true },
   ],
 };
 

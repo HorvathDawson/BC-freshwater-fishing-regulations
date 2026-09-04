@@ -48,11 +48,19 @@ function fromShell(): number {
 const has = existsSync(PY);
 
 describe("the basin/river handover", () => {
-  it("stands the rivers down in the Conditions view and nowhere else", () => {
-    // Every other view must leave them alone, or switching to Regulations at z6 would show
-    // a province with no rivers on it.
-    expect(STYLE_META.minzoomByView.stream).toEqual({ conditions: 9 });
-    expect(STYLE_META.minzoomByView.lake).toEqual({ conditions: 9 });
+  it("stands the rivers down while they are coloured by flow, and not otherwise", () => {
+    /*
+     * KEYED ON THE MODE, NOT THE VIEW. The app renders one view and sets each layer's
+     * colour mode, so a rule keyed on "the conditions view" is a rule that never fires —
+     * which is exactly what happened: the field was built, the tiles carried it, and the
+     * rivers stayed drawn over the top of it at every zoom.
+     */
+    expect(STYLE_META.minzoomByMode.stream).toEqual({ standing: 9 });
+    expect(STYLE_META.minzoomByMode.lake).toEqual({ standing: 9 });
+    // Under closure or plain they keep the style's own floor — switching to Regulations at
+    // z6 must not show a province with no rivers on it.
+    expect(STYLE_META.minzoomByMode.stream!.closure).toBeUndefined();
+    expect(STYLE_META.minzoomByMode.stream!.plain).toBeUndefined();
   });
 
   it("draws the field in the Conditions view and hides it in every other", () => {
@@ -68,9 +76,28 @@ describe("the basin/river handover", () => {
 
   it("colours the field from the same ramp as the rivers", () => {
     // A second legend for one scale is how a reader learns to distrust both.
-    const river = STYLE_META.colorModes.stream?.standing as { stops?: unknown[] };
-    const field = STYLE_META.colorModes.basin?.standing as { stops?: unknown[] };
-    expect(field?.stops).toEqual(river?.stops);
+    type Stop = [number, unknown];
+    const river = (STYLE_META.colorModes.stream?.standing as { stops?: Stop[] }).stops ?? [];
+    const field = (STYLE_META.colorModes.basin?.standing as { stops?: Stop[] }).stops ?? [];
+    // Every REAL stop, identically. The field drops the -1 sentinel and keeps nothing else
+    // to itself.
+    expect(field).toEqual(river.filter(([at]) => at >= 0));
+  });
+
+  it("keeps the no-record sentinel off the field", () => {
+    /*
+     * On a reach, "a gauge reports here and has no record to rank it against" is worth
+     * drawing — you can tap it and be told. On a 3,600 km2 watershed group it is a purple
+     * blotch the size of a valley that a reader cannot interrogate, and it reads as chaos
+     * across the province. Such a group falls through to the unmeasured grey, which is what
+     * a group with no gauge gets: at a province on screen, "we cannot say" is one answer.
+     */
+    const field = (STYLE_META.colorModes.basin?.standing as
+                   { stops?: [number, unknown][] }).stops ?? [];
+    expect(field.some(([at]) => at < 0)).toBe(false);
+    const river = (STYLE_META.colorModes.stream?.standing as
+                   { stops?: [number, unknown][] }).stops ?? [];
+    expect(river.some(([at]) => at < 0)).toBe(true);
   });
 
   it("stops the field exactly where the rivers start", () => {
@@ -79,7 +106,7 @@ describe("the basin/river handover", () => {
     // maxzoom is inclusive of the zoom BELOW the handover: the field draws z4–8, the
     // rivers from z9. One zoom with both, or one with neither, is the bug.
     expect(basin.maxzoom).toBe(app - 1);
-    expect(STYLE_META.minzoomByView.stream!.conditions).toBe(app);
+    expect(STYLE_META.minzoomByMode.stream!.standing).toBe(app);
   });
 
   it.skipIf(!has)("agrees with the tile builder, which decides what exists at all", () => {

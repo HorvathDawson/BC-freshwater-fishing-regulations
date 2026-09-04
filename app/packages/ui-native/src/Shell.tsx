@@ -273,6 +273,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       ? (flowParam === "temperature" ? "plain" : "standing")
       : lakeChoice?.mode ?? "plain",
     gauges: quantity === "temperature" ? "temperature" : "standing",
+    /*
+     * THE FIELD. It has to be in this list or it is never painted at all: the map sets a
+     * layer's colour from `modes`, and a layer nobody names keeps whatever the style shipped
+     * — which for this one is nothing, so it drew as an invisible polygon over the province.
+     *
+     * `standing` only where the rivers are also on `standing`. Under temperature the models
+     * publish no field to colour it from; on the Map tab it is not the question being asked.
+     */
+    basin: onConditions && quantity === "flow" ? "standing" : "plain",
   };
   const activeGroups = { ...groups };
   for (const c of [streamChoice, lakeChoice])

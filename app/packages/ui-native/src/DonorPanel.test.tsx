@@ -21,7 +21,8 @@ afterEach(cleanup);
 const row = (station: string, over: Partial<DonorRow> = {}): DonorRow => ({
   station: station as never, role: "up", percentile: 0.12,
   weight: 0.6, areaRatio: 2.4, areaKm2: 120, trust: "close", years: 40,
-  regulated: false, factors: { share: 0.42, role: 1, record: 1 }, ...over,
+  regulated: false, sameRiver: true,
+  factors: { share: 0.42, role: 1, record: 1 }, ...over,
 });
 
 const answer = (over = {}): PanelAnswer => ({

@@ -540,12 +540,6 @@
           "property": "standing",
           "stops": [
             [
-              -1,
-              {
-                "token": "color.flow.nobaseline"
-              }
-            ],
-            [
               0.0,
               {
                 "token": "color.flow.f1"
@@ -595,7 +589,7 @@
             "provider": "gauges",
             "field": "standing"
           },
-          "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\n`missing` is water.ungauged \u2014 the grey a river gets when nothing can speak for it. 13% of the province has no gauge anywhere upstream and is drawn exactly that way."
+          "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\nWITHOUT THE -1 SENTINEL, which the rivers keep. On a reach, \"a gauge reports here but has no record to rank it against\" is worth drawing: you can tap it and be told. On a 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot interrogate, and at this zoom the map should be answering one question in one vocabulary. Such a group falls through to `missing` \u2014 the unmeasured grey \u2014 which is the same thing the map says about a group with no gauge at all, and at this scale that is the truthful pairing.\n\n`missing` is water.ungauged: the grey a river gets when nothing can speak for it."
         }
       },
       "opacity": {
@@ -913,8 +907,8 @@
         "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder \u2014 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 \u2014 and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
         "priority": 1
       },
-      "minzoomByView": {
-        "conditions": 9
+      "minzoomByMode": {
+        "standing": 9
       }
     },
     {
@@ -1160,8 +1154,8 @@
         "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 \u2014 at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
         "priority": 0
       },
-      "minzoomByView": {
-        "conditions": 9
+      "minzoomByMode": {
+        "standing": 9
       }
     },
     {

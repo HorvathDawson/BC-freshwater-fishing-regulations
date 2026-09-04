@@ -141,6 +141,8 @@ export interface Contribution {
   /** The donor's catchment, km². */
   areaKm2: number;
   years: number;
+  /** On the same blue line as the reach — see `PanelMember.sameRiver`. */
+  sameRiver?: boolean;
 }
 
 /** Mirrors `weight_of` in panel.py; `tools/trust-ladder.test.ts` holds the two together. */
@@ -175,8 +177,20 @@ export interface WeightFactors {
 /** The error of the best donor there is. Weights are expressed against it. */
 const BEST_ERROR = ERROR_BY_RATIO[0]![2];
 
+/**
+ * How much worse a donor on ANOTHER river is than one on your own, in error terms.
+ *
+ * MIRRORS `TRIBUTARY_ERROR_FACTOR` in panel.py, and unlike `ERROR_BY_RATIO` it is a
+ * JUDGEMENT rather than a measurement: the 9,495-pair calibration was run over nested pairs
+ * without asking whether the pair shared a channel, so it has no opinion here. Doubling the
+ * error — quartering the weight — is conservative next to the 54-point disagreement the
+ * Skeena produced when the two were treated alike.
+ */
+const TRIBUTARY_ERROR_FACTOR = 2;
+
 export function weightFactors(share: number, role: "up" | "down",
-                              years: number): WeightFactors {
+                              years: number,
+                              sameRiver = true): WeightFactors {
   return {
     // INVERSE VARIANCE, not the catchment overlap — see `weight_of` in panel.py for the
     // whole argument. In short: `share` assumes the error grows in proportion to the size
@@ -184,14 +198,17 @@ export function weightFactors(share: number, role: "up" | "down",
     // four orders of magnitude. A 1,000x donor is about half as informative, not a
     // thousandth, and treating it as a thousandth is what left 244,719 of 249,237 sections
     // holding a panel that said nothing.
-    share: share > 0 ? (BEST_ERROR / errorFor(1 / share)) ** 2 : 0,
+    share: share > 0
+      ? (BEST_ERROR / (errorFor(1 / share) * (sameRiver ? 1 : TRIBUTARY_ERROR_FACTOR))) ** 2
+      : 0,
     role: role === "up" ? 1 : DOWNSTREAM_PENALTY,
     record: Math.min(1, Math.max(0, years / RECORD_FULL_YEARS)),
   };
 }
 
-export function weightFor(share: number, role: "up" | "down", years: number): number {
-  const f = weightFactors(share, role, years);
+export function weightFor(share: number, role: "up" | "down", years: number,
+                          sameRiver = true): number {
+  const f = weightFactors(share, role, years, sameRiver);
   return f.share * f.role * f.record;
 }
 
@@ -265,14 +282,15 @@ export function estimate(targetAreaKm2: number | null,
   if (!contributions.length) return { ok: false, why: "no-station" };
   if (!targetAreaKm2 || targetAreaKm2 <= 0) return { ok: false, why: "no-station" };
 
-  const votes: { z: number; w: number; ratio: number }[] = [];
+  const votes: { z: number; w: number; ratio: number; sameRiver: boolean }[] = [];
   for (const c of contributions) {
     if (!(c.percentile > 0 && c.percentile < 1)) continue;
     if (!c.areaKm2 || c.areaKm2 <= 0) continue;
     const ratio = Math.max(targetAreaKm2, c.areaKm2) / Math.min(targetAreaKm2, c.areaKm2);
+    const same = c.sameRiver !== false;
     const w = weightFor(Math.min(targetAreaKm2, c.areaKm2)
-                        / Math.max(targetAreaKm2, c.areaKm2), c.role, c.years);
-    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio });
+                        / Math.max(targetAreaKm2, c.areaKm2), c.role, c.years, same);
+    if (w > 0) votes.push({ z: probit(c.percentile), w, ratio, sameRiver: same });
   }
   if (!votes.length) return { ok: false, why: "no-record" };
   const total = votes.reduce((a, v) => a + v.w, 0);
@@ -310,7 +328,27 @@ export function estimate(targetAreaKm2: number | null,
     spread,
     donors: votes.length,
   };
+  /*
+   * A DIRECT MEASUREMENT IS NOT OVERRULED BY ITS NEIGHBOURS.
+   *
+   * The spread refusal exists for a panel assembled entirely from other water: four
+   * gauges on four tributaries disagreeing by fifty points genuinely cannot tell a low
+   * river from a high one, and saying so is right.
+   *
+   * It is wrong the moment a gauge is standing IN this river and reporting. The Skeena is
+   * the case: three of its own gauges at the 77th, 78th and 82nd percentile, plus the
+   * Babine at the 24th — and the app drew "no baseline" over a river it was directly
+   * measuring three times, because one tributary disagreed. The tributary is already
+   * discounted fourfold by `sameRiver`; discarding the whole answer on its account throws
+   * away the measurement to honour the inference.
+   *
+   * The disagreement is not hidden — the panel says "these gauges disagree by N points"
+   * above the working, and every donor is listed with what it read. What changes is that
+   * the reader is given the number the river's own gauges produced.
+   */
+  const measured = votes.some((v) => v.sameRiver);
   const [lo, hi] = interval(value);
-  if (hi - lo > MAX_USEFUL_SPREAD) return { ok: false, why: "too-uncertain" };
+  if (!measured && hi - lo > MAX_USEFUL_SPREAD)
+    return { ok: false, why: "too-uncertain" };
   return { ok: true, value };
 }

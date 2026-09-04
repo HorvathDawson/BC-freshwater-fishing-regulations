@@ -128,6 +128,16 @@ export interface PanelMember {
    * this whole panel exists to avoid.
    */
   regulated: boolean;
+  /**
+   * On the SAME BLUE LINE as the reach it speaks for.
+   *
+   * NOT DERIVABLE FROM THE AREAS, which is why it is stored. Two donors of identical
+   * catchment size can be two entirely different relationships — the water flows past both
+   * points, or they share a rain shadow — and it changes the weight fourfold. The Skeena
+   * is the case: two gauges on the Skeena at the 77th and 78th percentile, weighted equally
+   * with the Babine at the 24th, disagreeing past what the interval can express.
+   */
+  sameRiver: boolean;
 }
 
 /**

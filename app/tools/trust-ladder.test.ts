@@ -105,8 +105,26 @@ describe("combining a panel", () => {
   });
 
   it("refuses when the interval cannot separate a low river from a high one", () => {
-    const got = estimate(100, [near(0.03), near(0.97)]);
+    // A panel assembled entirely from OTHER water. Four gauges on four tributaries
+    // disagreeing by fifty points genuinely cannot say whether this river is low or high.
+    const got = estimate(100, [near(0.03, { sameRiver: false }),
+                               near(0.97, { sameRiver: false })]);
     expect(got).toEqual({ ok: false, why: "too-uncertain" });
+  });
+
+  it("does not refuse when a gauge is standing in this very river", () => {
+    /*
+     * THE SKEENA. Three of its own gauges at the 77th, 78th and 82nd percentile, plus the
+     * Babine at the 24th — and the app drew "no baseline" over a river it was directly
+     * measuring three times, because one tributary disagreed.
+     *
+     * The tributary is already discounted fourfold by `sameRiver`. Discarding the whole
+     * answer on its account throws away the measurement to honour the inference. The
+     * disagreement is still reported — the panel says so above the working — but the
+     * reader is given the number the river's own gauges produced.
+     */
+    const got = estimate(100, [near(0.03), near(0.97, { sameRiver: false })]);
+    expect(got.ok).toBe(true);
   });
 
   it("weights the trust as it weights the answer", () => {

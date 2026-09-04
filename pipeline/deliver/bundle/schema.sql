@@ -146,6 +146,18 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            area_km2 REAL NOT NULL,    -- the DONOR's catchment
                            years INTEGER NOT NULL,    -- its record length
                            regulated INTEGER NOT NULL DEFAULT 0,   -- a dam governs it
+                           -- ON THE SAME BLUE LINE as the section it speaks for.
+                           --
+                           -- Two donors of identical catchment size can be two entirely
+                           -- different relationships: one where the water flows past both
+                           -- points, one where they share a rain shadow and nothing else.
+                           -- The area ratio cannot tell them apart, and the Skeena showed
+                           -- what that costs — two gauges on the Skeena at the 77th and
+                           -- 78th percentile, weighted equally with the Babine at the 24th,
+                           -- disagreeing past what the interval can express, so the app
+                           -- refused and drew "no baseline" over a river with two of its
+                           -- own gauges reporting.
+                           same_river INTEGER NOT NULL DEFAULT 1,
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
 -- WHICH STATION SPEAKS FOR EACH CATCHMENT, for the zoomed-out field.

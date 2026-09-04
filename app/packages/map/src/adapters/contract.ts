@@ -232,6 +232,22 @@ function withinZoomCurve(expr: unknown, f: (value: unknown) => unknown): unknown
           ...a.slice(head).map((v, i) => ((i % 2 === 0) ? v : f(v)))];
 }
 
+/**
+ * The zoom floor a layer takes while coloured this way — see `minzoomByMode`.
+ *
+ * Called from BOTH places a mode is set, because a layer coloured one way and zoomed for
+ * another is a layer that vanishes at some zooms and doubles up at others, and neither
+ * throws. Reset to the style's own floor whenever the mode has no rule, or the restriction
+ * would outlive the mode that asked for it.
+ */
+function zoomFor(h: MapHandle, layerId: string, mode: string): void {
+  const byMode = (STYLE_META.minzoomByMode ?? {})[layerId];
+  if (!byMode || !h.setZoomRange) return;
+  const base = (MAP_STYLE.layers.find((x) => x.id === layerId) as
+                { minzoom?: number } | undefined)?.minzoom;
+  h.setZoomRange(layerId, byMode[mode] ?? base ?? 0);
+}
+
 export function baseAdapter(platform: "native" | "web"): MapAdapter {
   const typeOf = (layerId: string) =>
     (MAP_STYLE.layers.find((x) => x.id === layerId) as { type?: string } | undefined)?.type;
@@ -253,12 +269,7 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
        * the smaller one wins by being on top. Reset to the style's own floor in every other
        * view, or the restriction would persist after the reader switches away.
        */
-      const byView = (STYLE_META.minzoomByView ?? {})[layerId];
-      if (byView && h.setZoomRange) {
-        const base = (MAP_STYLE.layers.find((x) => x.id === layerId) as
-                      { minzoom?: number } | undefined)?.minzoom;
-        h.setZoomRange(layerId, byView[viewId] ?? base ?? 0);
-      }
+      zoomFor(h, layerId, mode);
     }
   };
 
@@ -287,6 +298,10 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       const tokens = resolveTheme(themeName, overrides);
       for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
         h.setPaint(layerId, prop, value);
+      // THE ZOOM GOES WITH THE COLOUR. This is the path the app actually uses — it renders
+      // one view and sets each layer's mode — so a rule applied only in `applyView` would
+      // never fire in the running app.
+      zoomFor(h, layerId, mode);
     },
 
     highlight(h, featureIds) {

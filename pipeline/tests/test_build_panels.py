@@ -17,6 +17,11 @@ class N:
     stream_magnitude: int = 1
     kind: str = "stream"
     wsc: str = "100-000000"
+    # Real nodes always carry a blue-line key, and the panel weighting now reads it: a
+    # donor on the SAME blue line is a different relationship from one on a tributary. A
+    # fixture missing a field the code reads is a fixture that is not the shape it stands
+    # in for. Default shared, so existing cases keep meaning what they meant.
+    blk: str = "X"
 
 
 @dataclass
@@ -129,12 +134,15 @@ def test_the_rows_carry_facts_rather_than_anything_derived():
     rows = {sec: (pid, area) for sec, pid, area in got.section_rows()}
     pid, area = rows["target"]
     assert area == 200.0
-    (mpid, ordinal, station, role, donor_area, years, regulated), = [
+    (mpid, ordinal, station, role, donor_area, years, regulated, same_river), = [
         r for r in got.member_rows() if r[0] == pid]
     assert (mpid, ordinal, station, role, donor_area, years) == (pid, 0, "S", "up", 100.0, 40)
     # `regulated` is a FACT about the station, not a calibration — it changes what the
     # number means and the client cannot derive it, so it rides along with the rest.
     assert regulated == 0
+    # Same blue line in this fixture, and it is a FACT about the pair rather than a
+    # calibration — the client cannot derive it and it changes the weight fourfold.
+    assert same_river == 1
 
 
 def test_a_regulated_donor_speaks_for_its_own_water():
@@ -174,7 +182,7 @@ def test_a_gauge_speaks_for_the_reach_it_stands_in():
     graph = g([N("gauged", 100), N("target", 110)], [E("gauged", "target")])
     got = build(graph, MODEL, [("S", "gauged", 40, False)])
     assert "gauged" in got.by_section
-    (_pid, _ord, station, role, area, years, _reg), = [
+    (_pid, _ord, station, role, area, years, _reg, _same), = [
         r for r in got.member_rows()
         if r[0] == got.by_section["gauged"][0]]
     assert station == "S"
@@ -221,3 +229,24 @@ def test_a_stream_station_still_speaks_past_nothing():
     graph = g([N("gauged", 100), N("river", 110)], [E("gauged", "river")])
     got = build(graph, MODEL, [("S", "gauged", 90, False)])
     assert "river" in got.by_section
+
+
+def test_a_donor_on_another_river_counts_for_less_than_one_on_yours():
+    """THE SKEENA. At Usk the panel held two gauges on the Skeena reading the 77th and 78th
+    percentile, the Babine at the 24th and the Bulkley at the 62nd — and weighted them
+    identically, because the only thing the model knew was catchment size. They disagreed by
+    more than the interval can express, so the app refused and drew "no baseline" over a
+    river with two of its own gauges reporting.
+
+    Two donors of the same size can be two entirely different relationships: one where the
+    water flows past both points, one where they share a rain shadow.
+    """
+    graph = g([N("mine", 100, blk="A"), N("trib", 100, blk="B"), N("target", 110, blk="A")],
+              [E("mine", "target"), E("trib", "target")])
+    got = build(graph, MODEL, [("SAME", "mine", 60, False), ("OTHER", "trib", 60, False)])
+    pid, _area = got.by_section["target"]
+    rows = {r[2]: r for r in got.member_rows() if r[0] == pid}
+    assert rows["SAME"][7] == 1          # same_river
+    assert rows["OTHER"][7] == 0
+    # And `ord` is weight order, so the same-river donor leads.
+    assert rows["SAME"][1] < rows["OTHER"][1]

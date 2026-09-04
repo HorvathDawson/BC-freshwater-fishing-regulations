@@ -1703,6 +1703,17 @@ def main():
         "wetlands": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_WETLANDS_POLY"},
         "manmade": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_MANMADE_WATERBODIES_POLY"},
         "watersheds": {"type": "FWA_GDB", "ftp": FTP_FWA, "layer": "FWA_NAMED_WATERSHEDS_POLY"},
+        # THE PROVINCE AS A COMPLETE, NON-OVERLAPPING COVER — 246 polygons, 948,072 km2,
+        # which is British Columbia. It is what the zoomed-out Conditions field is drawn on.
+        #
+        # NOT `watersheds` above, which is a different thing despite the name: the NAMED
+        # watersheds are 11,580 nested basins covering 2.68M km2 of a 945,000 km2 province,
+        # because a named watershed contains its tributaries'. They answer "what is this
+        # river's catchment"; these answer "what ground is this". Streams and lakes already
+        # carry `WATERSHED_GROUP_CODE`, so a gauge's group is a lookup rather than a
+        # point-in-polygon.
+        "watershed_groups": {"type": "FWA_GDB", "ftp": FTP_FWA,
+                             "layer": "FWA_WATERSHED_GROUPS_POLY"},
         "streams": {"type": "FWA_STREAMS", "ftp": FTP_STR},
         "tidal_boundary": {
             "type": "R2_GPKG",

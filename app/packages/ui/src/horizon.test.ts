@@ -11,7 +11,7 @@ import { answerFrom, HORIZONS } from "./panel";
 
 const PANEL: Panel = {
   areaKm2: 500,
-  members: [{ station: "08A" as never, role: "up", areaKm2: 520, years: 40, regulated: false }],
+  members: [{ station: "08A" as never, role: "up", areaKm2: 520, years: 40, regulated: false, sameRiver: true }],
 };
 
 type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
@@ -77,8 +77,8 @@ describe("one quantity for the whole panel", () => {
   const MIXED: Panel = {
     areaKm2: 500,
     members: [
-      { station: "FLOW" as never, role: "up", areaKm2: 520, years: 40, regulated: false },
-      { station: "STAGE" as never, role: "up", areaKm2: 505, years: 90, regulated: false },
+      { station: "FLOW" as never, role: "up", areaKm2: 520, years: 40, regulated: false, sameRiver: true },
+      { station: "STAGE" as never, role: "up", areaKm2: 505, years: 90, regulated: false, sameRiver: true },
     ],
   };
   const mixedIdx = {

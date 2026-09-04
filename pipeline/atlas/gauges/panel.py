@@ -214,7 +214,26 @@ def error_for(area_ratio: float) -> float:
     return ERROR_BY_RATIO[-1][2]
 
 
-def weight_of(share: float, role: str, years: int) -> float:
+#: How much worse a donor on ANOTHER river is than one on your own, in error terms.
+#:
+#: THE MODEL KNEW ONLY CATCHMENT SIZE, and two gauges of the same size can be two entirely
+#: different relationships: one sits on the same blue line as you — the water literally flows
+#: past both points — and one sits on a tributary, where you share the weather and nothing
+#: else. The Skeena is the case that exposed it. At Usk the panel held four donors: two on
+#: the Skeena reading the 77th and 78th percentile, the Babine at the 24th and the Bulkley at
+#: the 62nd. Weighted identically they disagreed by more than the interval can express, so
+#: the app refused and drew "no baseline" over a river with two of its own gauges reporting.
+#:
+#: IT IS A JUDGEMENT, NOT A MEASUREMENT, and that is the difference between it and
+#: `ERROR_BY_RATIO` above. The 9,495-pair calibration was run over nested pairs without
+#: asking whether the pair shared a channel, so it has no opinion here. Doubling the error —
+#: quartering the weight — says "a tributary is about twice as uncertain as your own river at
+#: the same size", which is conservative next to the 54-point disagreement on the Skeena and
+#: is the number to replace first when the pairs are re-measured with this split.
+TRIBUTARY_ERROR_FACTOR = 2.0
+
+
+def weight_of(share: float, role: str, years: int, same_river: bool = True) -> float:
     """`(best error / this donor's error)^2 * direction * record` — inverse variance.
 
     IT WAS `share`, AND `share` CONTRADICTS THE MEASUREMENT.
@@ -238,15 +257,18 @@ def weight_of(share: float, role: str, years: int) -> float:
     keeps a perfect donor at 1 and puts the most distant at 0.28 — the spread the measurement
     actually found, rather than the thousandfold spread the old formula invented.
 
-    `direction` and `record` stay multiplicative: one is a fact about where the donor sits,
-    the other about how well its own percentile is pinned, and neither is captured by the
-    area ratio.
+    `direction`, `record` and `same_river` stay multiplicative: where the donor sits, how
+    well its own percentile is pinned, and whether it is even on your river. None of the
+    three is captured by the area ratio, which is all the ladder knows about.
     """
     rec = min(1.0, max(0.0, years / RECORD_FULL_YEARS))
     direction = 1.0 if role == "up" else DOWNSTREAM_PENALTY
     if share <= 0.0:
         return 0.0
-    return ((BEST_ERROR / error_for(1.0 / share)) ** 2) * direction * rec
+    err = error_for(1.0 / share)
+    if not same_river:
+        err *= TRIBUTARY_ERROR_FACTOR
+    return ((BEST_ERROR / err) ** 2) * direction * rec
 
 
 def eligible(area_target: float | None, area_donor: float | None,
@@ -315,19 +337,26 @@ def _norm_cdf(z: float) -> float:
     return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
 
 
-def panel_for(candidates: list[tuple[str, str, float, int, bool, bool]],
+def panel_for(candidates: list[tuple],
               area_target: float | None) -> list[Donor]:
-    """Gates, weights and a cap, over `(station, role, area, years, regulated, lake)`.
+    """Gates, weights and a cap, over
+    `(station, role, area, years, regulated, lake[, same_river])`.
 
-    Sorted by weight so the cap keeps the best, and so the screen can list them in the
-    order they actually mattered.
+    `same_river` is optional so a synthetic caller can leave it off; absent, a donor is
+    treated as being on your own river, which is the assumption the model made everywhere
+    before the Skeena showed what it costs.
+
+    Sorted by weight so the cap keeps the best, and so the screen can list them in the order
+    they actually mattered.
     """
     out: list[Donor] = []
-    for station, role, area_donor, years, regulated, crossed_lake in candidates:
+    for cand in candidates:
+        station, role, area_donor, years, regulated, crossed_lake = cand[:6]
+        same_river = bool(cand[6]) if len(cand) > 6 else True
         if not eligible(area_target, area_donor, years, regulated, crossed_lake):
             continue
         assert area_target is not None
         sh = share_of(area_target, area_donor)
-        out.append(Donor(station, role, sh, weight_of(sh, role, years)))
+        out.append(Donor(station, role, sh, weight_of(sh, role, years, same_river)))
     out.sort(key=lambda d: -d.weight)
     return out[:MAX_MEMBERS]

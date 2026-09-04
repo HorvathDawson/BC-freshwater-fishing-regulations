@@ -647,18 +647,23 @@ const meta = {
   // strength ours cut across the water it surrounds — a crisp line reads as a feature of
   // the ground rather than as an annotation on it.
   /*
-   * PER-VIEW ZOOM RANGES. A layer's `minzoom` is baked into the style; this is the zoom it
-   * takes in ONE view, and a view is a runtime choice.
+   * PER-MODE ZOOM RANGES. A layer's `minzoom` is baked into the style; this is the zoom it
+   * takes while it is being coloured a particular way.
    *
-   * The Conditions view hands the province over to the basin field below z9: a river is a
-   * hairline there and its colour is a guess three pixels wide, so two answers would be
-   * drawn over one another and the smaller one would win. `BASIN_HANDOVER_Z` in the tile
-   * builder is the same number, and the app's tap handling is the third place that has to
-   * agree — which is why this is emitted rather than written into three files.
+   * KEYED ON THE MODE AND NOT THE VIEW, because that is how the app actually switches: it
+   * renders one view and sets each layer's colour mode, so a rule keyed on "the conditions
+   * view" is a rule that never fires. The mode IS the question being asked — `standing` is
+   * "what is the water doing" wherever it appears.
+   *
+   * Below z9 that question is answered by the basin field instead: a river is a hairline
+   * there and its colour is a guess three pixels wide, so two answers would be stacked and
+   * the smaller would win by being on top. `BASIN_HANDOVER_Z` in the tile builder is the
+   * same number and the app's tap handling is the third place that has to agree, which is
+   * why this is emitted rather than written into three files.
    */
-  minzoomByView: Object.fromEntries(
-    (src.layers ?? []).filter((l) => l.minzoomByView)
-      .map((l) => [l.id, l.minzoomByView])),
+  minzoomByMode: Object.fromEntries(
+    (src.layers ?? []).filter((l) => l.minzoomByMode)
+      .map((l) => [l.id, l.minzoomByMode])),
   edgeOpacities: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity)
     .map(([id, l]) => [id, l.outline.opacity.token])),
   // A label's HALO — the only paint property no other layer type has. Text colour rides

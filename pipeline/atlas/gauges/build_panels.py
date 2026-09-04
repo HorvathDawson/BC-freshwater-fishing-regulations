@@ -41,6 +41,12 @@ class Member:
     #: what this water is actually doing; the screen still has to say so, or the app is
     #: presenting a dispatch decision as a description of the weather.
     regulated: bool = False
+    #: This donor is on the SAME BLUE LINE as the section it speaks for.
+    #:
+    #: Not derivable from anything else the client holds, and it changes the weight by a
+    #: factor of four — the water flows past both points, rather than the two merely sharing
+    #: a rain shadow. See TRIBUTARY_ERROR_FACTOR in panel.py.
+    same_river: bool = True
 
 
 @dataclass(frozen=True)
@@ -62,11 +68,11 @@ class Panels:
             yield (sec, pid, None if area is None else round(area, 3))
 
     def member_rows(self):
-        """`(panel_id, ord, station, role, area_km2, years, regulated)`."""
+        """`(panel_id, ord, station, role, area_km2, years, regulated, same_river)`."""
         for pid, ms in sorted(self.members.items()):
             for i, m in enumerate(ms):
                 yield (pid, i, m.station, m.role, round(m.area_km2, 3), m.years,
-                       1 if m.regulated else 0)
+                       1 if m.regulated else 0, 1 if m.same_river else 0)
 
 
 def _kind(node) -> str:
@@ -76,7 +82,7 @@ def _kind(node) -> str:
 
 def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
                max_ratio: float = MAX_AREA_RATIO) -> dict[str, list[tuple]]:
-    """`section -> [(station, role, donor area, years, regulated, crossed a lake)]`.
+    """`section -> [(station, role, donor area, years, regulated, lake, same river)]`.
 
     `donors` is `(station, its section, years of record, is regulated)` — already gated on
     the things that do not depend on the target, so the walk never starts for a station
@@ -108,7 +114,7 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
         # gauge is neither above nor below this water, it is in it, and DOWNSTREAM_PENALTY
         # exists to discount water that has been diluted on the way down.
         if _kind(start) == "stream":
-            out[sec].append((station, "up", a0, years, regulated, False))
+            out[sec].append((station, "up", a0, years, regulated, False, True))
         # A STATION ON A LAKE HAS ALREADY CROSSED ONE.
         #
         # The walk below refuses to carry a reading through a lake — storage integrates the
@@ -145,7 +151,12 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
                     # for everything beyond it — storage does not un-attenuate.
                     lake = crossed or _kind(node) == "lake"
                     if _kind(node) == "stream":
-                        out[nxt].append((station, role, a0, years, regulated, lake))
+                        # SAME BLUE LINE OR NOT. Two donors of identical catchment size can
+                        # be two different relationships — one where the water flows past
+                        # both points, one where you share only the weather — and the area
+                        # ratio cannot tell them apart. See TRIBUTARY_ERROR_FACTOR.
+                        same = bool(start.blk) and node.blk == start.blk
+                        out[nxt].append((station, role, a0, years, regulated, lake, same))
                     stack.append((nxt, lake))
     return out
 
@@ -174,14 +185,16 @@ def build(graph, model: AreaModel,
         if not panel:
             continue
         by_station = {station: ad for station, _r, ad, *_ in cs}
+        same_by = {c[0]: (bool(c[6]) if len(c) > 6 else True) for c in cs}
         chosen = tuple(Member(d.station, d.role, by_station[d.station],
                               facts.get(d.station, (0, False))[0],
-                              facts.get(d.station, (0, False))[1])
+                              facts.get(d.station, (0, False))[1],
+                              same_by.get(d.station, True))
                        for d in panel)
         # Interned on the SET — station, role, and the donor's own facts. Nothing here
         # depends on the target, which is exactly why it collapses.
-        key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated)
-                           for m in chosen))
+        key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated,
+                            m.same_river) for m in chosen))
         pid = intern.setdefault(key, len(intern))
         by_section[sec] = (pid, at)
         members.setdefault(pid, chosen)

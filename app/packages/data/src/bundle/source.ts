@@ -254,6 +254,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
             areaKm2: Number(r.donor_area),
             years: Number(r.years),
             regulated: Number(r.regulated ?? 0) === 1,
+            sameRiver: Number(r.same_river ?? 1) === 1,
           });
         }
       }
