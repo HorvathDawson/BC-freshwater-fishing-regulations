@@ -51,5 +51,15 @@ export const TYPE = {
   /** Readings, percentiles, coordinates. */
   figure:   { fontFamily: FACE.figure, fontSize: 13, lineHeight: 17 },
   figureBig:{ fontFamily: FACE.figure, fontSize: 19, lineHeight: 23 },
-  tab:      { fontFamily: FACE.textSemi, fontSize: 11, lineHeight: 13, letterSpacing: 0.2 },
+  /**
+   * The tab label. UPPERCASE AND TRACKED, at the app's heaviest text weight.
+   *
+   * It was sentence case at 11/0.2 — the same treatment as `micro`, which is a caption.
+   * A tab bar is the app's one permanent piece of furniture and it was the quietest thing
+   * on the screen. Uppercase with real tracking is what the rest of this design does to say
+   * "this is a label, not a sentence" (see `section` and `pill`), and it is what makes the
+   * bar read as printed rather than typed.
+   */
+  tab:      { fontFamily: FACE.textBold, fontSize: 9.5, lineHeight: 12, letterSpacing: 1.1,
+              textTransform: "uppercase" },
 } as const satisfies Record<string, TextStyle>;

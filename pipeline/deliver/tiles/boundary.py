@@ -30,7 +30,22 @@ from pipeline.common.curated import REPO_ROOT
 SIMPLIFY_DEG = 0.002
 # Degrees of margin around the province. The mask has to cover every pixel a reader can
 # pan to; one that stops short leaves a band of undimmed foreign ground along the edge.
-MARGIN_DEG = 6.0
+#
+# THIS WAS 6.0 AND IT WAS NOT ENOUGH. At the app's minimum zoom (4) a phone viewport spans
+# roughly 19 deg of longitude and 24 deg of latitude, and BC itself is 25 x 12 — so the
+# frame (42.2N-66.0N) ended inside the visible area and a band of bright, undimmed
+# Washington sat along the bottom of the screen. Exactly the failure the paragraph above
+# describes, discovered by zooming out.
+#
+# 30 deg costs FOUR VERTICES — the file's size is the province's 1,552-point coastline, not
+# the frame — and comfortably exceeds the widest viewport the app's `maxBounds` can produce
+# at `MIN_ZOOM`. The app's camera limits and this number are related, so if either moves,
+# check the other: `packages/core/src/ladder.ts` holds the camera side.
+MARGIN_DEG = 30.0
+
+# Web Mercator cannot represent the poles, and BC is far enough north that 60 + 30 would
+# ask for 90. Clamped rather than reduced, so the southern margin keeps its full reach.
+LAT_LIMIT = 85.0
 
 
 def build(boundary: Path, out: Path) -> Path:
@@ -39,7 +54,8 @@ def build(boundary: Path, out: Path) -> Path:
 
     bc = gpd.read_file(boundary).to_crs(4326).geometry.union_all().simplify(SIMPLIFY_DEG)
     minx, miny, maxx, maxy = bc.bounds
-    frame = box(minx - MARGIN_DEG, miny - MARGIN_DEG, maxx + MARGIN_DEG, maxy + MARGIN_DEG)
+    frame = box(max(minx - MARGIN_DEG, -180.0), max(miny - MARGIN_DEG, -LAT_LIMIT),
+                min(maxx + MARGIN_DEG, 180.0), min(maxy + MARGIN_DEG, LAT_LIMIT))
 
     # The cookie cutter: a rectangle with the province punched out of it. One polygon with
     # an interior ring, which is exactly what a fill needs to paint "everywhere but here".

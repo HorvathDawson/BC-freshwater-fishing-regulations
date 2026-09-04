@@ -196,7 +196,7 @@ function WhenScreen({ palette, at, onChange, water, onBack, onNext }: {
           {quick.map(([label, off]) => (
             <Pressable key={label} accessibilityRole="button" accessibilityLabel={label}
                        onPress={() => shiftDay(off - dayOffset)}
-                       style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999,
+                       style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
                                 borderWidth: 1,
                                 borderColor: dayOffset === off ? palette.accent : palette.line2,
                                 backgroundColor: dayOffset === off ? palette.accent : "transparent" }}>
@@ -236,7 +236,7 @@ function WhenScreen({ palette, at, onChange, water, onBack, onNext }: {
 
       <View style={{ flex: 1 }} />
       <Pressable onPress={onNext} accessibilityRole="button" accessibilityLabel="Next"
-                 style={{ borderRadius: 14, paddingVertical: 15, alignItems: "center",
+                 style={{ borderRadius: palette.r.box, paddingVertical: 15, alignItems: "center",
                           backgroundColor: palette.accent }}>
         <Text style={{ ...TYPE.bodyStrong, color: palette.onAccent }}>Next</Text>
       </Pressable>
@@ -250,7 +250,7 @@ function Step({ palette, label, glyph, onPress, disabled }: {
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button"
                accessibilityLabel={label} aria-disabled={!!disabled}
-               style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center",
+               style={{ width: 44, height: 44, borderRadius: palette.r.box, alignItems: "center",
                         justifyContent: "center", borderWidth: 1, borderColor: palette.line2,
                         opacity: disabled ? 0.35 : 1 }}>
       <Text style={{ ...TYPE.bodyStrong, fontSize: 19, color: palette.ink }}>{glyph}</Text>

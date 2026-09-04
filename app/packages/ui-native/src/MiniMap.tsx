@@ -10,7 +10,7 @@
 import { Text, View } from "react-native";
 import { Map, type Camera, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { mapChrome, type Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "regulations",
                           hint, data, highlight, marker, pins }: {
@@ -25,9 +25,10 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "regu
   return (
     <View style={{ height, backgroundColor: palette.tint, overflow: "hidden" }}>
       <Map at={at} theme={theme} view={view} initial={camera} data={data}
-           highlight={highlight} marker={marker} pins={pins} />
+           highlight={highlight} marker={marker} pins={pins}
+           chrome={mapChrome(palette, theme)} />
       {hint && (
-        <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: 999,
+        <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,
                        paddingVertical: 7, paddingHorizontal: 13,
                        backgroundColor: palette.card, borderWidth: 1,
                        borderColor: palette.line, ...palette.lift }}>

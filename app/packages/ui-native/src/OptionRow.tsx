@@ -28,7 +28,7 @@ export function OptionRow({ palette, options, value, onChange, shape, label }: {
         return (
           <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio"
                      aria-checked={on} accessibilityLabel={o.t}
-                     style={{ flex: 1, alignItems: "center", gap: 7, borderRadius: 12,
+                     style={{ flex: 1, alignItems: "center", gap: 7, borderRadius: palette.r.box,
                               paddingTop: 11, paddingBottom: 9, borderWidth: 1,
                               borderColor: on ? palette.accent : palette.line2,
                               backgroundColor: on ? palette.tint : "transparent" }}>

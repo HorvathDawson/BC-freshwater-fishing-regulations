@@ -60,7 +60,7 @@ export function DateSheet({ open, onClose, value, onChange, palette }: {
                          // percentage basis beats a fixed width that wraps differently on a
                          // narrow device.
                          style={{ flexBasis: "22%", flexGrow: 1, alignItems: "center",
-                                  paddingVertical: 11, borderRadius: 11,
+                                  paddingVertical: 11, borderRadius: palette.r.box,
                                   backgroundColor: on ? palette.tint : "transparent",
                                   borderWidth: 1,
                                   borderColor: on ? palette.accent : palette.line2 }}>
@@ -71,7 +71,7 @@ export function DateSheet({ open, onClose, value, onChange, palette }: {
           })}
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 12,
+        <View style={{ flexDirection: "row", alignItems: "center", borderRadius: palette.r.box,
                        borderWidth: 1, borderColor: palette.line2, overflow: "hidden" }}>
           <Step palette={palette} label="Previous day" glyph="−"
                 onPress={() => set(value.month, value.day - 1)}

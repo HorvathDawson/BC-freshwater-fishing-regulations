@@ -20,7 +20,7 @@ export function StatusPill({ status, palette, compact }:
       accessibilityLabel={statusWord(status)}
       style={{
         alignSelf: "flex-start", flexDirection: "row", alignItems: "center",
-        borderRadius: 999, paddingVertical: compact ? 2 : 3,
+        borderRadius: palette.r.pill, paddingVertical: compact ? 2 : 3,
         paddingHorizontal: compact ? 8 : 10, backgroundColor: `${colour}22`,
       }}
     >

@@ -6,29 +6,42 @@
  * reimplementation for the obvious reason: a hand-written zoom button is a button that has
  * to be wired to something, and mine were not.
  *
- * Values come from `design/riffle.html`: 36px controls, radius 12, hairline borders.
+ * 28px controls, square, a hard black hairline and an offset shadow with no blur —
+ * v1's language (`archive/webapp`, canifishthis.ca), where the map stack is 29px square
+ * over `box-shadow: Npx Npx 0 rgba(0,0,0,1)`.
+ *
+ * THESE WERE 36px AND RADIUS 12, and on a phone they were the loudest thing on the map: a
+ * three-button stack 108px tall with a soft drop shadow, competing with the water it sits
+ * over. A map control is something you reach PAST to see the map. 28 is still above the
+ * 24px that reads as decorative, and the hard edge makes it legible at that size in a way
+ * a blurred shadow does not — a 14px blur under a 28px button is a smudge.
  */
 
 .maplibregl-ctrl-group {
-  border-radius: 12px;
-  border: 1px solid var(--map-line, #D3D5CF);
-  box-shadow: 0 4px 14px rgba(21, 24, 28, 0.10);
+  border-radius: 0;
+  border: 1px solid var(--map-ink, #15181C);
+  box-shadow: 2px 2px 0 var(--map-shadow, rgba(21, 24, 28, 0.90));
   background: var(--map-card, #FFFFFF);
   overflow: hidden;
 }
 .maplibregl-ctrl-group button {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   background: transparent;
 }
 .maplibregl-ctrl-group button + button {
-  border-top: 1px solid var(--map-hairline, #E5E6E1);
+  /* The divider is the same black as the frame: inside a hard-edged box a paler hairline
+     reads as a rendering artefact rather than a deliberate line. */
+  border-top: 1px solid var(--map-ink, #15181C);
 }
 .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
-  /* MapLibre's icons are near-black; the design wants map furniture quieter than the map */
-  opacity: 0.62;
+  /* MapLibre's icons are near-black; the design wants map furniture quieter than the map.
+     Scaled down with the button, or a 20px glyph rattles around inside 28px. */
+  opacity: 0.72;
+  transform: scale(0.82);
 }
 .maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon { opacity: 1; }
+.maplibregl-ctrl-group button:active { background: var(--map-tint, #EEEFEB); }
 
 /* The scale bar: a bracket with the distance under it, as the design draws it. */
 .maplibregl-ctrl-scale {
@@ -51,5 +64,25 @@
   box-sizing: content-box;
 }
 
-/* Attribution stays, but quietly: it is a legal requirement, not a feature. */
-.maplibregl-ctrl-attrib { font-size: 10.5px; }
+/*
+ * Attribution stays, but quietly: it is a legal requirement, not a feature.
+ *
+ * Square and hairlined like everything else, and capped in width — expanded it carries four
+ * credits (OpenStreetMap, Protomaps, Environment and Climate Change Canada, the Province)
+ * and unbounded it wrapped across most of a phone screen.
+ */
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+  line-height: 1.45;
+  border-radius: 0;
+  border: 1px solid var(--map-ink, #15181C);
+  background: var(--map-card, #FFFFFF);
+  max-width: 78vw;
+}
+/* Collapsed, it is just the (i) — no frame around a single round button. */
+.maplibregl-ctrl-attrib.maplibregl-compact:not(.maplibregl-compact-show) {
+  border: 0;
+  background: transparent;
+  min-height: 24px;
+}
+.maplibregl-ctrl-attrib-button { border-radius: 0; }

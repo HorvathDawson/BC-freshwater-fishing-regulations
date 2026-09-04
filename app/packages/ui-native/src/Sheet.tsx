@@ -48,7 +48,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
         return (
           <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio"
                      aria-checked={on} accessibilityLabel={o.t}
-                     style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999,
+                     style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
                               backgroundColor: on ? palette.accent : palette.wash,
                               borderWidth: 1,
                               borderColor: on ? palette.accent : palette.line }}>

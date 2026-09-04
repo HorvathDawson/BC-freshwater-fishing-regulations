@@ -108,11 +108,29 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
       // cost us an error on every map mount.
       ...(at.outside ? { outside: { type: "geojson" as const, data: at.outside } } : {}),
       ...(at.gauges
-        ? { gauges: { type: "geojson" as const, data: geojsonData(at.gauges) } }
+        ? { gauges: { type: "geojson" as const, data: geojsonData(at.gauges),
+                      // ATTRIBUTION RIDES ON THE SOURCE, so MapLibre's own control
+                      // aggregates it with the basemap's rather than the app maintaining a
+                      // second list. It used to appear NOWHERE on the map — the whole list
+                      // lived behind the Layers button, two taps from the data it covers.
+                      //
+                      // This shows on every view, not only Conditions: `Map.web` hands the
+                      // style an empty FeatureCollection when there are no gauges, so the
+                      // source exists from the first frame (which is deliberate — see
+                      // EMPTY_FC there). The credit is therefore always on, which is the
+                      // safe direction to be wrong in.
+                      attribution: "Hydrometric data: Environment and Climate Change Canada" } }
         : {}),
       atlas: {
         type: "vector" as const,
         url: `pmtiles://${at.atlas}`,
+        // Every reach, lake and boundary in this archive is derived from the Province's
+        // Freshwater Atlas, and the rules painted over them from the Province's synopsis.
+        // Both are open data with an attribution condition, and the map is where they are
+        // actually drawn.
+        attribution:
+          '<a href="https://www2.gov.bc.ca/gov/content/data/open-data">Province of British ' +
+          "Columbia</a> \u00b7 Freshwater Atlas &amp; Freshwater Fishing Synopsis",
         /**
          * WITHOUT THIS NOTHING WORKS, and nothing says so.
          *
@@ -189,7 +207,26 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           // province. Darkening one darkened the other, so the mask could not be made to
           // read without turning the loading state grey and the pills with it.
           "fill-color": resolveTheme(theme)["color.mask"] as string,
-          "fill-opacity": resolveTheme(theme)["opacity.outside"] as number,
+          /*
+           * OPAQUE WHEN ZOOMED OUT, a tint when zoomed in.
+           *
+           * The basemap archive is clipped to tiles that TOUCH British Columbia, and at low
+           * zoom one tile is enormous — so the coverage ends on a tile boundary somewhere
+           * out over Washington, and the mask was painting a 72% wash over ground that
+           * stopped abruptly mid-screen. Beyond it sat the bare `color.outside` paper,
+           * which is near-white, next to a dark washed slab. Two different "not British
+           * Columbia" greys with a straight edge between them, and neither edge was a real
+           * boundary.
+           *
+           * Carrying the mask to full opacity by z6 hides the seam completely: zoomed out,
+           * the province reads as a clean silhouette on flat ground, which is the honest
+           * picture — we have no answers out there and no obligation to draw it. By z8 the
+           * tint is back, and that is where it earns its keep: close in you want to see the
+           * far bank of a border river, faintly, so the water does not just stop.
+           */
+          "fill-opacity": ["interpolate", ["linear"], ["zoom"],
+                           6, 1,
+                           8, resolveTheme(theme)["opacity.outside"] as number],
         },
       }] : []),
       ...MAP_STYLE.layers.map((l) => {

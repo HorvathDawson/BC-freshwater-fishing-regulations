@@ -11,6 +11,7 @@
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { freshness } from "@app/core";
 import { formFactorFor } from "@app/ui";
+import { RADIUS } from "./theme";
 
 const MINUTE = 60_000;
 
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#0f1417", paddingHorizontal: 24, paddingTop: 72, gap: 16 },
   title: { color: "#e8f1f2", fontSize: 30, fontWeight: "700" },
   sub: { color: "#6f8b95", fontSize: 14, marginTop: -12 },
-  card: { backgroundColor: "#182026", borderRadius: 12, padding: 16, gap: 4 },
+  card: { backgroundColor: "#182026", borderRadius: RADIUS.box, padding: 16, gap: 4 },
   label: { color: "#4fb3d9", fontSize: 12, fontWeight: "700", letterSpacing: 1 },
   value: { color: "#cfe0e6", fontSize: 15, fontVariant: ["tabular-nums"] },
   note: { color: "#5d757e", fontSize: 12, lineHeight: 18, marginTop: 8 },

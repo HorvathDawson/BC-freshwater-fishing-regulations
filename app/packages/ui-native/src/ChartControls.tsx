@@ -32,7 +32,7 @@ export function ChartControls<T extends string>({ palette, value, options, onPic
         return (
           <Pressable key={id} onPress={() => onPick(id)} accessibilityRole="radio"
                      aria-selected={on} accessibilityLabel={text}
-                     style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999,
+                     style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: palette.r.pill,
                               borderWidth: 1,
                               borderColor: on ? palette.accent : palette.line,
                               backgroundColor: on ? palette.tint : "transparent" }}>

@@ -12,7 +12,7 @@ export function Chip({ palette, label, colour, tone = "wash" }: {
   palette: Palette; label: string; colour?: string; tone?: "wash" | "tint";
 }) {
   return (
-    <View style={{ borderRadius: 999, paddingVertical: 5, paddingHorizontal: 10,
+    <View style={{ borderRadius: palette.r.pill, paddingVertical: 5, paddingHorizontal: 10,
                    backgroundColor: tone === "tint" ? palette.tint : palette.wash }}>
       <Text style={{ ...TYPE.micro, color: colour ?? palette.sub }}>{label}</Text>
     </View>

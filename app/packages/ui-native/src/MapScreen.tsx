@@ -12,7 +12,7 @@ import type { PlainDate } from "@app/core";
 import { Pill } from "./Chrome";
 import { LayersIcon } from "./icons";
 import { TYPE } from "./type";
-import type { Palette } from "./theme";
+import { mapChrome, type Palette } from "./theme";
 
 const MONTH = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -46,7 +46,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
       <Map at={at} theme={theme} view={view} modes={modes} groups={groups} initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
            highlight={highlight} marker={marker} data={data} gauges={gauges}
-           onVisible={onVisible} onError={onError} />
+           onVisible={onVisible} onError={onError}
+           chrome={mapChrome(palette, theme)} />
 
       {/*
         ZOOM, COMPASS AND SCALE ARE THE MAP'S OWN (see @app/map/controls.css). What is left

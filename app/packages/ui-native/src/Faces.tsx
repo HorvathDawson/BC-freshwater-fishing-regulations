@@ -46,7 +46,7 @@ export function FaceBar({ palette, face, onFace, onBack, backLabel }: {
             <Pressable key={id} onPress={() => onFace(id)} accessibilityRole="button"
                        aria-selected={on} accessibilityLabel={label}
                        style={{ paddingVertical: 8, paddingHorizontal: 16,
-                                borderRadius: 999, borderWidth: 1,
+                                borderRadius: palette.r.pill, borderWidth: 1,
                                 borderColor: on ? palette.accent : palette.line,
                                 backgroundColor: on ? palette.tint : "transparent" }}>
               <Text style={{ ...TYPE.micro, fontSize: 12,

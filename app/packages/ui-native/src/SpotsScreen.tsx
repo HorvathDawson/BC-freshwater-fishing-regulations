@@ -68,7 +68,7 @@ export function SpotsScreen({ palette, spots, onOpen, onAdd, onRefresh, refreshi
             </Text>
             <Pressable onPress={onRefresh} disabled={refreshing}
                        accessibilityRole="button" accessibilityLabel="Refresh spots"
-                       style={{ borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14,
+                       style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
                                 backgroundColor: palette.card, borderWidth: 1,
                                 borderColor: palette.line2, opacity: refreshing ? 0.5 : 1 }}>
               <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>
@@ -103,7 +103,7 @@ function SpotRow({ spot, palette, onPress }:
                  alignItems: "flex-start", borderTopWidth: 1, borderTopColor: palette.line,
                  backgroundColor: pressed ? palette.wash : palette.card,
                })}>
-      <View style={{ width: 56, height: 56, borderRadius: 11, backgroundColor: palette.tint,
+      <View style={{ width: 56, height: 56, borderRadius: palette.r.box, backgroundColor: palette.tint,
                      overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
         {spot.photos[0] ? (
           <Image source={{ uri: spot.photos[0] }} style={{ width: "100%", height: "100%" }}

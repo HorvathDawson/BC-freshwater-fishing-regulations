@@ -11,7 +11,34 @@ export interface Camera {
   zoom: number;
 }
 
+/**
+ * The few colours MapLibre's own controls need, from the app's palette.
+ *
+ * `controls.css` styles the zoom stack, compass and scale bar through CSS variables, and
+ * NOTHING HAD EVER SET THEM — every rule fell through to a light-theme literal, so the dark
+ * map wore a white control stack. A `var()` fallback is indistinguishable from a value that
+ * was supplied, which is why it went unnoticed.
+ *
+ * These arrive as a prop rather than being read from the map style, because the map style
+ * has no chrome tokens: it describes water, not furniture. The palette lives in
+ * `@app/ui-native`, which sits ABOVE this package, so the value comes down.
+ */
+export interface MapChrome {
+  /** Frame, dividers and glyphs. */
+  ink: string;
+  /** The control's own ground. */
+  card: string;
+  /** Pressed state. */
+  tint: string;
+  /** The scale bar's bracket and label. */
+  sub: string;
+  /** The hard offset slab under the stack. Not a blur — see controls.css. */
+  shadow: string;
+}
+
 export interface MapProps {
+  /** Colours for MapLibre's own controls. Omitted -> the light-theme defaults. */
+  chrome?: MapChrome;
   at: TileEndpoints;
   /**
    * Any theme the style defines, not just light/dark. It used to be the pair, so the app

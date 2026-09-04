@@ -15,7 +15,7 @@ export function Pill({ palette, children, onPress, style, label }: {
 }) {
   const body = (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8,
-                   backgroundColor: palette.card, borderRadius: 999,
+                   backgroundColor: palette.card, borderRadius: palette.r.pill,
                    // Riffle's chip: 8/14 at 13.5px. The map is the content; its furniture
                    // should be the smallest thing that is still a comfortable target.
                    paddingVertical: 8, paddingHorizontal: 14,
@@ -57,7 +57,7 @@ export function LegendCount({ palette, colour, n, label }:
   { palette: Palette; colour: string; n?: number; label: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-      <View style={{ width: 9, height: 9, borderRadius: 2.5, backgroundColor: colour }} />
+      <View style={{ width: 9, height: 9, borderRadius: palette.r.chip, backgroundColor: colour }} />
       {n !== undefined && (
         <Text style={{ ...TYPE.figure, fontSize: 11.5, color: palette.ink }}>{n}</Text>
       )}
@@ -86,7 +86,7 @@ export function LegendRamp({ palette, stops, low, high, marks, mid }: {
   return (
     <View style={{ flex: 1, gap: 4, minWidth: 240 }}>
       <View style={{ height: 9, justifyContent: "center" }}>
-        <View style={{ flexDirection: "row", height: 7, borderRadius: 4,
+        <View style={{ flexDirection: "row", height: 7, borderRadius: palette.r.chip,
                        overflow: "hidden" }}>
           {stops.map((c, i) => (
             <View key={i} style={{ flex: 1, backgroundColor: c }} />

@@ -1,4 +1,4 @@
-import { resolveTheme } from "@app/map";
+import { resolveTheme, type MapChrome } from "@app/map";
 /**
  * Tokens for the phone components.
  *
@@ -28,7 +28,51 @@ export interface Palette {
    * warn on every render on web.
    */
   lift: { boxShadow: string; elevation: number };
+  /** Corner radii. See RADIUS — the whole app reads these, nothing writes a literal. */
+  r: Radii;
 }
+
+/**
+ * HOW ROUND THE APP IS, in one place.
+ *
+ * Every corner used to be a literal at its call site: ten `borderRadius: 999` pills, eight
+ * 12s, a 13, a 14, two 11s and a 22. Making the app less round meant finding thirty numbers
+ * and hoping; changing one in isolation is how a screen ends up a millimetre off from the
+ * one beside it, which nobody reports and everybody feels.
+ *
+ * SQUARE. A first pass set these to v1's 2-4px and it still read as rounded — at phone
+ * scale a 3px radius is not a soft corner, it is a corner that looks like it was meant to
+ * be soft and failed. Brutalism is not "less rounded", it is not rounded: the edge is a cut,
+ * the border is a hairline of ink, and the shadow is an offset slab with no blur.
+ *
+ * The three names are kept even though they are all 0. They say what KIND of thing a corner
+ * belongs to, so a future decision to soften one class of surface is one edit here rather
+ * than a hunt through thirty call sites — which is the state this replaced.
+ */
+export interface Radii {
+  /** Buttons, inputs, sheets, cards. The default. */
+  box: number;
+  /** Chips, swatches, small marks inside a box. */
+  chip: number;
+  /** What used to be a full pill. */
+  pill: number;
+  /** Explicitly nothing, where a call site wants to say so. */
+  none: number;
+}
+
+export const RADIUS: Radii = { box: 0, chip: 0, pill: 0, none: 0 };
+
+/**
+ * A HARD OFFSET SHADOW, not a blur.
+ *
+ * v1's signature, used on the search bar and every floating panel:
+ * `box-shadow: 4px 4px 0 rgba(0,0,0,1)`. It reads as a printed object on paper rather than
+ * a pane of glass hovering over one, and it survives being small — a 14px blur on a 28px
+ * control is a smudge. The app had `0 4px 14px rgba(21,24,28,0.10)`, which is the generic
+ * material elevation this design is explicitly not.
+ */
+const HARD = (offset: number, colour: string) =>
+  ({ boxShadow: `${offset}px ${offset}px 0 ${colour}`, elevation: offset });
 
 /** Outcome colours for one theme, from the generated style. The map is the source. */
 const outcomes = (theme: string) => {
@@ -45,7 +89,7 @@ export const LIGHT: Palette = {
   ...outcomes("light"),
   quiet: "#C3C8CD", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
   stock: ["#12873F", "#5E9B12", "#B58105", "#8A6A3A", "#8E979E"],
-  lift: { boxShadow: "0 4px 14px rgba(21,24,28,0.10)", elevation: 4 },
+  lift: HARD(3, "rgba(21,24,28,0.90)"), r: RADIUS,
 };
 
 export const DARK: Palette = {
@@ -54,7 +98,9 @@ export const DARK: Palette = {
   ...outcomes("dark"),
   quiet: "#2F363D", accent: "#A97CFF", onAccent: "#100A22", live: "#37D6EA",
   stock: ["#2ED573", "#94D82D", "#FFC93C", "#C79A5E", "#69737B"],
-  lift: { boxShadow: "0 5px 16px rgba(0,0,0,0.50)", elevation: 6 },
+  // On a dark ground a black shadow is invisible, so the offset slab is the LINE
+  // colour — the same "printed object" read, achieved with the only contrast there is.
+  lift: HARD(3, "rgba(0,0,0,0.85)"), r: RADIUS,
 };
 
 /** Blue/orange instead of red/green — and the MAP swaps with it, from the same theme. */
@@ -88,4 +134,19 @@ export function flowRamp(theme: string): readonly string[] {
   // compare against", and that is a STATE rather than a point on the scale — putting it on
   // the legend would imply purple sits below "low", which is not what it means.
   return [1, 2, 3, 4, 5, 6, 7].map((i) => v[`color.flow.f${i}`]!);
+}
+
+/**
+ * The colours MapLibre's own controls wear. Derived HERE, from the palette, so the zoom
+ * stack and the scale bar cannot be on a different theme from the app around them — which
+ * they were, because `controls.css` read CSS variables nobody set and every rule quietly
+ * used its light-theme fallback.
+ */
+export function mapChrome(p: Palette, theme: string): MapChrome {
+  return {
+    ink: p.ink, card: p.card, tint: p.tint, sub: p.sub,
+    // A black slab reads on light ground and disappears on dark, so the dark theme leans
+    // on pure black against a lighter card instead. Same "printed object", either way.
+    shadow: theme === "dark" ? "rgba(0,0,0,0.85)" : "rgba(21,24,28,0.90)",
+  };
 }

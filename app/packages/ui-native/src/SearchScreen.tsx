@@ -47,10 +47,18 @@ export function SearchScreen({ source, palette, onPick, onPickPlace, total, tile
           placeholderTextColor={palette.faint}
           accessibilityLabel="Search for a river, lake, town or gauge"
           autoCorrect={false} autoCapitalize="none" returnKeyType="search"
+          /*
+           * v1's search field, which is the one control canifishthis.ca leads with:
+           * `border: 1px solid #000` over `box-shadow: 4px 4px 0 rgba(0,0,0,1)`. It carried
+           * a 1.5px hairline in `palette.line` (#E5E6E1) — pale enough that on a white card
+           * the field had no edge at all and read as a gap in the page rather than a thing
+           * to type in. The offset slab is what makes it sit ON the page.
+           */
           style={{ ...TYPE.body, fontSize: 16, color: palette.ink,
-                   borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 15, paddingVertical: 13,
-                   borderColor: focused ? palette.accent : palette.line,
-                   backgroundColor: palette.card }}
+                   borderWidth: 1.5, borderRadius: palette.r.box,
+                   paddingHorizontal: 15, paddingVertical: 13,
+                   borderColor: focused ? palette.accent : palette.ink,
+                   backgroundColor: palette.card, ...palette.lift }}
         />
       </View>
 

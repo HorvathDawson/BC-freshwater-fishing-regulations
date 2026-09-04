@@ -12,7 +12,7 @@ declare const __DEV__: boolean | undefined;
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -21,6 +21,7 @@ import { baseAdapter } from "./adapters/contract";
 import { pillImage } from "./pill";
 import { resolveTheme } from "./style";
 import { runtimeStyle } from "./runtime-style";
+import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM } from "@app/core";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
 const EMPTY_FC = '{"type":"FeatureCollection","features":[]}';
@@ -38,7 +39,7 @@ function registerPMTiles() {
   registered = true;
 }
 
-export function Map({ at, theme, view, modes, groups, initial, data, onPressFeature,
+export function Map({ at, theme, view, modes, groups, initial, data, onPressFeature, chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
                       gauges, onVisible, pins }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
@@ -61,8 +62,33 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
                           modes) as unknown as maplibregl.StyleSpecification,
       center: [initial.lon, initial.lat],
       zoom: initial.zoom,
+      // The atlas stops at z14 and has nothing below z4; the basemap is clipped to the
+      // province. Past either end there is no data, so the map was drawing ragged tile
+      // edges and bare paper and calling it a view. See CAMERA_BOUNDS.
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
+      maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
       attributionControl: { compact: true },
     });
+
+    /*
+     * COLLAPSED ON ARRIVAL.
+     *
+     * `compact: true` makes the attribution collapsible; it does not make it collapsed.
+     * MapLibre adds `maplibregl-compact-show` on creation, so the panel opens itself — and
+     * once the credits included Environment and Climate Change Canada and the Province
+     * alongside OpenStreetMap and Protomaps, that was three lines and 64px of text lying
+     * across the bottom of a phone screen, on top of the Layers button.
+     *
+     * The class is removed rather than the control restyled: the information stays exactly
+     * one tap away on the (i), which is what the licences ask for, and the map is a map
+     * again. Removed after a frame because MapLibre adds it during its own mount.
+     */
+    const collapse = () => host.current
+      ?.querySelector(".maplibregl-ctrl-attrib")
+      ?.classList.remove("maplibregl-compact-show");
+    collapse();
+    m.once("load", collapse);
 
     /**
      * MapLibre's OWN controls, not ours.
@@ -358,5 +384,26 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     return () => { m.off("click", onClick); };
   }, [onPressFeature]);
 
-  return <div ref={host} style={{ position: "absolute", inset: 0, ...(style as object) }} />;
+  /**
+   * THE CONTROLS' COLOURS, from the map's own theme.
+   *
+   * `controls.css` reads `--map-ink`, `--map-card` and friends, and NOTHING HAD EVER SET
+   * THEM — every rule fell through to its light-theme literal, so the dark map wore a white
+   * control stack and a light-grey scale bar. Silent, because a fallback in `var()` is
+   * indistinguishable from a value that was supplied.
+   *
+   * Set on the host rather than on `:root`: two maps in one tree (the screen map and a
+   * `MiniMap` in a sheet) can be on different themes, and a document-level variable would
+   * make the last one to mount win.
+   */
+  const vars = useMemo(() => (chrome ? {
+    "--map-ink": chrome.ink,
+    "--map-card": chrome.card,
+    "--map-tint": chrome.tint,
+    "--map-sub": chrome.sub,
+    "--map-shadow": chrome.shadow,
+  } as React.CSSProperties : {}), [chrome]);
+
+  return <div ref={host}
+              style={{ position: "absolute", inset: 0, ...vars, ...(style as object) }} />;
 }

@@ -136,13 +136,13 @@ export function SpotScreen(p: SpotScreenProps) {
 
         {p.onRefresh && needsRefresh(spot) && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14,
-                         borderRadius: 12, backgroundColor: palette.tint }}>
+                         borderRadius: palette.r.box, backgroundColor: palette.tint }}>
             <Text style={{ ...TYPE.small, flex: 1, color: palette.sub }}>
               {refreshReason(spot)}
             </Text>
             <Pressable onPress={p.onRefresh} disabled={p.refreshing}
                        accessibilityRole="button" accessibilityLabel="Refresh this spot"
-                       style={{ borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14,
+                       style={{ borderRadius: palette.r.pill, paddingVertical: 8, paddingHorizontal: 14,
                                 backgroundColor: palette.card, borderWidth: 1,
                                 borderColor: palette.line2, opacity: p.refreshing ? 0.5 : 1 }}>
               <Text style={{ ...TYPE.micro, fontSize: 12.5, color: palette.accent }}>
@@ -182,7 +182,7 @@ export function SpotScreen(p: SpotScreenProps) {
           <Pressable onPress={p.onShowOnMap} accessibilityRole="button"
                      accessibilityLabel="Show on map"
                      style={{ flexDirection: "row", alignItems: "center", gap: 10,
-                              paddingVertical: 12, paddingHorizontal: 14, borderRadius: 12,
+                              paddingVertical: 12, paddingHorizontal: 14, borderRadius: palette.r.box,
                               borderWidth: 1, borderColor: palette.line2 }}>
             <Text style={{ ...TYPE.bodyStrong, flex: 1, color: palette.ink }}>
               Show on map
@@ -246,7 +246,7 @@ export function SpotScreen(p: SpotScreenProps) {
                        placeholderTextColor={palette.faint} accessibilityLabel="Notes"
                        style={{ ...TYPE.body, color: palette.ink, minHeight: 96,
                                 textAlignVertical: "top", borderWidth: 1,
-                                borderColor: palette.line, borderRadius: 12, padding: 12 }} />
+                                borderColor: palette.line, borderRadius: palette.r.box, padding: 12 }} />
           ) : spot.notes.trim() !== "" ? (
             <Text style={{ ...TYPE.body, color: palette.ink }}>{spot.notes}</Text>
           ) : (
@@ -259,7 +259,7 @@ export function SpotScreen(p: SpotScreenProps) {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
               {spot.photos.map((uri) => (
                 <Image key={uri} source={{ uri }} accessibilityLabel=""
-                       style={{ width: 104, height: 104, borderRadius: 12 }}
+                       style={{ width: 104, height: 104, borderRadius: palette.r.box }}
                        resizeMode="cover" />
               ))}
             </View>
@@ -375,7 +375,7 @@ function Confirm({ palette, kind, onCancel, onConfirm, onSaveInstead }: {
   const del = kind === "delete";
   return (
     <View accessibilityLabel={del ? "Confirm delete" : "Unsaved changes"}
-          style={{ marginHorizontal: 18, marginBottom: 8, padding: 16, borderRadius: 12,
+          style={{ marginHorizontal: 18, marginBottom: 8, padding: 16, borderRadius: palette.r.box,
                    borderWidth: 1, borderColor: del ? palette.closed : palette.line2,
                    backgroundColor: palette.wash, gap: 12 }}>
       <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>

@@ -26,6 +26,25 @@ export const MIN_ZOOM = 4;
 export const MAX_ZOOM = 14;
 
 /**
+ * Where the camera may go. `[[west, south], [east, north]]`, MapLibre's `maxBounds` shape.
+ *
+ * BOTH OF THESE WERE DEAD until now: the constants existed and the map was constructed
+ * without `minZoom`, `maxZoom` or `maxBounds`, so you could zoom out to the whole globe and
+ * pan into the Pacific. Neither shows anything — the atlas has no features below z4, and
+ * the basemap archive is clipped to British Columbia — so every zoom past the end is a
+ * screen the app has no data for, drawn as ragged basemap and bare paper.
+ *
+ * British Columbia is lon -139.06..-114.05, lat 48.23..60.00. Eight degrees of slack lets
+ * a reader see where the province sits without letting them leave it, and keeps the widest
+ * possible viewport at MIN_ZOOM (about 19 x 24 degrees on a phone) well inside the mask
+ * frame that `pipeline/deliver/tiles/boundary.py` builds at 30 degrees. If either number
+ * moves, check the other.
+ */
+export const CAMERA_BOUNDS: readonly [readonly [number, number],
+                                      readonly [number, number]] =
+  [[-147.1, 40.2], [-106.1, 68.0]];
+
+/**
  * First zoom a stream of this magnitude is drawn at.
  *
  * A missing magnitude is NOT a small one — it is a station whose node never got a headwater

@@ -39,10 +39,12 @@ export function Button({ palette, label, onPress, kind = "solid", grow = true, s
   return (
     <Pressable onPress={onPress} disabled={off} accessibilityRole="button"
                accessibilityLabel={label} aria-disabled={off}
-               style={{ flexGrow: grow ? 1 : 0, alignItems: "center", borderRadius: 13,
+               style={{ flexGrow: grow ? 1 : 0, alignItems: "center", borderRadius: palette.r.box,
                         paddingVertical: 14, paddingHorizontal: 20, opacity: off ? 0.4 : 1,
                         backgroundColor: bg,
-                        borderWidth: ghost ? 1 : 0, borderColor: palette.line2, ...style }}>
+                        // A ghost button IS its border — in `line2` it was a suggestion.
+                        borderWidth: ghost ? 1.5 : 0, borderColor: palette.ink,
+                        ...(ghost ? {} : palette.lift), ...style }}>
       <Text style={{ ...TYPE.bodyStrong, fontSize: 15, fontWeight: "700",
                      color: ghost ? palette.accent : palette.onAccent }}>{label}</Text>
     </Pressable>
