@@ -304,23 +304,41 @@ def series(station: str, model: str, timeout: float = 25.0) -> dict | None:
 
 
 def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None = None,
-                keep: dict[str, dict[str, str]] | None = None,
+                keep: dict[str, dict[str, dict]] | None = None,
                 workers: int = 8) -> dict[str, dict[str, dict]]:
     """Attach the per-station series to every run, skipping the ones that have not moved.
 
-    ``keep`` maps ``station -> {model: issuedAt}`` for what is already on disk. A run whose
-    summary still names that issue time keeps what it has and costs no request; in the
-    steady state that is every run, and this whole pass is free.
+    ``keep`` maps ``station -> {model: previous run}`` — the runs already on disk, WITH
+    their series. A run whose summary still names the same issue time is carried across
+    intact and costs no request; in the steady state that is every run and this pass is
+    free.
+
+    IT MUST CARRY THE SERIES ACROSS, not merely decline to re-fetch it. `keep` used to hold
+    only issue TIMES, so a run that was up to date was skipped — and then the publisher
+    wrote the station file from this summary, which had no series for it. Every publish
+    therefore erased the series it had just decided not to re-download, and the next one
+    re-downloaded it: measured, 897 of 925 runs were "already current" while exactly ONE
+    station file on disk still had a series in it. The whole point of the ribbon on a chart,
+    and of ranking a forecast against its envelope, is a series — so both were silently
+    empty almost everywhere.
     """
     from concurrent.futures import ThreadPoolExecutor
 
-    want = [(st, model) for st, runs in summary.items()
-            if stations is None or st in stations
-            for model, row in runs.items()
-            if ((keep or {}).get(st) or {}).get(model) != (row.get("issuedAt") or "")]
+    want: list[tuple[str, str]] = []
+    carried = 0
+    for st, runs in summary.items():
+        if stations is not None and st not in stations:
+            continue
+        for model, row in runs.items():
+            prev = ((keep or {}).get(st) or {}).get(model) or {}
+            if prev.get("series") and (prev.get("issuedAt") or "") == (row.get("issuedAt") or ""):
+                row["series"] = prev["series"]
+                carried += 1
+            else:
+                want.append((st, model))
     total = sum(len(r) for r in summary.values())
     if not want:
-        print(f"  series   0 fetched ({total} runs already current)")
+        print(f"  series   0 fetched ({carried} carried forward, {total} runs)")
         return summary
     with ThreadPoolExecutor(max_workers=workers) as pool:
         got = list(pool.map(lambda k: (k, series(k[0], k[1])), sorted(want)))
@@ -329,7 +347,8 @@ def with_series(summary: dict[str, dict[str, dict]], stations: set[str] | None =
         if ser:
             summary[st][model]["series"] = ser
             n += 1
-    print(f"  series   {n} fetched of {len(want)} asked ({total - len(want)} current)")
+    print(f"  series   {n} fetched of {len(want)} asked, {carried} carried forward "
+          f"({total} runs)")
     return summary
 
 

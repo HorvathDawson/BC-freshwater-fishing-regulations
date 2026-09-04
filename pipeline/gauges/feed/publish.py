@@ -699,7 +699,7 @@ def main() -> None:
             # single point, and a single point joined to today's reading is a triangle —
             # which is exactly what it looked like. Fetched only where the issue time has
             # moved since the last publish, so the steady state costs nothing.
-            have: dict[str, dict[str, str]] = {}
+            have: dict[str, dict[str, dict]] = {}
             for st in fcast:
                 f = args.out / f"{st}.json"
                 if not f.exists():
@@ -708,8 +708,11 @@ def main() -> None:
                     prev = json.loads(f.read_text(encoding="utf-8")).get("forecasts") or {}
                 except Exception:                               # noqa: BLE001
                     continue
-                have[st] = {m: (run.get("issuedAt") or "")
-                            for m, run in prev.items() if run.get("series")}
+                # THE WHOLE RUN, not just its issue time. `with_series` carries a
+                # still-current run across into the new summary; given only a timestamp it
+                # could decline to re-fetch but had nothing to carry, so the station file
+                # was rewritten without the series it already had.
+                have[st] = {m: run for m, run in prev.items() if run.get("series")}
             fcast = _forecast.with_series(fcast, stations=set(ids), keep=have)
         except Exception as exc:                                # noqa: BLE001
             print(f"  forecast unavailable: {exc}", file=sys.stderr)

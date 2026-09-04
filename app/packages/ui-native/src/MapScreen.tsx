@@ -82,10 +82,17 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
               const on_ = d === horizons.value;
               return (
                 <Pill key={d} palette={palette} onPress={() => horizons.onPick(d)}
-                      label={d === 0 ? "Conditions now"
-                                     : `Forecast ${d} day${d === 1 ? "" : "s"} ahead`}>
+                      // FILLED WHEN CHOSEN, not merely tinted. These sit over a moving map
+                      // at 13px, and a text-colour change alone is not a state a reader
+                      // notices — the whole map is repainted by this control, so which one
+                      // is on has to be readable at a glance and from the corner of an eye.
+                      style={on_ ? { backgroundColor: palette.accent,
+                                     borderColor: palette.accent } : undefined}
+                      label={(d === 0 ? "Conditions now"
+                                      : `Forecast ${d} day${d === 1 ? "" : "s"} ahead`)
+                             + (on_ ? ", showing" : "")}>
                   <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
-                                 color: on_ ? palette.accent : palette.ink }}>
+                                 color: on_ ? palette.onAccent : palette.ink }}>
                     {d === 0 ? "Now" : `+${d}d`}
                   </Text>
                 </Pill>
