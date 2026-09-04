@@ -200,3 +200,24 @@ def test_a_lake_node_does_not_claim_its_own_stream_gauge():
     graph.nodes["gauged"].kind = graph.nodes["gauged"].kind      # stream in this fixture
     got = build(graph, MODEL, [("S", "gauged", 40, False)])
     assert "gauged" in got.by_section
+
+
+def test_a_station_on_a_lake_does_not_speak_for_the_river():
+    """A reservoir's stage is not a statement about the river below it.
+
+    The lake gate tested every node the walk STEPPED INTO and never the one it started
+    from, so a station sitting IN a lake spoke freely for the streams around it. Measured on
+    the Harrison: 08MG012 is on Harrison Lake, measures level and nothing else, and was
+    carrying half the Harrison River's estimate against the river's own discharge gauge two
+    reaches away.
+    """
+    graph = g([N("lakey", 100, kind="lake"), N("river", 110)], [E("lakey", "river")])
+    got = build(graph, MODEL, [("LAKE", "lakey", 90, False)])
+    assert "river" not in got.by_section
+
+
+def test_a_stream_station_still_speaks_past_nothing():
+    """The same walk, from a stream node, is unaffected."""
+    graph = g([N("gauged", 100), N("river", 110)], [E("gauged", "river")])
+    got = build(graph, MODEL, [("S", "gauged", 90, False)])
+    assert "river" in got.by_section

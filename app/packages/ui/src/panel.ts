@@ -88,8 +88,9 @@ type Index = { stations: Record<string, { percentile: number | null;
  * A horizon the model does not reach is null, never today's value: a map that silently
  * shows today when asked for Friday is worse than one that shows nothing.
  */
-function reading(row: Index extends null ? never : NonNullable<Index>["stations"][string],
+function reading(row: NonNullable<Index>["stations"][string] | null | undefined,
                  quantity: Quantity, horizon: Horizon): number | null {
+  if (!row) return null;
   /*
    * "BOTH" IS NOT A THIRD QUANTITY — it is "whichever this station actually measures".
    *
@@ -130,11 +131,35 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     return { answer: { ok: false, why: "offline" }, rows: [], areaKm2: panel.areaKm2,
              routesReady: false };
 
+  /*
+   * ONE QUANTITY FOR THE WHOLE PANEL — "both" is resolved HERE, not per donor.
+   *
+   * `reading` answers "both" with whichever quantity a STATION measures, which is right for
+   * colouring that station's own dot and wrong for combining several: it let a level
+   * percentile and a discharge percentile be averaged into one number. They are not the
+   * same claim. A stage is about one cross-section and moves when the channel does; a
+   * discharge is about the whole river.
+   *
+   * Measured on the Harrison: a lake gauge's level at the 40th percentile averaged with the
+   * river's discharge at the 6th, disagreeing by more than MAX_USEFUL_SPREAD, so the panel
+   * refused and the map drew "no baseline" — while the SAME reach coloured perfectly at
+   * +1 day, because the forecast block carries discharge only and the level could not
+   * intrude. Two different answers for one reach, an artefact of mixing units.
+   *
+   * DISCHARGE WHERE ANY DONOR HAS IT. It is the transferable quantity — the whole method
+   * is carrying a reading between catchments, and a stage does not travel. Level is the
+   * fallback for panels of stage-only stations, of which the province has many.
+   */
+  const chosen: "discharge" | "level" = quantity !== "both" ? quantity
+    : panel.members.some((m) => reading(index.stations[m.station] ?? null, "discharge",
+                                        horizon) !== null)
+      ? "discharge" : "level";
+
   const contributions = [];
   const raw: (DonorRow & { _w: number })[] = [];
   for (const m of panel.members) {
     const row = index.stations[m.station];
-    const own = row ? reading(row, quantity, horizon) : null;
+    const own = row ? reading(row, chosen, horizon) : null;
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
     const share = Number.isFinite(ratio) ? 1 / ratio : 0;

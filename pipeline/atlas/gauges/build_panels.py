@@ -109,10 +109,26 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
         # exists to discount water that has been diluted on the way down.
         if _kind(start) == "stream":
             out[sec].append((station, "up", a0, years, regulated, False))
+        # A STATION ON A LAKE HAS ALREADY CROSSED ONE.
+        #
+        # The walk below refuses to carry a reading through a lake — storage integrates the
+        # daily signal and lags it by weeks, so an inflow gauge says nothing about the
+        # outflow. It tested every node it STEPPED INTO and never the one it started from,
+        # so a station sitting IN a lake was free to speak for the streams around it.
+        #
+        # Measured on the Harrison: 08MG012 is on Harrison Lake, measures LEVEL and nothing
+        # else, has 93 years of it — and was carrying 50% of the Harrison River's estimate,
+        # against the river's own 75-year discharge gauge 2 reaches away. A reservoir's
+        # stage is not a statement about the river below it, and `lake_gauge` exists to keep
+        # those two apart everywhere else in this pipeline.
+        #
+        # Seeded as already-crossed rather than skipped outright, so the rule reads as what
+        # it is: one lake on the path, wherever on the path it sits.
+        started_in_a_lake = _kind(start) == "lake"
         # Walking upstream reaches sections the gauge is DOWNSTREAM of, and vice versa.
         for adj, role in ((up, "down"), (down, "up")):
             seen: set[str] = {sec}
-            stack: list[tuple[str, bool]] = [(sec, False)]
+            stack: list[tuple[str, bool]] = [(sec, started_in_a_lake)]
             while stack:
                 cur, crossed = stack.pop()
                 for nxt in adj[cur]:
