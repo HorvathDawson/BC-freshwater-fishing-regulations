@@ -34,6 +34,7 @@ import argparse
 import csv
 import io
 import json
+import math
 import sys
 import urllib.error
 import urllib.parse
@@ -279,6 +280,37 @@ def pentad_of(when: datetime) -> int:
     return min(72, (when.timetuple().tm_yday - 1) // 5)
 
 
+def band_for(bands: dict | None, when: datetime) -> list[float | None] | None:
+    """The envelope for THIS DAY, interpolated between the two nearest pentad centres.
+
+    THE OTHER HALF OF THE BIN-EDGE FIX. Widening the pooling window (see
+    `climatology.WINDOW_DAYS`) makes neighbouring pentads similar; reading one of them
+    still steps, because a pentad is a step function and the reader crosses its edge
+    overnight. Between the centres the answer should move a fifth of the way each day, and
+    here it does.
+
+    A pentad's centre is day 2.5 of its five. So a reading on the first day of a pentad is
+    mostly about the PREVIOUS one, which is exactly the asymmetry a hard lookup ignored.
+    Wraps at the year boundary, because late December and early January are one season.
+    """
+    if not bands:
+        return None
+    yday = when.timetuple().tm_yday
+    pos = (yday - 1) / 5.0 - 0.5          # position in pentad units, centres at integers
+    lo = math.floor(pos)
+    frac = pos - lo
+    a = bands.get(str(lo % 73))
+    b = bands.get(str((lo + 1) % 73))
+    if a is None or b is None:
+        return a or b                      # one side missing: the other is the best we have
+    if len(a) != len(b):
+        return a
+    out: list[float | None] = []
+    for x, y in zip(a, b):
+        out.append(None if x is None or y is None else x + (y - x) * frac)
+    return out
+
+
 # The 30-day archive ECCC keeps beside the 2-day hourly file. Read ONCE per station, to
 # start that station's daily record off with a month rather than with today.
 _DAILY = f"{BASE}/daily/BC_{{station}}_daily_hydrometric.csv"
@@ -398,7 +430,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         param = ("discharge" if "discharge" in have and r["discharge"] is not None
                  else "level" if "level" in have and r["level"] is not None
                  else "discharge")
-        band = (have.get(param) or {}).get(str(pent))
+        band = band_for(have.get(param), now)
         observed = r["level"] if param == "level" else r["discharge"]
         # BOTH PERCENTILES WHERE THERE ARE BOTH, each against its own envelope.
         #
@@ -411,7 +443,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         per = {}
         for q in ("discharge", "level"):
             v = r["level"] if q == "level" else r["discharge"]
-            b = (have.get(q) or {}).get(str(pent))
+            b = band_for(have.get(q), now)
             p_ = percentile_of(v, b)
             if p_ is not None:
                 per[q] = p_
