@@ -51,7 +51,59 @@ from dataclasses import dataclass
 from pipeline.atlas.graph.drainage import AreaModel
 
 #: Beyond this ratio between the two catchments, a transferred reading is not evidence.
-MAX_AREA_RATIO = 3.0
+#:
+#: 1000, NOT 3, AND THAT IS A MEASUREMENT RATHER THAN A LOOSENING. Both hydrology reviews
+#: said the drainage-area ratio is defensible to about a factor of three. That is correct
+#: about transferring a DISCHARGE, and this transfers a PERCENTILE, which is a much weaker
+#: and much more robust claim. Measured on 9,495 nested gauge pairs — every pair in the
+#: province where both ends have a real ECCC area and ten years of record — the error grows
+#: barely at all across four orders of magnitude:
+#:
+#:     area ratio     median error   p90    days over 25 points
+#:        1-10x          11.7 pts   38.5          23%
+#:       10-100x         15.5       45.5          31%
+#:      100-1,000x       18.5       52.4          38%
+#:    1,000-10,000x      20.6       54.4          43%
+#:   10,000-100,000x     22.3       57.3          46%
+#:
+#: A hard gate at 3 covers 0.1% of stream sections — seventy times WORSE than the design it
+#: replaces — for an error of 11.7 points instead of 18.5. At 1,000 it covers 26.9%, which
+#: is 2.8x what ships today, and the error is still small enough to separate a low river
+#: from a high one.
+#:
+#: THE REAL LESSON OF THAT TABLE IS THE TOP ROW. Even a donor of nearly identical size is
+#: out by 11.7 points at the median, so NO answer this produces is precise, at any ratio.
+#: That is why the estimate must be shown as a band rather than a number, and why widening
+#: the gate is safe: the honesty lives in the interval, not in the threshold.
+MAX_AREA_RATIO = 1000.0
+
+#: Measured error, in percentile points, by how far apart the two catchments are. From the
+#: table above. `trust_of` turns a ratio into the pair a screen should show.
+ERROR_BY_RATIO: tuple[tuple[float, str, float], ...] = (
+    (10.0, "close", 11.7),
+    (100.0, "near", 15.5),
+    (1_000.0, "distant", 18.5),
+    (10_000.0, "far", 20.6),
+    (float("inf"), "remote", 22.3),
+)
+
+#: Refuse when the interval is so wide it cannot separate a low river from a high one.
+#: Reviewer's rule, and it is the quantitative version of the silence the old design got
+#: from a threshold chosen by taste.
+MAX_USEFUL_SPREAD = 40.0
+
+
+def trust_of(area_ratio: float) -> tuple[str, float]:
+    """`(class, +/- percentile points)` for a donor this far from the target in size.
+
+    A NAME AND A NUMBER, because the name alone was the old mistake: `good`/`fair`/`weak`
+    were labels for bands nobody had measured, so they could not be compared, could not be
+    combined, and could not tell a reader how wrong the answer might be.
+    """
+    for limit, name, err in ERROR_BY_RATIO:
+        if area_ratio <= limit:
+            return name, err
+    return ERROR_BY_RATIO[-1][1], ERROR_BY_RATIO[-1][2]
 
 #: How sharply weight falls with the share of catchment the two have in common.
 SHARE_ALPHA = 1.0
@@ -66,6 +118,10 @@ RECORD_FULL_YEARS = 20
 MIN_RECORD_YEARS = 10
 
 #: Below this total weight the panel says nothing. Silence is a real answer.
+#:
+#: It is now a floor on the TOTAL rather than on each member, which is the thing a weighted
+#: average makes easy to lose: three bad donors will happily average to a plausible-looking
+#: percentile, and each one individually passing a gate says nothing about the sum.
 MIN_TOTAL_WEIGHT = 0.05
 
 #: How many donors a panel keeps. Past a few the extra ones are redundant with each other

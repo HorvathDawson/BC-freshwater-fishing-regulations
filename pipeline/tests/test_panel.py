@@ -6,7 +6,7 @@ import pytest
 
 from pipeline.atlas.gauges.panel import (
     MAX_AREA_RATIO, MIN_RECORD_YEARS, MAX_MEMBERS, combine, eligible, panel_for,
-    share_of, weight_of,
+    share_of, trust_of, weight_of,
 )
 
 
@@ -27,12 +27,34 @@ def test_a_lake_in_the_path_ends_the_relationship():
 
 
 def test_catchments_too_different_in_size_are_refused_outright():
-    """The drainage-area ratio holds to about a factor of three and is meaningless past
-    ten. A soft weight never reaches zero, and far-apart pairs dominate exactly where
-    gauges are sparse — where the app most wants an answer and least deserves one."""
+    """There is still a bound — but it is where the MEASUREMENT put it, not where the
+    textbook rule for transferring a discharge did. See MAX_AREA_RATIO."""
     assert eligible(100.0, 100.0 * MAX_AREA_RATIO, 40, False, False)
     assert not eligible(100.0, 100.0 * MAX_AREA_RATIO * 1.01, 40, False, False)
-    assert not eligible(100.0, 5.0, 40, False, False)          # the other direction too
+    assert not eligible(100.0, 100.0 / (MAX_AREA_RATIO * 1.01), 40, False, False)
+
+
+def test_trust_is_a_measured_number_and_not_a_label():
+    """`good`/`fair`/`weak` were names for bands nobody had measured, so they could not be
+    compared, combined, or used to tell a reader how wrong the answer might be."""
+    close_name, close_err = trust_of(2.0)
+    remote_name, remote_err = trust_of(90_000.0)
+    assert close_name != remote_name
+    assert 0 < close_err < remote_err
+
+
+def test_the_error_grows_with_distance_but_never_explodes():
+    """The finding that made widening the gate defensible: four orders of magnitude of
+    area ratio costs less than a doubling of the error."""
+    errs = [trust_of(r)[1] for r in (2, 40, 400, 4_000, 90_000)]
+    assert errs == sorted(errs)
+    assert errs[-1] < errs[0] * 2
+
+
+def test_even_the_closest_donor_is_not_precise():
+    """The top row of the table is the real lesson: no answer this produces is precise at
+    any ratio, which is why the estimate must be shown as a band and not a number."""
+    assert trust_of(1.0)[1] > 10.0
 
 
 def test_a_short_record_is_not_a_percentile():
@@ -80,7 +102,7 @@ def test_an_ineligible_candidate_never_reaches_the_panel():
     cand = [("good", "up", 100.0, 40, False, False),
             ("dammed", "up", 100.0, 40, True, False),
             ("past a lake", "up", 100.0, 40, False, True),
-            ("too big", "up", 9_000.0, 40, False, False)]
+            ("too big", "up", 9_000_000.0, 40, False, False)]
     assert [d.station for d in panel_for(cand, 100.0)] == ["good"]
 
 
