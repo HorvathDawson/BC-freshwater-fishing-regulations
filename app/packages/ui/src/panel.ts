@@ -106,6 +106,69 @@ export function answerFrom(panel: Panel | undefined, index: Index,
            areaKm2: panel.areaKm2, routesReady: false };
 }
 
+/**
+ * THE MAP, COLOURED THE WAY THE SHEET ANSWERS.
+ *
+ * THIS AND `usePanel` ARE ONE CALCULATION. Both fetch panels and hand them to `answerFrom`
+ * — the same function, not an equivalent one — so a reach's colour and the number in its
+ * sheet are the same arithmetic run over different numbers of sections. There is no second
+ * implementation for the two to drift apart in.
+ *
+ * It replaces a `useStandings` that coloured a reach from `section_gauge`, the ONE station
+ * matched to it, and said nothing whenever that station was quiet, out of record or simply
+ * absent. The failure: the Harrison drawn as unmeasured grey for its whole length except
+ * one short reach, while a tap on that same grey opened a sheet reading "very low for the
+ * time of year, fairly confident, from 2 gauges". Two tables, one question, and the map had
+ * the worse answer. That hook is deleted rather than left beside this one — a superseded
+ * path that still compiles is a path something will be wired back into.
+ *
+ * THE THREE OUTCOMES ARE UNCHANGED, because the map's legend depends on them:
+ *
+ *   absent   nothing can speak for this reach   -> drawn as unmeasured water
+ *   -0.01    a panel exists but answered today's question with nothing
+ *   0..1     a real percentile
+ *
+ * Absent is never zero. Zero is the bottom of the scale and would paint every ungauged
+ * creek as a river in drought.
+ */
+export function usePanelStandings(
+  source: RegsSource,
+  feed: { index(): Promise<Index> } | undefined,
+  sections: readonly SectionId[],
+  quantity: "discharge" | "level" | "both" = "both",
+): ReadonlyMap<SectionId, number> {
+  // Keyed on the viewport's extent rather than its contents: a map that has not moved
+  // re-renders constantly and the section list is a new array every time.
+  const key = (sections.length
+    ? `${sections.length}:${sections[0]}:${sections[sections.length - 1]}` : "")
+    + `:${quantity}`;
+  const got = useAsync(
+    async (): Promise<ReadonlyMap<SectionId, number>> => {
+      const out = new Map<SectionId, number>();
+      if (!feed || !sections.length) return out;
+      const [panels, idx] = await Promise.all([
+        source.panelsFor(sections),
+        feed.index(),
+      ]);
+      if (!idx) return out;             // offline: colour nothing rather than colour wrong
+      for (const [section, panel] of panels) {
+        // "both" asks each panel in the quantity its own donors lead with, which is the
+        // publisher's choice per station and is what colours the most water. Asking for
+        // one quantity colours only the stations that measure it and says nothing about
+        // the rest, rather than quietly answering with the other.
+        const { answer } = answerFrom(panel, idx,
+                                      quantity === "level" ? "level" : "discharge");
+        out.set(section, answer.ok ? answer.value.percentile : -0.01);
+      }
+      return out;
+    },
+    `panelstandings:${key}`,
+    sections.length > 0 && feed !== undefined,
+  );
+  const none = useMemo(() => new Map<SectionId, number>(), []);
+  return got.state === "ready" ? got.value : none;
+}
+
 /** The panel for one section, joined against today's readings. */
 export function usePanel(
   source: RegsSource,

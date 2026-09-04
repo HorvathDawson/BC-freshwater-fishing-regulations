@@ -1,20 +1,31 @@
 /**
- * The Conditions colouring: section -> station -> percentile.
+ * The Conditions colouring: section -> panel -> percentile.
  *
- * The failure that matters is painting a colour where there is no data. A reach with no
- * gauge must come back ABSENT, not zero — zero is the bottom of the scale, so it would
- * render every ungauged creek in BC as a river in drought. That is 97.6% of the province.
+ * The failure that matters is painting a colour where there is no data. A reach nothing can
+ * speak for must come back ABSENT, not zero — zero is the bottom of the scale, so it would
+ * render every ungauged creek in BC as a river in drought. That is most of the province.
+ *
+ * These invariants were written for a `useStandings` that joined through `section_gauge`,
+ * one station per reach. That hook is gone: it left a reach grey whenever its one station
+ * went quiet, while a tap on the same reach answered confidently from the rest of its
+ * panel. The invariants did not change with the join, so they are kept and re-pointed.
  */
 import { describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useStandings } from "./hooks";
-import type { RegsSource, SectionId, StationId } from "@app/data";
+import { usePanelStandings } from "./panel";
+import type { Panel, RegsSource, SectionId } from "@app/data";
 
 const A = "111:0" as SectionId, B = "222:0" as SectionId;
 
-const src = (stations: Record<string, string>) => ({
-  stationsFor: async (secs: readonly SectionId[]) =>
-    new Map(secs.filter((s) => stations[s]).map((s) => [s, stations[s] as StationId])),
+const panel = (...donors: [string, number][]): Panel => ({
+  areaKm2: 100,
+  members: donors.map(([station, areaKm2]) =>
+    ({ station: station as never, role: "up" as const, areaKm2, years: 40 })),
+});
+
+const src = (panels: Record<string, Panel>) => ({
+  panelsFor: async (secs: readonly SectionId[]) =>
+    new Map(secs.filter((s) => panels[s]).map((s) => [s, panels[s]!])),
 } as unknown as RegsSource);
 
 const feed = (pct: Record<string, number | null>) => ({
@@ -24,53 +35,66 @@ const feed = (pct: Record<string, number | null>) => ({
   }),
 });
 
-describe("useStandings", () => {
-  it("joins a reach to its station's percentile", async () => {
+describe("usePanelStandings", () => {
+  it("joins a reach to the percentile its panel produces", async () => {
     const { result } = renderHook(() =>
-      useStandings(src({ [A]: "08A" }), feed({ "08A": 0.42 }), [A]));
-    await waitFor(() => expect(result.current.get(A)).toBe(0.42));
+      usePanelStandings(src({ [A]: panel(["08A", 100]) }), feed({ "08A": 0.42 }), [A]));
+    await waitFor(() => expect(result.current.get(A)).toBeCloseTo(0.42, 6));
   });
 
-  it("leaves an ungauged reach ABSENT, never zero", async () => {
-    // Zero is the bottom of the colour scale. 97.6% of BC has no gauge, so this single
-    // decision is the difference between an honest map and a province-wide drought.
+  it("leaves a reach with no panel ABSENT, never zero", async () => {
+    // Zero is the bottom of the colour scale. Most of BC has no gauge entitled to speak for
+    // it, so this single decision is the difference between an honest map and a
+    // province-wide drought.
     const { result } = renderHook(() =>
-      useStandings(src({ [A]: "08A" }), feed({ "08A": 0.42 }), [A, B]));
+      usePanelStandings(src({ [A]: panel(["08A", 100]) }), feed({ "08A": 0.42 }), [A, B]));
     await waitFor(() => expect(result.current.has(A)).toBe(true));
     expect(result.current.has(B)).toBe(false);
   });
 
-  it("leaves a gauged reach absent when the station reports no percentile", async () => {
+  it("still colours a reach whose nearest gauge has gone quiet", async () => {
+    // THE REASON THIS HOOK EXISTS. Under the old join the reach went grey; the panel
+    // answers from the donor that is still reporting.
     const { result } = renderHook(() =>
-      useStandings(src({ [A]: "08A" }), feed({ "08A": null }), [A]));
-    await waitFor(() => expect(result.current.size).toBe(0));
+      usePanelStandings(src({ [A]: panel(["quiet", 100], ["08B", 130]) }),
+                        feed({ "quiet": null, "08B": 0.2 }), [A]));
+    await waitFor(() => expect(result.current.get(A)).toBeCloseTo(0.2, 6));
+  });
+
+  it("marks a reach whose whole panel is silent, rather than dropping it", async () => {
+    // -0.01 is the sentinel the style reserves: "somebody measures here, and today it
+    // cannot tell you". Absent would say nobody is measuring at all.
+    const { result } = renderHook(() =>
+      usePanelStandings(src({ [A]: panel(["08A", 100]) }), feed({ "08A": null }), [A]));
+    await waitFor(() => expect(result.current.get(A)).toBe(-0.01));
   });
 
   it("colours nothing when the feed is unreachable", async () => {
     const dead = { index: async () => null };
-    const { result } = renderHook(() => useStandings(src({ [A]: "08A" }), dead, [A]));
+    const { result } = renderHook(() =>
+      usePanelStandings(src({ [A]: panel(["08A", 100]) }), dead, [A]));
     await waitFor(() => expect(result.current.size).toBe(0));
   });
 
   it("colours nothing when there is no feed at all", async () => {
     const { result } = renderHook(() =>
-      useStandings(src({ [A]: "08A" }), undefined, [A]));
+      usePanelStandings(src({ [A]: panel(["08A", 100]) }), undefined, [A]));
     await waitFor(() => expect(result.current.size).toBe(0));
   });
 
   it("asks the bundle only about what is on screen", async () => {
-    // The table is 558,746 rows. Holding it client-side to colour ~300 features would be
-    // most of the bundle in memory.
-    const stationsFor = vi.fn(async () => new Map());
-    renderHook(() => useStandings({ stationsFor } as unknown as RegsSource,
-                                  feed({}), [A, B]));
-    await waitFor(() => expect(stationsFor).toHaveBeenCalledWith([A, B]));
+    // Holding the whole table client-side to colour ~300 features would be most of the
+    // bundle in memory.
+    const panelsFor = vi.fn(async () => new Map());
+    renderHook(() => usePanelStandings({ panelsFor } as unknown as RegsSource,
+                                       feed({}), [A, B]));
+    await waitFor(() => expect(panelsFor).toHaveBeenCalledWith([A, B]));
   });
 
   it("does not query at all with nothing on screen", async () => {
-    const stationsFor = vi.fn(async () => new Map());
-    renderHook(() => useStandings({ stationsFor } as unknown as RegsSource, feed({}), []));
+    const panelsFor = vi.fn(async () => new Map());
+    renderHook(() => usePanelStandings({ panelsFor } as unknown as RegsSource, feed({}), []));
     await new Promise((r) => setTimeout(r, 10));
-    expect(stationsFor).not.toHaveBeenCalled();
+    expect(panelsFor).not.toHaveBeenCalled();
   });
 });

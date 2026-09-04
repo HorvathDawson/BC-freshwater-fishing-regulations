@@ -10,7 +10,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { useDataFacts, useGaugeGeoJSON, useStandings, useStatuses,
+import { useDataFacts, useGaugeGeoJSON, usePanelStandings, useStatuses,
          type GaugeQuantity } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
@@ -138,11 +138,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       : flowParam === "level" ? "level" : "flow";
   // The water keeps its last percentile question under temperature — there is nothing to
   // colour it with, so `standings` is simply not asked for.
-  const standings = useStandings(source, feed, visible,
-                                 flowParam === "temperature" ? "both" : flowParam);
+  //
+  // FROM THE PANEL, not from `section_gauge`. The single-station join left the Harrison
+  // grey for its whole length because the station matched to those reaches had gone quiet,
+  // while a tap on that same grey opened a sheet answering confidently from two other
+  // gauges. One arithmetic now serves both — see `usePanelStandings`.
+  const standings = usePanelStandings(source, feed, visible,
+                                      flowParam === "temperature" ? "both" : flowParam);
   // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
-  // `useStandings` beside it — the whole table is far too big to hold to answer a question
-  // about the few hundred reaches actually rendered.
+  // `usePanelStandings` beside it — the whole table is far too big to hold to answer a
+  // question about the few hundred reaches actually rendered.
   const shown = useStatuses(source, tab === "map" ? visible : [], on, group);
   const tally = useMemo(() => {
     const n = new Map<Outcome, number>();
@@ -328,7 +333,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                             // two cannot answer differently.
                             onRegulations={(sec) => { setCondSection(null);
                                                       void onPressFeature("stream", sec); }}
-                            onBack={() => setCondSection(null)} feed={feed} />
+                            onBack={() => setCondSection(null)} feed={feed}
+                            credits={attribution} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
                      camera={camera.current}

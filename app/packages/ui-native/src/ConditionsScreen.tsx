@@ -16,7 +16,8 @@ import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
 export function ConditionsScreen({ source, section, palette, onBack, tiles, theme,
-                                   parameter, onParameter, from, onRegulations, feed }: {
+                                   parameter, onParameter, from, onRegulations, feed,
+                                   credits }: {
   source: RegsSource; section: SectionId; palette: Palette; onBack: () => void;
   tiles?: TileEndpoints; theme?: string;
   /** Kept in step with the map's own flow/level switch — see ConditionsPanel. */
@@ -35,6 +36,8 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
   onRegulations?: (section: SectionId) => void;
   /** The live index, for the donor panel — see ConditionsPanel. */
   feed?: { index(): Promise<any> };
+  /** Data credits for the foot of the screen — see ConditionsPanel. */
+  credits?: readonly string[];
 }) {
   // THE WATER'S NAME, in the same place the Regulations face puts it. Without it this
   // screen opened on a chart and a river's worth of numbers with nothing saying which
@@ -53,7 +56,8 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
       </View>
       <ConditionsPanel source={source} section={section} palette={palette}
                        tiles={tiles} theme={theme} feed={feed}
-                       parameter={parameter} onParameter={onParameter} from={from} />
+                       parameter={parameter} onParameter={onParameter} from={from}
+                       credits={credits} />
     </View>
   );
 }

@@ -49,6 +49,19 @@ export interface MapChrome {
 export interface MapProps {
   /** Colours for MapLibre's own controls. Omitted -> the light-theme defaults. */
   chrome?: MapChrome;
+  /**
+   * Drop the renderer's own furniture: zoom stack, compass, scale bar, attribution.
+   *
+   * For a small map that ILLUSTRATES rather than one you navigate. The route map under an
+   * estimate is 210 px tall and fixed on one camera; a zoom stack and a compass over it are
+   * controls for a map nobody is driving, and they cover the pins that are the point of it.
+   *
+   * ATTRIBUTION DOES NOT DISAPPEAR WITH THEM — it moves. A page carrying a bare map has to
+   * credit the data somewhere on that page, and doing it once at the foot of the screen is
+   * both better reading and the only sensible place for the hydrometric and forecast
+   * credits, which are not the basemap's and were never in that control anyway.
+   */
+  bare?: boolean;
   at: TileEndpoints;
   /**
    * Any theme the style defines, not just light/dark. It used to be the pair, so the app

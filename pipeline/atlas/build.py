@@ -735,7 +735,9 @@ def main() -> None:
         from pipeline.atlas.splits.length_splits import junction_cuts
         from pipeline.atlas.splits.sectionizer import split_graph_at
         _cap_m = args.max_section_km * 1000.0
-        _len_pts = junction_cuts(graph, cap_m=_cap_m)
+        # `fid_index` snaps each cut onto the FWA segment boundary at the confluence, so
+        # the pieces repartition cleanly and each gets its OWN order and magnitude.
+        _len_pts = junction_cuts(graph, cap_m=_cap_m, fid_index=fid_index)
         if _len_pts:
             _before = len(graph.nodes)
             split_graph_at(graph, geoms, _len_pts, fid_index, proximity_pickup=False,

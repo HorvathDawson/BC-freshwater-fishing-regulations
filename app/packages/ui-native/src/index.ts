@@ -33,6 +33,7 @@ export { Icon, LayersIcon, type IconName } from "./icons";
 export * from "./type";
 export { StatusPill } from "./StatusPill";
 export { Hydrograph } from "./Hydrograph";
+export { Credits } from "./Credits";
 export { GaugeTrace } from "./GaugeTrace";
 export { FishSpinner } from "./FishSpinner";
 export * from "./theme";

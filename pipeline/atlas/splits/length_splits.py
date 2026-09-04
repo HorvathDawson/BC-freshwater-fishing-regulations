@@ -65,6 +65,20 @@ MIN_PIECE_M = 250.0
 # preferring a describable cut cannot shred a river into short pieces.
 PREFER_NAMED_FROM = 0.5
 
+# Two tributaries arriving within this distance are one junction as far as a cut is
+# concerned — cutting twice would mint a section shorter than its own label.
+_SAME_JUNCTION_M = 0.5
+
+# How far a cut may be moved to land exactly on a stream-segment boundary.
+#
+# `_repartition` assigns a segment to a piece with a strict `<`, so a cut a few centimetres
+# off a boundary leaves that segment overlapping BOTH pieces — and where it is off in the
+# downstream direction, the piece ABOVE a confluence inherits the drainage from below it.
+# Measured: 99.9% of these junctions already sit within 5 cm of a boundary (they are the
+# same feature), 27 of 2,615 sit just below one. Two metres is enough to close those and far
+# too small to move a cut onto a different junction.
+_SNAP_M = 2.0
+
 
 def _interior_junctions(graph: StreamGraph) -> dict[str, list[tuple[float, str]]]:
     """{section id: [(measure, tributary name), ...]} for confluences INSIDE a section.
@@ -73,6 +87,7 @@ def _interior_junctions(graph: StreamGraph) -> dict[str, list[tuple[float, str]]
     line. Strictly between the section's own bounds means the confluence is interior — the
     junction the section is currently hiding.
     """
+    seen: dict[str, list[float]] = defaultdict(list)
     out: dict[str, list[tuple[float, str]]] = defaultdict(list)
     for e in graph.edges:
         n = graph.nodes.get(e.to_node)
@@ -80,6 +95,18 @@ def _interior_junctions(graph: StreamGraph) -> dict[str, list[tuple[float, str]]
             continue
         if not (n.down_m < e.at_measure < n.up_m):
             continue
+        # THE EXACT MEASURE, NOT A ROUNDED ONE. This rounded to a decimetre to dedupe
+        # two tributaries meeting at one point, and that rounding is the whole hazard:
+        # 99.9% of these measures ARE a stream-segment boundary in FWA (measured, median
+        # offset 0.000 m), and `_repartition` decides which piece a segment belongs to with
+        # a strict `<`. A cut nudged a few centimetres off leaves the segment overlapping
+        # BOTH pieces, and if it is nudged the wrong way the piece above a confluence
+        # inherits the drainage from below it. Dedupe on proximity instead, and cut where
+        # the junction actually is.
+        near = seen[e.to_node]
+        if any(abs(m - e.at_measure) <= _SAME_JUNCTION_M for m in near):
+            continue
+        near.append(e.at_measure)
         trib = graph.nodes.get(e.from_node)
         out[e.to_node].append((e.at_measure, trib.display_name if trib else ""))
     return out
@@ -124,13 +151,36 @@ def _cuts_in(node, junctions: list[tuple[float, str]], cap_m: float,
     return out
 
 
+def _snap(m: float, node, fid_index: dict | None) -> float:
+    """Move a cut onto the exact segment boundary it is already all but sitting on."""
+    if not fid_index:
+        return m
+    best = m
+    gap = _SNAP_M
+    for f in node.member_fids:
+        info = fid_index.get(f)
+        if info is None:
+            continue
+        for edge in (info[0], info[1]):
+            d = abs(edge - m)
+            if d < gap and node.down_m < edge < node.up_m:
+                best, gap = edge, d
+    return best
+
+
 def junction_cuts(graph: StreamGraph, cap_m: float = DEFAULT_CAP_M,
-                  min_piece_m: float = MIN_PIECE_M) -> list[SplitPoint]:
+                  min_piece_m: float = MIN_PIECE_M,
+                  fid_index: dict | None = None) -> list[SplitPoint]:
     """Every cut needed to bring sections under ``cap_m``, at interior confluences only.
 
     Resolved against the graph AS IT STANDS, so a river already divided by a lake, a border,
     a closure or a gauge is measured in the pieces those left behind and is cut only where
     they did not reach.
+
+    `fid_index` (fid -> (down_m, up_m, order, magnitude)) snaps each cut onto the exact
+    stream-segment boundary at the confluence, so the segments repartition cleanly and each
+    new piece gets its own order and magnitude rather than sharing its neighbour's. Omit it
+    and the cuts still land, within centimetres, on the same places.
 
     The ids are `length:{blk}:{measure}` — derived from the blue line and the confluence, so
     a rebuild on the same FWA vintage mints the same ones. They are NOT part of any curated
@@ -144,6 +194,10 @@ def junction_cuts(graph: StreamGraph, cap_m: float = DEFAULT_CAP_M,
         if n.kind != NodeKind.stream or n.length_m <= cap_m:
             continue
         for m, name in _cuts_in(n, inner.get(nid, []), cap_m, min_piece_m):
+            # Snapped LAST, after the choice of junction is made: the choice is about which
+            # tributary to cut at, and this only removes the centimetre of slop between the
+            # confluence's measure and the segment boundary that is the same place.
+            m = _snap(m, n, fid_index)
             out.append(SplitPoint(
                 split_id=f"length:{n.blk}:{int(m)}", blk=n.blk, route_measure=m, fid="",
                 # The label becomes the section boundary's label and so appears in

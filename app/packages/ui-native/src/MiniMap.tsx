@@ -13,7 +13,7 @@ import { TYPE } from "./type";
 import { mapChrome, type Palette } from "./theme";
 
 export function MiniMap({ at, palette, theme, camera, height = 190, view = "regulations",
-                          hint, data, highlight, marker, pins }: {
+                          hint, data, highlight, marker, pins, bare }: {
   at: TileEndpoints; palette: Palette; theme: string; camera: Camera;
   height?: number; view?: string; hint?: string;
   data?: Record<string, Record<string, Record<string, unknown>>>;
@@ -21,11 +21,13 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "regu
   highlight?: readonly string[];
   marker?: { lat: number; lon: number } | null;
   pins?: readonly { lat: number; lon: number; tone?: string; title?: string }[];
+  /** Strip the renderer's zoom stack, compass, scale bar and attribution — see MapProps. */
+  bare?: boolean;
 }) {
   return (
     <View style={{ height, backgroundColor: palette.tint, overflow: "hidden" }}>
       <Map at={at} theme={theme} view={view} initial={camera} data={data}
-           highlight={highlight} marker={marker} pins={pins}
+           highlight={highlight} marker={marker} pins={pins} bare={bare}
            chrome={mapChrome(palette, theme)} />
       {hint && (
         <View style={{ position: "absolute", left: 12, bottom: 12, borderRadius: palette.r.pill,

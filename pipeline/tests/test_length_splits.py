@@ -158,3 +158,59 @@ def test_the_cuts_survive_the_sectionizer():
     # ...and the lower piece still reaches both by walking up.
     up = {e.from_node for e in g.edges if e.to_node == "X:0"}
     assert "X:9000" in up
+
+
+def test_two_tributaries_at_one_point_are_one_junction():
+    """A confluence where two creeks arrive together is one place to cut, not two."""
+    g, _ = _graph(30_000, [(12_000.0, "A Creek"), (12_000.3, "B Creek")])
+    assert len(junction_cuts(g, cap_m=10_000)) == 1
+
+
+def test_it_cuts_at_the_exact_measure_not_a_rounded_one():
+    """`_repartition` splits segments on a strict `<`, so a cut a few centimetres off a
+    segment boundary leaves that segment in BOTH pieces — and off in the wrong direction,
+    the piece above a confluence inherits the drainage from below it."""
+    g, _ = _graph(30_000, [(12_345.678, "Mid Creek")])
+    assert [c.route_measure for c in junction_cuts(g, cap_m=10_000)] == [12_345.678]
+
+
+def test_it_snaps_onto_the_segment_boundary_it_is_beside():
+    # The junction is 0.4 m below where FWA ends the segment. Unsnapped, the downstream
+    # segment straddles the cut and the upper piece takes its magnitude.
+    g, main = _graph(30_000, [(11_999.6, "Mid Creek")])
+    node = g.nodes[main]
+    g.nodes[main] = type(node)(**{**node.__dict__, "member_fids": ("f1", "f2")})
+    fx = {"f1": (0.0, 12_000.0, 3, 900), "f2": (12_000.0, 30_000.0, 2, 40)}
+    assert [c.route_measure for c in junction_cuts(g, cap_m=10_000, fid_index=fx)] \
+        == [12_000.0]
+
+
+def test_it_does_not_snap_across_to_a_different_junction():
+    """Snapping closes a centimetre of slop. A boundary 400 m away is a different place."""
+    g, main = _graph(30_000, [(11_600.0, "Mid Creek")])
+    node = g.nodes[main]
+    g.nodes[main] = type(node)(**{**node.__dict__, "member_fids": ("f1",)})
+    fx = {"f1": (0.0, 12_000.0, 3, 900)}
+    assert [c.route_measure for c in junction_cuts(g, cap_m=10_000, fid_index=fx)] \
+        == [11_600.0]
+
+
+def test_each_piece_gets_its_own_order_and_magnitude():
+    """THE POINT OF CUTTING AT A CONFLUENCE. Above the junction the river drains less
+    country, and the new piece has to say so — otherwise the split has made two sections
+    that answer identically and the map is no better off."""
+    from pipeline.atlas.splits.sectionizer import split_graph_at
+
+    g, main = _graph(30_000, [(12_000.0, "A Creek")])
+    node = g.nodes[main]
+    g.nodes[main] = type(node)(**{**node.__dict__, "member_fids": ("lo", "hi"),
+                                  "stream_order": 5, "stream_magnitude": 900})
+    fid_index = {"lo": (0.0, 12_000.0, 5, 900), "hi": (12_000.0, 30_000.0, 4, 40)}
+    split_graph_at(g, {}, junction_cuts(g, cap_m=10_000, fid_index=fid_index), fid_index)
+
+    lower, upper = g.nodes["X:0"], g.nodes["X:12000"]
+    assert (lower.stream_order, lower.stream_magnitude) == (5, 900)
+    assert (upper.stream_order, upper.stream_magnitude) == (4, 40)
+    # And each keeps only the segments that are actually in it.
+    assert lower.member_fids == ("lo",)
+    assert upper.member_fids == ("hi",)

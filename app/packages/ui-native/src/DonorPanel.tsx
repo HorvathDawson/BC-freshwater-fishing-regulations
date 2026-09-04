@@ -81,12 +81,12 @@ function share(r: { weight: number; percentile: number | null }): string {
  * used, so this can restate the arithmetic without being able to disagree with it.
  */
 function because(r: DonorRow): string {
-  const bits = [`${Math.round(r.factors.share * 100)}% catchment overlap`];
-  if (r.factors.role < 1) bits.push("downstream, so it carries extra water");
+  const bits = [`its watershed overlaps this one by ${Math.round(r.factors.share * 100)}%`];
+  if (r.factors.role < 1) bits.push("it sits downstream, so it carries extra water");
   if (r.factors.record < 1)
-    bits.push(`${r.years} years of record, so it counts `
+    bits.push(`its record is only ${r.years} years, so it counts `
               + `${Math.round(r.factors.record * 100)}%`);
-  return bits.join(" · ");
+  return `Counts this much because ${bits.join("; ")}.`;
 }
 
 export function DonorPanel({ palette, value, at, theme, from, selected, onSelect }: {
@@ -193,8 +193,17 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
           the panel and a map of the wrong place. */}
       {at && theme && camera && value.routesReady && (
         <View style={{ marginTop: 12, gap: 8 }}>
-          <MiniMap at={at} palette={palette} theme={theme} camera={camera} height={210}
-                   view="plain" highlight={chain}
+          {/*
+            KEYED ON THE CAMERA. A MapLibre map reads its opening camera once and ignores
+            every later change, so a camera arriving after mount — which is every camera
+            here, since the routes are walked asynchronously — would never be applied. The
+            key remounts the map when the frame genuinely changes and never otherwise;
+            rounding keeps a re-render with the same view from remounting anything.
+          */}
+          <MiniMap key={`${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},`
+                        + `${camera.zoom.toFixed(1)}`}
+                   at={at} palette={palette} theme={theme} camera={camera} height={210}
+                   bare view="conditions" highlight={chain}
                    pins={[
                      ...(showFrom ? [{ lat: from!.lat, lon: from!.lon, tone: palette.accent,
                                        title: "you are here" }] : []),
@@ -204,9 +213,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
                        title: `${hereLabel(r)} · ${share(r)} of the answer`,
                      })),
                    ]}
-                   hint={chain.length > 1
-                     ? `${chain.length} reaches between here and these gauges`
-                     : undefined} />
+                   />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
             {showFrom && <Key palette={palette} tone={palette.accent} label="you are here" />}
             {placed.map((r) => (
@@ -268,43 +275,54 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
                   <Text style={{ color: palette.faint }}>  {r.route.name}</Text>
                 ) : null}
               </Text>
-              {/* THE CONTRIBUTION AS A NUMBER, beside the bar rather than instead of it.
-                  The bar is read at a glance and the number is what a reader quotes. */}
-              <Text style={{ ...TYPE.figure, fontSize: 13.5, color: palette.ink,
-                             fontVariant: ["tabular-nums"] }}>
-                {share(r)}
-              </Text>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-              <View style={{ width: 9 }} />
+            {/*
+              EVERY NUMBER SAYS WHAT IT IS.
+              
+              This row carried three bare percentages in three places — the weight, the
+              gauge's own percentile, and the catchment overlap — none of them labelled and
+              all of them meaning something different. A reader saw "81%", "33%" and "100%"
+              stacked and had no way to tell which was which, let alone which mattered.
+            */}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 9,
+                           marginLeft: 18 }}>
               <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
                              borderRadius: 3, overflow: "hidden" }}>
                 <View style={{ width: `${Math.max(1, Math.round(r.weight * 100))}%`,
                                height: 5, backgroundColor: toneOf(r, i) }} />
               </View>
-              <Text style={{ ...TYPE.figure, fontSize: 12, color: palette.sub,
-                             fontVariant: ["tabular-nums"] }}>
+              <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub }}>
                 {r.percentile === null
-                  ? "—"
-                  : `${Math.round(r.percentile * 100)}%`}
+                  ? "not counted today"
+                  : `${share(r)} of this estimate`}
               </Text>
             </View>
+            {/* WHAT THIS GAUGE ITSELF READS — the fact the estimate is built from, in the
+                same words the headline uses. It was a bare "p33rd", which a reader could
+                easily take for the answer rather than for one gauge's input to it. */}
+            <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub,
+                           marginLeft: 18 }}>
+              {r.percentile === null
+                ? "Not reporting today."
+                : `Reads ${inTen(r.percentile)}.`}
+            </Text>
             <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
                            marginLeft: 18 }}>
-              {ROLE[r.role]} · {area(r.areaKm2)} · {distance(r.areaRatio)}
+              {ROLE[r.role]} · drains {area(r.areaKm2)} · {distance(r.areaRatio)}
               {r.route && r.route.path.length > 1
                 ? ` · ${r.route.path.length - 1} `
                   + `${r.route.path.length === 2 ? "reach" : "reaches"} away`
                 : r.route && r.route.path.length === 1 ? " · on this reach" : ""}
             </Text>
-            {/* WHY, in the model's own terms. Without this the percentage is an assertion;
-                with it a reader can check it against the two catchments above. */}
-            <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
-                           marginLeft: 18 }}>
-              {r.percentile === null
-                ? "not reporting today, so it counts for nothing"
-                : because(r)}
-            </Text>
+            {/* WHY IT COUNTS WHAT IT COUNTS, in the model's own terms. Without this the
+                percentage is an assertion; with it a reader can check it against the two
+                catchments above. */}
+            {r.percentile !== null && (
+              <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
+                             marginLeft: 18 }}>
+                {because(r)}
+              </Text>
+            )}
           </Pressable>
           );
         })}

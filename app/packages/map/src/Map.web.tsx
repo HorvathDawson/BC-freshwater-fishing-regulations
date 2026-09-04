@@ -42,7 +42,7 @@ function registerPMTiles() {
 
 export function Map({ at, theme, view, modes, groups, initial, data, onPressFeature, chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
-                      gauges, onVisible, pins }: MapProps) {
+                      gauges, onVisible, pins, bare }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const adapter = useRef(baseAdapter("web"));
@@ -69,7 +69,7 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       minZoom: MIN_ZOOM,
       maxZoom: MAX_ZOOM,
       maxBounds: CAMERA_BOUNDS as unknown as maplibregl.LngLatBoundsLike,
-      attributionControl: { compact: true },
+      attributionControl: bare ? false : { compact: true },
     });
 
     /*
@@ -104,9 +104,11 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
      * They are restyled to the design in `controls.css`, which is the part that was
      * actually worth writing.
      */
-    m.addControl(new maplibregl.NavigationControl({
-      showCompass: true, visualizePitch: false,
-    }), "top-right");
+    // See MapProps.bare — an illustration, not something you drive.
+    if (!bare)
+      m.addControl(new maplibregl.NavigationControl({
+        showCompass: true, visualizePitch: false,
+      }), "top-right");
     /*
      * BOTTOM-RIGHT, above the attribution.
      *
@@ -116,7 +118,9 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
      * corners are where every map a reader has used puts a scale, and the top-left is now
      * the date's alone: WHEN is the app's own question, and it deserves the corner.
      */
-    m.addControl(new maplibregl.ScaleControl({ maxWidth: 92, unit: "metric" }), "bottom-right");
+    if (!bare)
+      m.addControl(new maplibregl.ScaleControl({ maxWidth: 92, unit: "metric" }),
+                   "bottom-right");
     // A map that fails silently is the worst outcome this app can produce: an empty map
     // looks exactly like water with no regulations on it. Surface every renderer error.
     m.on("error", (e) => onError?.(

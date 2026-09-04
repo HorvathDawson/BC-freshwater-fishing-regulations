@@ -19,6 +19,7 @@ import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
          usePanelRoutes, useSeries, useStationReading } from "@app/ui";
 import { ChartControls } from "./ChartControls";
+import { Credits } from "./Credits";
 import { FishSpinner } from "./FishSpinner";
 import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
@@ -35,7 +36,7 @@ export type Span = "72h" | "year";
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer }: {
+                                  footer, credits }: {
   source: RegsSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: { index(): Promise<Parameters<typeof usePanel>[1] extends undefined ? never : any> };
@@ -52,6 +53,15 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * undefined, the panel owns the choice itself.
    */
   parameter?: Parameter; onParameter?: (p: Parameter) => void;
+  /**
+   * Data credits, for the foot of the screen.
+   *
+   * The route map here is deliberately bare — no zoom stack, no scale, no attribution
+   * button — so the credit it would have carried has to appear on the page instead. These
+   * are the app's own list, passed down rather than restated: the Province's forecast
+   * notice is required verbatim, and a second copy is a second thing to get wrong.
+   */
+  credits?: readonly string[];
   /** Where the reader tapped, so the route map can mark where they are standing. */
   from?: { lat: number; lon: number } | null;
   scroll?: boolean;
@@ -267,6 +277,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
                     from={from} />
       )}
       {footer}
+      <Credits palette={palette} lines={credits} />
     </>
   );
 

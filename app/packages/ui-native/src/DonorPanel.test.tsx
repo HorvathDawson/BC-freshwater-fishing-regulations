@@ -48,11 +48,11 @@ describe("the donor panel", () => {
     // anywhere on screen: the explanation under each row also says "downstream", and the
     // screen-reader label for the row repeats the size too. A bare word match counts all
     // of them and then reports a number that says nothing about the layout.
-    const facts = screen.getAllByText(/^(upstream|downstream) · .* · .*(apart|same size)$/);
+    const facts = screen.getAllByText(/^(upstream|downstream) · drains .*(apart|same size)$/);
     expect(facts.length).toBe(2);
     expect(facts.map((f) => f.textContent)).toEqual([
-      "upstream · 120 km² · 2.4× apart",
-      "downstream · 120 km² · 2.4× apart",
+      "upstream · drains 120 km² · 2.4× apart",
+      "downstream · drains 120 km² · 2.4× apart",
     ]);
   });
 
@@ -62,7 +62,9 @@ describe("the donor panel", () => {
     const v = answer();
     render(<DonorPanel palette={LIGHT}
                        value={{ ...v, rows: [row("08MH001", { percentile: null })] }} />);
-    expect(screen.getByText("quiet")).toBeTruthy();
+    // Not "0%", which reads as "this gauge is not in the panel" — a different claim.
+    expect(screen.getByText("not counted today")).toBeTruthy();
+    expect(screen.getByText("Not reporting today.")).toBeTruthy();
   });
 
   it("warns in words when the gauges disagree", () => {
@@ -100,8 +102,10 @@ describe("the donor panel", () => {
     // The ask this answers: a reader could see one bar longer than another and had no way
     // to say how much longer, or to quote it.
     render(<DonorPanel palette={LIGHT} value={answer()} />);
-    expect(screen.getByText("60%")).toBeTruthy();
-    expect(screen.getByText("40%")).toBeTruthy();
+    // LABELLED. Three bare percentages used to sit in one row — the weight, the gauge's
+    // own reading and the catchment overlap — and nothing said which was which.
+    expect(screen.getByText("60% of this estimate")).toBeTruthy();
+    expect(screen.getByText("40% of this estimate")).toBeTruthy();
   });
 
   it("never rounds a real contribution down to nothing", () => {
@@ -109,7 +113,7 @@ describe("the donor panel", () => {
     const v = answer();
     render(<DonorPanel palette={LIGHT}
                        value={{ ...v, rows: [row("08MH001", { weight: 0.003 })] }} />);
-    expect(screen.getByText("<1%")).toBeTruthy();
+    expect(screen.getByText("<1% of this estimate")).toBeTruthy();
   });
 
   it("explains the contribution in the model's own terms", () => {
@@ -117,9 +121,9 @@ describe("the donor panel", () => {
     render(<DonorPanel palette={LIGHT} value={{ ...v, rows: [
       row("08MH001", { factors: { share: 0.42, role: 0.85, record: 0.5 }, years: 10 }),
     ] }} />);
-    expect(screen.getByText(/42% catchment overlap/)).toBeTruthy();
-    expect(screen.getByText(/downstream, so it carries extra water/)).toBeTruthy();
-    expect(screen.getByText(/10 years of record, so it counts 50%/)).toBeTruthy();
+    expect(screen.getByText(/its watershed overlaps this one by 42%/)).toBeTruthy();
+    expect(screen.getByText(/it sits downstream, so it carries extra water/)).toBeTruthy();
+    expect(screen.getByText(/its record is only 10 years, so it counts 50%/)).toBeTruthy();
   });
 
   it("gives the spot's own catchment, so a share can be checked", () => {
@@ -168,8 +172,9 @@ describe("the donor panel", () => {
     render(<DonorPanel palette={LIGHT}
                        value={{ ...v, rows: [row("08MH001", { percentile: null,
                                                               weight: 0 })] }} />);
-    expect(screen.getAllByText("quiet").length).toBeGreaterThan(0);
-    expect(screen.queryByText("0%")).toBeNull();
+    expect(screen.getAllByText(/not counted today|Not reporting today/).length)
+      .toBeGreaterThan(0);
+    expect(screen.queryByText("0% of this estimate")).toBeNull();
   });
 
   it("draws no map until the routes are in", () => {
@@ -186,6 +191,14 @@ describe("the donor panel", () => {
     // ...and the answer itself is on screen the whole time. The map is an addition to the
     // words, never a gate on them.
     expect(screen.getByText("08MH001")).toBeTruthy();
+  });
+
+  it("says what each gauge itself reads, in the same words as the headline", () => {
+    // A bare "p33rd" beside a row could be taken for the answer rather than for one
+    // gauge's input to it.
+    render(<DonorPanel palette={LIGHT}
+                       value={{ ...answer(), rows: [row("08MH001", { percentile: 0.2 })] }} />);
+    expect(screen.getByText(/Reads lower than 8 days in 10/)).toBeTruthy();
   });
 
   it("describes each row for a screen reader, not only for the eye", () => {
