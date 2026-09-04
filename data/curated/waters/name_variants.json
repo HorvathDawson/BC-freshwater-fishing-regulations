@@ -92,20 +92,6 @@
  {
   "target": {
    "wbks": [
-    "329321459"
-   ]
-  },
-  "names": [
-   {
-    "name": "Cahilty Lake",
-    "source": "regulation",
-    "note": "Polygon has no GNIS_ID — keyed by WATERBODY_KEY instead of GNIS ID or blue line key since it's a lake polygon, not a stream. Authored as a name_variant: the polygon is unnamed, so the resolver promotes this to the display label."
-   }
-  ]
- },
- {
-  "target": {
-   "wbks": [
     "329453617"
    ]
   },
