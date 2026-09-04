@@ -11,6 +11,7 @@
  * re-downloaded. `pins.ts` says why it lives in its own store.
  */
 import type { GaugeTrace, Outcome, Provenance } from "@app/core";
+import type { PanelAnswer } from "../panel";
 import type { ItemId, SectionId } from "../index";
 
 /** Weather at the moment of capture. Every field nullable: a spot with no forecast is fine. */
@@ -118,6 +119,19 @@ export interface Spot {
   reading: SpotReading | null;
   weather: SpotWeather | null;
   trace: GaugeTrace | null;
+  /**
+   * THE ESTIMATE, EXACTLY AS THE APP SHOWED IT — frozen.
+   *
+   * `reading` above is one station's own number. This is what the reader was actually
+   * looking at: the donor panel, its weights, its interval and its words, produced by the
+   * same `answerFrom` the map and the sheet run. A spot rendered from a second
+   * implementation is a spot that disagrees with the app that recorded it, and this file
+   * has already been through that with the trace.
+   *
+   * Null for a spot saved before this existed, and for water nothing can speak for. The
+   * screen shows the reading alone in that case, which is what it always did.
+   */
+  panel: PanelAnswer | null;
   /** The regulation in force ON THAT DAY, so the record still reads true next season. */
   regulation: { outcome: Outcome; provenance: Provenance; on: string } | null;
 }

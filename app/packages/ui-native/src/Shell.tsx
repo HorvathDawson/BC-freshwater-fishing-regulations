@@ -357,6 +357,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   if (adding && onSaveSpot)
     return (
       <SpotCapture source={source} weather={weather} tiles={tiles} palette={palette}
+                   // So the spot freezes the ESTIMATE the reader was looking at,
+                   // not just the matched station's own number.
+                   feed={feed}
                    theme={theme} camera={camera.current} on={on} group={group}
                    onCancel={() => setAdding(false)}
                    onSaved={(s) => { setAdding(false); void onSaveSpot(s); setTab("spots"); }} />

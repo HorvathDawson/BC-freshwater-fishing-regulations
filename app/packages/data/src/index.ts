@@ -462,3 +462,7 @@ export interface RegsSource {
 export type { Pin, PinPhoto, PinStore } from "./pins";
 
 export { httpFeed, type GaugeFeed } from "./feed/http";
+
+// The panel arithmetic: bundle rows plus a feed reading -> one answer. Three callers,
+// one of them not a screen, so it cannot live behind a hook — see ./panel.ts.
+export * from "./panel";

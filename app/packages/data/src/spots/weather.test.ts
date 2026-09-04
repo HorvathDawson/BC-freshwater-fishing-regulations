@@ -13,7 +13,7 @@ const spot = (over: Partial<Spot> = {}): Spot => ({
   id: "s1", createdAt: Date.parse("2026-08-30T09:00:00Z"), visitedAt: Date.parse("2026-08-30T09:00:00Z"), updatedAt: 0,
   lat: 49.09, lon: -121.96, item: null, section: null, waterName: null,
   title: "t", notes: "", photos: [],
-  reading: null, weather: null, trace: null, regulation: null, ...over,
+  reading: null, weather: null, trace: null, regulation: null, panel: null, ...over,
 });
 
 const ok = (body: unknown) =>

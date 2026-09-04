@@ -18,7 +18,7 @@ const spot = (over: Partial<Spot> = {}): Spot => ({
   id: "s1", createdAt: Date.parse("2026-08-30T09:00:00Z"), visitedAt: Date.parse("2026-08-30T09:00:00Z"), updatedAt: 0,
   lat: 49.0974, lon: -121.9675, item: null, section: null, waterName: null,
   title: "Tamihi run", notes: "", photos: [],
-  reading: null, weather: null, trace: null, regulation: null, ...over,
+  reading: null, weather: null, trace: null, panel: null, regulation: null, ...over,
 });
 
 describe("<SpotScreen>", () => {
@@ -282,7 +282,9 @@ describe("<SpotScreen> draft mode shows what the saved spot will show", () => {
       cloud: grab("Cloud visit"), pressure: grab("Pressure visit"),
       humidity: grab("Humidity visit"), temp: grab("Temp visit"),
       wind: !!r.queryByText(/wind 8 km\/h/), rain: !!r.queryByText(/rain 2 mm/),
-      pctile: !!r.queryByText(/p62 against the record/),
+      // `percentileLabel`, shared with the map dot and the sheet — this read "p62"
+      // while the map read "p62nd" about the same station.
+      pctile: !!r.queryByText(/p62nd against the record/),
       observed: r.queryAllByText(/observed 2026-08-30/).length,
     };
     cleanup();
@@ -340,5 +342,39 @@ describe("<SpotScreen> naming and locating", () => {
                   onShowOnMap={onShowOnMap} />);
     fireEvent.click(getByLabelText("Show on map"));
     expect(onShowOnMap).toHaveBeenCalled();
+  });
+});
+
+describe("<SpotScreen> shows the estimate it recorded", () => {
+  /*
+   * A SAVED SPOT RENDERS THE COMPONENT THE APP RENDERED, on frozen data.
+   *
+   * It used to be a hand-rolled copy: one station's number, a unit, and a percentile
+   * spelled differently from the map dot and the sheet. So a spot recorded something the
+   * app had never said — one gauge where the reader had been shown a panel of four.
+   */
+  const frozen = {
+    answer: { ok: true as const,
+              value: { percentile: 0.12, plusMinus: 12, trust: "close" as const,
+                       spread: 6, donors: 2 } },
+    rows: [{ station: "08MH001" as never, role: "up" as const, percentile: 0.12,
+             weight: 0.7, areaRatio: 2.4, areaKm2: 120, trust: "close" as const,
+             years: 40, regulated: false, sameRiver: true,
+             factors: { share: 1, role: 1, record: 1 } }],
+    areaKm2: 50, routesReady: true,
+  };
+
+  it("renders the estimate as the app rendered it", () => {
+    const r = render(<SpotScreen spot={spot({ panel: frozen } as never)}
+                                palette={LIGHT} onBack={() => {}} />);
+    expect(r.getByText(/Low for the time of year/)).toBeTruthy();
+    expect(r.getByText("08MH001")).toBeTruthy();
+  });
+
+  it("falls back to the bare reading for a spot saved before this existed", () => {
+    const r = render(<SpotScreen spot={spot({ panel: null })} palette={LIGHT}
+                                onBack={() => {}} />);
+    // Still a true record of that day — just less of one.
+    expect(r.queryByText(/for the time of year/)).toBeNull();
   });
 });

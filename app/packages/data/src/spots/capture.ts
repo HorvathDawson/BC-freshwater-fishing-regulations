@@ -9,6 +9,7 @@
  * which is the truth, and a later backfill can fill it in and mark itself as backfilled.
  */
 import type { GaugeTrace, PlainDate, SpeciesGroup } from "@app/core";
+import { answerFrom, type PanelAnswer } from "../panel";
 import type { ItemId, RegsSource, SectionId } from "../index";
 import type { Spot, SpotReading, SpotWeather } from "./model";
 
@@ -45,8 +46,26 @@ export interface CaptureInput {
    * claims about one instant, so they take one instant.
    */
   visitedAt?: number;
+  /** The live index, so the estimate can be frozen as the reader saw it. */
+  feed?: { index(): Promise<Parameters<typeof answerFrom>[1]> };
   now?: number;
   id?: () => string;
+}
+
+/** The estimate as the app had it, or null when there is no feed or no panel. */
+async function panelFor(source: RegsSource, section: SectionId | null,
+                        feed: CaptureInput["feed"]): Promise<PanelAnswer | null> {
+  if (!feed || !section) return null;
+  try {
+    const [panels, idx] = await Promise.all([source.panelsFor([section]), feed.index()]);
+    const got = answerFrom(panels.get(section), idx, "both");
+    // Only a real answer is worth freezing: "no panel" is not a fact about that day, it is
+    // a fact about the app, and it would read as one on a spot opened a year later.
+    return got.answer.ok || got.rows.length ? got : null;
+  } catch {
+    // A spot must save. A missing estimate is a smaller loss than a lost record.
+    return null;
+  }
 }
 
 export async function captureSpot(input: CaptureInput): Promise<Spot> {
@@ -63,14 +82,18 @@ export async function captureSpot(input: CaptureInput): Promise<Spot> {
 
   // Everything in parallel: this runs while a person is looking at a "saving" spinner, and
   // three round trips in series is three times as long to look at it.
-  const [reading, trace, regulation, weather] = await Promise.all([
+  const [reading, trace, regulation, weather, panel] = await Promise.all([
     readingFor(source, section),
     traceFor(source, section),
     regulationFor(source, section, on, group),
     (input.weather ?? noWeather).at(at.lat, at.lon, new Date(visitedAt)),
+    // THE ANSWER THE APP WAS SHOWING, through the same function the map and the sheet use.
+    // Without a feed there is nothing to freeze and the spot keeps only the reading.
+    panelFor(source, section, input.feed),
   ]);
 
   return {
+    panel,
     id: input.id?.() ?? `spot_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     createdAt: now, updatedAt: now, visitedAt,
     lat: at.lat, lon: at.lon,

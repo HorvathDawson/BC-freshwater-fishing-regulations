@@ -41,6 +41,14 @@ import { Button } from "./Button";
 type Step = "water" | "point" | "when" | "details" | "saving";
 
 export interface SpotCaptureProps {
+  /**
+   * The live index, so the ESTIMATE is frozen as the reader saw it.
+   *
+   * Without it a spot keeps only the matched station's own reading — true, but not what
+   * the app was showing, which was a panel of up to four gauges and an interval.
+   */
+  feed?: { index(): Promise<any> };
+
   source: RegsSource;
   weather?: WeatherSource;
   tiles: TileEndpoints;
@@ -54,7 +62,7 @@ export interface SpotCaptureProps {
 }
 
 export function SpotCapture(props: SpotCaptureProps) {
-  const { palette, tiles, theme, camera, source, on, group } = props;
+  const { palette, tiles, theme, camera, source, on, group, feed } = props;
   const [step, setStep] = useState<Step>("water");
   const [satellite, setSatellite] = useState(false);
   const [water, setWater] = useState<{ section: SectionId; item: ItemId | null;
@@ -78,6 +86,7 @@ export function SpotCapture(props: SpotCaptureProps) {
     if (!water || !point) return;
     setStep("saving");
     const spot = await captureSpot({
+      feed,
       source, weather: props.weather, at: point, visitedAt,
       item: water.item, section: water.section, waterName: water.name,
       group, title: title || water.name || "",

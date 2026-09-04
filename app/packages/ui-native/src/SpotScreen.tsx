@@ -24,8 +24,10 @@ import { useState } from "react";
 import { Image, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { isUntitled, needsRefresh, refreshReason, spotLabel, type Spot,
   type SpotWeather, type WeatherSample } from "@app/data/spots";
+import { DonorPanel } from "./DonorPanel";
 import { GaugeTrace } from "./GaugeTrace";
 import { StatusPill } from "./StatusPill";
+import { percentileLabel } from "@app/core";
 import { TYPE } from "./type";
 import { outcomeColour, type Palette } from "./theme";
 import { Button } from "./Button";
@@ -153,7 +155,29 @@ export function SpotScreen(p: SpotScreenProps) {
         )}
 
         <Block palette={palette} title="What the water was doing">
-          {r?.discharge != null ? (
+          {/*
+            THE SAME COMPONENT THE CONDITIONS SCREEN USES, on frozen data.
+            
+            This was a hand-rolled copy: a big number, a unit, and a percentile spelled
+            "p4" where the map said "p4th" and the sheet said "p0.4th". It also showed one
+            station where the app had shown a panel of four, so a spot recorded what the
+            app never said.
+            
+            `spot.panel` is the answer `answerFrom` produced at capture time, stored
+            verbatim. `DonorPanel` renders it exactly as it rendered it that day — the
+            range, the words, the donors and what each contributed — with no map, because
+            a saved spot carries no tiles, and no horizon chips, because you cannot
+            re-forecast the past.
+          */}
+          {spot.panel ? (
+            <>
+              <DonorPanel palette={palette} value={spot.panel} />
+              {r && <Meta palette={palette} at={r.at} backfilled={r.backfilled}
+                          station={r.station} />}
+            </>
+          ) : r?.discharge != null ? (
+            // A spot saved before the estimate was frozen. Its own reading is all there is,
+            // and it is still a true record of that day.
             <>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8,
                              flexWrap: "wrap" }}>
@@ -163,7 +187,7 @@ export function SpotScreen(p: SpotScreenProps) {
                 <Text style={{ ...TYPE.figure, color: palette.sub }}>m³/s</Text>
                 {r.percentile != null && (
                   <Text style={{ ...TYPE.figure, color: palette.sub }}>
-                    · p{Math.round(r.percentile * 100)} against the record
+                    · {percentileLabel(r.percentile)} against the record
                   </Text>
                 )}
               </View>
