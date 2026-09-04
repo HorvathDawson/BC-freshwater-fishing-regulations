@@ -58,6 +58,14 @@ export const STYLE_META = meta as unknown as {
   patterns: Record<string, { token: string; ground: number; stripe: number; darken: number;
                              spacing: number; weight: number; cross: boolean }>;
   /** generated edge id -> a token for its line-opacity, when it should not be a hard edge. */
+  /**
+   * The zoom a layer takes in ONE view — `{layer: {view: minzoom}}`.
+   *
+   * A layer's `minzoom` is baked into the style; this is the floor a particular view raises
+   * it to. The Conditions view stands the rivers down below z9 so the basin field answers
+   * instead, and every other view leaves them where the style put them.
+   */
+  minzoomByView: Record<string, Record<string, number>>;
   edgeOpacities: Record<string, string>;
   themes: Record<string, Tokens>;
   /** Layers a view may switch that are added at runtime, not defined here. */

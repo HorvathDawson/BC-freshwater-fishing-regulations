@@ -469,6 +469,48 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
               f"from {len(donors):,} eligible stations")
 
 
+    # ---- the zoomed-out field: which station speaks for each catchment ---------------
+    #
+    # PRECOMPUTED HERE and not on the client, for the same reason the panels are: it needs
+    # geometry the client does not ship, it changes with the gauge network rather than with
+    # the weather, and doing it on every pan would be a point-in-polygon sweep of 11,000
+    # shapes. The tile carries a bare `basin_id`; this is what turns it into a reading.
+    try:
+        from pipeline.atlas.gauges.basin_station import gauged_basins, resolve
+        from pipeline.deliver.tiles.basins import LEAF_MAX_KM2, basin_id as _basin_id
+        import geopandas as _gpd
+
+        _sheds = _gpd.read_file(str(Path(SOURCE) / "bc_fisheries_data.gpkg"),
+                                layer="watersheds", engine="pyogrio")
+        if _sheds.crs and _sheds.crs.to_epsg() != 3005:
+            _sheds = _sheds.to_crs(3005)
+        _sheds = _sheds[_sheds.geometry.notna() & ~_sheds.geometry.is_empty].copy()
+        _sheds["km2"] = _sheds.geometry.area / 1e6
+        _sheds["basin_id"] = _sheds["FWA_WATERSHED_CODE"].map(_basin_id)
+        _leaf_ids = sorted(set(_sheds.loc[_sheds["km2"] <= LEAF_MAX_KM2, "basin_id"]))
+        # EVERY station with a coordinate, live or not. Which of them is transmitting is the
+        # feed's business and changes every half hour; this file must not encode it.
+        _pts = [(r[0], r[1], r[2]) for r in db.execute(
+            "SELECT station, lon, lat FROM gauge WHERE lon IS NOT NULL AND lat IS NOT NULL")]
+        _gauged = gauged_basins(_pts, None, _sheds)
+        _basins = resolve(_gauged, _leaf_ids)
+        if _basins:
+            db.executemany("INSERT INTO basin_station VALUES (?,?,?)",
+                           ((b, st, up) for b, (st, up) in sorted(_basins.items())))
+            cov.filled("basin_station", len(_basins))
+            _mix = {}
+            for _st, _up in _basins.values():
+                _mix[_up] = _mix.get(_up, 0) + 1
+            print(f"     basins: {len(_basins):,} of {len(_leaf_ids):,} catchments have a "
+                  f"station ({100*len(_basins)/max(len(_leaf_ids),1):.0f}%), "
+                  + ", ".join(f"{n:,} at {k} up" for k, n in sorted(_mix.items())))
+        else:
+            cov.skip("basin_station", "no watershed polygons resolved to a station")
+    except Exception as _exc:                                   # noqa: BLE001
+        # A missing watersheds layer is a skip, never a failure — the rest of the bundle is
+        # still correct and the field simply does not draw.
+        cov.skip("basin_station", f"not built: {_exc}")
+
     down = downstream_map(graph, (l.section_id for l in links))
     db.executemany("INSERT INTO section_down VALUES (?,?)",
                    [(s, down[s]) for s in sorted(down)])

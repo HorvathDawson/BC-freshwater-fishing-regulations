@@ -66,6 +66,7 @@
     "opacity.park": 0.14,
     "opacity.admin.area": 0.16,
     "width.closure.edge": 1.6,
-    "opacity.admin.edge": 0.45
+    "opacity.admin.edge": 0.45,
+    "opacity.basin": 0.55
   }
 }

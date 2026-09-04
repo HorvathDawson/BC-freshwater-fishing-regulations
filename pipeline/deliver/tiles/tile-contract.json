@@ -174,6 +174,17 @@
       "minzoom": 7,
       "maxzoom": 14,
       "ladder": "none"
+    },
+    "basin": {
+      "geometry": "polygon",
+      "attrs": [
+        "basin_id"
+      ],
+      "featureId": "basin_id",
+      "decorative": false,
+      "minzoom": 4,
+      "maxzoom": 8,
+      "ladder": "none"
     }
   },
   "magnitudeLadder": [

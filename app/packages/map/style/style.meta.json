@@ -61,6 +61,7 @@
         "park_closed": "plain",
         "no_access_permit": "plain",
         "gauges": "standing",
+        "basin": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -102,6 +103,7 @@
         "park_closed": "plain",
         "no_access_permit": "plain",
         "gauges": "standing",
+        "basin": "standing",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -142,6 +144,7 @@
         "park_closed": "plain",
         "no_access_permit": "plain",
         "gauges": "temperature",
+        "basin": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -183,6 +186,7 @@
         "park_closed": "plain",
         "no_access_permit": "plain",
         "gauges": "standing",
+        "basin": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -223,6 +227,7 @@
         "park_closed": "plain",
         "no_access_permit": "plain",
         "gauges": "standing",
+        "basin": "plain",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -295,6 +300,7 @@
     "eco_reserve": "protected",
     "park": "protected",
     "park_closed": "protected",
+    "basin": "water",
     "wetland": "water",
     "lake": "water",
     "contour": "depth",
@@ -398,6 +404,78 @@
         "color": {
           "token": "color.status.closed"
         }
+      }
+    },
+    "basin": {
+      "plain": {
+        "label": "Hidden",
+        "scale": "static",
+        "color": {
+          "token": "color.water.ungauged"
+        }
+      },
+      "standing": {
+        "label": "Flow for the date",
+        "scale": "continuous",
+        "property": "standing",
+        "stops": [
+          [
+            -1,
+            {
+              "token": "color.flow.nobaseline"
+            }
+          ],
+          [
+            0,
+            {
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            10,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            25,
+            {
+              "token": "color.flow.f3"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            75,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            90,
+            {
+              "token": "color.flow.f6"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.f7"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.water.ungauged"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "standing"
+        },
+        "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\n`missing` is water.ungauged — the grey a river gets when nothing can speak for it. 13% of the province has no gauge anywhere upstream and is drawn exactly that way."
       }
     },
     "wetland": {
@@ -1063,6 +1141,7 @@
     "eco_reserve": "area_id",
     "park": "area_id",
     "park_closed": "area_id",
+    "basin": "basin_id",
     "wetland": "section_id",
     "lake": "section_id",
     "contour": "item",
@@ -1175,6 +1254,7 @@
     "eco_reserve": "opacity.closure",
     "park": "opacity.park",
     "park_closed": "opacity.closure",
+    "basin": "opacity.basin",
     "wetland": "opacity.wetland",
     "lake": "opacity.lake",
     "under_lake": "opacity.route",
@@ -1184,6 +1264,14 @@
   "dashes": {
     "under_lake": "dash.route",
     "mu__edge": "dash.mu"
+  },
+  "minzoomByView": {
+    "lake": {
+      "conditions": 9
+    },
+    "stream": {
+      "conditions": 9
+    }
   },
   "edgeOpacities": {
     "indigenous_land__edge": "opacity.admin.edge",
@@ -1348,7 +1436,8 @@
       "opacity.park": 0.12,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1.6,
-      "opacity.admin.edge": 0.35
+      "opacity.admin.edge": 0.35,
+      "opacity.basin": 0.55
     },
     "dark": {
       "color.water.mapped": "#38B6DE",
@@ -1416,7 +1505,8 @@
       "opacity.park": 0.14,
       "opacity.admin.area": 0.16,
       "width.closure.edge": 1.6,
-      "opacity.admin.edge": 0.45
+      "opacity.admin.edge": 0.45,
+      "opacity.basin": 0.55
     },
     "light": {
       "color.water.mapped": "#4A90E2",
@@ -1484,7 +1574,8 @@
       "opacity.park": 0.12,
       "opacity.admin.area": 0.14,
       "width.closure.edge": 1.6,
-      "opacity.admin.edge": 0.35
+      "opacity.admin.edge": 0.35,
+      "opacity.basin": 0.55
     }
   },
   "tokens": {
@@ -1765,6 +1856,11 @@
       "type": "number",
       "themeable": true,
       "$comment": "v1's ADMIN_BORDER_OPACITY. A boundary is an annotation on the ground, not a feature of it — at full strength it cuts across the water it surrounds and reads as something you could walk along."
+    },
+    "opacity.basin": {
+      "type": "number",
+      "themeable": true,
+      "$comment": "The field is a GROUND, not an answer in itself — the reader is looking for a region, not a value to three figures. Solid enough to read the ramp across a province, quiet enough that the coastline and the place names stay legible through it."
     }
   },
   "enums": {

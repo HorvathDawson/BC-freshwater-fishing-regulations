@@ -148,6 +148,26 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            regulated INTEGER NOT NULL DEFAULT 0,   -- a dam governs it
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
+-- WHICH STATION SPEAKS FOR EACH CATCHMENT, for the zoomed-out field.
+--
+-- The tile carries a `basin_id` and no reading — a reading changes every half hour and a
+-- tile changes once a build — so this is the join, and it lives here because it changes
+-- with the GAUGE NETWORK: a station opens, a station is retired, and the same geometry
+-- answers to somebody else. Two clocks, two artifacts.
+--
+-- `levels_up` IS NOT DECORATION. Only 4.5% of the province has a gauge in its own
+-- catchment; 48% inherits from the catchment it drains into and 27% from a grandparent.
+-- That is a real hydrological claim — the water here drains into the water measured there —
+-- and a weaker one the further it travels. A field drawn without it would be the most
+-- confident-looking thing in the app and the least directly measured, so the number rides
+-- along and the screen is obliged to be able to say it.
+--
+-- A basin nothing upstream measures gets NO ROW, and is drawn as unmeasured. 13% of the
+-- province, and silence is the honest answer there.
+CREATE TABLE basin_station (basin_id TEXT PRIMARY KEY,
+                            station TEXT NOT NULL,
+                            levels_up INTEGER NOT NULL) WITHOUT ROWID;
+
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,
 -- so the gauge is either on this water or it is not.
 CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,

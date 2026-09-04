@@ -246,7 +246,40 @@ _RETIRED_MASK: tuple[LayerSpec, ...] = (
     ),
 )
 
-ALL: tuple[LayerSpec, ...] = WATER + ADMIN + LABELS
+#: The zoom the basin field hands over to the rivers.
+#:
+#: Below it a river is a hairline and its colour is a guess three pixels wide; above it the
+#: rivers are wide enough to carry the colour themselves and a field of catchments over the
+#: top of them is noise. One number, named once, because the tile build, the style and the
+#: app's tap handling all have to agree about it or the map has a zoom where nothing is
+#: clickable or two things answer at once.
+BASIN_HANDOVER_Z = 9
+
+HYDROLOGY: tuple[LayerSpec, ...] = (
+    LayerSpec(
+        name="basin", geometry="polygon", ladder="none",
+        minzoom=4, maxzoom=BASIN_HANDOVER_Z - 1, simplify=True,
+        attrs=("basin_id",),
+        why="THE PROVINCE AS A FIELD, for the zooms where a river is a hairline.\n\n"
+            "At z5 the question is not what this creek is doing but whether the country you "
+            "are driving to is wet or dry, and a percentile is a claim about a CATCHMENT — "
+            "a shape, not a line and not a radius. These are the Province's own named "
+            "watersheds, the leaves only (under 500 km2), which is the level at which they "
+            "stop nesting and become a mosaic: 11,580 polygons cover 2.68M km2 of a "
+            "945,000 km2 province because a named watershed contains its tributaries'.\n\n"
+            "SIMPLIFIED TO 300 m, which is chosen rather than picked: at z8 — the deepest "
+            "zoom this layer draws — one tile pixel is 351 m at BC's latitude, so a vertex "
+            "finer than that cannot be seen. It costs 4.3% of the outline area and takes "
+            "9.6M vertices to 223k.\n\n"
+            "`basin_id` AND NOTHING ELSE. The reading is not in the tile — it changes every "
+            "half hour and the tile changes once a build — so the id is the join and the "
+            "colour arrives as feature-state, exactly as a stream's does. Which station "
+            "speaks for which basin IS precomputed, in the bundle's `basin_station`, "
+            "because it changes with the gauge network rather than with the weather.",
+    ),
+)
+
+ALL: tuple[LayerSpec, ...] = WATER + ADMIN + LABELS + HYDROLOGY
 BY_NAME = {s.name: s for s in ALL}
 
 assert len({s.name for s in ALL}) == len(ALL), "layer names must be unique"

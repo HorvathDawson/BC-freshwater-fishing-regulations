@@ -14,6 +14,8 @@ import {
 /** The thin platform-specific part each adapter supplies. */
 export interface MapHandle {
   setVisibility(layerId: string, visible: boolean): void;
+  /** Narrow a layer to a zoom range for the current view — see `minzoomByView`. */
+  setZoomRange?(layerId: string, minzoom: number, maxzoom?: number): void;
   setPaint(layerId: string, prop: string, value: unknown): void;
   setFeatureState(layerId: string, featureId: string, state: Record<string, unknown>): void;
   clearFeatureStates(layerId: string): void;
@@ -242,6 +244,21 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
       if (isRuntimeLayer(layerId)) continue;   // drawn from a feed; see style.ts
       for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
         h.setPaint(layerId, prop, value);
+      /*
+       * AND THE ZOOM RANGE THIS VIEW GIVES IT.
+       *
+       * The Conditions view stands the rivers down below z9 and lets the basin field answer
+       * instead — one answer per zoom, because a hairline coloured from a three-pixel line
+       * and a catchment coloured from the same reading are the same claim drawn twice, and
+       * the smaller one wins by being on top. Reset to the style's own floor in every other
+       * view, or the restriction would persist after the reader switches away.
+       */
+      const byView = (STYLE_META.minzoomByView ?? {})[layerId];
+      if (byView && h.setZoomRange) {
+        const base = (MAP_STYLE.layers.find((x) => x.id === layerId) as
+                      { minzoom?: number } | undefined)?.minzoom;
+        h.setZoomRange(layerId, byView[viewId] ?? base ?? 0);
+      }
     }
   };
 

@@ -263,6 +263,9 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // The design fixture has no lake stations, and an empty map is the real answer for a
     // province where 196 lake_gauge rows cover a few dozen lakes.
     async lakeStationsFor() { return new Map(); },
+    // The design fixture has no watershed polygons, so the field has nothing to colour.
+    // Empty is the real answer, and the map draws no field rather than a wrong one.
+    async basinStations() { return new Map(); },
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {

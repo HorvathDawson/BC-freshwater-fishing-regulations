@@ -185,7 +185,18 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     if (!m) return;
     const apply = () => {
       const handle = {
-        setVisibility: (id: string, v: boolean) => {
+        /*
+       * THE ZOOM A LAYER TAKES IN THIS VIEW — see `minzoomByView`. The Conditions view
+       * stands the rivers down below z9 so the basin field can answer instead; every other
+       * view resets them to the style's own floor, which is why this is called on every
+       * view change and not once at load.
+       */
+      setZoomRange: (id: string, minzoom: number, maxzoom?: number) => {
+        if (!m.getLayer(id)) return;
+        const spec = m.getLayer(id) as { maxzoom?: number };
+        m.setLayerZoomRange(id, minzoom, maxzoom ?? spec.maxzoom ?? 24);
+      },
+      setVisibility: (id: string, v: boolean) => {
           if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", v ? "visible" : "none");
         },
         setPaint: (id: string, prop: string, value: unknown) =>

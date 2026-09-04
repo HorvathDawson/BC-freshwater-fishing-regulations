@@ -321,6 +321,65 @@ export function usePanelStandings(
   return got.state === "ready" ? got.value : none;
 }
 
+/**
+ * THE PROVINCE AS A FIELD — one value per catchment, for z4–8.
+ *
+ * ONE PATHWAY WITH THE RIVERS. It reads the same feed index through the same `reading`
+ * function, in the same quantity and at the same horizon, so a catchment and the river
+ * inside it cannot disagree about what the water is doing. That was the failure worth
+ * designing against: two joins to one feed is how the map and the sheet ended up answering
+ * differently for the Harrison.
+ *
+ * WHAT IT DOES NOT SHARE is the join, because the questions are different. A section asks a
+ * donor PANEL — several gauges of comparable catchment, weighted by measured error. A
+ * catchment asks the one station that measures it or the one measuring the country it
+ * drains into, and reports how far that reading travelled. Running the panel arithmetic
+ * over a basin would give the field a precision it has not got.
+ *
+ * THE WHOLE TABLE, ONCE. 9,642 rows, cached for the session like the panels: a viewport at
+ * z5 is a third of the province, so scoping it to the view would re-read most of it on
+ * every pan to save nothing.
+ */
+export function useBasinStandings(
+  source: RegsSource,
+  feed: { index(): Promise<Index> } | undefined,
+  enabled: boolean,
+  quantity: Quantity = "both",
+  horizon: Horizon = 0,
+): ReadonlyMap<string, number> {
+  const got = useAsync(
+    async (): Promise<ReadonlyMap<string, number>> => {
+      const out = new Map<string, number>();
+      if (!feed) return out;
+      const [basins, idx] = await Promise.all([cachedBasins(source), feed.index()]);
+      if (!idx) return out;           // offline: colour nothing rather than colour wrong
+      for (const [basin, { station }] of basins) {
+        const p = reading(idx.stations[station as string], quantity, horizon);
+        // A catchment whose station is quiet is the sentinel, not absence: somebody
+        // measures the water here and today it cannot say what it is doing.
+        out.set(basin, typeof p === "number" ? p : -0.01);
+      }
+      return out;
+    },
+    `basins:${quantity}:${horizon}:${enabled}`,
+    enabled && feed !== undefined,
+  );
+  const none = useMemo(() => new Map<string, number>(), []);
+  return got.state === "ready" ? got.value : none;
+}
+
+/** The station-per-catchment table, read once. It comes from the bundle and cannot change. */
+let basinCache: ReadonlyMap<string, { station: StationId; levelsUp: number }> | null = null;
+async function cachedBasins(source: RegsSource) {
+  if (basinCache === null) basinCache = await source.basinStations();
+  return basinCache;
+}
+
+/** Test seam: the cache is module state and a test must be able to start from empty. */
+export function clearBasinCache(): void {
+  basinCache = null;
+}
+
 /** The panel for one section, joined against today's readings. */
 export function usePanel(
   source: RegsSource,

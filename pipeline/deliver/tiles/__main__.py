@@ -65,6 +65,11 @@ def main() -> None:
     print("admin geography")
     counts |= export.export_admin(a.gpkg, layer_dir)
     counts |= export.export_contours(a.gpkg, layer_dir)
+    # THE FIELD, for the zooms where a river is a hairline — see tiles/basins.py. Grouped
+    # with admin geography rather than with water because it is neither: it is the ground a
+    # reading is a claim about, and it draws only below the zoom the rivers take over at.
+    from pipeline.deliver.tiles.basins import export_basins
+    counts |= export_basins(a.gpkg, layer_dir)
     if not a.skip_water:
         print("water")
         counts |= export.export_streams(build_dir, layer_dir, limit=a.limit)

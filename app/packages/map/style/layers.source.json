@@ -518,6 +518,92 @@
       "$comment": "NATIONAL PARKS AND THE CHILKOOT TRAIL \u2014 federal closures, drawn in v1's crimson and HATCHED. The hatch is the message: on a paper chart diagonal lines mean keep out, and a flat red tint would read as merely another kind of area. `kind` is what separates these from provincial parks in the same tile layer \u2014 a park with a kind of its own is a park with its own closing authority."
     },
     {
+      "id": "basin",
+      "group": "water",
+      "source": "atlas",
+      "sourceLayer": "basin",
+      "geometry": "polygon",
+      "featureIdProperty": "basin_id",
+      "highlightable": false,
+      "maxzoom": 8,
+      "colorModes": {
+        "plain": {
+          "label": "Hidden",
+          "scale": "static",
+          "color": {
+            "token": "color.water.ungauged"
+          }
+        },
+        "standing": {
+          "label": "Flow for the date",
+          "scale": "continuous",
+          "property": "standing",
+          "stops": [
+            [
+              -1,
+              {
+                "token": "color.flow.nobaseline"
+              }
+            ],
+            [
+              0.0,
+              {
+                "token": "color.flow.f1"
+              }
+            ],
+            [
+              10.0,
+              {
+                "token": "color.flow.f2"
+              }
+            ],
+            [
+              25.0,
+              {
+                "token": "color.flow.f3"
+              }
+            ],
+            [
+              50.0,
+              {
+                "token": "color.flow.f4"
+              }
+            ],
+            [
+              75.0,
+              {
+                "token": "color.flow.f5"
+              }
+            ],
+            [
+              90.0,
+              {
+                "token": "color.flow.f6"
+              }
+            ],
+            [
+              100.0,
+              {
+                "token": "color.flow.f7"
+              }
+            ]
+          ],
+          "missing": {
+            "token": "color.water.ungauged"
+          },
+          "data": {
+            "provider": "gauges",
+            "field": "standing"
+          },
+          "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\n`missing` is water.ungauged \u2014 the grey a river gets when nothing can speak for it. 13% of the province has no gauge anywhere upstream and is drawn exactly that way."
+        }
+      },
+      "opacity": {
+        "token": "opacity.basin"
+      },
+      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade \u2014 on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree."
+    },
+    {
       "id": "wetland",
       "group": "water",
       "source": "atlas",
@@ -826,6 +912,9 @@
         "haloWidth": 1.2,
         "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder \u2014 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 \u2014 and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
         "priority": 1
+      },
+      "minzoomByView": {
+        "conditions": 9
       }
     },
     {
@@ -1070,6 +1159,9 @@
         "haloWidth": 2,
         "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 \u2014 at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
         "priority": 0
+      },
+      "minzoomByView": {
+        "conditions": 9
       }
     },
     {
@@ -1219,7 +1311,8 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
-        "gauges": "standing"
+        "gauges": "standing",
+        "basin": "plain"
       },
       "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
     },
@@ -1241,7 +1334,8 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
-        "gauges": "standing"
+        "gauges": "standing",
+        "basin": "standing"
       }
     },
     {
@@ -1262,7 +1356,8 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
-        "gauges": "temperature"
+        "gauges": "temperature",
+        "basin": "plain"
       },
       "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet \u2014 that needs the donor panel \u2014 and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
@@ -1284,7 +1379,8 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
-        "gauges": "standing"
+        "gauges": "standing",
+        "basin": "plain"
       }
     },
     {
@@ -1305,7 +1401,8 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
-        "gauges": "standing"
+        "gauges": "standing",
+        "basin": "plain"
       }
     }
   ],

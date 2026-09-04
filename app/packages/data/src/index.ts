@@ -399,6 +399,18 @@ export interface RegsSource {
   lakeStationsFor(
     sections: readonly SectionId[],
   ): Promise<ReadonlyMap<SectionId, StationId>>;
+  /**
+   * Which station speaks for each catchment, and how far the reading travelled.
+   *
+   * The whole table, because it is 9,642 rows and the zoomed-out map needs most of them at
+   * once — a viewport at z5 is half the province. Precomputed at build time: it needs
+   * geometry the client does not ship, and it changes with the gauge network rather than
+   * with the weather.
+   *
+   * `levelsUp` is 0 where a gauge stands in the catchment itself. Only 10% of them do, so
+   * the number is not a footnote — it is what stops the field claiming more than it knows.
+   */
+  basinStations(): Promise<ReadonlyMap<string, { station: StationId; levelsUp: number }>>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

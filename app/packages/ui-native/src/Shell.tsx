@@ -10,8 +10,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { HORIZONS, useDataFacts, useGaugeGeoJSON, usePanelStandings, useStatuses,
-         type GaugeQuantity, type Horizon } from "@app/ui";
+import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
+         useStatuses, type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 type FlowParam = Parameter | "both" | "temperature";
@@ -38,6 +38,16 @@ const OUTCOMES: readonly Outcome[] = ["closed", "restricted", "open", "unknown"]
 
 /** Where the map starts the FIRST time. After that the camera is whatever the user left. */
 const HOME: Camera = { lon: -121.85, lat: 49.15, zoom: 9.4 };
+
+/**
+ * WHERE THE FIELD HANDS OVER TO THE RIVERS. Mirrors `BASIN_HANDOVER_Z` in the tile builder
+ * and `minzoomByView` in the style — three places, one number, and a test holds them equal.
+ *
+ * Below it the Conditions map is catchments and NOTHING IS TAPPABLE: a tap would open a
+ * reach sheet for a shape the size of a valley, answering a question nobody asked. Above it
+ * the rivers are back and they are what you tap.
+ */
+const HANDOVER_Z = 9;
 
 export function Shell({ source, palette, theme, themeName, onTheme, on, onDateChange, group, tiles,
                        spots = [], onSaveSpot, weather, onRefreshSpots, onDeleteSpot, refreshing, feed,
@@ -152,6 +162,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                                       // flow and stage. Asking ahead would colour nothing,
                                       // so it stays on today's degrees.
                                       flowParam === "temperature" ? 0 : horizon);
+  /*
+   * THE FIELD, and only where it is the answer.
+   *
+   * Not under temperature: the models publish flow and stage, so a temperature field would
+   * be a province coloured from nothing. Not above the handover either — the rivers carry
+   * the colour there and the whole table would be read to paint shapes nobody can see.
+   */
+  const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
+  const fieldOn = tab === "conditions" && flowParam !== "temperature" && zoomedOut;
+  const basins = useBasinStandings(source, feed, fieldOn,
+                                   flowParam === "temperature" ? "both" : flowParam,
+                                   horizon);
   // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
   // `usePanelStandings` beside it — the whole table is far too big to hold to answer a
   // question about the few hundred reaches actually rendered.
@@ -205,8 +227,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       // is a section — the map just has to be told twice, because feature-state is per
       // layer and the lake polygons are a different layer from the stream lines.
       lake: Object.fromEntries(
-        [...standings].map(([section, p]) => [section, { standing: p * 100 }])) }),
-    [standings]);
+        [...standings].map(([section, p]) => [section, { standing: p * 100 }])),
+      // AND THE FIELD, on the same scale from the same readings — see `useBasinStandings`.
+      // Empty above the handover zoom, where the layer is not drawn and the rivers answer.
+      basin: Object.fromEntries(
+        [...basins].map(([id, p]) => [id, { standing: p * 100 }])) }),
+    [standings, basins]);
   /**
    * The camera survives leaving the map.
    *
@@ -390,7 +416,15 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      // must be answerable from the map without changing tab.
                      gauges={onConditions ? gauges ?? undefined : undefined}
                      onVisible={noteVisible}
-                     onMoved={(at) => { camera.current = at; }}
+                     onMoved={(at) => {
+                       camera.current = at;
+                       // The ref is deliberate — see below — but ONE BIT of the camera is
+                       // render state: which side of the handover we are on decides whether
+                       // the field is drawn and whether a tap does anything. Set only when
+                       // it changes, so panning still costs no renders.
+                       setZoomedOut((was) => (at.zoom < HANDOVER_Z) === was
+                         ? was : at.zoom < HANDOVER_Z);
+                     }}
                      view="plain" modes={modes} groups={activeGroups}
                      onDate={onDateChange ? () => setDateOpen(true) : undefined}
                      // The Conditions tab swaps the date control for the horizons — see
@@ -408,7 +442,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      onPressFeature={tab === "conditions"
                        // The COORDINATE too: "how does this spot reach the gauge" is a
                        // question about a point on a river, not about the river.
+                       //
+                       // AND NOTHING IS TAPPABLE BELOW THE HANDOVER. Down there the map is
+                       // catchments, and the only thing under a finger is a shape the size
+                       // of a valley — opening a reach sheet for it would answer a question
+                       // about one river with a number about a region. The rivers come back
+                       // at z9 and they are what you tap.
                        ? (_l, id, lat, lon) => {
+                           if ((camera.current?.zoom ?? HOME.zoom) < HANDOVER_Z) return;
                            setCondSection(id as SectionId);
                            setCondAt(lat !== undefined && lon !== undefined
                              ? { lat, lon } : null);

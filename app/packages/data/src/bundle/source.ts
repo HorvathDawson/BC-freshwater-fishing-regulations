@@ -272,6 +272,14 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       return out;
     },
 
+    async basinStations() {
+      const out = new Map<string, { station: StationId; levelsUp: number }>();
+      for (const r of await db.all(Q.BASIN_STATIONS))
+        out.set(str(r.basin_id),
+                { station: str(r.station) as StationId, levelsUp: Number(r.levels_up) });
+      return out;
+    },
+
     async gaugePoints(): Promise<readonly { station: StationId; name: string;
                                             lon: number; lat: number;
                                             mag: number | null }[]> {

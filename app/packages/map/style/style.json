@@ -203,6 +203,16 @@
       ]
     },
     {
+      "id": "basin",
+      "type": "fill",
+      "source": "atlas",
+      "source-layer": "basin",
+      "maxzoom": 8,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
       "id": "wetland",
       "type": "fill",
       "source": "atlas",

@@ -646,6 +646,19 @@ const meta = {
   // A BORDER THAT IS NOT A HARD EDGE. v1 drew every admin boundary at 0.35, and at full
   // strength ours cut across the water it surrounds — a crisp line reads as a feature of
   // the ground rather than as an annotation on it.
+  /*
+   * PER-VIEW ZOOM RANGES. A layer's `minzoom` is baked into the style; this is the zoom it
+   * takes in ONE view, and a view is a runtime choice.
+   *
+   * The Conditions view hands the province over to the basin field below z9: a river is a
+   * hairline there and its colour is a guess three pixels wide, so two answers would be
+   * drawn over one another and the smaller one would win. `BASIN_HANDOVER_Z` in the tile
+   * builder is the same number, and the app's tap handling is the third place that has to
+   * agree — which is why this is emitted rather than written into three files.
+   */
+  minzoomByView: Object.fromEntries(
+    (src.layers ?? []).filter((l) => l.minzoomByView)
+      .map((l) => [l.id, l.minzoomByView])),
   edgeOpacities: Object.fromEntries([...edges].filter(([, l]) => l.outline.opacity)
     .map(([id, l]) => [id, l.outline.opacity.token])),
   // A label's HALO — the only paint property no other layer type has. Text colour rides
