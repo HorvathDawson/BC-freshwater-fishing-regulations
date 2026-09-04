@@ -24,9 +24,13 @@ const panel = (...donors: [string, number][]): Panel => ({
        regulated: false })),
 });
 
-const src = (panels: Record<string, Panel>) => ({
+const src = (panels: Record<string, Panel>, lakes: Record<string, string> = {}) => ({
   panelsFor: async (secs: readonly SectionId[]) =>
     new Map(secs.filter((s) => panels[s]).map((s) => [s, panels[s]!])),
+  // A lake is not a panel — its stage is set by its outlet and its own storage, so nothing
+  // transfers to it. It is coloured by a station IN it, or not at all.
+  lakeStationsFor: async (secs: readonly SectionId[]) =>
+    new Map(secs.filter((s) => lakes[s]).map((s) => [s, lakes[s]!])),
 } as unknown as RegsSource);
 
 const feed = (pct: Record<string, number | null>) => ({
@@ -87,14 +91,17 @@ describe("usePanelStandings", () => {
     // Holding the whole table client-side to colour ~300 features would be most of the
     // bundle in memory.
     const panelsFor = vi.fn(async () => new Map());
-    renderHook(() => usePanelStandings({ panelsFor } as unknown as RegsSource,
-                                       feed({}), [A, B]));
+    const lakeStationsFor = vi.fn(async () => new Map());
+    renderHook(() => usePanelStandings(
+      { panelsFor, lakeStationsFor } as unknown as RegsSource, feed({}), [A, B]));
     await waitFor(() => expect(panelsFor).toHaveBeenCalledWith([A, B]));
   });
 
   it("does not query at all with nothing on screen", async () => {
     const panelsFor = vi.fn(async () => new Map());
-    renderHook(() => usePanelStandings({ panelsFor } as unknown as RegsSource, feed({}), []));
+    const lakeStationsFor = vi.fn(async () => new Map());
+    renderHook(() => usePanelStandings(
+      { panelsFor, lakeStationsFor } as unknown as RegsSource, feed({}), []));
     await new Promise((r) => setTimeout(r, 10));
     expect(panelsFor).not.toHaveBeenCalled();
   });

@@ -388,6 +388,17 @@ export interface RegsSource {
    * as a loading state or the reverse.
    */
   panelsFor(sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, Panel>>;
+  /**
+   * Lakes among these sections that have a station IN them.
+   *
+   * SEPARATE FROM `panelsFor` BECAUSE A LAKE IS NOT A PANEL. A panel carries a reading from
+   * one catchment to another; a lake's stage is set by its outlet and its own storage, so
+   * nothing transfers to it and `build_panels` refuses lake nodes outright. A gauged lake
+   * is coloured by its own reading and an ungauged one stays grey — there is no middle.
+   */
+  lakeStationsFor(
+    sections: readonly SectionId[],
+  ): Promise<ReadonlyMap<SectionId, StationId>>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

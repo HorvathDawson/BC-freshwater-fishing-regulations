@@ -260,6 +260,9 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // No panel in the fixture (`panelsFor` is empty), so no routes. Empty and not a throw:
     // "this water has no donors" is a real answer the screens must render.
     async panelRoutes() { return []; },
+    // The design fixture has no lake stations, and an empty map is the real answer for a
+    // province where 196 lake_gauge rows cover a few dozen lakes.
+    async lakeStationsFor() { return new Map(); },
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {

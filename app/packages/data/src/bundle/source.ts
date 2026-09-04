@@ -261,6 +261,17 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     },
 
 
+    async lakeStationsFor(sections) {
+      const out = new Map<SectionId, StationId>();
+      if (!sections.length) return out;
+      for (let i = 0; i < sections.length; i += 500) {
+        const chunk = sections.slice(i, i + 500);
+        for (const r of await db.all(Q.lakeStationsFor(chunk.length), ...chunk))
+          out.set(str(r.section_id) as SectionId, str(r.station) as StationId);
+      }
+      return out;
+    },
+
     async gaugePoints(): Promise<readonly { station: StationId; name: string;
                                             lon: number; lat: number;
                                             mag: number | null }[]> {

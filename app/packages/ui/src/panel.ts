@@ -63,6 +63,9 @@ export interface PanelAnswer {
  * climatology already gives you without a forecast.
  */
 export type Horizon = 0 | 1 | 3 | 5;
+
+/** What the map or the sheet is asking about. `both` = each station's own quantity. */
+export type Quantity = "discharge" | "level" | "both";
 export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5];
 
 type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
@@ -86,15 +89,29 @@ type Index = { stations: Record<string, { percentile: number | null;
  * shows today when asked for Friday is worse than one that shows nothing.
  */
 function reading(row: Index extends null ? never : NonNullable<Index>["stations"][string],
-                 quantity: "discharge" | "level", horizon: Horizon): number | null {
+                 quantity: Quantity, horizon: Horizon): number | null {
+  /*
+   * "BOTH" IS NOT A THIRD QUANTITY — it is "whichever this station actually measures".
+   *
+   * 237 BC stations measure stage and never discharge, and a lake station almost always
+   * reports a level. Asking every one of them for a discharge colours the most water it is
+   * possible to leave grey, for no reason: the publisher already chose each station's own
+   * quantity and computed the percentile against the matching envelope. `parameter` says
+   * which one that was, so under "both" the answer is simply the station's own.
+   *
+   * It is still never MIXED. One dot, one quantity, named — what "both" refuses to do is
+   * pick the same quantity for every station.
+   */
+  const q: "discharge" | "level" =
+    quantity === "both" ? ((row.parameter ?? "discharge") === "level" ? "level" : "discharge")
+                        : quantity;
   if (horizon === 0) {
     // `percentile` is the station's own default and `parameter` says which quantity it is
     // about, so it stands in for that one only — a level percentile read as a flow is
     // arithmetic across two units.
-    return row[quantity]
-      ?? ((row.parameter ?? "discharge") === quantity ? row.percentile ?? null : null);
+    return row[q] ?? ((row.parameter ?? "discharge") === q ? row.percentile ?? null : null);
   }
-  return row.ahead?.[String(horizon)]?.[quantity] ?? null;
+  return row.ahead?.[String(horizon)]?.[q] ?? null;
 }
 
 /**
@@ -104,7 +121,7 @@ function reading(row: Index extends null ? never : NonNullable<Index>["stations"
  * is only the fetching around it.
  */
 export function answerFrom(panel: Panel | undefined, index: Index,
-                           quantity: "discharge" | "level" = "discharge",
+                           quantity: Quantity = "discharge",
                            horizon: Horizon = 0): PanelAnswer {
   if (!panel)
     return { answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,
@@ -170,7 +187,7 @@ export function usePanelStandings(
   source: RegsSource,
   feed: { index(): Promise<Index> } | undefined,
   sections: readonly SectionId[],
-  quantity: "discharge" | "level" | "both" = "both",
+  quantity: Quantity = "both",
   horizon: Horizon = 0,
 ): ReadonlyMap<SectionId, number> {
   // Keyed on the viewport's extent rather than its contents: a map that has not moved
@@ -182,19 +199,39 @@ export function usePanelStandings(
     async (): Promise<ReadonlyMap<SectionId, number>> => {
       const out = new Map<SectionId, number>();
       if (!feed || !sections.length) return out;
-      const [panels, idx] = await Promise.all([
+      const [panels, lakes, idx] = await Promise.all([
         source.panelsFor(sections),
+        source.lakeStationsFor(sections),
         feed.index(),
       ]);
       if (!idx) return out;             // offline: colour nothing rather than colour wrong
+      /*
+       * A GAUGED LAKE IS COLOURED BY ITS OWN READING, and an ungauged one is not coloured
+       * at all.
+       *
+       * There is no panel for a lake and there must not be: a panel carries a reading
+       * between catchments on the argument that they share drainage, and a lake's stage is
+       * set by its outlet and its own storage. So a station in the lake speaks for it
+       * exactly, and nothing speaks for a lake without one.
+       *
+       * IN THE QUANTITY BEING ASKED FOR, like everything else here. A lake station usually
+       * reports a level and not a discharge; under "Flow" such a lake has no answer and
+       * must stay grey rather than borrow its own stage under a flow legend.
+       */
+      for (const [section, station] of lakes) {
+        const row = idx.stations[station as string];
+        if (!row) continue;                        // not transmitting: say nothing
+        const p = reading(row, quantity, horizon);
+        // A gauged lake with nothing to say today is the sentinel, not absence: somebody
+        // measures here and today it cannot tell you.
+        out.set(section, typeof p === "number" ? p : -0.01);
+      }
       for (const [section, panel] of panels) {
         // "both" asks each panel in the quantity its own donors lead with, which is the
         // publisher's choice per station and is what colours the most water. Asking for
         // one quantity colours only the stations that measure it and says nothing about
         // the rest, rather than quietly answering with the other.
-        const { answer } = answerFrom(panel, idx,
-                                      quantity === "level" ? "level" : "discharge",
-                                      horizon);
+        const { answer } = answerFrom(panel, idx, quantity, horizon);
         out.set(section, answer.ok ? answer.value.percentile : -0.01);
       }
       return out;

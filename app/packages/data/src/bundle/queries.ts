@@ -192,6 +192,29 @@ export const gaugesForSections = (n: number) =>
     GROUP BY it.section_id`;
 
 /**
+ * Lakes with a station IN them, and nothing else.
+ *
+ * A LAKE IS NOT A PANEL AND MUST NOT BE ONE. The donor panel carries a reading from one
+ * catchment to another on the argument that they share weather and drainage; a lake's stage
+ * is set by its outlet and its own storage, so nothing about a river upstream — or another
+ * lake over the ridge — transfers to it. `build_panels` therefore refuses lake nodes
+ * outright, which is right, and left every lake grey once the map started colouring from
+ * panels alone.
+ *
+ * This is the lake's own road: section -> item -> lake_gauge. Either a station is in this
+ * water or it is not; there is no fraction of a level. A lake with no station stays grey,
+ * which is the honest answer and not a gap.
+ *
+ * A lake with several stations takes the lowest station id, arbitrarily but STABLY — a
+ * colour that changes when the query planner changes its mind is worse than either choice.
+ */
+export const lakeStationsFor = (n: number) =>
+  `SELECT it.section_id, min(lg.station) AS station
+     FROM item_section it JOIN lake_gauge lg ON lg.item_id = it.item_id
+    WHERE it.section_id IN (${placeholders(n)})
+    GROUP BY it.section_id`;
+
+/**
  * The panel for each of these sections, members in weight order.
  *
  * TWO STATEMENTS' WORTH OF WORK IN ONE, via the dictionary: `section_panel` is the pointer
