@@ -17,7 +17,7 @@ import { standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
-         usePanelRoutes, useSeries, useStationReading } from "@app/ui";
+         usePanelRoutes, useSeries, useStationReading, type Horizon } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { FishSpinner } from "./FishSpinner";
@@ -36,7 +36,7 @@ export type Span = "72h" | "year";
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits }: {
+                                  footer, credits, horizon = 0 }: {
   source: RegsSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: { index(): Promise<Parameters<typeof usePanel>[1] extends undefined ? never : any> };
@@ -66,6 +66,14 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   from?: { lat: number; lon: number } | null;
   scroll?: boolean;
   footer?: React.ReactNode;
+  /**
+   * How far ahead the estimate is for — 0 is now.
+   *
+   * Kept in step with the map's own horizon control, for the same reason `parameter` is:
+   * a reader who set the map to Friday and then tapped a river would otherwise be handed
+   * today's answer under Friday's colouring, with nothing on screen saying so.
+   */
+  horizon?: Horizon;
 }) {
   const conditions = useConditions(source, section);
   const trace = useGaugeTrace(source, section);
@@ -80,7 +88,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    */
   const panel = usePanelRoutes(
     source, section,
-    usePanel(source, feed, section, parameter === "level" ? "level" : "discharge"));
+    usePanel(source, feed, section, parameter === "level" ? "level" : "discharge",
+             horizon));
   const matched = conditions.state === "ready" ? conditions.value : null;
   /*
    * THE CHART IS ABOUT A GAUGE THE READER CAN SEE IN THE LIST.
@@ -156,7 +165,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         working.
       */}
       <DonorPanel palette={palette} value={panel} at={tiles} theme={theme} from={from}
-                  selected={lead} onSelect={setPickedStation} />
+                  selected={lead} onSelect={setPickedStation} horizon={horizon} />
 
       {c?.discharge != null || c?.level != null ? (
         <View style={{ gap: 6 }}>

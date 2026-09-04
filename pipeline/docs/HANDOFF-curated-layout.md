@@ -76,7 +76,6 @@ pipeline/atlas/reach/covered.py:33             DEFAULT_OVERRIDES = parents[2] / 
 pipeline/regs/parsing/batch_exporter.py:255   parents[1] / "matching" / "overrides.json"
 pipeline/regs/parsing/backfill_matched.py:81      default="data/curated/regulations/overrides.json"
 pipeline/regs/parsing/backfill_identity.py:102    default="data/curated/regulations/overrides.json"
-pipeline/regs/parsing/prune_remapped.py:74        default="data/curated/regulations/overrides.json"
 pipeline/hack/complex_regs_report.py:19  _OVERRIDES = "data/curated/regulations/overrides.json"
 pipeline/regs/dfo_salmon/dossier.py:28        parents[1] / "matching" / "overrides.json"
 pipeline/tests/test_dfo_salmon.py:1943,2022    parents[1] / "matching" / "overrides.json"

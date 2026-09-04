@@ -52,10 +52,48 @@ export interface PanelAnswer {
   routesReady: boolean;
 }
 
+/**
+ * How far ahead the map and the sheet are looking. 0 is now.
+ *
+ * The values are the days the publisher ranks a forecast for — see HORIZONS in
+ * `pipeline/gauges/feed/publish.py`. Beyond about five the model's own bounds are wide
+ * enough that the answer is "normal for the season" whatever it says, which the
+ * climatology already gives you without a forecast.
+ */
+export type Horizon = 0 | 1 | 3 | 5;
+export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5];
+
+type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
+
 type Index = { stations: Record<string, { percentile: number | null;
                                           discharge?: number | null;
                                           level?: number | null;
-                                          parameter?: "discharge" | "level" }> } | null;
+                                          parameter?: "discharge" | "level";
+                                          /** Forecast percentiles, keyed by days ahead. */
+                                          ahead?: Ahead }> } | null;
+
+/**
+ * One station's percentile for the day being asked about, in one quantity.
+ *
+ * NOW AND AHEAD ARE THE SAME KIND OF NUMBER and are read the same way — a percentile for
+ * the date, ranked against the envelope for THAT date. That is what makes a forecast
+ * horizon a parameter of this function rather than a separate screen: everything
+ * downstream, the weights, the combine, the interval, the words, is identical.
+ *
+ * A horizon the model does not reach is null, never today's value: a map that silently
+ * shows today when asked for Friday is worse than one that shows nothing.
+ */
+function reading(row: Index extends null ? never : NonNullable<Index>["stations"][string],
+                 quantity: "discharge" | "level", horizon: Horizon): number | null {
+  if (horizon === 0) {
+    // `percentile` is the station's own default and `parameter` says which quantity it is
+    // about, so it stands in for that one only — a level percentile read as a flow is
+    // arithmetic across two units.
+    return row[quantity]
+      ?? ((row.parameter ?? "discharge") === quantity ? row.percentile ?? null : null);
+  }
+  return row.ahead?.[String(horizon)]?.[quantity] ?? null;
+}
 
 /**
  * Build the answer and its working from a panel and today's index.
@@ -64,7 +102,8 @@ type Index = { stations: Record<string, { percentile: number | null;
  * is only the fetching around it.
  */
 export function answerFrom(panel: Panel | undefined, index: Index,
-                           quantity: "discharge" | "level" = "discharge"): PanelAnswer {
+                           quantity: "discharge" | "level" = "discharge",
+                           horizon: Horizon = 0): PanelAnswer {
   if (!panel)
     return { answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,
              routesReady: false };
@@ -76,13 +115,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   const raw: (DonorRow & { _w: number })[] = [];
   for (const m of panel.members) {
     const row = index.stations[m.station];
-    // `percentile` is the station's own default and `parameter` says which quantity it is
-    // about, so it stands in for that one only — a level percentile read as a flow is
-    // arithmetic across two units.
-    const own = row
-      ? row[quantity] ?? ((row.parameter ?? "discharge") === quantity
-                          ? row.percentile ?? null : null)
-      : null;
+    const own = row ? reading(row, quantity, horizon) : null;
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
     const share = Number.isFinite(ratio) ? 1 / ratio : 0;
@@ -136,12 +169,13 @@ export function usePanelStandings(
   feed: { index(): Promise<Index> } | undefined,
   sections: readonly SectionId[],
   quantity: "discharge" | "level" | "both" = "both",
+  horizon: Horizon = 0,
 ): ReadonlyMap<SectionId, number> {
   // Keyed on the viewport's extent rather than its contents: a map that has not moved
   // re-renders constantly and the section list is a new array every time.
   const key = (sections.length
     ? `${sections.length}:${sections[0]}:${sections[sections.length - 1]}` : "")
-    + `:${quantity}`;
+    + `:${quantity}:${horizon}`;
   const got = useAsync(
     async (): Promise<ReadonlyMap<SectionId, number>> => {
       const out = new Map<SectionId, number>();
@@ -157,7 +191,8 @@ export function usePanelStandings(
         // one quantity colours only the stations that measure it and says nothing about
         // the rest, rather than quietly answering with the other.
         const { answer } = answerFrom(panel, idx,
-                                      quantity === "level" ? "level" : "discharge");
+                                      quantity === "level" ? "level" : "discharge",
+                                      horizon);
         out.set(section, answer.ok ? answer.value.percentile : -0.01);
       }
       return out;
@@ -175,6 +210,7 @@ export function usePanel(
   feed: { index(): Promise<Index> } | undefined,
   section: SectionId | null,
   quantity: "discharge" | "level" = "discharge",
+  horizon: Horizon = 0,
 ): PanelAnswer {
   const got = useAsync(
     async () => {
@@ -183,9 +219,9 @@ export function usePanel(
         source.panelsFor([section]),
         feed ? feed.index() : Promise.resolve(null),
       ]);
-      return answerFrom(panels.get(section), idx, quantity);
+      return answerFrom(panels.get(section), idx, quantity, horizon);
     },
-    `panel:${section ?? ""}:${quantity}`,
+    `panel:${section ?? ""}:${quantity}:${horizon}`,
     section !== null,
   );
   const none = useMemo<PanelAnswer>(

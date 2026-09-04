@@ -10,8 +10,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { statusWord, type Outcome, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
-import { useDataFacts, useGaugeGeoJSON, usePanelStandings, useStatuses,
-         type GaugeQuantity } from "@app/ui";
+import { HORIZONS, useDataFacts, useGaugeGeoJSON, usePanelStandings, useStatuses,
+         type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 type FlowParam = Parameter | "both" | "temperature";
@@ -133,6 +133,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
    * not a percentile and nothing can carry it to the water yet.
    */
   const [flowParam, setFlowParam] = useState<FlowParam>("both");
+  // HOW FAR AHEAD the Conditions map is painted. 0 is now, and is where it opens: a
+  // forecast is what you ask for, never what you are shown without asking.
+  const [horizon, setHorizon] = useState<Horizon>(0);
   const quantity: GaugeQuantity =
     flowParam === "temperature" ? "temperature"
       : flowParam === "level" ? "level" : "flow";
@@ -144,7 +147,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   // while a tap on that same grey opened a sheet answering confidently from two other
   // gauges. One arithmetic now serves both — see `usePanelStandings`.
   const standings = usePanelStandings(source, feed, visible,
-                                      flowParam === "temperature" ? "both" : flowParam);
+                                      flowParam === "temperature" ? "both" : flowParam,
+                                      // Temperature has no forecast — the models publish
+                                      // flow and stage. Asking ahead would colour nothing,
+                                      // so it stays on today's degrees.
+                                      flowParam === "temperature" ? 0 : horizon);
   // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
   // `usePanelStandings` beside it — the whole table is far too big to hold to answer a
   // question about the few hundred reaches actually rendered.
@@ -334,7 +341,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                             onRegulations={(sec) => { setCondSection(null);
                                                       void onPressFeature("stream", sec); }}
                             onBack={() => setCondSection(null)} feed={feed}
-                            credits={attribution} />
+                            credits={attribution} horizon={horizon} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
                      camera={camera.current}
@@ -348,6 +355,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      onMoved={(at) => { camera.current = at; }}
                      view="plain" modes={modes} groups={activeGroups}
                      onDate={onDateChange ? () => setDateOpen(true) : undefined}
+                     // The Conditions tab swaps the date control for the horizons — see
+                     // MapScreen. Temperature has no forecast, so it keeps neither.
+                     horizons={tab === "conditions" && flowParam !== "temperature"
+                       ? { days: HORIZONS, value: horizon,
+                           onPick: (d) => setHorizon(d as Horizon) }
+                       : undefined}
                      // NO LAYERS BUTTON IN THE CONDITIONS VIEW. Everything the sheet
                      // offers — how to colour streams and lakes — is decided by the
                      // Showing control here instead, so the button would open a sheet

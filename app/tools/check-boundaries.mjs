@@ -14,11 +14,19 @@ const spec = JSON.parse(readFileSync(join(root, "layers.json"), "utf8"));
 // Covers: `import x from "y"`, bare `import "y"`, `export … from "y"`,
 // `require("y")`, and dynamic `import("y")`. The bare form matters — it is how a
 // side-effecting platform import sneaks past a naive `from`-only regex.
+//
+// THE CLAUSE MAY NOT CONTAIN `(`, `)` OR `;`, which is what stops the lazy fill running off
+// the end of a declaration and into the file. `export function DonorPanel(` starts a match
+// that used to consume the entire component body looking for a ` from "`, and found one in
+// JSX — `{cond ? "from" : "forecast from"}{" "}` — reporting the module as importing `}{`.
+// A real import or re-export clause is specifiers and commas: no parentheses, no semicolon.
+// Newlines are still allowed, because a long specifier list is routinely wrapped.
+const CLAUSE = String.raw`[^;()]*?`;
 const IMPORT_RE = new RegExp(
   [
-    String.raw`(?:^|[\n;])\s*import\s+(?:(?!\bimport\b|\bexport\b)[\s\S])*?\sfrom\s*["']([^"']+)["']`,
+    String.raw`(?:^|[\n;])\s*import\s+${CLAUSE}\sfrom\s*["']([^"']+)["']`,
     String.raw`(?:^|[\n;])\s*import\s*["']([^"']+)["']`,                      // import "y"
-    String.raw`(?:^|[\n;])\s*export\s+(?:(?!\bimport\b|\bexport\b)[\s\S])*?\sfrom\s*["']([^"']+)["']`,
+    String.raw`(?:^|[\n;])\s*export\s+${CLAUSE}\sfrom\s*["']([^"']+)["']`,
     String.raw`\brequire\s*\(\s*["']([^"']+)["']`,                           // require("y")
     String.raw`\bimport\s*\(\s*["']([^"']+)["']`,                            // import("y")
   ].join("|"),

@@ -18,7 +18,7 @@ const MONTH = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN",
                "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
-                            onDate, onLayers, onPressFeature, onMoved, onMapPoint,
+                            onDate, onLayers, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, gauges, onVisible, onError }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
@@ -39,6 +39,11 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
   marker?: { lat: number; lon: number } | null;
   on: PlainDate; camera: Camera;
   onDate?: () => void; onLayers?: () => void;
+  /**
+   * Forecast horizons, INSTEAD of the date control. Present only on the Conditions tab —
+   * see the comment at the control itself for why the two are exclusive.
+   */
+  horizons?: { days: readonly number[]; value: number; onPick: (d: number) => void };
   onError?: (e: Error) => void;
 }) {
   return (
@@ -61,13 +66,41 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
         and it reads better alone.
       */}
       <View style={{ position: "absolute", top: 14, left: 14 }}>
-        <Pill palette={palette} onPress={onDate} label="Change the date">
-          <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600",
-                         color: palette.ink }}>
-            {on.day} {MONTH[on.month - 1]}
-          </Text>
-          <Text style={{ ...TYPE.micro, fontSize: 9, color: palette.faint }}>▼</Text>
-        </Pill>
+        {/*
+          THE DATE, OR THE HORIZON — never both, because they are not both questions this
+          screen can answer.
+
+          A regulation applies ON a date, and the map asks which. Conditions are NOW: there
+          is no reading for last Tuesday and no rule to look up, so a date picker on that
+          tab offers a question with no answer behind it. What a person actually wants
+          there is the other direction — where the water is heading — so the same corner
+          carries the forecast horizons instead.
+        */}
+        {horizons ? (
+          <View style={{ flexDirection: "row", gap: 6 }}>
+            {horizons.days.map((d) => {
+              const on_ = d === horizons.value;
+              return (
+                <Pill key={d} palette={palette} onPress={() => horizons.onPick(d)}
+                      label={d === 0 ? "Conditions now"
+                                     : `Forecast ${d} day${d === 1 ? "" : "s"} ahead`}>
+                  <Text style={{ ...TYPE.micro, fontSize: 13, fontWeight: "600",
+                                 color: on_ ? palette.accent : palette.ink }}>
+                    {d === 0 ? "Now" : `+${d}d`}
+                  </Text>
+                </Pill>
+              );
+            })}
+          </View>
+        ) : (
+          <Pill palette={palette} onPress={onDate} label="Change the date">
+            <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600",
+                           color: palette.ink }}>
+              {on.day} {MONTH[on.month - 1]}
+            </Text>
+            <Text style={{ ...TYPE.micro, fontSize: 9, color: palette.faint }}>▼</Text>
+          </Pill>
+        )}
       </View>
 
       {/* NO satellite button here. MapLibre's own control stack lives in this corner and

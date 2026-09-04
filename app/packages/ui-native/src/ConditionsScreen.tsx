@@ -8,6 +8,7 @@
  */
 import { Text, View } from "react-native";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
+import type { Horizon } from "@app/ui";
 import type { TileEndpoints } from "@app/map";
 import { useWaterName } from "@app/ui";
 import { ConditionsPanel } from "./ConditionsPanel";
@@ -17,7 +18,7 @@ import type { Palette } from "./theme";
 
 export function ConditionsScreen({ source, section, palette, onBack, tiles, theme,
                                    parameter, onParameter, from, onRegulations, feed,
-                                   credits }: {
+                                   credits, horizon }: {
   source: RegsSource; section: SectionId; palette: Palette; onBack: () => void;
   tiles?: TileEndpoints; theme?: string;
   /** Kept in step with the map's own flow/level switch — see ConditionsPanel. */
@@ -38,6 +39,8 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
   feed?: { index(): Promise<any> };
   /** Data credits for the foot of the screen — see ConditionsPanel. */
   credits?: readonly string[];
+  /** Kept in step with the map's forecast horizon — see ConditionsPanel. */
+  horizon?: Horizon;
 }) {
   // THE WATER'S NAME, in the same place the Regulations face puts it. Without it this
   // screen opened on a chart and a river's worth of numbers with nothing saying which
@@ -57,7 +60,7 @@ export function ConditionsScreen({ source, section, palette, onBack, tiles, them
       <ConditionsPanel source={source} section={section} palette={palette}
                        tiles={tiles} theme={theme} feed={feed}
                        parameter={parameter} onParameter={onParameter} from={from}
-                       credits={credits} />
+                       credits={credits} horizon={horizon} />
     </View>
   );
 }

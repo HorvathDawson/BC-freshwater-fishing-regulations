@@ -89,7 +89,8 @@ function because(r: DonorRow): string {
   return `Counts this much because ${bits.join("; ")}.`;
 }
 
-export function DonorPanel({ palette, value, at, theme, from, selected, onSelect }: {
+export function DonorPanel({ palette, value, at, theme, from, selected, onSelect,
+                             horizon = 0 }: {
   palette: Palette; value: PanelAnswer;
   /** The tiles, when the caller has them — then the donors are DRAWN as well as listed. */
   at?: TileEndpoints; theme?: string;
@@ -104,6 +105,16 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
    * only honest if you can see the other three.
    */
   selected?: StationId | null; onSelect?: (station: StationId) => void;
+  /**
+   * How far ahead this estimate is for — 0 is now.
+   *
+   * The panel does not compute differently for a forecast; the donors, the weights and the
+   * combine are identical, and only the number each donor contributes is a forecast rather
+   * than a reading. What changes here is the WORDS: an estimate for Friday that reads
+   * "Low for the time of year" with nothing saying Friday is a forecast presented as a
+   * measurement.
+   */
+  horizon?: 0 | 1 | 3 | 5;
 }) {
   const { answer, rows } = value;
   if (!answer.ok) {
@@ -158,7 +169,11 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
   return (
     <View style={{ paddingVertical: 14 }}>
       <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
-                     color: palette.faint }}>ESTIMATE FOR THIS SPOT</Text>
+                     color: palette.faint }}>
+        {horizon === 0 ? "ESTIMATE FOR THIS SPOT"
+                       : `FORECAST FOR THIS SPOT · ${horizon} DAY`
+                         + (horizon === 1 ? "" : "S") + " AHEAD"}
+      </Text>
       {/*
         THE PLAIN SENTENCE COMES FIRST, and the percentile second.
         
@@ -172,17 +187,21 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
       <Text style={{ ...TYPE.name, fontSize: 22, color: palette.ink, marginTop: 3,
                      lineHeight: 27 }}>
         {plainStanding(standing(e.percentile))}
+        {horizon > 0 ? (
+          <Text style={{ color: palette.sub }}>{" "}by then</Text>
+        ) : null}
       </Text>
       <Text style={{ ...TYPE.body, fontSize: 13.5, color: palette.sub, marginTop: 2,
                      lineHeight: 19 }}>
         {/* Capitalised by hand: the sentence begins with the comparison. */}
         {(() => { const w = inTen(e.percentile);
                   return w.charAt(0).toUpperCase() + w.slice(1); })()} —{" "}
-        {confidenceWord(e.plusMinus)}, from{" "}
+        {confidenceWord(e.plusMinus)}, {horizon === 0 ? "from" : "forecast from"}{" "}
         {e.donors === 1 ? "one gauge" : `${e.donors} gauges`} nearby.
       </Text>
       <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 4 }}>
-        {ordinal(lo)}–{ordinal(hi)} percentile for {seasonPhrase(new Date())}
+        {ordinal(lo)}–{ordinal(hi)} percentile for{" "}
+        {seasonPhrase(new Date(Date.now() + horizon * 86_400_000))}
         {value.areaKm2 != null ? ` · this spot drains ${area(value.areaKm2)}` : ""}
       </Text>
 

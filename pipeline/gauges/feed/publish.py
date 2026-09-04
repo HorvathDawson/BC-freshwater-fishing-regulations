@@ -584,6 +584,14 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             # the per-station file, which is opened on a tap.
             "forecast": any(run.get("series")
                             for run in (forecast.get(r["station"]) or {}).values()),
+            # WHERE IT IS HEADING, at +1, +3 and +5 days — one percentile per horizon per
+            # quantity, and nothing else from the run. This is the same trade as `forecast`
+            # above: the map wants to be paintable for a future day from the one file it
+            # already fetches, and three numbers a station is affordable where three series
+            # are not. Absent when no model reaches that far, which the map draws as
+            # unmeasured rather than as normal.
+            **({"ahead": ahead} if (ahead := forecast_percentiles(
+                forecast.get(r["station"]), have, now)) else {}),
         }
         # This year's daily record: whatever the file already held, plus every day the
         # 2-hour window can see, plus the one-time 30-day backfill.

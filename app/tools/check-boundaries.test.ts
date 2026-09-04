@@ -77,6 +77,32 @@ describe("comments are not code", () => {
       'export const x = 1;\n')).toBe(0);
   });
 
+  it("does not read an import out of a JSX string", () => {
+    /*
+     * The real failure: `export function DonorPanel(` began a match whose lazy fill ran to
+     * the end of the file looking for ` from "`, found one in JSX —
+     * `{cond ? "from" : "forecast from"}{" "}` — and reported the module as importing the
+     * fragment `}{`. A gate that invents an import out of rendered English fails on the
+     * files most worth checking.
+     */
+    expect(check("packages/ui-native/src/_t.tsx",
+      'export function C({ ahead }: { ahead: boolean }) {\n' +
+      '  return <Text>{ahead ? "forecast from" : "from"}{" "}two gauges</Text>;\n' +
+      '}\n')).toBe(0);
+  });
+
+  it("still catches a real re-export across wrapped lines", () => {
+    // The fix bounds the clause at `(`, `)` and `;` — NOT at a newline. A long specifier
+    // list is routinely wrapped, and bounding at the newline would let one through.
+    expect(check("packages/core/src/_t.ts",
+      'export {\n  a,\n  b,\n} from "react-native";\n')).not.toBe(0);
+  });
+
+  it("still catches a real import whose specifiers wrap", () => {
+    expect(check("packages/core/src/_t.ts",
+      'import {\n  a,\n  b,\n} from "react-native";\n')).not.toBe(0);
+  });
+
   it("still sees a real import on the line after a comment", () => {
     // The stripper must not eat code along with the comment it precedes.
     expect(check("packages/core/src/_t.ts",
