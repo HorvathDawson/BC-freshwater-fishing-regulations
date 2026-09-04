@@ -15,6 +15,7 @@ from __future__ import annotations
 import inspect
 import re
 
+from pipeline.deliver.tiles import basins as B
 from pipeline.deliver.tiles import export as E
 from pipeline.deliver.tiles.layers import ALL, BY_NAME
 
@@ -39,6 +40,9 @@ EXPORTERS = {
     "parcel": E.export_admin,
     "place": E.export_places, "contour": E.export_contours,
     "outside": E.export_outside,
+    # The field lives in its own module because it is neither water nor administrative
+    # geography — it is the ground a reading is a claim about. See tiles/basins.py.
+    "basin": B.export_basins,
 }
 
 
