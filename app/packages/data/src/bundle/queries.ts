@@ -162,7 +162,34 @@ export const GAUGE_FOR_ITEM =
  * colour a map — is most of the bundle in memory to answer a question about 300 features.
  */
 export const gaugesForSections = (n: number) =>
-  `SELECT section_id, station, trust FROM section_gauge WHERE section_id IN (${placeholders(n)})`;
+  /*
+   * LAKES TOO, AND THEY COME BY A DIFFERENT ROAD.
+   *
+   * `section_gauge` is stream sections only, and deliberately: a lake station reports a
+   * level in metres, not a discharge, and a trust ratio between the two is arithmetic on
+   * different quantities — `section_gauge` once had 11,049 stream sections being told a
+   * reservoir's level. So lake stations live in `lake_gauge`, keyed by ITEM rather than by
+   * section, because a lake is one water however many sections it is cut into.
+   *
+   * The consequence was that the Conditions view coloured every river and left every lake
+   * grey, including lakes with a gauge sitting in them. This union walks the lake's own
+   * road — section -> item -> lake_gauge — so a gauged lake is coloured by its own reading.
+   *
+   * `trust` is 'good' for a lake and that is not a fudge: there is no fraction of a level.
+   * The station is either in this water or it is not, which is exactly what `lake_gauge`
+   * records, and it is a stronger claim than any ratio a stream section can make.
+   *
+   * A lake with several stations takes the lowest station id, arbitrarily but STABLY — a
+   * colour that changes when the query planner changes its mind is worse than either
+   * choice. 196 lake_gauge rows over fewer lakes, so this is rare.
+   */
+  `SELECT section_id, station, trust FROM section_gauge WHERE section_id IN (${placeholders(n)})
+   UNION ALL
+   SELECT it.section_id, min(lg.station) AS station, 'good' AS trust
+     FROM item_section it JOIN lake_gauge lg ON lg.item_id = it.item_id
+    WHERE it.section_id IN (${placeholders(n)})
+      AND it.section_id NOT IN (SELECT section_id FROM section_gauge)
+    GROUP BY it.section_id`;
 
 // ONE ENVELOPE PER (STATION, PARAMETER). A station that measures both stage and discharge
 // has two, in two different units, and asking for "the" envelope of such a station is how a

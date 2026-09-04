@@ -30,14 +30,29 @@ export function ChartControls<T extends string>({ palette, value, options, onPic
       {options.map(([id, text]) => {
         const on = id === value;
         return (
+          /*
+           * IT HAS TO BE FINDABLE OVER A MAP.
+           *
+           * These were transparent with a hairline border and 11px grey text — fine inside
+           * a sheet, where they sit on a flat card, and nearly invisible over landcover,
+           * roads and rivers, which is where the Conditions view puts them. The control a
+           * reader needs in order to ask the other question was the hardest thing on the
+           * screen to see.
+           *
+           * So: an opaque card behind every option rather than only the chosen one, ink
+           * instead of grey, and `palette.lift` — the theme's own hard offset shadow, the
+           * same slab the map's zoom buttons use, so the app's chrome and MapLibre's read
+           * as one set rather than two.
+           */
           <Pressable key={id} onPress={() => onPick(id)} accessibilityRole="radio"
                      aria-selected={on} accessibilityLabel={text}
-                     style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: palette.r.pill,
-                              borderWidth: 1,
-                              borderColor: on ? palette.accent : palette.line,
-                              backgroundColor: on ? palette.tint : "transparent" }}>
-            <Text style={{ ...TYPE.micro, fontSize: 11,
-                           color: on ? palette.accent : palette.sub }}>{text}</Text>
+                     style={{ paddingVertical: 7, paddingHorizontal: 13,
+                              borderRadius: palette.r.pill, borderWidth: 1,
+                              borderColor: on ? palette.accent : palette.line2,
+                              backgroundColor: on ? palette.tint : palette.card,
+                              ...palette.lift }}>
+            <Text style={{ ...TYPE.micro, fontSize: 11.5, fontWeight: on ? "700" : "600",
+                           color: on ? palette.accent : palette.ink }}>{text}</Text>
           </Pressable>
         );
       })}

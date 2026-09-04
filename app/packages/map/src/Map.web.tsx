@@ -351,9 +351,22 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     const report = () => {
       const cb = visibleCb.current;
       if (!cb) return;
+      /*
+       * LAKES COUNT AS WATER HERE, and they did not.
+       *
+       * This reported stream sections only, so the Conditions view asked the bundle about
+       * rivers and never about lakes — and every lake stayed grey, including the ones with
+       * a gauge sitting in them. A lake section IS a section: `lake_gauge` reaches it by
+       * item rather than by reach, but the id the map holds is the same kind of id.
+       *
+       * `wetland` is deliberately not here. It is context, nothing is gauged in a marsh,
+       * and adding 333,526 features to a query bounded by the viewport would be work for
+       * an answer that is always "no station".
+       */
       const seen = new Set<string>();
       for (const f of m.queryRenderedFeatures())
-        if (f.id !== undefined && f.sourceLayer === "stream") seen.add(String(f.id));
+        if (f.id !== undefined && (f.sourceLayer === "stream" || f.sourceLayer === "lake"))
+          seen.add(String(f.id));
       if (seen.size) cb([...seen]);
     };
     m.on("idle", report);

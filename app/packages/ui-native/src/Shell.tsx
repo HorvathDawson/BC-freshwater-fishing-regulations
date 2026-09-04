@@ -188,7 +188,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
     () => ({ stream: Object.fromEntries(
       // × 100 for the ramp's percentage scale — but the -0.01 sentinel ("gauged, no
       // history") scales to -1, which is exactly the stop the style reserves for it.
-      [...standings].map(([section, p]) => [section, { standing: p * 100 }])) }),
+      [...standings].map(([section, p]) => [section, { standing: p * 100 }])),
+      // THE SAME VALUES ON THE LAKES. `standings` is keyed by section and a lake section
+      // is a section — the map just has to be told twice, because feature-state is per
+      // layer and the lake polygons are a different layer from the stream lines.
+      lake: Object.fromEntries(
+        [...standings].map(([section, p]) => [section, { standing: p * 100 }])) }),
     [standings]);
   /**
    * The camera survives leaving the map.
@@ -223,7 +228,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
     stream: onConditions
       ? (quantity === "flow" ? "standing" : "plain")
       : streamChoice?.mode ?? "plain",
-    lake: onConditions && quantity !== "flow" ? "plain" : lakeChoice?.mode ?? "plain",
+    // Lakes answer the same question as the rivers here, from `lake_gauge` — a station
+    // sitting IN the lake. Under depth and temperature they go plain for the same reason
+    // the rivers do: nothing can carry either to a water with no station of its own.
+    lake: onConditions
+      ? (flowParam === "temperature" ? "plain" : "standing")
+      : lakeChoice?.mode ?? "plain",
     gauges: quantity === "temperature" ? "temperature" : "standing",
   };
   const activeGroups = { ...groups };
