@@ -240,10 +240,13 @@ def test_under_lake_route_is_its_own_layer():
     layer, or it gets styled and tapped as though it were fishable open water."""
     spec = BY_NAME["under_lake"]
     assert spec.geometry == "line"
-    # ITS WIDTH AND NOTHING ELSE. A person tapping the dotted thread through a lake means
-    # the lake, so the route needs no id, no name and no membership — but it IS the same
-    # river continuing, so it keeps the Strahler order that draws it at the river's weight.
-    assert spec.decorative and spec.attrs == ("ord",)
+    # NOTHING AT ALL. A person tapping the dotted thread through a lake means the lake, so
+    # the route needs no id, no name and no membership — and it briefly carried `ord`, to
+    # draw it at the weight of the river it continues. That was wrong and v1 had it right:
+    # the route is a CONSTRUCTION LINE, it says the river continues and nothing about how
+    # big it is, and at the mainstem's own weight it stops reading as a note. A small
+    # constant width, which needs no attribute at all.
+    assert spec.decorative and spec.attrs == ()
     src = (ROOT / "pipeline/deliver/tiles/export.py").read_text()
     assert 'ul_write' in src
 

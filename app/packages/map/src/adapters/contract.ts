@@ -7,7 +7,8 @@
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
 import {
-  MAP_STYLE, STYLE_META, colorExpression, defaultView, resolveTheme, type Tokens,
+  MAP_STYLE, STYLE_META, colorExpression, defaultView, isRuntimeLayer, resolveTheme,
+  type Tokens,
 } from "../style";
 
 /** The thin platform-specific part each adapter supplies. */
@@ -237,9 +238,11 @@ export function baseAdapter(platform: "native" | "web"): MapAdapter {
     const view = STYLE_META.views.find((v) => v.id === viewId);
     if (!view) throw new Error(`unknown view "${viewId}"`);
     const tokens = resolveTheme(themeName, overrides);
-    for (const [layerId, mode] of Object.entries(view.modes))
+    for (const [layerId, mode] of Object.entries(view.modes)) {
+      if (isRuntimeLayer(layerId)) continue;   // drawn from a feed; see style.ts
       for (const [prop, value] of Object.entries(paintFor(layerId, mode, tokens)))
         h.setPaint(layerId, prop, value);
+    }
   };
 
   return {

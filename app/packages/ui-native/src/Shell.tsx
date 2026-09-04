@@ -16,7 +16,7 @@ import { toggleableGroups, type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { DateSheet } from "./DateSheet";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
-import { LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
+import { gaugeChoices, LayersSheet, STOCK_BANDS, lakeChoices, streamChoices,
          type LayersState } from "./LayersSheet";
 import { MapScreen } from "./MapScreen";
 import { SearchScreen } from "./SearchScreen";
@@ -131,7 +131,18 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       n.set(st.outcome, (n.get(st.outcome) ?? 0) + 1);
     return n;
   }, [shown]);
-  const gauges = useGaugeGeoJSON(source, feed, tab === "conditions");
+  // Streams, lakes and gauges each carry their own colouring, as the design has it —
+  // Rules on the rivers while the lakes show Stocked is a normal thing to want.
+  //
+  // DECLARED BEFORE THE HOOKS THAT READ IT. `useGaugeGeoJSON` needs to know whether it is
+  // fetching the temperature roster or the flow one, and a `const` read above its own
+  // initialiser is a ReferenceError at render — which is a blank screen, not a type error,
+  // so the compiler said nothing and only opening the page found it.
+  const [layers, setLayers] = useState<LayersState>(
+    { stream: "rules", lake: "rules", basemap: "map", gauges: "standing" });
+  const gaugeChoice = gaugeChoices(palette).find((c) => c.k === layers.gauges);
+  const showTemp = gaugeChoice?.mode === "temperature";
+  const gauges = useGaugeGeoJSON(source, feed, tab === "conditions" || showTemp, showTemp);
   // The readings on screen, as positions on the legend's own scale. Sentinels (-0.01,
   // "gauged but no history") are excluded: they are a state, not a point on the scale.
   const visibleMarks = useMemo(
@@ -153,10 +164,6 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       // history") scales to -1, which is exactly the stop the style reserves for it.
       [...standings].map(([section, p]) => [section, { standing: p * 100 }])) }),
     [standings]);
-  // Streams and lakes carry their own colouring, as the design has it — Rules on the
-  // rivers while the lakes show Stocked is a normal thing to want.
-  const [layers, setLayers] = useState<LayersState>(
-    { stream: "rules", lake: "rules", basemap: "map" });
   /**
    * The camera survives leaving the map.
    *
@@ -178,9 +185,14 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   const modes = {
     // The Conditions TAB asks a different question, so it overrides the stream colouring
-    // while you are on it.
-    stream: tab === "conditions" ? "standing" : streamChoice?.mode ?? "plain",
-    lake: lakeChoice?.mode ?? "plain",
+    // while you are on it — EXCEPT under temperature, where the rivers must stay plain.
+    // Nothing here can carry a temperature from a station to the water around it yet, and
+    // colouring a river from a gauge 40 km away would be inventing a reading for water
+    // nobody measured. The dots say what they know; the rivers say nothing.
+    stream: showTemp ? "plain"
+      : tab === "conditions" ? "standing" : streamChoice?.mode ?? "plain",
+    lake: showTemp ? "plain" : lakeChoice?.mode ?? "plain",
+    gauges: gaugeChoice?.mode ?? "standing",
   };
   const activeGroups = { ...groups };
   for (const c of [streamChoice, lakeChoice])
@@ -279,7 +291,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      camera={camera.current}
                      marker={focus}
                      data={tab === "conditions" ? conditionData : undefined}
-                     gauges={tab === "conditions" ? gauges ?? undefined : undefined}
+                     // The dots belong to the Conditions tab — AND to the temperature
+                     // choice, which is a question about the stations themselves and so
+                     // must be answerable from the map without changing tab.
+                     gauges={tab === "conditions" || showTemp ? gauges ?? undefined : undefined}
                      onVisible={noteVisible}
                      onMoved={(at) => { camera.current = at; }}
                      view="plain" modes={modes} groups={activeGroups}

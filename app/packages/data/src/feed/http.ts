@@ -46,6 +46,21 @@ interface IndexFile {
     percentile: number | null;
     observedAt: string | null;
     forecast: (number | null)[] | null;
+    /**
+     * DEGREES, NOT A RANKING — and that asymmetry against every other value in this file
+     * is deliberate. There is no historical water-temperature record anywhere to rank
+     * against: HYDAT carries level, flow and sediment and nothing else. And a ranking
+     * would be the wrong shape anyway. "Unusually warm for early September" is a fact
+     * about the weather; "20 degrees" is a fact about whether a released fish survives,
+     * and it is the second that closes rivers in this province.
+     *
+     * `temperatureBand` is a policy reading of the number, not a measurement — see
+     * `_TEMP_BANDS` in the publisher, which says plainly that it is a placeholder until
+     * the real per-river thresholds are curated beside the regulations.
+     */
+    temperatureC?: number | null;
+    temperatureAt?: string | null;
+    temperatureBand?: "cool" | "warm" | "critical" | null;
   }>;
 }
 

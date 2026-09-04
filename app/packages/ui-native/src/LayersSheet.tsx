@@ -60,6 +60,8 @@ export interface LayersState {
   stream: string;
   lake: string;
   basemap: "map" | "satellite";
+  /** What the gauge dots are about: their flow standing, or the water temperature. */
+  gauges: string;
 }
 
 export const streamChoices = (p: Palette): LayerChoice[] => [
@@ -81,6 +83,25 @@ export const lakeChoices = (p: Palette): LayerChoice[] => [
   { k: "plain", t: "Plain", mode: "plain", swatch: [p.quiet, p.quiet, p.quiet] },
 ];
 
+/**
+ * WHAT THE GAUGE DOTS ARE ABOUT — and it is a genuine choice, not a paint job.
+ *
+ * Temperature is the one quantity on this map that is ABSOLUTE. Every other number needs
+ * its own river's record before it means anything; 20 °C is 20 °C everywhere, it is where
+ * the province closes rivers, and it is where a released fish starts dying. So the dots
+ * carry degrees, and they carry the same three colours the rest of the map already uses
+ * for "fishable / caution / don't".
+ *
+ * It is also a different SET of stations — 274 of the 439 publish a temperature against
+ * 361 that publish a discharge, and they are not the same 274 — so switching genuinely
+ * redraws rather than recolouring, and some dots simply are not there.
+ */
+export const gaugeChoices = (p: Palette): LayerChoice[] => [
+  { k: "standing", t: "Flow", mode: "standing", swatch: [p.closed, p.live, p.open] },
+  { k: "temperature", t: "Temperature", mode: "temperature",
+    swatch: [p.open, p.restricted, p.closed] },
+];
+
 export function LayersSheet({ open, onClose, palette, state, onState, theme, onTheme,
                              reaches, surveyed, stations, fetchedAt, attribution }: {
   open: boolean; onClose: () => void; palette: Palette;
@@ -92,6 +113,7 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
 }) {
   const streamOpts = streamChoices(palette);
   const lakeOpts = lakeChoices(palette);
+  const gaugeOpts = gaugeChoices(palette);
 
   return (
     <Sheet open={open} onClose={onClose} title="Layers" palette={palette}>
@@ -102,6 +124,19 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
           <Fine palette={palette}>
             Flow standing lives in the Conditions tab — it is a different question, not a
             paint job.
+          </Fine>
+        </Section>
+
+        <Section palette={palette} title="Gauges" note={count(stations, "stations")}>
+          <OptionRow palette={palette} shape="square" options={gaugeOpts} value={state.gauges}
+                     onChange={(k) => onState({ ...state, gauges: k })}
+                     label="Colour gauge dots by" />
+          <Fine palette={palette}>
+            {state.gauges === "temperature"
+              ? "Degrees, not a ranking — there is no temperature record to rank against, "
+                + "and 20 °C closes a river whatever the season. Only the stations that "
+                + "measure it are drawn."
+              : "Where today's reading sits against this station's own record for the date."}
           </Fine>
         </Section>
 

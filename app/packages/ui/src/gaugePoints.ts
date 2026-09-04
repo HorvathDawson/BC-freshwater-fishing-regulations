@@ -24,10 +24,21 @@ export interface GaugePoint {
 
 type Index = Awaited<ReturnType<GaugeFeed["index"]>>;
 
-/** "15.7 m³/s · p4th", or null when there is nothing worth drawing. */
+/** "15.7 m³/s · p4th", or "16.3 °C" in the temperature view. Null when nothing to draw. */
 export function gaugeLabel(now: { discharge: number | null; level: number | null;
                                   parameter?: string } | undefined,
-                           percentile: number | null): string | null {
+                           percentile: number | null,
+                           temperatureC?: number | null): string | null {
+  /*
+   * TEMPERATURE REPLACES THE LABEL RATHER THAN JOINING IT.
+   *
+   * When the reader has asked about temperature, "15.7 m³/s · p4th · 19.8 °C" buries the
+   * one number they are deciding on in two they did not ask for. And the degrees stand
+   * alone honestly in a way the others cannot: a discharge means nothing without its
+   * record, but 20 °C is the threshold this province closes rivers at.
+   */
+  if (temperatureC !== null && temperatureC !== undefined)
+    return `${temperatureC.toFixed(1)} °C`;
   const parts: string[] = [];
   if (now) {
     const level = now.parameter === "level";
@@ -46,14 +57,26 @@ function ordinal(n: number): string {
   return `${v}${["th", "st", "nd", "rd"][v % 10] ?? "th"}`;
 }
 
-/** GeoJSON for the map's `gauges` source, or null when there is nothing to draw. */
-export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index): string | null {
+/**
+ * GeoJSON for the map's `gauges` source, or null when there is nothing to draw.
+ *
+ * `showTemperature` swaps which quantity every dot is about. It is a different SET of
+ * stations as well as a different number — 274 of the 439 publish a temperature and 361
+ * publish a discharge, and they are not the same 274 — so the view genuinely redraws
+ * rather than recolouring.
+ */
+export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index,
+                             showTemperature = false): string | null {
   if (!index) return null;
   const features = [];
   for (const p of points) {
     const row = index.stations[p.station];
     if (!row) continue;                     // not transmitting: draw nothing at all
-    const label = gaugeLabel(undefined, row.percentile ?? null);
+    const tC = showTemperature ? row.temperatureC ?? null : null;
+    // In the temperature view a station with no sensor is not drawn at all, rather than
+    // drawn with its flow number under a temperature heading.
+    if (showTemperature && tC === null) continue;
+    const label = gaugeLabel(undefined, row.percentile ?? null, tC);
     if (!label) continue;                   // quiet station: a bare dot would read as a bug
     features.push({
       type: "Feature" as const,
@@ -68,6 +91,8 @@ export function gaugeGeoJSON(points: readonly GaugePoint[], index: Index): strin
       // test holds equal to the pipeline's.
       properties: { station: p.station, name: p.name, label,
                     percentile: row.percentile,
+                    ...(tC !== null ? { temperatureC: tC,
+                                        temperatureBand: row.temperatureBand ?? null } : {}),
                     minz: zoomForMagnitude(p.mag ?? null) },
     });
   }

@@ -36,9 +36,10 @@ import io
 import json
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
 
@@ -54,6 +55,29 @@ TIMEOUT = 30
 # contain characters that make them easy to typo into a silent None.
 _LEVEL = "Water Level / Niveau d'eau (m)"
 _FLOW = "Discharge / Débit (cms)"
+
+# WATER TEMPERATURE COMES FROM A DIFFERENT SERVICE, and it has to.
+#
+# The datamart CSV above carries level and discharge and nothing else — checked across the
+# roster, there is no temperature column at all. The Water Office's real-time service does
+# carry it, as parameter 5, and 274 of the 439 transmitting BC stations publish one.
+#
+# IT IS WORTH THE SECOND REQUEST. British Columbia closes rivers on temperature — the
+# Thompson, the Nicola, the Cowichan — and a warm river is one where a released fish dies.
+# For an angling app that is not a nice-to-have beside flow; in July it is the question.
+# 24 stations were at or above 19 C on the afternoon this was written.
+#
+# ONE REQUEST FOR THE WHOLE ROSTER, not one per station: the service takes repeated
+# `stations[]` parameters, so the entire province is a handful of batched calls rather
+# than 439. Batched at 80 to keep each URL and each response a sane size.
+_WATEROFFICE = "https://wateroffice.ec.gc.ca/services/real_time_data/csv/inline"
+_TEMP_PARAM = "5"
+_TEMP_BATCH = 80
+
+# ECCC's missing-value sentinel. It is not documented in the CSV and it is not blank — it
+# is 99999, which reads as a perfectly valid float and renders as a hundred-thousand-degree
+# river. Anything at or above this is absent, not hot.
+_SENTINEL = 99_000.0
 
 
 def _get(url: str) -> str | None:
@@ -130,6 +154,124 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
             f = 0.0 if span == 0 else (value - lo) / span
             return ps[i] + f * (ps[i + 1] - ps[i])
     return None
+
+
+def fetch_temperatures(stations: list[str], hours: int = 24) -> dict[str, tuple[str, float]]:
+    """station -> (timestamp, degrees C) for whoever is reporting one.
+
+    A station absent from the result is a station with no temperature sensor, which is the
+    normal case for 165 of the 439 — never an error, and never a reason to drop the station
+    from the index.
+    """
+    now = datetime.now(timezone.utc)
+    start = (now - timedelta(hours=hours)).strftime("%Y-%m-%d %H:%M:%S")
+    end = now.strftime("%Y-%m-%d %H:%M:%S")
+    out: dict[str, tuple[str, float]] = {}
+    for i in range(0, len(stations), _TEMP_BATCH):
+        batch = stations[i:i + _TEMP_BATCH]
+        q = urllib.parse.urlencode(
+            [("stations[]", s) for s in batch]
+            + [("parameters[]", _TEMP_PARAM), ("start_date", start), ("end_date", end)])
+        text = _get(f"{_WATEROFFICE}?{q}")
+        if not text:
+            continue
+        for row in csv.reader(io.StringIO(text)):
+            # id, date, parameter, value, ...
+            if len(row) < 4 or row[2].strip() != _TEMP_PARAM:
+                continue
+            v = _num(row[3])
+            if v is None or v >= _SENTINEL:
+                continue
+            stn, when = row[0].strip(), row[1].strip()
+            # Last one wins; the service returns ascending time.
+            if stn:
+                out[stn] = (when, v)
+    return out
+
+
+# WHERE THE WATER STOPS BEING SAFE TO FISH, in degrees.
+#
+# THESE ARE POLICY, NOT PHYSICS, and they are a placeholder until curated. British Columbia
+# issues in-season angling closures on water temperature — the Thompson, the Nicola, the
+# Cowichan — and the trigger differs by river, by species and by year: a bull trout or
+# steelhead river closes cooler than a general-interest one. The numbers below are a
+# defensible general reading (mortality on release climbs steeply through the high teens),
+# NOT a citation of any specific order, and the band must never be presented as one.
+#
+# When the real per-river thresholds are curated they belong beside the regulations, keyed
+# by water, and this becomes their fallback.
+_TEMP_BANDS = ((18.0, "cool"), (20.0, "warm"), (float("inf"), "critical"))
+
+
+def temperature_band(celsius: float) -> str:
+    """A class for a water temperature. See `_TEMP_BANDS` — policy, not physics."""
+    for ceiling, name in _TEMP_BANDS:
+        if celsius < ceiling:
+            return name
+    return "critical"
+
+
+#: How many readings a pentad keeps. Five years of half-hourly runs would be 87,000 per
+#: bucket and the file would be useless; 400 is well past what a percentile needs and keeps
+#: the whole province under a megabyte.
+TEMP_SAMPLES_PER_PENTAD = 400
+
+TEMP_HISTORY = "temp_history.json"
+
+
+def accumulate_temperatures(out: Path, temps: dict[str, tuple[str, float]],
+                            pent: int) -> dict:
+    """Fold today's readings into a growing per-station, per-pentad record. Returns it.
+
+    THIS EXISTS BECAUSE THERE IS NO HISTORY TO READ. HYDAT carries level, flow and
+    sediment; it has no water temperature at all, so unlike every other quantity here
+    there is no archive to rank a reading against and no envelope to publish. The only way
+    to ever have one is to start keeping it.
+
+    It costs one small file per run and nothing else, it is useless for a season and then
+    it is the only temperature climatology in the app, so it starts now rather than when it
+    is wanted. Until a pentad has enough samples the app must say degrees and no ranking —
+    which is the right thing to say about temperature anyway.
+
+    ONE SAMPLE PER STATION PER RUN, capped and FIFO. A station reporting every half hour
+    would otherwise fill a bucket with one warm afternoon.
+    """
+    path = out / TEMP_HISTORY
+    try:
+        hist = json.loads(path.read_text())
+    except (OSError, ValueError):
+        hist = {}
+    if not isinstance(hist, dict):
+        hist = {}
+    key = str(pent)
+    for station, (_at, c) in temps.items():
+        buckets = hist.setdefault(station, {})
+        vals = buckets.setdefault(key, [])
+        vals.append(round(c, 2))
+        if len(vals) > TEMP_SAMPLES_PER_PENTAD:
+            del vals[:len(vals) - TEMP_SAMPLES_PER_PENTAD]
+    path.write_text(json.dumps(hist, separators=(",", ":")))
+    return hist
+
+
+def temperature_envelope(hist: dict, min_obs: int = 10) -> dict:
+    """`{station: {pentad: [p10, p25, p50, p75, p90]}}` from what has been accumulated.
+
+    Same shape and the same 10-observation gate as the HYDAT envelopes, so a client that
+    can read one can read the other without learning a second format. Empty for a long
+    while, and that is not a failure state — it is the honest one.
+    """
+    out: dict[str, dict[str, list[float]]] = {}
+    for station, buckets in hist.items():
+        for pentad, vals in buckets.items():
+            if len(vals) < min_obs:
+                continue
+            xs = sorted(vals)
+            def q(p: float) -> float:
+                i = min(len(xs) - 1, max(0, int(round(p * (len(xs) - 1)))))
+                return xs[i]
+            out.setdefault(station, {})[pentad] = [q(0.10), q(0.25), q(0.50), q(0.75), q(0.90)]
+    return out
 
 
 def pentad_of(when: datetime) -> int:
@@ -229,6 +371,17 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         print(f"  daily    backfilled {sum(1 for v in backfill.values() if v)} "
               f"of {len(cold)} station records from ECCC's 30-day archive")
 
+    # ONE EXTRA REQUEST FOR THE WHOLE PROVINCE, before the per-station loop. See
+    # `fetch_temperatures`: it is a different service from the datamart CSV, because the
+    # datamart does not carry a temperature column at all.
+    temps = fetch_temperatures([r["station"] for r in got])
+    # And keep them. There is no temperature history to read anywhere, so the only way to
+    # have an envelope one day is to begin one — see `accumulate_temperatures`.
+    t_hist = accumulate_temperatures(out, temps, pent)
+    t_env = temperature_envelope(t_hist)
+    print(f"  water temperature: {len(temps)} of {len(got)} stations"
+          f"  ({len(t_env)} now have enough history for an envelope)")
+
     index: dict[str, dict] = {}
     for r in got:
         # AGAINST THE SAME QUANTITY THE ENVELOPE IS MADE OF. 237 BC stations measure stage
@@ -254,6 +407,7 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
         # tenth, because the dam is holding the pond and letting nothing through. One
         # number per station made that switch impossible to offer honestly — the client
         # would have been recolouring the same value under two labels.
+        t_at, t_c = temps.get(r["station"], (None, None))
         per = {}
         for q in ("discharge", "level"):
             v = r["level"] if q == "level" else r["discharge"]
@@ -261,12 +415,36 @@ def publish(out: Path, stations: list[str], clim: dict | None = None,
             p_ = percentile_of(v, b)
             if p_ is not None:
                 per[q] = p_
+        # TEMPERATURE IS NOT A PERCENTILE, and cannot be one today.
+        #
+        # There is no historical water-temperature record to rank against: HYDAT carries
+        # level, flow and sediment and nothing else. So there is no envelope, and a
+        # percentile computed against a missing envelope would silently be nothing at all.
+        #
+        # It is also the wrong shape for the question. "Unusually warm for early September"
+        # is a fact about the weather; "19 degrees" is a fact about whether a released fish
+        # survives, and the second is what an angler acts on. The threshold is absolute and
+        # biological, not relative and seasonal. So temperature ships as DEGREES, with a
+        # class attached, and no ranking is implied.
+        if t_c is not None:
+            per["temperatureBand"] = temperature_band(t_c)
+            # A ranking ONLY once this station has enough of its own accumulated history
+            # for the day of year. Absent for a long while, and absent is correct.
+            p_t = percentile_of(t_c, (t_env.get(r["station"]) or {}).get(str(pent)))
+            if p_t is not None:
+                per["temperature"] = p_t
         index[r["station"]] = {
             "percentile": percentile_of(observed, band),
             # Which quantity `percentile` above is about — the station's own default.
             "parameter": param,
             **per,
             "observedAt": r["at"],
+            # THE DEGREES THEMSELVES, not only their percentile — and this is the one
+            # quantity where that is true. A flow of 12 m3/s means nothing without its
+            # record, but 19 C is a number an angler acts on directly: it is the threshold
+            # the province closes rivers at, and a fish released into it often dies. So the
+            # reading is published beside its ranking rather than behind it.
+            **({"temperatureC": t_c, "temperatureAt": t_at} if t_c is not None else {}),
             # WHETHER there is a forecast, not the forecast itself. This file is fetched to
             # paint the map before anything is tapped, and the full model series is ~15 KB a
             # station — 6 MB to answer a question the map does not ask. The series lives in

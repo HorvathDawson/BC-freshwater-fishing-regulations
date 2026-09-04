@@ -1154,7 +1154,8 @@
         "parcel_private": "plain",
         "region": "plain",
         "park_closed": "plain",
-        "no_access_permit": "plain"
+        "no_access_permit": "plain",
+        "gauges": "standing"
       },
       "$comment": "Wetland stays plain in every view. There are 333,526 of them and essentially none carry a regulation, so colouring them by closure painted the province's largest layer in a rules colour that meant nothing."
     },
@@ -1175,8 +1176,31 @@
         "parcel_private": "plain",
         "region": "plain",
         "park_closed": "plain",
-        "no_access_permit": "plain"
+        "no_access_permit": "plain",
+        "gauges": "standing"
       }
+    },
+    {
+      "id": "temperature",
+      "label": "Water temperature",
+      "modes": {
+        "stream": "plain",
+        "under_lake": "plain",
+        "lake": "plain",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain",
+        "gauges": "temperature"
+      },
+      "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet \u2014 that needs the donor panel \u2014 and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
     {
       "id": "stocked",
@@ -1195,7 +1219,8 @@
         "parcel_private": "plain",
         "region": "plain",
         "park_closed": "plain",
-        "no_access_permit": "plain"
+        "no_access_permit": "plain",
+        "gauges": "standing"
       }
     },
     {
@@ -1215,7 +1240,8 @@
         "parcel_private": "plain",
         "region": "plain",
         "park_closed": "plain",
-        "no_access_permit": "plain"
+        "no_access_permit": "plain",
+        "gauges": "standing"
       }
     }
   ],
@@ -1260,5 +1286,8 @@
     }
   },
   "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY \u2014 most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",
-  "$comment_order": "DRAW ORDER IS SOURCE ORDER. Areas, then water, then the administrative boundaries that are drawn OVER the water, then ownership, and labels last (the generator appends those itself). A boundary painted under a lake is a boundary nobody can trace."
+  "$comment_order": "DRAW ORDER IS SOURCE ORDER. Areas, then water, then the administrative boundaries that are drawn OVER the water, then ownership, and labels last (the generator appends those itself). A boundary painted under a lake is a boundary nobody can trace.",
+  "$runtimeLayers": [
+    "gauges"
+  ]
 }

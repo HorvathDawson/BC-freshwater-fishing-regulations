@@ -78,6 +78,52 @@ function geojsonData(raw: string): unknown {
  * Shares the stream layer's stops by construction — read from the same style metadata —
  * so a gauge dot and the river under it are painted from one scale. Two ramps would drift.
  */
+/**
+ * Water temperature, in the colours this map already uses for "may I fish here".
+ *
+ * TWO THINGS ARE DELIBERATE AND BOTH ARE THE OPPOSITE OF THE FLOW SCALE.
+ *
+ * IT IS ABSOLUTE. Every other scale here is relative to a river's own record, because 12
+ * m³/s is a flood on one creek and a drought on another. Temperature is not: 20 °C is 20
+ * °C on every river in the province, it is where British Columbia closes them, and it is
+ * where a released fish starts dying. There is also no history to rank it against — HYDAT
+ * carries level, flow and sediment and no temperature at all.
+ *
+ * IT REUSES THE STATUS COLOURS, and that is not laziness. `open`, `restricted` and
+ * `closed` already mean "fishable", "caution" and "don't" on this map. Water too warm to
+ * release a fish into means exactly those three things, so giving it a fourth palette
+ * would ask a reader to learn a second word for an idea they have. A temperature ramp of
+ * its own was written and deleted: the palette guard caught it colliding with the flow
+ * ramp in four places, which was the right complaint about inventing a scale.
+ *
+ * The thresholds come from the publisher (`_TEMP_BANDS`) and are POLICY awaiting curation,
+ * not physics — the band is carried on the feature rather than recomputed here, so there
+ * is one place to change when the real per-river numbers are curated.
+ */
+function tempExpression(theme: string): unknown {
+  const t = resolveTheme(theme) as Record<string, string>;
+  return ["match", ["coalesce", ["get", "temperatureBand"], "unknown"],
+          "cool", t["color.status.open"],
+          "warm", t["color.status.restricted"],
+          "critical", t["color.status.closed"],
+          t["color.water.ungauged"]];
+}
+
+/**
+ * The gauge dots' colour for a mode, so a view change can repaint them.
+ *
+ * THE STYLE IS BUILT ONCE, at map creation, and the recolour effect afterwards walks
+ * `modes` calling `setLayerMode` per layer. That works for every layer in the generated
+ * catalog and silently does nothing for these, because there is no layer whose id is
+ * "gauges" — the dots are `gauge-dot` and `gauge-label`, added here from a live feed. So
+ * switching from flow to temperature changed which stations were fetched and left them
+ * painted on the old scale, which is the most confusing possible half-state: the right
+ * roster, in the wrong language.
+ */
+export function gaugeDotColour(theme: string, mode: string | undefined): unknown {
+  return mode === "temperature" ? tempExpression(theme) : rampExpression(theme);
+}
+
 function rampExpression(theme: string): unknown {
   const t = resolveTheme(theme) as Record<string, string>;
   const mode = STYLE_META.colorModes.stream?.standing as
@@ -405,7 +451,8 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
           filter: ["<=", ["get", "minz"], ["zoom"]],
           paint: {
             "circle-radius": 5,
-            "circle-color": rampExpression(theme),
+            "circle-color": modes.gauges === "temperature"
+              ? tempExpression(theme) : rampExpression(theme),
             "circle-stroke-width": 2,
             "circle-stroke-color": paper,
           } },

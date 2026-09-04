@@ -60,6 +60,7 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
+        "gauges": "standing",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -100,6 +101,7 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
+        "gauges": "standing",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -122,6 +124,47 @@
       }
     },
     {
+      "id": "temperature",
+      "label": "Water temperature",
+      "modes": {
+        "stream": "plain",
+        "under_lake": "plain",
+        "lake": "plain",
+        "wetland": "plain",
+        "contour": "plain",
+        "park": "plain",
+        "eco_reserve": "plain",
+        "no_access": "plain",
+        "indigenous_land": "plain",
+        "mu": "plain",
+        "parcel_private": "plain",
+        "region": "plain",
+        "park_closed": "plain",
+        "no_access_permit": "plain",
+        "gauges": "temperature",
+        "parcel_private__edge": "plain",
+        "indigenous_land__edge": "plain",
+        "no_access__edge": "plain",
+        "no_access_permit__edge": "plain",
+        "eco_reserve__edge": "plain",
+        "park_closed__edge": "plain",
+        "lake__edge": "plain",
+        "region__edge": "plain",
+        "mu__edge": "plain",
+        "indigenous_land__label": "plain",
+        "no_access__label": "plain",
+        "no_access_permit__label": "plain",
+        "eco_reserve__label": "plain",
+        "park__label": "plain",
+        "park_closed__label": "plain",
+        "lake__label": "plain",
+        "stream__label": "plain",
+        "region__label": "plain",
+        "mu__label": "plain"
+      },
+      "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
+    },
+    {
       "id": "stocked",
       "label": "Stocked lakes",
       "modes": {
@@ -139,6 +182,7 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
+        "gauges": "standing",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -178,6 +222,7 @@
         "region": "plain",
         "park_closed": "plain",
         "no_access_permit": "plain",
+        "gauges": "standing",
         "parcel_private__edge": "plain",
         "indigenous_land__edge": "plain",
         "no_access__edge": "plain",
@@ -199,6 +244,9 @@
         "mu__label": "plain"
       }
     }
+  ],
+  "runtimeLayers": [
+    "gauges"
   ],
   "providers": {
     "regs": {

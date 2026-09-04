@@ -8,7 +8,8 @@ import { nativeAdapter } from "./adapters/native";
 import { webAdapter } from "./adapters/web";
 import type { MapHandle } from "./adapters/contract";
 import {
-  MAP_STYLE, STYLE_META, colorExpression, layerIds, resolveTheme, toggleableGroups,
+  MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
+  toggleableGroups,
 } from "./style";
 
 /** Records every call, so two adapters can be compared on what they DO. */
@@ -116,9 +117,23 @@ describe("theme + toggle rules", () => {
   });
 
   it("every colour mode a view names actually exists", () => {
+    // Runtime layers excepted: the gauge dots are drawn from a live feed, so they have no
+    // colour mode in the generated catalog — but a view still says whether they are about
+    // flow or about water temperature, and that belongs beside every other view decision.
     for (const v of STYLE_META.views)
-      for (const [layerId, mode] of Object.entries(v.modes))
+      for (const [layerId, mode] of Object.entries(v.modes)) {
+        if (isRuntimeLayer(layerId)) continue;
         expect(STYLE_META.colorModes[layerId]?.[mode], `${v.id}/${layerId}`).toBeDefined();
+      }
+  });
+
+  it("a runtime layer is declared, not just tolerated", () => {
+    // The escape hatch above is only safe while the list is explicit. Without this, a
+    // typo'd layer id in a view would be silently skipped instead of failing.
+    expect(STYLE_META.runtimeLayers).toContain("gauges");
+    for (const id of STYLE_META.runtimeLayers)
+      expect(MAP_STYLE.layers.some((l) => l.id === id),
+             `"${id}" is declared as a runtime layer but the style also defines it`).toBe(false);
   });
 
   it("a categorical mode over an enum colours EVERY member", () => {

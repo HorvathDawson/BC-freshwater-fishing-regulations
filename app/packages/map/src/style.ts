@@ -60,9 +60,23 @@ export const STYLE_META = meta as unknown as {
   /** generated edge id -> a token for its line-opacity, when it should not be a hard edge. */
   edgeOpacities: Record<string, string>;
   themes: Record<string, Tokens>;
+  /** Layers a view may switch that are added at runtime, not defined here. */
+  runtimeLayers: string[];
   tokens: Record<string, { type: string; themeable: boolean }>;
   enums: Record<string, string[]>;
 };
+
+/**
+ * Layers a view can switch that this file does not define.
+ *
+ * The gauge dots are drawn from a live feed, not from the atlas, so they have no
+ * source-layer, no tile contract and no colour mode here — but a view still has to say
+ * whether they are about flow or about water temperature. `runtime-style.ts` reads that
+ * out of the same `modes` map as everything else; anything that walks the map and paints
+ * by layer id has to step over them, or it asks for a colour mode that was never written.
+ */
+export const isRuntimeLayer = (layerId: string): boolean =>
+  (STYLE_META.runtimeLayers ?? []).includes(layerId);
 
 export const layerIds = (): string[] => MAP_STYLE.layers.map((l) => l.id);
 export const toggleableGroups = (): LayerGroup[] => STYLE_META.groups.filter((g) => g.toggleable);

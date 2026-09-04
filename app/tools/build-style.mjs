@@ -535,8 +535,21 @@ for (const [id, l] of labels) {
   for (const v of src.views ?? []) v.modes[id] = "plain";
 }
 
+/*
+ * LAYERS THE RUNTIME ADDS, which a view may still switch.
+ *
+ * The gauge dots are not in this file and cannot be: they are drawn from a live GeoJSON
+ * feed, not from the atlas, so they have no source-layer and no tile contract. But a view
+ * still has to be able to say what they are ABOUT — flow, or water temperature — and that
+ * belongs beside every other thing a view decides rather than in a second mechanism.
+ *
+ * Listed explicitly so a typo in a view is still an error. `runtime-style.ts` reads these
+ * out of the same `modes` map it reads everything else from.
+ */
+const RUNTIME_LAYERS = new Set(src.$runtimeLayers ?? []);
 for (const v of src.views ?? [])
   for (const [layerId, mode] of Object.entries(v.modes ?? {})) {
+    if (RUNTIME_LAYERS.has(layerId)) continue;
     const l = layersById.get(layerId);
     if (!l) err(`view "${v.id}": unknown layer "${layerId}"`);
     else if (!l.colorModes[mode]) err(`view "${v.id}": layer "${layerId}" has no mode "${mode}"`);
@@ -560,6 +573,7 @@ const meta = {
   $comment: "GENERATED. The runtime reads this to build the layer/view UI and apply themes.",
   groups: src.groups ?? [],
   views: src.views ?? [],
+  runtimeLayers: [...(src.$runtimeLayers ?? [])],
   providers,
   layerGroup: Object.fromEntries([
     ...(src.layers ?? []).map((l) => [l.id, l.group]),

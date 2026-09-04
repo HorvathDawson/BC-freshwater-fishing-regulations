@@ -281,14 +281,19 @@ export function useGaugeGeoJSON(
   source: RegsSource,
   feed: { index(): Promise<Parameters<typeof gaugeGeoJSON>[1]> } | undefined,
   enabled: boolean,
+  showTemperature = false,
 ): string | null {
   const got = useAsync(
     async () => {
       if (!feed) return null;
       const [points, idx] = await Promise.all([source.gaugePoints(), feed.index()]);
-      return gaugeGeoJSON(points, idx);
+      return gaugeGeoJSON(points, idx, showTemperature);
     },
-    "gaugepoints",
+    // TEMPERATURE IS PART OF THE CACHE KEY. It is a different set of features, not a
+    // recolouring — 274 stations publish a temperature against 361 that publish a
+    // discharge — so a cache shared between the two would show the flow roster with
+    // temperature labels, or drop the stations that only have one of the two.
+    `gaugepoints${showTemperature ? ":temp" : ""}`,
     enabled,
   );
   return got.state === "ready" ? got.value : null;

@@ -21,7 +21,7 @@ import { baseAdapter } from "./adapters/contract";
 import { pillImage } from "./pill";
 import { hatchImage } from "./hatch";
 import { resolveTheme, STYLE_META } from "./style";
-import { runtimeStyle } from "./runtime-style";
+import { gaugeDotColour, runtimeStyle } from "./runtime-style";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM } from "@app/core";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
@@ -211,6 +211,12 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       if (m.getLayer("basemap-wash"))
         m.setPaintProperty("basemap-wash", "background-opacity",
                            (modes ?? {}).stream === "standing" ? 0.42 : 0);
+      // The gauge dots are a runtime layer, so the loop below cannot find them by id —
+      // see `gaugeDotColour`. Repainted explicitly, or a switch to temperature leaves the
+      // right stations painted on the flow scale.
+      if (m.getLayer("gauge-dot"))
+        m.setPaintProperty("gauge-dot", "circle-color",
+                           gaugeDotColour(theme, (modes ?? {}).gauges) as never);
       for (const [id, mode] of Object.entries(modes ?? {})) {
         if (!m.getLayer(id)) continue;
         try { adapter.current.setLayerMode(handle, id, mode, theme); }
