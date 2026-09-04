@@ -305,30 +305,39 @@ describe("the gauges draw on top of the water", () => {
     }
   });
 
-  it("hands the low zooms to the glow and the high ones to the dots, with no gap", () => {
+  it("hands the low zooms to the field and the high ones to the dots, with no gap", () => {
     /*
      * Two answers to one question on screen at once is one failure; a zoom with NEITHER
-     * answer is the other. The glow carries the regional picture where individual rivers
-     * have thinned out of the atlas; the dots take over where they are back.
+     * answer is the other. The basin field carries the regional picture where individual
+     * rivers have thinned out of the atlas; the dots take over where they are back.
      *
-     * It replaced a blurred disc per station, which was drawn over LAND — country no gauge
-     * speaks for — and whose overlaps blended into colours that were not on the scale at
-     * all. The glow is the same ramp painted along the water, so it can only claim a value
-     * where there is water to claim it for. It is a LINE over the atlas, not a circle over
-     * the gauges, so this test also pins that it reads the right source.
+     * THE FIELD REPLACED A GLOW, which replaced a blurred disc per station. The disc was
+     * drawn over LAND — country no gauge speaks for — and its overlaps blended into colours
+     * that were not on the scale at all. The glow fixed the first by painting along the
+     * water and kept the second problem in a smaller form: a blurred line is a claim about
+     * a corridor of arbitrary width, and it was drawn in EVERY view, so the Regulations map
+     * was lit by flow it showed no legend for. The field is the shape a percentile is
+     * actually a claim about, and it belongs to one view.
      */
-    const glow = style.layers[at("stream-glow")] as
+    const field = style.layers[at("basin")] as
       { maxzoom?: number; type?: string; source?: string; "source-layer"?: string };
     const dot = style.layers[at("gauge-dot")] as { minzoom?: number };
-    expect(glow.type).toBe("line");
-    expect(glow.source).toBe("atlas");
-    expect(glow["source-layer"]).toBe("stream");
-    expect(glow.maxzoom).toBeDefined();
+    expect(field.type).toBe("fill");
+    expect(field.source).toBe("atlas");
+    expect(field["source-layer"]).toBe("basin");
+    expect(field.maxzoom).toBeDefined();
     expect(dot.minzoom).toBeDefined();
-    expect(dot.minzoom!).toBeLessThanOrEqual(glow.maxzoom!);
+    expect(dot.minzoom!).toBeLessThanOrEqual(field.maxzoom! + 1);
 
-    // and it is UNDER the crisp line it lights, or the river disappears into its own glow
-    expect(at("stream-glow")).toBeLessThan(at("stream"));
+    // and it is UNDER the water it explains, or the rivers disappear into it
+    expect(at("basin")).toBeLessThan(at("stream"));
+    expect(at("basin")).toBeLessThan(at("lake"));
+  });
+
+  it("has no glow left to light the province twice", () => {
+    // Same question, same band, same ramp as the field — and on every view, including the
+    // one with no flow legend on it.
+    expect(style.layers.some((l: { id: string }) => l.id === "stream-glow")).toBe(false);
   });
 
   it("no layer claims a condition for country that has no water in it", () => {

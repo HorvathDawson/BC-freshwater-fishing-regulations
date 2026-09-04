@@ -561,7 +561,7 @@
           [
             -1,
             {
-              "token": "color.flow.nobaseline"
+              "token": "color.water.ungauged"
             }
           ],
           [
@@ -614,7 +614,7 @@
           "provider": "gauges",
           "field": "standing"
         },
-        "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it — `lake_gauge`, 196 rows — and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data."
+        "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it — `lake_gauge`, 196 rows — and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
       "stocked": {
         "label": "Last stocked",
@@ -735,7 +735,7 @@
           [
             -1,
             {
-              "token": "color.flow.nobaseline"
+              "token": "color.water.ungauged"
             }
           ],
           [
@@ -788,7 +788,7 @@
           "provider": "gauges",
           "field": "standing"
         },
-        "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement."
+        "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       }
     },
     "region": {
@@ -911,7 +911,7 @@
           [
             -1,
             {
-              "token": "color.flow.nobaseline"
+              "token": "color.water.ungauged"
             }
           ],
           [
@@ -964,7 +964,7 @@
           "provider": "gauges",
           "field": "standing"
         },
-        "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it — `lake_gauge`, 196 rows — and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data."
+        "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it — `lake_gauge`, 196 rows — and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
       },
       "stocked": {
         "label": "Last stocked",

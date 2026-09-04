@@ -337,26 +337,56 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
         const view = defaultView();
         const mode = modes[l.id] ?? view?.modes[l.id];
         const painted = mode ? { ...l, paint: paintFor(l.id, mode, resolveTheme(theme)) } : l;
-        // THE GLOW GOES DIRECTLY UNDER THE RIVER IT LIGHTS, which is why it is spliced into
-        // the atlas layers here rather than appended with the gauges. Appended, it was
-        // painted OVER the crisp line — so every river was washed out by its own halo and
-        // the network read as hatched rather than lit.
+        /*
+         * THE GLOW IS GONE, AND THE FIELD IS WHY.
+         *
+         * It was a wide blurred line under each river, drawn below z9, colouring the
+         * province by flow at the zooms where a river is a hairline. That is exactly the
+         * job the basin field now does — same question, same band (the glow stopped at z9,
+         * the field runs z4–8), same ramp — and two answers to one question stacked on one
+         * another is the failure this app keeps producing. The field does it better: a
+         * catchment is the shape a percentile is a claim about, where a blurred line is a
+         * claim about a corridor of arbitrary width.
+         *
+         * It was also on EVERY view, so the Regulations map was lit by flow it was not
+         * showing a legend for.
+         */
         if (l.id !== "stream") return [painted];
-        return [{
-          id: "stream-glow", type: "line" as const, source: "atlas",
-          "source-layer": "stream", maxzoom: 9,
-          layout: { "line-cap": "round" as const, "line-join": "round" as const },
+        return [painted,
+        /*
+         * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.
+         *
+         * That state was a purple on the flow ramp, which is the one thing a sequential
+         * scale must not carry: every other colour on it means a POSITION between low and
+         * high, and this one means the axis does not exist here. A reader with any form of
+         * colour blindness had no way to tell it from a value at all, and a reader without
+         * had to learn a hue that appears nowhere else.
+         *
+         * A DASH IS NOT A COLOUR. It reads as "this line is provisional" without competing
+         * for a place on the ramp, it survives any palette, and it needs no legend entry to
+         * be understood.
+         *
+         * ITS OWN LAYER, because `line-dasharray` is not data-driven in MapLibre — it
+         * cannot be varied per feature. What CAN be is opacity, so this layer covers every
+         * stream and shows only where the feature-state says -1. The base `stream` layer
+         * paints that same state the neutral ungauged grey underneath, so the dash carries
+         * the whole distinction and the colour carries none of it.
+         */
+        {
+          id: "stream-nobaseline", type: "line" as const, source: "atlas",
+          "source-layer": "stream",
+          layout: { "line-cap": "butt" as const, "line-join": "round" as const },
           paint: {
-            "line-color": colorExpression("stream", "standing", resolveTheme(theme)),
+            "line-color": resolveTheme(theme)["color.water.ungauged"] as string,
+            // Slightly heavier than the river under it, so the gaps read as gaps rather
+            // than as a thin line that failed to draw.
             "line-width": ["interpolate", ["linear"], ["zoom"],
-                           4, 11, 5.5, 9, 7, 6, 9, 2],
-            // Enough blur to read as light, not so much that the colour washes out. At
-            // 0.55 of the width the core of the line still shows its own value.
-            "line-blur": ["interpolate", ["linear"], ["zoom"],
-                          4, 6, 7, 4, 9, 2],
-            "line-opacity": ["interpolate", ["linear"], ["zoom"],
-                             4, 0.62, 7, 0.5, 9, 0],
-          }}, painted];
+                           6, 1.2, 10, 2, 14, 3.2],
+            "line-dasharray": [2.5, 2],
+            "line-opacity": ["case",
+                             ["==", ["to-number", ["feature-state", "standing"], 0], -1],
+                             1, 0],
+          }}];
       }),
       // The basemap's own labels, AFTER ours — see the split above. They still draw; they
       // just no longer get first refusal on every position on the map.

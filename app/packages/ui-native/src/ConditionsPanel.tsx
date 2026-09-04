@@ -218,7 +218,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
               {c.discharge ?? c.level}
             </Text>
             <Text style={{ ...TYPE.figure, color: palette.sub }}>
-              {c.discharge != null ? "m³/s" : "m"}
+              {/* From UNIT, not spelled again — the table above is the one place this
+                  app decides what a quantity is measured in. */}
+              {UNIT[c.discharge != null ? "discharge" : "level"]}
             </Text>
             {/* BOTH NUMBERS WHERE THERE ARE BOTH. A station measuring stage and discharge
                 has two readings a person may want, and hiding one behind the chart toggle

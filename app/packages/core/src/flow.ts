@@ -41,6 +41,37 @@ export function standingWord(s: Standing): string {
  * than picking the midpoint and sounding confident.
  */
 
+/**
+ * "1st", "2nd", "4th" — an ordinal, once, for the whole app.
+ *
+ * THERE WERE THREE OF THESE and they disagreed. The map's gauge label rounded, the status
+ * chip kept a decimal below one per cent, and the estimate's interval clamped to 1–99, so
+ * one percentile could read "p0.4th" on a dot and "1st" in the sheet describing that same
+ * dot. Each was locally reasonable; together they were the app contradicting itself in the
+ * one place a reader is most likely to compare two numbers.
+ */
+export function ordinal(n: number): string {
+  const t = Math.abs(Math.round(n)) % 100;
+  const suffix = t >= 11 && t <= 13 ? "th"
+    : (["th", "st", "nd", "rd"][Math.round(Math.abs(n)) % 10] ?? "th");
+  return `${n}${suffix}`;
+}
+
+/**
+ * A percentile as a reader sees it: `p4th`, or `p0.4th` down in the tail.
+ *
+ * ONE DECIMAL BELOW ONE PER CENT, and that is not fussiness — British Columbia in September
+ * is full of rivers between the 0th and the 1st percentile, and rounding them all to "p1st"
+ * throws away the only distinction that matters down there. Above 1% a whole number is all
+ * the underlying number supports.
+ *
+ * Takes 0–1, like every percentile in this app.
+ */
+export function percentileLabel(p: number): string {
+  const pct = p * 100;
+  return `p${ordinal(pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct))}`;
+}
+
 /** The month a reader would name, from a date — "early September", "late June". */
 export function seasonPhrase(when: Date): string {
   const month = ["January", "February", "March", "April", "May", "June", "July",

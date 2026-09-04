@@ -11,6 +11,7 @@
  * case, not a degraded one: 97.6% of BC's water carries no registry item at all.
  */
 import { FlatList, Image, Pressable, Text, View } from "react-native";
+import { percentileLabel } from "@app/core";
 import { needsRefresh, type Spot, spotLabel } from "@app/data/spots";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
@@ -121,7 +122,10 @@ function SpotRow({ spot, palette, onPress }:
                        marginTop: 4 }}>
           {/* The reading is what it WAS, not what it is. A spot is a record of a day. */}
           {when} · {g?.discharge != null
-            ? `${g.discharge} m³/s${g.percentile != null ? ` · p${Math.round(g.percentile * 100)}` : ""}`
+            // `percentileLabel`, not a fourth hand-rolled one: this dropped the ordinal
+            // suffix entirely, so a saved spot read "p4" beside a map dot reading "p4th"
+            // and a sheet reading "p0.4th" — three spellings of one number.
+            ? `${g.discharge} m³/s${g.percentile != null ? ` · ${percentileLabel(g.percentile)}` : ""}`
             : "no gauge"}
           {spot.weather?.tempC != null
             ? ` · ${spot.weather.tempC}°C${spot.weather.backfilled ? " (filled in)" : ""}`

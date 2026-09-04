@@ -364,6 +364,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
 
   const body = item !== null
     ? <WaterScreen source={source} item={item} on={on} group={group} palette={palette}
+                   // The SAME feed the Conditions screen reads, so the sheet's one-line
+                   // summary and the screen it links to cannot quote different numbers.
+                   feed={feed}
                    // The toggle LEAVES for the one conditions screen rather than rendering
                    // a second one here. Opening it from a list means there is no tapped
                    // point, so the route map has no "you are here" — which is honest: the

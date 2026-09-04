@@ -5,6 +5,7 @@
  * quieter treatment — so a list can carry several without any of them shouting.
  */
 import { Text, View } from "react-native";
+import { percentileLabel } from "@app/core";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -24,11 +25,4 @@ export function Chip({ palette, label, colour, tone = "wash" }: {
  * rounding it to "p0th" would say the river has never been lower, which is a different
  * and much stronger claim.
  */
-export function ordinal(p: number): string {
-  const pct = p * 100;
-  const n = pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct);
-  const t = Math.round(n) % 100;
-  const suffix = t >= 11 && t <= 13 ? "th"
-    : ["th", "st", "nd", "rd"][Math.round(n) % 10] ?? "th";
-  return `p${n}${suffix}`;
-}
+export const ordinal = percentileLabel;

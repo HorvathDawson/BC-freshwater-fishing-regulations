@@ -19,7 +19,8 @@
  */
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
-import { confidenceWord, interval, inTen, metresApart, panelCamera, plainStanding,
+import { confidenceWord, interval, inTen, metresApart, ordinal, panelCamera,
+         plainStanding,
          SAME_PLACE_M, seasonPhrase, standing, type Estimate, type NoEstimate }
   from "@app/core";
 import type { TileEndpoints } from "@app/map";
@@ -46,11 +47,14 @@ const ROLE: Record<"up" | "down", string> = { up: "upstream", down: "downstream"
 /** The route map's height. Read by the camera as well as by the map, so they agree. */
 const MAP_H = 210;
 
-function ordinal(n: number): string {
-  const v = Math.max(1, Math.min(99, Math.round(n)));
-  if (v % 100 >= 11 && v % 100 <= 13) return `${v}th`;
-  return `${v}${["th", "st", "nd", "rd"][v % 10] ?? "th"}`;
-}
+/**
+ * An interval endpoint, clamped away from the ends of the scale.
+ *
+ * `ordinal` itself lives in core and is shared; the CLAMP is this one's own business. An
+ * interval running to the 0th or the 100th percentile claims the record's own extremes,
+ * and the envelope deliberately stops at p10/p90 because the extremes do not interpolate.
+ */
+const bound = (n: number) => ordinal(Math.max(1, Math.min(99, Math.round(n))));
 
 /** "155× apart" reads better than a ratio nobody converts in their head. */
 function distance(ratio: number): string {
@@ -256,7 +260,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
         {e.donors === 1 ? "one gauge" : `${e.donors} gauges`} nearby.
       </Text>
       <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 4 }}>
-        {ordinal(lo)}–{ordinal(hi)} percentile for{" "}
+        {bound(lo)}–{bound(hi)} percentile for{" "}
         {seasonPhrase(new Date(Date.now() + horizon * 86_400_000))}
         {value.areaKm2 != null ? ` · this spot drains ${area(value.areaKm2)}` : ""}
       </Text>

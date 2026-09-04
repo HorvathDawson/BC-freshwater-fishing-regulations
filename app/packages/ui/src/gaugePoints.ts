@@ -11,6 +11,7 @@
  * invites the reader to assume the map failed rather than that the station is quiet.
  */
 import { zoomForMagnitude } from "@app/core";
+import { percentileLabel } from "@app/core";
 import type { GaugeFeed } from "@app/data";
 
 export interface GaugePoint {
@@ -49,15 +50,10 @@ export function gaugeLabel(now: { discharge: number | null; level: number | null
     if (v !== null && v !== undefined)
       parts.push(level ? `${v.toFixed(2)} m` : `${v} m³/s`);
   }
-  if (percentile !== null) parts.push(`p${ordinal(Math.round(percentile * 100))}`);
+  // THE SAME LABEL THE SHEET USES. This rounded while the chip kept a decimal below 1%,
+  // so a dot could read "p1st" beside a sheet saying "p0.4th" about that very station.
+  if (percentile !== null) parts.push(percentileLabel(percentile));
   return parts.length ? parts.join(" · ") : null;
-}
-
-/** 1st, 2nd, 3rd, 4th — the form a person reads a percentile in. */
-function ordinal(n: number): string {
-  const v = Math.max(1, Math.min(99, n));
-  if (v % 100 >= 11 && v % 100 <= 13) return `${v}th`;
-  return `${v}${["th", "st", "nd", "rd"][v % 10] ?? "th"}`;
 }
 
 /**

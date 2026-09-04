@@ -11,6 +11,7 @@ import {
   MAP_STYLE, STYLE_META, colorExpression, isRuntimeLayer, layerIds, resolveTheme,
   toggleableGroups,
 } from "./style";
+import { runtimeStyle } from "./runtime-style";
 
 /** Records every call, so two adapters can be compared on what they DO. */
 function recorder() {
@@ -173,15 +174,42 @@ describe("the flow ramp's units", () => {
   });
 
   it("reserves a stop below the scale for 'gauged, but no history'", () => {
-    // 8 of BC's reporting stations have a working gauge and no record to compare today
-    // against. Before this they painted identically to water nobody measures — the wrong
-    // claim in the other direction. -1 is a sentinel, never a percentile: real values are
-    // 0..100, so nothing interpolates across the gap.
+    // A working gauge with no record to compare today against. It must not paint
+    // identically to water nobody measures — that is the wrong claim in the other
+    // direction. -1 is a sentinel, never a percentile: real values are 0..100, so nothing
+    // interpolates across the gap.
     const mode = STYLE_META.colorModes.stream!.standing! as
       { stops: [number, { token: string }][] };
     const sentinel = mode.stops.filter(([at]) => at < 0);
     expect(sentinel).toHaveLength(1);
-    expect(sentinel[0]![1].token).toBe("color.flow.nobaseline");
+  });
+
+  it("says 'no baseline' with a dash rather than with a hue", () => {
+    /*
+     * IT USED TO BE A PURPLE ON THE FLOW RAMP, and that is the one thing a sequential scale
+     * must not carry: every other colour on it means a POSITION between low and high, and
+     * this one means the axis does not exist here. A reader with any form of colour
+     * blindness could not tell it from a value; a reader without had to learn a hue that
+     * appears nowhere else.
+     *
+     * The stop is now the neutral ungauged grey and the distinction is a DASH —
+     * `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray`
+     * cannot be varied per feature.
+     */
+    const mode = STYLE_META.colorModes.stream!.standing! as
+      { stops: [number, { token: string }][] };
+    const sentinel = mode.stops.find(([at]) => at < 0)!;
+    expect(sentinel[1].token).toBe("color.water.ungauged");
+
+    const dashed = runtimeStyle({ atlas: "a.pmtiles", basemap: "b.pmtiles" } as never,
+                                "light", { stream: "standing" })
+      .layers.find((l: { id: string }) => l.id === "stream-nobaseline") as
+        { paint: Record<string, unknown> } | undefined;
+    expect(dashed).toBeDefined();
+    expect(dashed!.paint["line-dasharray"]).toBeDefined();
+    // Shown only where the feature-state says -1, and invisible everywhere else.
+    expect(JSON.stringify(dashed!.paint["line-opacity"]))
+      .toContain('["feature-state","standing"]');
   });
 
   it("reads the value from feature-state, not from the tile", () => {
