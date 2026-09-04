@@ -125,3 +125,35 @@ def test_every_source_is_a_real_NameSource():
         "name_variants.json uses a `source` that is not a NameSource member, so it will be "
         "read as `alias` and its provenance lost:\n  " + "\n  ".join(bad)
         + f"\n\nvalid: {sorted(valid)}")
+
+
+def test_a_human_review_is_dated_and_never_half_written():
+    """`source` says where the NAME came from; `reviewed_by` says who put it in this file.
+
+    They are different facts and the file needs both. 24 of these lakes are named by the
+    annual BC manual lake survey — that is the source, and it stays `lake_survey` — but the
+    survey's importer did not choose which FWA polygon each one is: a person read the survey
+    and matched them, after finding that the automatic match had landed several on wetlands
+    a few hundred metres from the actual lake.
+
+    So the review is recorded on its own, in the field names the EntryFiles already use, and
+    it has to be complete: a `reviewed_by` with no date is a claim nobody can audit, which
+    is the thing this whole pair exists to prevent.
+    """
+    import json, re
+    from pipeline.common.curated import CURATED
+
+    bad = []
+    for entry in json.loads(CURATED.waters.name_variants.read_text()):
+        for name in entry.get("names", []):
+            by, at = name.get("reviewed_by"), name.get("reviewed_at")
+            if by is None and at is None:
+                continue
+            where = f"{entry.get('target')} {name.get('name')!r}"
+            if not by:
+                bad.append(f"{where}: reviewed_at without reviewed_by")
+            elif not at:
+                bad.append(f"{where}: reviewed_by={by!r} without reviewed_at")
+            elif not re.fullmatch(r"\d{4}-\d{2}-\d{2}", at):
+                bad.append(f"{where}: reviewed_at={at!r} is not YYYY-MM-DD")
+    assert not bad, "half-written review provenance:\n  " + "\n  ".join(bad)
