@@ -14,7 +14,9 @@ const PANEL: Panel = {
   members: [{ station: "08A" as never, role: "up", areaKm2: 520, years: 40 }],
 };
 
-const idx = (now: number | null, ahead: Record<string, unknown> = {}) => ({
+type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
+
+const idx = (now: number | null, ahead: Ahead = {}) => ({
   stations: { "08A": { percentile: now, parameter: "discharge" as const, ahead } },
 });
 

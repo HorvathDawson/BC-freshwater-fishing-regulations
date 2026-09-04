@@ -25,7 +25,7 @@ const idx = (over: Record<string, number | null> = {}) => ({
     m.station,
     // `?? 0.12` would coalesce an explicit null back to the default — the point of `over`
     // is to be able to silence one station, so presence of the key is what counts.
-    { percentile: m.station in over ? over[m.station] : 0.12,
+    { percentile: m.station in over ? over[m.station] ?? null : 0.12,
       parameter: "discharge" as const },
   ])),
 });

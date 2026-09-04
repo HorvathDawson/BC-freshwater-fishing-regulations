@@ -72,9 +72,31 @@ describe("the feed / bundle contract", () => {
     const idx = read("index.json");
     for (const station of Object.values(idx.stations as Record<string, object>))
       // `forecast` earns its place: it is three more numbers that colour the same dots on
-      // a 1/2/3-day view, which is the index's whole job. Anything past that is sheet data.
+      // a 1/2/3-day view, which is the index's whole job. `ahead` earns it for the same
+      // reason and is the WATER's version of it: one percentile per horizon per quantity,
+      // which is what paints the whole province for +1 / +3 / +5 days. Anything past that
+      // is sheet data and belongs in the file a tap fetches.
       expect(Object.keys(station).sort())
-        .toEqual(["forecast", "observedAt", "percentile"]);
+        .toEqual(["ahead", "forecast", "observedAt", "percentile"]);
+  });
+
+  it("keeps the forecast horizons to percentiles, and only the ones we draw", () => {
+    // Same rule as `forecast` above: the index carries what picks a colour and nothing
+    // else. A discharge here would be a number the map cannot use and every client would
+    // then have to rank for itself, against an envelope it does not have.
+    const idx = read("index.json");
+    for (const s of Object.values(idx.stations as Record<string, { ahead?: unknown }>)) {
+      if (s.ahead === undefined) continue;
+      const ahead = s.ahead as Record<string, Record<string, unknown>>;
+      // Mirrors HORIZONS in pipeline/gauges/feed/publish.py.
+      expect(Object.keys(ahead).sort()).toEqual(["1", "3", "5"]);
+      for (const at of Object.values(ahead))
+        for (const [k, v] of Object.entries(at)) {
+          expect(["discharge", "level", "model"]).toContain(k);
+          if (k !== "model")
+            expect(typeof v === "number" && v >= 0 && v <= 1).toBe(true);
+        }
+    }
   });
 
   it("is fetchable by station id and nothing else", () => {
