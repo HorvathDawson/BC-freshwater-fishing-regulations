@@ -75,6 +75,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
           Basemap, where it sits beside the other things that change what the map is
           showing. Two controls for one setting is one too many. */}
 
+      {onLayers && (
       <View style={{ position: "absolute", bottom: 14, left: 14 }}>
         <Pill palette={palette} onPress={onLayers} label="Choose layers">
           <LayersIcon colour={palette.ink} size={15} />
@@ -82,6 +83,7 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
                          color: palette.ink }}>Layers</Text>
         </Pill>
       </View>
+      )}
     </View>
   );
 }

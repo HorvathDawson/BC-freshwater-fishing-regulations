@@ -342,7 +342,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      onMoved={(at) => { camera.current = at; }}
                      view="plain" modes={modes} groups={activeGroups}
                      onDate={onDateChange ? () => setDateOpen(true) : undefined}
-                     onLayers={() => setLayersOpen(true)}
+                     // NO LAYERS BUTTON IN THE CONDITIONS VIEW. Everything the sheet
+                     // offers — how to colour streams and lakes — is decided by the
+                     // Showing control here instead, so the button would open a sheet
+                     // whose choices this tab overrides. A control that does nothing is
+                     // worse than a missing one.
+                     onLayers={onConditions ? undefined : () => setLayersOpen(true)}
                      onPressFeature={tab === "conditions"
                        // The COORDINATE too: "how does this spot reach the gauge" is a
                        // question about a point on a river, not about the river.
@@ -363,31 +368,29 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
       <View style={{ flex: 1 }}>{body}</View>
-      {/* WHICH QUANTITY THE MAP IS ABOUT, on the map. It was only ever offered inside a
-          reach's sheet, so the colours on screen were discharge and there was no way to
-          ask the other question without opening something first. Sits above the legend
-          because it is what the legend is measuring. */}
-      {showLegend && tab === "conditions" && (
-        /*
-         * ABOVE THE LEGEND, AND ABOVE IT IN THE STACK TOO.
-         *
-         * The legend is a horizontally scrolling strip, and a ScrollView captures pointer
-         * events across its whole box whether or not anything is drawn there. At `bottom:
-         * 74` the fourth option sat inside that box: visible, apparently enabled, and
-         * silently unclickable — which is the worst kind of broken, because nothing looks
-         * wrong. Cleared vertically AND given a z-index, so neither a taller legend nor a
-         * fifth option can put it back underneath.
-         */
-        <View style={{ position: "absolute", right: 14, bottom: 92, zIndex: 5 }}>
-          <ChartControls<FlowParam> palette={palette} value={flowParam}
-                                    label="Showing" onPick={setFlowParam}
-                                    options={[["both", "Both"], ["discharge", "Flow"],
-                                              ["level", "Level"],
-                                              ["temperature", "Temp"]] as const} />
-        </View>
-      )}
       {showLegend && (
-        <LegendStrip palette={palette}>
+        <LegendStrip palette={palette} full={onConditions}>
+          {onConditions && (
+            /*
+             * THE CONTROL LIVES IN THE LEGEND, not floating over the map.
+             *
+             * It was absolutely positioned above the legend, which works on a desktop
+             * viewport and overlaps it on a phone — the two things at the bottom of the
+             * screen were fighting for the same rows. Putting it IN the strip makes the
+             * layout do the spacing, so it cannot collide at any width.
+             *
+             * It also sits directly above the scale it controls, which is the right place
+             * for it: the ramp underneath is the answer to whichever of these is chosen.
+             */
+            <View style={{ flexDirection: "row", justifyContent: "flex-end",
+                           marginBottom: 8 }}>
+              <ChartControls<FlowParam> palette={palette} value={flowParam}
+                                        label="Showing" onPick={setFlowParam}
+                                        options={[["both", "Both"], ["discharge", "Flow"],
+                                                  ["level", "Level"],
+                                                  ["temperature", "Temp"]] as const} />
+            </View>
+          )}
           {tab === "conditions" ? (
             // READ FROM THE STYLE, never restated. These seven hex values used to be
             // written out here while the map's own ramp resolved to three shades of one

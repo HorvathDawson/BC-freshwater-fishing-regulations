@@ -36,11 +36,26 @@ export function Pill({ palette, children, onPress, style, label }: {
  * It is a legend, not decoration: whatever the map is currently colouring by has to say
  * what its colours mean, or the map is a picture rather than an answer.
  */
-export function LegendStrip({ palette, children }:
-  { palette: Palette; children: React.ReactNode }) {
-  // ONE LINE. This was a two-row block of counted swatches and it ate a fifth of the
-  // screen — on a map-first app the legend is a caption, not a panel. It scrolls sideways
-  // rather than wrapping, so adding a category can never take a second row of the map.
+export function LegendStrip({ palette, children, full }:
+  { palette: Palette; children: React.ReactNode; full?: boolean }) {
+  /*
+   * ONE LINE, and it scrolls sideways rather than wrapping, so adding a category can never
+   * take a second row of the map. This was a two-row block of counted swatches that ate a
+   * fifth of the screen — on a map-first app the legend is a caption, not a panel.
+   *
+   * `full` turns the scroller off. A ramp that is meant to span the screen cannot live in
+   * a horizontal ScrollView: the content sizes to itself, so `width: "100%"` resolves
+   * against the content rather than the screen and the bar collapses to its minimum.
+   */
+  if (full) {
+    return (
+      <View style={{ flexGrow: 0, borderTopWidth: 1, borderTopColor: palette.line,
+                     backgroundColor: palette.card,
+                     paddingHorizontal: 14, paddingVertical: 8 }}>
+        {children}
+      </View>
+    );
+  }
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}
                 style={{ flexGrow: 0, borderTopWidth: 1, borderTopColor: palette.line,
@@ -83,21 +98,54 @@ export function LegendRamp({ palette, stops, low, high, marks, mid }: {
   /** Optional centre label, e.g. "normal". */
   mid?: string;
 }) {
+  /*
+   * A DISTRIBUTION, NOT A KEY — which is what the marks were always for and what the old
+   * size would not let them be.
+   *
+   * At 7 px tall and 2.5 px wide, forty gauges on the same stretch of the scale drew as
+   * one indistinguishable smear: you could see THAT the rivers were low and not HOW low,
+   * or how tightly they agreed. The bar is now tall enough for the marks to have height,
+   * and the marks are binned so that where many gauges land the tick is TALLER rather than
+   * merely repainted over itself. That is a histogram, and reading it is the point: a
+   * narrow spike at the bottom is a province uniformly in drought, and a wide spread is
+   * one doing several things at once.
+   *
+   * Full width, because it is the answer to the question the view was opened for and it
+   * was sharing a line with a control.
+   */
+  const BINS = 40;
+  const counts = new Array<number>(BINS).fill(0);
+  for (const m of marks ?? []) {
+    const i = Math.min(BINS - 1, Math.max(0, Math.floor(m * BINS)));
+    counts[i] = (counts[i] ?? 0) + 1;
+  }
+  const peak = Math.max(1, ...counts);
+  const H = 26;
+
   return (
-    <View style={{ flex: 1, gap: 4, minWidth: 240 }}>
-      <View style={{ height: 9, justifyContent: "center" }}>
-        <View style={{ flexDirection: "row", height: 7, borderRadius: palette.r.chip,
+    <View style={{ width: "100%", gap: 5 }}>
+      <View style={{ height: H, justifyContent: "flex-end" }}>
+        <View style={{ flexDirection: "row", height: 14, borderRadius: palette.r.chip,
                        overflow: "hidden" }}>
           {stops.map((c, i) => (
             <View key={i} style={{ flex: 1, backgroundColor: c }} />
           ))}
         </View>
-        {(marks ?? []).map((m, i) => (
-          <View key={i} accessibilityLabel={`gauge at ${Math.round(m * 100)}%`}
-                style={{ position: "absolute", left: `${Math.min(99, Math.max(0, m * 100))}%`,
-                         width: 2.5, height: 11, marginLeft: -1.25, borderRadius: 1.5,
-                         backgroundColor: palette.ink,
-                         borderWidth: 1, borderColor: palette.card }} />
+        {/*
+          THE TICKS STAND ON THE BAR RATHER THAN CROSSING IT. Crossing, they hid the very
+          colour they were pointing at; standing, the height is free to mean something.
+        */}
+        {counts.map((n, i) => n === 0 ? null : (
+          <View key={i}
+                accessibilityLabel={`${n} ${n === 1 ? "gauge" : "gauges"} near the `
+                                    + `${Math.round((i + 0.5) / BINS * 100)}th percentile`}
+                style={{ position: "absolute", bottom: 14,
+                         left: `${(i / BINS) * 100}%`, width: `${(1 / BINS) * 100}%`,
+                         paddingHorizontal: 0.5 }}>
+            <View style={{ height: Math.max(3, (n / peak) * (H - 14)),
+                           backgroundColor: palette.ink, opacity: 0.75,
+                           borderTopLeftRadius: 1, borderTopRightRadius: 1 }} />
+          </View>
         ))}
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
