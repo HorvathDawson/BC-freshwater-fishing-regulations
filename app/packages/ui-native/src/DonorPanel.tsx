@@ -17,10 +17,12 @@
  * claim is about geography. A map of ONE gauge under a table of four — which is what this
  * screen showed before — draws the model the panel exists to replace.
  */
-import { Text, View } from "react-native";
-import { interval, metresApart, panelCamera, SAME_PLACE_M, standing, standingWord,
-         type Estimate, type NoEstimate } from "@app/core";
+import { Pressable, Text, View } from "react-native";
+import { confidenceWord, interval, inTen, metresApart, panelCamera, plainStanding,
+         SAME_PLACE_M, seasonPhrase, standing, type Estimate, type NoEstimate }
+  from "@app/core";
 import type { TileEndpoints } from "@app/map";
+import type { StationId } from "@app/data";
 import type { DonorRow, PanelAnswer } from "@app/ui";
 import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
@@ -87,12 +89,21 @@ function because(r: DonorRow): string {
   return bits.join(" · ");
 }
 
-export function DonorPanel({ palette, value, at, theme, from }: {
+export function DonorPanel({ palette, value, at, theme, from, selected, onSelect }: {
   palette: Palette; value: PanelAnswer;
   /** The tiles, when the caller has them — then the donors are DRAWN as well as listed. */
   at?: TileEndpoints; theme?: string;
   /** Where the person actually is, so the map can mark it. */
   from?: { lat: number; lon: number } | null;
+  /**
+   * Which donor the chart above is currently showing, and how to change it.
+   *
+   * Both optional: a saved spot renders this panel with no chart to steer, and a row that
+   * cannot do anything must not look as though it can. Given both, every row becomes a
+   * control — which is the point, because a table of four gauges beside a chart of one is
+   * only honest if you can see the other three.
+   */
+  selected?: StationId | null; onSelect?: (station: StationId) => void;
 }) {
   const { answer, rows } = value;
   if (!answer.ok) {
@@ -108,7 +119,17 @@ export function DonorPanel({ palette, value, at, theme, from }: {
   }
   const e: Estimate = answer.value;
   const [lo, hi] = interval(e);
+  /**
+   * A donor's colour — GREY WHEN IT IS QUIET.
+   *
+   * A station that is not reporting contributes nothing, and drawing its pin in a live tone
+   * says otherwise: on the map it looked exactly like the gauges the answer was built from.
+   * Grey is the same thing the map does with ungauged water, which is the point — it is the
+   * colour of "nothing to say", used consistently.
+   */
   const tone = (i: number) => palette.donor[i % palette.donor.length]!;
+  const toneOf = (r: DonorRow, i: number) =>
+    r.percentile === null ? palette.quiet : tone(i);
 
   // EVERY DONOR ON ONE MAP. The camera is fitted to all of them plus the spot, so a panel
   // spanning three rivers is seen to span three rivers.
@@ -138,21 +159,32 @@ export function DonorPanel({ palette, value, at, theme, from }: {
     <View style={{ paddingVertical: 14 }}>
       <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
                      color: palette.faint }}>ESTIMATE FOR THIS SPOT</Text>
-      {/* THE RANGE IS THE HEADLINE. A point estimate here would claim a precision the
-          measurement says does not exist at any distance. */}
-      <Text style={{ ...TYPE.name, fontSize: 25, color: palette.ink, marginTop: 3 }}>
-        {ordinal(lo)}–{ordinal(hi)}
+      {/*
+        THE PLAIN SENTENCE COMES FIRST, and the percentile second.
+        
+        "7th–31st percentile for the date" is precise and, to most readers, not
+        information — it asks them to know what a percentile is, that "for the date"
+        changes the baseline, and that a range means uncertainty rather than a forecast.
+        The headline now says what the water is doing; the range is still here, one size
+        down, for a reader who wants it. Nothing was removed and nothing was rounded — the
+        same numbers are saying the same thing in the order a person reads them.
+      */}
+      <Text style={{ ...TYPE.name, fontSize: 22, color: palette.ink, marginTop: 3,
+                     lineHeight: 27 }}>
+        {plainStanding(standing(e.percentile))}
       </Text>
-      <Text style={{ ...TYPE.body, fontSize: 12.5, color: palette.sub }}>
-        percentile for the date · {standingWord(standing(e.percentile)).toLowerCase()} ·{" "}
-        {e.donors === 1 ? "one gauge" : `${e.donors} gauges`}, {e.trust}
+      <Text style={{ ...TYPE.body, fontSize: 13.5, color: palette.sub, marginTop: 2,
+                     lineHeight: 19 }}>
+        {/* Capitalised by hand: the sentence begins with the comparison. */}
+        {(() => { const w = inTen(e.percentile);
+                  return w.charAt(0).toUpperCase() + w.slice(1); })()} —{" "}
+        {confidenceWord(e.plusMinus)}, from{" "}
+        {e.donors === 1 ? "one gauge" : `${e.donors} gauges`} nearby.
       </Text>
-      {value.areaKm2 != null && (
-        <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 2 }}>
-          This spot drains {area(value.areaKm2)}. Every share below is that against the
-          gauge's own catchment.
-        </Text>
-      )}
+      <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 4 }}>
+        {ordinal(lo)}–{ordinal(hi)} percentile for {seasonPhrase(new Date())}
+        {value.areaKm2 != null ? ` · this spot drains ${area(value.areaKm2)}` : ""}
+      </Text>
 
       {/* THE MAP WAITS FOR THE ROUTES. A MapLibre map reads its opening camera once, on
           mount, and ignores every later change — so a map mounted before the walks finish
@@ -167,7 +199,8 @@ export function DonorPanel({ palette, value, at, theme, from }: {
                      ...(showFrom ? [{ lat: from!.lat, lon: from!.lon, tone: palette.accent,
                                        title: "you are here" }] : []),
                      ...placed.map((r) => ({
-                       lat: r.route!.lat!, lon: r.route!.lon!, tone: tone(rows.indexOf(r)),
+                       lat: r.route!.lat!, lon: r.route!.lon!,
+                       tone: toneOf(r, rows.indexOf(r)),
                        title: `${hereLabel(r)} · ${share(r)} of the answer`,
                      })),
                    ]}
@@ -177,7 +210,7 @@ export function DonorPanel({ palette, value, at, theme, from }: {
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
             {showFrom && <Key palette={palette} tone={palette.accent} label="you are here" />}
             {placed.map((r) => (
-              <Key key={r.station} palette={palette} tone={tone(rows.indexOf(r))}
+              <Key key={r.station} palette={palette} tone={toneOf(r, rows.indexOf(r))}
                    label={`${hereLabel(r)} · ${share(r)}`} />
             ))}
           </View>
@@ -193,22 +226,42 @@ export function DonorPanel({ palette, value, at, theme, from }: {
         </View>
       )}
 
+      {onSelect && (
+        <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
+                       color: palette.faint, marginTop: 16 }}>
+          TAP A GAUGE TO SEE ITS CHART
+        </Text>
+      )}
       <View accessibilityRole="list" accessibilityLabel="The gauges behind this estimate"
-            style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: palette.line }}>
-        {rows.map((r: DonorRow, i: number) => (
-          <View key={r.station} accessibilityRole="text"
+            style={{ marginTop: onSelect ? 6 : 14, borderTopWidth: 1,
+                     borderTopColor: palette.line }}>
+        {rows.map((r: DonorRow, i: number) => {
+          const pick = onSelect ? () => onSelect(r.station) : undefined;
+          const on = selected != null && r.station === selected;
+          return (
+          <Pressable key={r.station} onPress={pick} disabled={!pick}
+                accessibilityRole={pick ? "button" : "text"}
+                accessibilityState={pick ? { selected: on } : undefined}
                 accessibilityLabel={
                   `${r.station}, ${ROLE[r.role]}, ${distance(r.areaRatio)}, `
                   + (r.percentile === null
                      ? "not reporting today, so it counts for nothing"
-                     : `${Math.round(r.weight * 100)} per cent of the answer`)}
+                     : `${Math.round(r.weight * 100)} per cent of the answer`)
+                  + (pick ? `. ${on ? "Showing" : "Show"} this gauge's chart` : "")}
                 style={{ paddingVertical: 10, borderBottomWidth: 1,
-                         borderBottomColor: palette.line, gap: 5 }}>
+                         borderBottomColor: palette.line, gap: 5,
+                         // THE SELECTED ROW IS MARKED ON THE LEFT, not by a background
+                         // tint: the row already carries a colour that means something
+                         // (its pin on the map), and a second one behind it would be read
+                         // as part of the same code.
+                         paddingLeft: 8, marginLeft: -8,
+                         borderLeftWidth: 3,
+                         borderLeftColor: on ? toneOf(r, i) : "transparent" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
               {/* The same tone as its pin — this is how the map and the table are one
                   thing rather than two lists of the same stations. */}
               <View style={{ width: 9, height: 9, borderRadius: 5,
-                             backgroundColor: tone(i) }} />
+                             backgroundColor: toneOf(r, i) }} />
               <Text style={{ ...TYPE.body, fontSize: 13, color: palette.ink, flex: 1 }}>
                 {r.station}
                 {r.route?.name ? (
@@ -227,11 +280,13 @@ export function DonorPanel({ palette, value, at, theme, from }: {
               <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
                              borderRadius: 3, overflow: "hidden" }}>
                 <View style={{ width: `${Math.max(1, Math.round(r.weight * 100))}%`,
-                               height: 5, backgroundColor: tone(i) }} />
+                               height: 5, backgroundColor: toneOf(r, i) }} />
               </View>
               <Text style={{ ...TYPE.figure, fontSize: 12, color: palette.sub,
                              fontVariant: ["tabular-nums"] }}>
-                {r.percentile === null ? "—" : `p${ordinal(r.percentile * 100)}`}
+                {r.percentile === null
+                  ? "—"
+                  : `${Math.round(r.percentile * 100)}%`}
               </Text>
             </View>
             <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
@@ -250,8 +305,9 @@ export function DonorPanel({ palette, value, at, theme, from }: {
                 ? "not reporting today, so it counts for nothing"
                 : because(r)}
             </Text>
-          </View>
-        ))}
+          </Pressable>
+          );
+        })}
       </View>
 
       {e.spread > 25 && (
@@ -265,9 +321,10 @@ export function DonorPanel({ palette, value, at, theme, from }: {
 
       <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint, marginTop: 10,
                      lineHeight: 16 }}>
-        Each gauge's share is its catchment overlap with this spot, reduced if it sits
-        downstream and reduced again if its record is short. The shares are then scaled to
-        add to 100%, and the percentiles are combined in that proportion.
+        No gauge sits exactly here, so the reading is carried from the nearest ones. A gauge
+        counts for more when it drains a piece of country the same size as this one, when it
+        sits upstream, and when it has a long record. The percentage beside each is how much
+        of the answer above came from it.
       </Text>
     </View>
   );

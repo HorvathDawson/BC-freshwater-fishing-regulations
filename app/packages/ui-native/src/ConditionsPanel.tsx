@@ -14,10 +14,10 @@
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { standingWord, type Standing } from "@app/core";
-import type { Parameter, RegsSource, SectionId } from "@app/data";
+import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
-         usePanelRoutes, useSeries } from "@app/ui";
+         usePanelRoutes, useSeries, useStationReading } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { FishSpinner } from "./FishSpinner";
 import { DonorPanel } from "./DonorPanel";
@@ -71,8 +71,35 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
   const panel = usePanelRoutes(
     source, section,
     usePanel(source, feed, section, parameter === "level" ? "level" : "discharge"));
-  const c = conditions.state === "ready" ? conditions.value : null;
-  const station = c?.station ?? null;
+  const matched = conditions.state === "ready" ? conditions.value : null;
+  /*
+   * THE CHART IS ABOUT A GAUGE THE READER CAN SEE IN THE LIST.
+   *
+   * It used to be about `section_gauge` — the ONE station matched to this reach — while the
+   * table beneath listed the panel's donors, which need not include it. The Similkameen
+   * near Hedley charted above four gauges at Princeton, Keremeos and Coalmont, with nothing
+   * on screen to say why. So the chart follows the panel: it opens on the donor carrying
+   * the most of the answer (rows are already in weight order) and any row can be tapped to
+   * move it. The matched station is the fallback for water that has no panel at all.
+   */
+  const [pickedStation, setPickedStation] = useState<StationId | null>(null);
+  const lead: StationId | null =
+    pickedStation
+    ?? panel.rows.find((r) => r.percentile !== null)?.station
+    ?? panel.rows[0]?.station
+    ?? matched?.station
+    ?? null;
+  const reading = useStationReading(source, lead);
+  const live = reading.state === "ready" ? reading.value : null;
+  // The station's NAME comes from the donor that named it; the matched link names the
+  // fallback. One name per station, from whichever of the two knows it.
+  const leadName = panel.rows.find((r) => r.station === lead)?.route?.name
+    ?? (lead === matched?.station ? matched?.stationName : null)
+    ?? null;
+  // Everything below reads the SELECTED station's numbers. `matched` is kept only for the
+  // no-panel fallback and for the reach-to-gauge trace, which is about a relationship.
+  const c = lead === matched?.station && !live?.fetchedAt ? matched : live;
+  const station = lead;
 
   // WHICH QUANTITIES THIS STATION CAN ANSWER IN. Asked of the bundle rather than assumed:
   // 237 BC stations measure stage and never discharge, and offering a discharge chart for
@@ -107,8 +134,29 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
 
   const body = (
     <>
+      {/*
+        THE ANSWER FIRST, THE EVIDENCE UNDER IT.
+        
+        The raw gauge reading used to open this screen — a number from a station that is
+        often not on this water and, once the panel existed, often not even in the list
+        below it. A reader arriving at "5.2 m³/s · BELOW NORMAL · SIMILKAMEEN NEAR HEDLEY"
+        reasonably concludes that is what the water they tapped is doing. It is what one
+        gauge somewhere in the watershed is doing. The estimate for the spot is the answer
+        to the question that was asked, so it goes first, and the gauge below is the
+        working.
+      */}
+      <DonorPanel palette={palette} value={panel} at={tiles} theme={theme} from={from}
+                  selected={lead} onSelect={setPickedStation} />
+
       {c?.discharge != null || c?.level != null ? (
         <View style={{ gap: 6 }}>
+          {/* WHOSE READING THIS IS, before the number rather than under it. The line under
+              the figure said the station's name in grey at 11.5px, which is not where a
+              reader looks to find out what a big teal number is about. */}
+          <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
+                         color: palette.faint }}>
+            AT {(leadName ?? station ?? "").toUpperCase()}
+          </Text>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10,
                          flexWrap: "wrap" }}>
             <Text style={{ ...TYPE.figureBig, fontSize: 34, color: tint }}>
@@ -137,7 +185,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
               : "There is a reading here, but no record to compare it against."}
           </Text>
           <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>
-            {c.stationName ?? c.station}
+            This gauge's own reading
             {c.fetchedAt ? ` · checked ${new Date(c.fetchedAt).toISOString()
               .replace("T", " ").slice(0, 16)}` : ""}
           </Text>
@@ -210,16 +258,10 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         </View>
       )}
 
-      {/* THE PANEL OWNS THE MAP NOW. It used to sit above a second, separate map of the
-          ONE matched station — four gauges listed here, one drawn below, which reads as a
-          contradiction and is really two models on one screen. `GaugeTrace` still exists
-          and is still right for a saved spot, which carries a single frozen trace and no
-          panel at all. */}
-      <DonorPanel palette={palette} value={panel} at={tiles} theme={theme} from={from} />
-
       {/* THE SINGLE-STATION TRACE IS THE FALLBACK, not the companion: shown only where the
           panel could not answer, so water with no panel still gets the older, narrower
-          explanation rather than an empty space. */}
+          explanation rather than an empty space. `GaugeTrace` is also still right for a
+          saved spot, which carries one frozen trace and no panel at all. */}
       {!panel.answer.ok && trace.state === "ready" && trace.value.station && (
         <GaugeTrace trace={trace.value} palette={palette} at={tiles} theme={theme}
                     from={from} />

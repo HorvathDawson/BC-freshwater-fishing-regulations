@@ -260,6 +260,15 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // No panel in the fixture (`panelsFor` is empty), so no routes. Empty and not a throw:
     // "this water has no donors" is a real answer the screens must render.
     async panelRoutes() { return []; },
+    // No `this`: a source is routinely destructured, and a fixture that only works while
+    // its methods are still attached to the object is a trap set for the next test.
+    async waterFor(sec) {
+      if (sec === JEPERSON.section)
+        return { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream" };
+      return sectionRules.has(sec)
+        ? { item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream" }
+        : null;
+    },
 
     async lakeInfo(i): Promise<LakeInfo | null> {
       if (i !== "wbk:329083342") return null;

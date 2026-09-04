@@ -28,6 +28,80 @@ export function standingWord(s: Standing): string {
   }[s];
 }
 
+/*
+ * PLAIN ENGLISH FOR A PERCENTILE ------------------------------------------------------
+ *
+ * "31st percentile for the date" is precise and, to most people, not information. The
+ * words below are the same fact said in a way somebody who has never met a percentile can
+ * act on, and they live here rather than in a component so the sheet, a saved spot and the
+ * map legend cannot each invent their own phrasing for the same number.
+ *
+ * NOTHING HERE IS A SECOND OPINION. Every function takes the percentile the arithmetic
+ * produced and only chooses words for it. Where the range is wide the words say so, rather
+ * than picking the midpoint and sounding confident.
+ */
+
+/** The month a reader would name, from a date — "early September", "late June". */
+export function seasonPhrase(when: Date): string {
+  const month = ["January", "February", "March", "April", "May", "June", "July",
+                 "August", "September", "October", "November", "December"][when.getMonth()]!;
+  const d = when.getDate();
+  return `${d <= 10 ? "early" : d <= 20 ? "mid" : "late"} ${month}`;
+}
+
+/**
+ * "lower than about 7 days in 10" — a percentile as a count out of ten.
+ *
+ * OUT OF TEN AND NOT OUT OF A HUNDRED, because the underlying number is not good to a
+ * hundredth: the transfer error alone is ±11.7 points at best. Ten is the precision the
+ * evidence supports and also the one people picture.
+ *
+ * Phrased as "lower/higher than N of 10" rather than "in the Nth percentile" because the
+ * comparison is the part that means something, and it is the part a percentile hides.
+ */
+export function inTen(percentile: number): string {
+  const below = Math.round(percentile * 10);
+  if (below <= 0) return "lower than almost every day on record for this time of year";
+  if (below >= 10) return "higher than almost every day on record for this time of year";
+  const side = below <= 5
+    ? `lower than ${10 - below} days in 10`
+    : `higher than ${below} days in 10`;
+  return `${side} at this time of year`;
+}
+
+/**
+ * The headline a reader sees before any number: what the water is doing, in four words.
+ *
+ * Deliberately NOT `standingWord`. That one is a technical label for a band ("MUCH BELOW
+ * NORMAL"), used where the band itself is the point — a legend, a chart axis. This is the
+ * sentence at the top of a screen, and it is written the way a person would say it.
+ */
+export function plainStanding(s: Standing): string {
+  return {
+    "much-below": "Very low for the time of year",
+    below: "Low for the time of year",
+    normal: "About normal for the time of year",
+    above: "High for the time of year",
+    "much-above": "Very high for the time of year",
+    "no-record": "No record to compare against",
+  }[s];
+}
+
+/**
+ * How sure to sound, from the width of the interval.
+ *
+ * The panel's honest output is a RANGE, and a range of 24 points and a range of 6 points
+ * are different claims that a bare "7th–31st" presents identically. These words are the
+ * difference, and they are calibrated to the measurement: the best possible donor is out by
+ * 11.7 points, so an interval under about 25 points wide (±12) is as good as this method
+ * gets and deserves to be called reasonably sure.
+ */
+export function confidenceWord(plusMinus: number): string {
+  if (plusMinus <= 13) return "fairly confident";
+  if (plusMinus <= 19) return "roughly";
+  return "very roughly";
+}
+
 /**
  * Percentile bands are stored every 5 days, not every day, and interpolated here.
  * Measured against the full daily envelope for five stations: mean error 0.44%, worst

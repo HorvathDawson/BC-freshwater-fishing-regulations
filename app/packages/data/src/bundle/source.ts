@@ -106,6 +106,15 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       return r ? (str(r.item_id) as ItemId) : null;
     },
 
+    async waterFor(id) {
+      const r = await db.get(Q.ITEM_FOR_SECTION, id);
+      if (!r) return null;
+      const item = await db.get(Q.ITEM, str(r.item_id));
+      return item
+        ? { item: str(item.item_id) as ItemId, name: str(item.name), kind: str(item.kind) }
+        : null;
+    },
+
     async regsForItem(id, on, group): Promise<ItemRegs | null> {
       const item = await db.get(Q.ITEM, id);
       if (!item) return null;

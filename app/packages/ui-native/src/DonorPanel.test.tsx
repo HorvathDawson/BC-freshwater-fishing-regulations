@@ -44,11 +44,16 @@ describe("the donor panel", () => {
     render(<DonorPanel palette={LIGHT} value={answer()} />);
     expect(screen.getByText("08MH001")).toBeTruthy();
     expect(screen.getByText("08MH024")).toBeTruthy();
-    // Scoped to the FACT line ("upstream · 120 km² · 2.4× apart"), not to the word
-    // anywhere on screen — the explanation beneath a row also says "downstream", and a
-    // bare word match counts that too.
-    expect(screen.getAllByText(/(upstream|downstream) · /).length).toBe(2);
-    expect(screen.getAllByText(/× apart|same size/).length).toBe(2);
+    // ANCHORED TO THE FACT LINE ("upstream · 120 km² · 2.4× apart"), not to the words
+    // anywhere on screen: the explanation under each row also says "downstream", and the
+    // screen-reader label for the row repeats the size too. A bare word match counts all
+    // of them and then reports a number that says nothing about the layout.
+    const facts = screen.getAllByText(/^(upstream|downstream) · .* · .*(apart|same size)$/);
+    expect(facts.length).toBe(2);
+    expect(facts.map((f) => f.textContent)).toEqual([
+      "upstream · 120 km² · 2.4× apart",
+      "downstream · 120 km² · 2.4× apart",
+    ]);
   });
 
   it("says a station is quiet rather than dropping it or printing a zero", () => {
@@ -119,7 +124,21 @@ describe("the donor panel", () => {
 
   it("gives the spot's own catchment, so a share can be checked", () => {
     render(<DonorPanel palette={LIGHT} value={answer()} />);
-    expect(screen.getByText(/This spot drains 50 km²/)).toBeTruthy();
+    expect(screen.getByText(/this spot drains 50 km²/)).toBeTruthy();
+  });
+
+  it("leads with a sentence, not a percentile", () => {
+    // The ask: someone with no statistics should be able to read the top of this panel.
+    render(<DonorPanel palette={LIGHT} value={answer({ percentile: 0.15 })} />);
+    expect(screen.getByText("Low for the time of year")).toBeTruthy();
+    expect(screen.getByText(/Lower than \d days in 10/)).toBeTruthy();
+    // ...and the precise number is still there, one size down, for a reader who wants it.
+    expect(screen.getByText(/\d+\w+–\d+\w+ percentile/)).toBeTruthy();
+  });
+
+  it("sounds less certain when the interval is wide", () => {
+    render(<DonorPanel palette={LIGHT} value={answer({ plusMinus: 22 })} />);
+    expect(screen.getByText(/very roughly/)).toBeTruthy();
   });
 
   it("says how far each gauge is in reaches when it knows the route", () => {

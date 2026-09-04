@@ -34,6 +34,11 @@ export interface Palette {
    * Separate from `stock` even though both are four-or-five arbitrary hues: reusing that
    * ramp would mean a change to how stocking recency is drawn silently repainting the
    * gauge map.
+   *
+   * AND EVERY ONE IS FAR FROM `accent`, which is the colour of the "you are here" marker
+   * standing among them. The third of these was a violet at ΔE 11 from it, so on a map with
+   * four gauges the reader could not tell which pin was the spot they had tapped — the one
+   * thing on that map that is not a gauge. `theme.test.ts` holds the separation.
    */
   donor: readonly [string, string, string, string];
   /**
@@ -102,7 +107,7 @@ export const LIGHT: Palette = {
   ...outcomes("light"),
   quiet: "#C3C8CD", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
   stock: ["#12873F", "#5E9B12", "#B58105", "#8A6A3A", "#8E979E"],
-  donor: ["#04879B", "#B5480B", "#5B3FBF", "#0E7A3D"],
+  donor: ["#04879B", "#B5480B", "#A81E6B", "#0E7A3D"],
   lift: HARD(3, "rgba(21,24,28,0.90)"), r: RADIUS,
 };
 
@@ -112,7 +117,7 @@ export const DARK: Palette = {
   ...outcomes("dark"),
   quiet: "#2F363D", accent: "#A97CFF", onAccent: "#100A22", live: "#37D6EA",
   stock: ["#2ED573", "#94D82D", "#FFC93C", "#C79A5E", "#69737B"],
-  donor: ["#37D6EA", "#FF9B54", "#B79BFF", "#4ADE80"],
+  donor: ["#37D6EA", "#FF9B54", "#FF7BB8", "#4ADE80"],
   // On a dark ground a black shadow is invisible, so the offset slab is the LINE
   // colour — the same "printed object" read, achieved with the only contrast there is.
   lift: HARD(3, "rgba(0,0,0,0.85)"), r: RADIUS,

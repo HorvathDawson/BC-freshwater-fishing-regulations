@@ -161,10 +161,27 @@ describe("<ConditionsScreen>", () => {
     gaugeParameters: async () => [],
     traceToGauge: async () => [],
     // The screen asks which water the reach belongs to, so the Regulations toggle has
-    // somewhere to go. A tile carries a section id and nothing else.
+    // somewhere to go and the screen has a title. A tile carries a section id and nothing
+    // else. Null here is the unnamed case — a reach on water with no registry item — and
+    // the screen must render without a title rather than without a screen.
     itemForSection: async () => null,
+    waterFor: async () => null,
+    panelsFor: async () => new Map(),
+    panelRoutes: async () => [],
     ...over,
   } as never);
+
+  it("names the water at the top, the way the Regulations face does", async () => {
+    // Two faces of one water must look like two faces of one water. This one used to open
+    // on a chart and a column of numbers with nothing saying which river.
+    const { ConditionsScreen } = await import("./ConditionsScreen");
+    const { findByText } = render(
+      <ConditionsScreen section={"1:0" as never} palette={LIGHT} onBack={() => {}}
+                        source={src({ waterFor: async () => ({ item: "gnis:1",
+                                                               name: "Coquihalla River",
+                                                               kind: "stream" }) })} />);
+    expect(await findByText("Coquihalla River")).toBeTruthy();
+  });
 
   it("says WHY there is no reading, rather than showing a blank", async () => {
     const { ConditionsScreen } = await import("./ConditionsScreen");

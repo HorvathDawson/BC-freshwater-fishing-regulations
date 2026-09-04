@@ -328,6 +328,16 @@ export interface RegsSource {
   // ---- identity -------------------------------------------------------
   itemExists(id: ItemId): Promise<boolean>;
   itemForSection(id: SectionId): Promise<ItemId | null>;
+  /**
+   * What water a reach is part of — its id, its name, and what kind of water it is.
+   *
+   * `itemForSection` above gives the id and leaves the caller to fetch the name, and the
+   * only thing that fetched a name was `regsForItem`, which also reads every section and
+   * every rule for the item. A screen that wants a TITLE was therefore either loading the
+   * whole regulation sheet or going without — and the Conditions screen went without, so a
+   * reader could open a chart with nothing on screen saying which river it was.
+   */
+  waterFor(id: SectionId): Promise<{ item: ItemId; name: string; kind: string } | null>;
 
   // ---- regulations ----------------------------------------------------
   regsForItem(id: ItemId, on: PlainDate, group: SpeciesGroup): Promise<ItemRegs | null>;

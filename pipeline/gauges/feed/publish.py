@@ -157,6 +157,107 @@ def percentile_of(value: float | None, band: list[float | None] | None) -> float
     return None
 
 
+# HOW FAR AHEAD THE MAP WILL LOOK.
+#
+# Not a horizon the models publish — CLEVER runs ten days hourly and ELF thirty daily — but
+# the days a person plans a trip around. Beyond about five the bounds on both models are
+# wide enough that the answer is "normal for the season" whatever the model says, which the
+# climatology already tells you without a forecast.
+HORIZONS = (1, 3, 5)
+
+# How far from the requested instant a model step may sit and still answer for it. CLEVER
+# steps hourly and ELF daily, so a day-grained model needs most of a day of slack; more than
+# this and the value is about a different day.
+FORECAST_TOLERANCE_H = 18.0
+
+# CLEVER FIRST. It is the short-range model — hourly, ten days, and calibrated against the
+# observed hydrograph — and every horizon here is inside its range. ELF is a thirty-day
+# seasonal-volume model; it answers a different question and is the fallback, not the peer.
+MODEL_ORDER = ("CLEVER", "ELF")
+
+
+def _parse(when: str) -> datetime | None:
+    """One forecast timestamp. Naive stamps are UTC — the models publish in UTC."""
+    try:
+        t = datetime.fromisoformat(when.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
+
+def forecast_at(series: dict | None, when: datetime,
+                quantity: str) -> float | None:
+    """The model's value NEAREST `when`, or None if no step is close enough.
+
+    NEAREST AND NOT INTERPOLATED. A forecast is a sequence of the model's own steps, and
+    a value between two of them is a number no model produced — which matters here because
+    the result is then ranked against a record and presented as a percentile. Reporting the
+    step the model actually published, or nothing, keeps every number on the map traceable
+    to a run.
+
+    Returns None past the end of the horizon rather than the last value, which would report
+    day thirty's forecast as day five's.
+    """
+    if not series:
+        return None
+    key = "level_mid" if quantity == "level" else "mid"
+    vals = series.get(key) or []
+    ats = series.get("at") or []
+    best: tuple[float, float] | None = None                 # (hours off, value)
+    for at, v in zip(ats, vals):
+        if v is None:
+            continue
+        t = _parse(str(at))
+        if t is None:
+            continue
+        off = abs((t - when).total_seconds()) / 3600.0
+        if off <= FORECAST_TOLERANCE_H and (best is None or off < best[0]):
+            best = (off, float(v))
+    return None if best is None else best[1]
+
+
+def forecast_percentiles(runs: dict | None, envelopes: dict | None,
+                         now: datetime) -> dict[str, dict]:
+    """`{"1": {"discharge": 0.42, "model": "CLEVER"}, ...}` — where the river is HEADING.
+
+    THE SAME RANKING AS TODAY'S, AGAINST A DIFFERENT DAY. The whole point of a percentile
+    for the date is that low in September is not low in June; a forecast three days out must
+    therefore be ranked against the envelope for THAT day, not today's. `band_for` already
+    interpolates between pentad centres, so this is one call per horizon with a moved clock.
+    Getting this wrong is invisible — the number looks reasonable either way — which is why
+    it is stated here rather than left to the reader of the call.
+
+    PER QUANTITY, like everything else in this file: CLEVER publishes discharge only, ELF
+    both, and a level forecast ranked against a discharge envelope is arithmetic across two
+    units. A horizon with nothing to say is ABSENT rather than null-filled — the map draws
+    ungauged grey for an absent one, which is the honest answer.
+    """
+    if not runs or not envelopes:
+        return {}
+    out: dict[str, dict] = {}
+    for days in HORIZONS:
+        when = now + timedelta(days=days)
+        for model in MODEL_ORDER:
+            run = runs.get(model) or {}
+            series = run.get("series")
+            if not series:
+                continue
+            got: dict = {}
+            for q in ("discharge", "level"):
+                v = forecast_at(series, when, q)
+                p = percentile_of(v, band_for(envelopes.get(q), when))
+                if p is not None:
+                    got[q] = p
+            if got:
+                # WHICH MODEL SAID SO travels with the number. Two models disagreeing about
+                # the same day is a real and frequent thing in the shoulder months, and a
+                # percentile with no attribution cannot be checked against the chart the
+                # sheet draws from the same run.
+                out[str(days)] = {**got, "model": model}
+                break                       # first model that can answer wins; see MODEL_ORDER
+    return out
+
+
 def fetch_temperatures(stations: list[str], hours: int = 24) -> dict[str, tuple[str, float]]:
     """station -> (timestamp, degrees C) for whoever is reporting one.
 

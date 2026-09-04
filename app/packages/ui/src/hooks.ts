@@ -128,6 +128,66 @@ export function useConditions(source: RegsSource, section: SectionId | null): As
 }
 
 /**
+ * Which water a reach belongs to, by name.
+ *
+ * One indexed read and no rules, so a screen can put a TITLE on itself without loading the
+ * regulation sheet to find one. The Conditions screen had no title at all for exactly that
+ * reason: the only thing that knew a water's name also read every rule it had.
+ */
+export function useWaterName(
+  source: RegsSource, section: SectionId | null,
+): Async<{ item: ItemId; name: string; kind: string } | null> {
+  return useAsync(
+    () => (section ? source.waterFor(section) : Promise.resolve(null)),
+    `water:${section ?? ""}`,
+    section !== null,
+  );
+}
+
+/**
+ * One station's own latest reading — whichever station you ask about.
+ *
+ * `useConditions` above answers "what does the ONE station matched to this reach say", and
+ * the station is not a parameter. That was the whole answer when a reach had one gauge; a
+ * donor panel has up to four, and a reader looking at a table of four with a chart of a
+ * fifth (the matched one, which need not be in the panel at all) is being shown two models
+ * and told they are one. This is the same reading, for a station the caller chooses.
+ */
+export function useStationReading(
+  source: RegsSource, station: StationId | null,
+): Async<Conditions> {
+  return useAsync(
+    async (): Promise<Conditions> => {
+      const empty: Conditions = {
+        station: null, stationName: null, discharge: null, level: null, percentile: null,
+        standing: null, trust: null, fetchedAt: null, trace: [], forecast: null,
+      };
+      if (!station) return empty;
+      const [now, series] = await Promise.all([
+        source.gaugeNow(station),
+        source.gaugeSeries(station, "72h"),
+      ]);
+      if (!now) return { ...empty, station };
+      return {
+        // `trust` and `trace` belong to a reach-to-station RELATIONSHIP, and there is none
+        // here: this is a station being asked what it reads. Null rather than borrowed from
+        // the matched link, which would attach one reach's trust band to another's gauge.
+        //
+        // `stationName` is null for the same reason it is not on a `Reading`: a reading has
+        // no name, and inventing one here would mean a second place that decides what a
+        // station is called. The caller already holds the name — it came with the donor.
+        station, stationName: null, trust: null, trace: [],
+        discharge: now.value.discharge, level: now.value.level,
+        percentile: now.value.percentile, standing: now.value.standing,
+        fetchedAt: now.fetchedAt, forecast: series?.value.forecast ?? null,
+      };
+    },
+    `reading:${station ?? ""}`,
+    station !== null,
+  );
+}
+
+/**
  * How this reach reaches its gauge, live.
  *
  * The other source of a `GaugeTrace` is a saved spot, which carries one frozen at capture
