@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { confidenceWord, inTen, plainStanding, seasonPhrase, standing } from "./flow";
+import { probit } from "./trust";
 
 describe("saying a percentile in plain words", () => {
   it("compares rather than ranks", () => {
@@ -49,5 +50,49 @@ describe("saying a percentile in plain words", () => {
     expect(seasonPhrase(new Date(2026, 8, 2))).toBe("early September");
     expect(seasonPhrase(new Date(2026, 5, 15))).toBe("mid June");
     expect(seasonPhrase(new Date(2026, 0, 31))).toBe("late January");
+  });
+});
+
+describe("the normal quantile", () => {
+  /** The bisection this replaced — kept here as the reference it is checked against. */
+  function bisect(p: number): number {
+    const cdf = (z: number) => {
+      const t = 1 / (1 + (0.3275911 * Math.abs(z)) / Math.SQRT2);
+      const y = 1 - (((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t
+                       - 0.284496736) * t + 0.254829592) * t) * Math.exp(-(z * z) / 2);
+      return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+    };
+    const q = Math.min(0.999, Math.max(0.001, p));
+    let lo = -6, hi = 6;
+    for (let i = 0; i < 60; i++) {
+      const mid = (lo + hi) / 2;
+      if (cdf(mid) < q) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  it("agrees with sixty rounds of bisection across the whole range", () => {
+    // The closed form exists because the map runs this over every reach in the viewport on
+    // every pan — 5.15 ms against 0.23 ms for 5,000 reaches of three donors. It is only
+    // allowed to be faster if it is also the same answer.
+    let worst = 0;
+    for (let i = 1; i < 999; i++) worst = Math.max(worst, Math.abs(bisect(i / 1000) - probit(i / 1000)));
+    expect(worst).toBeLessThan(1e-4);
+  });
+
+  it("is symmetric about the median", () => {
+    for (const p of [0.01, 0.1, 0.25, 0.4]) expect(probit(p)).toBeCloseTo(-probit(1 - p), 6);
+    expect(probit(0.5)).toBeCloseTo(0, 9);
+  });
+
+  it("gives the textbook quantiles", () => {
+    expect(probit(0.975)).toBeCloseTo(1.959964, 4);
+    expect(probit(0.95)).toBeCloseTo(1.644854, 4);
+    expect(probit(0.16)).toBeCloseTo(-0.994458, 4);
+  });
+
+  it("does not blow up at the ends", () => {
+    for (const p of [0, 1, -1, 2, NaN]) expect(Number.isFinite(probit(p)) || Number.isNaN(p))
+      .toBe(true);
   });
 });

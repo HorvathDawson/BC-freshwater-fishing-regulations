@@ -6,8 +6,8 @@
  * confident label built on one distant gauge, or a blank where a reader is owed a reason.
  * Every case below is one of those.
  */
-import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { NoEstimate } from "@app/core";
 import type { DonorRow, PanelAnswer } from "@app/ui";
 import { DonorPanel } from "./DonorPanel";
@@ -246,6 +246,26 @@ describe("the donor panel", () => {
       row("08A", { years: 6, factors: { share: 0.4, role: 1, record: 0.3 } }),
     ] }} />);
     expect(screen.getByText(/only 6 years of record, so it counts 30%/)).toBeTruthy();
+  });
+
+  it("offers the same horizons the map does, beside the number they change", () => {
+    // A reader who taps a river should not have to go back to the map to ask about Friday.
+    render(<DonorPanel palette={LIGHT} value={answer()} horizon={3} onHorizon={() => {}} />);
+    for (const t of ["Now", "+1d", "+3d", "+5d"]) expect(screen.getByText(t)).toBeTruthy();
+    expect(screen.getByLabelText("Forecast 3 days ahead, showing")).toBeTruthy();
+  });
+
+  it("hands back the horizon that was tapped", () => {
+    const onHorizon = vi.fn();
+    render(<DonorPanel palette={LIGHT} value={answer()} horizon={0} onHorizon={onHorizon} />);
+    fireEvent.click(screen.getByLabelText("Forecast 5 days ahead"));
+    expect(onHorizon).toHaveBeenCalledWith(5);
+  });
+
+  it("offers no horizons where the caller does not own one", () => {
+    // A saved spot renders this panel with a frozen reading and no map to steer.
+    render(<DonorPanel palette={LIGHT} value={answer()} />);
+    expect(screen.queryByText("+3d")).toBeNull();
   });
 
   it("describes each row for a screen reader, not only for the eye", () => {

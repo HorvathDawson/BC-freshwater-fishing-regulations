@@ -263,6 +263,19 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
     if (found) setItem(found);
   }, [source]);
 
+  /**
+   * Open a water from a list — and forget whichever reach the Conditions tab was on.
+   *
+   * The remembered reach exists so the Regulations round trip comes back where it started.
+   * It must not survive a jump to a DIFFERENT water, or the Conditions toggle on the
+   * Coquihalla's sheet would open the Fraser.
+   */
+  const openWater = useCallback((id: ItemId) => {
+    setCondSection(null);
+    setCondAt(null);
+    setItem(id);
+  }, []);
+
   const viewing = openSpot === null ? null : spots.find((s) => s.id === openSpot) ?? null;
   if (viewing) {
     const dirty = edit !== null
@@ -320,8 +333,19 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                    // a second one here. Opening it from a list means there is no tapped
                    // point, so the route map has no "you are here" — which is honest: the
                    // reader did not choose one.
-                   onConditions={(sec) => { setCondAt(null); setCondSection(sec);
-                                            setItem(null); setTab("conditions"); }}
+                   /*
+                    * BACK TO THE REACH YOU CAME FROM, when there is one.
+                    *
+                    * `sec` is this water's FIRST reach — the right answer when the sheet
+                    * was opened from a search or a list, and the wrong one when the reader
+                    * arrived from a tap two hundred kilometres upstream. `condSection` is
+                    * that tap, kept across the round trip and cleared by every route that
+                    * opens a DIFFERENT water (search, a map tap, a tab change).
+                    */
+                   onConditions={(sec) => {
+                     if (!condSection) { setCondAt(null); setCondSection(sec); }
+                     setItem(null); setTab("conditions");
+                   }}
                    onBack={() => setItem(null)} />
     : tab === "search"
       ? <SearchScreen source={source} palette={palette} onPick={setItem}
@@ -338,10 +362,24 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                             from={condAt}
                             // The same section -> item resolution a map tap uses, so the
                             // two cannot answer differently.
-                            onRegulations={(sec) => { setCondSection(null);
-                                                      void onPressFeature("stream", sec); }}
+                            /*
+                             * THE REACH IS REMEMBERED, not discarded.
+                             *
+                             * This cleared it, and the way back — the Regulations sheet's
+                             * own Conditions toggle — then had nothing to return to and
+                             * sent the reader to the FIRST reach of the whole water. Tap a
+                             * spot on the Fraser near Hope, look at the rules, come back,
+                             * and you were at Deas Island, 200 km downstream, with no "you
+                             * are here". One component, two completely different answers,
+                             * which reads as two different screens.
+                             */
+                            onRegulations={(sec) => {
+                              setItem(null);
+                              void onPressFeature("stream", sec);
+                            }}
                             onBack={() => setCondSection(null)} feed={feed}
-                            credits={attribution} horizon={horizon} />
+                            credits={attribution} horizon={horizon}
+                            onHorizon={setHorizon} />
       : tab === "map" || tab === "conditions"
         ? <MapScreen at={tiles} palette={palette} theme={theme} on={on}
                      camera={camera.current}
@@ -476,7 +514,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
           )}
         </LegendStrip>
       )}
-      <TabBar active={tab} onChange={(k) => { setItem(null); setTab(k); }} palette={palette} />
+      {/* A tab change is a change of subject: the remembered reach goes with it. */}
+      <TabBar active={tab} palette={palette}
+              onChange={(k) => { setItem(null); setCondSection(null); setCondAt(null);
+                                 setTab(k); }} />
 
       {onDateChange && (
         <DateSheet open={dateOpen} onClose={() => setDateOpen(false)} palette={palette}

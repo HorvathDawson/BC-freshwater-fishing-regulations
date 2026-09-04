@@ -1,8 +1,17 @@
 /**
- * The boundary checker is the rule that holds this workspace together, so it gets
- * its own tests. Every case below was a real bug during authoring: a bare
- * side-effect import and a multiline import that swallowed the statement above it
- * both slipped through the first version silently.
+ * THE TWO GATES THAT SCAN THE WHOLE TREE, tested together in ONE FILE because they cannot
+ * be tested apart.
+ *
+ * Each test writes a fixture into the real workspace and runs the real checker over the
+ * whole of it. vitest runs test FILES in parallel workers, so with a file each, one suite's
+ * fixtures were on disk while the other's checker walked past them — a flake that appeared
+ * only when both ran, which is to say only in `pnpm check`. Sharing a file makes them
+ * sequential by construction; unique fixture names (`_bnd*` / `_plat*`) make the failure
+ * legible if they are ever split again.
+ *
+ * Every case below was a real bug during authoring: a bare side-effect import, a multiline
+ * import that swallowed the statement above it, an import read out of a doc comment, and a
+ * banned API read out of the comment explaining why the file does not call it.
  */
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -119,5 +128,91 @@ describe("comments are not code", () => {
   it("does not mistake a string containing // for a comment", () => {
     expect(check("packages/core/src/_bnd.ts",
       'export const u = "https://example.com";\nimport "react-native";\n')).not.toBe(0);
+  });
+});
+
+/*
+ * Named `_plat*` so they cannot collide with check-boundaries.test.ts's `_bnd*`: both gates
+ * scan the whole tree and vitest runs test files in parallel workers, so each one's
+ * fixtures are on disk while the other's checker walks past them.
+ */
+/** Write files into the shared tree, run the checker, return its exit code. */
+function checkPlatform(files: Record<string, string>): number {
+  const paths = Object.keys(files).map((f) => `${ROOT}${f}`);
+  for (const [f, src] of Object.entries(files)) writeFileSync(`${ROOT}${f}`, src);
+  try {
+    execFileSync("node", [`${ROOT}tools/check-platform.mjs`], { stdio: "pipe" });
+    return 0;
+  } catch (e: any) {
+    return e.status ?? 1;
+  } finally {
+    for (const p of paths) rmSync(p, { force: true });
+  }
+}
+
+describe("platform parity", () => {
+  it("passes on a clean tree", () => {
+    expect(execFileSync("node", [`${ROOT}tools/check-platform.mjs`]).toString())
+      .toContain("clean");
+  });
+
+  it("catches a banned API in shared code", () => {
+    expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
+      'export const el = document.createElement("canvas");\n' })).not.toBe(0);
+  });
+
+  it("catches accessibilityState, which react-native-web silently ignores", () => {
+    // It does not warn and it does not throw — the prop is dropped and the element renders
+    // with no aria attribute at all, so a screen reader sees nothing and every test that
+    // looks at the DOM the way a sighted reader looks at the screen still passes.
+    expect(checkPlatform({ "packages/ui-native/src/_plat.tsx":
+      'export const a = <View accessibilityState={{ selected: true }} />;\n' })).not.toBe(0);
+  });
+
+  it("does not read a banned API out of a comment", () => {
+    // THE REGRESSION. `hatch.ts` explains that `document.createElement("canvas")` is a
+    // browser call this package may not make, and the gate failed on the explanation.
+    expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
+      '/**\n' +
+      ' * Not a canvas: `document.createElement("canvas")` is a browser API this package\n' +
+      ' * may not touch, so the pattern is built as bytes instead.\n' +
+      ' */\n' +
+      '// see also: accessibilityState is banned here\n' +
+      'export const x = 1;\n' })).toBe(0);
+  });
+
+  it("still sees a real call on the line after a comment", () => {
+    // The stripper must not eat code along with the comment it precedes.
+    expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
+      '/* explanation */ export const el = document.body;\n' })).not.toBe(0);
+  });
+
+  it("keeps string literals, where a banned API is usually a real dynamic call", () => {
+    expect(checkPlatform({ "packages/ui-native/src/_plat.ts":
+      'export const k = "document.";\n' })).not.toBe(0);
+  });
+
+  it("ignores platform variant files, which may use their own platform's APIs", () => {
+    // Both halves, because an incomplete variant set is its own violation — that is how a
+    // feature ships on one platform only.
+    expect(checkPlatform({
+      "packages/ui-native/src/_plat.web.ts": 'export const el = document.createElement("div");\n',
+      "packages/ui-native/src/_plat.native.ts": 'export const el = null;\n',
+    })).toBe(0);
+  });
+
+  it("catches a variant that ships on one platform only", () => {
+    expect(checkPlatform({
+      "packages/ui-native/src/_plat.web.ts": 'export const el = 1;\n',
+    })).not.toBe(0);
+  });
+
+  it("catches variants whose export surfaces differ", () => {
+    // A complete set still diverges if one side exports a helper the other does not —
+    // callers compile on one platform and fail on the other.
+    expect(checkPlatform({
+      "packages/ui-native/src/_plat.web.ts": 'export const a = 1;\nexport const b = 2;\n',
+      "packages/ui-native/src/_plat.native.ts": 'export const a = 1;\n',
+    })).not.toBe(0);
   });
 });

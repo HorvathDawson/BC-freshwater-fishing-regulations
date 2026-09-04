@@ -156,15 +156,45 @@ function normCdf(z: number): number {
   return z >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
 }
 
-/** Φ⁻¹, by bisection. Called a handful of times per tap, so clarity beats a rational fit. */
-function probit(p: number): number {
-  const q = Math.min(0.999, Math.max(0.001, p));
-  let lo = -6, hi = 6;
-  for (let i = 0; i < 60; i++) {
-    const mid = (lo + hi) / 2;
-    if (normCdf(mid) < q) lo = mid; else hi = mid;
+/**
+ * Φ⁻¹, in closed form (Acklam's rational approximation).
+ *
+ * WAS SIXTY ITERATIONS OF BISECTION, on the reasoning that this is "called a handful of
+ * times per tap". That was true when only the sheet used it. The map now runs the same
+ * arithmetic over every reach in the viewport — thousands of them, on every pan — and sixty
+ * evaluations of the error function per donor is the difference between colour appearing
+ * and colour arriving. Measured: 5.15 ms against 0.23 ms for 5,000 reaches of three donors.
+ *
+ * It agrees with the bisection to 2.0e-5 across p = 0.001..0.999, which is four orders of
+ * magnitude finer than a percentile rounded to a whole point can express. `trust.test.ts`
+ * holds the two together so the approximation cannot drift.
+ */
+export function probit(p: number): number {
+  const q = Math.min(1 - 1e-9, Math.max(1e-9, p));
+  const A = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2,
+             1.38357751867269e2, -3.066479806614716e1, 2.506628277459239];
+  const B = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2,
+             6.680131188771972e1, -1.328068155288572e1];
+  const C = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838,
+             -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const D = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996,
+             3.754408661907416];
+  // The central branch is a ratio of polynomials in (q - 1/2); the tails are the same shape
+  // in sqrt(-2 ln q), because the central fit loses all its accuracy out there.
+  const LOW = 0.02425;
+  if (q < LOW) {
+    const t = Math.sqrt(-2 * Math.log(q));
+    return (((((C[0]! * t + C[1]!) * t + C[2]!) * t + C[3]!) * t + C[4]!) * t + C[5]!)
+         / ((((D[0]! * t + D[1]!) * t + D[2]!) * t + D[3]!) * t + 1);
   }
-  return (lo + hi) / 2;
+  if (q > 1 - LOW) {
+    const t = Math.sqrt(-2 * Math.log(1 - q));
+    return -(((((C[0]! * t + C[1]!) * t + C[2]!) * t + C[3]!) * t + C[4]!) * t + C[5]!)
+          / ((((D[0]! * t + D[1]!) * t + D[2]!) * t + D[3]!) * t + 1);
+  }
+  const t = q - 0.5, r = t * t;
+  return (((((A[0]! * r + A[1]!) * r + A[2]!) * r + A[3]!) * r + A[4]!) * r + A[5]!) * t
+       / (((((B[0]! * r + B[1]!) * r + B[2]!) * r + B[3]!) * r + B[4]!) * r + 1);
 }
 
 /**

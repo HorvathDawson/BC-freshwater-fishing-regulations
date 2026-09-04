@@ -11,13 +11,14 @@
  * lets the desktop build its own layout over the same three questions without either side
  * being able to disagree about the answer.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
-         usePanelRoutes, useSeries, useStationReading, type Horizon } from "@app/ui";
+         usePanelRoutes, usePanelStandings, useSeries, useStationReading,
+         type Horizon } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { Credits } from "./Credits";
 import { FishSpinner } from "./FishSpinner";
@@ -36,7 +37,7 @@ export type Span = "72h" | "year";
 
 export function ConditionsPanel({ source, section, palette, tiles, theme, colour,
                                   parameter, onParameter, from, feed, scroll = true,
-                                  footer, credits, horizon = 0 }: {
+                                  footer, credits, horizon = 0, onHorizon }: {
   source: RegsSource; section: SectionId | null; palette: Palette;
   /** The live index, for the donor panel. Absent offline — it then says so. */
   feed?: { index(): Promise<Parameters<typeof usePanel>[1] extends undefined ? never : any> };
@@ -74,6 +75,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * today's answer under Friday's colouring, with nothing on screen saying so.
    */
   horizon?: Horizon;
+  /** Set the horizon from the sheet — see DonorPanel. Absent, the chips are not offered. */
+  onHorizon?: (d: Horizon) => void;
 }) {
   const conditions = useConditions(source, section);
   const trace = useGaugeTrace(source, section);
@@ -90,6 +93,30 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     source, section,
     usePanel(source, feed, section, parameter === "level" ? "level" : "discharge",
              horizon));
+  /*
+   * THE WATER BETWEEN HERE AND EACH GAUGE, COLOURED BY WHAT IT IS DOING.
+   *
+   * The route map drew the chain in one flat highlight colour, which says "this is the
+   * path" and nothing else — and the path is not the interesting part. What a reader wants
+   * to know is how the water they are standing in relates to the water at the gauge: 
+   * whether the whole river is low, or only this end of it. So the reaches on the route are
+   * coloured by their OWN percentile, at their own widths, from the same arithmetic the big
+   * map uses, and every other reach is left as unmeasured grey.
+   */
+  const chain = useMemo(
+    () => [...new Set(panel.rows.flatMap((r) => r.route?.path ?? []))],
+    [panel.rows]);
+  const routeStandings = usePanelStandings(
+    source, feed as Parameters<typeof usePanelStandings>[1], chain,
+    parameter ?? "both", horizon);
+  const routeData = useMemo(() => {
+    const values = Object.fromEntries(
+      [...routeStandings].map(([sec, p]) => [sec, { standing: p * 100 }]));
+    // Both layers get the same values: `standing` is keyed by SECTION, and a lake section
+    // is a section. A lake with no reading is simply absent from the map, as it should be.
+    return { stream: values, lake: values };
+  }, [routeStandings]);
+
   const matched = conditions.state === "ready" ? conditions.value : null;
   /*
    * THE CHART IS ABOUT A GAUGE THE READER CAN SEE IN THE LIST.
@@ -165,7 +192,8 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         working.
       */}
       <DonorPanel palette={palette} value={panel} at={tiles} theme={theme} from={from}
-                  selected={lead} onSelect={setPickedStation} horizon={horizon} />
+                  selected={lead} onSelect={setPickedStation} horizon={horizon}
+                  chain={chain} data={routeData} onHorizon={onHorizon} />
 
       {c?.discharge != null || c?.level != null ? (
         <View style={{ gap: 6 }}>

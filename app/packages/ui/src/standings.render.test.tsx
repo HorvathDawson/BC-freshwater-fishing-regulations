@@ -10,9 +10,9 @@
  * went quiet, while a tap on the same reach answered confidently from the rest of its
  * panel. The invariants did not change with the join, so they are kept and re-pointed.
  */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { usePanelStandings } from "./panel";
+import { clearPanelCache, usePanelStandings } from "./panel";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 
 const A = "111:0" as SectionId, B = "222:0" as SectionId;
@@ -39,6 +39,10 @@ const feed = (pct: Record<string, number | null>) => ({
       Object.entries(pct).map(([k, v]) => [k, { percentile: v }])),
   }),
 });
+
+// The panel cache is module state — a bundle does not change while the app runs — so each
+// test has to start from empty or it inherits the last one's viewport.
+beforeEach(clearPanelCache);
 
 describe("usePanelStandings", () => {
   it("joins a reach to the percentile its panel produces", async () => {
@@ -95,6 +99,41 @@ describe("usePanelStandings", () => {
     renderHook(() => usePanelStandings(
       { panelsFor, lakeStationsFor } as unknown as RegsSource, feed({}), [A, B]));
     await waitFor(() => expect(panelsFor).toHaveBeenCalledWith([A, B]));
+  });
+
+  it("reads a section's panel once, however often the viewport moves over it", async () => {
+    // The bundle does not change while the app runs, but the viewport does — constantly,
+    // and the query key is the viewport. Every pan used to re-read panels the client
+    // already had, over SQLite in WebAssembly on range requests, and the colour arrived a
+    // beat behind the map.
+    const panelsFor = vi.fn(async (secs: readonly SectionId[]) =>
+      new Map(secs.map((s) => [s, panel(["08A", 100])])));
+    const lakeStationsFor = vi.fn(async () => new Map());
+    const source = { panelsFor, lakeStationsFor } as unknown as RegsSource;
+    const { result, rerender } = renderHook(
+      ({ secs }) => usePanelStandings(source, feed({ "08A": 0.42 }), secs),
+      { initialProps: { secs: [A] as SectionId[] } });
+    await waitFor(() => expect(result.current.get(A)).toBeDefined());
+    rerender({ secs: [A, B] });                 // panned: one new reach, one already known
+    await waitFor(() => expect(result.current.get(B)).toBeDefined());
+    // Two calls, and the second asked ONLY for the reach it had not seen.
+    expect(panelsFor).toHaveBeenCalledTimes(2);
+    expect(panelsFor).toHaveBeenLastCalledWith([B]);
+  });
+
+  it("remembers that a section has NO panel, and stops asking", async () => {
+    // "Nothing qualifies here" is an answer. Re-asking for it on every pan is the same
+    // waste as re-asking for a panel — and most of the province is this case.
+    const panelsFor = vi.fn(async () => new Map());
+    const lakeStationsFor = vi.fn(async () => new Map());
+    const source = { panelsFor, lakeStationsFor } as unknown as RegsSource;
+    const { rerender } = renderHook(
+      ({ q }) => usePanelStandings(source, feed({}), [A], "both", q as never),
+      { initialProps: { q: 0 } });
+    await waitFor(() => expect(panelsFor).toHaveBeenCalledTimes(1));
+    rerender({ q: 1 });                          // same reach, different question
+    await new Promise((r) => setTimeout(r, 20));
+    expect(panelsFor).toHaveBeenCalledTimes(1);
   });
 
   it("does not query at all with nothing on screen", async () => {

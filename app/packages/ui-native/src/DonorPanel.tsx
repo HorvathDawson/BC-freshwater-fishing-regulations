@@ -98,7 +98,7 @@ function because(r: DonorRow): string {
 }
 
 export function DonorPanel({ palette, value, at, theme, from, selected, onSelect,
-                             horizon = 0 }: {
+                             horizon = 0, onHorizon, chain: chainProp, data }: {
   palette: Palette; value: PanelAnswer;
   /** The tiles, when the caller has them — then the donors are DRAWN as well as listed. */
   at?: TileEndpoints; theme?: string;
@@ -114,6 +114,16 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
    */
   selected?: StationId | null; onSelect?: (station: StationId) => void;
   /**
+   * The reaches between here and the gauges, and what each of them is doing.
+   *
+   * COMPUTED BY THE CALLER, because it needs the bundle and the feed and this component
+   * takes neither. Drawn as COLOUR rather than as a flat highlight: the path itself is not
+   * the interesting part — how the water here relates to the water at the gauge is, and a
+   * single highlight colour cannot say whether the whole river is low or only this end.
+   */
+  chain?: readonly string[];
+  data?: Record<string, Record<string, Record<string, unknown>>>;
+  /**
    * How far ahead this estimate is for — 0 is now.
    *
    * The panel does not compute differently for a forecast; the donors, the weights and the
@@ -123,6 +133,14 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
    * measurement.
    */
   horizon?: 0 | 1 | 3 | 5;
+  /**
+   * Change the horizon from here, when the caller owns it.
+   *
+   * The map has these chips in its corner, and a reader who taps a river to see the detail
+   * should not have to go back to the map to ask about Friday. Same control, same days,
+   * beside the number it changes.
+   */
+  onHorizon?: (d: 0 | 1 | 3 | 5) => void;
 }) {
   /*
    * MEASURED, NOT ASSUMED. The panel is rendered at every width from a phone to a desktop
@@ -183,10 +201,10 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
   const showFrom = from && !atSpot;
   const hereLabel = (r: DonorRow) =>
     r === atSpot ? `you are here · ${r.station}` : r.station;
-  // The reaches between here and each gauge, unioned. One highlight colour rather than
-  // one per donor: MapLibre paints a selected reach from a single style layer, and a
-  // reach on two donors' routes could only be one of them anyway.
-  const chain = [...new Set(rows.flatMap((r) => r.route?.path ?? []))];
+  // The reaches between here and each gauge, unioned. Supplied by the caller when it has
+  // their readings too; derived here otherwise, so a surface with no feed still draws the
+  // chain it knows about.
+  const chain = chainProp ?? [...new Set(rows.flatMap((r) => r.route?.path ?? []))];
 
   return (
     // Measured on the ROOT, which renders on the first pass — so the width is known before
@@ -229,6 +247,33 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
         {value.areaKm2 != null ? ` · this spot drains ${area(value.areaKm2)}` : ""}
       </Text>
 
+      {/* THE SAME DAYS, IN THE SAME ORDER, as the map's own corner control — so a reader
+          who has learned one has learned the other, and the estimate can be asked about
+          Friday without going back to the map to ask it. */}
+      {onHorizon && (
+        <View style={{ flexDirection: "row", gap: 6, marginTop: 10 }}>
+          {([0, 1, 3, 5] as const).map((d) => {
+            const on = d === horizon;
+            return (
+              <Pressable key={d} onPress={() => onHorizon(d)} accessibilityRole="button"
+                         aria-selected={on}
+                         accessibilityLabel={(d === 0 ? "Conditions now"
+                           : `Forecast ${d} day${d === 1 ? "" : "s"} ahead`)
+                           + (on ? ", showing" : "")}
+                         style={{ paddingVertical: 6, paddingHorizontal: 12,
+                                  borderRadius: palette.r.pill, borderWidth: 1,
+                                  borderColor: on ? palette.accent : palette.line,
+                                  backgroundColor: on ? palette.accent : "transparent" }}>
+                <Text style={{ ...TYPE.micro, fontSize: 12.5, fontWeight: "600",
+                               color: on ? palette.onAccent : palette.sub }}>
+                  {d === 0 ? "Now" : `+${d}d`}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
       {/* THE MAP WAITS FOR THE ROUTES. A MapLibre map reads its opening camera once, on
           mount, and ignores every later change — so a map mounted before the walks finish
           is framed on the tap alone and stays there, showing one pin of five. Rendering
@@ -246,7 +291,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
           <MiniMap key={`${camera.lon.toFixed(3)},${camera.lat.toFixed(3)},`
                         + `${camera.zoom.toFixed(1)}`}
                    at={at} palette={palette} theme={theme} camera={camera} height={MAP_H}
-                   bare view="conditions" highlight={chain}
+                   bare view="conditions" highlight={chain} data={data}
                    pins={[
                      ...(showFrom ? [{ lat: from!.lat, lon: from!.lon, tone: palette.accent,
                                        title: "you are here" }] : []),

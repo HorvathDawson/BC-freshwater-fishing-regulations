@@ -158,6 +158,59 @@ export function answerFrom(panel: Panel | undefined, index: Index,
            areaKm2: panel.areaKm2, routesReady: false };
 }
 
+/*
+ * PANELS ARE READ ONCE PER SECTION, EVER.
+ *
+ * They come out of the bundle, which does not change while the app is running — but the
+ * viewport does, constantly, and the query key is the viewport. So every pan re-read
+ * panels the client already had, over SQLite in WebAssembly on top of range requests, and
+ * the colour arrived a beat behind the map.
+ *
+ * `null` is cached as firmly as a panel: "nothing qualifies here" is an answer and re-asking
+ * for it on every pan is the same waste. The feed is NOT cached here — it is the half that
+ * changes, and it is one small fetch the async layer already dedupes.
+ *
+ * Bounded, because a long session over a whole province would otherwise hold every panel
+ * in the bundle. Oldest-first eviction: a reader who has panned away is unlikely to be
+ * about to pan back onto the very first reaches they saw.
+ */
+const PANEL_CACHE_MAX = 60_000;
+const panelCache = new Map<string, Panel | null>();
+
+async function cached(source: RegsSource,
+                      sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, Panel>> {
+  const out = new Map<SectionId, Panel>();
+  const missing: SectionId[] = [];
+  for (const s of sections) {
+    const hit = panelCache.get(s);
+    if (hit === undefined) missing.push(s);
+    else if (hit !== null) out.set(s, hit);
+  }
+  if (missing.length) {
+    const got = await source.panelsFor(missing);
+    for (const s of missing) {
+      const panel = got.get(s) ?? null;
+      panelCache.set(s, panel);
+      if (panel) out.set(s, panel);
+    }
+    // Evict in insertion order — Map iterates oldest first, so this is one pass.
+    if (panelCache.size > PANEL_CACHE_MAX) {
+      const over = panelCache.size - PANEL_CACHE_MAX;
+      let n = 0;
+      for (const k of panelCache.keys()) {
+        panelCache.delete(k);
+        if (++n >= over) break;
+      }
+    }
+  }
+  return out;
+}
+
+/** Test seam: the cache is module state and a test must be able to start from empty. */
+export function clearPanelCache(): void {
+  panelCache.clear();
+}
+
 /**
  * THE MAP, COLOURED THE WAY THE SHEET ANSWERS.
  *
@@ -200,7 +253,7 @@ export function usePanelStandings(
       const out = new Map<SectionId, number>();
       if (!feed || !sections.length) return out;
       const [panels, lakes, idx] = await Promise.all([
-        source.panelsFor(sections),
+        cached(source, sections),
         source.lakeStationsFor(sections),
         feed.index(),
       ]);
