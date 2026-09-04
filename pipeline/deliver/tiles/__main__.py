@@ -24,6 +24,10 @@ def main() -> None:
     ap.add_argument("--skip-water", action="store_true")
     ap.add_argument("--geojson-only", action="store_true",
                     help="write the layer files but do not run tippecanoe")
+    ap.add_argument("--tiles-only", action="store_true",
+                    help="run tippecanoe over the layer files ALREADY in --out/layers and "
+                         "skip the export. For changes to the tippecanoe invocation, where "
+                         "re-deriving the same geometry is ~40 min of wasted work.")
     ap.add_argument("--verbose", action="store_true")
     ap.add_argument("--write-contract", action="store_true",
                     help="regenerate pipeline/deliver/tiles/tile-contract.json and stop. The app's "
@@ -45,6 +49,18 @@ def main() -> None:
     tippe.check()                       # fail before an hour of work, not after
 
     t0 = time.time()
+    if a.tiles_only:
+        # The layer files are the export's whole output and nothing here changes them, so a
+        # tippecanoe-side change can be validated against the ones already on disk.
+        if not any(layer_dir.glob("*.geojsonl")):
+            raise SystemExit(f"--tiles-only: no layer files in {layer_dir}. "
+                             "Run without it once to export them.")
+        out = tippe.build(layer_dir, out_dir / "atlas.pmtiles",
+                          minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
+        print(f"\n{out}  {out.stat().st_size / 1e6:,.1f} MB   "
+              f"tiles took {time.time() - t0:,.0f}s")
+        return
+
     counts: dict[str, int] = {}
     print("admin geography")
     counts |= export.export_admin(a.gpkg, layer_dir)
