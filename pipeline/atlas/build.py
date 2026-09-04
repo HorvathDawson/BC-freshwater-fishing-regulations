@@ -326,6 +326,13 @@ def main() -> None:
                          "you are about to curate.")
     ap.add_argument("--no-gauge-splits", action="store_true",
                     help="do not section rivers at their hydrometric stations")
+    ap.add_argument("--max-section-km", type=float, default=25.0, metavar="KM",
+                    help="cap section length: any section longer than this is cut at its "
+                         "interior tributary confluences until it fits (default 25). A cut "
+                         "lands where the river's drainage actually changes, so each piece "
+                         "gets its own catchment, donor panel and colour — see "
+                         "pipeline/atlas/splits/length_splits.py for the measured cost of "
+                         "each setting. 0 disables the stage.")
     ap.add_argument("--added-lakes", help="path to an added_lakes.geojson (default: the packaged one)")
     ap.add_argument("--no-added-lakes", action="store_true",
                     help="skip the curated non-FWA lake polygons (see pipeline/atlas/waters/added_lakes)")
@@ -711,6 +718,44 @@ def main() -> None:
             else:
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), membership-only (no cut)")
         _tick("blanket area splits (cut only)")
+
+    # LENGTH CAP — the last cut, and the only one that is not about a named feature.
+    #
+    # Everything above cuts where somebody drew a line: a lake, a border, a closure, a
+    # hand-authored point, a gauge. What is left over is a section that no line happened to
+    # cross and that is simply too long to describe with one number — the Fraser between two
+    # stations, a 44 km named reach with a dozen tributaries inside it. This cuts those at
+    # their own interior confluences, which is where their drainage actually changes.
+    #
+    # LAST, so it only spends a cut where nothing else reached. BEFORE the membership passes
+    # below, because `_split_one` copies the parent's attributes onto the new piece and a
+    # piece split after them would inherit MU and area flags across boundaries it crosses.
+    if args.max_section_km and args.max_section_km > 0:
+        from pipeline.common.models import NodeKind as _LenNK
+        from pipeline.atlas.splits.length_splits import junction_cuts
+        from pipeline.atlas.splits.sectionizer import split_graph_at
+        _cap_m = args.max_section_km * 1000.0
+        _len_pts = junction_cuts(graph, cap_m=_cap_m)
+        if _len_pts:
+            _before = len(graph.nodes)
+            split_graph_at(graph, geoms, _len_pts, fid_index, proximity_pickup=False,
+                           applied=applied_splits)
+            _named = sum(1 for p in _len_pts if p.label)
+            # The share landing at a NAMED tributary is the reviewable number here: those
+            # cuts produce a section a reader can locate ("downstream of Sloquet Creek"),
+            # the rest produce an honest but unlabelled break.
+            print(f"  length cap {args.max_section_km:g} km: {len(_len_pts)} confluence cut(s), "
+                  f"{_named} at a named tributary -> {len(graph.nodes) - _before} new section(s)")
+            # A section with NO interior confluence cannot be cut and stays long. Almost all
+            # of them are out-of-BC reaches, where FWA carries no tributaries at all — there
+            # is nothing known to change along them, so this is a fact, not a failure.
+            _still = [n for n in graph.nodes.values()
+                      if n.kind == _LenNK.stream and n.length_m > _cap_m]
+            if _still:
+                _oob = sum(1 for n in _still if n.out_of_bc)
+                print(f"    {len(_still)} section(s) still over the cap "
+                      f"({_oob} outside BC, where there are no tributaries to cut at)")
+        _tick("length cap splits")
 
     # AREA MEMBERSHIP (supersedes the 2026-08-16 "lazy at resolve time" decision). Membership is
     # computed HERE, for every catalog area, because resolve time cannot afford it: testing a polygon

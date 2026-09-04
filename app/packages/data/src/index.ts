@@ -138,6 +138,32 @@ export interface Panel {
   members: readonly PanelMember[];
 }
 
+/**
+ * One donor, placed: where it stands and how the water gets from here to it.
+ *
+ * SEPARATE FROM `PanelMember` ON PURPOSE. A member is interned in the panel dictionary and
+ * shared by every section with the same donor set, so it can hold nothing that varies with
+ * the target — and a route is nothing but that. This is resolved per section, on demand,
+ * only for the one reach a reader has opened.
+ */
+export interface PanelRoute {
+  station: StationId;
+  name: string | null;
+  /** ECCC's own coordinate. Null where they published none — pin nothing rather than guess. */
+  lon: number | null;
+  lat: number | null;
+  role: "up" | "down";
+  /**
+   * The chain of reaches between the spot and this gauge, SPOT FIRST, gauge last.
+   *
+   * Empty when the chain cannot be walked — the pointers only exist inside a gauge's
+   * watershed, and a donor reached through country outside every shed has a real
+   * relationship this table cannot draw. An empty path means "not drawable", never "not
+   * related": the donor is still in the panel and still carries its weight.
+   */
+  path: readonly SectionId[];
+}
+
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */
 export type Parameter = "discharge" | "level";
 
@@ -361,6 +387,18 @@ export interface RegsSource {
   gaugeParameters(station: StationId): Promise<readonly Parameter[]>;
   /** Downstream from here to the station that measures it, via the build's pointers. */
   traceToGauge(from: SectionId): Promise<readonly SectionId[]>;
+  /**
+   * Every donor in this section's panel, placed on the map with the water between.
+   *
+   * `traceToGauge` above answers for the ONE matched station and only downstream. This
+   * answers for the whole panel in both directions, which is what the estimate is actually
+   * built from — a reader shown four contributing gauges and a map of one has been shown
+   * the wrong model.
+   *
+   * Ordered as the panel stores it; the caller sorts by the weight it computes, so the map
+   * and the table beneath it stay in the same order.
+   */
+  panelRoutes(section: SectionId): Promise<readonly PanelRoute[]>;
 
   // ---- lakes ----------------------------------------------------------
   lakeInfo(id: ItemId): Promise<LakeInfo | null>;

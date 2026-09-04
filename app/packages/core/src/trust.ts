@@ -115,9 +115,35 @@ const DOWNSTREAM_PENALTY = 0.85;
 const RECORD_FULL_YEARS = 20;
 const MIN_TOTAL_WEIGHT = 0.05;
 
+/**
+ * The three things a donor's weight is made of, unmultiplied.
+ *
+ * Exported so a screen can SHOW the working — "counts for 83% because it is nearly the
+ * same size, sits upstream, and has ten years" — without restating the formula in a
+ * component, where it would drift from the one the answer was computed with. `weightFor`
+ * is this multiplied out, and nothing else may reimplement either.
+ */
+export interface WeightFactors {
+  /** Catchment overlap: the smaller area over the larger, 0–1. Dominates the product. */
+  share: number;
+  /** 1 upstream, `DOWNSTREAM_PENALTY` below — a gauge below you has extra water in it. */
+  role: number;
+  /** Record length against `RECORD_FULL_YEARS`, capped at 1. Ten years is worth half. */
+  record: number;
+}
+
+export function weightFactors(share: number, role: "up" | "down",
+                              years: number): WeightFactors {
+  return {
+    share,
+    role: role === "up" ? 1 : DOWNSTREAM_PENALTY,
+    record: Math.min(1, Math.max(0, years / RECORD_FULL_YEARS)),
+  };
+}
+
 export function weightFor(share: number, role: "up" | "down", years: number): number {
-  const rec = Math.min(1, Math.max(0, years / RECORD_FULL_YEARS));
-  return share * (role === "up" ? 1 : DOWNSTREAM_PENALTY) * rec;
+  const f = weightFactors(share, role, years);
+  return f.share * f.role * f.record;
 }
 
 /** Φ, the normal CDF, via the error function. */

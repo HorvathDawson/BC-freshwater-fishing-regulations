@@ -24,6 +24,19 @@ export interface Palette {
   /** Stocking recency ramp, most recent first. Rule 29: every bucket coloured. */
   stock: readonly [string, string, string, string, string];
   /**
+   * IDENTITY, NOT MAGNITUDE — one tone per donor in a panel, in weight order.
+   *
+   * These say "this pin is that row", nothing more. They are deliberately not a ramp: a
+   * ramp would encode weight a second time, and the bar and the percentage already do
+   * that, so the strongest colour would land on the heaviest donor and read as a severity.
+   * Four, because a panel holds at most four members (MAX_MEMBERS in panel.py).
+   *
+   * Separate from `stock` even though both are four-or-five arbitrary hues: reusing that
+   * ramp would mean a change to how stocking recency is drawn silently repainting the
+   * gauge map.
+   */
+  donor: readonly [string, string, string, string];
+  /**
    * Elevation. `boxShadow` — the `shadow*` props are deprecated in React Native 0.76+ and
    * warn on every render on web.
    */
@@ -89,6 +102,7 @@ export const LIGHT: Palette = {
   ...outcomes("light"),
   quiet: "#C3C8CD", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
   stock: ["#12873F", "#5E9B12", "#B58105", "#8A6A3A", "#8E979E"],
+  donor: ["#04879B", "#B5480B", "#5B3FBF", "#0E7A3D"],
   lift: HARD(3, "rgba(21,24,28,0.90)"), r: RADIUS,
 };
 
@@ -98,6 +112,7 @@ export const DARK: Palette = {
   ...outcomes("dark"),
   quiet: "#2F363D", accent: "#A97CFF", onAccent: "#100A22", live: "#37D6EA",
   stock: ["#2ED573", "#94D82D", "#FFC93C", "#C79A5E", "#69737B"],
+  donor: ["#37D6EA", "#FF9B54", "#B79BFF", "#4ADE80"],
   // On a dark ground a black shadow is invisible, so the offset slab is the LINE
   // colour — the same "printed object" read, achieved with the only contrast there is.
   lift: HARD(3, "rgba(0,0,0,0.85)"), r: RADIUS,

@@ -17,7 +17,7 @@ import { standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
-         useSeries } from "@app/ui";
+         usePanelRoutes, useSeries } from "@app/ui";
 import { ChartControls } from "./ChartControls";
 import { FishSpinner } from "./FishSpinner";
 import { DonorPanel } from "./DonorPanel";
@@ -68,7 +68,9 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * on purpose, because the trace is how a reader checks the panel's claim about direction
    * and distance against the map.
    */
-  const panel = usePanel(source, feed, section, parameter === "level" ? "level" : "discharge");
+  const panel = usePanelRoutes(
+    source, section,
+    usePanel(source, feed, section, parameter === "level" ? "level" : "discharge"));
   const c = conditions.state === "ready" ? conditions.value : null;
   const station = c?.station ?? null;
 
@@ -208,9 +210,17 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
         </View>
       )}
 
-      <DonorPanel palette={palette} value={panel} />
+      {/* THE PANEL OWNS THE MAP NOW. It used to sit above a second, separate map of the
+          ONE matched station — four gauges listed here, one drawn below, which reads as a
+          contradiction and is really two models on one screen. `GaugeTrace` still exists
+          and is still right for a saved spot, which carries a single frozen trace and no
+          panel at all. */}
+      <DonorPanel palette={palette} value={panel} at={tiles} theme={theme} from={from} />
 
-      {trace.state === "ready" && (
+      {/* THE SINGLE-STATION TRACE IS THE FALLBACK, not the companion: shown only where the
+          panel could not answer, so water with no panel still gets the older, narrower
+          explanation rather than an empty space. */}
+      {!panel.answer.ok && trace.state === "ready" && trace.value.station && (
         <GaugeTrace trace={trace.value} palette={palette} at={tiles} theme={theme}
                     from={from} />
       )}

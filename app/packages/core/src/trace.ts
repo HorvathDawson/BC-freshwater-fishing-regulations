@@ -79,6 +79,64 @@ export function routeCamera(t: GaugeTrace, from?: { lat: number; lon: number } |
   return { lon, lat, zoom };
 }
 
+/**
+ * Where to point a small map so a WHOLE PANEL fits on it — every donor, and the spot.
+ *
+ * `routeCamera` above frames one gauge and one point. A panel is four gauges that may sit
+ * on three different rivers, and framing only the heaviest one puts the others off the
+ * edge — which draws exactly the picture the panel exists to correct, a single gauge
+ * standing in for a set.
+ *
+ * Same arithmetic as the two-point case, over a bounding box: centre on the middle, and
+ * take the zoom from the span, with longitude narrowed by latitude. Returns null when
+ * there is nothing to frame, so a caller draws no map rather than a map of nowhere.
+ */
+export function panelCamera(
+  points: readonly { lat: number | null; lon: number | null }[],
+  from?: { lat: number; lon: number } | null,
+): { lon: number; lat: number; zoom: number } | null {
+  const pts = [...points, ...(from ? [from] : [])]
+    .filter((p): p is { lat: number; lon: number } => p.lat !== null && p.lon !== null);
+  if (!pts.length) return null;
+  const lats = pts.map((p) => p.lat);
+  const lons = pts.map((p) => p.lon);
+  const lat = (Math.min(...lats) + Math.max(...lats)) / 2;
+  const lon = (Math.min(...lons) + Math.max(...lons)) / 2;
+  const dLat = Math.max(...lats) - Math.min(...lats);
+  const dLon = (Math.max(...lons) - Math.min(...lons)) * Math.cos((lat * Math.PI) / 180);
+  const spread = Math.max(dLat, dLon);
+  const zoom = spread <= 0
+    ? 12.5
+    : Math.max(5, Math.min(13, Math.log2(360 / (spread * 1.6 * 256 / 220))));
+  return { lon, lat, zoom };
+}
+
+/**
+ * How far apart two coordinates are, in metres.
+ *
+ * Equirectangular rather than haversine, which is accurate to well under a percent at the
+ * distances this is asked about (a few hundred metres) and is not asked about any others:
+ * the one question is "are these two marks the same place", where being out by a metre
+ * changes nothing and the extra trigonometry earns nothing.
+ */
+export function metresApart(a: { lat: number; lon: number },
+                            b: { lat: number; lon: number }): number {
+  const lat = ((a.lat + b.lat) / 2) * (Math.PI / 180);
+  const dLat = (a.lat - b.lat) * 111_320;
+  const dLon = (a.lon - b.lon) * 111_320 * Math.cos(lat);
+  return Math.hypot(dLat, dLon);
+}
+
+/**
+ * Close enough that two pins on a small map would sit on top of each other.
+ *
+ * A gauge IS often the place you tapped — you tapped the river at the station, or the
+ * station is the only thing on that reach — and drawing "you are here" under a gauge pin
+ * makes the map look like it lost one of them. 250 m is roughly a marker's width at the
+ * zoom these maps use.
+ */
+export const SAME_PLACE_M = 250;
+
 /** The gauge is on this very reach — there is no distance to travel. */
 export const onTheReach = (t: GaugeTrace): boolean =>
   t.station !== null && t.path.length <= 1;

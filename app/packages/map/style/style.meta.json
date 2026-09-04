@@ -67,7 +67,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
-        "lake__edge": "plain",
+        "lake__edge": "closure",
         "region__edge": "plain",
         "mu__edge": "plain",
         "indigenous_land__label": "plain",
@@ -108,7 +108,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
-        "lake__edge": "plain",
+        "lake__edge": "standing",
         "region__edge": "plain",
         "mu__edge": "plain",
         "indigenous_land__label": "plain",
@@ -189,7 +189,7 @@
         "no_access_permit__edge": "plain",
         "eco_reserve__edge": "plain",
         "park_closed__edge": "plain",
-        "lake__edge": "plain",
+        "lake__edge": "stocked",
         "region__edge": "plain",
         "mu__edge": "plain",
         "indigenous_land__label": "plain",
@@ -797,6 +797,153 @@
         "scale": "static",
         "color": {
           "token": "color.water.mapped"
+        }
+      },
+      "closure": {
+        "label": "Open / closed",
+        "scale": "categorical",
+        "property": "status",
+        "enum": "reg_status",
+        "categories": {
+          "open": {
+            "token": "color.status.open"
+          },
+          "restricted": {
+            "token": "color.status.restricted"
+          },
+          "closed": {
+            "token": "color.status.closed"
+          },
+          "unknown": {
+            "token": "color.status.unknown"
+          }
+        },
+        "missing": {
+          "token": "color.water.unmapped"
+        },
+        "data": {
+          "provider": "regs",
+          "field": "status",
+          "params": [
+            "date",
+            "species"
+          ]
+        },
+        "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+      },
+      "standing": {
+        "label": "Flow for the date",
+        "scale": "continuous",
+        "property": "standing",
+        "stops": [
+          [
+            -1,
+            {
+              "token": "color.flow.nobaseline"
+            }
+          ],
+          [
+            0,
+            {
+              "token": "color.flow.f1"
+            }
+          ],
+          [
+            10,
+            {
+              "token": "color.flow.f2"
+            }
+          ],
+          [
+            25,
+            {
+              "token": "color.flow.f3"
+            }
+          ],
+          [
+            50,
+            {
+              "token": "color.flow.f4"
+            }
+          ],
+          [
+            75,
+            {
+              "token": "color.flow.f5"
+            }
+          ],
+          [
+            90,
+            {
+              "token": "color.flow.f6"
+            }
+          ],
+          [
+            100,
+            {
+              "token": "color.flow.f7"
+            }
+          ]
+        ],
+        "missing": {
+          "token": "color.water.ungauged"
+        },
+        "data": {
+          "provider": "gauges",
+          "field": "standing"
+        },
+        "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it — `lake_gauge`, 196 rows — and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data."
+      },
+      "stocked": {
+        "label": "Last stocked",
+        "scale": "categorical",
+        "property": "stocked",
+        "enum": "stock_recency",
+        "categories": {
+          "season": {
+            "token": "color.stock.fresh"
+          },
+          "year": {
+            "token": "color.stock.recent"
+          },
+          "recent": {
+            "token": "color.stock.recent"
+          },
+          "old": {
+            "token": "color.stock.old"
+          },
+          "never": {
+            "token": "color.lake.fill"
+          }
+        },
+        "missing": {
+          "token": "color.lake.fill"
+        },
+        "data": {
+          "provider": "stocking",
+          "field": "recency"
+        }
+      },
+      "surveyed": {
+        "label": "Depth",
+        "scale": "categorical",
+        "property": "survey",
+        "enum": "survey_state",
+        "$comment": "Depth is about which lakes have been SURVEYED, not only which have digitised contours. 2,741 bathymetric sheets exist and only a fraction were ever traced into vector contours — colouring by contours alone shows a near-empty map and tells a reader the province was never surveyed, which is the opposite of true.",
+        "categories": {
+          "digitised": {
+            "token": "color.survey.digitised"
+          },
+          "sheet": {
+            "token": "color.survey.sheet"
+          }
+        },
+        "missing": {
+          "token": "color.lake.fill"
+        },
+        "data": {
+          "provider": "lakes",
+          "field": "survey"
         }
       }
     },

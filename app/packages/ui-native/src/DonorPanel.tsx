@@ -1,20 +1,28 @@
 /**
- * WHO SAID SO — the gauges behind an estimate, and how much each one counted.
+ * WHO SAID SO — the gauges behind an estimate, where they are, and what each one counted.
  *
  * A single percentile with nothing behind it asks a reader to trust an arithmetic they
  * cannot see, on water that may have no gauge within fifty kilometres. This is the working:
- * which stations spoke, where they sit, how far off they are in catchment size, and what
- * each contributed. It is also the honest place to show that the answer often rests on ONE
- * distant gauge — which is true for most of the province and is not visible in a number.
+ * which stations spoke, where they stand, how the water reaches them, how far off they are
+ * in catchment size, and what each contributed. It is also the honest place to show that
+ * the answer often rests on ONE gauge — true for most of the province, and invisible in a
+ * number.
  *
  * THE ANSWER IS A RANGE, NOT A POINT, and that is measured rather than stylistic: over
  * 9,495 nested gauge pairs even a donor of nearly identical size is out by 11.7 percentile
  * points at the median. Nothing here is precise enough to be a single number.
+ *
+ * THE MAP IS PART OF THE ARGUMENT, not decoration beside it. The panel's whole claim is
+ * that these particular gauges are entitled to speak for this particular water, and that
+ * claim is about geography. A map of ONE gauge under a table of four — which is what this
+ * screen showed before — draws the model the panel exists to replace.
  */
 import { Text, View } from "react-native";
-import { interval, standing, standingWord, type Estimate, type NoEstimate }
-  from "@app/core";
+import { interval, metresApart, panelCamera, SAME_PLACE_M, standing, standingWord,
+         type Estimate, type NoEstimate } from "@app/core";
+import type { TileEndpoints } from "@app/map";
 import type { DonorRow, PanelAnswer } from "@app/ui";
+import { MiniMap } from "./MiniMap";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
 
@@ -38,14 +46,54 @@ function ordinal(n: number): string {
   return `${v}${["th", "st", "nd", "rd"][v % 10] ?? "th"}`;
 }
 
-/** "155x bigger" reads better than a ratio nobody converts in their head. */
+/** "155× apart" reads better than a ratio nobody converts in their head. */
 function distance(ratio: number): string {
   if (!Number.isFinite(ratio)) return "—";
   if (ratio < 1.5) return "same size";
   return `${ratio < 10 ? ratio.toFixed(1) : Math.round(ratio)}× apart`;
 }
 
-export function DonorPanel({ palette, value }: { palette: Palette; value: PanelAnswer }) {
+/** A catchment, at a readable precision. Under 10 km² a whole number says nothing. */
+function area(km2: number): string {
+  if (!Number.isFinite(km2) || km2 <= 0) return "—";
+  return km2 < 10 ? `${km2.toFixed(1)} km²` : `${Math.round(km2).toLocaleString()} km²`;
+}
+
+/**
+ * What a donor contributed, in words.
+ *
+ * A station that is not reporting says so rather than showing 0%: it IS in the panel, and
+ * "0%" reads as "not in the panel" — a different claim, and the wrong one. A real but tiny
+ * share reads "<1%" for the same reason.
+ */
+function share(r: { weight: number; percentile: number | null }): string {
+  if (r.percentile === null) return "quiet";
+  const pc = r.weight * 100;
+  return pc > 0 && pc < 1 ? "<1%" : `${Math.round(pc)}%`;
+}
+
+/**
+ * WHY THIS DONOR WEIGHS WHAT IT WEIGHS — the model's three factors, spelled out.
+ *
+ * The factors come from `weightFactors` in core, which is the same function the estimate
+ * used, so this can restate the arithmetic without being able to disagree with it.
+ */
+function because(r: DonorRow): string {
+  const bits = [`${Math.round(r.factors.share * 100)}% catchment overlap`];
+  if (r.factors.role < 1) bits.push("downstream, so it carries extra water");
+  if (r.factors.record < 1)
+    bits.push(`${r.years} years of record, so it counts `
+              + `${Math.round(r.factors.record * 100)}%`);
+  return bits.join(" · ");
+}
+
+export function DonorPanel({ palette, value, at, theme, from }: {
+  palette: Palette; value: PanelAnswer;
+  /** The tiles, when the caller has them — then the donors are DRAWN as well as listed. */
+  at?: TileEndpoints; theme?: string;
+  /** Where the person actually is, so the map can mark it. */
+  from?: { lat: number; lon: number } | null;
+}) {
   const { answer, rows } = value;
   if (!answer.ok) {
     return (
@@ -60,6 +108,32 @@ export function DonorPanel({ palette, value }: { palette: Palette; value: PanelA
   }
   const e: Estimate = answer.value;
   const [lo, hi] = interval(e);
+  const tone = (i: number) => palette.donor[i % palette.donor.length]!;
+
+  // EVERY DONOR ON ONE MAP. The camera is fitted to all of them plus the spot, so a panel
+  // spanning three rivers is seen to span three rivers.
+  const placed = rows.filter((r) => r.route?.lat != null && r.route?.lon != null);
+  const camera = panelCamera(placed.map((r) => ({ lat: r.route!.lat, lon: r.route!.lon })),
+                             from ?? null);
+  /*
+   * A GAUGE IS OFTEN THE PLACE YOU TAPPED, and then two pins land on one pixel.
+   *
+   * Drawing both makes the map look like it lost one, and the key then lists "you are here"
+   * and a station as if they were somewhere else from each other. So a donor within
+   * SAME_PLACE_M of the tap absorbs the "you are here" marker and says both things itself.
+   */
+  const atSpot = from
+    ? placed.find((r) => metresApart(from, { lat: r.route!.lat!, lon: r.route!.lon! })
+                         <= SAME_PLACE_M)
+    : undefined;
+  const showFrom = from && !atSpot;
+  const hereLabel = (r: DonorRow) =>
+    r === atSpot ? `you are here · ${r.station}` : r.station;
+  // The reaches between here and each gauge, unioned. One highlight colour rather than
+  // one per donor: MapLibre paints a selected reach from a single style layer, and a
+  // reach on two donors' routes could only be one of them anyway.
+  const chain = [...new Set(rows.flatMap((r) => r.route?.path ?? []))];
+
   return (
     <View style={{ paddingVertical: 14 }}>
       <Text style={{ ...TYPE.section, fontSize: 10.5, letterSpacing: 1.6,
@@ -73,35 +147,108 @@ export function DonorPanel({ palette, value }: { palette: Palette; value: PanelA
         percentile for the date · {standingWord(standing(e.percentile)).toLowerCase()} ·{" "}
         {e.donors === 1 ? "one gauge" : `${e.donors} gauges`}, {e.trust}
       </Text>
+      {value.areaKm2 != null && (
+        <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint, marginTop: 2 }}>
+          This spot drains {area(value.areaKm2)}. Every share below is that against the
+          gauge's own catchment.
+        </Text>
+      )}
+
+      {/* THE MAP WAITS FOR THE ROUTES. A MapLibre map reads its opening camera once, on
+          mount, and ignores every later change — so a map mounted before the walks finish
+          is framed on the tap alone and stays there, showing one pin of five. Rendering
+          nothing until `routesReady` costs a moment and is the difference between a map of
+          the panel and a map of the wrong place. */}
+      {at && theme && camera && value.routesReady && (
+        <View style={{ marginTop: 12, gap: 8 }}>
+          <MiniMap at={at} palette={palette} theme={theme} camera={camera} height={210}
+                   view="plain" highlight={chain}
+                   pins={[
+                     ...(showFrom ? [{ lat: from!.lat, lon: from!.lon, tone: palette.accent,
+                                       title: "you are here" }] : []),
+                     ...placed.map((r) => ({
+                       lat: r.route!.lat!, lon: r.route!.lon!, tone: tone(rows.indexOf(r)),
+                       title: `${hereLabel(r)} · ${share(r)} of the answer`,
+                     })),
+                   ]}
+                   hint={chain.length > 1
+                     ? `${chain.length} reaches between here and these gauges`
+                     : undefined} />
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
+            {showFrom && <Key palette={palette} tone={palette.accent} label="you are here" />}
+            {placed.map((r) => (
+              <Key key={r.station} palette={palette} tone={tone(rows.indexOf(r))}
+                   label={`${hereLabel(r)} · ${share(r)}`} />
+            ))}
+          </View>
+          {/* A DONOR WITH NO ROUTE IS SAID SO, not quietly dropped from the key. It is
+              still in the panel and still carries its weight; what is missing is the
+              chain of pointers to draw, which only exist inside a gauge's watershed. */}
+          {placed.length < rows.length && (
+            <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint }}>
+              {rows.length - placed.length} of these gauges could not be placed on the map.
+              They still count toward the answer.
+            </Text>
+          )}
+        </View>
+      )}
 
       <View accessibilityRole="list" accessibilityLabel="The gauges behind this estimate"
-            style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: palette.line }}>
-        {rows.map((r: DonorRow) => (
+            style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: palette.line }}>
+        {rows.map((r: DonorRow, i: number) => (
           <View key={r.station} accessibilityRole="text"
-                accessibilityLabel={`${r.station}, ${ROLE[r.role]}, `
-                                    + `${distance(r.areaRatio)}, `
-                                    + `${Math.round(r.weight * 100)} per cent of the answer`}
-                style={{ flexDirection: "row", alignItems: "center", gap: 10,
-                         paddingVertical: 9, borderBottomWidth: 1,
-                         borderBottomColor: palette.line }}>
-            {/* The weight, as a bar. A reader should see at a glance that one gauge is
-                carrying the answer, which is the usual case and the thing a table of
-                numbers hides. */}
-            <View style={{ width: 42, height: 6, backgroundColor: palette.line2 }}>
-              <View style={{ width: `${Math.round(r.weight * 100)}%`, height: 6,
-                             backgroundColor: palette.accent }} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ ...TYPE.body, fontSize: 13, color: palette.ink }}>
+                accessibilityLabel={
+                  `${r.station}, ${ROLE[r.role]}, ${distance(r.areaRatio)}, `
+                  + (r.percentile === null
+                     ? "not reporting today, so it counts for nothing"
+                     : `${Math.round(r.weight * 100)} per cent of the answer`)}
+                style={{ paddingVertical: 10, borderBottomWidth: 1,
+                         borderBottomColor: palette.line, gap: 5 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+              {/* The same tone as its pin — this is how the map and the table are one
+                  thing rather than two lists of the same stations. */}
+              <View style={{ width: 9, height: 9, borderRadius: 5,
+                             backgroundColor: tone(i) }} />
+              <Text style={{ ...TYPE.body, fontSize: 13, color: palette.ink, flex: 1 }}>
                 {r.station}
+                {r.route?.name ? (
+                  <Text style={{ color: palette.faint }}>  {r.route.name}</Text>
+                ) : null}
               </Text>
-              <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint }}>
-                {ROLE[r.role]} · {distance(r.areaRatio)} · {r.years} yr
+              {/* THE CONTRIBUTION AS A NUMBER, beside the bar rather than instead of it.
+                  The bar is read at a glance and the number is what a reader quotes. */}
+              <Text style={{ ...TYPE.figure, fontSize: 13.5, color: palette.ink,
+                             fontVariant: ["tabular-nums"] }}>
+                {share(r)}
               </Text>
             </View>
-            <Text style={{ ...TYPE.body, fontSize: 13, color: palette.sub,
-                           fontVariant: ["tabular-nums"] }}>
-              {r.percentile === null ? "quiet" : `p${ordinal(r.percentile * 100)}`}
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
+              <View style={{ width: 9 }} />
+              <View style={{ flex: 1, height: 5, backgroundColor: palette.line2,
+                             borderRadius: 3, overflow: "hidden" }}>
+                <View style={{ width: `${Math.max(1, Math.round(r.weight * 100))}%`,
+                               height: 5, backgroundColor: tone(i) }} />
+              </View>
+              <Text style={{ ...TYPE.figure, fontSize: 12, color: palette.sub,
+                             fontVariant: ["tabular-nums"] }}>
+                {r.percentile === null ? "—" : `p${ordinal(r.percentile * 100)}`}
+              </Text>
+            </View>
+            <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
+                           marginLeft: 18 }}>
+              {ROLE[r.role]} · {area(r.areaKm2)} · {distance(r.areaRatio)}
+              {r.route && r.route.path.length > 1
+                ? ` · ${r.route.path.length - 1} `
+                  + `${r.route.path.length === 2 ? "reach" : "reaches"} away`
+                : r.route && r.route.path.length === 1 ? " · on this reach" : ""}
+            </Text>
+            {/* WHY, in the model's own terms. Without this the percentage is an assertion;
+                with it a reader can check it against the two catchments above. */}
+            <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
+                           marginLeft: 18 }}>
+              {r.percentile === null
+                ? "not reporting today, so it counts for nothing"
+                : because(r)}
             </Text>
           </View>
         ))}
@@ -115,6 +262,23 @@ export function DonorPanel({ palette, value }: { palette: Palette; value: PanelA
           average.
         </Text>
       )}
+
+      <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint, marginTop: 10,
+                     lineHeight: 16 }}>
+        Each gauge's share is its catchment overlap with this spot, reduced if it sits
+        downstream and reduced again if its record is short. The shares are then scaled to
+        add to 100%, and the percentiles are combined in that proportion.
+      </Text>
+    </View>
+  );
+}
+
+/** One entry in the map's key — a coloured dot and what it means. */
+function Key({ palette, tone, label }: { palette: Palette; tone: string; label: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tone }} />
+      <Text style={{ ...TYPE.micro, fontSize: 10, color: palette.faint }}>{label}</Text>
     </View>
   );
 }

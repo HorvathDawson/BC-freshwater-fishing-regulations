@@ -219,6 +219,18 @@ export const CLIM_PARAMETERS =
 
 export const DOWN_FROM = "SELECT down_id FROM section_down WHERE section_id = ?";
 
+/**
+ * Where a set of stations sit — their own reach and their coordinate.
+ *
+ * The donor panel names stations and says nothing about where they are, because the panel
+ * dictionary interns the DONOR SET and a coordinate would be the same for every panel that
+ * contains it. This is the join back to the map: it is what lets a route be walked from a
+ * spot to each of its donors, and each donor to be pinned where it actually stands.
+ */
+export const gaugePlaces = (n: number) =>
+  `SELECT station, name, section_id, lon, lat, area_km2
+     FROM gauge WHERE station IN (${placeholders(n)})`;
+
 // ---- lakes -----------------------------------------------------------------------
 export const CHARTS_FOR_ITEM =
   "SELECT chart_id, title, kind, drafted, scale, area_km2, pdf FROM chart WHERE item_id = ?";

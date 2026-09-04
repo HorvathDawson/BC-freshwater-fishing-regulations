@@ -516,11 +516,30 @@ if (defaults.length !== 1) err(`exactly one view must be marked default (found $
  * every view, and the same group as the fill it outlines (so one toggle moves both).
  */
 for (const [id, l] of edges) {
+  /*
+   * `follow: true` MAKES THE OUTLINE ANSWER THE SAME QUESTION AS ITS FILL.
+   *
+   * Without it an edge has one static colour in every view — which is right for a park
+   * boundary (the boundary is where the park is, whatever the water is doing) and wrong
+   * for a lake in the Conditions view: the lake was filled by its flow percentile and
+   * still ringed in plain blue, so a lake reading "much below normal" was drawn with a
+   * normal-looking edge around it. Following means the edge inherits the fill's colour
+   * modes verbatim and each view maps it to the SAME mode, so the two are painted from one
+   * expression over one feature-state and cannot disagree.
+   */
+  const follow = l.outline.follow === true;
+  const own = { plain: { label: `${l.id} outline`, scale: "static", color: l.outline.color } };
   layersById.set(id, {
     ...l, id, geometry: "line",
-    colorModes: { plain: { label: `${l.id} outline`, scale: "static", color: l.outline.color } },
+    // PLAIN STAYS THE AUTHORED COLOUR even when following, and that is not an exception
+    // for its own sake: a lake's plain FILL is the water colour, so inheriting it would
+    // paint the outline the same as the thing it outlines and the border would vanish.
+    // The authored `outline.color` is the stream blue v1 used, which is the whole reason a
+    // lake and the river through it read as one water. Only the data-driven modes follow.
+    colorModes: follow ? { ...l.colorModes, ...own } : own,
   });
-  for (const v of src.views ?? []) v.modes[id] = "plain";
+  for (const v of src.views ?? [])
+    v.modes[id] = follow ? (v.modes[l.id] ?? "plain") : "plain";
 }
 /**
  * A name is a NAME IN EVERY VIEW. It does not change with the colouring, because it is

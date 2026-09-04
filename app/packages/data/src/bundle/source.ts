@@ -15,7 +15,8 @@ import { bandAt, evaluate, type Band, type PlainDate, type Rule,
 import { forecastFor, type Observations } from "../feed/http";
 import type {
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
-  Panel, PanelMember, PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series,
+  Panel, PanelMember, PanelRoute, PlaceHit, PlaceId, Reading, RegsSource, Release,
+  SectionId, Series,
   StationId,
 } from "../index";
 import * as Q from "./queries";
@@ -393,6 +394,75 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         path.push(at as SectionId);
       }
       return path;
+    },
+
+    async panelRoutes(section): Promise<readonly PanelRoute[]> {
+      // The panel is re-read here rather than taken from `this.panelsFor` — a source is
+      // routinely destructured, and a method that only works while it is still attached to
+      // its object is a trap set for the next caller.
+      const members = (await db.all(Q.panelsForSections(1), section)).map((r) => ({
+        station: str(r.station) as StationId,
+        role: (str(r.role) === "down" ? "down" : "up") as "up" | "down",
+      }));
+      if (!members.length) return [];
+
+      const stations = members.map((m) => m.station);
+      const places = new Map<string, { name: string; section: string | null;
+                                       lon: number | null; lat: number | null }>();
+      for (const r of await db.all(Q.gaugePlaces(stations.length), ...stations))
+        places.set(str(r.station), {
+          name: str(r.name),
+          section: r.section_id == null ? null : str(r.section_id),
+          lon: num(r.lon), lat: num(r.lat),
+        });
+
+      /*
+       * ONE WALK SERVES BOTH DIRECTIONS, because the stored pointers only go downstream.
+       *
+       * A donor UPSTREAM of the spot is reached by walking down FROM THE GAUGE until the
+       * spot turns up; a donor downstream by walking down from the spot until the gauge
+       * does. Same walk, ends swapped — so there is one implementation and no chance of the
+       * two directions disagreeing about what a route is.
+       *
+       * The walk stops at `stop` or at the edge of the pointers, and returns null if it
+       * never arrives: a chain that runs past its target is not a route to it, and drawing
+       * it would light up water the gauge has nothing to do with.
+       */
+      const walk = async (from: string, stop: string): Promise<string[] | null> => {
+        const path: string[] = [from];
+        const seen = new Set<string>([from]);
+        let at = from;
+        for (let i = 0; i < 5000 && at !== stop; i++) {
+          const r = await db.get(Q.DOWN_FROM, at);
+          if (!r) return null;
+          at = str(r.down_id);
+          if (seen.has(at)) return null;   // a looping braid is a build defect, not a hang
+          seen.add(at);
+          path.push(at);
+        }
+        return at === stop ? path : null;
+      };
+
+      const out: PanelRoute[] = [];
+      for (const m of members) {
+        const place = places.get(m.station);
+        const gaugeSection = place?.section ?? null;
+        let path: string[] = [];
+        if (gaugeSection === section) {
+          path = [section];                // the gauge is ON this reach; the route is the spot
+        } else if (gaugeSection) {
+          // `role` is where the GAUGE sits, so "up" walks from the gauge down to here.
+          const got = m.role === "up" ? (await walk(gaugeSection, section))?.slice().reverse()
+                                      : await walk(section, gaugeSection);
+          path = got ?? [];
+        }
+        out.push({
+          station: m.station, name: place?.name ?? null,
+          lon: place?.lon ?? null, lat: place?.lat ?? null,
+          role: m.role, path: path as SectionId[],
+        });
+      }
+      return out;
     },
 
     async lakeInfo(id): Promise<LakeInfo | null> {

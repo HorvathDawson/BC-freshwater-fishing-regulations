@@ -779,7 +779,8 @@
             ]
           ]
         },
-        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area \u2014 area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible."
+        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area \u2014 area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible.\n\nFOLLOWS THE FILL wherever the fill is answering a question. A lake filled by its flow percentile and ringed in plain blue was drawing two answers at once \u2014 the edge said 'water' while the middle said 'much below normal', and the edge is the part that survives at a distance where the fill is a few pixels. `plain` is excluded: there the fill IS the water colour, so an inherited edge would disappear into it.",
+        "follow": true
       },
       "label": {
         "field": "name",

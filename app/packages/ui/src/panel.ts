@@ -7,8 +7,8 @@
  * arithmetic used, so the table and the number above it can never disagree.
  */
 import { useMemo } from "react";
-import { estimate, trustFor, weightFor, type Answer, type TrustClass } from "@app/core";
-import type { Panel, RegsSource, SectionId, StationId } from "@app/data";
+import { estimate, trustFor, weightFactors, type Answer, type TrustClass } from "@app/core";
+import type { Panel, PanelRoute, RegsSource, SectionId, StationId } from "@app/data";
 import { useAsync } from "./async";
 
 /** One row of the table under the answer — a donor, and what it contributed. */
@@ -21,13 +21,35 @@ export interface DonorRow {
   weight: number;
   /** How many times bigger the larger of the two catchments is. Always ≥ 1. */
   areaRatio: number;
+  /** The DONOR's own catchment, km². Half of the ratio, and worth saying out loud: a
+   *  reader can check a claim about size against two numbers and cannot against one. */
+  areaKm2: number;
   trust: TrustClass;
   years: number;
+  /**
+   * Why this donor is worth what it is worth, before normalising — the three factors the
+   * model multiplies. Carried so a screen can show the working rather than assert a
+   * percentage: `share × role × record`, then divided by the panel's total.
+   */
+  factors: { share: number; role: number; record: number };
+  /** Where it is and how the water reaches it. Absent until `usePanelRoutes` resolves. */
+  route?: PanelRoute;
 }
 
 export interface PanelAnswer {
   answer: Answer;
   rows: readonly DonorRow[];
+  /** The TARGET's catchment, km². The other half of every ratio in `rows`. */
+  areaKm2: number | null;
+  /**
+   * Whether `route` on the rows has been RESOLVED — true even when it resolved to nothing.
+   *
+   * A caller that frames a map around the donors has to tell "no routes yet" from "no
+   * routes at all", and the rows cannot: both look like `route: undefined`. Framing on the
+   * first is how a map ends up locked to a camera fitted around a single point, because a
+   * map reads its opening camera once and never again.
+   */
+  routesReady: boolean;
 }
 
 type Index = { stations: Record<string, { percentile: number | null;
@@ -43,8 +65,12 @@ type Index = { stations: Record<string, { percentile: number | null;
  */
 export function answerFrom(panel: Panel | undefined, index: Index,
                            quantity: "discharge" | "level" = "discharge"): PanelAnswer {
-  if (!panel) return { answer: { ok: false, why: "no-station" }, rows: [] };
-  if (!index) return { answer: { ok: false, why: "offline" }, rows: [] };
+  if (!panel)
+    return { answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,
+             routesReady: false };
+  if (!index)
+    return { answer: { ok: false, why: "offline" }, rows: [], areaKm2: panel.areaKm2,
+             routesReady: false };
 
   const contributions = [];
   const raw: (DonorRow & { _w: number })[] = [];
@@ -60,9 +86,14 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     const ratio = panel.areaKm2 && m.areaKm2
       ? Math.max(panel.areaKm2, m.areaKm2) / Math.min(panel.areaKm2, m.areaKm2) : Infinity;
     const share = Number.isFinite(ratio) ? 1 / ratio : 0;
-    const w = own === null ? 0 : weightFor(share, m.role, m.years);
+    const f = weightFactors(share, m.role, m.years);
+    // A donor that is not reporting weighs NOTHING, but its factors are still real and are
+    // still shown: "this gauge would have carried 60% of the answer and is quiet today" is
+    // the most useful thing the table can say on a bad day.
+    const w = own === null ? 0 : f.share * f.role * f.record;
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
-               areaRatio: ratio, trust: trustFor(ratio).klass, years: m.years, _w: w });
+               areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
+               years: m.years, factors: f, _w: w });
     if (own !== null && panel.areaKm2)
       contributions.push({ percentile: own, role: m.role, areaKm2: m.areaKm2,
                            years: m.years });
@@ -71,7 +102,8 @@ export function answerFrom(panel: Panel | undefined, index: Index,
   const rows = raw
     .map(({ _w, ...r }) => ({ ...r, weight: _w / total }))
     .sort((a, b) => b.weight - a.weight);
-  return { answer: estimate(panel.areaKm2, contributions), rows };
+  return { answer: estimate(panel.areaKm2, contributions), rows,
+           areaKm2: panel.areaKm2, routesReady: false };
 }
 
 /** The panel for one section, joined against today's readings. */
@@ -94,6 +126,34 @@ export function usePanel(
     section !== null,
   );
   const none = useMemo<PanelAnswer>(
-    () => ({ answer: { ok: false, why: "no-station" }, rows: [] }), []);
+    () => ({ answer: { ok: false, why: "no-station" }, rows: [], areaKm2: null,
+             routesReady: false }), []);
   return got.state === "ready" && got.value ? got.value : none;
+}
+
+/**
+ * The same answer, with each donor placed on the map.
+ *
+ * SEPARATE FROM `usePanel` AND NOT FOLDED INTO IT, because the routes are several walks
+ * down the pointer table and the panel is one indexed read. The number and the table must
+ * appear as soon as the reading does; the map catching up a moment later costs nothing,
+ * whereas making the headline wait on a graph walk would be visible on every tap.
+ *
+ * Rows keep the weight ORDER `usePanel` produced, so the map's key, the table and the
+ * arithmetic are all the same list in the same sequence.
+ */
+export function usePanelRoutes(source: RegsSource, section: SectionId | null,
+                               panel: PanelAnswer): PanelAnswer {
+  const got = useAsync(
+    async () => (section ? await source.panelRoutes(section) : []),
+    `routes:${section ?? ""}`,
+    section !== null,
+  );
+  const routes = got.state === "ready" ? got.value : null;
+  return useMemo<PanelAnswer>(() => {
+    if (!routes) return panel;                    // still walking; `routesReady` stays false
+    const by = new Map(routes.map((r) => [r.station as string, r]));
+    return { ...panel, routesReady: true,
+             rows: panel.rows.map((r) => ({ ...r, route: by.get(r.station) })) };
+  }, [routes, panel]);
 }

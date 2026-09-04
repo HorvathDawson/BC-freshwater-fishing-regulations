@@ -363,7 +363,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                        onAdd={() => setAdding(true)}
                        onRefresh={onRefreshSpots} refreshing={refreshing} />;
 
-  const showLegend = item === null && (tab === "map" || tab === "conditions");
+  /*
+   * THE LEGEND BELONGS TO THE MAP, so it goes when the map does.
+   *
+   * `condSection` means the Conditions tab has been drilled into one reach and the map is
+   * no longer on screen. The Showing control and the colour ramp were still rendered under
+   * that sheet, where they control nothing a reader can see — switching to Temp there
+   * repainted a map behind the panel, and the ramp described a legend for water that is not
+   * being drawn. Same reason `item` hides them: a detail view is not a map.
+   */
+  const showLegend = item === null && condSection === null
+    && (tab === "map" || tab === "conditions");
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>

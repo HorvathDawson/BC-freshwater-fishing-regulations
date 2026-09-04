@@ -257,6 +257,9 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async traceToGauge(from) {
       return sectionRules.has(from) ? [id<SectionId>(from)] : [];
     },
+    // No panel in the fixture (`panelsFor` is empty), so no routes. Empty and not a throw:
+    // "this water has no donors" is a real answer the screens must render.
+    async panelRoutes() { return []; },
 
     async lakeInfo(i): Promise<LakeInfo | null> {
       if (i !== "wbk:329083342") return null;
