@@ -46,26 +46,36 @@ lines (`build_section_geometries`). The polygon is the separate, display-side ar
 
 ## Minting ids
 
-Every synthetic id is **negative**, mirroring `added_streams`' negative `blk`: it can never collide
-with a real one and it is obvious on sight in a node id (`lake:-1`), an item id (`wbk:-1`), a
-boundary (`lake:-1`) or a ref (`gnis:-9000001`). Two bands, so the namespaces stay distinguishable:
+**Author one number.** A feature carries a single positive `id` — the next integer, `max + 1` — and
+both synthetic keys are **derived** from it by `ingest.py`:
 
-| id | band | why |
-|----|------|-----|
-| `wbk` | `-1, -2, -3, …` | FWA waterbody keys are positive 9-digit integers, so any negative is free |
-| `gnis_id` | `-9000001, -9000002, …` (`-9_000_000 - n`) | real gnis ids run **1,642 – 8,000,027**, so this is out of range in MAGNITUDE as well as sign — it cannot be mistaken for a real id even if a sign is dropped somewhere downstream |
+| derived key | from | band | why that band |
+|---|---|---|---|
+| `wbk` | `-id` | `-1, -2, -3, …` | FWA waterbody keys are positive 9-digit integers, so any negative is free |
+| `gnis_id` | `-(9_000_000 + id)` | `-9000001, -9000002, …` | real gnis ids run **1,642 – 8,000,027**, so this is out of range in MAGNITUDE as well as sign — it cannot be mistaken for a real id even if a sign is dropped somewhere downstream |
+
+So `id: 3` **is** `wbk:-3` and `gnis:-9000003`, always. Both keys stay negative, mirroring
+`added_streams`' negative `blk`: they can never collide with a real one and they are obvious on sight
+in a node id (`lake:-3`), an item id (`wbk:-3`), a boundary (`lake:-3`) or a ref (`gnis:-9000003`).
+
+`wbk` and `gnis_id` **must not appear in the file** — `load()` refuses a feature that carries either.
+Authoring them separately is how you get a lake whose polygon and whose name resolve to different
+things, and a stale pair that disagrees with `id` is precisely the mismatch nothing downstream could
+catch. One number, one lake.
 
 The gnis matters because a lake node carries one exactly as a stream node does (`lake_gnis` in
 `build_stream_graph`), and it is what lets a gnis-keyed `name_variants` entry or override resolve
 onto the lake. Without it the lake would answer only to its wbk.
 
-Assignments are **authored in the file, not computed** — the same choice `added_streams` makes for
-hand-drawn lines — so a key is stable across rebuilds and reviewable in a diff. Never renumber an
-existing one: a curated split, an override or a saved binding may already point at it.
+The `id` itself is **authored, not computed** — the same choice `added_streams` makes for hand-drawn
+lines — so a key is stable across rebuilds and reviewable in a diff. Never renumber an existing one:
+a curated split, an override or a saved binding may already point at it.
 
-| wbk | gnis_id | name | added | why FWA lacks it |
-|-----|---------|------|-------|------------------|
-| `-1` | `-9000001` | Redsand Lake | 2026-09-01 | no FWA polygon; its name is buried in Treston Lake's name tuple |
+| id | -> wbk | -> gnis_id | name | added | why FWA lacks it |
+|----|--------|------------|------|-------|------------------|
+| `1` | `-1` | `-9000001` | Redsand Lake | 2026-09-01 | no FWA polygon; its name is buried in Treston Lake's name tuple |
+| `2` | `-2` | `-9000002` | Marsh Pond | 2026-09-03 | no FWA polygon; curation held only a KML point (OSM relation 2531058) |
+| `3` | `-3` | `-9000003` | Children's Fishing Pond | 2026-09-03 | no FWA polygon; the ungazetted half of the `HALL ROAD (Mission) POND` override (OSM way 302989664) |
 
 ## Curated file (`pipeline/added_lakes.geojson`)
 
@@ -74,11 +84,10 @@ polygon arrived as EPSG:3857. Per-feature properties:
 
 | prop | meaning |
 |------|---------|
-| `wbk` | the negative waterbody key, authored (see above) |
-| `gnis_id` | the negative gnis, authored — paired with `name` so the lake node carries it |
-| `name` | the lake's name; becomes a gazette name tuple on the node, paired with `gnis_id` |
+| `id` | the one authored number: a positive integer, `max + 1`. `wbk` and `gnis_id` are DERIVED from it (see above) and must not be written here |
+| `name` | the lake's name; becomes a gazette name tuple on the node, paired with the derived `gnis_id` |
 | `kind` | `lake` \| `manmade` — what `lake_kind` records, and what decides node kind |
-| `source` | `manual` \| the layer it came from |
+| `source` | `manual` (hand-drawn) \| `osm` \| the layer it came from |
 | `note` | why FWA lacks it, where the polygon came from, what it sits on |
 | `claims` | (informational) the blks/wscs the polygon overlaps, so a reviewer can check the re-stamp hit what was intended |
 

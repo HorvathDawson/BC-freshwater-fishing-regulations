@@ -1015,7 +1015,10 @@
         "2-4"
       ]
     },
-    "note": "No polygon in FWA. Using custom ungazetted waterbody with coordinates from KML point in Aldergrove Regional Park.",
+    "waterbody_keys": [
+      "-2"
+    ],
+    "note": "No polygon in FWA. Using custom ungazetted waterbody with coordinates from KML point in Aldergrove Regional Park. Polygon added 2026-09-03 as added-lake wbk -2 (OSM relation 2531058); the wbk pin below is what actually binds this row — `ungazetted_location` is not read by the matcher. See data/curated/waters/added_lakes.geojson.",
     "ungazetted_waterbody_id": "UNGAZ_MARSH_POND_R2",
     "ungazetted_location": [
       -122.45323,
@@ -4133,10 +4136,11 @@
         "8-10"
       ]
     },
-    "note": "Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond ungazetted waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area.",
     "waterbody_keys": [
-      "329460964"
+      "329460964",
+      "-3"
     ],
+    "note": "Region 8 MU 8-10. Links to both Mission Creek Regional Park Children's Fishing Pond ungazetted waterbody (49.87084°N, 119.42958°W) AND adjacent FWA waterbody 329460964. Both locations provided to ensure comprehensive coverage of the fishing area. The Children's Fishing Pond half now has a polygon of its own: added-lake wbk -3 (OSM way 302989664), pinned here beside FWA 329460964 so BOTH ponds bind. It keeps its own name rather than a second 'HALL ROAD POND', which would make that name ambiguous in MU 8-10. See data/curated/waters/added_lakes.geojson.",
     "ungazetted_waterbody_id": "UNGAZ_HALL_ROAD_POND_R8",
     "ungazetted_location": [
       -119.42958,

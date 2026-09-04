@@ -40,16 +40,56 @@ def test_the_curated_file_is_loadable_and_every_id_is_negative():
     assert len({lk["wbk"] for lk in lakes}) == len(lakes), "duplicate wbk"
 
 
+def test_both_keys_are_derived_from_the_one_authored_id():
+    """The file authors a single positive `id`. Both negative keys come from it, so they cannot
+    drift apart — the failure that authoring them separately invites."""
+    for lk in ingest.load(CURATED.waters.added_lakes):
+        assert isinstance(lk["id"], int) and lk["id"] >= 1, lk["id"]
+        assert lk["wbk"] == f"-{lk['id']}"
+        assert lk["gnis_id"] == f"-{9_000_000 + lk['id']}"
+        assert ingest.wbk_for(lk["id"]) == lk["wbk"]
+        assert ingest.gnis_for(lk["id"]) == lk["gnis_id"]
+
+
+def test_the_curated_file_authors_id_only():
+    """Guarding the data, not just the loader: a leftover `wbk`/`gnis_id` in the file is the stale
+    pair the derivation exists to rule out, so it must not be reintroduced by hand."""
+    fc = json.loads(CURATED.waters.added_lakes.read_text(encoding="utf-8"))
+    for f in fc["features"]:
+        props = f["properties"]
+        assert "id" in props, props
+        assert "wbk" not in props and "gnis_id" not in props, props
+
+
 @pytest.mark.parametrize("bad, msg", [
-    ({"wbk": "329241963"}, "NEGATIVE"),
-    ({"wbk": "-1", "gnis_id": "12345"}, "NEGATIVE"),
+    # the derived keys must never be authored — a stale pair that disagrees with `id` is the exact
+    # silent mismatch this shape exists to prevent
+    ({"id": 1, "wbk": "-1"}, "must not be authored"),
+    ({"id": 1, "gnis_id": "-9000001"}, "must not be authored"),
+    ({}, "no `id`"),
+    # authored POSITIVE and negated on derivation: a negative here yields wbk '--1' and
+    # gnis '-8999999', and the second is a plausible REAL id
+    ({"id": -1}, "POSITIVE"),
+    ({"id": 0}, "POSITIVE"),
+    ({"id": "1"}, "JSON integer"),
+    ({"id": 1.5}, "JSON integer"),
 ])
-def test_a_positive_id_is_refused(tmp_path, bad, msg):
+def test_a_malformed_id_is_refused(tmp_path, bad, msg):
     p = tmp_path / "added_lakes.geojson"
     p.write_text(json.dumps({"features": [{"type": "Feature", "properties": bad,
                                            "geometry": {"type": "Polygon", "coordinates": [
                                                [[0, 0], [0, 1], [1, 1], [0, 0]]]}}]}))
     with pytest.raises(ValueError, match=msg):
+        ingest.load(p)
+
+
+def test_a_duplicate_id_is_refused(tmp_path):
+    """One id is one lake; two features sharing it would have one silently re-stamp the other."""
+    feat = {"type": "Feature", "properties": {"id": 7},
+            "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [0, 0]]]}}
+    p = tmp_path / "added_lakes.geojson"
+    p.write_text(json.dumps({"features": [feat, feat]}))
+    with pytest.raises(ValueError, match="duplicate"):
         ingest.load(p)
 
 

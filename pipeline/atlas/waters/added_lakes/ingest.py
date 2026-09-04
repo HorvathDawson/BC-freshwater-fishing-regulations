@@ -1,5 +1,8 @@
 """Merge `pipeline/added_lakes.geojson` into a build's fids / lake_kind / lake_names / wbk_polys.
 
+A feature authors ONE positive `id`; its `wbk` (`-id`) and `gnis_id` (`-(9_000_000 + id)`) are
+derived here, so the two synthetic keys can never drift apart. See README.md.
+
 The whole mechanism is one re-stamp. `graph/graph.py::_assign_owners` gives a fid whose `wbk` is a
 known lake key to that lake node, and BREAKS the stream run there — so re-stamping the fids inside a
 polygon is what cuts the stream, mints the `lake_in`/`lake_out` edges, and produces the `lake:{wbk}`
@@ -20,33 +23,69 @@ from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 GEOJSON = CURATED.waters.added_lakes
 
+GNIS_BASE = 9_000_000
+"""Real gnis ids run 1,642..8,000,027, so ``-(GNIS_BASE + id)`` is out of range in MAGNITUDE as well
+as in sign — it cannot be mistaken for a real id even if a sign is dropped downstream."""
+
+
+def wbk_for(lake_id: int) -> str:
+    """``1 -> '-1'``. FWA waterbody keys are positive 9-digit integers, so the negative band is free."""
+    return f"-{lake_id}"
+
+
+def gnis_for(lake_id: int) -> str:
+    """``1 -> '-9000001'``. See GNIS_BASE."""
+    return f"-{GNIS_BASE + lake_id}"
+
+
+def parse_id(props: dict) -> int:
+    """The one authored number behind a lake, validated.
+
+    A feature carries ONE id and both synthetic keys are derived from it, so they can never drift
+    apart — authoring them separately is how you get a lake whose polygon and whose name resolve to
+    different things. A file still carrying the old `wbk`/`gnis_id` pair is refused outright rather
+    than half-read, because a stale pair that disagrees with `id` is exactly the silent mismatch this
+    shape exists to prevent."""
+    stale = [k for k in ("wbk", "gnis_id") if k in props]
+    if stale:
+        raise ValueError(
+            f"added lake {props.get('id', '?')!r}: {', '.join(stale)} is DERIVED from `id` and must "
+            f"not be authored (see README.md) — drop it and keep `id` alone")
+    if "id" not in props:
+        raise ValueError("added lake with no `id` (see README.md)")
+    raw = props["id"]
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        # A string "1" would still derive the right keys, but it makes ordering and
+        # next-id-is-max-plus-one wrong the moment there are ten of them.
+        raise ValueError(f"added lake id {raw!r} must be a JSON integer, not {type(raw).__name__}")
+    if raw < 1:
+        # The id is authored POSITIVE and negated on derivation. Taking a negative here would
+        # produce wbk '--1' / gnis '-8999999' — the second of which is a plausible real id.
+        raise ValueError(f"added lake id {raw!r} must be a POSITIVE integer (see README.md)")
+    return raw
+
 
 def load(path: str | Path | None = None) -> list[dict]:
-    """The curated features, validated. [] when the file is absent (added lakes are optional)."""
+    """The curated features, validated. [] when the file is absent (added lakes are optional).
+
+    Each feature authors a single positive `id`; `wbk` and `gnis_id` are derived from it here, so
+    every consumer downstream still sees the same two negative keys it always did."""
     p = Path(path) if path else GEOJSON
     if not p.exists():
         return []
     fc = json.loads(p.read_text(encoding="utf-8"))
     out: list[dict] = []
-    seen: set[str] = set()
+    seen: set[int] = set()
     for f in fc.get("features", []):
         props = f.get("properties") or {}
-        wbk = str(props.get("wbk", "")).strip()
-        if not wbk:
-            raise ValueError("added lake with no wbk")
-        if not wbk.startswith("-"):
-            # Not fussiness: a positive key could collide with a real FWA waterbody and silently
-            # re-home its fids. The negative band is what makes a synthetic id unmistakable.
-            raise ValueError(f"added lake wbk {wbk!r} must be NEGATIVE (see README.md)")
-        if wbk in seen:
-            raise ValueError(f"duplicate added-lake wbk {wbk!r}")
-        seen.add(wbk)
+        lake_id = parse_id(props)
+        if lake_id in seen:
+            raise ValueError(f"duplicate added-lake id {lake_id!r}")
+        seen.add(lake_id)
         if (f.get("geometry") or {}).get("type") not in ("Polygon", "MultiPolygon"):
-            raise ValueError(f"added lake {wbk!r}: geometry must be a (Multi)Polygon")
-        gnis = str(props.get("gnis_id", "")).strip()
-        if gnis and not gnis.startswith("-"):
-            raise ValueError(f"added lake {wbk!r}: gnis_id {gnis!r} must be NEGATIVE (see README.md)")
-        out.append({"wbk": wbk, "gnis_id": gnis, "name": props.get("name", ""),
+            raise ValueError(f"added lake {lake_id!r}: geometry must be a (Multi)Polygon")
+        out.append({"id": lake_id, "wbk": wbk_for(lake_id), "gnis_id": gnis_for(lake_id),
+                    "name": props.get("name", ""),
                     "kind": props.get("kind", "lake"), "props": props,
                     "geometry": f["geometry"]})
     return out
@@ -127,8 +166,9 @@ def main() -> None:
 
     lakes = load(args.geojson)
     print(f"{len(lakes)} curated added lake(s) in {args.geojson or GEOJSON}")
-    for wbk, kind, name, poly in _shapes(lakes):
-        print(f"\n  wbk:{wbk}  {name!r}  kind={kind}  area={poly.area / 1e4:.2f} ha")
+    for lake, (wbk, kind, name, poly) in zip(lakes, _shapes(lakes)):
+        print(f"\n  id {lake['id']} -> wbk:{wbk} gnis:{lake['gnis_id']}  {name!r}  "
+              f"kind={kind}  area={poly.area / 1e4:.2f} ha")
         if not args.check or not Path(args.graph).exists():
             continue
         from pyogrio import read_dataframe
