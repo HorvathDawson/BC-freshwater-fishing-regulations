@@ -97,6 +97,39 @@ export interface GaugeLink {
   section: SectionId | null;
 }
 
+/**
+ * One gauge's place in a panel, exactly as `panel_member` stores it.
+ *
+ * `areaRatio` AND NOT A TRUST BAND, which is the decision this type exists to make
+ * visible. The ratio is a physical fact about the pair — how many times bigger one
+ * catchment is than the other — and the class and its error bars are DERIVED from it by
+ * `trustFor` in core, which the pipeline mirrors and a test pins. Storing a band instead
+ * would freeze a calibration into the bundle: re-measuring the error curve would need a
+ * rebuild rather than a release, and the number on screen could drift from the number the
+ * pipeline gated on.
+ */
+export interface PanelMember {
+  station: StationId;
+  /** Where the donor sits relative to the tapped point. */
+  role: "up" | "down";
+  /** 0–1. Its share of the answer, already normalised against the other members. */
+  weight: number;
+  /** `max(area) / min(area)`, so always ≥ 1 and symmetric. Feeds `trustFor`. */
+  areaRatio: number;
+}
+
+/**
+ * The panel for one section: who may speak for it, in the order they matter.
+ *
+ * Ordered by weight, descending, because that is both the arithmetic's order and the
+ * screen's — storing one order rather than sorting at read time is what keeps the table a
+ * reader sees from disagreeing with the number above it.
+ *
+ * An EMPTY array is a real answer and not a missing one: it means the panel was built and
+ * nothing qualified. `undefined` from a query means the section was never asked about.
+ */
+export type Panel = readonly PanelMember[];
+
 /** Which quantity a chart is about. Never mixed — see `Series.parameter`. */
 export type Parameter = "discharge" | "level";
 
@@ -292,6 +325,15 @@ export interface RegsSource {
    * most of the bundle in memory.
    */
   stationsFor(sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, StationId>>;
+  /**
+   * The donor panel for each of these sections.
+   *
+   * A section with no panel is ABSENT from the map rather than present with an empty
+   * array: the two mean different things — "nothing qualified here" versus "this section
+   * was outside the query" — and a caller that cannot tell them apart will render silence
+   * as a loading state or the reverse.
+   */
+  panelsFor(sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, Panel>>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

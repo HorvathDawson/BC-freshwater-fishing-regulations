@@ -88,6 +88,54 @@ CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
 CREATE TABLE section_gauge (section_id TEXT PRIMARY KEY, station TEXT NOT NULL,
                             trust TEXT NOT NULL, mag INTEGER) WITHOUT ROWID;
 
+-- THE DONOR PANEL ------------------------------------------------------------------
+--
+-- `section_gauge` above answers "which ONE station speaks for this reach". These two answer
+-- "which stations speak for it, and how loudly" -- which is the same question asked of a
+-- province whose gauge network is far sparser than its stream network.
+--
+-- A DICTIONARY, because a panel is a property of a stretch of river rather than of a reach:
+-- everything between two confluences has the same donors, so the members are stored once
+-- and each section holds a pointer. The rules work found the same shape (2.24M rule rows,
+-- 1,656 distinct rule sets) and this is the same trick.
+--
+-- `panel_id` is INTEGER and not TEXT: it is a dictionary index with no meaning outside this
+-- file, it is joined on for every coloured section on screen, and an integer key on a
+-- WITHOUT ROWID table is the difference between a pointer and a string compare.
+CREATE TABLE section_panel (section_id TEXT PRIMARY KEY,
+                            panel_id INTEGER NOT NULL) WITHOUT ROWID;
+
+-- One row per donor. `ord` is the display order AND the weight order -- they are the same
+-- thing, so storing one number rather than sorting at read time keeps the screen's order
+-- and the arithmetic's order from ever disagreeing.
+--
+-- `role` is TEXT rather than a code because the table is small (thousands of rows, not
+-- millions) and 'up' read in a query beats 0 looked up in a comment. It is exactly two
+-- values today; a neighbour donor -- one that shares weather rather than water -- would be
+-- a third, and is deliberately not built yet (see pipeline/atlas/gauges/panel.py).
+--
+-- `weight` is 0..1 and REAL. It is a product of terms none of which is exact, and it is
+-- multiplied by a percentile that is itself +/- 12 points at best, so the storage precision
+-- is not the limiting factor and an integer scaling would only add a conversion to get
+-- wrong.
+--
+-- `area_ratio` IS THE ONE THAT MATTERS, and it is stored instead of a trust band. It is a
+-- PHYSICAL FACT about the pair -- how many times bigger one catchment is than the other --
+-- and the trust class and its error bars are DERIVED from it by a ladder that lives in one
+-- place (`ERROR_BY_RATIO`, mirrored into the app and pinned by a test, exactly as the
+-- magnitude zoom ladder is). Storing the class instead would freeze a calibration into the
+-- bundle: re-measuring the error curve would then need a rebuild rather than a release, and
+-- the number a screen shows could drift from the number the pipeline used.
+--
+-- >= 1.0 always: it is max/min, so it is symmetric and never below one.
+CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
+                           ord INTEGER NOT NULL,
+                           station TEXT NOT NULL,
+                           role TEXT NOT NULL,          -- up | down
+                           weight REAL NOT NULL,        -- 0..1
+                           area_ratio REAL NOT NULL,    -- >= 1.0
+                           PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
+
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,
 -- so the gauge is either on this water or it is not.
 CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,

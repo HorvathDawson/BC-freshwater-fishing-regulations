@@ -15,7 +15,8 @@ import { bandAt, evaluate, type Band, type PlainDate, type Rule,
 import { forecastFor, type Observations } from "../feed/http";
 import type {
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
-  PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series, StationId,
+  PanelMember, PlaceHit, PlaceId, Reading, RegsSource, Release, SectionId, Series,
+  StationId,
 } from "../index";
 import * as Q from "./queries";
 import { json, num, str, type Db, type Row } from "./db";
@@ -220,6 +221,30 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       }
       return out;
     },
+
+    async panelsFor(sections) {
+      const out = new Map<SectionId, PanelMember[]>();
+      if (!sections.length) return out;
+      for (let i = 0; i < sections.length; i += 500) {
+        const chunk = sections.slice(i, i + 500);
+        for (const r of await db.all(Q.panelsForSections(chunk.length), ...chunk)) {
+          const sec = str(r.section_id) as SectionId;
+          let list = out.get(sec);
+          if (!list) out.set(sec, (list = []));
+          // Trusting the ORDER BY rather than re-sorting: `ord` is the weight order and
+          // the display order at once, and re-deriving one of them here is how the number
+          // on screen and the row list beneath it start to disagree.
+          list.push({
+            station: str(r.station) as StationId,
+            role: str(r.role) === "down" ? "down" : "up",
+            weight: Number(r.weight),
+            areaRatio: Number(r.area_ratio),
+          });
+        }
+      }
+      return out;
+    },
+
 
     async gaugePoints(): Promise<readonly { station: StationId; name: string;
                                             lon: number; lat: number;

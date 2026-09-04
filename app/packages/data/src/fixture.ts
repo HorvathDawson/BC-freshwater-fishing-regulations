@@ -190,6 +190,14 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       return out;
     },
 
+    /**
+     * The dev fixture has no panels, and says so by returning nothing at all rather than
+     * an empty panel per section. The two are different answers — "nothing qualified" is a
+     * fact about the water, "not asked" is a fact about the query — and a fixture that
+     * fabricated the first would let a screen ship that cannot tell them apart.
+     */
+    async panelsFor() { return new Map(); },
+
     async gaugePoints() {
       // Vedder Crossing on the Chilliwack: magnitude 2,236, so the dot appears at z5 —
       // the same zoom the river it measures does.

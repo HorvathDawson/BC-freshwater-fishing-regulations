@@ -191,6 +191,19 @@ export const gaugesForSections = (n: number) =>
       AND it.section_id NOT IN (SELECT section_id FROM section_gauge)
     GROUP BY it.section_id`;
 
+/**
+ * The panel for each of these sections, members in weight order.
+ *
+ * TWO STATEMENTS' WORTH OF WORK IN ONE, via the dictionary: `section_panel` is the pointer
+ * and `panel_member` is the shared body, so a viewport full of one river's reaches fetches
+ * that river's donors once rather than once per reach.
+ */
+export const panelsForSections = (n: number) =>
+  `SELECT sp.section_id, pm.ord, pm.station, pm.role, pm.weight, pm.area_ratio
+     FROM section_panel sp JOIN panel_member pm ON pm.panel_id = sp.panel_id
+    WHERE sp.section_id IN (${placeholders(n)})
+    ORDER BY sp.section_id, pm.ord`;
+
 // ONE ENVELOPE PER (STATION, PARAMETER). A station that measures both stage and discharge
 // has two, in two different units, and asking for "the" envelope of such a station is how a
 // level ends up compared against a discharge — a percentile that looks fine and means
