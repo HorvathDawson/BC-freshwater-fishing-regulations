@@ -446,12 +446,21 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         cov.skip("panel_member", "needs section_panel")
     else:
         model = _area_model(Path(SOURCE) / "bc_fisheries_data.gpkg")
+        # REGULATED STATIONS ARE PASSED THROUGH, NOT FILTERED OUT HERE.
+        #
+        # The regulation flag travels with the donor and `panel.eligible` decides what it
+        # means: barred from being carried onto other water, admitted for water that is all
+        # but its own. Dropping them here made that decision unreachable — 137 of the 431
+        # stations transmitting today are flagged regulated, the Skagit at the International
+        # Boundary among them, and the rule that was supposed to let it speak for the Skagit
+        # never ran because the station was gone two steps earlier.
         donors = [(st, matched[st], years_by_station.get(st, 0), st in regulated)
                   for st in matched
-                  if years_by_station.get(st, 0) >= MIN_RECORD_YEARS and st not in regulated]
+                  if years_by_station.get(st, 0) >= MIN_RECORD_YEARS]
         panels = build_panels(graph, model, donors)
         db.executemany("INSERT INTO section_panel VALUES (?,?,?)", panels.section_rows())
-        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?)", panels.member_rows())
+        db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?)",
+                       panels.member_rows())
         cov.filled("section_panel", len(panels.by_section))
         cov.filled("panel_member", sum(len(v) for v in panels.members.values()))
         print(f"     panels: {len(panels.by_section):,} sections share "

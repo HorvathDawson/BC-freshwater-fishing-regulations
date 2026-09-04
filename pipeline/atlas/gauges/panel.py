@@ -115,7 +115,26 @@ DOWNSTREAM_PENALTY = 0.85
 
 #: A percentile from ten years and one from ninety are not the same claim.
 RECORD_FULL_YEARS = 20
-MIN_RECORD_YEARS = 10
+
+#: The shortest record that may rank a reading at all.
+#:
+#: WAS TEN, AND TEN WAS ARBITRARY. The number that matters is not the floor but what the
+#: floor costs: 24 of the 431 stations transmitting today have a record between three and
+#: ten years and were silent because of it — among them the Skagit above Klesilkwa, six
+#: years old, on a river whose two other gauges are dead since 1955 and dam-controlled.
+#:
+#: A short record does not make a percentile WRONG, it makes it coarse: six years gives six
+#: observations of "the first week of September", so the answer moves in sixths and the
+#: extremes are unmeasured. That is a precision problem, and precision is already carried —
+#: `RECORD_FULL_YEARS` scales such a donor's weight to 5/20, so it counts a quarter of what
+#: a ninety-year station counts and the interval on screen widens to match. Barring it as
+#: well was pricing the same fact twice.
+#:
+#: Three, and the scaling does the rest. A three-year station counts 3/20 — fifteen per
+#: cent of what a ninety-year one counts — so it can tip an answer only where nothing better
+#: exists, which is exactly where it should be allowed to. Below three there are not enough
+#: observations of a given week to call the shape a season at all.
+MIN_RECORD_YEARS = 3
 
 #: Below this total weight the panel says nothing. Silence is a real answer.
 #:
@@ -127,6 +146,25 @@ MIN_TOTAL_WEIGHT = 0.05
 #: How many donors a panel keeps. Past a few the extra ones are redundant with each other
 #: rather than independent, and this estimator does not yet model that redundancy.
 MAX_MEMBERS = 4
+
+#: How close two catchments must be before a REGULATED station may speak.
+#:
+#: The regulation gate is right about TRANSFER and wrong about measurement, and the two were
+#: not separated. A percentile from a dammed river says nothing about rainfall on the creek
+#: over the ridge — that is the Nechako case the gate was written for. But on the dammed
+#: river ITSELF the reading is not an inference at all: it is what the water is doing, at
+#: the place it is doing it, and refusing it leaves the reader with nothing where the app
+#: has a live measurement.
+#:
+#: Measured: 137 of the 431 stations transmitting today are flagged regulated in HYDAT —
+#: nearly a third of the live network, and among them the Skagit at the International
+#: Boundary, 69 years of record on a river with three gauges and, until now, no answer.
+#:
+#: 1.5 is deliberately tight. At that ratio the two catchments are all but the same
+#: drainage, so the release schedule that makes the reading wrong elsewhere is exactly what
+#: this water is doing. Past it the reading is being carried onto water the dam does not
+#: govern, and the original gate is right again.
+REGULATED_MAX_RATIO = 1.5
 
 
 @dataclass(frozen=True)
@@ -150,13 +188,18 @@ def weight_of(share: float, role: str, years: int) -> float:
 def eligible(area_target: float | None, area_donor: float | None,
              years: int, regulated: bool, crossed_lake: bool) -> bool:
     """The four gates, in one place so the reasons cannot drift apart."""
-    if regulated or crossed_lake:
+    if crossed_lake:
         return False
     if years < MIN_RECORD_YEARS:
         return False
     if not area_target or not area_donor or area_target <= 0 or area_donor <= 0:
         return False
     ratio = max(area_target, area_donor) / min(area_target, area_donor)
+    # A REGULATED STATION MAY SPEAK FOR ITS OWN WATER AND NOTHING ELSE — see
+    # REGULATED_MAX_RATIO. It used to be barred outright, which conflated "this reading
+    # cannot be carried elsewhere" with "this reading is not a measurement".
+    if regulated:
+        return ratio <= REGULATED_MAX_RATIO
     return ratio <= MAX_AREA_RATIO
 
 

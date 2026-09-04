@@ -20,7 +20,8 @@ const A = "111:0" as SectionId, B = "222:0" as SectionId;
 const panel = (...donors: [string, number][]): Panel => ({
   areaKm2: 100,
   members: donors.map(([station, areaKm2]) =>
-    ({ station: station as never, role: "up" as const, areaKm2, years: 40 })),
+    ({ station: station as never, role: "up" as const, areaKm2, years: 40,
+       regulated: false })),
 });
 
 const src = (panels: Record<string, Panel>) => ({

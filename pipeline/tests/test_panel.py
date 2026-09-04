@@ -12,11 +12,37 @@ from pipeline.atlas.gauges.panel import (
 
 # ------------------------------------------------------------------ the gates
 
-def test_a_regulated_gauge_cannot_speak_for_other_water():
+def test_a_regulated_gauge_cannot_be_carried_onto_other_water():
     """A percentile at a dammed station is a percentile of a dispatch decision. The Nechako
     runs HIGH in a dry winter and flows into the Fraser above prime water — a downweighted
-    donor would still drag the answer the wrong way, so it is barred."""
-    assert not eligible(100.0, 120.0, 40, regulated=True, crossed_lake=False)
+    donor would still drag the answer the wrong way, so it is barred from being CARRIED."""
+    assert not eligible(100.0, 900.0, 40, regulated=True, crossed_lake=False)
+
+
+def test_a_regulated_gauge_may_still_speak_for_its_own_water():
+    """The gate conflated two things. A dammed river's reading cannot be carried to the
+    creek over the ridge — and IS what the water is doing where the gauge stands. Barring
+    both left the Skagit at the International Boundary, 69 years of record, unable to say
+    anything about the Skagit."""
+    assert eligible(100.0, 120.0, 40, regulated=True, crossed_lake=False)
+
+
+def test_the_regulated_allowance_is_much_tighter_than_the_ordinary_one():
+    """Past REGULATED_MAX_RATIO the reading is being carried onto water the dam does not
+    govern, and the original reasoning applies again."""
+    ordinary = eligible(100.0, 300.0, 40, regulated=False, crossed_lake=False)
+    dammed = eligible(100.0, 300.0, 40, regulated=True, crossed_lake=False)
+    assert ordinary and not dammed
+
+
+def test_a_regulated_gauge_past_a_lake_is_still_refused():
+    """The lake gate is about the daily signal being storage-integrated, which a dam does
+    not excuse — the two gates are independent."""
+    assert not eligible(100.0, 105.0, 40, regulated=True, crossed_lake=True)
+
+
+def test_a_regulated_gauge_with_a_short_record_is_still_refused():
+    assert not eligible(100.0, 105.0, 2, regulated=True, crossed_lake=False)
 
 
 def test_a_lake_in_the_path_ends_the_relationship():
@@ -100,7 +126,9 @@ def test_the_panel_keeps_the_best_and_caps_its_size():
 
 def test_an_ineligible_candidate_never_reaches_the_panel():
     cand = [("good", "up", 100.0, 40, False, False),
-            ("dammed", "up", 100.0, 40, True, False),
+            # Dammed AND far — barred. A dammed donor on this very water is admitted now
+            # (see the eligibility tests above), so the one used here has to be distant.
+            ("dammed elsewhere", "up", 900.0, 40, True, False),
             ("past a lake", "up", 100.0, 40, False, True),
             ("too big", "up", 9_000_000.0, 40, False, False)]
     assert [d.station for d in panel_for(cand, 100.0)] == ["good"]
@@ -145,3 +173,30 @@ def test_below_the_floor_it_says_nothing_at_all():
 
 def test_a_zero_weight_donor_cannot_vote():
     assert combine([(0.9, 0.0)]) is None
+
+
+def test_a_short_record_is_admitted_and_discounted_rather_than_barred():
+    """A short record does not make a percentile WRONG, it makes it COARSE — six years is
+    six observations of the first week of September, so the answer moves in sixths. That is
+    a precision problem, and precision is already priced: the weight scales with the record
+    and the interval on screen widens to match. Barring it as well charged for the same
+    fact twice."""
+    assert eligible(100.0, 110.0, 6, regulated=False, crossed_lake=False)
+    # ...and it counts for a fraction of what a long record counts.
+    short = weight_of(1.0, "up", 6)
+    long_ = weight_of(1.0, "up", 40)
+    assert short < long_ / 3
+
+
+def test_a_record_below_the_floor_is_still_refused():
+    """Below three there are not enough observations of a given week to call the shape a
+    season at all."""
+    assert not eligible(100.0, 110.0, 2, regulated=False, crossed_lake=False)
+
+
+def test_the_record_scale_is_linear_up_to_the_full_mark_and_flat_after():
+    """So a station gains influence for every year it has until it has enough, and gains
+    nothing for having ninety instead of twenty."""
+    assert weight_of(1.0, "up", 10) == pytest.approx(0.5)
+    assert weight_of(1.0, "up", 20) == pytest.approx(1.0)
+    assert weight_of(1.0, "up", 90) == pytest.approx(1.0)

@@ -10,6 +10,11 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
+/*
+ * Named `_plat*` so they cannot collide with check-boundaries.test.ts's `_bnd*`: both gates
+ * scan the whole tree and vitest runs test files in parallel workers, so each one's
+ * fixtures are on disk while the other's checker walks past them.
+ */
 /** Write files into the shared tree, run the checker, return its exit code. */
 function check(files: Record<string, string>): number {
   const paths = Object.keys(files).map((f) => `${ROOT}${f}`);
@@ -31,7 +36,7 @@ describe("platform parity", () => {
   });
 
   it("catches a banned API in shared code", () => {
-    expect(check({ "packages/ui-native/src/_t.ts":
+    expect(check({ "packages/ui-native/src/_plat.ts":
       'export const el = document.createElement("canvas");\n' })).not.toBe(0);
   });
 
@@ -39,14 +44,14 @@ describe("platform parity", () => {
     // It does not warn and it does not throw — the prop is dropped and the element renders
     // with no aria attribute at all, so a screen reader sees nothing and every test that
     // looks at the DOM the way a sighted reader looks at the screen still passes.
-    expect(check({ "packages/ui-native/src/_t.tsx":
+    expect(check({ "packages/ui-native/src/_plat.tsx":
       'export const a = <View accessibilityState={{ selected: true }} />;\n' })).not.toBe(0);
   });
 
   it("does not read a banned API out of a comment", () => {
     // THE REGRESSION. `hatch.ts` explains that `document.createElement("canvas")` is a
     // browser call this package may not make, and the gate failed on the explanation.
-    expect(check({ "packages/ui-native/src/_t.ts":
+    expect(check({ "packages/ui-native/src/_plat.ts":
       '/**\n' +
       ' * Not a canvas: `document.createElement("canvas")` is a browser API this package\n' +
       ' * may not touch, so the pattern is built as bytes instead.\n' +
@@ -57,12 +62,12 @@ describe("platform parity", () => {
 
   it("still sees a real call on the line after a comment", () => {
     // The stripper must not eat code along with the comment it precedes.
-    expect(check({ "packages/ui-native/src/_t.ts":
+    expect(check({ "packages/ui-native/src/_plat.ts":
       '/* explanation */ export const el = document.body;\n' })).not.toBe(0);
   });
 
   it("keeps string literals, where a banned API is usually a real dynamic call", () => {
-    expect(check({ "packages/ui-native/src/_t.ts":
+    expect(check({ "packages/ui-native/src/_plat.ts":
       'export const k = "document.";\n' })).not.toBe(0);
   });
 
@@ -70,14 +75,14 @@ describe("platform parity", () => {
     // Both halves, because an incomplete variant set is its own violation — that is how a
     // feature ships on one platform only.
     expect(check({
-      "packages/ui-native/src/_t.web.ts": 'export const el = document.createElement("div");\n',
-      "packages/ui-native/src/_t.native.ts": 'export const el = null;\n',
+      "packages/ui-native/src/_plat.web.ts": 'export const el = document.createElement("div");\n',
+      "packages/ui-native/src/_plat.native.ts": 'export const el = null;\n',
     })).toBe(0);
   });
 
   it("catches a variant that ships on one platform only", () => {
     expect(check({
-      "packages/ui-native/src/_t.web.ts": 'export const el = 1;\n',
+      "packages/ui-native/src/_plat.web.ts": 'export const el = 1;\n',
     })).not.toBe(0);
   });
 
@@ -85,8 +90,8 @@ describe("platform parity", () => {
     // A complete set still diverges if one side exports a helper the other does not —
     // callers compile on one platform and fail on the other.
     expect(check({
-      "packages/ui-native/src/_t.web.ts": 'export const a = 1;\nexport const b = 2;\n',
-      "packages/ui-native/src/_t.native.ts": 'export const a = 1;\n',
+      "packages/ui-native/src/_plat.web.ts": 'export const a = 1;\nexport const b = 2;\n',
+      "packages/ui-native/src/_plat.native.ts": 'export const a = 1;\n',
     })).not.toBe(0);
   });
 });

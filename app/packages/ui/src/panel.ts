@@ -26,6 +26,8 @@ export interface DonorRow {
   areaKm2: number;
   trust: TrustClass;
   years: number;
+  /** A dam governs this station's water — see `PanelMember.regulated`. */
+  regulated: boolean;
   /**
    * Why this donor is worth what it is worth, before normalising — the three factors the
    * model multiplies. Carried so a screen can show the working rather than assert a
@@ -126,7 +128,7 @@ export function answerFrom(panel: Panel | undefined, index: Index,
     const w = own === null ? 0 : f.share * f.role * f.record;
     raw.push({ station: m.station, role: m.role, percentile: own, weight: 0,
                areaRatio: ratio, areaKm2: m.areaKm2, trust: trustFor(ratio).klass,
-               years: m.years, factors: f, _w: w });
+               years: m.years, regulated: m.regulated, factors: f, _w: w });
     if (own !== null && panel.areaKm2)
       contributions.push({ percentile: own, role: m.role, areaKm2: m.areaKm2,
                            years: m.years });

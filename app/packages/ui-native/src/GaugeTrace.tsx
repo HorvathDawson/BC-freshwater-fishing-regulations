@@ -66,7 +66,16 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
           are counting is the chain you can see. */}
       {at && theme && camera && (
         <MiniMap at={at} palette={palette} theme={theme} camera={camera} height={190}
-                 view="plain" highlight={trace.path}
+                 // BARE, like the panel's own map: this is a 190 px illustration, not
+                 // something a reader drives. A zoom stack, a compass, a scale bar and an
+                 // attribution button over it are four controls for a fixed camera, and
+                 // they cover the two pins the picture exists to show. The credit they
+                 // carried is on the page instead — see `Credits`.
+                 bare
+                 // CONDITIONS, so water off the route is drawn as unmeasured grey and the
+                 // highlighted chain is the only thing with colour in it. Under "plain"
+                 // every river was the same blue and the route did not stand out.
+                 view="conditions" highlight={trace.path}
                  pins={[
                    // TWO ENDS, TWO COLOURS, and each says which it is when tapped. One
                    // marker on a route map is worse than none: the reader cannot tell
@@ -78,8 +87,7 @@ export function GaugeTrace({ trace, palette, title = "How this spot reaches the 
                           title: trace.stationName ?? trace.station ?? "the gauge" }]
                      : []),
                  ]}
-                 hint={`${trace.station} · ${trace.path.length} ` +
-                       `${trace.path.length === 1 ? "reach" : "reaches"}`} />
+                 />
       )}
       {at && theme && camera && (
         <View style={{ flexDirection: "row", gap: 16, marginTop: -4 }}>

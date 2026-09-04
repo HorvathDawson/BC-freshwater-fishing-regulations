@@ -132,12 +132,20 @@ CREATE TABLE section_panel (section_id TEXT PRIMARY KEY,
 -- error bars come from the ratio through one ladder mirrored into the app and pinned by a
 -- test. Storing any of those instead would freeze a calibration into the bundle -- and the
 -- calibration is a measurement over 9,495 gauge pairs that will be redone.
+--
+-- `regulated` IS NOT DERIVED AND CANNOT BE. It comes from HYDAT's STN_REGULATION, which the
+-- client does not ship, and it changes what the number MEANS rather than how much it is
+-- worth: a percentile at a dammed station is a percentile of somebody's dispatch decision.
+-- Such a donor is admitted only for water that is all but its own (REGULATED_MAX_RATIO in
+-- panel.py), where that schedule is what this water is actually doing — and the screen still
+-- has to say so, or the app presents a release schedule as a description of the weather.
 CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
                            ord INTEGER NOT NULL,
                            station TEXT NOT NULL,
                            role TEXT NOT NULL,        -- up | down
                            area_km2 REAL NOT NULL,    -- the DONOR's catchment
                            years INTEGER NOT NULL,    -- its record length
+                           regulated INTEGER NOT NULL DEFAULT 0,   -- a dam governs it
                            PRIMARY KEY (panel_id, ord)) WITHOUT ROWID;
 
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,

@@ -11,7 +11,7 @@ import { answerFrom, HORIZONS } from "./panel";
 
 const PANEL: Panel = {
   areaKm2: 500,
-  members: [{ station: "08A" as never, role: "up", areaKm2: 520, years: 40 }],
+  members: [{ station: "08A" as never, role: "up", areaKm2: 520, years: 40, regulated: false }],
 };
 
 type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;

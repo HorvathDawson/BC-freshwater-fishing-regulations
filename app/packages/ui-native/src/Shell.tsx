@@ -429,11 +429,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
               // A DIFFERENT SCALE ENTIRELY, so a different legend. The flow ramp under
               // temperature dots was the map promising a ranking it was not drawing —
               // and these thresholds are absolute degrees, not positions in a record.
-              <>
+              // ONE ROW. The Conditions strip renders its children in a plain column so
+              // the flow ramp can span the screen — which stacked these three bands
+              // vertically and took three lines of map to say what fits on one. A legend
+              // is a caption; the moment it needs three rows it has become a panel.
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 18,
+                             flexWrap: "wrap" }}>
                 <LegendCount palette={palette} colour={palette.open} label="under 18 °C" />
                 <LegendCount palette={palette} colour={palette.restricted} label="18–20 °C" />
                 <LegendCount palette={palette} colour={palette.closed} label="20 °C and over" />
-              </>
+              </View>
             ) : (
               <LegendRamp palette={palette}
                           low={flowParam === "level" ? "low stage for the date"

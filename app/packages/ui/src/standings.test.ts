@@ -13,10 +13,10 @@ import { answerFrom } from "./panel";
 const HARRISON: Panel = {
   areaKm2: 4584,
   members: [
-    { station: "08MG013" as never, role: "up", areaKm2: 4313, years: 60 },
-    { station: "08MG001" as never, role: "up", areaKm2: 795, years: 70 },
-    { station: "08MG022" as never, role: "down", areaKm2: 6200, years: 30 },
-    { station: "08MG012" as never, role: "up", areaKm2: 220, years: 25 },
+    { station: "08MG013" as never, role: "up", areaKm2: 4313, years: 60, regulated: false },
+    { station: "08MG001" as never, role: "up", areaKm2: 795, years: 70, regulated: false },
+    { station: "08MG022" as never, role: "down", areaKm2: 6200, years: 30, regulated: false },
+    { station: "08MG012" as never, role: "up", areaKm2: 220, years: 25, regulated: false },
   ],
 };
 

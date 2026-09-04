@@ -200,11 +200,13 @@ if (panelDonors.length) {
       // Area from the same drainage relation the pipeline fits, so a fixture ratio is a
       // plausible ratio rather than an invented one.
       ? 1.237 * Math.pow(shedMag[section], 0.851) : null]));
-  counts.panel_member = insert("INSERT OR REPLACE INTO panel_member VALUES (?,?,?,?,?,?)",
+  counts.panel_member = insert("INSERT OR REPLACE INTO panel_member VALUES (?,?,?,?,?,?,?)",
     panelDonors.map(([station, area], i) =>
       // `role` alternates so the downstream penalty is exercised; `years` spans the record
-      // gate so one donor counts at less than full weight.
-      [1, i, station, i % 2 === 0 ? "up" : "down", area, 10 + i * 15]));
+      // gate so one donor counts at less than full weight; and ONE donor is on regulated
+      // water, so the dam caveat has something to fire on in dev rather than only in a
+      // unit test.
+      [1, i, station, i % 2 === 0 ? "up" : "down", area, 10 + i * 15, i === 1 ? 1 : 0]));
 }
 
 // Only inside a shed. The contract cuts the rest and nothing is lost.

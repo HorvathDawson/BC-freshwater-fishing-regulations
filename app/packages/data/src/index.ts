@@ -118,6 +118,16 @@ export interface PanelMember {
   areaKm2: number;
   /** Its record length, in years. A percentile from ten is not one from ninety. */
   years: number;
+  /**
+   * A dam governs this station's water.
+   *
+   * NOT A WEIGHT — a change of MEANING. The reading is a percentile of somebody's dispatch
+   * decision rather than of the weather, and such a donor is admitted only for water that
+   * is all but its own, where that schedule is what this water is doing. The screen has to
+   * say so: presenting a release schedule as a description of rainfall is the one thing
+   * this whole panel exists to avoid.
+   */
+  regulated: boolean;
 }
 
 /**

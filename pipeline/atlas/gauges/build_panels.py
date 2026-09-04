@@ -33,6 +33,14 @@ class Member:
     role: str                 # up | down
     area_km2: float
     years: int
+    #: This station sits on REGULATED water — a dam governs what it reads.
+    #:
+    #: Carried to the client rather than left in the pipeline, because it changes what the
+    #: number MEANS and a reader has to be told. A regulated donor is admitted only for
+    #: water that is all but its own (REGULATED_MAX_RATIO), where the release schedule is
+    #: what this water is actually doing; the screen still has to say so, or the app is
+    #: presenting a dispatch decision as a description of the weather.
+    regulated: bool = False
 
 
 @dataclass(frozen=True)
@@ -54,10 +62,11 @@ class Panels:
             yield (sec, pid, None if area is None else round(area, 3))
 
     def member_rows(self):
-        """`(panel_id, ord, station, role, area_km2, years)`."""
+        """`(panel_id, ord, station, role, area_km2, years, regulated)`."""
         for pid, ms in sorted(self.members.items()):
             for i, m in enumerate(ms):
-                yield (pid, i, m.station, m.role, round(m.area_km2, 3), m.years)
+                yield (pid, i, m.station, m.role, round(m.area_km2, 3), m.years,
+                       1 if m.regulated else 0)
 
 
 def _kind(node) -> str:
@@ -87,6 +96,19 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
         a0 = area_of(start)
         if not a0:
             continue
+        # THE GAUGE'S OWN SECTION FIRST — it was the one section it could not speak for.
+        #
+        # The walk below starts at `sec` and records only what it REACHES, so the reach the
+        # station physically stands in got nothing from it. That is the best donor that will
+        # ever exist for that water: same catchment, no transfer, no inference, ratio exactly
+        # 1. The Skagit is the case that surfaced it — three gauges on the river, two of them
+        # on the very section that had no panel at all.
+        #
+        # `role` is "up" rather than "down" because there is no direction to penalise: the
+        # gauge is neither above nor below this water, it is in it, and DOWNSTREAM_PENALTY
+        # exists to discount water that has been diluted on the way down.
+        if _kind(start) == "stream":
+            out[sec].append((station, "up", a0, years, regulated, False))
         # Walking upstream reaches sections the gauge is DOWNSTREAM of, and vice versa.
         for adj, role in ((up, "down"), (down, "up")):
             seen: set[str] = {sec}
@@ -137,11 +159,12 @@ def build(graph, model: AreaModel,
             continue
         by_station = {station: ad for station, _r, ad, *_ in cs}
         chosen = tuple(Member(d.station, d.role, by_station[d.station],
-                              facts.get(d.station, (0, False))[0])
+                              facts.get(d.station, (0, False))[0],
+                              facts.get(d.station, (0, False))[1])
                        for d in panel)
         # Interned on the SET — station, role, and the donor's own facts. Nothing here
         # depends on the target, which is exactly why it collapses.
-        key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years)
+        key = tuple(sorted((m.station, m.role, round(m.area_km2, 3), m.years, m.regulated)
                            for m in chosen))
         pid = intern.setdefault(key, len(intern))
         by_section[sec] = (pid, at)

@@ -11,6 +11,13 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 
+/*
+ * TEMP FILES ARE NAMED PER TEST FILE (`_bnd*` here, `_plat*` in check-platform.test.ts).
+ *
+ * Both gates scan the WHOLE tree, and vitest runs test FILES in parallel workers — so a
+ * fixture written by one is on disk while the other's checker walks past it. Sharing a
+ * basename made the two races into one flake that only appeared when both ran together.
+ */
 function check(file: string, source: string): number {
   const path = `${ROOT}${file}`;
   writeFileSync(path, source);
@@ -31,20 +38,20 @@ describe("layer boundaries", () => {
   });
 
   it.each([
-    ["bare side-effect import", "packages/ui/src/_t.ts", 'import "react-native";\n'],
-    ["dynamic import", "packages/core/src/_t.ts", 'export const f = () => import("maplibre-gl");\n'],
-    ["require()", "packages/data/src/_t.ts", 'const x = require("react-dom");\n'],
-    ["multiline named import", "packages/core/src/_t.ts", 'import {\n a,\n b\n} from "react";\n'],
-    ["a test file cannot smuggle one in", "packages/core/src/_t.test.ts",
+    ["bare side-effect import", "packages/ui/src/_bnd.ts", 'import "react-native";\n'],
+    ["dynamic import", "packages/core/src/_bnd.ts", 'export const f = () => import("maplibre-gl");\n'],
+    ["require()", "packages/data/src/_bnd.ts", 'const x = require("react-dom");\n'],
+    ["multiline named import", "packages/core/src/_bnd.ts", 'import {\n a,\n b\n} from "react";\n'],
+    ["a test file cannot smuggle one in", "packages/core/src/_bnd.test.ts",
       'import "react-native";\nimport { it } from "vitest";\n'],
   ])("rejects: %s", (_name, file, src) => {
     expect(check(file, src)).toBe(1);
   });
 
   it.each([
-    ["vitest inside a test file", "packages/core/src/_t.test.ts", 'import { it } from "vitest";\n'],
-    ["data -> core", "packages/data/src/_t.ts", 'import { freshness } from "@app/core";\nexport const f = freshness;\n'],
-    ["ui -> react", "packages/ui/src/_t.ts", 'import { useState } from "react";\nexport const f = useState;\n'],
+    ["vitest inside a test file", "packages/core/src/_bnd.test.ts", 'import { it } from "vitest";\n'],
+    ["data -> core", "packages/data/src/_bnd.ts", 'import { freshness } from "@app/core";\nexport const f = freshness;\n'],
+    ["ui -> react", "packages/ui/src/_bnd.ts", 'import { useState } from "react";\nexport const f = useState;\n'],
   ])("allows: %s", (_name, file, src) => {
     expect(check(file, src)).toBe(0);
   });
@@ -71,7 +78,7 @@ describe("comments are not code", () => {
     // A doc comment explaining a decision can easily contain the shape `… from "x"`, and
     // the checker reported one as an illegal import of a fragment of English. A gate that
     // fails on prose teaches people to stop writing prose.
-    expect(check("packages/core/src/_t.ts",
+    expect(check("packages/core/src/_bnd.ts",
       '/** A claim that differs from "react-native" entirely. */\n' +
       '// see also: this differs from "maplibre-gl"\n' +
       'export const x = 1;\n')).toBe(0);
@@ -85,7 +92,7 @@ describe("comments are not code", () => {
      * fragment `}{`. A gate that invents an import out of rendered English fails on the
      * files most worth checking.
      */
-    expect(check("packages/ui-native/src/_t.tsx",
+    expect(check("packages/ui-native/src/_bnd.tsx",
       'export function C({ ahead }: { ahead: boolean }) {\n' +
       '  return <Text>{ahead ? "forecast from" : "from"}{" "}two gauges</Text>;\n' +
       '}\n')).toBe(0);
@@ -94,23 +101,23 @@ describe("comments are not code", () => {
   it("still catches a real re-export across wrapped lines", () => {
     // The fix bounds the clause at `(`, `)` and `;` — NOT at a newline. A long specifier
     // list is routinely wrapped, and bounding at the newline would let one through.
-    expect(check("packages/core/src/_t.ts",
+    expect(check("packages/core/src/_bnd.ts",
       'export {\n  a,\n  b,\n} from "react-native";\n')).not.toBe(0);
   });
 
   it("still catches a real import whose specifiers wrap", () => {
-    expect(check("packages/core/src/_t.ts",
+    expect(check("packages/core/src/_bnd.ts",
       'import {\n  a,\n  b,\n} from "react-native";\n')).not.toBe(0);
   });
 
   it("still sees a real import on the line after a comment", () => {
     // The stripper must not eat code along with the comment it precedes.
-    expect(check("packages/core/src/_t.ts",
+    expect(check("packages/core/src/_bnd.ts",
       '/* explanation */ import "react-native";\n')).not.toBe(0);
   });
 
   it("does not mistake a string containing // for a comment", () => {
-    expect(check("packages/core/src/_t.ts",
+    expect(check("packages/core/src/_bnd.ts",
       'export const u = "https://example.com";\nimport "react-native";\n')).not.toBe(0);
   });
 });

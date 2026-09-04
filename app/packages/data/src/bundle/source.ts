@@ -253,6 +253,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
             role: str(r.role) === "down" ? "down" : "up",
             areaKm2: Number(r.donor_area),
             years: Number(r.years),
+            regulated: Number(r.regulated ?? 0) === 1,
           });
         }
       }

@@ -21,7 +21,7 @@ afterEach(cleanup);
 const row = (station: string, over: Partial<DonorRow> = {}): DonorRow => ({
   station: station as never, role: "up", percentile: 0.12,
   weight: 0.6, areaRatio: 2.4, areaKm2: 120, trust: "close", years: 40,
-  factors: { share: 0.42, role: 1, record: 1 }, ...over,
+  regulated: false, factors: { share: 0.42, role: 1, record: 1 }, ...over,
 });
 
 const answer = (over = {}): PanelAnswer => ({
@@ -123,7 +123,7 @@ describe("the donor panel", () => {
     ] }} />);
     expect(screen.getByText(/its watershed overlaps this one by 42%/)).toBeTruthy();
     expect(screen.getByText(/it sits downstream, so it carries extra water/)).toBeTruthy();
-    expect(screen.getByText(/its record is only 10 years, so it counts 50%/)).toBeTruthy();
+    expect(screen.getByText(/only 10 years of record, so it counts 50%/)).toBeTruthy();
   });
 
   it("gives the spot's own catchment, so a share can be checked", () => {
@@ -199,6 +199,53 @@ describe("the donor panel", () => {
     render(<DonorPanel palette={LIGHT}
                        value={{ ...answer(), rows: [row("08MH001", { percentile: 0.2 })] }} />);
     expect(screen.getByText(/Reads lower than 8 days in 10/)).toBeTruthy();
+  });
+
+  it("says when the water is dam-controlled, above the working and not only in it", () => {
+    // "Low for the time of year" on a regulated river can mean the gate is shut rather
+    // than that the country is dry, and a reader deciding whether to drive two hours has
+    // to be told which they are looking at.
+    render(<DonorPanel palette={LIGHT} value={{ ...answer(),
+      rows: [row("08PA004", { regulated: true })] }} />);
+    expect(screen.getByText(/controlled by a dam/)).toBeTruthy();
+    expect(screen.getByText(/dam-controlled/)).toBeTruthy();
+  });
+
+  it("says nothing about dams when no donor is on regulated water", () => {
+    render(<DonorPanel palette={LIGHT} value={answer()} />);
+    expect(screen.queryByText(/controlled by a dam/)).toBeNull();
+  });
+
+  it("does not warn about a dam on a gauge that is not reporting", () => {
+    // The caveat is about the number being shown. There is no number from a quiet gauge.
+    render(<DonorPanel palette={LIGHT} value={{ ...answer(),
+      rows: [row("08PA004", { regulated: true, percentile: null })] }} />);
+    expect(screen.queryByText(/controlled by a dam/)).toBeNull();
+  });
+
+  it("warns when most of the answer rests on a short record", () => {
+    render(<DonorPanel palette={LIGHT} value={{ ...answer(), rows: [
+      row("08A", { years: 6, weight: 0.8, factors: { share: 0.4, role: 1, record: 0.3 } }),
+      row("08B", { years: 60, weight: 0.2 }),
+    ] }} />);
+    expect(screen.getByText(/rests on a gauge with only 6 years of record/)).toBeTruthy();
+  });
+
+  it("does not warn when the short-record gauge is a minor voice", () => {
+    // The caveat is about what the headline leans on. A 6-year gauge carrying a fifth of
+    // the answer is not what the headline leans on.
+    render(<DonorPanel palette={LIGHT} value={{ ...answer(), rows: [
+      row("08A", { years: 6, weight: 0.2 }),
+      row("08B", { years: 60, weight: 0.8 }),
+    ] }} />);
+    expect(screen.queryByText(/rests on a gauge with only/)).toBeNull();
+  });
+
+  it("gives the record length in the row's reason, so the discount is checkable", () => {
+    render(<DonorPanel palette={LIGHT} value={{ ...answer(), rows: [
+      row("08A", { years: 6, factors: { share: 0.4, role: 1, record: 0.3 } }),
+    ] }} />);
+    expect(screen.getByText(/only 6 years of record, so it counts 30%/)).toBeTruthy();
   });
 
   it("describes each row for a screen reader, not only for the eye", () => {

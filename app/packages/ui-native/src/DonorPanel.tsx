@@ -88,8 +88,12 @@ function because(r: DonorRow): string {
   const bits = [`its watershed overlaps this one by ${Math.round(r.factors.share * 100)}%`];
   if (r.factors.role < 1) bits.push("it sits downstream, so it carries extra water");
   if (r.factors.record < 1)
-    bits.push(`its record is only ${r.years} years, so it counts `
-              + `${Math.round(r.factors.record * 100)}%`);
+    // THE RECORD IS THE THING A READER CANNOT GUESS. A percentile from six years is not
+    // wrong, it is coarse — six observations of this week of the year, so the answer moves
+    // in sixths and the extremes were never seen. The panel admits such a station and
+    // discounts it; saying by how much is what makes the discount checkable.
+    bits.push(`it has only ${r.years} ${r.years === 1 ? "year" : "years"} of record, `
+              + `so it counts ${Math.round(r.factors.record * 100)}%`);
   return `Counts this much because ${bits.join("; ")}.`;
 }
 
@@ -350,6 +354,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
             <Text style={{ ...TYPE.small, fontSize: 11, color: palette.faint,
                            marginLeft: 18 }}>
               {ROLE[r.role]} · drains {area(r.areaKm2)} · {distance(r.areaRatio)}
+              {r.regulated ? " · dam-controlled" : ""}
               {r.route && r.route.path.length > 1
                 ? ` · ${r.route.path.length - 1} `
                   + `${r.route.path.length === 2 ? "reach" : "reaches"} away`
@@ -368,6 +373,41 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
           );
         })}
       </View>
+
+      {/*
+        A DAM CHANGES WHAT THE NUMBER MEANS, so it is said once, plainly, above the working
+        rather than only in a row's small print. "Low for the time of year" on a regulated
+        river can mean nothing more than that the gate is shut, and a reader deciding
+        whether to drive two hours deserves to know which they are looking at.
+      */}
+      {/*
+        A SHORT RECORD IS SAID ONCE, PLAINLY, when the answer actually leans on one. The
+        row's small print already gives the number; this is for the reader who is deciding
+        whether to trust the headline and will not read four rows to find out.
+      */}
+      {(() => {
+        const voting = rows.filter((r) => r.percentile !== null && r.weight > 0);
+        const lean = voting.reduce((a, r) => a + (r.years < 10 ? r.weight : 0), 0);
+        if (!voting.length || lean < 0.5) return null;
+        const fewest = Math.min(...voting.filter((r) => r.years < 10).map((r) => r.years));
+        return (
+          <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub, marginTop: 9,
+                         lineHeight: 16 }}>
+            Most of this rests on a gauge with only {fewest}{" "}
+            {fewest === 1 ? "year" : "years"} of record. That is few enough that "normal for
+            this week" is itself a rough idea, which is part of why the range above is wide.
+          </Text>
+        );
+      })()}
+
+      {rows.some((r) => r.regulated && r.percentile !== null) && (
+        <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.sub, marginTop: 9,
+                       lineHeight: 16 }}>
+          This water is controlled by a dam. The reading is real, but it follows a release
+          schedule as much as the weather — a low river here can mean the gate is shut
+          rather than that the country is dry.
+        </Text>
+      )}
 
       {e.spread > 25 && (
         <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.restricted,

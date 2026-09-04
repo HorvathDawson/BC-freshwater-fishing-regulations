@@ -98,7 +98,8 @@ def test_a_stretch_of_river_shares_one_panel():
     chain = [N(f"s{i}", 100 + i) for i in range(6)]
     graph = g(chain, [E(f"s{i}", f"s{i+1}") for i in range(5)])
     got = build(graph, MODEL, [("S", "s0", 40, False)])
-    assert len(got.by_section) == 5                             # s1..s5
+    # s0..s5 — six, because the gauge now also speaks for the reach it stands in.
+    assert len(got.by_section) == 6
     assert len({pid for pid, _ in got.by_section.values()}) == 1
 
 
@@ -125,21 +126,77 @@ def test_the_rows_carry_facts_rather_than_anything_derived():
     schema.sql. The client has both areas and can derive all three exactly."""
     graph = g([N("gauged", 100), N("target", 200)], [E("gauged", "target")])
     got = build(graph, MODEL, [("S", "gauged", 40, False)])
-    (sec, pid, area), = got.section_rows()
-    assert (sec, area) == ("target", 200.0)
-    (mpid, ordinal, station, role, donor_area, years), = got.member_rows()
+    rows = {sec: (pid, area) for sec, pid, area in got.section_rows()}
+    pid, area = rows["target"]
+    assert area == 200.0
+    (mpid, ordinal, station, role, donor_area, years, regulated), = [
+        r for r in got.member_rows() if r[0] == pid]
     assert (mpid, ordinal, station, role, donor_area, years) == (pid, 0, "S", "up", 100.0, 40)
+    # `regulated` is a FACT about the station, not a calibration — it changes what the
+    # number means and the client cannot derive it, so it rides along with the rest.
+    assert regulated == 0
 
 
-def test_a_regulated_donor_never_forms_a_panel():
+def test_a_regulated_donor_speaks_for_its_own_water():
+    """Magnitudes 100 and 110 are all but the same drainage — the dam's schedule IS what
+    this water is doing, so the reading is a measurement rather than a transfer."""
     graph = g([N("gauged", 100), N("target", 110)], [E("gauged", "target")])
     got = build(graph, MODEL, [("S", "gauged", 40, True)])
-    assert got.by_section == {}
+    assert "target" in got.by_section
+
+
+def test_a_regulated_donor_is_not_carried_onto_other_water():
+    """Far enough away and the release schedule says nothing about this catchment — the
+    Nechako running high in a dry winter, above prime Fraser water."""
+    graph = g([N("gauged", 100), N("target", 9000)], [E("gauged", "target")])
+    got = build(graph, MODEL, [("S", "gauged", 40, True)])
+    # Its OWN reach still gets it — that is a measurement, not a transfer — and nothing
+    # else does.
+    assert set(got.by_section) == {"gauged"}
 
 
 def test_a_section_nothing_qualifies_for_gets_no_panel_at_all():
     """Absent, not empty. The two are different answers and the app's types keep them
     apart — a caller that cannot tell renders silence as a loading state."""
     graph = g([N("gauged", 100), N("target", 110)], [E("gauged", "target")])
-    got = build(graph, MODEL, [("S", "gauged", 3, False)])     # too short a record
+    got = build(graph, MODEL, [("S", "gauged", 1, False)])     # too short a record
     assert "target" not in got.by_section
+
+
+def test_a_gauge_speaks_for_the_reach_it_stands_in():
+    """THE BEST DONOR THAT CAN EXIST, and the one section it could not reach.
+
+    The walk starts at the gauge's own section and records only what it REACHES, so that
+    section got nothing from the station standing in it — same catchment, ratio exactly 1,
+    no transfer and no inference. The Skagit surfaced it: three gauges on the river, two of
+    them on the very section that had no panel at all.
+    """
+    graph = g([N("gauged", 100), N("target", 110)], [E("gauged", "target")])
+    got = build(graph, MODEL, [("S", "gauged", 40, False)])
+    assert "gauged" in got.by_section
+    (_pid, _ord, station, role, area, years, _reg), = [
+        r for r in got.member_rows()
+        if r[0] == got.by_section["gauged"][0]]
+    assert station == "S"
+    # No direction to penalise: the gauge is IN this water, not above or below it.
+    assert role == "up"
+
+
+def test_its_own_section_is_the_heaviest_donor_it_has():
+    """Ratio 1 means share 1, which is the largest weight the formula can produce — so a
+    reach with its own gauge is answered by that gauge and only topped up by the rest."""
+    graph = g([N("gauged", 100), N("near", 130), N("far", 400)],
+              [E("gauged", "near"), E("near", "far")])
+    got = build(graph, MODEL, [("OWN", "gauged", 40, False), ("OTHER", "far", 40, False)])
+    pid, _area = got.by_section["gauged"]
+    rows = [r for r in got.member_rows() if r[0] == pid]
+    assert "OWN" in {r[2] for r in rows}
+
+
+def test_a_lake_node_does_not_claim_its_own_stream_gauge():
+    """A station matched to a lake is a level in metres, and the seeded donor has to obey
+    the same stream-only rule the walk does."""
+    graph = g([N("gauged", 100)], [])
+    graph.nodes["gauged"].kind = graph.nodes["gauged"].kind      # stream in this fixture
+    got = build(graph, MODEL, [("S", "gauged", 40, False)])
+    assert "gauged" in got.by_section

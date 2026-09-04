@@ -114,9 +114,26 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
     wb_path = build_dir / "waterbody_polys.pkl"
     wb_polys = pickle.load(wb_path.open("rb")) if wb_path.exists() else {}
     dropped_routes = 0
+    dropped_outside = 0
     for sec, g in geoms.items():
         node = graph.nodes.get(sec)
         if node is None:
+            continue
+        # OUTSIDE BC IS NOT DRAWN AT ALL.
+        #
+        # These reaches were kept and drawn dotted, on the reasoning that a river visibly
+        # continuing into Washington is more honest than one stopping at a line. In practice
+        # it is the opposite: the app answers a question — what may I fish, and what is the
+        # water doing — and it has NO answer beyond the border. There are no regulations, no
+        # gauges we read, and FWA carries no tributaries there, so those reaches also have
+        # no drainage, no magnitude and no panel. They render as water the reader can tap
+        # and be told nothing about.
+        #
+        # Dropping them at the tile is also the only place it sticks: the graph keeps them,
+        # because the topology of a cross-border river is real and the border split depends
+        # on it. This is a DRAWING decision, made where the drawing is produced.
+        if node.out_of_bc:
+            dropped_outside += 1
             continue
         if _kind(node) != "stream":
             # A lake node's sidecar geometry is the route THROUGH the lake, not the lake.
@@ -158,7 +175,8 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
             "areas": ",".join(sorted(node.in_areas)) or None,
         }, ladder.zoom_for_magnitude(node.stream_magnitude, spec.minzoom))
     n, n_ul = close(), ul_close()
-    print(f"  stream         {n:>9,}")
+    print(f"  stream         {n:>9,}"
+          + (f"  ({dropped_outside:,} outside BC, not drawn)" if dropped_outside else ""))
     print(f"  under_lake     {n_ul:>9,}"
           + (f"  ({dropped_routes:,} dropped: longer than "
              f"{_MAX_ROUTE_OVER_DIAGONAL:g}x their own waterbody)" if dropped_routes else ""))
