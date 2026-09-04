@@ -170,6 +170,43 @@ counts.section_gauge = insert("INSERT OR REPLACE INTO section_gauge VALUES (?,?,
     .map(([section, station]) => [section, station, src.shed_q[section],
                                   shedMag[section] ?? null]));
 
+/*
+ * DONOR PANELS — the fixture's copy of what the app actually reads.
+ *
+ * These were missing entirely, so the fixture's Conditions map coloured NOTHING and every
+ * sheet said "no gauge on this water is close enough in size to speak for it". The dev app
+ * and the render tests were exercising the refusal path and only the refusal path, on a
+ * fixture whose whole purpose is the happy one.
+ *
+ * BUILT THE WAY THE PIPELINE BUILDS THEM: the donor SET is interned and shared, weights are
+ * derived at read time from the two catchments, and a section's own area lives on the
+ * section. That is what makes the real dictionary collapse 191,026 sections into 1,898
+ * panels, and a fixture with per-section weights would not exercise the same code.
+ *
+ * Every gauge in the fixture is a candidate for every shed section, which is a simplification
+ * the province does not permit and the fixture does: five stations over one river system,
+ * where the point is to have a panel with more than one member so the table, the map key and
+ * the weight bars all have something to draw.
+ */
+const shedSections = Object.keys(src.gauge_shed).sort();
+const panelDonors = src.gauges
+  .filter((g) => g.area_km2)
+  .map((g) => [g.id, g.area_km2]);
+if (panelDonors.length) {
+  counts.section_panel = insert("INSERT OR REPLACE INTO section_panel VALUES (?,?,?)",
+    // One panel for the whole fixture shed: same donors, so the dictionary interns to a
+    // single row — which is the shape the real bundle has and the client must handle.
+    shedSections.map((section) => [section, 1, shedMag[section]
+      // Area from the same drainage relation the pipeline fits, so a fixture ratio is a
+      // plausible ratio rather than an invented one.
+      ? 1.237 * Math.pow(shedMag[section], 0.851) : null]));
+  counts.panel_member = insert("INSERT OR REPLACE INTO panel_member VALUES (?,?,?,?,?,?)",
+    panelDonors.map(([station, area], i) =>
+      // `role` alternates so the downstream penalty is exercised; `years` spans the record
+      // gate so one donor counts at less than full weight.
+      [1, i, station, i % 2 === 0 ? "up" : "down", area, 10 + i * 15]));
+}
+
 // Only inside a shed. The contract cuts the rest and nothing is lost.
 const inShed = new Set(Object.keys(src.gauge_shed));
 counts.section_down = insert("INSERT OR REPLACE INTO section_down VALUES (?,?)",
@@ -261,16 +298,33 @@ db.close();
 // percentile that decides the colour and the time that decides whether to trust it. A tap
 // fetches the station's own file, which has everything.
 const index = {};
-for (const g of src.gauges)
+for (const g of src.gauges) {
+  const now = g.standing?.pctile ?? null;
   index[g.id] = {
-    percentile: g.standing?.pctile ?? null,
+    percentile: now,
     observedAt: g.last?.[0] ?? null,
     // Tomorrow, the day after, the day after that — as PERCENTILES, not discharges, for
     // the same reason `percentile` is: it is what picks a colour, the publisher computes
     // it once against the envelope, and every client then agrees by construction. CLEVER
     // only; three models drawn at once is noise, and CLEVER is the freshet model.
     forecast: null,
+    /*
+     * WHERE IT IS HEADING, at the horizons the publisher ranks — see HORIZONS in
+     * `pipeline/gauges/feed/publish.py`. Without these the Conditions tab's +1 / +3 / +5
+     * chips colour NOTHING in dev, and a control that does nothing looks like a bug in the
+     * control rather than an absence in the fixture.
+     *
+     * A GENTLE RISE, and the same shape for every station, because the fixture's job here
+     * is to exercise the path rather than to model a freshet: the numbers must be real
+     * percentiles in [0,1] and must differ from today's, or the tests cannot tell that the
+     * horizon was read at all.
+     */
+    ...(now === null ? {} : { ahead: Object.fromEntries([1, 3, 5].map((d) => [
+      String(d),
+      { discharge: Math.min(0.95, Math.max(0.05, now + d * 0.06)), model: "CLEVER" },
+    ])) }),
   };
+}
 writeFileSync(`${OUT}/feeds/gauge/index.json`,
               JSON.stringify({ fetchedAt: src.fetched, stations: index }));
 for (const g of src.gauges)

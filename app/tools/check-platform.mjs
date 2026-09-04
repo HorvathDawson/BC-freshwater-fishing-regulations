@@ -120,6 +120,40 @@ for (const { group, stem, dir, have } of seen.values()) {
   }
 }
 
+/**
+ * Block and line comments out, string literals left alone.
+ *
+ * Deliberately the same shape as the stripper in `check-boundaries.mjs`: both gates read
+ * source as text and both were fooled by prose. String literals are KEPT because a banned
+ * API named in a string is usually a real dynamic call.
+ */
+function stripComments(src) {
+  let out = "";
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i], d = src[i + 1];
+    if (c === "/" && d === "/") { while (i < src.length && src[i] !== "\n") i++; continue; }
+    if (c === "/" && d === "*") {
+      i += 2;
+      while (i < src.length && !(src[i] === "*" && src[i + 1] === "/")) i++;
+      i += 2;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") {
+      const q = c;
+      out += src[i++];
+      while (i < src.length && src[i] !== q) {
+        if (src[i] === "\\") out += src[i++];
+        out += src[i++];
+      }
+      out += src[i++] ?? "";
+      continue;
+    }
+    out += src[i++];
+  }
+  return out;
+}
+
 // --- 3: banned APIs in shared code ---
 for (const scope of SHARED) {
   const dir = join(root, scope);
@@ -127,7 +161,12 @@ for (const scope of SHARED) {
   for (const file of walk(dir)) {
     if (/\.(ios|android|native|web)\.tsx?$/.test(file)) continue;   // variants may
     if (/\.test\.tsx?$/.test(file)) continue;
-    const src = readFileSync(file, "utf8");
+    // COMMENTS OUT FIRST. The most useful comment a shared file can carry is the one
+    // saying WHY it does not reach for the banned API — `hatch.ts` explains that
+    // `document.createElement("canvas")` is a browser call this package may not make, and
+    // that sentence was reported as the violation it exists to prevent. A gate that fails
+    // on its own explanation teaches people to delete the explanation.
+    const src = stripComments(readFileSync(file, "utf8"));
     for (const [needle, why] of BANNED_IN_SHARED)
       if (src.includes(needle))
         fail(`${relative(root, file)}: uses "${needle}" in shared code — ${why}`);

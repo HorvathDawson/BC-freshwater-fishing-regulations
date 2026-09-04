@@ -267,7 +267,9 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
           return (
           <Pressable key={r.station} onPress={pick} disabled={!pick}
                 accessibilityRole={pick ? "button" : "text"}
-                accessibilityState={pick ? { selected: on } : undefined}
+                // `aria-selected`, not `accessibilityState`: react-native-web >= 0.21
+                // ignores the latter, and this component has to speak on both platforms.
+                aria-selected={pick ? on : undefined}
                 accessibilityLabel={
                   `${r.station}, ${ROLE[r.role]}, ${distance(r.areaRatio)}, `
                   + (r.percentile === null
