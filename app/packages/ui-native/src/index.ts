@@ -6,7 +6,6 @@
  * apps/web; that split is free precisely because there is no logic in here to duplicate —
  * every one of these takes data from a hook and draws it.
  */
-export { PlaceholderScreen } from "./PlaceholderScreen";
 export { WaterScreen } from "./WaterScreen";
 export { Shell } from "./Shell";
 export { SearchScreen } from "./SearchScreen";

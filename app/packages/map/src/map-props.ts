@@ -34,6 +34,16 @@ export interface MapChrome {
   sub: string;
   /** The hard offset slab under the stack. Not a blur — see controls.css. */
   shadow: string;
+  /**
+   * A CSS `filter` for MapLibre's own glyphs.
+   *
+   * Its control icons are background-image SVGs with near-black strokes baked in, so on a
+   * dark control they are black on near-black and the zoom buttons cannot be read. There is
+   * no colour to set — the image has to be inverted. `"none"` on light.
+   */
+  iconFilter: string;
+  /** The scale bar's panel. Translucent, so the map still reads through it. */
+  scaleBg: string;
 }
 
 export interface MapProps {

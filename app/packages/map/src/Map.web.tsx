@@ -106,7 +106,16 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     m.addControl(new maplibregl.NavigationControl({
       showCompass: true, visualizePitch: false,
     }), "top-right");
-    m.addControl(new maplibregl.ScaleControl({ maxWidth: 96, unit: "metric" }), "top-left");
+    /*
+     * BOTTOM-RIGHT, above the attribution.
+     *
+     * It was top-left, which is also where the date pill sits — so the two stacked in the
+     * same corner, the scale clipped against the top edge of the screen, and the one thing
+     * that qualifies every distance on the map was the least legible thing on it. Bottom
+     * corners are where every map a reader has used puts a scale, and the top-left is now
+     * the date's alone: WHEN is the app's own question, and it deserves the corner.
+     */
+    m.addControl(new maplibregl.ScaleControl({ maxWidth: 92, unit: "metric" }), "bottom-right");
     // A map that fails silently is the worst outcome this app can produce: an empty map
     // looks exactly like water with no regulations on it. Surface every renderer error.
     m.on("error", (e) => onError?.(
@@ -402,6 +411,8 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     "--map-tint": chrome.tint,
     "--map-sub": chrome.sub,
     "--map-shadow": chrome.shadow,
+    "--map-icon-filter": chrome.iconFilter,
+    "--map-scale-bg": chrome.scaleBg,
   } as React.CSSProperties : {}), [chrome]);
 
   return <div ref={host}

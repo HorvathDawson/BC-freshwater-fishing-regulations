@@ -16,17 +16,27 @@ export function Sheet({ open, onClose, title, palette, children }: {
       {/* tapping the map behind closes it — the standard way out of a sheet */}
       <Pressable accessibilityLabel="Close" onPress={onClose}
                  style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.28)" }} />
-      <View style={{ backgroundColor: palette.card, borderTopLeftRadius: 22,
-                     borderTopRightRadius: 22, paddingTop: 10, paddingBottom: 28,
-                     borderTopWidth: 1, borderColor: palette.line }}>
-        <View style={{ alignSelf: "center", width: 38, height: 4, borderRadius: 2,
+      {/*
+        THE SHEET WAS THE LAST ROUNDED THING. It carried a 22px radius on both top corners
+        and a grabber pill, over a `palette.line` hairline — the softest surface in the app,
+        and the one the Layers and date panels are made of, so both still looked like the
+        old design while the screens behind them had been squared.
+
+        Square, a 1.5px rule in ink, and the grabber is a flat bar rather than a lozenge.
+      */}
+      <View style={{ backgroundColor: palette.card, paddingTop: 10, paddingBottom: 28,
+                     borderTopWidth: 1.5, borderColor: palette.ink }}>
+        <View style={{ alignSelf: "center", width: 38, height: 3,
                        backgroundColor: palette.line2, marginBottom: 12 }} />
         <View style={{ flexDirection: "row", alignItems: "center",
-                       justifyContent: "space-between", paddingHorizontal: 18 }}>
+                       justifyContent: "space-between", paddingHorizontal: 18,
+                       paddingBottom: 10, borderBottomWidth: 1.5,
+                       borderBottomColor: palette.ink }}>
           <Text style={{ ...TYPE.screen, fontSize: 19, color: palette.ink }}>{title}</Text>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Done"
                      hitSlop={10}>
-            <Text style={{ ...TYPE.micro, fontSize: 13, color: palette.accent }}>Done</Text>
+            {/* Uppercase and tracked, like every other label in this design. */}
+            <Text style={{ ...TYPE.section, fontSize: 11, color: palette.accent }}>Done</Text>
           </Pressable>
         </View>
         {children}
@@ -51,7 +61,7 @@ export function Choice<T extends string>({ palette, options, value, onChange, la
                      style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: palette.r.pill,
                               backgroundColor: on ? palette.accent : palette.wash,
                               borderWidth: 1,
-                              borderColor: on ? palette.accent : palette.line }}>
+                              borderColor: on ? palette.accent : palette.ink }}>
             <Text style={{ ...TYPE.micro, fontSize: 12.5,
                            color: on ? palette.onAccent : palette.sub }}>{o.t}</Text>
           </Pressable>

@@ -54,10 +54,13 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
         here is the chrome that is genuinely ours: the date, the layers, the basemap toggle
         — none of which MapLibre has an opinion about.
 
-        The date pill sits below the scale bar the renderer draws, so the two things that
-        qualify every answer on this screen — WHEN and HOW FAR — still read together.
+        The date pill has the top-left corner to ITSELF. It used to sit under the scale
+        bar, which put the two things that qualify every answer on this screen — WHEN and
+        HOW FAR — in one stack, with the scale clipped against the top edge. The scale has
+        moved to the bottom corner where every map puts one; this is the app's own question
+        and it reads better alone.
       */}
-      <View style={{ position: "absolute", top: 46, left: 14 }}>
+      <View style={{ position: "absolute", top: 14, left: 14 }}>
         <Pill palette={palette} onPress={onDate} label="Change the date">
           <Text style={{ ...TYPE.micro, fontSize: 13.5, fontWeight: "600",
                          color: palette.ink }}>

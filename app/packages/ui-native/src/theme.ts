@@ -143,10 +143,18 @@ export function flowRamp(theme: string): readonly string[] {
  * used its light-theme fallback.
  */
 export function mapChrome(p: Palette, theme: string): MapChrome {
+  const dark = theme === "dark";
   return {
     ink: p.ink, card: p.card, tint: p.tint, sub: p.sub,
     // A black slab reads on light ground and disappears on dark, so the dark theme leans
     // on pure black against a lighter card instead. Same "printed object", either way.
-    shadow: theme === "dark" ? "rgba(0,0,0,0.85)" : "rgba(21,24,28,0.90)",
+    shadow: dark ? "rgba(0,0,0,0.85)" : "rgba(21,24,28,0.90)",
+    // MapLibre bakes near-black strokes into its glyph IMAGES, so on a dark control they
+    // are black on near-black and the zoom buttons cannot be read. There is no colour
+    // property to change — the image has to be inverted.
+    iconFilter: dark ? "invert(1)" : "none",
+    // Translucent either way: the scale bar sits over the map and the map should read
+    // through it, which is what OpenStreetMap's own bar does.
+    scaleBg: dark ? "rgba(21,24,27,0.72)" : "rgba(255,255,255,0.78)",
   };
 }

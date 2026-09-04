@@ -29,20 +29,23 @@ export function OptionRow({ palette, options, value, onChange, shape, label }: {
           <Pressable key={o.k} onPress={() => onChange(o.k)} accessibilityRole="radio"
                      aria-checked={on} accessibilityLabel={o.t}
                      style={{ flex: 1, alignItems: "center", gap: 7, borderRadius: palette.r.box,
-                              paddingTop: 11, paddingBottom: 9, borderWidth: 1,
-                              borderColor: on ? palette.accent : palette.line2,
+                              paddingTop: 11, paddingBottom: 9,
+                              // 1.5 in ink: a choice you have NOT made still has to look
+                              // like a choice. In `line2` these read as empty space with a
+                              // word in it.
+                              borderWidth: 1.5,
+                              borderColor: on ? palette.accent : palette.ink,
                               backgroundColor: on ? palette.tint : "transparent" }}>
             {shape === "line" ? (
               <View style={{ width: 26, gap: 3 }}>
                 {o.swatch.map((c, i) => (
-                  <View key={i} style={{ height: 3, borderRadius: 2, backgroundColor: c }} />
+                  <View key={i} style={{ height: 3, backgroundColor: c }} />
                 ))}
               </View>
             ) : (
               <View style={{ flexDirection: "row", gap: 3 }}>
                 {o.swatch.map((c, i) => (
-                  <View key={i} style={{ width: 7, height: 7, borderRadius: 2,
-                                         backgroundColor: c }} />
+                  <View key={i} style={{ width: 7, height: 7, backgroundColor: c }} />
                 ))}
               </View>
             )}

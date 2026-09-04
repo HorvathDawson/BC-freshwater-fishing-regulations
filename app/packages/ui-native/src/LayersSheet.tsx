@@ -114,8 +114,8 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
                 <View key={b.label}
                       style={{ flexDirection: "row", alignItems: "center", gap: 12,
                                paddingVertical: 11, borderTopWidth: 1,
-                               borderTopColor: palette.line }}>
-                  <View style={{ width: 9, height: 9, borderRadius: 2,
+                               borderTopColor: palette.line2 }}>
+                  <View style={{ width: 9, height: 9,
                                  backgroundColor: palette.stock[i] }} />
                   <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>
                     Stocked {b.label}

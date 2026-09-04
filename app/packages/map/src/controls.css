@@ -43,26 +43,45 @@
 .maplibregl-ctrl-group button:hover .maplibregl-ctrl-icon { opacity: 1; }
 .maplibregl-ctrl-group button:active { background: var(--map-tint, #EEEFEB); }
 
-/* The scale bar: a bracket with the distance under it, as the design draws it. */
+/*
+ * The scale bar, the way every map draws one.
+ *
+ * This was a bracket with the label UNDER it, on a 9px box with `content-box` sizing — a
+ * hand-rolled shape that only held together at one font size, and it lived in the top-left
+ * where the date pill also sits, so it spent most of its life clipped against the top edge
+ * of the screen.
+ *
+ * MapLibre's own default is OpenStreetMap's: a translucent panel with a heavy rule on three
+ * sides and the distance inside it, so the bar's LENGTH is the measurement and the number
+ * only names it. That is the shape a reader already knows, and the renderer keeps it
+ * accurate through a pinch. Squared off and put in our ink, it needs nothing else.
+ */
 .maplibregl-ctrl-scale {
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid var(--map-sub, #6C737A);
-  border-left: 1.5px solid var(--map-sub, #6C737A);
-  border-right: 1.5px solid var(--map-sub, #6C737A);
-  border-top: 0;
   border-radius: 0;
-  color: var(--map-sub, #6C737A);
-  font: 600 10px/1 Archivo, system-ui, sans-serif;
-  letter-spacing: 0.12em;
-  padding: 0 0 3px;
-  margin: 0;
-  text-align: left;
-  opacity: 0.92;
-  /* the label sits UNDER the bracket, so the bracket has to have height of its own */
-  height: 9px;
-  box-sizing: content-box;
+  border: 2px solid var(--map-ink, #15181C);
+  border-top: none;
+  background: var(--map-scale-bg, rgba(255, 255, 255, 0.78));
+  color: var(--map-ink, #15181C);
+  font: 700 10px/1.35 Archivo, system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  padding: 1px 5px 2px;
+  margin: 0 0 6px;
+  text-align: center;
+  box-sizing: border-box;
 }
+
+/*
+ * DARK MODE: MapLibre's control glyphs are background-image SVGs with near-black strokes
+ * baked in, so on a dark control they were black on near-black — the zoom and compass
+ * buttons were unreadable, which is exactly the report. There is no colour property to set;
+ * the fix is to invert the image. Driven from the palette rather than a media query, because
+ * the app's theme is a user choice and need not match the OS.
+ */
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: var(--map-icon-filter, none);
+}
+/* The attribution's (i) is the same kind of baked-in glyph. */
+.maplibregl-ctrl-attrib-button { filter: var(--map-icon-filter, none); }
 
 /*
  * Attribution stays, but quietly: it is a legal requirement, not a feature.
