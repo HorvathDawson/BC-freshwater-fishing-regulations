@@ -352,3 +352,73 @@ export function estimate(targetAreaKm2: number | null,
     return { ok: false, why: "too-uncertain" };
   return { ok: true, value };
 }
+
+
+/* ------------------------------------------------------------------- the basin field --- */
+
+/** Record length past which more years stop buying confidence. Mirrors the panel's. */
+const BASIN_RECORD_FULL_YEARS = 30;
+
+/** One gauge's contribution to a watershed group's colour. */
+export interface BasinVote {
+  /** Where this station's reading sits in its own history, 0..1. */
+  percentile: number;
+  /** Its catchment — how much of the group it observes. */
+  areaKm2: number | null;
+  /** Years of record — how well its own baseline is known. */
+  years: number;
+}
+
+/**
+ * A watershed group's standing, from every gauge standing in it.
+ *
+ * THE FIELD USED TO ELECT ONE STATION per group — the largest catchment — and colour the
+ * group by it. That made the answer hostage to that one gauge in two ways, both of which
+ * showed up as a blank group on a river anyone can see is gauged: the elected station might
+ * have no climatology at all (13 groups, the Skeena among them), or it might simply not be
+ * transmitting this hour (Chilliwack, which has six gauges and went grey because the one
+ * named was quiet).
+ *
+ * THE METRIC. Percentiles are bounded and non-linear — the distance from the 50th to the
+ * 60th is not the distance from the 88th to the 98th — so averaging them directly flattens
+ * exactly the extremes the map exists to show. They are combined in PROBIT SPACE instead,
+ * through the same `probit`/`normCdf` pair `estimate` uses for the reaches, so a catchment
+ * and the rivers inside it cannot disagree because of arithmetic.
+ *
+ * THE WEIGHTS are catchment times record:
+ *
+ *   · CATCHMENT, because a station's drainage area is how much of the group it actually
+ *     observes. A gauge on the mainstem speaks for most of the group; a creek gauge speaks
+ *     for a corner of it. Weighting is by AREA SHARE rather than raw area so the number is
+ *     a proportion of what is observed here, not a quantity that a big group would inflate.
+ *   · RECORD, saturating at 30 years, because a percentile is a claim about history and a
+ *     three-year baseline is a weaker claim than a ninety-year one. Same shape and same
+ *     ceiling as the panel's, deliberately.
+ *
+ * What is NOT here is a direction penalty or an area-ratio error term. Those exist in the
+ * panel because it TRANSFERS a reading from a donor to a specific reach it is not standing
+ * in. Nothing is transferred here: every one of these gauges is inside the group, measuring
+ * part of the thing being coloured, and inventing a distance term would give the field a
+ * precision it has not got.
+ */
+export function basinStanding(votes: readonly BasinVote[]): number | null {
+  let sumW = 0;
+  let sumWZ = 0;
+  const totalArea = votes.reduce((a, v) => a + Math.max(0, v.areaKm2 ?? 0), 0);
+  for (const v of votes) {
+    if (!Number.isFinite(v.percentile)) continue;
+    // A group of stations that all report no catchment still has to answer, so share falls
+    // back to an equal split rather than to zero weight for everybody.
+    const share = totalArea > 0 ? Math.max(0, v.areaKm2 ?? 0) / totalArea
+                                : 1 / Math.max(1, votes.length);
+    const record = Math.min(1, Math.max(0, v.years / BASIN_RECORD_FULL_YEARS));
+    const w = share * record;
+    if (w <= 0) continue;
+    sumW += w;
+    sumWZ += w * probit(v.percentile);
+  }
+  // Nothing reporting, or nothing with any record: the group says nothing, which the field
+  // draws as the same unmeasured grey a group with no gauge gets.
+  if (sumW <= 0) return null;
+  return normCdf(sumWZ / sumW);
+}

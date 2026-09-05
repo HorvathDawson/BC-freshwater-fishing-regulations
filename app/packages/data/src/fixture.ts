@@ -265,7 +265,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     async lakeStationsFor() { return new Map(); },
     // The design fixture has no watershed polygons, so the field has nothing to colour.
     // Empty is the real answer, and the map draws no field rather than a wrong one.
-    async basinStations() { return new Map(); },
+    async basinMembers() { return new Map(); },
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {

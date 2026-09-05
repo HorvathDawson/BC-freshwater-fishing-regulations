@@ -6,8 +6,13 @@
  * cannot live behind a hook.
  */
 import { useMemo } from "react";
-import { answerFrom, reading, type Horizon, type Panel, type PanelAnswer, type Quantity,
-         type RegsSource, type SectionId, type StationId } from "@app/data";
+import { answerFrom, reading, type BasinMember, type Horizon, type Panel,
+         type PanelAnswer, type Quantity, type RegsSource, type SectionId,
+         type StationId } from "@app/data";
+// The field combines its gauges with the SAME probit transform the reaches use — see
+// `basinStanding`. A second averaging rule here is how a catchment and the river inside it
+// start disagreeing for reasons that are only arithmetic.
+import { basinStanding, type BasinVote } from "@app/core";
 import { useAsync } from "./async";
 
 /** Re-exported so a screen has one import for the whole subject. */
@@ -186,8 +191,20 @@ export function useBasinStandings(
       if (!feed) return out;
       const [basins, idx] = await Promise.all([cachedBasins(source), feed.index()]);
       if (!idx) return out;           // offline: colour nothing rather than colour wrong
-      for (const [basin, { station }] of basins) {
-        const p = reading(idx.stations[station as string], quantity, horizon);
+      for (const [basin, members] of basins) {
+        /*
+         * EVERY GAUGE IN THE GROUP, not the biggest one. Electing a representative made the
+         * group's colour hostage to that station: Chilliwack has six gauges and went grey
+         * because the one named happened to be quiet. A group now stays coloured while ANY
+         * of its gauges reports, and `basinStanding` decides how much each one counts.
+         */
+        const votes: BasinVote[] = [];
+        for (const m of members) {
+          const r = reading(idx.stations[m.station as string], quantity, horizon);
+          if (typeof r === "number")
+            votes.push({ percentile: r, areaKm2: m.areaKm2, years: m.years });
+        }
+        const p = basinStanding(votes);
         /*
          * A GROUP WITH NOTHING TO SAY IS LEFT OUT, not marked with the sentinel.
          *
@@ -210,9 +227,9 @@ export function useBasinStandings(
 }
 
 /** The station-per-catchment table, read once. It comes from the bundle and cannot change. */
-let basinCache: ReadonlyMap<string, { station: StationId; levelsUp: number }> | null = null;
+let basinCache: ReadonlyMap<string, readonly BasinMember[]> | null = null;
 async function cachedBasins(source: RegsSource) {
-  if (basinCache === null) basinCache = await source.basinStations();
+  if (basinCache === null) basinCache = await source.basinMembers();
   return basinCache;
 }
 

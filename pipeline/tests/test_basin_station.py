@@ -1,48 +1,62 @@
-"""Which station speaks for each watershed group.
+"""Which gauges speak for each watershed group.
 
 A watershed group is a region — 3,600 km2 on average — and the Province's 246 of them tile
 British Columbia exactly once with no overlap. That flatness is what makes this simple: a
-group either has a gauge in it or it does not, and the one next door is a different river
+group either has gauges in it or it does not, and the one next door is a different river
 system rather than a bigger version of this one, so there is nothing to inherit.
+
+THIS USED TO ELECT ONE. `resolve` returned the largest-catchment station per group, and the
+tests below its old name asserted, carefully, that the biggest one won. The election was the
+bug: it made a group's colour hostage to a single station, so a group went blank whenever
+that one station had no climatology (13 groups, KISP among them, choosing SKEENA RIVER AT
+HAZELTON) or simply was not transmitting (Chilliwack, six gauges, grey because the one named
+was quiet). The whole roster ships now and the client combines it.
 """
 
-from pipeline.atlas.gauges.basin_station import resolve
+from pipeline.atlas.gauges.basin_station import roster
+
+YEARS = {"S": 40, "small": 40, "big": 40, "mid": 40, "aaa": 40, "bbb": 40,
+         "known": 40, "unknown": 40}
 
 
 def test_a_group_with_one_gauge_takes_it():
-    assert resolve({"LFRA": [("S", 500.0)]}) == {"LFRA": ("S", 0)}
+    assert roster({"LFRA": [("S", 500.0)]}, YEARS) == {"LFRA": [("S", 500.0, 40)]}
 
 
-def test_the_largest_catchment_speaks_for_the_group():
-    """The group is a region and the question is what the region is doing, so the gauge
-    draining the most of it is the closest thing to an answer for the whole."""
-    got = resolve({"LFRA": [("small", 12.0), ("big", 4000.0), ("mid", 300.0)]})
-    assert got["LFRA"] == ("big", 0)
+def test_every_gauge_in_the_group_ships_not_just_the_largest():
+    """The failure this replaced: one station named, and the group blank whenever that one
+    station had nothing to say — however many others were reporting."""
+    got = roster({"LFRA": [("small", 12.0), ("big", 4000.0), ("mid", 300.0)]}, YEARS)
+    assert [r[0] for r in got["LFRA"]] == ["big", "mid", "small"]
 
 
-def test_a_group_with_no_gauge_gets_no_row():
+def test_a_group_with_no_gauge_gets_no_rows():
     """Absent, not a neighbour's number. Groups do not nest, so there is nothing upstream
     to borrow from — the map draws it as unmeasured, which is the honest answer."""
-    assert resolve({"LFRA": []}) == {}
-    assert resolve({}) == {}
+    assert roster({"LFRA": []}, YEARS) == {}
+    assert roster({}, YEARS) == {}
 
 
-def test_ties_break_the_same_way_every_build():
-    """A colour that changes when the query planner changes its mind is worse than either
-    choice."""
-    a = resolve({"LFRA": [("bbb", 100.0), ("aaa", 100.0)]})
-    b = resolve({"LFRA": [("aaa", 100.0), ("bbb", 100.0)]})
-    assert a == b == {"LFRA": ("aaa", 0)}
+def test_the_order_is_the_same_every_build():
+    """A file that reorders when the query planner changes its mind is a diff nobody can
+    read, and the client's tie-breaking would move with it."""
+    a = roster({"LFRA": [("bbb", 100.0), ("aaa", 100.0)]}, YEARS)
+    b = roster({"LFRA": [("aaa", 100.0), ("bbb", 100.0)]}, YEARS)
+    assert a == b == {"LFRA": [("aaa", 100.0, 40), ("bbb", 100.0, 40)]}
 
 
-def test_a_station_with_no_area_does_not_win_over_one_with():
-    """An unknown catchment sorts last rather than first — `None` is not "very large"."""
-    got = resolve({"LFRA": [("unknown", None), ("known", 50.0)]})
-    assert got["LFRA"] == ("known", 0)
+def test_a_station_with_no_area_sorts_last_but_still_ships():
+    """`None` is not "very large" — but it is not disqualifying either, because a gauge with
+    an unrecorded catchment still measures water. It weighs least, and it is still there when
+    it is the only one reporting."""
+    got = roster({"LFRA": [("unknown", None), ("known", 50.0)]}, YEARS)
+    assert [r[0] for r in got["LFRA"]] == ["known", "unknown"]
+    assert got["LFRA"][1][1] == 0.0
 
 
-def test_levels_up_is_always_zero_and_still_reported():
-    """The client reads it, and the shape should not change under it if the groups are ever
-    swapped for something that nests."""
-    for basin, (_st, up) in resolve({"A": [("S", 1.0)], "B": [("T", 2.0)]}).items():
-        assert up == 0, basin
+def test_the_record_length_travels_with_the_station():
+    """The client weights by it, so a station whose record is unknown must arrive as 0 years
+    rather than as a missing field the client has to guess about."""
+    got = roster({"A": [("S", 1.0)], "B": [("T", 2.0)]}, {"S": 12})
+    assert got["A"] == [("S", 1.0, 12)]
+    assert got["B"] == [("T", 2.0, 0)]

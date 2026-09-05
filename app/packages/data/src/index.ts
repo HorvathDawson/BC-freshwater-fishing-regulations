@@ -340,6 +340,22 @@ export interface Release {
   stage: string | null;
 }
 
+/**
+ * One gauge standing inside a watershed group, with what is needed to weight it.
+ *
+ * The field used to name ONE station per group — the biggest catchment — and that made the
+ * group's colour hostage to it: 13 groups elected a station with no climatology (so no
+ * percentile was ever possible), and any group whose one station happened to be quiet went
+ * grey despite its other gauges reporting. Chilliwack has six.
+ */
+export interface BasinMember {
+  station: StationId;
+  /** Its catchment: how much of the group this gauge actually observes. */
+  areaKm2: number | null;
+  /** Years of record — how well its own baseline is known. */
+  years: number;
+}
+
 export interface RegsSource {
   info(): Promise<BundleInfo>;
   /** How much this bundle holds. Read, never asserted by a screen. */
@@ -420,7 +436,7 @@ export interface RegsSource {
    * `levelsUp` is 0 where a gauge stands in the catchment itself. Only 10% of them do, so
    * the number is not a footnote — it is what stops the field claiming more than it knows.
    */
-  basinStations(): Promise<ReadonlyMap<string, { station: StationId; levelsUp: number }>>;
+  basinMembers(): Promise<ReadonlyMap<string, readonly BasinMember[]>>;
   /** Every station's position, for drawing the gauges themselves. A few hundred rows. */
   gaugePoints(): Promise<readonly { station: StationId; name: string;
                                     lon: number; lat: number;

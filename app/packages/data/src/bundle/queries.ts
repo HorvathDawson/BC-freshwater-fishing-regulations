@@ -250,8 +250,8 @@ export const DOWN_FROM = "SELECT down_id FROM section_down WHERE section_id = ?"
  * only ever asked at z4–8, where a viewport is a third of British Columbia. Scoping it
  * would mean re-reading most of the table on every pan to save nothing. 9,642 rows.
  */
-export const BASIN_STATIONS =
-  "SELECT basin_id, station, levels_up FROM basin_station";
+export const BASIN_MEMBERS =
+  "SELECT basin_id, station, area_km2, years FROM basin_member";
 
 /**
  * Where a set of stations sit — their own reach and their coordinate.

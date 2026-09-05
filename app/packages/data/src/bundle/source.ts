@@ -13,7 +13,7 @@
 import { bandAt, evaluate, type Band, type PlainDate, type Rule,
          type RuleKind, type SpeciesGroup, type Status, type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
-import type {
+import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
   Panel, PanelMember, PanelRoute, PlaceHit, PlaceId, Reading, RegsSource, Release,
   SectionId, Series,
@@ -273,11 +273,16 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       return out;
     },
 
-    async basinStations() {
-      const out = new Map<string, { station: StationId; levelsUp: number }>();
-      for (const r of await db.all(Q.BASIN_STATIONS))
-        out.set(str(r.basin_id),
-                { station: str(r.station) as StationId, levelsUp: Number(r.levels_up) });
+    async basinMembers() {
+      const out = new Map<string, BasinMember[]>();
+      for (const r of await db.all(Q.BASIN_MEMBERS)) {
+        const id = str(r.basin_id);
+        let rows = out.get(id);
+        if (!rows) out.set(id, (rows = []));
+        rows.push({ station: str(r.station) as StationId,
+                    areaKm2: r.area_km2 == null ? null : Number(r.area_km2),
+                    years: Number(r.years) });
+      }
       return out;
     },
 

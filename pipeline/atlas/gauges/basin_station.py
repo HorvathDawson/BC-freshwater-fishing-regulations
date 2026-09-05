@@ -25,22 +25,30 @@ got.
 from __future__ import annotations
 
 
-def resolve(gauged: dict[str, list[tuple[str, float]]]) -> dict[str, tuple[str, int]]:
-    """`{basin_id: (station, levels_up)}` from `{basin_id: [(station, area_km2), ...]}`.
+def roster(gauged: dict[str, list[tuple[str, float]]],
+           years_of: dict[str, int]) -> dict[str, list[tuple[str, float, int]]]:
+    """`{basin_id: [(station, area_km2, years), ...]}` — every gauge standing in the group.
 
-    `levels_up` is always 0 and is kept because the client reads it and the shape should not
-    change under it: with a flat cover the reading is always from inside the group, which is
-    the strongest thing this field can say. It is the column to widen if the groups are ever
-    swapped for something that nests.
+    THIS USED TO ELECT ONE. It returned the largest-catchment station per group, which made
+    the group's colour hostage to that station in two ways that both showed as "gauged, but
+    blank":
+
+      · it could have no climatology, and then it can never produce a percentile — not now,
+        ever. 13 groups elected one, including KISP, which chose SKEENA RIVER AT HAZELTON
+        while other Skeena gauges carried full records.
+      · it could simply not be transmitting this hour. Chilliwack has six gauges and went
+        grey because the single row named the one that was quiet.
+
+    Electing a representative was the mistake, not the choice of representative. The client
+    combines the roster instead, so a group stays coloured while ANY of its gauges reports.
+
+    Ordered by catchment, largest first, so a rebuild on the same data writes the same file.
     """
-    out: dict[str, tuple[str, int]] = {}
+    out: dict[str, list[tuple[str, float, int]]] = {}
     for basin, members in gauged.items():
-        if not members:
-            continue
-        # Largest catchment first; the station id breaks ties so a rebuild on the same data
-        # gives the same answer.
-        station = sorted(members, key=lambda m: (-(m[1] or 0.0), m[0]))[0][0]
-        out[basin] = (station, 0)
+        rows = [(st, area or 0.0, years_of.get(st, 0)) for st, area in members]
+        if rows:
+            out[basin] = sorted(rows, key=lambda r: (-r[1], r[0]))
     return out
 
 

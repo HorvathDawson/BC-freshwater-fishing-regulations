@@ -60,7 +60,7 @@ describe("httpFeed", () => {
      */
     const seen: string[] = [];
     const f = httpFeed("http://x", server({ "index.json": INDEX }, (u) => seen.push(u)));
-    await expect(f.now("08PA001")).resolves.toBeNull();
+    await expect(f.now("08PA001" as StationId)).resolves.toBeNull();
     expect(seen).toEqual(["http://x/index.json"]);
   });
 

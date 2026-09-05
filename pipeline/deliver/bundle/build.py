@@ -476,29 +476,41 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     # the weather, and doing it on every pan would be a point-in-polygon sweep of 11,000
     # shapes. The tile carries a bare `basin_id`; this is what turns it into a reading.
     try:
-        from pipeline.atlas.gauges.basin_station import gauged_groups, resolve
+        from pipeline.atlas.gauges.basin_station import gauged_groups, roster
         from pipeline.deliver.tiles.basins import groups as _groups
 
         _frame = _groups(str(Path(SOURCE) / "bc_fisheries_data.gpkg"))
         # EVERY station with a coordinate, live or not. Which of them is transmitting is the
         # feed's business and changes every half hour; this file must not encode it.
+        #
+        # A BASELINE IS NOT LIVENESS, though, and this conflated them. The field colours a
+        # group by where its reading sits against that station's own history, so a station
+        # with no climatology cannot produce a percentile TODAY OR EVER. Unlike liveness,
+        # that is static, known here, and disqualifying — so it is filtered here, while
+        # which gauges are transmitting stays the feed's business.
         _pts = [(r[0], r[1], r[2], r[3]) for r in db.execute(
-            "SELECT station, lon, lat, area_km2 FROM gauge "
-            "WHERE lon IS NOT NULL AND lat IS NOT NULL")]
-        _basins = resolve(gauged_groups(_pts, _frame))
+            "SELECT g.station, g.lon, g.lat, g.area_km2 FROM gauge g "
+            "WHERE g.lon IS NOT NULL AND g.lat IS NOT NULL "
+            "  AND EXISTS (SELECT 1 FROM gauge_clim c WHERE c.station = g.station)")]
+        _years = {r[0]: (r[1] or 0) for r in db.execute(
+            "SELECT station, years FROM gauge_stats")}
+        _basins = roster(gauged_groups(_pts, _frame), _years)
         if _basins:
-            db.executemany("INSERT INTO basin_station VALUES (?,?,?)",
-                           ((b, st, up) for b, (st, up) in sorted(_basins.items())))
-            cov.filled("basin_station", len(_basins))
+            db.executemany("INSERT INTO basin_member VALUES (?,?,?,?)",
+                           ((b, st, area, yrs)
+                            for b, rows in sorted(_basins.items())
+                            for st, area, yrs in rows))
+            cov.filled("basin_member",
+                       sum(len(rows) for rows in _basins.values()))
             print(f"     basins: {len(_basins):,} of {len(_frame):,} watershed groups have "
                   f"a gauge in them "
                   f"({100*len(_basins)/max(len(_frame),1):.0f}% of the province)")
         else:
-            cov.skip("basin_station", "no watershed groups resolved to a station")
+            cov.skip("basin_member", "no watershed groups resolved to a station")
     except Exception as _exc:                                   # noqa: BLE001
         # A missing groups layer is a skip, never a failure — the rest of the bundle is
         # still correct and the field simply does not draw.
-        cov.skip("basin_station", f"not built: {_exc}")
+        cov.skip("basin_member", f"not built: {_exc}")
 
     down = downstream_map(graph, (l.section_id for l in links))
     db.executemany("INSERT INTO section_down VALUES (?,?)",

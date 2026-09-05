@@ -176,9 +176,30 @@ CREATE TABLE panel_member (panel_id INTEGER NOT NULL,
 --
 -- A basin nothing upstream measures gets NO ROW, and is drawn as unmeasured. 13% of the
 -- province, and silence is the honest answer there.
-CREATE TABLE basin_station (basin_id TEXT PRIMARY KEY,
-                            station TEXT NOT NULL,
-                            levels_up INTEGER NOT NULL) WITHOUT ROWID;
+-- EVERY gauge standing in a watershed group, not the biggest one.
+--
+-- This was one row per group, holding whichever station had the largest catchment. Two ways
+-- that went blank on a group that is plainly gauged:
+--
+--   · the chosen station had no climatology, so it could never produce a percentile -- not
+--     today, ever. 13 groups elected one, the Skeena among them (KISP chose SKEENA RIVER AT
+--     HAZELTON), while other gauges in the same group had a full record sitting unused.
+--   · the chosen station was simply not transmitting this hour. Chilliwack went grey with
+--     six gauges in the group, five of them reporting, because the one row named 08MH047.
+--
+-- Both are the same mistake: electing a single representative makes the group's answer
+-- hostage to that one station. So the group carries its whole roster and the client
+-- combines them -- see `useBasinStandings`, which weights by `area_km2` (how much of the
+-- group a station actually observes) and `years` (how well its own baseline is known), and
+-- averages in probit space using the SAME transform the reach panels use.
+--
+-- Only stations with a baseline are written. Liveness is the feed's business and changes
+-- every half hour; having a record to rank against is static, known here, and disqualifying.
+CREATE TABLE basin_member (basin_id TEXT NOT NULL,
+                           station TEXT NOT NULL,
+                           area_km2 REAL,          -- the station's catchment
+                           years INTEGER NOT NULL, -- length of its record
+                           PRIMARY KEY (basin_id, station)) WITHOUT ROWID;
 
 -- A station on a lake, linked to the lake. No trust band: there is no fraction of a level,
 -- so the gauge is either on this water or it is not.
