@@ -494,6 +494,15 @@ def main() -> None:
     # Load every waterbody polygon ONCE. It is needed three times over: to mint the missing
     # nodes, to give the membership passes something to test, and as the shape the tiles draw.
     wb_polys = get_waterbody_polys(fwa, _all_wbks, bbox)
+    # AND THE CURATED ONES, HERE, so there is genuinely one source.
+    #
+    # `added_lake_polys` was merged into a LOCAL dict for the area-membership pass and
+    # nowhere else, under a comment reading "a curated lake draws + gets MUs like any
+    # other". It got the MUs. It never drew: `waterbody_polys.pkl` is written from
+    # `wb_polys` alone, so the six curated lakes reached the bundle as items you could
+    # search and tap, and the lake layer had no polygon for any of them. A water that is
+    # findable everywhere except on the map is the hardest kind of missing to notice.
+    wb_polys.update(added_lake_polys)
     _todo = {w for w in _all_wbks if f"lake:{w}" not in graph.nodes}
     if _todo:
         _wet = get_wetland_wbks(fwa, bbox)
@@ -772,7 +781,11 @@ def main() -> None:
     # resolve against and simply failed. Both now produce the same kind of item, and the resolver
     # applies one rule to both (see resolve_extent: intersect with the rule's items, or take the whole
     # area when the rule names no water).
-    wbk_polys: dict = {}
+    # ONE POLYGON SOURCE, and `wb_polys` is it — curated lakes included, merged where it is
+    # loaded. This used to be built here as `{**wb_polys, **added_lake_polys}`, which meant
+    # the curated lakes existed for the membership and MU passes and for nothing else; the
+    # tile geometry is pickled from `wb_polys` and never saw them.
+    wbk_polys: dict = dict(wb_polys)
     if catalog_polys:
         from pipeline.common.models import WATERBODY_KINDS
         from pipeline.atlas.splits.area_catalog import area_id as _area_id
@@ -786,7 +799,6 @@ def main() -> None:
         # Every waterbody, not just the ones with no line geometry: a NODED lake's sidecar
         # geometry is the under-lake route through it, which is the wrong shape to test a
         # polygon against. Its actual outline is here.
-        wbk_polys = {**wb_polys, **added_lake_polys}   # a curated lake draws + gets MUs like any other
         _flags = mark_inside_areas(graph, geoms, _polys,
                                    extra={f"lake:{w}": pl for w, pl in wbk_polys.items()})
         print(f"  area membership: {_flags} flag(s) across {len(_polys)} area(s) "

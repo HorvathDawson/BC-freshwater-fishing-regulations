@@ -116,6 +116,13 @@ def test_the_polygon_cuts_the_stream_it_covers():
     assert rep["claimed"] == {lakes[0]["wbk"]: ["f2"]}, "only the fid INSIDE is claimed"
     assert through.wbk == lakes[0]["wbk"] and below.wbk == "riverpoly" and above.wbk == "riverpoly"
     assert lake_kind[lakes[0]["wbk"]] == "lake"
+    # THIS PASSED WHILE THE LAKES WERE INVISIBLE. It checks that `merge` fills the dict it
+    # is handed, and `merge` always did. The build then merged that dict into a LOCAL
+    # variable for the area and MU passes and pickled the tile geometry from a different one,
+    # so the curated lakes got their MUs and never drew. The half this test names — display —
+    # was the half that was broken, and no unit test on `merge` can see it: the wiring lives
+    # in `pipeline/atlas/build.py`, where `wb_polys` now carries them from the point it is
+    # loaded, so there is one source rather than two that agree by hand.
     assert polys[lakes[0]["wbk"]] is not None, "the polygon must reach wbk_polys (display + MUs)"
 
     # lake_names must be (name, gnis) PAIRS — a bare string names the lake but leaves it with no
