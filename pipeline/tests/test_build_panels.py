@@ -22,6 +22,9 @@ class N:
     # fixture missing a field the code reads is a fixture that is not the shape it stands
     # in for. Default shared, so existing cases keep meaning what they meant.
     blk: str = "X"
+    # FWA EDGE_TYPEs. "1100"/"1350" mark a side channel — a piece of the river beside it,
+    # not a river of its own. Default empty: an ordinary reach.
+    edge_types: tuple = ()
 
 
 @dataclass
@@ -250,3 +253,56 @@ def test_a_donor_on_another_river_counts_for_less_than_one_on_yours():
     assert rows["OTHER"][7] == 0
     # And `ord` is weight order, so the same-river donor leads.
     assert rows["SAME"][1] < rows["OTHER"][1]
+
+
+# ------------------------------------------------------------------ side channels
+
+def test_a_side_channel_takes_the_river_it_is_a_channel_of():
+    """Herrling Island Side Channel, in miniature.
+
+    The channel's own catchment is an artefact of where FWA broke the polygon, so sizing it
+    that way matched it to whatever creek in the province happened to drain the same
+    arithmetic — for Herrling, gauges 400 km up the valley on other rivers entirely — while
+    the Fraser it is a channel OF sat metres away, barred by an area ratio of 150,000:1.
+    """
+    graph = g([N("fraser", 100_000), N("side", 2, edge_types=("1350",)),
+               N("gauged", 100_000)],
+              [E("gauged", "fraser"), E("fraser", "side")])
+    panels = build(graph, MODEL, [("HOPE", "gauged", 60, False)])
+    assert panels.by_section["side"] == panels.by_section["fraser"]
+    assert [m.station for m in panels.members[panels.by_section["side"][0]]] == ["HOPE"]
+
+
+def test_a_side_channel_reports_the_river_s_catchment_not_its_own():
+    """One number on the screen contradicting all the others is worse than a missing one."""
+    graph = g([N("fraser", 100_000), N("side", 2, edge_types=("1100",)),
+               N("gauged", 100_000)],
+              [E("gauged", "fraser"), E("fraser", "side")])
+    panels = build(graph, MODEL, [("HOPE", "gauged", 60, False)])
+    assert panels.by_section["side"][1] == panels.by_section["fraser"][1]
+
+
+def test_a_side_channel_reaches_past_the_stubs_of_its_own_braid():
+    """A braid is a mesh of small unnamed pieces welded to one big river.
+
+    Stopping at the first non-channel reach adopted a magnitude-8 stub sitting between the
+    channel and the Fraser — four of Herrling's seven pieces went that way.
+    """
+    graph = g([N("fraser", 100_000), N("stub", 8), N("side", 2, edge_types=("1350",)),
+               N("gauged", 100_000)],
+              [E("gauged", "fraser"), E("fraser", "stub"), E("stub", "side")])
+    panels = build(graph, MODEL, [("HOPE", "gauged", 60, False)])
+    assert panels.by_section["side"] == panels.by_section["fraser"]
+
+
+def test_a_side_channel_whose_river_has_no_panel_gets_none_either():
+    """Never a panel of its own: the two must not be able to disagree about one water."""
+    graph = g([N("creek", 5), N("side", 2, edge_types=("1100",))], [E("creek", "side")])
+    panels = build(graph, MODEL, [])
+    assert "side" not in panels.by_section
+
+
+def test_an_ordinary_reach_is_left_alone():
+    graph = g([N("upper", 100), N("gauged", 110)], [E("upper", "gauged")])
+    panels = build(graph, MODEL, [("S", "gauged", 40, False)])
+    assert "upper" in panels.by_section

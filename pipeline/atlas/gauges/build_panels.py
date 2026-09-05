@@ -80,6 +80,9 @@ def _kind(node) -> str:
     return k.value if hasattr(k, "value") else str(k).split(".")[-1]
 
 
+MAINSTEM_HOPS = 4
+
+
 def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
                max_ratio: float = MAX_AREA_RATIO) -> dict[str, list[tuple]]:
     """`section -> [(station, role, donor area, years, regulated, lake, same river)]`.
@@ -161,6 +164,84 @@ def candidates(graph, area_of, donors: list[tuple[str, str, int, bool]],
     return out
 
 
+
+# FWA EDGE_TYPEs that mean "this is a secondary channel of a bigger river", not a river of
+# its own: 1100 and 1350. 28,903 sections carry one, at a median stream magnitude of 1.
+SIDE_CHANNEL_EDGE_TYPES = frozenset({"1100", "1350"})
+
+
+def _is_side_channel(node) -> bool:
+    return bool(SIDE_CHANNEL_EDGE_TYPES.intersection(getattr(node, "edge_types", ()) or ()))
+
+
+def mainstem_of(graph, area_of) -> dict[str, str]:
+    """`side channel section -> the section of the river it is a channel OF`.
+
+    A SIDE CHANNEL IS NOT A SMALL RIVER, and the whole panel machinery assumed it was.
+
+    Everything upstream of this file sizes a reach by its own accumulated catchment, which
+    is the right question for a tributary — a creek draining 60 km² really is described by
+    a gauge on another creek draining 60 km². A side channel is not a tributary. It is the
+    SAME WATER as the river beside it, split around an island and rejoining, and its
+    "catchment" is an artefact of where FWA happened to break the polygon.
+
+    So Herrling Island Side Channel — a Fraser distributary at Chilliwack, computed area
+    1.4 km² — was described by Dore River near McBride and Baker Creek at Quesnel, both
+    over 400 km up the valley, both on other rivers entirely (`same_river = 0`). They were
+    chosen because their catchments matched its arithmetic, and nothing else. The Fraser at
+    Hope, 216,600 km², gauging the actual water in the actual channel, was metres away and
+    barred by an area ratio of 150,000:1.
+
+    The parent is found by walking the network out from the channel and taking the largest
+    non-side-channel reach within `MAINSTEM_HOPS` steps, and only one LARGER than the
+    channel itself.
+
+    Largest rather than nearest, and searched to the full hop budget rather than stopping at
+    the first river found: a braid is a mesh of small unnamed stubs welded to one big river,
+    and stopping early adopted a magnitude-8 stub sitting between the channel and the Fraser.
+    Four of Herrling's seven pieces went that way before the search was allowed to run out.
+    """
+    up: dict[str, list[str]] = collections.defaultdict(list)
+    down: dict[str, list[str]] = collections.defaultdict(list)
+    for e in graph.edges:
+        up[e.to_node].append(e.from_node)
+        down[e.from_node].append(e.to_node)
+
+    parent: dict[str, str] = {}
+    for sec, node in graph.nodes.items():
+        if not _is_side_channel(node) or _kind(node) != "stream":
+            continue
+        best: tuple[float, str] | None = None
+        mine = area_of(node) or 0.0
+        seen = {sec}
+        frontier = [sec]
+        for _hop in range(MAINSTEM_HOPS):
+            nxt: list[str] = []
+            for cur in frontier:
+                for adj in (up[cur], down[cur]):
+                    for other in adj:
+                        if other in seen:
+                            continue
+                        seen.add(other)
+                        o = graph.nodes.get(other)
+                        if o is None:
+                            continue
+                        nxt.append(other)
+                        if _is_side_channel(o) or _kind(o) != "stream":
+                            continue
+                        a = area_of(o)
+                        # BIGGER THAN THE CHANNEL, ALWAYS. A side channel adopts the water
+                        # it is a channel of, which is by definition the larger reach; a
+                        # stub smaller than the channel is another minor piece of the same
+                        # braid, not the river.
+                        if a and a > mine and (best is None or a > best[0]):
+                            best = (a, other)
+            frontier = nxt
+        if best is not None:
+            parent[sec] = best[1]
+    return parent
+
+
 def build(graph, model: AreaModel,
           donors: list[tuple[str, str, int, bool]],
           max_ratio: float = MAX_AREA_RATIO) -> Panels:
@@ -198,4 +279,22 @@ def build(graph, model: AreaModel,
         pid = intern.setdefault(key, len(intern))
         by_section[sec] = (pid, at)
         members.setdefault(pid, chosen)
+
+    # A SIDE CHANNEL TAKES THE RIVER'S ANSWER — see `mainstem_of`.
+    #
+    # Applied here, at the END, rather than by teaching the walk about side channels: the
+    # walk's job is "which stations can speak for this catchment", and the answer for a
+    # side channel is not a different set of stations, it is a different QUESTION. Whatever
+    # panel the parent ends up with — including none — the channel gets the same one, so
+    # the two can never disagree about water that is physically the same.
+    #
+    # The area comes with it. The channel drains what the river drains; reporting its
+    # polygon's 1.4 km² beside the Fraser's panel would be the one number on the screen
+    # that contradicts all the others.
+    for sec, parent in mainstem_of(graph, area_of).items():
+        got = by_section.get(parent)
+        if got is None:
+            by_section.pop(sec, None)      # the river has no panel; neither can its channel
+        else:
+            by_section[sec] = got
     return Panels(by_section=by_section, members=members)
