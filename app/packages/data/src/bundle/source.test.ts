@@ -245,4 +245,32 @@ describe("the gauge model", () => {
     for (const c of ["realtime", "active", "live", "transmitting"])
       expect(cols, `'${c}' is a live fact and must come from the feed`).not.toContain(c);
   });
+
+  it("colours a viewport without binding more parameters than SQLite allows", async () => {
+    /*
+     * SQLite's parameter ceiling is 999 in the classic build and 32,766 in newer ones, and
+     * we do not get to choose which one a phone's wasm or native driver was compiled with.
+     * So the assertion is on OUR side of the line — no single statement binds more than the
+     * lowest limit — rather than on whether this machine happens to survive a big query.
+     * The first version of this test passed at 5,000 parameters and proved nothing.
+     *
+     * It matters now because it did not before: `rule_section` was declared and never
+     * written, so every lookup returned nothing and the query was never asked a big
+     * question. Real rules turn that into a crash on a zoomed-in map.
+     */
+    const CEILING = 999;
+    let worst = 0;
+    const spy: Db = {
+      ...db,
+      all: (sql: string, ...args: unknown[]) => {
+        worst = Math.max(worst, args.length);
+        return db.all(sql, ...args);
+      },
+    };
+    const many = Array.from({ length: 2500 }, (_, i) => `synthetic:${i}` as SectionId);
+    const out = await makeBundleSource(spy).statusFor(many, ON, "provincial");
+    // Every id gets an answer — "open under the general rules" is an answer, not an absence.
+    expect(out.size).toBe(many.length);
+    expect(worst).toBeLessThanOrEqual(CEILING);
+  });
 });

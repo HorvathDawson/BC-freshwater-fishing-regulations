@@ -92,11 +92,21 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     const rules = new Map<SectionId, Rule[]>();
     const sets = new Map<SectionId, number>();
     if (sections.length === 0) return { rules, sets };
-    for (const r of await db.all(Q.rulesForSections(sections.length), ...sections)) {
-      const id = str(r.section_id) as SectionId;
-      sets.set(id, Number(r.set_id));
-      (rules.get(id) ?? rules.set(id, []).get(id)!)
-        .push(toRule(r, str(r.via) === "trib" ? "trib" : "reach", group));
+    /*
+     * CHUNKED, like the gauge queries beside it: SQLite's default parameter ceiling is 999
+     * and a dense viewport holds thousands of sections. This never bit before because
+     * `rule_section` was declared and never written — every lookup returned nothing, so the
+     * query was never asked a big question. The moment real rules landed it became a crash
+     * on a zoomed-in map, which is the worst place to find a limit.
+     */
+    for (let i = 0; i < sections.length; i += 500) {
+      const chunk = sections.slice(i, i + 500);
+      for (const r of await db.all(Q.rulesForSections(chunk.length), ...chunk)) {
+        const id = str(r.section_id) as SectionId;
+        sets.set(id, Number(r.set_id));
+        (rules.get(id) ?? rules.set(id, []).get(id)!)
+          .push(toRule(r, str(r.via) === "trib" ? "trib" : "reach", group));
+      }
     }
     return { rules, sets };
   };
