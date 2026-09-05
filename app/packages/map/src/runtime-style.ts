@@ -35,6 +35,15 @@ export interface TileEndpoints {
    */
   outside?: string;
   /**
+   * That same mask, as GeoJSON rather than a URL — for confining the BASEMAP's labels.
+   *
+   * The fill layer fetches `outside`; a `within` filter cannot, because an expression has
+   * no way to reference a source. So a caller that wants Seattle and Calgary off the map
+   * fetches the mask once and passes the object here. Optional, and the labels simply keep
+   * drawing without it — which is what they did before.
+   */
+  outsideData?: unknown;
+  /**
    * The gauges themselves, as GeoJSON points — one per station on screen, each with a
    * `label` the map draws beside it ("15.7 m³/s · p4th").
    *
@@ -403,9 +412,36 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
                              1, 0],
           }}];
       }),
-      // The basemap's own labels, AFTER ours — see the split above. They still draw; they
-      // just no longer get first refusal on every position on the map.
-      ...baseLabels,
+      /*
+       * The basemap's own labels, AFTER ours — see the split above. They still draw; they
+       * just no longer get first refusal on every position on the map.
+       *
+       * AND ONLY INSIDE BRITISH COLUMBIA, when the mask geometry is to hand.
+       *
+       * The basemap archive is clipped to tiles that TOUCH the province, so a border strip
+       * of Washington, Alberta and the Yukon comes with it, carrying Seattle, Calgary and
+       * every hamlet between — labelling country this app has nothing to say about, over a
+       * grey mask that is explicitly there to say so.
+       *
+       * `within` is the only tool for it: MapLibre cannot clip one layer by another
+       * layer's geometry, and no property on a Protomaps place label says which province it
+       * is in. The mask is a rectangle with the province punched out, so a label INSIDE the
+       * mask is a label outside BC — the filter is that test, negated. It costs one
+       * point-in-polygon per label, on a ring of 1,557 points, and there are tens of labels
+       * on screen, not thousands.
+       *
+       * Only when `outsideData` is supplied: the mask normally arrives as a URL for the fill
+       * layer to fetch, and an expression cannot reference a source. A caller that has not
+       * fetched it gets the labels it always got, rather than an empty map.
+       */
+      ...(at.outsideData
+        ? baseLabels.map((l) => ({
+            ...l,
+            filter: (l as { filter?: unknown }).filter
+              ? ["all", ["!", ["within", at.outsideData]], (l as { filter?: unknown }).filter]
+              : ["!", ["within", at.outsideData]],
+          }))
+        : baseLabels),
       /**
        * WHICH WAY THE WATER GOES, on a highlighted route only.
        *

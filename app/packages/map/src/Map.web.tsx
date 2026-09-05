@@ -12,7 +12,7 @@ declare const __DEV__: boolean | undefined;
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -40,6 +40,31 @@ function registerPMTiles() {
   registered = true;
 }
 
+/**
+ * The outside-BC mask, fetched once for the whole session.
+ *
+ * The `outside` FILL layer fetches this itself, from the same URL, as a normal GeoJSON
+ * source. This second copy exists because the basemap's labels are confined to the province
+ * with a `within` filter, and a MapLibre expression cannot reference a source — it needs the
+ * polygon as a literal. Module-level and keyed by URL, so a theme toggle or a remount does
+ * not refetch 61 KB, and a failure just leaves the labels as they were.
+ */
+const outsideCache: Record<string, unknown> = {};
+function useOutsideMask(url: string | undefined): unknown {
+  const [got, setGot] = useState<unknown>(() => (url ? outsideCache[url] : undefined));
+  useEffect(() => {
+    if (!url || url in outsideCache) return;
+    let live = true;
+    fetch(url).then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!j || !live) return;
+      outsideCache[url] = j;
+      setGot(j);
+    }).catch(() => {});
+    return () => { live = false; };
+  }, [url]);
+  return got;
+}
+
 export function Map({ at, theme, view, modes, groups, initial, data, onPressFeature, chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
                       gauges, onVisible, pins, bare }: MapProps) {
@@ -50,6 +75,10 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
   const pinned = useRef<maplibregl.Marker[]>([]);
   /** Re-adds the label pill in the current theme. Set once the map exists. */
   const pill = useRef<(() => void) | null>(null);
+  // Confines the BASEMAP's labels to British Columbia — see `useOutsideMask`. Absent on the
+  // first frame and present a moment later, which is why it is in the restyle effect below
+  // rather than only in the constructor.
+  const outsideData = useOutsideMask(at.outside);
 
   useEffect(() => {
     if (!host.current) return;
@@ -59,7 +88,7 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       // `gauges` rides in on the endpoints so the source EXISTS from the first frame;
       // its contents are then replaced imperatively below. Declaring it later would mean
       // rebuilding the whole style every half hour to move a few hundred dots.
-      style: runtimeStyle({ ...at, gauges: gauges ?? EMPTY_FC }, theme,
+      style: runtimeStyle({ ...at, gauges: gauges ?? EMPTY_FC, outsideData }, theme,
                           modes) as unknown as maplibregl.StyleSpecification,
       center: [initial.lon, initial.lat],
       zoom: initial.zoom,
@@ -179,6 +208,36 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     // `initial` is a starting camera, not a controlled one; re-reading it here would yank
     // the map back to it on every render.
   }, [at.atlas, at.basemap, at.glyphs, at.sprite]);
+
+  /**
+   * Confine the BASEMAP's labels to British Columbia, once the mask has arrived.
+   *
+   * WHY NOT A PROPERTY FILTER. Overpass can select by province because it queries the OSM
+   * database, where the admin relations live. This basemap is a pre-built Protomaps archive,
+   * and a MapLibre filter can only read properties the TILE carries: `places` ships
+   * `kind`, `name`, `population`, `wikidata` and forty translations, and nothing that says
+   * which country a label is in, let alone which province. So the test has to be geometric.
+   *
+   * The mask is a rectangle with the province punched out, so "inside the mask" IS "outside
+   * BC" and the filter is that, negated. Applied here rather than in the constructor because
+   * the 61 KB arrives a moment after the first frame; the layers are found by source rather
+   * than by a hardcoded list, so a Protomaps upgrade that adds a label layer gets it too.
+   */
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !outsideData) return;
+    const apply = () => {
+      for (const l of m.getStyle()?.layers ?? []) {
+        if (l.type !== "symbol") continue;
+        if ((l as { source?: string }).source !== "basemap") continue;
+        const had = (l as { filter?: unknown[] }).filter;
+        const inBC = ["!", ["within", outsideData]] as unknown[];
+        // Keep the layer's own kind filter; this narrows, it does not replace.
+        m.setFilter(l.id, (had ? ["all", inBC, had] : inBC) as never);
+      }
+    };
+    if (m.isStyleLoaded()) apply(); else m.once("load", apply);
+  }, [outsideData]);
 
   useEffect(() => {
     const m = map.current;
