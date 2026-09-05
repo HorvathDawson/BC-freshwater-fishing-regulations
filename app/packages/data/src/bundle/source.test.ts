@@ -262,7 +262,7 @@ describe("the gauge model", () => {
     let worst = 0;
     const spy: Db = {
       ...db,
-      all: (sql: string, ...args: unknown[]) => {
+      all: (sql: string, ...args: Parameters<Db["all"]>[1][]) => {
         worst = Math.max(worst, args.length);
         return db.all(sql, ...args);
       },
