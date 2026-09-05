@@ -30,7 +30,17 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT,
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so
 -- every table keys on (entry_id, rule_id) and never on rule_id alone.
+-- `scope` is WHERE THE RULE WAS WRITTEN, and it drives precedence: a rule written for this
+-- water displaces a zone default that contradicts it (see `evaluate` in core/status.ts).
+-- Every rule in the corpus today is `section` — all 3,050 name a river or a lake — and `mu`
+-- awaits zone regulations ("in MU 4-5, no bait") being parsed. It is stored rather than
+-- assumed so that when they arrive the precedence rule does not have to be rediscovered.
+--
+-- DO NOT CONFUSE IT WITH `ruleset.via`, which is how a rule REACHES one section. They are
+-- orthogonal: specificity is a property of the rule, provenance of the (section, rule) pair,
+-- and an earlier draft of this schema had one column trying to be both.
 CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL, kind TEXT,
+                   scope TEXT NOT NULL DEFAULT 'section',   -- section | mu | area
                    windows TEXT, species TEXT, subject TEXT,
                    -- a rule nobody could place must never vote on an outcome; it can only
                    -- ever raise "unknown" (core/status.ts)
@@ -38,11 +48,42 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL, kind TEXT,
                    text TEXT, location TEXT,
                    PRIMARY KEY (entry_id, rule_id)) WITHOUT ROWID;
 
--- reg_index. Scope is a property of the GEOMETRY, not of the rule, so one table carries
--- section-, MU- and area-scoped bindings and the client resolves precedence.
-CREATE TABLE rule_section (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
-                           scope_kind TEXT NOT NULL,   -- section | mu | area
-                           scope_id TEXT NOT NULL);
+-- SAY IT ONCE AND POINT AT IT. The rules covering a section, as a SET the section names.
+--
+-- The obvious table is one row per (section, rule). Built from the real corpus that is
+-- 1,720,243 rows and 69.6 MB — on a bundle of 51.8 MB, and against a data contract that
+-- budgets about 10 MB for all regulation data. A 7x blow-out of the whole artifact.
+--
+-- It is also 1,720,243 rows carrying nowhere near that many FACTS. A regulation applies to
+-- a stretch of river and a stretch of river is many sections, so a river with one closure
+-- repeats that closure down every section of its length. Counted: 583,654 sections carry a
+-- rule and between them they have 1,905 distinct sets. One set is shared by 104,185
+-- sections. Interning them costs 12.1 MB for both tables — 83% smaller — and READS FASTER,
+-- because there is less of it: 0.25 ms for a 300-section viewport against 1.0 ms.
+--
+-- WHY NOT STORE THE SCOPE AND WALK ON THE CLIENT. Because the walk is not a prefix match.
+-- Tributary scope is relative to the RULE'S EXTENT, not to the named river: "no fishing
+-- between A and B, including tributaries" means the streams joining THAT STRETCH. The
+-- watershed-code shortcut gets it wrong in the expensive direction — on the Kootenay it
+-- adds 3,205 km of water joining BELOW the regulated reach, which is the app announcing a
+-- closure that does not exist. The membership is a graph-walk result and has to be stored.
+--
+-- NOTHING ABOUT THIS TOUCHES THE TILE. `mus` and `areas` ride on tile features because
+-- administrative geography exists whether or not anything is regulated; a rule-derived set
+-- does not, and the map is not where regulation knowledge lives.
+CREATE TABLE section_ruleset (section_id TEXT PRIMARY KEY,
+                              set_id INTEGER NOT NULL) WITHOUT ROWID;
+
+-- The sets themselves: 1,905 of them across 6,622 rows.
+--
+-- `via` is WHY this rule reaches this section — `reach` if the rule names this water,
+-- `trib` if it arrived by the tributary walk. Not decoration: 98.6% of all bindings are
+-- tributary (1,696,351 against 23,892), so the sweep IS the corpus, and it is the part that
+-- can be wrong over thousands of kilometres at once. A row that cannot say how it got here
+-- cannot be audited. Carrying it costs 249 extra sets and 0.3 MB.
+CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
+                      via TEXT NOT NULL,          -- reach | trib
+                      PRIMARY KEY (set_id, entry_id, rule_id)) WITHOUT ROWID;
 
 -- conditions ----------------------------------------------------------------------
 -- trust is the representativeness class, not a hint: `none` means the station drains far

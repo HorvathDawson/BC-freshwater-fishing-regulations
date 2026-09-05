@@ -17,7 +17,7 @@
  * this water — read it as a list of the questions the app knows how to ask.
  */
 import { Pressable, ScrollView, Text, View } from "react-native";
-import type { PlainDate, SpeciesGroup } from "@app/core";
+import { stretchLabel, type PlainDate, type SpeciesGroup } from "@app/core";
 import type { ItemId, RegsSource, SectionId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useWaterSheet } from "@app/ui";
@@ -90,7 +90,7 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
                  onFace={(f) => { if (f === "conditions" && first) onConditions?.(first); }} />
         <Text style={{ ...TYPE.title, color: palette.ink }}>{s.name}</Text>
         <Text style={{ ...TYPE.small, color: palette.sub }}>
-          {plural(s.reaches.length, "stretch", "stretches")}
+          {plural(s.reaches.length, "set of rules", "sets of rules")}
           {" \u00b7 "}{plural(s.rules.length, "written rule", "written rules")}
         </Text>
       </View>
@@ -107,7 +107,20 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
            So the toggle NAVIGATES. `Faces` is still two buttons because which two questions
            exist about a water is itself worth showing, but pressing Conditions leaves for
            the one screen that answers it. */}
-      <Section palette={palette} title="Stretches" />
+      {/*
+          THE RULE REGIMES, NOT THE ATLAS'S CUTS.
+
+          This listed one row per section, and the atlas cuts a river at confluences, lake
+          outlets, gauge matches and a 25 km cap — none of which is a reason a REGULATION
+          changes. The Fraser rendered 248 rows, every one of them reading the same, and the
+          stretch where the rules actually change was indistinguishable from its neighbours.
+
+          The bundle already interned the rule sets, so "which sections answer identically"
+          is a number it hands over rather than something to work out here. The Fraser is 16
+          rows now. A regime that applies in more than one place says so, because "Fraser
+          River, closed" in three separate pieces is not one stretch and must not read as
+          one. */}
+      <Section palette={palette} title="Rules along this water" />
       {s.reaches.map((r, i) => (
         <View key={r.section}
               style={{ paddingHorizontal: 18, paddingVertical: 14, gap: 9,
@@ -118,8 +131,14 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
                          backgroundColor: outcomeColour(palette, r.status.outcome) }} />
           <View style={{ flex: 1, gap: 8 }}>
             <Text style={{ ...TYPE.bodyStrong, color: palette.ink }}>
-              {stretchLabel(r, i, s.reaches.length)}
+              {stretchLabel({ lower: r.lowerLabel, upper: r.upperLabel }, i,
+                            s.reaches.length)}
             </Text>
+            {r.pieces > 1 && (
+              <Text style={{ ...TYPE.small, color: palette.faint }}>
+                {plural(r.pieces, "separate stretch", "separate stretches")} of this water
+              </Text>
+            )}
             <View style={{ flexDirection: "row" }}>
               <StatusPill status={r.status} palette={palette} />
             </View>
@@ -205,22 +224,3 @@ function Back({ palette, onPress }: { palette: Palette; onPress: () => void }) {
   );
 }
 
-/**
- * What one stretch is called in the list.
- *
- * `lowerLabel`/`upperLabel` come from a rule's extent, and the bundle does not carry rules
- * yet — so on the province build EVERY reach had both null and the fallback rendered the
- * same string for all of them. The Fraser River showed 201 rows each reading
- * "the mouth → the source", which is not a list, and 6,521 waters have more than one reach.
- *
- * Unlabelled reaches are still distinct pieces of river with their own status; what is
- * missing is a name for their ENDS. So number them, which distinguishes without inventing
- * geography. The mouth-to-source wording survives only where it is true: a water that is
- * one reach really does run the whole way.
- */
-function stretchLabel(r: { lowerLabel?: string | null; upperLabel?: string | null },
-                      i: number, n: number): string {
-  if (r.lowerLabel || r.upperLabel)
-    return `${r.lowerLabel ?? "the mouth"} \u2192 ${r.upperLabel ?? "the source"}`;
-  return n === 1 ? "the mouth \u2192 the source" : `Stretch ${i + 1} of ${n}`;
-}

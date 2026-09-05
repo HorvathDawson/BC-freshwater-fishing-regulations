@@ -91,9 +91,12 @@ counts.entry = insert("INSERT INTO entry VALUES (?,?,?,?,?,?)", entries.map(([id
 // The build's field names, not invented ones: `restriction_type` is the kind, `dates` are
 // the windows, and `needs_review` + `unresolved_locators` are what make a rule UNCERTAIN —
 // a rule nobody could place must never vote on an outcome (core/status.ts).
-counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?)",
+counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?,?)",
   entries.flatMap(([id, e]) => (e.rules ?? []).map((r) => [
     id, r.rule_id, r.restriction_type ?? "other",
+    // Specificity, which drives precedence. Every rule in the real corpus is
+    // `section`; `mu` arrives with zone regulations.
+    (r.extents ?? []).some((x) => x.area_id) ? "area" : "section",
     JSON.stringify(r.dates ?? []),
     r.species?.length ? JSON.stringify(r.species) : null,
     // `exempts_from` is a list; a subject is one thing, so join or drop it.
@@ -103,13 +106,46 @@ counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?)",
     r.rule_text ?? r.details ?? null,
     r.display_location ?? r.location_text ?? null,
   ])));
-// Clustered by entry so one water's bindings land together — the layout, not the format,
-// is what makes a range read cheap.
-counts.rule_section = insert("INSERT INTO rule_section VALUES (?,?,?,?)",
-  Object.entries(src.rule_sections).sort().flatMap(([ruleId, scopes]) => {
-    const entryId = src.rule_entry[ruleId];
-    return (scopes ?? []).map((s) => [entryId, ruleId, "section", s]);
-  }).filter((r) => r[0]));
+/*
+ * THE INTERNED RULE SETS, built the way the pipeline builds them.
+ *
+ * The fixture must produce the SHAPE the bundler emits, not a hand-written approximation of
+ * it: writing this file by hand is how 1,785 rows of a trust band the pipeline has never
+ * emitted got in here and three test files asserted against them. So the sets are interned
+ * here exactly as `pipeline/deliver/bundle/rules.py` interns them — group each section's
+ * (entry, rule, via) triples, sort, intern, point at it.
+ *
+ * The design fixture records only direct bindings, so every `via` here is "reach". A
+ * fixture with no tributary rows is honest about what the design file contains; it is not a
+ * claim that the province has none (98.6% of real bindings are tributary).
+ */
+const bySection = new Map();
+for (const [ruleId, scopes] of Object.entries(src.rule_sections)) {
+  const entryId = src.rule_entry[ruleId];
+  if (!entryId) continue;
+  for (const section of scopes ?? []) {
+    if (!bySection.has(section)) bySection.set(section, []);
+    bySection.get(section).push([entryId, ruleId, "reach"]);
+  }
+}
+const intern = new Map();
+const sets = [];
+const sectionSet = [];
+for (const section of [...bySection.keys()].sort()) {
+  const rows = bySection.get(section)
+    .map((t) => t.join("\u0000")).sort();
+  const key = rows.join("\u0001");
+  let id = intern.get(key);
+  if (id === undefined) {
+    id = sets.length;
+    intern.set(key, id);
+    sets.push(rows.map((r) => r.split("\u0000")));
+  }
+  sectionSet.push([section, id]);
+}
+counts.section_ruleset = insert("INSERT INTO section_ruleset VALUES (?,?)", sectionSet);
+counts.ruleset = insert("INSERT INTO ruleset VALUES (?,?,?,?)",
+  sets.flatMap((rows, id) => rows.map(([e, r, via]) => [id, e, r, via])));
 
 // ---- conditions -------------------------------------------------------------------
 // Stream magnitudes, CONSTRUCTED. The design fixture records a trust band per section but

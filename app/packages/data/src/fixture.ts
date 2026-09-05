@@ -16,21 +16,21 @@ import type {
 const id = <T extends string>(s: string): T => s as T;
 
 const JUNE_CLOSURE: Rule = {
-  id: "chilliwack_vedder_rivers.r5", kind: "closure", scope: "section",
+  id: "chilliwack_vedder_rivers.r5", kind: "closure", scope: "section", via: "reach",
   group: "provincial", windows: [{ from: { month: 6, day: 1 }, to: { month: 6, day: 30 } }],
 };
 const FLY_ONLY: Rule = {
-  id: "chilliwack_vedder_rivers.r4a", kind: "gear_restriction", scope: "section",
+  id: "chilliwack_vedder_rivers.r4a", kind: "gear_restriction", scope: "section", via: "reach",
   group: "provincial", subject: "gear",
   windows: [{ from: { month: 5, day: 1 }, to: { month: 5, day: 31 } }],
 };
 const UPSTREAM_CLOSURE: Rule = {
-  id: "chilliwack_vedder_rivers.r1", kind: "closure", scope: "section",
+  id: "chilliwack_vedder_rivers.r1", kind: "closure", scope: "section", via: "reach",
   group: "provincial", windows: [],
 };
 /** Real: the Fraser side-channel closure for which no extent was ever authored. */
 const UNPLACEABLE: Rule = {
-  id: "fraser_river_region2.r4", kind: "closure", scope: "section",
+  id: "fraser_river_region2.r4", kind: "closure", scope: "section", via: "reach",
   group: "provincial", uncertain: true,
   windows: [{ from: { month: 5, day: 15 }, to: { month: 7, day: 31 } }],
 };
@@ -110,12 +110,15 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
         item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name,
         reaches: CHILLIWACK.reaches.map((r) => ({
           section: id<SectionId>(r.section), seq: r.seq,
+          // One section per stretch in the hand-written fixture: it names distinct reaches
+          // already, so there is nothing to collapse.
+          sections: [id<SectionId>(r.section)], pieces: 1,
           lowerLabel: r.lo, upperLabel: r.hi,
           status: statusOf(r.section, on, group),
         })),
         rules: [UPSTREAM_CLOSURE, JUNE_CLOSURE, FLY_ONLY],
         area: [{
-          rule: { id: "mu.2-2.bait", kind: "gear_restriction", scope: "mu",
+          rule: { id: "mu.2-2.bait", kind: "gear_restriction", scope: "mu", via: "reach",
                   group: "provincial", subject: "bait", windows: [] },
           scopeLabel: "Everywhere in MU 2-2",
         }],

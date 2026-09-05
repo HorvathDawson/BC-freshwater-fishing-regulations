@@ -36,9 +36,17 @@ def write_run(out_dir: str | Path, result, entries=None) -> dict[str, int]:
     out = Path(out_dir)
 
     # rule_section — the bindings. One row per (rule, section) so it joins cleanly.
+    #
+    # `scope` says WHY this rule reaches this section: "reach" if the rule names this water,
+    # "trib" if it arrived by the tributary walk. It is not decoration. A tributary sweep is
+    # the part of this pipeline that can be wrong over thousands of kilometres at once — the
+    # Kootenay case in tributaries.py is 3,205 km of water that a prefix shortcut would have
+    # closed — and a row that cannot say how it got here cannot be audited by anyone.
     sections = [
-        {"entry_id": b.entry_id, "rule_id": b.rule_id, "section_id": s}
+        {"entry_id": b.entry_id, "rule_id": b.rule_id, "section_id": s,
+         "scope": "trib" if s in trib else "reach"}
         for b in result.bindings if b.outcome is Outcome.bound
+        for trib in (frozenset(b.via_tributary),)
         for s in b.sections
     ]
     sections.sort(key=lambda r: (r["entry_id"], r["rule_id"], r["section_id"]))

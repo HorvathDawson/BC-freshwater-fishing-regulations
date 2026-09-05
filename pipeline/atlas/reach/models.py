@@ -83,6 +83,20 @@ class RuleBinding:
     #: Nothing downstream may treat a binding with this set as final.
     tributaries_pending: bool = False
 
+    #: Of `sections`, the ones reached ONLY by the tributary walk — never the reach itself.
+    #:
+    #: WHY IT IS SEPARATE FROM `sections`. A section knowing WHICH rules cover it is not the
+    #: same as knowing WHY, and the why is the difference between "no fishing here" and "no
+    #: fishing here, because this creek joins a closed stretch of the Skeena". 567 rules
+    #: expand this way, and when one of them is wrong it is wrong over thousands of
+    #: kilometres — so the provenance has to survive into the bundle to be checkable at all.
+    #:
+    #: Empty for the 2,395 rules that do not expand, rather than a copy of `sections`: this
+    #: is the exception, and storing the rule twice for the common case buys nothing.
+    #: `tributaries_only` makes EVERY section a tributary one, which is exactly right — the
+    #: reach is excluded there and the set difference says so without a special case.
+    via_tributary: tuple[str, ...] = ()
+
     def __post_init__(self) -> None:
         # The invariant the whole builder exists to guarantee (doc 10 ⑪ + ㊳):
         # a rule never ends up bound-but-empty, and never unresolved-but-unexplained.

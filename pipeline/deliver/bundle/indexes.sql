@@ -3,8 +3,12 @@ CREATE INDEX alias_by_text   ON alias(alias);
 CREATE INDEX item_by_name    ON item(name);
 CREATE INDEX section_by_item ON item_section(item_id);
 CREATE INDEX item_by_section ON item_section(section_id);
-CREATE INDEX rule_by_scope   ON rule_section(scope_kind, scope_id);
-CREATE INDEX rule_by_entry   ON rule_section(entry_id);
+-- Both new tables are WITHOUT ROWID and keyed the way they are read — section -> set, then
+-- set -> rules — so the primary keys ARE the indexes and neither needs another. The one
+-- direction that has no key is "which sections does this rule cover", which the app never
+-- asks: a rule is reached FROM a section, never swept for. Adding it would cost more than
+-- the whole ruleset table.
+CREATE INDEX ruleset_by_entry ON ruleset(entry_id, rule_id);
 CREATE INDEX release_by_name ON release(name);
 CREATE INDEX chart_by_item   ON chart(item_id);
 CREATE INDEX water_by_place  ON place_water(place_id, km);

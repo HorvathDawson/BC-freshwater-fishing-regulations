@@ -33,7 +33,7 @@ describe("the bundle format", () => {
 
   it("declares the tables the data contract names", () => {
     // Named individually: if one is dropped, the failure should say which.
-    for (const t of ["item", "alias", "item_section", "entry", "rule", "rule_section",
+    for (const t of ["item", "alias", "item_section", "entry", "rule", "section_ruleset", "ruleset",
                      "gauge", "section_gauge", "section_down", "gauge_clim", "chart", "release",
                      "place", "place_water"])
       expect(TABLES, `${t} is missing from schema.sql`).toContain(t);

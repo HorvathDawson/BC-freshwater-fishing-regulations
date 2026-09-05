@@ -274,10 +274,23 @@ export interface ForecastSeries {
 export interface ItemRegs {
   item: ItemId;
   name: string;
-  /** Ordered mouth -> source, so the sheet can draw a river's stretches in order. */
+  /**
+   * The stretches that DIFFER, mouth -> source — not every section the atlas cut.
+   *
+   * A river is split at confluences, lake outlets, gauge matches and a 25 km cap, none of
+   * which is a reason a regulation changes; the Fraser used to arrive here as 201 sections
+   * and render as 201 identical rows. Adjacent sections covered by the same rule set are
+   * one stretch, decided in the bundle (which already interned those sets) and grouped by
+   * `runsOfSameRules` in @app/core.
+   */
   reaches: readonly {
+    /** Where the stretch begins — what a tap on it should open. */
     section: SectionId;
     seq: number;
+    /** Every section under this regime, so the map can highlight all of it. */
+    sections: readonly SectionId[];
+    /** How many separate pieces of the water it covers. Often 1; never 0. */
+    pieces: number;
     /** The landmarks that bound this stretch, e.g. "Vedder Crossing Bridge". */
     lowerLabel: string | null;
     upperLabel: string | null;

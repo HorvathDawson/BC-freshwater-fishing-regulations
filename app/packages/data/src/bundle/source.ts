@@ -10,7 +10,7 @@
  * It decides nothing. Every outcome comes from `evaluate()` in core; this assembles the
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
-import { bandAt, evaluate, type Band, type PlainDate, type Rule,
+import { bandAt, evaluate, regimesOf, type Band, type PlainDate, type Rule,
          type RuleKind, type SpeciesGroup, type Status, type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { BasinMember,
@@ -26,14 +26,23 @@ import { json, num, str, type Db, type Row } from "./db";
 const KINDS = new Set<RuleKind>(["closure", "gear_restriction", "harvest",
                                  "vessel_restriction", "licensing", "note"]);
 
-function toRule(r: Row, scope: Rule["scope"], group: SpeciesGroup): Rule {
+/**
+ * Both facts, from the row that carries both.
+ *
+ * `scope` is where the rule was WRITTEN (specificity, which drives precedence) and comes
+ * from the `rule` table; `via` is how it REACHES this section (provenance, which is what a
+ * reader is told) and comes from the `ruleset` row. They are not the same question, and an
+ * earlier schema had one column trying to answer both.
+ */
+function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
   const kind = str(r.kind) as RuleKind;
   return {
     // Unique only within an entry (AGENTS rule 8) — 49 rule_ids collide corpus-wide, so
     // the id carried around is always the pair.
     id: `${str(r.entry_id)}.${str(r.rule_id)}`,
     kind: KINDS.has(kind) ? kind : "note",
-    scope,
+    scope: (r.scope == null ? "section" : str(r.scope)) as Rule["scope"],
+    via,
     group,
     windows: json<Window[]>(r.windows, `rule ${str(r.rule_id)} windows`),
     ...(r.subject == null ? {} : { subject: str(r.subject) }),
@@ -71,14 +80,25 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
   });
 
   /** Rules bound to a set of sections, grouped by section. One query, not one per section. */
+  /**
+   * The rules covering each section, and the id of the SET each one belongs to.
+   *
+   * The set id is returned alongside the rules because it is the only cheap way to know
+   * that two sections answer identically — comparing rule lists would mean comparing
+   * hundreds of arrays per river, which is the front-end computation this whole design
+   * exists to avoid. The bundle already decided it; the client reads the number.
+   */
   const rulesBySection = async (sections: readonly SectionId[], group: SpeciesGroup) => {
-    const out = new Map<SectionId, Rule[]>();
-    if (sections.length === 0) return out;
-    for (const r of await db.all(Q.rulesForScopes("section", sections.length), ...sections)) {
-      const id = str(r.scope_id) as SectionId;
-      (out.get(id) ?? out.set(id, []).get(id)!).push(toRule(r, "section", group));
+    const rules = new Map<SectionId, Rule[]>();
+    const sets = new Map<SectionId, number>();
+    if (sections.length === 0) return { rules, sets };
+    for (const r of await db.all(Q.rulesForSections(sections.length), ...sections)) {
+      const id = str(r.section_id) as SectionId;
+      sets.set(id, Number(r.set_id));
+      (rules.get(id) ?? rules.set(id, []).get(id)!)
+        .push(toRule(r, str(r.via) === "trib" ? "trib" : "reach", group));
     }
-    return out;
+    return { rules, sets };
   };
 
   return {
@@ -119,20 +139,42 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       const item = await db.get(Q.ITEM, id);
       if (!item) return null;
       const sections = (await db.all(Q.SECTIONS_FOR_ITEM, id)).map((r) => str(r.section_id) as SectionId);
-      const byScope = await rulesBySection(sections, group);
+      const { rules: bySection, sets } = await rulesBySection(sections, group);
       const entry = await db.get(Q.ENTRY_FOR_ITEM, id);
       const rules = entry
         ? (await db.all(Q.RULES_FOR_ENTRY, str(entry.entry_id)))
-            .map((r) => toRule(r, "section", group))
+            .map((r) => toRule(r, "reach", group))
         : [];
       return {
         item: id,
         name: str(item.name),
         // Mouth -> source is the order the sheet draws them, and section ids sort that way
         // because the measure is distance up the blue line.
-        reaches: sections.map((section, seq) => ({
-          section, seq, lowerLabel: null, upperLabel: null,
-          status: evaluate({ rules: byScope.get(section) ?? [], on, group }),
+        /*
+         * THE STRETCHES THAT DIFFER, not every cut in the atlas.
+         *
+         * The atlas splits a river at confluences, lake outlets, gauge matches and a 25 km
+         * cap — none of which is a reason a regulation changes — so the Fraser arrived here
+         * as 201 sections and left as 201 identical rows. Adjacent sections sharing a rule
+         * set are one stretch; `runsOfSameRules` in @app/core is the single implementation,
+         * so the sheet and anything else that lists a river agree about where it changes.
+         */
+        reaches: regimesOf(
+          sections.map((section) => ({ section, setId: sets.get(section) ?? null })),
+        ).map((regime, seq) => ({
+          // The first section stands for the regime: it is where it first appears from the
+          // mouth, and what a tap on the row should open.
+          section: regime.sections[0]!.section, seq,
+          sections: regime.sections.map((x) => x.section),
+          // How many separate pieces of this water it covers. One regime is not always one
+          // stretch: a closure can apply above and below an open middle, and saying "in 3
+          // places" is the difference between a true row and a misleading one.
+          pieces: regime.runs.length,
+          lowerLabel: null, upperLabel: null,
+          // Every section in a regime carries the same rules by construction — that is what
+          // makes it a regime — so the first one answers for all of them.
+          status: evaluate({ rules: bySection.get(regime.sections[0]!.section) ?? [],
+                             on, group }),
         })),
         rules,
         area: [],
@@ -149,7 +191,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     },
 
     async statusFor(ids, on, group): Promise<ReadonlyMap<SectionId, Status>> {
-      const byScope = await rulesBySection(ids, group);
+      const { rules: byScope } = await rulesBySection(ids, group);
       const out = new Map<SectionId, Status>();
       // EVERY id asked about gets an answer, including ones with no rule at all — that is
       // "open under the general rules", which is a real answer and not an absence.

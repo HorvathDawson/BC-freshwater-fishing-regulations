@@ -30,7 +30,8 @@ from pathlib import Path
 from pipeline.atlas.gauges.build_panels import build as build_panels
 from pipeline.atlas.gauges.panel import MIN_RECORD_YEARS
 from pipeline.atlas.graph.drainage import AreaModel, fit_area_model
-from pipeline.common.curated import GENERATED, REPO_ROOT, SOURCE
+from pipeline.common.curated import CURATED, GENERATED, REPO_ROOT, SOURCE
+from pipeline.deliver.bundle import rules as _rules
 from pipeline.common.registry_kinds import is_water
 
 HERE = Path(__file__).parent
@@ -111,6 +112,32 @@ def _report(what: str, lost: list[str], live: set[str]) -> None:
         print(f"       … and {rest:,} more (all in the run log)")
 
 
+
+
+def _reach_run(build_dir: Path) -> Path | None:
+    """The reach run built from THIS atlas, found by asking each run which atlas it read.
+
+    A bundle built from one atlas against another atlas's reaches binds rules to section ids
+    that no longer exist — and it fails SILENTLY, as regulations that are simply absent, on
+    exactly the screens where absent means "you may fish here". So the pairing is not a
+    naming convention to be kept by hand: every run writes the build it read into
+    `report.json`, and this matches on that.
+
+    Newest wins when several runs name the same build, because re-running the builder is how
+    its output is corrected and the older one is the stale copy. The choice is printed
+    rather than assumed.
+    """
+    runs = []
+    for report in sorted((GENERATED.reaches).glob("*/report.json")):
+        try:
+            got = json.loads(report.read_text())
+        except (OSError, ValueError):
+            continue
+        if got.get("build") == build_dir.name:
+            runs.append((report.stat().st_mtime, report.parent))
+    if not runs:
+        return None
+    return max(runs)[1]
 
 
 def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
@@ -572,12 +599,18 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
                      data_dir / "bc_boundary.geojson", cov)
     _place_water(db, build_dir, places, cov)
     _gauges(db, build_dir, data_dir, cov)
+    # The regulations. The reach builder resolved which water every rule covers; this only
+    # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
+    _reaches = _reach_run(build_dir)
+    if _reaches is None:
+        for _t in ("entry", "rule", "section_ruleset", "ruleset"):
+            cov.skip(_t, f"no reach run reports build {build_dir.name!r}")
+    else:
+        print(f"     rules: reading {_reaches.relative_to(REPO_ROOT)}")
+        _rules.write(db, _reaches, CURATED.regulations.entries.synopsis.parent, cov)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been
     # pointed at this. Named individually rather than left silently empty.
-    cov.skip("entry", "curation entries are per-region JSON; needs pipeline.regs.parsing.io")
-    cov.skip("rule", "same as entry")
-    cov.skip("rule_section", "needs pipeline.atlas.reach.covered over the full corpus")
     cov.skip("chart", "needs the bathymetry fetch (fetch_data: bathymetry_contours)")
     cov.skip("stock_water", "needs the FIDQ fetch — no waterbody roster on disk yet")
     cov.skip("stock_code", "needs the FIDQ fetch: the species/stage dictionaries come with it")
@@ -598,11 +631,30 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     # opened — and `pipeline.tools.emit_gauge_policy --check` is what keeps THAT honest.
     from pipeline.gauges.consume.shed import TRUST_BANDS
 
+    _reach_digest, _reach_run_name = "", ""
+    if _reaches is not None:
+        try:
+            _rep = json.loads((_reaches / "report.json").read_text())
+            _reach_digest = str(_rep.get("digest") or "")
+            _reach_run_name = _reaches.name
+        except (OSError, ValueError):
+            pass
+
     db.executemany("INSERT INTO meta VALUES (?,?)", [
         ("schema", SCHEMA.read_text().split("\n")[0]),
         ("build", str(build_dir)),
         ("generated_by", "python -m pipeline.deliver.bundle"),
         ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),
+        # WHICH ATLAS THESE RULES WERE RESOLVED AGAINST.
+        #
+        # `section_ruleset` binds rules to section ids, and section ids are minted by the
+        # atlas build. Pair a bundle with tiles from a DIFFERENT build and the ids do not
+        # line up — and it fails silently, as regulations that are simply absent, on exactly
+        # the screens where absent reads as "you may fish here". The tiles and the bundle
+        # were already required to be a matched pair for colour; this makes the pairing
+        # checkable, and load-bearing for correctness.
+        ("reach_digest", _reach_digest),
+        ("reach_run", _reach_run_name),
     ])
     db.commit()
     db.execute("VACUUM")

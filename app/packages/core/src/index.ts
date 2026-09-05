@@ -18,6 +18,7 @@ export * from "./flow";
 export * from "./trace";
 export * from "./ladder";
 export * from "./trust";
+export * from "./stretches";
 
 export type Freshness =
   | { state: "live"; ageMs: number }

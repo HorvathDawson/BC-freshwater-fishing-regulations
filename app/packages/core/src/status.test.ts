@@ -9,7 +9,7 @@ const w = (a: [number, number], b: [number, number]): Window => ({
   to: { month: b[0], day: b[1] },
 });
 const rule = (p: Partial<Rule> & Pick<Rule, "id" | "kind">): Rule => ({
-  scope: "section", group: "provincial", windows: [], ...p,
+  scope: "section", via: "reach", group: "provincial", windows: [], ...p,
 });
 
 describe("season windows", () => {
@@ -68,7 +68,7 @@ describe("the date decides", () => {
 
 describe("scopes", () => {
   it("a zone rule closes water nobody wrote about", () => {
-    const spring = rule({ id: "mu.spring", kind: "closure", scope: "mu",
+    const spring = rule({ id: "mu.spring", kind: "closure", scope: "mu", via: "reach",
                           windows: [w([4, 1], [6, 15])] });
     expect(evaluate({ rules: [spring], on: on(5, 1), group: "provincial" }).outcome)
       .toBe("closed");
@@ -76,8 +76,8 @@ describe("scopes", () => {
 
   it("a rule for THIS water replaces the zone default about the same subject", () => {
     // The point of the subject key: a lake may deliberately be more permissive than its MU.
-    const zone = rule({ id: "mu.quota", kind: "harvest", scope: "mu", subject: "trout-quota" });
-    const lake = rule({ id: "lake.quota", kind: "note", scope: "section",
+    const zone = rule({ id: "mu.quota", kind: "harvest", scope: "mu", via: "reach", subject: "trout-quota" });
+    const lake = rule({ id: "lake.quota", kind: "note", scope: "section", via: "reach",
                         subject: "trout-quota" });
     const s = evaluate({ rules: [zone, lake], on: on(8, 30), group: "provincial" });
     expect(s.outcome).toBe("open");
@@ -85,24 +85,24 @@ describe("scopes", () => {
   });
 
   it("but it does not replace a zone rule about something else", () => {
-    const bait = rule({ id: "mu.bait", kind: "gear_restriction", scope: "mu", subject: "bait" });
-    const quota = rule({ id: "lake.quota", kind: "note", scope: "section",
+    const bait = rule({ id: "mu.bait", kind: "gear_restriction", scope: "mu", via: "reach", subject: "bait" });
+    const quota = rule({ id: "lake.quota", kind: "note", scope: "section", via: "reach",
                          subject: "trout-quota" });
     expect(evaluate({ rules: [bait, quota], on: on(8, 30), group: "provincial" }).outcome)
       .toBe("restricted");
   });
 
   it("an area closure is absolute — a permissive local rule cannot open it", () => {
-    const reserve = rule({ id: "eco", kind: "closure", scope: "area", absolute: true });
-    const local = rule({ id: "lake.quota", kind: "note", scope: "section" });
+    const reserve = rule({ id: "eco", kind: "closure", scope: "area", via: "reach", absolute: true });
+    const local = rule({ id: "lake.quota", kind: "note", scope: "section", via: "reach" });
     expect(evaluate({ rules: [reserve, local], on: on(8, 30), group: "provincial" }).outcome)
       .toBe("closed");
   });
 });
 
 describe("salmon is a parallel authority, not a precedence level", () => {
-  const provincialOpen = rule({ id: "bc", kind: "note", scope: "section" });
-  const dfoClosed = rule({ id: "dfo", kind: "closure", scope: "section",
+  const provincialOpen = rule({ id: "bc", kind: "note", scope: "section", via: "reach" });
+  const dfoClosed = rule({ id: "dfo", kind: "closure", scope: "section", via: "reach",
                            group: "salmon", absolute: true });
   const both = [provincialOpen, dfoClosed];
 

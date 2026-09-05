@@ -12,8 +12,24 @@
 /** A water's sheet, in as few statements as the schema allows. */
 export const ITEM = "SELECT item_id, name, kind FROM item WHERE item_id = ?";
 
+/**
+ * A water's sections, in the water's own order.
+ *
+ * `ORDER BY section_id` is what this used to say, under a comment claiming section ids sort
+ * mouth-to-source "because the measure is distance up the blue line". Half true and wrong
+ * where it matters: the id is `{blue_line_key}:{measure}` and the column is TEXT, so
+ * `...:122095` sorts before `...:9942`. A river whose sections carry four- and five-digit
+ * measures came back interleaved, and the sheet drew its stretches out of order while
+ * saying they were in order.
+ *
+ * Split and cast, so the measure sorts as the number it is. Blue line first because an item
+ * is not one line — "Fraser River" spans 151 of them, braids and side channels included —
+ * and a run of sections must never be assembled across two different waters.
+ */
 export const SECTIONS_FOR_ITEM =
-  "SELECT section_id FROM item_section WHERE item_id = ? ORDER BY section_id";
+  "SELECT section_id FROM item_section WHERE item_id = ? " +
+  "ORDER BY substr(section_id, 1, instr(section_id, ':') - 1), " +
+  "         CAST(substr(section_id, instr(section_id, ':') + 1) AS INTEGER)";
 
 export const ITEM_FOR_SECTION =
   "SELECT item_id FROM item_section WHERE section_id = ? LIMIT 1";
@@ -22,7 +38,7 @@ export const ENTRY_FOR_ITEM =
   "SELECT entry_id, name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
 
 export const RULES_FOR_ENTRY =
-  "SELECT entry_id, rule_id, kind, windows, species, subject, uncertain, text, location " +
+  "SELECT entry_id, rule_id, kind, scope, windows, species, subject, uncertain, text, location " +
   "FROM rule WHERE entry_id = ? ORDER BY rule_id";
 
 /**
@@ -31,12 +47,32 @@ export const RULES_FOR_ENTRY =
  * Scope is a property of the geometry, so this asks by scope and lets the caller supply
  * section ids, MU ids or area ids — one query serves all three tiers.
  */
-export const rulesForScopes = (kind: string, n: number) =>
-  "SELECT rs.scope_id, r.entry_id, r.rule_id, r.kind, r.windows, r.species, r.subject, " +
+/**
+ * The rules covering a set of sections, and the SET each section belongs to.
+ *
+ * TWO JOINS AND NO EXPANSION. The bundle does not store one row per (section, rule) — that
+ * is 1,720,243 rows and 69.6 MB — it stores the 1,905 distinct answers and lets each section
+ * name one. So this reads `section_ruleset` to find the answer and `ruleset` to read it,
+ * and a 300-section viewport comes back in 0.25 ms against 1.0 ms for the flat table. Less
+ * to read is faster, which is the happy direction for a compression to fail in.
+ *
+ * `set_id` comes back too, and is not a debugging aid: it is what lets a screen show a
+ * river as the few stretches that differ rather than as 201 identical rows. See
+ * `runsOfSameRules` in @app/core.
+ */
+export const rulesForSections = (n: number) =>
+  "SELECT sr.section_id, sr.set_id, rs.via, " +
+  "       r.entry_id, r.rule_id, r.kind, r.scope, r.windows, r.species, r.subject, " +
   "       r.uncertain, r.text, r.location " +
-  "FROM rule_section rs " +
+  "FROM section_ruleset sr " +
+  "JOIN ruleset rs ON rs.set_id = sr.set_id " +
   "JOIN rule r ON r.entry_id = rs.entry_id AND r.rule_id = rs.rule_id " +
-  `WHERE rs.scope_kind = '${kind}' AND rs.scope_id IN (${placeholders(n)})`;
+  `WHERE sr.section_id IN (${placeholders(n)})`;
+
+/** Just the set each section belongs to — for grouping, with no rule bodies fetched. */
+export const setsForSections = (n: number) =>
+  "SELECT section_id, set_id FROM section_ruleset " +
+  `WHERE section_id IN (${placeholders(n)})`;
 
 /**
  * Name search.

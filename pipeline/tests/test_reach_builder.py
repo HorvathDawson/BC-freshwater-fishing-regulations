@@ -361,3 +361,45 @@ def test_policy_version_is_bumped_when_classify_changes():
     assert policy == expected, (
         f"classify.py policy changed to {policy} — bump cache.POLICY_VERSION "
         f"(currently {cache.POLICY_VERSION!r}) and update this test together")
+
+
+# ------------------------------------------------------------------ scope provenance
+
+def _bound(sections, *, expand=None, only=False):
+    """classify() with this file's own fixtures — see `_rule`, `_reach`, `REG`."""
+    return classify("e", _rule(), [_reach(sections)],
+                    registry=REG, covered_ids=["i1"], scope_clipped=False,
+                    entry_has_registry=True,
+                    tributaries=expand is not None, tributaries_only=only,
+                    expand_tributaries=expand)[0]
+
+
+def test_a_rule_that_does_not_expand_marks_nothing_as_tributary():
+    """The common case — 2,395 of 2,962 rules — and it must not pay for the exception."""
+    b = _bound(["a", "b"])
+    assert b.sections == ("a", "b")
+    assert b.via_tributary == ()
+
+
+def test_the_sections_the_walk_added_are_the_ones_marked():
+    """WHY a rule reaches a section is the difference between "no fishing here" and "no
+    fishing here, because this creek joins a closed stretch of the Skeena"."""
+    b = _bound(["a"], expand=lambda direct, only: {"a", "trib1", "trib2"})
+    assert b.sections == ("a", "trib1", "trib2")
+    assert b.via_tributary == ("trib1", "trib2")
+
+
+def test_tributaries_only_marks_every_section_as_tributary():
+    """`only` excludes the reach itself, so every section IS a tributary one — and the set
+    difference says so without a special case. Getting this backwards bundles
+    "tributaries only" as "reach + tributaries", which closes a river that is open."""
+    b = _bound(["reach"], expand=lambda direct, only: {"t1", "t2"}, only=True)
+    assert b.sections == ("t1", "t2")
+    assert b.via_tributary == ("t1", "t2")
+
+
+def test_the_provenance_never_names_a_section_the_rule_does_not_cover():
+    """It is a label ON `sections`, not a second list — a `via_tributary` naming water
+    outside `sections` would be unjoinable and would read as coverage that is not there."""
+    b = _bound(["a"], expand=lambda direct, only: {"a", "t1"})
+    assert set(b.via_tributary) <= set(b.sections)

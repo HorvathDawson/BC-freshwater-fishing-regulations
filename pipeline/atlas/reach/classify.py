@@ -140,6 +140,7 @@ def classify(
                               "resolved, then the entry scope removed every section")
         return unresolved(*_why(extents, registry, covered_ids))
 
+    via_trib: tuple[str, ...] = ()
     if tributaries:
         if expand_tributaries is None:
             # No graph available (unit tests, or a caller that only wants direct extents).
@@ -153,6 +154,10 @@ def classify(
 
         direct = set(sections)
         sections = set(expand_tributaries(direct, only=tributaries_only))
+        # The provenance, taken HERE because this is the only line where the two sets are
+        # still apart. `sections - direct` is right for both states: with `only`, the reach
+        # is not in `sections` at all, so every section is a tributary one.
+        via_trib = tuple(sorted(sections - direct))
         diags.append(Diagnostic(entry_id, rid, "tributaries", {
             "direct": len(direct), "total": len(sections),
             "added": len(sections - direct), "only": tributaries_only,
@@ -164,7 +169,8 @@ def classify(
                               f"tributaries_only, but the reach has no tributaries "
                               f"({len(direct)} direct sections)")
 
-    return RuleBinding(entry_id, rid, Outcome.bound, tuple(sorted(sections))), diags
+    return RuleBinding(entry_id, rid, Outcome.bound, tuple(sorted(sections)),
+                       via_tributary=via_trib), diags
 
 
 def _why(extents: list[dict], registry, covered_ids: list[str]) -> tuple[Reason, str]:

@@ -41,9 +41,26 @@ export type Provenance = "specific" | "general";
  */
 export type SpeciesGroup = "provincial" | "salmon";
 
-/** Where a rule attaches. The scope is a property of the geometry, not of the rule —
- *  which is how one row closes every stream in a management unit. */
+/**
+ * WHERE THE RULE WAS WRITTEN — its specificity, which is what drives precedence: a rule
+ * written for this water displaces a zone default it contradicts.
+ *
+ * Every rule in the corpus today is `section`; `mu` arrives with zone regulations ("in MU
+ * 4-5, no bait"). Kept as a type rather than assumed, because the precedence rule below
+ * already depends on it and would otherwise have to be rediscovered.
+ */
 export type ScopeKind = "section" | "mu" | "area";
+
+/**
+ * HOW A RULE REACHES ONE SECTION — its provenance, which is what a reader is TOLD.
+ *
+ * Orthogonal to `ScopeKind`, and an earlier draft had one field trying to be both. A
+ * water-specific closure reaches its own water (`reach`) and everything joining it
+ * (`trib`), and those deserve different sentences: "no fishing here" against "no fishing
+ * here, because this creek joins a closed stretch of the Skeena". 98.6% of all bindings in
+ * the province are tributary ones, so this is the common case, not the footnote.
+ */
+export type RuleVia = "reach" | "trib";
 
 export type RuleKind =
   | "closure"
@@ -57,6 +74,8 @@ export interface Rule {
   readonly id: string;
   readonly kind: RuleKind;
   readonly scope: ScopeKind;
+  /** How this rule reaches the section being asked about. See `RuleVia`. */
+  readonly via: RuleVia;
   readonly group: SpeciesGroup;
   /** Empty = all year. */
   readonly windows: readonly Window[];
