@@ -32,6 +32,15 @@ export interface MapChrome {
   tint: string;
   /** The scale bar's bracket and label. */
   sub: string;
+  /**
+   * The "you are here" pin, and the default for a panel's pins.
+   *
+   * WAS A LITERAL. `Map.web.tsx` built both markers with `"#5F26E0"` typed in, which is the
+   * LIGHT theme's accent — so the marker for the spot you tapped stayed light-purple on the
+   * dark theme, where the accent is #A97CFF, and ignored the colour-blind theme entirely.
+   * A colour that only one theme agrees with is not a theme's colour.
+   */
+  accent: string;
   /** The hard offset slab under the stack. Not a blur — see controls.css. */
   shadow: string;
   /**

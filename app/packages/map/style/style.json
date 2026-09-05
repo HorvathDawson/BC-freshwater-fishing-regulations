@@ -534,7 +534,7 @@
       "minzoom": 8,
       "layout": {
         "visibility": "visible",
-        "symbol-placement": "line",
+        "symbol-placement": "point",
         "text-field": [
           "get",
           "mu_id"
@@ -557,10 +557,8 @@
           12,
           15
         ],
-        "text-max-angle": 15,
-        "symbol-spacing": 200,
         "text-allow-overlap": false,
-        "text-padding": 6
+        "text-padding": 3
       },
       "filter": [
         "all",

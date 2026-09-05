@@ -271,7 +271,8 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     const m = map.current;
     if (!m) return;
     if (!marker) { pin.current?.remove(); pin.current = null; return; }
-    if (!pin.current) pin.current = new maplibregl.Marker({ color: "#5F26E0" });
+    if (!pin.current)
+      pin.current = new maplibregl.Marker({ color: chrome?.accent ?? "#5F26E0" });
     pin.current.setLngLat([marker.lon, marker.lat]).addTo(m);
     return () => { pin.current?.remove(); pin.current = null; };
   }, [marker?.lat, marker?.lon]);
@@ -288,7 +289,8 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
     if (!m) return;
     for (const mk of pinned.current) mk.remove();
     pinned.current = (pins ?? []).map((p) => {
-      const mk = new maplibregl.Marker({ color: p.tone ?? "#5F26E0", scale: 0.72 });
+      const mk = new maplibregl.Marker({ color: p.tone ?? chrome?.accent ?? "#5F26E0",
+                                        scale: 0.72 });
       if (p.title) mk.setPopup(new maplibregl.Popup({ closeButton: false }).setText(p.title));
       return mk.setLngLat([p.lon, p.lat]).addTo(m);
     });

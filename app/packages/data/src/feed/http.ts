@@ -167,6 +167,8 @@ export interface GaugeFeed {
   live(): Promise<ReadonlySet<string> | null>;
   /** The whole index, for colouring the map. Null when it could not be fetched. */
   index(): Promise<IndexFile | null>;
+  /** Whether the feed actually carries this station — see the note on the implementation. */
+  published(station: string): Promise<boolean>;
   /**
    * How long this station's record is.
    *
@@ -228,7 +230,27 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
       return idx ? new Set(Object.keys(idx.stations)) : null;
     },
 
+    /**
+     * Is there a file to ask for at all?
+     *
+     * `index.json` lists the stations the publisher actually wrote, and it is already
+     * fetched and cached for `live()`. Asking without checking meant every station the
+     * BUNDLE knows about but the FEED never published — a station retired between the two
+     * builds, or one that never cleared the publisher's record threshold — produced a 404
+     * per view. Handled (a 404 is "not transmitting", which is a true answer), but a
+     * request whose only possible outcome is a miss should not be sent.
+     *
+     * A MISSING INDEX IS NOT AN EMPTY ONE. If the index itself failed to load we fall
+     * through and try the station file, because refusing every station on the strength of
+     * one failed request would turn a hiccup into an outage.
+     */
+    async published(station: string): Promise<boolean> {
+      const idx = await load<IndexFile>("index.json");
+      return idx ? station in idx.stations : true;
+    },
+
     async now(station) {
+      if (!(await this.published(station))) return null;
       const f = await load<StationFile>(`${station}.json`);
       if (!f?.now || (f.now.discharge === null && f.now.level === null)) return null;
       return {
@@ -242,6 +264,7 @@ export function httpFeed(base: string, fetchImpl: typeof fetch = fetch): GaugeFe
     },
 
     async observations(station) {
+      if (!(await this.published(station))) return null;
       const f = await load<StationFile>(`${station}.json`);
       const rows = f?.recent ?? [];
       if (!rows.length) return null;

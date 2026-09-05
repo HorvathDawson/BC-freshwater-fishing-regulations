@@ -1,11 +1,11 @@
 {
   "$schema": "./schema/layers.schema.json",
-  "$comment": "AUTHORED \u2014 the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads. Source layer names and featureIdProperty must match pipeline/deliver/tiles/layers.py exactly \u2014 they did not, and a mismatch draws nothing while erroring nowhere.",
+  "$comment": "AUTHORED — the one file you edit to add or change a map layer. Run `pnpm style:build`, then commit the generated style.json + style.meta.json. Colours reference tokens; the VALUES that drive a colouring are not in the tiles, so every non-static mode must name the provider it reads. Source layer names and featureIdProperty must match pipeline/deliver/tiles/layers.py exactly — they did not, and a mismatch draws nothing while erroring nowhere.",
   "sources": {
     "atlas": {
       "type": "vector",
       "url": "pmtiles://atlas",
-      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data \u2014 see pipeline/deliver/tiles/layers.py."
+      "$comment": "our pipeline's tiles: geometry, identity and administrative geography. No regulation data — see pipeline/deliver/tiles/layers.py."
     }
   },
   "groups": [
@@ -26,7 +26,7 @@
       "label": "Parks and reserves",
       "toggleable": false,
       "defaultVisible": true,
-      "$comment": "Off by default. Parks and ecological reserves are large opaque areas and they buried the water they sit around \u2014 the map's job is to say which water is open, and an overlay that hides the water fails at it. Behind Layers."
+      "$comment": "Off by default. Parks and ecological reserves are large opaque areas and they buried the water they sit around — the map's job is to say which water is open, and an overlay that hides the water fails at it. Behind Layers."
     },
     {
       "id": "access",
@@ -77,7 +77,7 @@
           "token": "width.parcel.edge"
         }
       },
-      "$comment": "PRIVATE TITLE, dissolved to one polygon. The question a person has at a gate: is the ground in front of me somebody's?\n\nIt sits at the BOTTOM of the draw order, under everything. It is the ground: a park is Crown land, a lake is nobody's, and a wash over either would say a general thing louder than the specific one.\n\nThe other eight ownership classes are not drawn. Crown, agency, federal, municipal and untitled is most of British Columbia \u2014 the default state, not news \u2014 and drawing them cost 308 MB of layer file to say 'as you were'.\n\nTOGGLEABLE AND OFF BY DEFAULT, and that asymmetry against `protected` and `access` is the point: a closure is an instruction and title is context. This is the layer you open deliberately when you are working out where to park and which bank to walk."
+      "$comment": "PRIVATE TITLE, dissolved to one polygon. The question a person has at a gate: is the ground in front of me somebody's?\n\nIt sits at the BOTTOM of the draw order, under everything. It is the ground: a park is Crown land, a lake is nobody's, and a wash over either would say a general thing louder than the specific one.\n\nThe other eight ownership classes are not drawn. Crown, agency, federal, municipal and untitled is most of British Columbia — the default state, not news — and drawing them cost 308 MB of layer file to say 'as you were'.\n\nTOGGLEABLE AND OFF BY DEFAULT, and that asymmetry against `protected` and `access` is the point: a closure is an instruction and title is context. This is the layer you open deliberately when you are working out where to park and which bank to walk."
     },
     {
       "id": "indigenous_land",
@@ -96,7 +96,7 @@
           }
         }
       },
-      "$comment": "Reserves and treaty lands, in v1's dark goldenrod. AN ACCESS ADVISORY, NEVER A FISHING CLOSURE \u2014 which is why it is brown and not hatched: the crimson-and-hatch language on this map means the water is closed, and saying that here would be both wrong and offensive. Brown is the OSM convention for it and carries no restriction meaning.",
+      "$comment": "Reserves and treaty lands, in v1's dark goldenrod. AN ACCESS ADVISORY, NEVER A FISHING CLOSURE — which is why it is brown and not hatched: the crimson-and-hatch language on this map means the water is closed, and saying that here would be both wrong and offensive. Brown is the OSM convention for it and carries no restriction meaning.",
       "outline": {
         "color": {
           "token": "color.indigenous.fill"
@@ -299,7 +299,7 @@
         },
         "haloWidth": 1.6
       },
-      "$comment": "LAND YOU MAY ENTER, WITH PERMISSION \u2014 the UBC Malcolm Knapp Research Forest and three others. AMBER, NOT CRIMSON, and hatched like a closure because it is one until you have asked. v1 used the same two-tier red/amber language. These four were dropped from the map entirely until the `permit_land_access` area def existed."
+      "$comment": "LAND YOU MAY ENTER, WITH PERMISSION — the UBC Malcolm Knapp Research Forest and three others. AMBER, NOT CRIMSON, and hatched like a closure because it is one until you have asked. v1 used the same two-tier red/amber language. These four were dropped from the map entirely until the `permit_land_access` area def existed."
     },
     {
       "id": "eco_reserve",
@@ -429,7 +429,7 @@
         },
         "haloWidth": 1.6
       },
-      "$comment": "PROVINCIAL PARKS AND PROTECTED AREAS \u2014 open water, in v1's green. NO OUTLINE, deliberately: a border is an assertion that the line matters, and here it does not. You may fish on both sides of it. Every bordered area on this map is one where crossing the line changes what you may do, and provincial parks would have been the only exception, which is exactly how a reader learns to stop trusting borders."
+      "$comment": "PROVINCIAL PARKS AND PROTECTED AREAS — open water, in v1's green. NO OUTLINE, deliberately: a border is an assertion that the line matters, and here it does not. You may fish on both sides of it. Every bordered area on this map is one where crossing the line changes what you may do, and provincial parks would have been the only exception, which is exactly how a reader learns to stop trusting borders."
     },
     {
       "id": "park_closed",
@@ -515,7 +515,7 @@
         },
         "haloWidth": 1.6
       },
-      "$comment": "NATIONAL PARKS AND THE CHILKOOT TRAIL \u2014 federal closures, drawn in v1's crimson and HATCHED. The hatch is the message: on a paper chart diagonal lines mean keep out, and a flat red tint would read as merely another kind of area. `kind` is what separates these from provincial parks in the same tile layer \u2014 a park with a kind of its own is a park with its own closing authority."
+      "$comment": "NATIONAL PARKS AND THE CHILKOOT TRAIL — federal closures, drawn in v1's crimson and HATCHED. The hatch is the message: on a paper chart diagonal lines mean keep out, and a flat red tint would read as merely another kind of area. `kind` is what separates these from provincial parks in the same tile layer — a park with a kind of its own is a park with its own closing authority."
     },
     {
       "id": "basin",
@@ -589,13 +589,13 @@
             "provider": "gauges",
             "field": "standing"
           },
-          "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\nWITHOUT THE -1 SENTINEL, which the rivers keep. On a reach, \"a gauge reports here but has no record to rank it against\" is worth drawing: you can tap it and be told. On a 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot interrogate, and at this zoom the map should be answering one question in one vocabulary. Such a group falls through to `missing` \u2014 the unmeasured grey \u2014 which is the same thing the map says about a group with no gauge at all, and at this scale that is the truthful pairing.\n\n`missing` is water.ungauged: the grey a river gets when nothing can speak for it."
+          "$comment": "THE SAME STOPS AS THE RIVERS, from the same place, because it is the same question asked of a bigger shape. A second ramp here would be a second legend for one scale.\n\nWITHOUT THE -1 SENTINEL, which the rivers keep. On a reach, \"a gauge reports here but has no record to rank it against\" is worth drawing: you can tap it and be told. On a 3,600 km2 region it is a purple blotch the size of a valley that a reader cannot interrogate, and at this zoom the map should be answering one question in one vocabulary. Such a group falls through to `missing` — the unmeasured grey — which is the same thing the map says about a group with no gauge at all, and at this scale that is the truthful pairing.\n\n`missing` is water.ungauged: the grey a river gets when nothing can speak for it."
         }
       },
       "opacity": {
         "token": "opacity.basin"
       },
-      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade \u2014 on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree."
+      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree."
     },
     {
       "id": "wetland",
@@ -643,13 +643,13 @@
               "species"
             ]
           },
-          "$comment": "`missing` is the colour of water the app has said NOTHING about \u2014 no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+          "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
         }
       },
       "opacity": {
         "token": "opacity.wetland"
       },
-      "$comment": "Marsh and swamp \u2014 the largest layer by area in the province, and CONTEXT rather than an answer. It is HATCHED (see src/hatch.ts): texture is what lets it read at 45% where a flat wash needs 60% and buries every river it surrounds. The pattern applies to the static colouring ONLY \u2014 the moment the fill is carrying a regulation status, the status colour must win, or 'closed' and 'open' look like the same green weave.",
+      "$comment": "Marsh and swamp — the largest layer by area in the province, and CONTEXT rather than an answer. It is HATCHED (see src/hatch.ts): texture is what lets it read at 45% where a flat wash needs 60% and buries every river it surrounds. The pattern applies to the static colouring ONLY — the moment the fill is carrying a regulation status, the status colour must win, or 'closed' and 'open' look like the same green weave.",
       "pattern": {
         "token": "color.wetland.fill",
         "spacing": 4,
@@ -703,7 +703,7 @@
               "species"
             ]
           },
-          "$comment": "`missing` is the colour of water the app has said NOTHING about \u2014 no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+          "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
         },
         "standing": {
           "label": "Flow for the date",
@@ -766,7 +766,7 @@
             "provider": "gauges",
             "field": "standing"
           },
-          "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it \u2014 `lake_gauge`, 196 rows \u2014 and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp \u2014 where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
+          "$comment": "THE SAME SCALE AS THE RIVERS, from the same stops, because it is the same question and a lake coloured on a scale of its own would be a second legend nobody asked for.\n\nA lake gets a reading only where a station sits IN it — `lake_gauge`, 196 rows — and there is no prediction for the rest. Nothing in this app can carry a level from one lake to another: a lake's stage is set by its outlet and its own storage, not by how wet the country is, so an ungauged lake stays at `water.ungauged` exactly as an ungauged river does. The grey is the honest answer, not a gap in the data.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
         },
         "stocked": {
           "label": "Last stocked",
@@ -803,7 +803,7 @@
           "scale": "categorical",
           "property": "survey",
           "enum": "survey_state",
-          "$comment": "Depth is about which lakes have been SURVEYED, not only which have digitised contours. 2,741 bathymetric sheets exist and only a fraction were ever traced into vector contours \u2014 colouring by contours alone shows a near-empty map and tells a reader the province was never surveyed, which is the opposite of true.",
+          "$comment": "Depth is about which lakes have been SURVEYED, not only which have digitised contours. 2,741 bathymetric sheets exist and only a fraction were ever traced into vector contours — colouring by contours alone shows a near-empty map and tells a reader the province was never surveyed, which is the opposite of true.",
           "categories": {
             "digitised": {
               "token": "color.survey.digitised"
@@ -859,7 +859,7 @@
             ]
           ]
         },
-        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area \u2014 area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible.\n\nFOLLOWS THE FILL wherever the fill is answering a question. A lake filled by its flow percentile and ringed in plain blue was drawing two answers at once \u2014 the edge said 'water' while the middle said 'much below normal', and the edge is the part that survives at a distance where the fill is a few pixels. `plain` is excluded: there the fill IS the water colour, so an inherited edge would disappear into it.",
+        "$comment": "Same colour as the streams, as v1 had it: a lake and the river through it are one water, and an outline in a different hue reads as a different thing. Width scales with the SQUARE ROOT of area — area grows as the square of a shoreline, so a linear ramp makes Babine enormous and every small lake invisible.\n\nFOLLOWS THE FILL wherever the fill is answering a question. A lake filled by its flow percentile and ringed in plain blue was drawing two answers at once — the edge said 'water' while the middle said 'much below normal', and the edge is the part that survives at a distance where the fill is a few pixels. `plain` is excluded: there the fill IS the water colour, so an inherited edge would disappear into it.",
         "follow": true
       },
       "label": {
@@ -904,7 +904,7 @@
           "token": "color.outside"
         },
         "haloWidth": 1.2,
-        "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder \u2014 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 \u2014 and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
+        "$comment": "BIG LAKES GET NAMED EARLIER, and win collisions when they compete. `showAbove` is v1's area ladder — 5 km2 at z8, 1 km2 at z9, 0.1 km2 at z10, everything from z11 — and `sortBy: area_m2` becomes a NEGATED symbol-sort-key, so a cluster of ponds can no longer crowd out the lake somebody actually came looking for. Both read the same `area_m2` the outline width does, which is why that attribute survives.",
         "priority": 1
       },
       "minzoomByMode": {
@@ -956,7 +956,7 @@
             1.5
           ]
         ],
-        "$comment": "v1's exact curve, and NO ATTRIBUTE. A route through a lake is a construction line: it says the river continues, not how big it is. Drawn at the mainstem's own Strahler weight \u2014 which it briefly was \u2014 it stops reading as a note and starts reading as more river, which is the one confusion this layer exists to avoid. The lake's own outline already carries the size."
+        "$comment": "v1's exact curve, and NO ATTRIBUTE. A route through a lake is a construction line: it says the river continues, not how big it is. Drawn at the mainstem's own Strahler weight — which it briefly was — it stops reading as a note and starts reading as more river, which is the one confusion this layer exists to avoid. The lake's own outline already carries the size."
       },
       "colorModes": {
         "plain": {
@@ -967,7 +967,7 @@
           }
         }
       },
-      "$comment": "The route a river takes THROUGH a lake \u2014 connectivity, not water you can fish. A lake with several inflows has a route from each, so at full weight the layer reads as a spider web over every lake in the province. It has to be the thinnest, faintest thing on the map: a dotted hairline that says 'the river continues' and nothing more.\n\nIT HAS NO featureIdProperty, deliberately. It is decoration: a person tapping the dotted thread means the LAKE, so the route is out of the tap query, out of `highlightable`, and its tile carries no attributes at all (pipeline layers.py marks it `decorative`). Promoting an id it does not ship would leave every feature with id `undefined` and a tap resolving to nothing.",
+      "$comment": "The route a river takes THROUGH a lake — connectivity, not water you can fish. A lake with several inflows has a route from each, so at full weight the layer reads as a spider web over every lake in the province. It has to be the thinnest, faintest thing on the map: a dotted hairline that says 'the river continues' and nothing more.\n\nIT HAS NO featureIdProperty, deliberately. It is decoration: a person tapping the dotted thread means the LAKE, so the route is out of the tap query, out of `highlightable`, and its tile carries no attributes at all (pipeline layers.py marks it `decorative`). Promoting an id it does not ship would leave every feature with id `undefined` and a tap resolving to nothing.",
       "dash": {
         "token": "dash.route"
       },
@@ -986,7 +986,7 @@
       "width": {
         "token": "width.stream.base",
         "by": "ord",
-        "$comment": "v1's formula, from archive/webapp/src/map/styles.ts. Width is LINEAR in Strahler order \u2014 base + order x slope \u2014 and both move with zoom. The shape is the point: at z4 order barely matters (0.1 per order), so a zoomed-out province reads as a uniform hairline network; by z14 order dominates (1.5 per order) and the Fraser is obviously the Fraser. Two attempts at a piecewise ramp over order got the magnitudes into range and the SHAPE wrong \u2014 everything was differentiated at every zoom, so the low-zoom map was a mess of competing weights.",
+        "$comment": "v1's formula, from archive/webapp/src/map/styles.ts. Width is LINEAR in Strahler order — base + order x slope — and both move with zoom. The shape is the point: at z4 order barely matters (0.1 per order), so a zoomed-out province reads as a uniform hairline network; by z14 order dominates (1.5 per order) and the Fraser is obviously the Fraser. Two attempts at a piecewise ramp over order got the magnitudes into range and the SHAPE wrong — everything was differentiated at every zoom, so the low-zoom map was a mess of competing weights.",
         "ramp": [
           [
             4,
@@ -1058,7 +1058,7 @@
               "species"
             ]
           },
-          "$comment": "`missing` is the colour of water the app has said NOTHING about \u2014 no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
+          "$comment": "`missing` is the colour of water the app has said NOTHING about — no feature-state has been pushed for it. It was color.status.open, so every unevaluated feature in the province rendered as open: the single most dangerous wrong answer this app can give, and the failure rule 29 exists to prevent. It is now the neutral no-data colour. 'Open under the general rules' is a real answer the app computes and pushes; it is not the same thing as not having looked."
         },
         "standing": {
           "label": "Flow for the date",
@@ -1121,7 +1121,7 @@
             "provider": "gauges",
             "field": "standing"
           },
-          "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' \u2014 the middle half of the record \u2014 into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp \u2014 where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
+          "$comment": "The PERCENTILE for this day of year, not the discharge: 15.7 m3/s is a flood on one creek and a drought on another.  STOPS SIT AT THE PERCENTILES THEY NAME. Even sixths gave half the ramp to the outer tenths, where almost nothing ever sits, and squeezed 'normal' — the middle half of the record — into one step. Now 25..75 is half the scale, which is what it is.  EVERY STOP IS MID-DARK. The ramp used to pass through a sandy beige a shade off the basemap's own paper, so the middle of the scale vanished over land; a ramp for a map may not contain the ground's colour.  `missing` is water.ungauged, a faint grey: most reaches have no gauge entitled to speak for them, and that is not the same as a rule we could not parse, nor the same claim as water.unmapped, which is about the atlas rather than about measurement.\n\nTHE -1 SENTINEL IS NO LONGER A COLOUR. \"Measured here, but nothing to compare it to\" was a purple on a sequential ramp — where every other colour means a position between low and high, and that one means the axis does not exist here. It is now the same neutral grey as water nothing speaks for, and the difference is carried by a DASH: `stream-nobaseline` in runtime-style.ts, its own layer because `line-dasharray` cannot be varied per feature. A dash reads as provisional without competing for a place on the scale, and it survives a colour-blind palette."
         }
       },
       "label": {
@@ -1151,7 +1151,7 @@
           "token": "color.outside"
         },
         "haloWidth": 2,
-        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 \u2014 at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
+        "$comment": "v1's stream labels, restored. `symbol-placement: line` is the whole character of a river map: the name bends along the water the way it does on a paper chart, and a point label on a 200 km line would sit at one arbitrary vertex. Nothing below z11 — at z10 the province is a network, not a set of named rivers, and every label would be a collision.",
         "priority": 0
       },
       "minzoomByMode": {
@@ -1212,7 +1212,7 @@
           "token": "color.outside"
         },
         "haloWidth": 2.5,
-        "$comment": "The big number in the middle, z4 to z7 \u2014 and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face \u2014 every range 404s \u2014 so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
+        "$comment": "The big number in the middle, z4 to z7 — and then it stops, because from z7 the unit boundaries appear and their numbers take over. Two administrative numbering systems on screen at once is how a reader ends up fishing under the wrong table.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face — every range 404s — so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
       },
       "$comment": "SOLID AND HEAVIER THAN A UNIT. The regulations are organised by region, so this is the boundary that changes which table you are reading; the unit boundary inside it only refines it. v1 drew regions solid at 2-4.5 px and units dotted at 1.2-1.8, and that weight difference is the whole hierarchy."
     },
@@ -1233,7 +1233,7 @@
           }
         }
       },
-      "$comment": "DRAWN ABOVE THE WATER, not under it. Source order is draw order, and `mu` used to be first of ten \u2014 so its boundary was painted under every lake fill, every wetland hatch and every river on the map. An administrative line the ground is drawn on top of is not a line anybody can follow. v1 put the region and unit boundaries above the water for the same reason.\n\nThe fill is near-invisible (`opacity.admin.fill`); it exists so the shape can be tapped and so a label has an anchor, not to be looked at.",
+      "$comment": "DRAWN ABOVE THE WATER, not under it. Source order is draw order, and `mu` used to be first of ten — so its boundary was painted under every lake fill, every wetland hatch and every river on the map. An administrative line the ground is drawn on top of is not a line anybody can follow. v1 put the region and unit boundaries above the water for the same reason.\n\nThe fill is near-invisible (`opacity.admin.fill`); it exists so the shape can be tapped and so a label has an anchor, not to be looked at.",
       "outline": {
         "color": {
           "token": "color.mu.edge"
@@ -1252,7 +1252,7 @@
       },
       "label": {
         "field": "mu_id",
-        "placement": "line",
+        "placement": "point",
         "minzoom": 8,
         "priority": 3,
         "font": [
@@ -1272,8 +1272,6 @@
             15
           ]
         ],
-        "maxAngle": 15,
-        "spacing": 200,
         "color": {
           "token": "color.mu.edge"
         },
@@ -1281,7 +1279,7 @@
           "token": "color.outside"
         },
         "haloWidth": 2,
-        "$comment": "ALONG THE BOUNDARY, repeated \u2014 v1's `management_units-label`. A unit is a shape you meet at its edge: you are walking up a river and you cross from 3-16 into 3-17, and the number has to be AT the line you crossed. One label in the middle of a polygon the size of a valley is invisible at the moment you need it. Lowest label priority, so a river's name always wins the collision \u2014 the water is what is being read.\n\nMEDIUM, NOT BOLD. The glyph host does not serve a 'Noto Sans Bold' face \u2014 every range 404s \u2014 so this label asked for a font that does not exist and rendered nothing at all. There is no error a reader can see: MapLibre requests the range, gets a 404, and draws no text. `tools/check-style.mjs` now holds the font list to the faces the host actually has."
+        "$comment": "INSIDE THE UNIT, NOT ALONG ITS EDGE.\nThis was `placement: line` on a POLYGON, which puts the number on the boundary itself, repeated every 200px. Two units share that boundary, so both numbers landed on the same line and neither said which side it belonged to — the one question a reader has at a boundary is 'which unit am I standing in', and a number sitting on the fence answers it for neither side.\nPoint placement on a polygon anchors the label at the shape's interior, so 4-18 reads inside 4-18. MapLibre places one symbol per polygon PER TILE, and a unit spans many tiles at z8+, so the number follows you around inside the unit instead of appearing once at a centroid you may never have on screen.\n`region` one layer up has always done this; the unit label was the odd one out."
       }
     }
   ],
@@ -1353,7 +1351,7 @@
         "gauges": "temperature",
         "basin": "plain"
       },
-      "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet \u2014 that needs the donor panel \u2014 and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
+      "$comment": "THE WATER IS DRAWN PLAIN AND THE ANSWER IS ON THE DOTS. Every other view colours the river, because a flow percentile can be carried from a gauge to the water around it. Temperature cannot yet — that needs the donor panel — and colouring a river from a station 40 km away would be inventing a number for water nobody measured. So the stations say what they read and the rivers say nothing, which is the truth today.\\n\\nIt is also a different SET of stations: 274 of the 439 publish a temperature against 361 that publish a discharge, and they are not the same 274."
     },
     {
       "id": "stocked",
@@ -1401,7 +1399,7 @@
     }
   ],
   "providers": {
-    "$comment": "Where a colour mode's values come from. Tiles carry IDENTITY (section_id) and almost nothing else \u2014 status and discharge live in the bundle and the live feed. The app fetches per visible feature and pushes feature-state; the tiles never change.",
+    "$comment": "Where a colour mode's values come from. Tiles carry IDENTITY (section_id) and almost nothing else — status and discharge live in the bundle and the live feed. The app fetches per visible feature and pushes feature-state; the tiles never change.",
     "regs": {
       "kind": "bundle",
       "key": "section_id",
@@ -1414,7 +1412,7 @@
       "fanout": "section_to_station",
       "freshness": "live",
       "staleAfterMs": 5400000,
-      "$comment": "450 stations, 30-min refresh. Keyed by SECTION, bridged to a station by the build's `section_gauge` precompute \u2014 and only where the magnitude ratio says that station can speak for the reach. Below the floor the section has no link at all and reports no gauge rather than borrowing a big river's number. It was declared `item_id`/`item_to_sections`, which is how stocking works, not this."
+      "$comment": "450 stations, 30-min refresh. Keyed by SECTION, bridged to a station by the build's `section_gauge` precompute — and only where the magnitude ratio says that station can speak for the reach. Below the floor the section has no link at all and reports no gauge rather than borrowing a big river's number. It was declared `item_id`/`item_to_sections`, which is how stocking works, not this."
     },
     "stocking": {
       "kind": "feed",
@@ -1422,7 +1420,7 @@
       "fanout": "item_to_sections",
       "freshness": "live",
       "staleAfterMs": 1209600000,
-      "$comment": "per-waterbody release records, refreshed weekly. Two weeks is the stale threshold: one missed run is normal, two means the job is broken. Bound to item_id \u2014 stocking is INTO a lake, not onto a reach."
+      "$comment": "per-waterbody release records, refreshed weekly. Two weeks is the stale threshold: one missed run is normal, two means the job is broken. Bound to item_id — stocking is INTO a lake, not onto a reach."
     },
     "in_season": {
       "kind": "feed",
@@ -1430,7 +1428,7 @@
       "fanout": "item_to_sections",
       "freshness": "live",
       "staleAfterMs": 43200000,
-      "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold \u2014 two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
+      "$comment": "mid-cycle closures and openings the printed synopsis cannot carry, scraped every 6 h. Twelve hours is the stale threshold — two missed runs. This is the ONLY channel that can correct a wrong answer between builds, so a client that cannot reach it must say 'could not check for a closure', never imply none."
     },
     "lakes": {
       "kind": "bundle",
@@ -1440,7 +1438,7 @@
       "$comment": "Per-lake facts from the bundle: whether the lake was surveyed, and when it was last stocked. Keyed by section because that is what the tile carries; the fanout resolves it to the item the fact belongs to."
     }
   },
-  "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY \u2014 most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",
+  "$toggleable_groups": "WHAT MAY BE SWITCHED OFF, and what may not.\n\n`protected` and `access` are NOT toggleable and are ON by default. A national park, an ecological reserve, an Indian reserve and land the public may not enter are all reasons a person can be somewhere they should not be, and none of them is a preference. They were both toggleable and hidden by default, which meant the map's normal state was one that showed none of them.\n\n`ownership` IS toggleable and off by default, and that asymmetry is the point: title is context, not an instruction. It carries private land ONLY — most of British Columbia is Crown land, so drawing that would be a wash over the whole province saying almost nothing. Private title on the bank you meant to walk down is worth looking up deliberately.",
   "$comment_order": "DRAW ORDER IS SOURCE ORDER. Areas, then water, then the administrative boundaries that are drawn OVER the water, then ownership, and labels last (the generator appends those itself). A boundary painted under a lake is a boundary nobody can trace.",
   "$runtimeLayers": [
     "gauges"

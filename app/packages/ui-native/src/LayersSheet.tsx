@@ -75,7 +75,7 @@ export const lakeChoices = (p: Palette): LayerChoice[] => [
   // map — 2,741 bathymetric sheets exist and only a fraction were ever traced — which tells
   // a reader the province was never surveyed. A scanned sheet is still a surveyed lake.
   { k: "depth", t: "Depth", mode: "surveyed", group: "depth",
-    swatch: [p.quiet, "#7BA4B8", p.live] },
+    swatch: [p.quiet, p.survey[1], p.survey[0]] },
   { k: "stocked", t: "Stocked", mode: "stocked",
     swatch: [p.stock[0], p.stock[2], p.stock[4]] },
   { k: "plain", t: "Plain", mode: "plain", swatch: [p.quiet, p.quiet, p.quiet] },
@@ -132,8 +132,12 @@ export function LayersSheet({ open, onClose, palette, state, onState, theme, onT
                      label="Basemap"
                      options={[
                        { k: "map", t: "Map",
-                         swatch: [palette.tint, "#AED3E2", "#9CC2D6"] },
+                         swatch: [palette.tint, palette.water[0], palette.water[1]] },
                        { k: "satellite", t: "Satellite",
+                         /* NOT from the palette, on purpose: this previews an imagery
+                            raster, and aerial photography is dark water, forest and scrub
+                            whatever theme the app is wearing. A themed swatch here would
+                            promise a recolour that does not happen. */
                          swatch: ["#2A333B", "#3C5A2E", "#6E7F53"] },
                      ]} />
         </Section>

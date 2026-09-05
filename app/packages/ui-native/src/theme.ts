@@ -41,6 +41,10 @@ export interface Palette {
    * thing on that map that is not a gauge. `theme.test.ts` holds the separation.
    */
   donor: readonly [string, string, string, string];
+  /** Bathymetry: traced contours, and a scanned sheet. From the map theme. */
+  survey: readonly [string, string];
+  /** The plain basemap's own colours, for the basemap chooser's preview. */
+  water: readonly [string, string];
   /**
    * Elevation. `boxShadow` — the `shadow*` props are deprecated in React Native 0.76+ and
    * warn on every render on web.
@@ -92,6 +96,22 @@ export const RADIUS: Radii = { box: 0, chip: 0, pill: 0, none: 0 };
 const HARD = (offset: number, colour: string) =>
   ({ boxShadow: `${offset}px ${offset}px 0 ${colour}`, elevation: offset });
 
+/**
+ * Legend swatches that must equal what the MAP draws, from the generated style.
+ *
+ * `LayersSheet` typed these in: #7BA4B8 for a scanned bathymetric sheet, #AED3E2/#9CC2D6 for
+ * the plain basemap. Typed-in means theme-blind — the colour-blind theme showed the light
+ * theme's swatches beside a map painted in different colours, which is the legend lying, and
+ * the one form of lying a legend can do that nobody notices, because the swatch looks fine.
+ */
+const legend = (theme: string) => {
+  const v = resolveTheme(theme) as Record<string, string>;
+  return {
+    survey: [v["color.survey.digitised"]!, v["color.survey.sheet"]!] as const,
+    water: [v["color.lake.fill"]!, v["color.water.mapped"]!] as const,
+  };
+};
+
 /** Outcome colours for one theme, from the generated style. The map is the source. */
 const outcomes = (theme: string) => {
   const v = resolveTheme(theme) as Record<string, string>;
@@ -103,9 +123,13 @@ const outcomes = (theme: string) => {
 
 export const LIGHT: Palette = {
   page: "#EFEFEC", card: "#FFFFFF", wash: "#F7F7F5", tint: "#EEEFEB",
-  line: "#E5E6E1", line2: "#D3D5CF", ink: "#15181C", sub: "#6C737A", faint: "#99A0A6",
-  ...outcomes("light"),
-  quiet: "#C3C8CD", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
+  line: "#E5E6E1", line2: "#D3D5CF", ink: "#15181C", sub: "#6C737A",
+  // 4.54:1 on the card. #99A0A6 was 2.65:1 — a WCAG AA failure in the DEFAULT theme,
+  // found while measuring the colour-blind one. "Faint" is a role, not a licence.
+  faint: "#6E757B",
+  ...outcomes("light"), ...legend("light"),
+  // 3.02:1 — WCAG 1.4.11 for a non-text mark. #C3C8CD was 1.68:1.
+  quiet: "#8A9196", accent: "#5F26E0", onAccent: "#FFFFFF", live: "#04879B",
   stock: ["#12873F", "#5E9B12", "#B58105", "#8A6A3A", "#8E979E"],
   donor: ["#04879B", "#B5480B", "#A81E6B", "#0E7A3D"],
   lift: HARD(3, "rgba(21,24,28,0.90)"), r: RADIUS,
@@ -113,8 +137,11 @@ export const LIGHT: Palette = {
 
 export const DARK: Palette = {
   page: "#0A0B0D", card: "#15181B", wash: "#101215", tint: "#1E2227",
-  line: "#252A2F", line2: "#343B42", ink: "#F0F2F0", sub: "#98A0A7", faint: "#6E767D",
-  ...outcomes("dark"),
+  line: "#252A2F", line2: "#343B42", ink: "#F0F2F0", sub: "#98A0A7",
+  // 4.51:1 on the dark card. #6E767D was 3.86:1 — on a dark ground "faint" has to get
+  // LIGHTER to pass, which is the opposite move from the light theme and easy to miss.
+  faint: "#7C858C",
+  ...outcomes("dark"), ...legend("dark"),
   quiet: "#2F363D", accent: "#A97CFF", onAccent: "#100A22", live: "#37D6EA",
   stock: ["#2ED573", "#94D82D", "#FFC93C", "#C79A5E", "#69737B"],
   donor: ["#37D6EA", "#FF9B54", "#FF7BB8", "#4ADE80"],
@@ -123,8 +150,40 @@ export const DARK: Palette = {
   lift: HARD(3, "rgba(0,0,0,0.85)"), r: RADIUS,
 };
 
-/** Blue/orange instead of red/green — and the MAP swaps with it, from the same theme. */
-export const CVD: Palette = { ...LIGHT, ...outcomes("cvd") };
+/**
+ * The colour-blind theme. NOT "the light theme with different status hues" — which is
+ * exactly what it was, and why it did not work.
+ *
+ * `{ ...LIGHT, ...outcomes("cvd") }` swapped four colours and inherited everything else, so
+ * every ramp added to the palette afterwards silently joined this theme wearing the light
+ * theme's hues. Measured (see `tools/cvd.test.ts`), the inheritance shipped:
+ *
+ *   · `stock` — a five-step RECENCY ramp of green, olive, amber, brown, grey. Two steps sat
+ *     ΔE 2.4 apart under protanopia. A reader could not order the thing the ramp exists to
+ *     order.
+ *   · `donor` — four IDENTITY hues, of which teal and green were ΔE 8.2 apart under
+ *     tritanopia, so two pins on the route map were one colour.
+ *   · `accent` — #5F26E0, which was ALSO `status.unknown` in this theme. The "you are here"
+ *     marker and "no rule found" were the same colour, ΔE 0.0. Nothing catches that by eye,
+ *     because each is correct on its own screen.
+ *
+ * So this theme now names every value it needs. The categorical hues follow Okabe & Ito's
+ * Color Universal Design set and the ramp is cividis; both are published schemes built for
+ * this, and anchoring on them is why the numbers hold rather than a run of lucky picks.
+ */
+export const CVD: Palette = {
+  ...LIGHT,
+  ...outcomes("cvd"), ...legend("cvd"),
+  // Okabe–Ito, adjusted only where WCAG 1.4.11 (3:1 for a non-text mark) demanded it.
+  // These are fills — a pin, a swatch, a stripe, a dot, a bar — never text.
+  donor: ["#373708", "#670848", "#D77782", "#797000"],
+  // cividis, trimmed at the light end: its true endpoint (#FFEA46) is invisible on a white
+  // card. Sequential, so LIGHTNESS carries the order and no deficiency can flatten it.
+  stock: ["#00224E", "#3B496C", "#6A6C71", "#A29A76", "#D3C164"],
+  // "Nothing to say", as a mark. #C3C8CD was 1.68:1 against the card — a dot nobody with
+  // any vision could find.
+  quiet: "#8A9196",
+};
 
 export const THEMES = { light: LIGHT, dark: DARK, cvd: CVD } as const;
 export type ThemeName = keyof typeof THEMES;
@@ -165,7 +224,7 @@ export function flowRamp(theme: string): readonly string[] {
 export function mapChrome(p: Palette, theme: string): MapChrome {
   const dark = theme === "dark";
   return {
-    ink: p.ink, card: p.card, tint: p.tint, sub: p.sub,
+    ink: p.ink, card: p.card, tint: p.tint, sub: p.sub, accent: p.accent,
     // A black slab reads on light ground and disappears on dark, so the dark theme leans
     // on pure black against a lighter card instead. Same "printed object", either way.
     shadow: dark ? "rgba(0,0,0,0.85)" : "rgba(21,24,28,0.90)",

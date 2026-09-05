@@ -352,6 +352,21 @@ export function runtimeStyle(at: TileEndpoints, theme: string,
          * showing a legend for.
          */
         if (l.id !== "stream") return [painted];
+        /*
+         * ONLY IN THE MODE THAT MEANS ANYTHING BY IT.
+         *
+         * This overlay was emitted for every mode, and its opacity reads `feature-state`
+         * "standing" — which MapLibre keeps until something clears it. So leaving the
+         * Conditions map for the Regulations map left the states behind, and rivers with no
+         * baseline stayed dashed on a map where "no baseline" is not a thing being asked
+         * about. Tapping one rewrote its state and the dash vanished, which is what made it
+         * look like a rendering glitch rather than a stale layer.
+         *
+         * The layer belongs to the standing modes and to nothing else, so it is built only
+         * for them. Cheaper than clearing state on every mode change, and it cannot come
+         * back: there is no layer to leak.
+         */
+        if (mode !== "standing") return [painted];
         return [painted,
         /*
          * "MEASURED HERE, BUT NOTHING TO COMPARE IT TO" — DRAWN AS A DASH.

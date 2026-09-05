@@ -40,12 +40,37 @@ describe("httpFeed", () => {
     expect(got!.value.percentile).toBe(0.038);
   });
 
-  it("asks for exactly {base}/{station}.json — no query string, so an edge can cache it", async () => {
+  it("asks for exactly {base}/{station}.json — no query string, so an edge can cache it",
+     async () => {
     const seen: string[] = [];
     const f = httpFeed("http://x/feeds/gauge", server({ "08MH001.json": STATION },
                                                       (u) => seen.push(u)));
     await f.now(S);
-    expect(seen).toEqual(["http://x/feeds/gauge/08MH001.json"]);
+    // The index comes first — it says whether there is a file to ask for. Both URLs are
+    // plain paths: no query string, so an edge can cache either.
+    expect(seen).toEqual(["http://x/feeds/gauge/index.json",
+                          "http://x/feeds/gauge/08MH001.json"]);
+  });
+
+  it("does not ask for a station the index does not list", async () => {
+    /*
+     * The bundle and the feed are built separately, so the bundle can name a station the
+     * publisher never wrote — retired between builds, or short of the record threshold.
+     * Every view of such a water fired a request that could only 404.
+     */
+    const seen: string[] = [];
+    const f = httpFeed("http://x", server({ "index.json": INDEX }, (u) => seen.push(u)));
+    await expect(f.now("08PA001")).resolves.toBeNull();
+    expect(seen).toEqual(["http://x/index.json"]);
+  });
+
+  it("still asks when the index itself could not be loaded", async () => {
+    // A failed index must not read as "no station has data" — that turns one bad request
+    // into a total outage.
+    const seen: string[] = [];
+    const f = httpFeed("http://x", server({ "08MH001.json": STATION }, (u) => seen.push(u)));
+    expect((await f.now(S))!.value.discharge).toBe(15.7);
+    expect(seen).toContain("http://x/08MH001.json");
   });
 
   it("returns null offline rather than throwing", async () => {
@@ -80,10 +105,12 @@ describe("httpFeed", () => {
   });
 
   it("does not open three connections when three components ask at once", async () => {
+    // One request PER URL, not per caller: three askers produce the index and the station
+    // file once each, and the third asker adds nothing.
     let calls = 0;
     const f = httpFeed("http://x", server({ "08MH001.json": STATION }, () => { calls++; }));
     await Promise.all([f.now(S), f.now(S), f.now(S)]);
-    expect(calls).toBe(1);
+    expect(calls).toBe(2);
   });
 
   it("hands back both quantities and lets the caller pick", async () => {
