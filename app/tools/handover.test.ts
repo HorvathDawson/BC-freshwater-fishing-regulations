@@ -103,10 +103,30 @@ describe("the basin/river handover", () => {
   it("stops the field exactly where the rivers start", () => {
     const basin = MAP_STYLE.layers.find((l) => l.id === "basin")!;
     const app = fromShell();
-    // maxzoom is inclusive of the zoom BELOW the handover: the field draws z4–8, the
-    // rivers from z9. One zoom with both, or one with neither, is the bug.
-    expect(basin.maxzoom).toBe(app - 1);
+    /*
+     * MAXZOOM IS EXCLUSIVE. This asserted `app - 1`, under a comment reading "maxzoom is
+     * inclusive of the zoom BELOW the handover" — and so the test agreed with the bug and
+     * reported it fixed. MapLibre hides a layer at zoom >= maxzoom, so `maxzoom: 8` against
+     * a river minzoom of 9 left the whole [8, 9) band drawing NOTHING: zoom out of
+     * Conditions and the rivers vanished a full zoom level before the field appeared.
+     *
+     * The two numbers are the SAME number. The field draws below the handover, the rivers
+     * from it, and there is no zoom that is both or neither.
+     */
+    expect(basin.maxzoom).toBe(app);
     expect(STYLE_META.minzoomByMode.stream!.standing).toBe(app);
+  });
+
+  it("leaves no zoom drawing neither the field nor the rivers", () => {
+    // The property the numbers above exist for, stated directly and checked across the
+    // band rather than inferred from two constants that were once off by one.
+    const basin = MAP_STYLE.layers.find((l) => l.id === "basin")!;
+    const riversFrom = STYLE_META.minzoomByMode.stream!.standing!;
+    for (let z = 4; z <= 14; z += 0.5) {
+      const field = z < (basin.maxzoom ?? 24) && z >= (basin.minzoom ?? 0);
+      const rivers = z >= riversFrom;
+      expect(field || rivers, `z${z} in Conditions draws neither`).toBe(true);
+    }
   });
 
   it.skipIf(!has)("agrees with the tile builder, which decides what exists at all", () => {

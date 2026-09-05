@@ -22,6 +22,7 @@ import { pillImage } from "./pill";
 import { hatchImage } from "./hatch";
 import { resolveTheme, STYLE_META } from "./style";
 import { gaugeDotColour, runtimeStyle } from "./runtime-style";
+import { toExpression } from "./legacy-filter";
 import { CAMERA_BOUNDS, MAX_ZOOM, MIN_ZOOM } from "@app/core";
 
 /** An empty source, so the gauge layers exist before the first feed tick arrives. */
@@ -232,8 +233,21 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
         if ((l as { source?: string }).source !== "basemap") continue;
         const had = (l as { filter?: unknown[] }).filter;
         const inBC = ["!", ["within", outsideData]] as unknown[];
+        /*
+         * CONVERT BEFORE COMBINING. Protomaps writes most of these in the LEGACY filter
+         * syntax (`["in", "kind", "river", "stream"]`), and `all` is a valid operator in
+         * both syntaxes — so `["all", <expression>, <legacy>]` is ambiguous and MapLibre
+         * resolves it as legacy, where `!` is not an operator:
+         *
+         *   layers.roads_labels_major.filter[1][0]: expected one of
+         *   [==, !=, >, >=, <, <=, in, !in, all, any, none, has, !has], "!" found
+         *
+         * `toExpression` converts a legacy filter and returns an expression untouched, so
+         * it runs on all of them rather than sniffing which syntax each layer uses.
+         */
+        const kept = had ? toExpression(had) : null;
         // Keep the layer's own kind filter; this narrows, it does not replace.
-        m.setFilter(l.id, (had ? ["all", inBC, had] : inBC) as never);
+        m.setFilter(l.id, (kept ? ["all", inBC, kept] : inBC) as never);
       }
     };
     if (m.isStyleLoaded()) apply(); else m.once("load", apply);

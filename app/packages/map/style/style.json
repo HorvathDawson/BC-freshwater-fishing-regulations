@@ -207,7 +207,7 @@
       "type": "fill",
       "source": "atlas",
       "source-layer": "basin",
-      "maxzoom": 8,
+      "maxzoom": 9,
       "layout": {
         "visibility": "visible"
       }

@@ -525,7 +525,7 @@
       "geometry": "polygon",
       "featureIdProperty": "basin_id",
       "highlightable": false,
-      "maxzoom": 8,
+      "maxzoom": 9,
       "colorModes": {
         "plain": {
           "label": "Hidden",
@@ -595,7 +595,7 @@
       "opacity": {
         "token": "opacity.basin"
       },
-      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree."
+      "$comment": "THE PROVINCE AS A FIELD, below the zoom where a river is a hairline.\n\nA percentile is a claim about a CATCHMENT, which is why the discs this replaces were wrong: a disc paints land the gauge says nothing about, two overlapping discs blend into a colour that is not on the scale, and a blurred edge is a lighter shade — on a sequential ramp, a different number. These are the Province's own named watersheds and they have edges.\n\nz4-8 ONLY. At z9 the rivers are wide enough to carry the colour themselves and a field over the top of them is noise. `BASIN_HANDOVER_Z` in the tile builder is the same number; the app's tap handling is the third place that has to agree.\n\nMAXZOOM IS EXCLUSIVE, and this was written as if it were inclusive. MapLibre hides a layer at zoom >= maxzoom, so `maxzoom: 8` meant the field stopped at 8.0 while the rivers, standing down below 9, did not start until 9.0 — a full zoom level, and a common resting place, drawing NEITHER. Zooming out of Conditions showed the rivers vanish and the province stay blank until the next step. It is the handover zoom itself: the field draws below 9, the rivers from 9, and the two meet exactly. The TILE still stops at z8 — z8 tiles overzoom to cover 8.x — which is why the builder's maxzoom and this one are different numbers for different questions."
     },
     {
       "id": "wetland",
