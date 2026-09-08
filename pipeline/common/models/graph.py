@@ -115,7 +115,7 @@ class StreamGraph:
 # Which edges continue the SAME water, rather than joining another to it.
 #
 # One definition, in the module both walkers already import. It was declared twice — in
-# `pipeline/atlas/graph/tributaries.py` and `pipeline/atlas/reach/tributaries.py` — for two genuinely
+# `pipeline/atlas/graph/tributaries.py` and `pipeline/atlas/graph/tributaries.py` — for two genuinely
 # different algorithms (a set subtraction for one section, a refusing walk over a reach).
 # The algorithms should differ; what counts as "still the same river" must not, or the two
 # disagree about which water a rule reaches.

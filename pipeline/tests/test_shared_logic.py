@@ -11,21 +11,45 @@ disagreed about something a user would see:
 
 from __future__ import annotations
 
+import pathlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_mainstem_edge_kinds_is_defined_once():
-    from pipeline.atlas.graph.tributaries import _MAINSTEM_EDGE_KINDS as a
+    """What counts as "still the same river", in one place.
+
+    This used to check that TWO tributary modules both imported the canonical set rather
+    than declaring their own. There is one module now — `atlas/reach/tributaries.py` was
+    absorbed into `atlas/graph/tributaries.py` — so the check is that the surviving one
+    imports it and that no module anywhere writes the literal again.
+    """
+    from pipeline.atlas.graph.tributaries import MAINSTEM_EDGE_KINDS as a
     from pipeline.common.models.graph import MAINSTEM_EDGE_KINDS as canonical
-    from pipeline.atlas.reach.tributaries import MAINSTEM_EDGE_KINDS as b
 
-    assert a is canonical and b is canonical, "a module is redeclaring the mainstem set"
+    assert a is canonical, "the tributary module is redeclaring the mainstem set"
 
-    for mod in ("pipeline/atlas/graph/tributaries.py", "pipeline/atlas/reach/tributaries.py"):
-        src = (ROOT / mod).read_text()
-        assert "frozenset({\"continuation\"" not in src, f"{mod} declares its own copy"
+    # This file included, which is why it is excluded — the search string appears in the
+    # assertion below it.
+    declared = [p for p in (ROOT / "pipeline").rglob("*.py")
+                if "archive" not in p.parts
+                and p != pathlib.Path(__file__).resolve()
+                and 'frozenset({"continuation"' in p.read_text()]
+    assert declared == [ROOT / "pipeline/common/models/graph.py"], \
+        f"the mainstem set is declared in {[str(p) for p in declared]}"
+
+
+def test_there_is_one_tributary_module():
+    """`atlas/reach/tributaries.py` is gone, and nothing should reintroduce it.
+
+    It was a second answer to "which water does this rule cover" — the pipeline's most
+    expensive question — missing the Strahler guard that stopped McLennan Creek absorbing
+    20.6% of British Columbia, and it had no production caller. A tributary walk is a graph
+    operation; there is one, and it lives in the graph package.
+    """
+    assert not (ROOT / "pipeline/atlas/reach/tributaries.py").exists()
+    assert (ROOT / "pipeline/atlas/graph/tributaries.py").exists()
 
 
 def test_the_bundle_normalises_names_the_way_the_tiles_do():
@@ -74,7 +98,6 @@ def test_the_trust_bands_agree_across_the_language_boundary():
     and has not quietly reintroduced a literal.
     """
     import re
-    from pathlib import Path
 
     from pipeline.gauges.consume.shed import TRUST_BANDS
 

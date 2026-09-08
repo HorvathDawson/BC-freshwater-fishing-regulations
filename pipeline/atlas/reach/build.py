@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass
 
 from pipeline.atlas.reach.covered import covered_ids as _covered_ids, make_matcher
-from pipeline.atlas.reach import tributaries as _tribs
+from pipeline.atlas.graph import tributaries as _tribs
 from pipeline.atlas.reach.classify import classify, wants_tributaries
 from pipeline.atlas.reach.models import (
     BuildReport, Diagnostic, Outcome, RuleBinding, iter_entries,

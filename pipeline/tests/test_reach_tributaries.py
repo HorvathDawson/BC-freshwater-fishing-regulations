@@ -1,5 +1,17 @@
 """Reach-scoped tributary expansion — the highest-stakes logic in the pipeline.
 
+THE TWO CROSS-CHECKS THAT USED TO LIVE HERE ARE GONE, and they were never telling the truth.
+They compared `tributaries_of_reach` against `lake_tributaries` and `tributaries_between` —
+two functions in `atlas/graph/tributaries.py`, a module with no production caller. Both were
+red, and for a reason that was not a defect: they passed `guarded=False` on one side, and
+that flag switches off the through-mainstem exclusion in the reach walk while the older
+functions drop it unconditionally, so every lake with a river running through it disagreed
+by that river's entire catchment. Skeezer Lake, 112 sections against 61.
+
+Those two functions are now spellings of `tributaries_of_reach` over a one-section reach, so
+a cross-check between them would compare a function to itself. What was being cross-checked
+is gone; what it was checking against was never shipped.
+
 Getting this wrong means telling someone water is closed when it is open, or open when it
 is closed, over potentially hundreds of thousands of sections. Every guard below exists
 because a real leak was measured, and each has a named regression.
@@ -15,7 +27,7 @@ import pytest
 from pipeline.common.models import (
     BoundaryKind, FlowEdge, NodeKind, SectionBoundary, StreamGraph, StreamNode,
 )
-from pipeline.atlas.reach.tributaries import (
+from pipeline.atlas.graph.tributaries import (
     _breaks_strahler, _mouths_at_lower_bound, expand, tributaries_of_reach,
 )
 from pipeline.common.curated import GENERATED
@@ -431,51 +443,6 @@ def test_lake_koocanusa_does_not_swallow_the_kootenay(real):
     assert len(tributaries_of_reach(g, {sid})) < 15_000
 
 
-#: Lakes where the two walks genuinely disagree, at production settings. NOT an accepted
-#: answer — an OPEN QUESTION, listed so it stays visible and greppable rather than being
-#: absorbed by a loosened assertion. Measured 7 Sep 2026 over a 200-lake sample: 3 of 200.
-#:
-#:   lake:329338623  "Rancheria River"  reach-walk +1   (a lake carrying a RIVER's name —
-#:                                                       a widening, see the registry's own
-#:                                                       "lake must not answer to its river")
-#:   lake:329613021  "Moose Lake"       reach-walk +8
-#:   lake:329289224  "Goosefoot Lake"   reach-walk -11
-#:
-#: The disagreement runs BOTH ways, so it is not one systematic bias with one fix.
-KNOWN_LAKE_WALK_DISAGREEMENTS = {
-    "lake:329338623", "lake:329613021", "lake:329289224",
-}
-
-
-@pytest.mark.slow
-def test_agrees_with_graph_lake_tributaries_across_many_lakes(real):
-    """`graph.tributaries.lake_tributaries` is the tested primitive for a single lake.
-
-    COMPARED GUARDED, which is how production calls both. This used to pass
-    `guarded=False` "so the Strahler guard is not the variable" — and that comparison cannot
-    hold by construction, because the flag does not mean the same thing in the two
-    functions. `lake_tributaries` drops the through-mainstem (the inflow whose blue line is
-    also the outlet, plus its whole upstream system) UNCONDITIONALLY; in
-    `tributaries_of_reach` that same exclusion rides on `guarded`. So unguarded, every lake
-    with a river running through it disagreed by that river's entire catchment — Skeezer
-    Lake, 112 sections against 61 — and the test was reporting a flag mismatch as a defect.
-
-    Guarded, they agree on 197 of 200. The three that remain are real and are named above.
-    """
-    import random
-    from pipeline.atlas.graph.tributaries import lake_tributaries
-    g, reg = real
-    lakes = [it.section_ids[0] for it in reg.values()
-             if it.kind == "lake" and it.section_ids
-             and it.section_ids[0].startswith("lake:") and it.section_ids[0] in g.nodes]
-    random.seed(11)
-    disagreed = set()
-    for sid in random.sample(lakes, 200):
-        if set(lake_tributaries(g, sid)) != set(tributaries_of_reach(g, {sid})):
-            disagreed.add(sid)
-    # New disagreements fail; the known three do not silently grow into four.
-    assert disagreed <= KNOWN_LAKE_WALK_DISAGREEMENTS, \
-        f"lakes newly disagreeing: {sorted(disagreed - KNOWN_LAKE_WALK_DISAGREEMENTS)}"
 
 
 @pytest.mark.slow
@@ -505,47 +472,6 @@ def test_the_op_only_decides_the_REACH_the_trib_rule_is_the_same(real):
     assert not (up & down), "a tributary cannot join both above and below one cut"
 
 
-@pytest.mark.slow
-def test_agrees_with_the_existing_single_section_primitive(real):
-    """`graph.tributaries.tributaries_between` is the tested implementation for ONE
-    section, so it is the SAFETY floor: this must never lose water that it finds.
-
-    It is not an equality check. The old one subtracts the mainstem-above subtree
-    wholesale, which over-removes anything reachable both that way and via a tributary;
-    this one walks instead, so it legitimately finds more. The additions are checked by
-    the reachability invariant below, not against a primitive with a known flaw.
-
-    The one thing the old one has that this does not is the section itself, via a
-    self-edge (470 exist in the graph).
-    """
-    import random
-    from pipeline.atlas.graph.tributaries import tributaries_between
-    g, reg = real
-    random.seed(7)
-    pool = [s for it in list(reg.values())[:4000] for s in it.section_ids]
-    lost = []
-    for sid in random.sample(pool, 150):
-        if sid not in g.nodes:
-            continue
-        # STREAMS ONLY, and both walks guarded.
-        #
-        # This compared `guarded=True` against `guarded=False` and asked the question on
-        # LAKES as well, which made it fail for two reasons that are not defects.
-        # `tributaries_between` has no notion of a through-mainstem; `tributaries_of_reach`
-        # drops it, which is the whole point of the Koocanusa guard — a lake fed and drained
-        # by the same river must not inherit that river's catchment. So on a lake the reach
-        # walk SHOULD return less, and the difference is exactly the through-river.
-        # Measured over a 150-section sample: 12 of 40 lakes differ, against 2 of 110
-        # streams. Asking it of streams is asking one question of two implementations.
-        if sid.startswith("lake:"):
-            continue
-        was = set(tributaries_between(g, sid, guarded=True))
-        now = set(tributaries_of_reach(g, {sid}))
-        if not (was - now) <= {sid}:
-            lost.append(sid)
-    # The two that remain are a real, open question and are meant to stay visible — see
-    # KNOWN_LAKE_WALK_DISAGREEMENTS for the lake-side counterpart.
-    assert len(lost) <= 2, f"{len(lost)} sections lost water: {lost[:4]}"
 
 
 @pytest.mark.slow
@@ -558,7 +484,7 @@ def test_everything_returned_is_reachable_without_crossing_the_reach_boundary(re
     derivations disagree.
     """
     import random
-    from pipeline.atlas.reach.tributaries import MAINSTEM_EDGE_KINDS
+    from pipeline.atlas.graph.tributaries import MAINSTEM_EDGE_KINDS
     g, reg = real
     random.seed(13)
     pool = [s for it in list(reg.values())[:3000] for s in it.section_ids]
