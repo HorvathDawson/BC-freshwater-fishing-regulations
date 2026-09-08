@@ -63,7 +63,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   border-radius:0}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.wrap{max-width:1400px;margin:0 auto;padding:40px 32px 64px}
+.wrap{max-width:1400px;margin:0 auto;padding:40px 32px 160px}
 .eyebrow{font:700 9.5px/12px var(--ui);letter-spacing:1.1px;color:var(--sub);
   text-transform:uppercase}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:20px}
@@ -84,7 +84,14 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 /* ---- the phone: square, hairlined, and standing on an offset slab ---------- */
 .phone{width:100%;max-width:412px;background:var(--card);
   border:1.5px solid var(--ink);box-shadow:3px 3px 0 var(--slab)}
-.screen{height:660px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin}
+/* the last row used to sit hard against the tab bar, with nothing under it to say the
+   list had ended */
+/* the last row used to sit hard against the tab bar, with nothing under it to say the list
+   had ended; and a desktop scrollbar inside a phone frame is furniture the phone does not
+   have */
+.screen{height:660px;overflow-y:auto;overflow-x:hidden;padding-bottom:48px;
+  scrollbar-width:none;-ms-overflow-style:none}
+.screen::-webkit-scrollbar{display:none}
 
 /* the tab bar, from TabBar.tsx: a hard rule in ink, a label always, and the selected
    tab UNDERSCORED rather than only tinted */
@@ -197,24 +204,15 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .rmark{font:700 8.5px var(--ui);letter-spacing:.7px;fill:var(--sub)}
 .rends{display:flex;justify-content:space-between;margin-top:5px;
   font:700 9.5px/12px var(--ui);letter-spacing:1.1px;color:var(--faint)}
-.lad{padding:2px 0 6px}
-.rung{display:flex;gap:12px;width:100%;text-align:left;padding:12px 18px;
-  align-items:stretch;border-bottom:1px solid var(--line)}
-.rung:hover{background:var(--wash)}
-.bar{flex:none;min-height:28px}
-.bd{flex:1;min-width:0}
-.nm{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.nm b{font:600 13.5px/18px var(--ui)}
-.nm span:last-child{font:500 13px/17px var(--fig);color:var(--sub);flex:none}
-.df{display:block;font:400 12.5px/18px var(--ui);color:var(--sub);margin-top:2px}
+.lad{padding:0 0 6px}
+/* The stretch list borrows the rule row wholesale; only the rail colour differs, because a
+   stretch is coloured by its VERDICT where a rule is coloured by its severity. */
+.r.o-closed{border-left-color:var(--closed)}
+.r.o-restricted{border-left-color:var(--restricted)}
+.r.o-open{border-left-color:var(--open)}
+.delta{display:block;margin-top:3px;font:400 12.5px/17px var(--ui);color:var(--sub)}
 .add{color:var(--closed)} .rm{color:var(--open)} .same{color:var(--faint)}
-.bnd{display:flex;align-items:center;gap:8px;padding:7px 18px;
-  font:700 11px/14px var(--ui);letter-spacing:1.4px;text-transform:uppercase;
-  color:var(--faint);background:var(--wash);border-bottom:1px solid var(--line)}
-.bnd s{display:block;width:7px;height:7px;background:var(--quiet);flex:none;
-  text-decoration:none}
-.bnd .ln{flex:1;height:1px;background:var(--line2)}
-.chev{flex:none;color:var(--quiet);font-size:16px;align-self:center}
+.chev{flex:none;color:var(--quiet);font-size:16px;line-height:20px}
 
 /* ---- stage 2: what -------------------------------------------------------- */
 /* A RULE ROW: a rail for severity, a number in its own gutter, the sentence at full width,
@@ -843,19 +841,31 @@ function build(name, mount){
       var say=function(x){ var t=(x.details||x.kind||"").toLowerCase();
         return clash[x.details]?t+" ("+winWord(x.windows).toLowerCase()+")":t; };
       var d=[];
-      if(varies) d.push(WORD[outs[i]]);
       if(add.length) d.push('<span class="add">+ '+esc(say(add[0]))
         +(add.length>1?" and "+(add.length-1)+" more":"")+'</span>');
       if(rm.length) d.push('<span class="rm">− '+esc(say(rm[0]))
         +(rm.length>1?" and "+(rm.length-1)+" more":"")+'</span>');
       if(!d.length) d.push('<span class="same">same rules as below</span>');
-      h.push('<button class="rung" data-go="'+i+'">'
-        +'<span class="bar" style="width:'+(runs[i].km<5?3:runs[i].km<200?5:8)
-        +'px;background:var(--'+outs[i]+')"></span>'
-        +'<span class="bd"><span class="nm"><b>'+esc(rungName(i))+'</b>'
-        +'<span>'+Math.round(runs[i].km)+' KM</span></span>'
-        +'<span class="df">'+d.join(" · ")+'</span></span>'
-        +'<span class="chev">›</span></button>');
+      /*
+       * A STRETCH IS A ROW LIKE A RULE IS A ROW.
+       *
+       * This list had its own furniture — a variable-width colour bar whose thickness
+       * encoded length, a name and a distance sharing a line with the distance floated
+       * right, and a delta underneath in a third size. It read like a different app from
+       * the rules list two taps away, and it was the older, worse of the two.
+       *
+       * It uses the rule row's skeleton now: a rail for the verdict, a number in its own
+       * gutter, the name at full width, the measurement on a meta line. The variable bar is
+       * no loss — length was the one thing it encoded and the ruler above states it to
+       * scale, which a 3px-to-8px bar never could.
+       */
+      h.push('<button class="r o-'+outs[i]+'" data-go="'+i+'">'
+        +'<span class="no">'+(i+1)+'</span>'
+        +'<span class="rb"><span class="subj">'+esc(rungName(i))+'</span>'
+        +'<span class="meta">'+Math.round(runs[i].km)+' KM'
+        +(varies?' · '+WORD[outs[i]]:'')+'</span>'
+        +(d.length?'<span class="delta">'+d.join(" · ")+'</span>':"")
+        +'</span><span class="chev">›</span></button>');
       /*
        * NO DIVIDER ROW. It named the boundary between two rungs, which is exactly what both
        * of those rungs now say themselves, so it was a third statement of the same fact —
