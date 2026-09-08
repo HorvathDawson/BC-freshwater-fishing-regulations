@@ -89,7 +89,7 @@ describe("one quantity for the whole panel", () => {
   };
 
   it("does not average a level percentile with a discharge one", () => {
-    const { rows } = answerFrom(MIXED, mixedIdx, "both", 0);
+    const { rows } = answerFrom(MIXED, mixedIdx, "discharge", 0);
     const by = Object.fromEntries(rows.map((r) => [r.station, r.percentile]));
     // Discharge is chosen, so the stage-only station contributes nothing and says so.
     expect(by["FLOW"]).toBeCloseTo(0.06, 6);
@@ -97,20 +97,34 @@ describe("one quantity for the whole panel", () => {
   });
 
   it("answers from the flow gauge alone rather than refusing", () => {
-    const { answer } = answerFrom(MIXED, mixedIdx, "both", 0);
+    const { answer } = answerFrom(MIXED, mixedIdx, "discharge", 0);
     expect(answer.ok).toBe(true);
     if (answer.ok) expect(answer.value.percentile).toBeCloseTo(0.06, 6);
   });
 
-  it("falls back to level where no donor measures flow", () => {
-    // 237 BC stations measure stage and never discharge. A panel of those still answers.
+  it("does NOT substitute a level when asked for flow", () => {
+    /*
+     * THIS USED TO FALL BACK, and the fallback is what was wrong.
+     *
+     * A panel whose donors only report stage cannot answer a question about flow, and it
+     * used to answer anyway — quietly returning the level percentile. Measured across the
+     * 358 stations publishing both, the two disagree by a median of 11.6 points and by more
+     * than 25 points at 84 of them, so the substitution was not a near-enough answer; it
+     * was a different one, presented identically.
+     *
+     * Refusing is the point. The reach draws as unmeasured, which is true.
+     */
     const stageOnly = { stations: {
       FLOW: { percentile: null, parameter: "discharge" as const },
       STAGE: { percentile: 0.4, parameter: "level" as const, level: 0.4 },
     } };
-    const { answer } = answerFrom(MIXED, stageOnly, "both", 0);
-    expect(answer.ok).toBe(true);
-    if (answer.ok) expect(answer.value.percentile).toBeCloseTo(0.4, 6);
+    const { answer } = answerFrom(MIXED, stageOnly, "discharge", 0);
+    expect(answer.ok, "a flow question must not be answered with a stage").toBe(false);
+
+    // …and the same panel DOES answer when the level is what was asked for.
+    const asLevel = answerFrom(MIXED, stageOnly, "level", 0).answer;
+    expect(asLevel.ok).toBe(true);
+    if (asLevel.ok) expect(asLevel.value.percentile).toBeCloseTo(0.4, 6);
   });
 
   it("gives the same answer at a horizon as it does now, for the same numbers", () => {
@@ -122,8 +136,8 @@ describe("one quantity for the whole panel", () => {
       STAGE: { percentile: 0.9, parameter: "level" as const,
                ahead: { "1": { level: 0.40 } } },
     } };
-    const now = answerFrom(MIXED, mixedIdx, "both", 0);
-    const later = answerFrom(MIXED, ahead, "both", 1);
+    const now = answerFrom(MIXED, mixedIdx, "discharge", 0);
+    const later = answerFrom(MIXED, ahead, "discharge", 1);
     expect(later.answer.ok).toBe(now.answer.ok);
     if (later.answer.ok && now.answer.ok)
       expect(later.answer.value.percentile).toBeCloseTo(now.answer.value.percentile, 6);

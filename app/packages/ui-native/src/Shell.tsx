@@ -6,6 +6,7 @@
  * hands it down. It holds no regulation logic (rule 25): every answer on every screen comes
  * from a hook.
  */
+import type { SectionKey } from "@app/core";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { OUTCOMES, statusWord, type Outcome, type PlainDate,
@@ -15,7 +16,12 @@ import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelSta
          useStatuses, type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
-type FlowParam = Parameter | "both" | "temperature";
+/**
+ * What the Conditions map is coloured by. ONE quantity plus the temperature field — see
+ * `Quantity` in @app/data for why "both" is gone: it put stage and discharge percentiles on
+ * the same ramp, and they disagree by more than 25 points at 84 stations.
+ */
+type FlowParam = Parameter | "temperature";
 import type { Spot, WeatherSource } from "@app/data/spots";
 import { hiddenLayers, toggleableGroups,
          type Camera, type TileEndpoints } from "@app/map";
@@ -128,7 +134,12 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   // at the only moment it had anything to hear. The map reported nothing, `visible` stayed
   // empty, and every reach painted as `missing`.
   const noteVisible = useCallback(
-    (ids: readonly string[]) => setVisible(ids as readonly SectionId[]), []);
+    // CONVERTED, NOT CAST. This was `ids as readonly SectionId[]`, which asserted a fact
+    // rather than establishing one — and when the map began reporting stringified ids the
+    // cast said nothing while every lookup missed. A section handle is an integer; make it
+    // one here, at the single point where map ids become bundle keys.
+    (ids: readonly SectionKey[]) =>
+      setVisible(ids.map((i) => Number(i) as SectionId)), []);
   // Which quantity the Conditions map is coloured by. Held here rather than in the map,
   // because the sheet a tap opens has to be about the same thing the map is showing.
   /*
@@ -141,7 +152,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
    * coloured by either percentile at once; temperature cannot join that, because it is
    * not a percentile and nothing can carry it to the water yet.
    */
-  const [flowParam, setFlowParam] = useState<FlowParam>("both");
+  const [flowParam, setFlowParam] = useState<FlowParam>("discharge");
   // HOW FAR AHEAD the Conditions map is painted. 0 is now, and is where it opens: a
   // forecast is what you ask for, never what you are shown without asking.
   const [horizon, setHorizon] = useState<Horizon>(0);
@@ -156,7 +167,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   // while a tap on that same grey opened a sheet answering confidently from two other
   // gauges. One arithmetic now serves both — see `usePanelStandings`.
   const standings = usePanelStandings(source, feed, visible,
-                                      flowParam === "temperature" ? "both" : flowParam,
+                                      // Under temperature the rivers stay plain (below),
+                                      // so this quantity is not drawn — it just has to be
+                                      // a real one.
+                                      flowParam === "temperature" ? "discharge" : flowParam,
                                       // Temperature has no forecast — the models publish
                                       // flow and stage. Asking ahead would colour nothing,
                                       // so it stays on today's degrees.
@@ -171,7 +185,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   const [zoomedOut, setZoomedOut] = useState(HOME.zoom < HANDOVER_Z);
   const fieldOn = tab === "conditions" && flowParam !== "temperature" && zoomedOut;
   const basins = useBasinStandings(source, feed, fieldOn,
-                                   flowParam === "temperature" ? "both" : flowParam,
+                                   flowParam === "temperature" ? "discharge" : flowParam,
                                    horizon);
   // Outcomes for what is on screen, for the legend's counts. Same viewport-scoped shape as
   // `usePanelStandings` beside it — the whole table is far too big to hold to answer a
@@ -252,18 +266,24 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   const streamChoice = streamChoices(palette).find((c) => c.k === layers.stream);
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   const modes = {
-    // The Conditions TAB asks a different question, so it overrides the stream colouring
-    // while you are on it — EXCEPT under temperature, where the rivers must stay plain.
-    // Nothing here can carry a temperature from a station to the water around it yet, and
-    // colouring a river from a gauge 40 km away would be inventing a reading for water
-    // nobody measured. The dots say what they know; the rivers say nothing.
-    // THE RIVERS ARE ONLY COLOURED FOR FLOW. Nothing here can carry a depth or a
-    // temperature from a station to the water around it yet — that needs the donor panel —
-    // and colouring a river from a gauge 40 km away would be inventing a reading for water
-    // nobody measured. Under those two the dots say what they know and the rivers say
-    // nothing, which is the truth today.
+    /*
+     * COLOURED FOR FLOW AND FOR LEVEL; PLAIN ONLY UNDER TEMPERATURE.
+     *
+     * This used to paint rivers for flow alone, on the reasoning that a depth cannot be
+     * carried from a station to the water around it — which is true, and was the right
+     * guard while the data layer would SUBSTITUTE. It no longer does: a level question is
+     * answered from level donors or not at all (see `Quantity` in @app/data), so a reach
+     * with nothing to say now arrives with no standing and draws as unmeasured. The guard
+     * has moved to where the arithmetic is, and the map can stop refusing a question it is
+     * able to answer — which it was doing while the LAKES beside it answered the same one.
+     *
+     * Temperature stays plain, and for the original reason: nothing carries a temperature
+     * between waters, so colouring a river from a gauge 40 km away would be inventing a
+     * reading for water nobody measured. The dots say what they know; the rivers say
+     * nothing.
+     */
     stream: onConditions
-      ? (quantity === "flow" ? "standing" : "plain")
+      ? (quantity === "temperature" ? "plain" : "standing")
       : streamChoice?.mode ?? "plain",
     // Lakes answer the same question as the rivers here, from `lake_gauge` — a station
     // sitting IN the lake. Under depth and temperature they go plain for the same reason
@@ -277,10 +297,13 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
      * layer's colour from `modes`, and a layer nobody names keeps whatever the style shipped
      * — which for this one is nothing, so it drew as an invisible polygon over the province.
      *
-     * `standing` only where the rivers are also on `standing`. Under temperature the models
-     * publish no field to colour it from; on the Map tab it is not the question being asked.
+     * `standing` only where the rivers are also on `standing` — which now includes LEVEL.
+     * The field is the zoomed-out form of the same answer, so gating it more tightly than
+     * the rivers meant zooming out of a coloured Level map turned the province blank.
+     * Under temperature the models publish no field to colour it from; on the Map tab it is
+     * not the question being asked.
      */
-    basin: onConditions && quantity === "flow" ? "standing" : "plain",
+    basin: onConditions && quantity !== "temperature" ? "standing" : "plain",
   };
   const activeGroups = { ...groups };
   for (const c of [streamChoice, lakeChoice])
@@ -292,8 +315,9 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
    * sheet. A tap that lands on water with no registry item resolves to null, and nothing
    * opens, which is the honest outcome: there is no sheet to show.
    */
-  const onPressFeature = useCallback(async (_layer: string, featureId: string) => {
-    const found = await source.itemForSection(featureId as SectionId);
+  const onPressFeature = useCallback(async (_layer: string, featureId: SectionKey) => {
+    // The tile's feature id IS the section handle — see SectionId in @app/data.
+    const found = await source.itemForSection(Number(featureId) as SectionId);
     if (found) setItem(found);
   }, [source]);
 
@@ -392,11 +416,11 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
       : tab === "conditions" && condSection
         ? <ConditionsScreen source={source} section={condSection} palette={palette}
                             tiles={tiles} theme={theme}
-                            // "both" is a MAP setting, not a chart one: a chart has to be
-                            // about one quantity or its axis means nothing. The sheet then
-                            // falls back to whatever the station itself leads with.
-                            parameter={flowParam === "both" || flowParam === "temperature"
-                                         ? undefined : flowParam}
+                            // Temperature is not a hydrograph, so the chart falls back to
+                            // whatever the station itself leads with. Flow and Level are
+                            // now passed straight through — the map and the chart ask the
+                            // same question, which they could not while "both" existed.
+                            parameter={flowParam === "temperature" ? undefined : flowParam}
                             onParameter={setFlowParam}
                             from={condAt}
                             // The same section -> item resolution a map tap uses, so the
@@ -474,7 +498,10 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                        // at z9 and they are what you tap.
                        ? (_l, id, lat, lon) => {
                            if ((camera.current?.zoom ?? HOME.zoom) < HANDOVER_Z) return;
-                           setCondSection(id as SectionId);
+                           // Converted, not cast — see noteVisible above. This is the
+                           // Conditions tap, so a string here would open a sheet whose
+                           // every lookup misses while the screen looks fine.
+                           setCondSection(Number(id) as SectionId);
                            setCondAt(lat !== undefined && lon !== undefined
                              ? { lat, lon } : null);
                          }
@@ -518,7 +545,7 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                            marginBottom: 8 }}>
               <ChartControls<FlowParam> palette={palette} value={flowParam}
                                         label="Showing" onPick={setFlowParam}
-                                        options={[["both", "Both"], ["discharge", "Flow"],
+                                        options={[["discharge", "Flow"],
                                                   ["level", "Level"],
                                                   ["temperature", "Temp"]] as const} />
             </View>

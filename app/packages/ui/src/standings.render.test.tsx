@@ -15,7 +15,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { clearPanelCache, usePanelStandings } from "./panel";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 
-const A = "111:0" as SectionId, B = "222:0" as SectionId;
+const A = 111 as SectionId, B = 222 as SectionId;
 
 const panel = (...donors: [string, number][]): Panel => ({
   areaKm2: 100,
@@ -128,7 +128,7 @@ describe("usePanelStandings", () => {
     const lakeStationsFor = vi.fn(async () => new Map());
     const source = { panelsFor, lakeStationsFor } as unknown as RegsSource;
     const { rerender } = renderHook(
-      ({ q }) => usePanelStandings(source, feed({}), [A], "both", q as never),
+      ({ q }) => usePanelStandings(source, feed({}), [A], "discharge", q as never),
       { initialProps: { q: 0 } });
     await waitFor(() => expect(panelsFor).toHaveBeenCalledTimes(1));
     rerender({ q: 1 });                          // same reach, different question

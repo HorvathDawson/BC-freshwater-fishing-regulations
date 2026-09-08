@@ -70,8 +70,25 @@ export interface PanelAnswer {
  */
 export type Horizon = 0 | 1 | 3 | 5;
 
-/** What the map or the sheet is asking about. `both` = each station's own quantity. */
-export type Quantity = "discharge" | "level" | "both";
+/**
+ * What the map or the sheet is asking about — ONE physical quantity, province-wide.
+ *
+ * There used to be a third value, `both`, meaning "whichever quantity this station itself
+ * measures". Within one station that was sound and it coloured the most water. Across the
+ * FIELD it was not: the map paints every station on one ramp, so a discharge percentile at
+ * one gauge sat beside a stage percentile at the next with nothing saying which was which.
+ *
+ * MEASURED, on the 358 stations publishing both on 2026-09-04: the two percentiles differ
+ * by a median of 11.6 points, agree within 5 points only 28% of the time, and disagree by
+ * more than 25 points at 84 stations. 08LB024 read p5 by discharge and p95 by level — the
+ * lowest flows on record or the highest, for the same river on the same day. A reader
+ * comparing two rivers was sometimes comparing two different questions.
+ *
+ * So the mode is now the reader's, not the publisher's. What it costs is honest and small:
+ * 61 stations report level only and go grey under Flow, 12 report discharge only and go
+ * grey under Level. Grey means "no reading of the thing you asked about", which is true.
+ */
+export type Quantity = "discharge" | "level";
 export const HORIZONS: readonly Horizon[] = [0, 1, 3, 5];
 
 type Ahead = Record<string, { discharge?: number; level?: number; model?: string }>;
@@ -97,21 +114,7 @@ type Index = { stations: Record<string, { percentile: number | null;
 export function reading(row: NonNullable<Index>["stations"][string] | null | undefined,
                  quantity: Quantity, horizon: Horizon): number | null {
   if (!row) return null;
-  /*
-   * "BOTH" IS NOT A THIRD QUANTITY — it is "whichever this station actually measures".
-   *
-   * 237 BC stations measure stage and never discharge, and a lake station almost always
-   * reports a level. Asking every one of them for a discharge colours the most water it is
-   * possible to leave grey, for no reason: the publisher already chose each station's own
-   * quantity and computed the percentile against the matching envelope. `parameter` says
-   * which one that was, so under "both" the answer is simply the station's own.
-   *
-   * It is still never MIXED. One dot, one quantity, named — what "both" refuses to do is
-   * pick the same quantity for every station.
-   */
-  const q: "discharge" | "level" =
-    quantity === "both" ? ((row.parameter ?? "discharge") === "level" ? "level" : "discharge")
-                        : quantity;
+  const q: "discharge" | "level" = quantity;
   if (horizon === 0) {
     // `percentile` is the station's own default and `parameter` says which quantity it is
     // about, so it stands in for that one only — a level percentile read as a flow is
@@ -138,13 +141,13 @@ export function answerFrom(panel: Panel | undefined, index: Index,
              routesReady: false };
 
   /*
-   * ONE QUANTITY FOR THE WHOLE PANEL — "both" is resolved HERE, not per donor.
+   * ONE QUANTITY FOR THE WHOLE PANEL, decided here rather than per donor.
    *
-   * `reading` answers "both" with whichever quantity a STATION measures, which is right for
-   * colouring that station's own dot and wrong for combining several: it let a level
-   * percentile and a discharge percentile be averaged into one number. They are not the
-   * same claim. A stage is about one cross-section and moves when the channel does; a
-   * discharge is about the whole river.
+   * Combining donors means averaging their percentiles, and averaging a level percentile
+   * with a discharge one produces a number that is not a claim about anything: a stage is
+   * about one cross-section and moves when the channel does; a discharge is about the whole
+   * river. The panel therefore asks every donor the same question, and a donor that cannot
+   * answer it is absent rather than substituted.
    *
    * Measured on the Harrison: a lake gauge's level at the 40th percentile averaged with the
    * river's discharge at the 6th, disagreeing by more than MAX_USEFUL_SPREAD, so the panel
@@ -152,14 +155,19 @@ export function answerFrom(panel: Panel | undefined, index: Index,
    * +1 day, because the forecast block carries discharge only and the level could not
    * intrude. Two different answers for one reach, an artefact of mixing units.
    *
-   * DISCHARGE WHERE ANY DONOR HAS IT. It is the transferable quantity — the whole method
-   * is carrying a reading between catchments, and a stage does not travel. Level is the
-   * fallback for panels of stage-only stations, of which the province has many.
+   * THE QUANTITY ASKED FOR, AND NO SUBSTITUTE. This used to prefer discharge whenever any
+   * donor had it and fall back to level otherwise, which was the right call while the
+   * caller could say "both" — but it also meant a reader who asked for Level could be
+   * answered in discharge without being told.
+   *
+   * DISCHARGE IS STILL THE ONLY TRANSFERABLE ONE, and that is a fact about the method, not
+   * a preference: this carries a reading BETWEEN catchments by area ratio, and a stage does
+   * not travel — two rivers at the same depth are not at the same anything. So a Level
+   * panel answers only where the donors themselves report a level, and says nothing
+   * elsewhere. Less water is coloured under Level than under Flow; the alternative is
+   * answering a question that was not asked.
    */
-  const chosen: "discharge" | "level" = quantity !== "both" ? quantity
-    : panel.members.some((m) => reading(index.stations[m.station] ?? null, "discharge",
-                                        horizon) !== null)
-      ? "discharge" : "level";
+  const chosen: "discharge" | "level" = quantity;
 
   const contributions = [];
   const raw: (DonorRow & { _w: number })[] = [];

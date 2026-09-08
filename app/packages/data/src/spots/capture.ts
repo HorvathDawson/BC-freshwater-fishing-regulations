@@ -58,7 +58,7 @@ async function panelFor(source: RegsSource, section: SectionId | null,
   if (!feed || !section) return null;
   try {
     const [panels, idx] = await Promise.all([source.panelsFor([section]), feed.index()]);
-    const got = answerFrom(panels.get(section), idx, "both");
+    const got = answerFrom(panels.get(section), idx, "discharge");
     // Only a real answer is worth freezing: "no panel" is not a fact about that day, it is
     // a fact about the app, and it would read as one on a spot opened a year later.
     return got.answer.ok || got.rows.length ? got : null;

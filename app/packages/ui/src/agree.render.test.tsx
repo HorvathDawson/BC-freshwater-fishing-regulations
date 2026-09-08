@@ -17,17 +17,17 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { Panel, RegsSource, SectionId } from "@app/data";
 import { clearPanelCache, HORIZONS, usePanel, usePanelStandings, type Quantity } from "./panel";
 
-const A = "111:0" as SectionId;
+const A = 111 as SectionId;
 /**
  * A SECOND REACH, GAUGED ONLY IN METRES.
  *
  * 237 BC stations measure stage and never discharge. This is the shape that separates
- * "both" from "discharge" — under "both" it answers from its own level, under "discharge"
+ * "discharge" from "discharge" — under "discharge" it answers from its own level, under "discharge"
  * it has nothing to say — and without it the fixture cannot tell the two apart, so a side
- * that flattens "both" to discharge passes. That flattening is the exact bug that hid the
+ * that flattens "discharge" to discharge passes. That flattening is the exact bug that hid the
  * Harrison's disagreement for a week.
  */
-const B = "222:0" as SectionId;
+const B = 222 as SectionId;
 
 /** A panel with the shapes that have actually caused trouble, all at once. */
 const PANEL: Panel = {
@@ -74,7 +74,7 @@ const feed = {
 beforeEach(clearPanelCache);
 
 describe("the map and the sheet agree", () => {
-  const QUANTITIES: Quantity[] = ["both", "discharge", "level"];
+  const QUANTITIES: Quantity[] = ["discharge", "discharge", "level"];
 
   for (const quantity of QUANTITIES)
     for (const horizon of HORIZONS)

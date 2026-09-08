@@ -90,17 +90,16 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
    * and distance against the map.
    */
   /*
-   * THE SAME QUANTITY THE MAP IS PAINTING — including "both".
+   * THE SAME QUANTITY THE MAP IS PAINTING.
    *
-   * This asked for "discharge" whenever the map was on "both", so a reach the map coloured
-   * from its station's own level was answered here from a discharge it may not have. One
-   * arithmetic, two questions, and the reader sees a colour and a number that disagree.
-   * `parameter` is undefined exactly when the caller is on "both", and "both" is a real
-   * value of this argument now.
+   * A colour and a number about the same reach have to be about the same thing, or the
+   * reader is shown a disagreement that does not exist. `parameter` is now undefined only
+   * under Temperature — which is not a hydrograph — so everywhere else this is exactly what
+   * the map was asked for, and the fallback below never fires on Flow or Level.
    */
   const panel = usePanelRoutes(
     source, section,
-    usePanel(source, feed, section, parameter ?? "both", horizon));
+    usePanel(source, feed, section, parameter ?? "discharge", horizon));
   /*
    * THE WATER BETWEEN HERE AND EACH GAUGE, COLOURED BY WHAT IT IS DOING.
    *
@@ -116,7 +115,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
     [panel.rows]);
   const routeStandings = usePanelStandings(
     source, feed as Parameters<typeof usePanelStandings>[1], chain,
-    parameter ?? "both", horizon);
+    parameter ?? "discharge", horizon);
   const routeData = useMemo(() => {
     const values = Object.fromEntries(
       [...routeStandings].map(([sec, p]) => [sec, { standing: p * 100 }]));

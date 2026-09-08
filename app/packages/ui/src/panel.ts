@@ -38,7 +38,7 @@ type Index = Parameters<typeof answerFrom>[1];
  * about to pan back onto the very first reaches they saw.
  */
 const PANEL_CACHE_MAX = 60_000;
-const panelCache = new Map<string, Panel | null>();
+const panelCache = new Map<SectionId, Panel | null>();
 
 async function cached(source: RegsSource,
                       sections: readonly SectionId[]): Promise<ReadonlyMap<SectionId, Panel>> {
@@ -103,7 +103,7 @@ export function usePanelStandings(
   source: RegsSource,
   feed: { index(): Promise<Index> } | undefined,
   sections: readonly SectionId[],
-  quantity: Quantity = "both",
+  quantity: Quantity = "discharge",
   horizon: Horizon = 0,
 ): ReadonlyMap<SectionId, number> {
   // Keyed on the viewport's extent rather than its contents: a map that has not moved
@@ -143,10 +143,11 @@ export function usePanelStandings(
         out.set(section, typeof p === "number" ? p : -0.01);
       }
       for (const [section, panel] of panels) {
-        // "both" asks each panel in the quantity its own donors lead with, which is the
-        // publisher's choice per station and is what colours the most water. Asking for
-        // one quantity colours only the stations that measure it and says nothing about
-        // the rest, rather than quietly answering with the other.
+        // ONE QUANTITY, THE READER'S. This used to ask each panel in whatever quantity its
+        // own donors led with, which coloured the most water and made the ramp compare a
+        // stage percentile against a discharge one — see `Quantity` in @app/data for the
+        // measurement that retired it. A station that does not measure what was asked says
+        // nothing, which is the honest answer and is drawn as such.
         const { answer } = answerFrom(panel, idx, quantity, horizon);
         out.set(section, answer.ok ? answer.value.percentile : -0.01);
       }
@@ -182,7 +183,7 @@ export function useBasinStandings(
   source: RegsSource,
   feed: { index(): Promise<Index> } | undefined,
   enabled: boolean,
-  quantity: Quantity = "both",
+  quantity: Quantity = "discharge",
   horizon: Horizon = 0,
 ): ReadonlyMap<string, number> {
   const got = useAsync(
