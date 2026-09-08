@@ -51,14 +51,30 @@ body{margin:0;background:var(--page);font-family:var(--f-text);color:var(--ink);
   padding:14px 18px 3px;display:flex;justify-content:space-between;align-items:baseline}
 .sect em{font-style:normal;font-family:var(--f-figure);letter-spacing:.5px;font-size:10px}
 /* ---------------- the strip: position along the river ---------------- */
-.strip{padding:10px 18px 0}
-.strip .track{display:flex;height:26px;border:1px solid var(--line2);cursor:pointer}
-.strip .seg{position:relative;min-width:2px}
-.strip .seg[data-cur=true]::after{content:"";position:absolute;inset:-1px;
-  border:2px solid var(--ink);pointer-events:none}
+/* TWO CONTROLS, because they answer different questions.
+   The strip is proportional and tells the truth about WHERE a stretch sits — on the Fraser
+   that truth is a useless target, since one uniform stretch is 722 km and the shortest is
+   1.1 km. So position is DRAWN proportionally and navigation is a separate row of equal
+   boxes: a thumb is the same size whichever stretch it is reaching for. */
+.strip{padding:9px 18px 0}
+.strip .track{display:flex;height:13px;border:1px solid var(--line2)}
+.strip .seg{min-width:1px}
 .strip .ends{display:flex;justify-content:space-between;font-family:var(--f-figure);
-  font-size:10px;color:var(--faint);padding-top:5px;letter-spacing:.4px}
-.strip .cap{display:none}
+  font-size:9.5px;color:var(--faint);padding-top:4px;letter-spacing:.4px}
+.views{display:flex;gap:6px;padding:10px 18px 0}
+.vw{flex:1;font-family:var(--f-text);font-size:12px;font-weight:500;padding:6px 8px;
+  border:1px solid var(--line2);background:var(--card);color:var(--sub);cursor:pointer}
+.vw[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card);
+  font-weight:600}
+.picker{display:flex;gap:2px;padding:8px 18px 0;flex-wrap:wrap}
+.pk{flex:1 1 0;min-width:16px;height:26px;border:1px solid var(--line2);background:var(--card);
+  cursor:pointer;position:relative;padding:0;font-family:var(--f-figure);font-size:9.5px;
+  color:var(--faint);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+.pk .fill{position:absolute;left:0;right:0;bottom:0;top:0}
+.pk span{position:relative;z-index:1;padding-bottom:2px}
+.pk[aria-pressed=true]{border-color:var(--ink);border-width:2px;color:var(--ink);font-weight:700}
+.pkcap{font-family:var(--f-text);font-size:10.5px;line-height:14px;color:var(--faint);
+  padding:5px 18px 0;margin:0}
 /* ---------------- the map ---------------- */
 .maprow{padding:10px 18px 0}
 .mapbox{border:1px solid var(--line2);background:var(--wash);position:relative}
@@ -181,14 +197,51 @@ function outcome(rules){
 }
 var WORD={closed:"CLOSED",restricted:"RESTRICTED",open:"OPEN",unknown:"UNKNOWN"};
 
+/*
+ * RUNS ARE PER BLUE LINE, and adjacency means adjacency.
+ *
+ * Two things were wrong before. The section list is sorted by blue line then measure, and
+ * the Fraser item spans 151 BLUE LINES — one mainstem of 87 sections carrying 84.6% of the
+ * length, and 150 side channels and braids. So "next in the list" was not "next on the
+ * water", and walking it produced 102 runs out of 16 rule sets, with the mainstem and its
+ * side channels interleaved into nonsense.
+ *
+ * And a run must never join two stretches that are not touching. A rule set that appears at
+ * km 40 and again at km 900 is TWO PLACES, however identical the rules; merging them into
+ * "in 27 places along the river" describes a stretch that does not exist on the ground.
+ *
+ * Walking the mainstem alone, in measure order, the Fraser is 17 runs. That is a river you
+ * can travel. The side channels are not a sequence at all and are not presented as one.
+ */
+function split(r){
+  var km={};
+  r.sections.forEach(function(s){ var b=s.id.split(":")[0]; km[b]=(km[b]||0)+(s.len||0); });
+  var main=Object.keys(km).sort(function(a,b){ return km[b]-km[a]; })[0];
+  var stem=r.sections.filter(function(s){ return s.id.split(":")[0]===main; })
+    .sort(function(a,b){ return +a.id.split(":")[1] - +b.id.split(":")[1]; });
+  var side=r.sections.filter(function(s){ return s.id.split(":")[0]!==main; });
+  return {main:main, stem:stem, side:side};
+}
 function runsOf(r){
-  var out=[];
-  r.sections.forEach(function(s){
+  var sp=split(r), out=[];
+  sp.stem.forEach(function(s){
     if(out.length && out[out.length-1].set===s.set) out[out.length-1].secs.push(s);
-    else out.push({set:s.set,secs:[s]});
+    else out.push({set:s.set, secs:[s], side:false});
+  });
+  // Side channels: each blue line is its own piece, never merged with the mainstem and
+  // never with each other.
+  var byBlk={};
+  sp.side.forEach(function(s){ var b=s.id.split(":")[0]; (byBlk[b]=byBlk[b]||[]).push(s); });
+  Object.keys(byBlk).forEach(function(b){
+    var g=byBlk[b].sort(function(a,c){ return +a.id.split(":")[1] - +c.id.split(":")[1]; });
+    var cur=null;
+    g.forEach(function(s){
+      if(cur && cur.set===s.set) cur.secs.push(s);
+      else { cur={set:s.set, secs:[s], side:true, blk:b}; out.push(cur); }
+    });
   });
   out.forEach(function(run){
-    run.km=run.secs.reduce(function(a,s){return a+(s.len||0);},0)/1000;
+    run.km=run.secs.reduce(function(a,s){ return a+(s.len||0); },0)/1000;
     run.rules=(run.set==null?[]:r.rules[run.set])||[];
     run.out=run.set==null?"open":outcome(run.rules);
   });
@@ -210,18 +263,13 @@ function build(riverName, mount){
   // river — the Fraser's biggest covers 115 reaches in 27 separate runs — so highlighting
   // one run would hide the fact. Selecting a regime lights every run of it at once, which
   // is both the honest picture and the thing that makes the highlight readable.
-  var st={set:runs[0].set, showOff:true};
-  var regimes=[]; var seenSet={};
-  runs.forEach(function(run){
-    if(seenSet[run.set]===undefined){ seenSet[run.set]=regimes.length;
-      regimes.push({set:run.set,runs:[run],km:0,secs:0,rules:run.rules,out:run.out}); }
-    else regimes[seenSet[run.set]].runs.push(run);
-  });
-  regimes.forEach(function(g){
-    g.km=g.runs.reduce(function(a,x){return a+x.km;},0);
-    g.secs=g.runs.reduce(function(a,x){return a+x.secs.length;},0);
-  });
-  function cur(){ return regimes[seenSet[st.set]]; }
+  // A PLACE, not a rule set. Two stretches with the same rules in different parts of the
+  // river are two answers to "where am I", and only one of them is where you are.
+  var stem=runs.filter(function(x){ return !x.side; });
+  var side=runs.filter(function(x){ return x.side; });
+  var st={i:0, showOff:true, view:"river"};
+  function cur(){ return runs[st.i]; }
+  function idxOf(run){ return runs.indexOf(run); }
   var total=runs.reduce(function(a,x){return a+x.km;},0);
 
   var el=document.createElement("div"); el.className="phone";
@@ -256,10 +304,13 @@ function build(riverName, mount){
    * chosen rule set instead puts it at a scale where it is a line you can see and tap, and
    * the rest of the river draws through it as grey context. */
   function fitPts(){
-    var sel=[], all=[];
-    r.sections.forEach(function(s){ s.pts.forEach(function(p){ all.push(p); });
-      if(s.set===st.set) s.pts.forEach(function(p){ sel.push(p); }); });
-    return sel.length>1 ? sel : all;
+    // The CURRENT RUN, with a little of the river either side for context. Fitting the
+    // whole rule set was wrong once selection became a place: set 234 appears at km 77 and
+    // again at km 900, and framing both means framing the province.
+    var sel=[];
+    cur().secs.forEach(function(s){ s.pts.forEach(function(p){ sel.push(p); }); });
+    if(sel.length<2) r.sections.forEach(function(s){ s.pts.forEach(function(p){ sel.push(p); }); });
+    return sel;
   }
   /* View state: recomputed whenever the selection moves, because the frame follows it. */
   var allp, lo, hi, Z, c0, tiles;
@@ -313,9 +364,10 @@ function build(riverName, mount){
         +'x="'+t.px.toFixed(1)+'" y="'+t.py.toFixed(1)+'" width="256" height="256" '
         +'opacity=".55"/>');
     });
+    var here={}; cur().secs.forEach(function(s){ here[s.id]=1; });
     runs.forEach(function(run){
-      var on=run.set===st.set;
       run.secs.forEach(function(sec){
+        var on=!!here[sec.id];
         if(sec.pts.length<2) return;
         var scr=simplify(sec.pts.map(function(p){return [fx(p),fy(p)];}), 0.8);
         if(scr.length<2) return;
@@ -339,17 +391,68 @@ function build(riverName, mount){
   }
 
   /* ---- the position strip ---- */
+  /* WHERE it is — proportional, honest, and not a target. */
+  /* WHERE it is — proportional along the MAINSTEM only, and never a tap target. */
   function stripHtml(){
-    var h=runs.map(function(run){
-      var on=run.set===st.set;
-      var w=Math.max(0.6, (run.km/total)*100);
-      return '<div class="seg" data-set="'+run.set+'" data-cur="'+on+'" style="flex:'+w
-        +' 0 0;background:'+(on?"var(--"+run.out+")":"var(--line2)")+'"'
-        +' title="'+esc((run.km).toFixed(1))+' km"></div>';
+    var tot=stem.reduce(function(a,x){ return a+x.km; },0)||1, before=0, found=false;
+    var h=stem.map(function(run){
+      var on=run===cur();
+      if(!found){ if(on) found=true; else before+=run.km; }
+      return '<div class="seg" style="flex:'+Math.max(0.5,(run.km/tot)*100)
+        +' 0 0;background:'+(on?"var(--ink)":"var(--line2)")+'"></div>';
     }).join("");
-    return '<div class="track" role="group" aria-label="Position along the river">'+h+'</div>'
-      +'<div class="ends"><span>▲ MOUTH</span><span>'+regimes.length+' RULE SETS · '
-      +runs.length+' PIECES</span><span>SOURCE ▲</span></div>';
+    var g=cur();
+    return '<div class="track" role="img" aria-label="Where this stretch falls along the '
+      +'mainstem">'+h+'</div>'
+      +'<div class="ends"><span>▲ MOUTH</span><span>'
+      +(g.side ? 'A SIDE CHANNEL'
+               : 'KM '+before.toFixed(0)+'–'+(before+g.km).toFixed(0))
+      +'</span><span>SOURCE ▲</span></div>';
+  }
+
+  /* WHICH one — equal targets. Stretch length runs 1.1 km to 722 km; a thumb does not. */
+  function pickerHtml(){
+    var h=stem.map(function(run,i){
+      var on=run===cur();
+      return '<button class="pk" data-i="'+idxOf(run)+'" aria-pressed="'+on+'"'
+        +' title="'+run.km.toFixed(1)+' km, '+run.secs.length+' reaches">'
+        +'<span class="fill" style="height:100%;background:var(--'+run.out+');'
+        +'opacity:'+(on?.9:.28)+'"></span><span>'+(i+1)+'</span></button>';
+    }).join("");
+    return '<div class="picker" role="group" aria-label="Stretches, mouth to source">'
+      +h+'</div>'
+      +'<p class="pkcap">One box per stretch of the mainstem, mouth to source. Equal boxes, '
+      +'because a 1 km stretch needs the same thumb as a 700 km one.</p>';
+  }
+
+  /* THE NON-SEQUENTIAL VIEW. Side channels leave the river and rejoin it — they are not a
+     point on the walk upstream, and listing them in it is what made the Fraser unreadable. */
+  function listHtml(){
+    function row(run){
+      var live=run.rules.filter(function(x){ return inForce(x.windows); }).length;
+      return '<button class="stretch" data-i="'+idxOf(run)+'" aria-current="'+(run===cur())+'">'
+        +'<span class="bar" style="background:var(--'+run.out+')"></span>'
+        +'<span class="bd"><span class="t">'+(run.side
+            ? 'Side channel · blue line '+esc(run.blk)
+            : 'Stretch '+(stem.indexOf(run)+1)+' of '+stem.length)+'</span>'
+        +'<span class="pill" style="background:var(--'+run.out+')22;color:var(--'+run.out+')">'
+        +'<i style="background:var(--'+run.out+')"></i><span>'+WORD[run.out]+'</span></span>'
+        +'<span class="x">'+run.km.toFixed(run.km<10?1:0)+' km · '+run.secs.length+' reach'
+        +(run.secs.length>1?'es':'')+' · '+live+' of '+run.rules.length+' rules today</span>'
+        +'</span></button>';
+    }
+    var blks={}; side.forEach(function(x){ blks[x.blk]=1; });
+    var h='<div class="sect"><span>The mainstem</span><em>'+stem.length+' STRETCHES</em></div>'
+      + stem.map(row).join("");
+    if(side.length){
+      h+='<div class="sect"><span>Side channels and braids</span><em>'+side.length
+        +' PIECES</em></div>'
+        +'<p class="pkcap">Not points on the walk upstream — they leave the river and rejoin '
+        +'it, on '+Object.keys(blks).length+' separate blue lines.</p>'
+        + side.slice(0,10).map(row).join("")
+        + (side.length>10?'<p class="pkcap">…and '+(side.length-10)+' more.</p>':"");
+    }
+    return h;
   }
 
   var openRule={};
@@ -386,23 +489,27 @@ function build(riverName, mount){
     h.push('<div class="faces"><button class="face">Conditions</button>'
       +'<button class="face" aria-selected="true">Regulations</button></div>');
     h.push('<div class="wtitle">'+esc(r.name)+'</div>');
-    h.push('<div class="wsub">'+regimes.length+' sets of rules · '+r.sections.length
-      +' reaches · '+total.toFixed(0)+' km</div>');
+    h.push('<div class="wsub">'+stem.length+' stretches on the mainstem · '+side.length
+      +' side channels · '+total.toFixed(0)+' km</div>');
 
-    h.push('<div class="sect"><span>Along the river</span><em>MOUTH → SOURCE</em></div>');
-    h.push('<div class="strip">'+stripHtml()
-      +'<div class="cap">Each band is one set of rules. Tap to travel; the outlined band is '
-      +'where you are.</div></div>');
+    h.push('<div class="views"><button class="vw" data-view="river" aria-pressed="'
+      +(st.view==="river")+'">Along the river</button>'
+      +'<button class="vw" data-view="list" aria-pressed="'+(st.view==="list")+'">'
+      +'All stretches</button></div>');
+    if(st.view==="list"){ h.push(listHtml()); screen.innerHTML=h.join(""); wire(); return; }
+    h.push('<div class="sect"><span>Along the mainstem</span><em>MOUTH → SOURCE</em></div>');
+    h.push('<div class="strip">'+stripHtml()+'</div>'+pickerHtml());
     h.push('<div class="maprow"><div class="mapbox">'+mapSvg()+'</div>'
       +'<div class="mapcap">Tap the river to jump. Map © OpenStreetMap contributors.</div></div>');
 
-    h.push('<div class="sect"><span>Rule set '+(seenSet[st.set]+1)+' of '+regimes.length
-      +'</span><em>'+run.secs+' REACH'+(run.secs>1?"ES":"")+' · '+run.km.toFixed(0)+' KM</em></div>');
+    h.push('<div class="sect"><span>'+(run.side?'A side channel'
+      :'Stretch '+(stem.indexOf(run)+1)+' of '+stem.length)+'</span><em>'
+      +run.secs.length+' REACH'+(run.secs.length>1?'ES':'')+' · '
+      +run.km.toFixed(run.km<10?1:0)+' KM</em></div>');
     h.push('<div class="stretch" aria-current="true"><span class="bar" style="background:var(--'
       +run.out+')"></span><div class="bd">'
-      +'<div class="t">'+(run.runs.length>1
-          ? 'In '+run.runs.length+' places along the river'
-          : 'One continuous stretch')+'</div>'
+      +'<div class="t">'+(run.side?'A channel leaving and rejoining the river'
+          :'One continuous stretch of the mainstem')+'</div>'
       +'<div class="pill" style="background:var(--'+run.out+')22;color:var(--'+run.out+')">'
       +'<i style="background:var(--'+run.out+')"></i><span>'+WORD[run.out]+'</span></div>'
       +'<div class="x">'+live+' of '+rules.length+' rules in force today</div></div></div>');
@@ -482,10 +589,16 @@ function build(riverName, mount){
     }
     h.push('<div style="height:24px"></div>');
     screen.innerHTML=h.join("");
+    wire();
+  }
 
-    screen.querySelectorAll("[data-set]").forEach(function(n){
-      n.addEventListener("click",function(){
-        var v=n.getAttribute("data-set"); st.set = v==="null"?null:+v; render(); });
+  function wire(){
+    screen.querySelectorAll("[data-view]").forEach(function(n){
+      n.addEventListener("click",function(){ st.view=n.getAttribute("data-view"); render(); });
+    });
+    screen.querySelectorAll("[data-i]").forEach(function(n){
+      n.addEventListener("click",function(){ st.i=+n.getAttribute("data-i");
+        st.view="river"; render(); });
     });
     screen.querySelectorAll("[data-rule]").forEach(function(n){
       n.addEventListener("click",function(ev){ ev.stopPropagation();
