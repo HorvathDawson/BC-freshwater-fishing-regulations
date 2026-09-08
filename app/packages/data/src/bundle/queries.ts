@@ -35,7 +35,7 @@ export const ITEM_FOR_SECTION =
   "SELECT item_id FROM item_section WHERE section_id = ? LIMIT 1";
 
 export const ENTRY_FOR_ITEM =
-  "SELECT entry_id, name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
+  "SELECT entry_id, name, full_name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
 
 export const RULES_FOR_ENTRY =
   "SELECT entry_id, rule_id, kind, scope, windows, species, subject, details, " +

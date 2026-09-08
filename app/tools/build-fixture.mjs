@@ -85,8 +85,11 @@ counts.item_section = insert("INSERT INTO item_section VALUES (?,?)",
 
 // ---- regulations ------------------------------------------------------------------
 const entries = Object.entries(src.entries).sort();
-counts.entry = insert("INSERT INTO entry VALUES (?,?,?,?,?,?)", entries.map(([id, e]) => [
-  id, id, e.identity?.name ?? id, e.regs_verbatim ?? "",
+counts.entry = insert("INSERT INTO entry VALUES (?,?,?,?,?,?,?)", entries.map(([id, e]) => [
+  // display name, then the full curated one — two columns, because the short one told a
+  // river it joins itself. See schema.sql.
+  id, id, e.identity?.display_name ?? e.identity?.name ?? id, e.identity?.name ?? id,
+  e.regs_verbatim ?? "",
   JSON.stringify(e.source_symbols ?? []), JSON.stringify(e.identity?.mus ?? []),
 ]));
 /**

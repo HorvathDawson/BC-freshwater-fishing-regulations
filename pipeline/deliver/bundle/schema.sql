@@ -25,7 +25,16 @@ CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
 CREATE TABLE item_section (item_id TEXT NOT NULL, section_id TEXT NOT NULL);
 
 -- regulations ---------------------------------------------------------------------
-CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT,
+-- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
+-- "CHILLIWACK / VEDDER RIVERS (does not include Sumas River) (see map on page 24)".
+--
+-- ONLY THE SHORT ONE SHIPPED, and it made a real sentence absurd. Six of the Chilliwack's
+-- seven rules arrive from this entry by the tributary walk, so the screen wants to say
+-- "these are not written for the Chilliwack — it joins X, whose entry includes tributaries".
+-- With only the display name, X IS "Chilliwack River" and the river is told it joins itself.
+-- The full name says which waters the entry actually covers, and 224 of 1,393 entries carry
+-- an extent or an exclusion in that parenthetical that exists nowhere else.
+CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_name TEXT,
                     verbatim TEXT, symbols TEXT, mus TEXT);
 
 -- rule_id is unique only WITHIN an entry — 49 collide corpus-wide (AGENTS rule 8), so

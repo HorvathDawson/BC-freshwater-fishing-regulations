@@ -130,6 +130,8 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                 # for a water we cannot place" rather than dropping it (77 of these).
                 matched[0] if matched else None,
                 ident.get("display_name") or ident.get("name"),
+                # What the curator wrote, kept whole — see the note in schema.sql.
+                ident.get("name"),
                 e.get("regs_verbatim"),
                 json.dumps(e.get("source_symbols") or [], separators=(",", ":")),
                 json.dumps(ident.get("mus") or [], separators=(",", ":")),
@@ -148,7 +150,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                     r.get("rule_text"), r.get("display_location"),
                 ))
 
-    db.executemany("INSERT INTO entry VALUES (?,?,?,?,?,?)", entry_rows)
+    db.executemany("INSERT INTO entry VALUES (?,?,?,?,?,?,?)", entry_rows)
     cov.filled("entry", len(entry_rows))
     db.executemany("INSERT INTO rule VALUES (?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
