@@ -124,7 +124,7 @@ function windowsOf(dates) {
 // The build's field names, not invented ones: `restriction_type` is the kind, `dates` are
 // the windows, and `needs_review` + `unresolved_locators` are what make a rule UNCERTAIN —
 // a rule nobody could place must never vote on an outcome (core/status.ts).
-counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?,?)",
+counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?,?,?)",
   entries.flatMap(([id, e]) => (e.rules ?? []).map((r) => [
     id, r.rule_id, r.restriction_type ?? "other",
     // Specificity, which drives precedence. Every rule in the real corpus is
@@ -133,8 +133,11 @@ counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?,?)",
     JSON.stringify(windowsOf(r.dates ?? [])),
     r.species?.length ? JSON.stringify(r.species) : null,
     // `exempts_from` is a list; a subject is one thing, so join or drop it.
+    // The precedence key…
     Array.isArray(r.exempts_from) ? (r.exempts_from.join(",") || null)
                                   : r.exempts_from ?? null,
+    // …and the sentence. Two curated fields, two columns — see schema.sql.
+    r.details ?? null,
     r.needs_review || (r.unresolved_locators ?? []).length ? 1 : 0,
     r.rule_text ?? r.details ?? null,
     r.display_location ?? r.location_text ?? null,

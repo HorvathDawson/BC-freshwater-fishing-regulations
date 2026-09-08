@@ -140,6 +140,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                     _specificity(r),
                     json.dumps(_windows(r), separators=(",", ":")),
                     json.dumps(r.get("species") or [], separators=(",", ":")),
+                    # The precedence key, and the sentence. Not the same field — see the
+                    # note on `rule.subject` in schema.sql.
+                    ",".join(r.get("exempts_from") or []) or None,
                     r.get("details"),
                     1 if (e["entry_id"], r["rule_id"]) in unresolved else 0,
                     r.get("rule_text"), r.get("display_location"),
@@ -147,7 +150,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
 
     db.executemany("INSERT INTO entry VALUES (?,?,?,?,?,?)", entry_rows)
     cov.filled("entry", len(entry_rows))
-    db.executemany("INSERT INTO rule VALUES (?,?,?,?,?,?,?,?,?,?)", rule_rows)
+    db.executemany("INSERT INTO rule VALUES (?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
 
     section_set, sets = intern_sets(_jsonl(sections_file))
@@ -157,7 +160,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                    ((i, e, r, s) for i, rows in enumerate(sets) for e, r, s in rows))
     cov.filled("ruleset", sum(len(s) for s in sets))
 
-    n_uncertain = sum(1 for r in rule_rows if r[7])
+    n_uncertain = sum(1 for r in rule_rows if r[8])
     print(f"     rules: {len(entry_rows):,} entries · {len(rule_rows):,} rules "
           f"({n_uncertain} uncertain) · {len(section_set):,} sections carry one, "
           f"sharing {len(sets):,} distinct sets")

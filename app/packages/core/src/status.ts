@@ -76,6 +76,34 @@ export interface Rule {
   readonly scope: ScopeKind;
   /** How this rule reaches the section being asked about. See `RuleVia`. */
   readonly via: RuleVia;
+  /**
+   * WHAT IT SAYS, in the curator's own words — "Bait ban", "Single barbless hook",
+   * "No fishing, one hour after sunset to one hour before sunrise".
+   *
+   * NOT `subject`, which is the precedence key below and comes from a different curated
+   * field. Writing this sentence into `subject` — which is what the first version of the
+   * bundler did — made every rule look like it governed a unique subject, so the rule that
+   * lets a water-specific rule displace a zone default could never match anything.
+   *
+   * Present on all 3,050 rules, averaging 24 characters, and the best copy in the corpus.
+   * The screen headlined `kind` instead and printed raw enum names joined by dots —
+   * "closure · gear restriction · vessel restriction" — which says the shape of a rule and
+   * never its content.
+   */
+  readonly details?: string;
+  /**
+   * The rule as written, verbatim. An exact substring of the entry's paragraph in 99.7% of
+   * cases, which is what lets the panel highlight the sentence a rule was read from without
+   * the bundle carrying clause offsets.
+   */
+  readonly text?: string;
+  /** Where it says it applies — "Downstream of Vedder Crossing Bridge". 737 rules. */
+  readonly location?: string;
+  /**
+   * The species it names. 823 rules; the other 2,227 name NONE, and that must not be
+   * rendered as "all species" — the parser established no such thing.
+   */
+  readonly species?: readonly string[];
   readonly group: SpeciesGroup;
   /** Empty = all year. */
   readonly windows: readonly Window[];

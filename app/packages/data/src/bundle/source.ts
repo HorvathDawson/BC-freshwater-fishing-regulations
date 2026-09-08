@@ -46,6 +46,14 @@ function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
     group,
     windows: json<Window[]>(r.windows, `rule ${str(r.rule_id)} windows`),
     ...(r.subject == null ? {} : { subject: str(r.subject) }),
+    // Carried, not dropped. These three were in the `rule` table and never reached the
+    // client, so the screen had nothing to say about a rule except its kind — and printed
+    // the enum name. `location` is what names a stretch; `text` is what lets the verbatim
+    // paragraph highlight the sentence a rule came from.
+    ...(r.details == null ? {} : { details: str(r.details) }),
+    ...(r.text == null ? {} : { text: str(r.text) }),
+    ...(r.location == null ? {} : { location: str(r.location) }),
+    ...(r.species == null ? {} : { species: json<string[]>(r.species, "rule species") }),
     // A rule nobody could place applies to NOTHING. It may only ever raise "unknown";
     // core enforces that, and this is where the flag crosses over from the build.
     ...(Number(r.uncertain) ? { uncertain: true as const } : {}),

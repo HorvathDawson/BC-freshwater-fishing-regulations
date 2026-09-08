@@ -41,7 +41,21 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT,
 -- and an earlier draft of this schema had one column trying to be both.
 CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL, kind TEXT,
                    scope TEXT NOT NULL DEFAULT 'section',   -- section | mu | area
-                   windows TEXT, species TEXT, subject TEXT,
+                   windows TEXT, species TEXT,
+                   -- TWO DIFFERENT THINGS, and they were one column for a while.
+                   --
+                   -- `subject` is the PRECEDENCE KEY: a rule written for this water replaces
+                   -- a zone default about the same subject, which is how a lake gets a quota
+                   -- of 6 where its management unit says 2. It comes from `exempts_from`,
+                   -- and only 2 rules in the corpus carry one.
+                   --
+                   -- `details` is WHAT THE RULE SAYS, in the curator's own words — "Bait
+                   -- ban", "Single barbless hook", "No fishing, one hour after sunset to one
+                   -- hour before sunrise". Present on all 3,050, averaging 24 characters,
+                   -- and the best copy in the corpus. Writing it into `subject` made every
+                   -- rule look like it governed a unique subject, so the displacement rule
+                   -- could never fire.
+                   subject TEXT, details TEXT,
                    -- a rule nobody could place must never vote on an outcome; it can only
                    -- ever raise "unknown" (core/status.ts)
                    uncertain INTEGER NOT NULL DEFAULT 0,
