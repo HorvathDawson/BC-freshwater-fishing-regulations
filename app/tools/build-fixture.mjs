@@ -31,6 +31,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 const html = readFileSync(here("../design/riffle.html"), "utf8");
@@ -88,6 +89,38 @@ counts.entry = insert("INSERT INTO entry VALUES (?,?,?,?,?,?)", entries.map(([id
   id, id, e.identity?.name ?? id, e.regs_verbatim ?? "",
   JSON.stringify(e.source_symbols ?? []), JSON.stringify(e.identity?.mus ?? []),
 ]));
+/**
+ * The verbatim date strings, as the structured windows the client reads.
+ *
+ * THE FIXTURE SHIPPED THE RAW STRINGS ONCE, and so did the bundler, and the app threw
+ * `Cannot read properties of undefined (reading 'month')` on every regulation screen that
+ * evaluated a seasonal rule. The fixture having the SAME bug is why no test caught it: the
+ * app suite runs against this file, so an agreeing pair of wrongs looked like a passing
+ * suite. `packages/data/src/bundle/source.test.ts` now evaluates a seasonal rule out of the
+ * bundle, which is the assertion that was missing.
+ *
+ * PARSED BY THE PIPELINE'S OWN PARSER, shelled out to. A JS reimplementation would be a
+ * second answer to "when is this rule in force" — and `pipeline/regs/parsing/dates.py` is
+ * not just a parser, it is the hallucination guard for these strings: a date that does not
+ * resolve to a real calendar window is a curation error there, and inventing a lenient
+ * second reading here would hide exactly the ones it exists to catch.
+ */
+// The repo root, two levels above app/tools — same shape as `here` above.
+const REPO = here("../../");
+const PY = `${REPO}.venv/bin/python`;
+function windowsOf(dates) {
+  if (!dates.length) return [];
+  const script =
+    "import json,sys\n" +
+    `sys.path.insert(0, ${JSON.stringify(REPO)})\n` +
+    "from pipeline.regs.parsing.dates import parse_date_windows\n" +
+    "ws = parse_date_windows(json.loads(sys.argv[1]))\n" +
+    "print(json.dumps([{'from': {'month': w.start_month, 'day': w.start_day},\n" +
+    "                   'to': {'month': w.end_month, 'day': w.end_day}} for w in ws]))";
+  return JSON.parse(execFileSync(PY, ["-c", script, JSON.stringify(dates)],
+                                 { encoding: "utf8" }));
+}
+
 // The build's field names, not invented ones: `restriction_type` is the kind, `dates` are
 // the windows, and `needs_review` + `unresolved_locators` are what make a rule UNCERTAIN —
 // a rule nobody could place must never vote on an outcome (core/status.ts).
@@ -97,7 +130,7 @@ counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?,?)",
     // Specificity, which drives precedence. Every rule in the real corpus is
     // `section`; `mu` arrives with zone regulations.
     (r.extents ?? []).some((x) => x.area_id) ? "area" : "section",
-    JSON.stringify(r.dates ?? []),
+    JSON.stringify(windowsOf(r.dates ?? [])),
     r.species?.length ? JSON.stringify(r.species) : null,
     // `exempts_from` is a list; a subject is one thing, so join or drop it.
     Array.isArray(r.exempts_from) ? (r.exempts_from.join(",") || null)

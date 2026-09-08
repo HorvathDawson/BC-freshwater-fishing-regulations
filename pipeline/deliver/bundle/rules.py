@@ -24,6 +24,31 @@ import sqlite3
 from pathlib import Path
 
 
+def _windows(rule: dict) -> list[dict]:
+    """The rule's date strings, as the STRUCTURED windows the client reads.
+
+    THIS SHIPPED WRONG ONCE. The curated field holds the dates verbatim — `["Apr 1-Oct 31"]`,
+    exact substrings of the rule text, so the chain of custody back to the synopsis holds —
+    and the first version of this writer put those strings straight into the column. The
+    client reads `{from: {month, day}, to: {month, day}}` and every regulation screen threw
+    `Cannot read properties of undefined (reading 'month')` the moment it evaluated a rule
+    with a season on it.
+
+    `pipeline.regs.parsing.dates` already derives the structure, deterministically and under
+    test, and is the hallucination guard for these strings besides. Parsing them a second
+    time here would be a second answer to "when is this rule in force".
+
+    A string that does not parse is DROPPED rather than guessed at, which makes the rule
+    all-year — the wider, safer reading. `date_parse_errors` is what turns a bad date into a
+    curation failure; that is its job, not this one's.
+    """
+    from pipeline.regs.parsing.dates import parse_date_windows
+
+    return [{"from": {"month": w.start_month, "day": w.start_day},
+             "to": {"month": w.end_month, "day": w.end_day}}
+            for w in parse_date_windows(list(rule.get("dates") or []))]
+
+
 def _specificity(rule: dict) -> str:
     """`section | mu | area` — WHERE THE RULE WAS WRITTEN, which is what drives precedence.
 
@@ -113,7 +138,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                 rule_rows.append((
                     e["entry_id"], r["rule_id"], r.get("restriction_type"),
                     _specificity(r),
-                    json.dumps(r.get("dates") or [], separators=(",", ":")),
+                    json.dumps(_windows(r), separators=(",", ":")),
                     json.dumps(r.get("species") or [], separators=(",", ":")),
                     r.get("details"),
                     1 if (e["entry_id"], r["rule_id"]) in unresolved else 0,

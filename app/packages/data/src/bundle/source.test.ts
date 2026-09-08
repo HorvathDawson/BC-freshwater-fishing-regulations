@@ -273,4 +273,42 @@ describe("the gauge model", () => {
     expect(out.size).toBe(many.length);
     expect(worst).toBeLessThanOrEqual(CEILING);
   });
+
+  it("evaluates a rule that has a season on it", async () => {
+    /*
+     * THE ASSERTION THAT WAS MISSING. `rule.windows` held the curated strings verbatim —
+     * `["Apr 1-Oct 31"]` — while the client reads `{from:{month,day}, to:{month,day}}`, so
+     * every regulation screen threw `Cannot read properties of undefined (reading 'month')`
+     * the moment it evaluated a seasonal rule.
+     *
+     * It survived a full suite because the FIXTURE had the same bug: the app tests run
+     * against this bundle, so two agreeing wrongs looked like a passing test. Nothing here
+     * had ever asked a rule whether it was in force. This does, on both sides of a window,
+     * which is the cheapest thing that would have caught it.
+     */
+    const seasonal = (await db.all(
+      "SELECT entry_id, rule_id, windows FROM rule WHERE windows != '[]' LIMIT 1"))[0];
+    expect(seasonal, "the fixture must carry at least one seasonal rule").toBeTruthy();
+    const parsed = JSON.parse(str(seasonal!.windows)) as
+      { from: { month: number; day: number }; to: { month: number; day: number } }[];
+    // The SHAPE, named explicitly: a bare string here is the bug.
+    expect(parsed[0]!.from.month).toBeTypeOf("number");
+    expect(parsed[0]!.to.day).toBeTypeOf("number");
+
+    // And it has to survive the thing that actually reads it. A section under this rule,
+    // asked on a day inside its window and a day outside, must not throw either time.
+    const covered = (await db.all(
+      "SELECT sr.section_id FROM section_ruleset sr JOIN ruleset rs USING(set_id) " +
+      "WHERE rs.entry_id = ? AND rs.rule_id = ? LIMIT 1",
+      str(seasonal!.entry_id), str(seasonal!.rule_id)))[0];
+    if (!covered) return;                    // this rule binds nowhere in the slice
+    const id = str(covered.section_id) as SectionId;
+    const w = parsed[0]!;
+    for (const day of [{ year: 2026, month: w.from.month, day: w.from.day },
+                       { year: 2026, month: w.to.month, day: w.to.day },
+                       { year: 2026, month: 1, day: 1 }]) {
+      const out = await src.statusFor([id], day, "provincial");
+      expect(out.get(id), `no answer for ${day.month}/${day.day}`).toBeTruthy();
+    }
+  });
 });
