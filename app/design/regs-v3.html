@@ -120,10 +120,10 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .mapbox{background:var(--tint);border-bottom:1px solid var(--line);line-height:0}
 .mapbox svg{width:100%;display:block}
 /* map labels: painted stroke-then-fill so a name stays legible over any tile */
-.mlab{font:700 8.5px var(--ui);letter-spacing:.4px;fill:var(--ink);
-  stroke:var(--card);stroke-width:3.2px;paint-order:stroke fill}
-.mtown{font:500 8px var(--ui);fill:var(--ink);stroke:var(--card);stroke-width:3px;
-  paint-order:stroke fill}
+/* A PRINTED TAG, not haloed text. 9.5px is TYPE.tab, the smallest size this app sets;
+   8px with a white halo on a pale green tile was below anything the design allows, and
+   OpenStreetMap's own labels were more legible than ours on our own map. */
+.mtown{font:700 9.5px var(--ui);letter-spacing:1.1px;fill:var(--card);text-anchor:middle}
 /*
  * The basemap in the dark theme.
  *
@@ -137,13 +137,15 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
  * Inverting hue-rotated keeps the land dark and the water blue instead of orange; the river
  * lines are SVG paths outside the filter, so they keep their true outcome colours.
  */
-.mapbox image{filter:none}
+/* The basemap is GROUND. At full saturation OpenStreetMap's own place labels compete with
+   ours for the same job, and its motorway reds compete with the closure colour. */
+.mapbox image{filter:saturate(.3) brightness(1.07) contrast(.92)}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .mapbox image{
-    filter:invert(1) hue-rotate(180deg) saturate(.65) brightness(.82)}
+    filter:invert(1) hue-rotate(180deg) saturate(.25) brightness(.78)}
 }
 :root[data-theme="dark"] .mapbox image{
-  filter:invert(1) hue-rotate(180deg) saturate(.65) brightness(.82)}
+  filter:invert(1) hue-rotate(180deg) saturate(.25) brightness(.78)}
 .mapcap{font:500 11px/14px var(--ui);letter-spacing:.3px;color:var(--faint);margin:0;
   padding:7px 18px 8px;border-bottom:1px solid var(--line);background:var(--wash)}
 /* the status pill, from StatusPill.tsx: a 13%-tint ground, a square dot, the word in the
@@ -353,9 +355,19 @@ function build(name, mount){
             Math.min.apply(null,pts.map(function(p){return p[1];}))];
     var hi=[Math.max.apply(null,pts.map(function(p){return p[0];})),
             Math.max.apply(null,pts.map(function(p){return p[1];}))];
-    var f=whole?0.06:0.5;
-    var mx=(hi[0]-lo[0])*f+0.004, my=(hi[1]-lo[1])*f+0.004;
-    lo=[lo[0]-mx,lo[1]-my]; hi=[hi[0]+mx,hi[1]+my];
+    /*
+     * A HALF-LENGTH MARGIN SHOWED SQUAMISH TO PENTICTON FOR A 50 KM STRETCH.
+     *
+     * The frame is fitted to the stretch's own bounding box, and a north-south stretch in a
+     * 380x172 box is already padded to the width by the aspect ratio alone — adding half its
+     * length again on every side put four cities on screen and the subject in the middle
+     * distance. A quarter, and a floor so a 2 km stretch is not magnified to absurdity.
+     */
+    var f=whole?0.06:0.25;
+    var mx=(hi[0]-lo[0])*f, my=(hi[1]-lo[1])*f;
+    var FLOOR=whole?0.004:0.012;
+    lo=[lo[0]-Math.max(mx,FLOOR),lo[1]-Math.max(my,FLOOR)];
+    hi=[hi[0]+Math.max(mx,FLOOR),hi[1]+Math.max(my,FLOOR)];
     MH=whole?210:172;
     Z=1;
     for(var z=14;z>=1;z--){var a=merc(lo,z),b=merc(hi,z);
@@ -389,59 +401,98 @@ function build(name, mount){
     runs.forEach(function(run,i){
       var on=i===st.i&&!whole;
       run.pts.forEach(function(p){ if(p.length<2) return;
-        if(on) g.push('<path d="'+path(p)+'" fill="none" stroke="#fff" stroke-width="7" '
-          +'opacity=".9"/>');
+        // the halo is the CARD colour, so the river reads as drawn on the app rather than
+        // on the tile; white was a third colour that belonged to neither
+        g.push('<path d="'+path(p)+'" fill="none" stroke="var(--card)" stroke-width="'
+          +(on?8:4.5)+'" opacity=".85" stroke-linecap="round" stroke-linejoin="round"/>');
         g.push('<path d="'+path(p)+'" fill="none" stroke="'
-          +(whole||on?"var(--"+outs[i]+")":"#96a2a9")+'" stroke-width="'+(on?3.8:2.2)
+          +(whole||on?"var(--"+outs[i]+")":"var(--quiet)")+'" stroke-width="'+(on?4.5:2)
           +'" stroke-linecap="round" stroke-linejoin="round" data-i="'+i+'" '
           +'style="cursor:pointer"/>'); });
     });
     if(!whole){
       /*
-       * WHERE THIS IS, AGAINST SOMEWHERE YOU KNOW.
+       * WHAT THE MAP SAYS, AND WHAT IT LEAVES TO THE BAND BELOW IT.
        *
-       * Two unlabelled dots on a line answer "how long is it" and not "is this the bit by
-       * Lytton", which is the only question somebody planning a trip is actually asking.
-       * So the ends carry the REGULATION'S OWN boundary words — "Hell's Gate", "Hwy 99
-       * bridge at Lillooet", "fishing boundary signs 6500 m downstream of Boston Bar" —
-       * and the towns in between carry their names, because those are what a person drives
-       * to. Both are how you match this screen to the ground you are standing on.
+       * The boundary wording used to be painted on here and it was unreadable: "fishing
+       * boundary signs 65…" truncated mid-word, 8.5px, a white halo lost on a pale green
+       * tile, and the same sentence stated in full and legibly in the FROM / TO band four
+       * millimetres lower. Repeating it badly was strictly worse than not repeating it.
+       *
+       * So the map answers only what a map can: WHERE the stretch begins and ends, as two
+       * ticks cut across the river, and WHAT IT RUNS PAST, as printed tags. The tags are
+       * solid ink with the card colour reversed out of them — the app's own language, and
+       * the only treatment that holds over a raster nobody controls.
        */
       var sp=runs[st.i].pts.filter(function(p){return p.length;});
-      var lab=function(m,txt,below){
-        if(!txt) return;
-        var x=fx(m), y=fy(m);
-        var anchor=x<58?"start":x>MW-58?"end":"middle";
-        var ty=below?y+15:y-10;
-        if(ty<11) ty=y+15; if(ty>MH-5) ty=y-10;
-        g.push('<text x="'+x.toFixed(1)+'" y="'+ty.toFixed(1)+'" text-anchor="'+anchor
-          +'" class="mlab">'+esc(txt.length>26?txt.slice(0,25)+"…":txt)+'</text>');
-      };
-      if(sp.length){
-        var a=sp[0][0], b=sp[sp.length-1][sp[sp.length-1].length-1];
-        [a,b].forEach(function(m){
-          g.push('<circle cx="'+fx(m).toFixed(1)+'" cy="'+fy(m).toFixed(1)+'" r="4.5" '
-            +'fill="var(--card)" stroke="var(--ink)" stroke-width="2.4"/>'); });
-        if(many){ lab(a, foot(st.i), false); lab(b, head(st.i), true); }
-      }
-      // Three names in 380 px is a pile, and a pile is worse than two names. A town whose
-      // label would sit on one already placed keeps its mark and loses its text.
+      var ends=[];
+      if(sp.length) ends=[sp[0][0], sp[sp.length-1][sp[sp.length-1].length-1]];
+
+      /*
+       * Towns first, so an end tick is never buried under a tag.
+       *
+       * A tag is sized from the text, and the factor matters: 5.5px per character was too
+       * narrow for 9.5px bold Archivo with 1.1px of tracking, so SPARWOOD was drawn on a
+       * plate wide enough for PARWOOD and the S hung off the end. And a tag near an end tick
+       * is not dropped — it is moved. Lytton and Boston Bar both sit within a few pixels of
+       * the Fraser's boundary signs, which is precisely why somebody wants to see them, and
+       * suppressing them left that map with no place name on it at all.
+       */
       var placed=[];
       (runs[st.i].towns||[]).forEach(function(x){
         var px=fx([x.lon,x.lat]), py=fy([x.lon,x.lat]);
-        g.push('<rect x="'+(px-3).toFixed(1)+'" y="'+(py-3).toFixed(1)+'" width="6" '
-          +'height="6" fill="var(--ink)"/>');
-        var w=x.name.length*4.4+8;
-        var clash=placed.some(function(q){
-          return Math.abs(q.y-py)<10 && px < q.x+q.w && px+w > q.x; });
-        if(clash) return;
-        placed.push({x:px,y:py,w:w});
-        g.push('<text x="'+(px+6).toFixed(1)+'" y="'+(py+3.5).toFixed(1)
-          +'" class="mtown">'+esc(x.name)+'</text>');
+        if(px<2||px>MW-2||py<2||py>MH-2) return;
+        var label=x.name.toUpperCase(), w=label.length*6.8+12, H=14;
+        var near=ends.some(function(m){
+          return Math.abs(fx(m)-px)<15 && Math.abs(fy(m)-py)<15; });
+        // try each side of the mark, then above and below, and take the first that is
+        // inside the frame and clear of every tag already down
+        // eight candidates, not four: two tags on the Chilliwack ran into each other with
+        // only left/right/above/below to choose from, and a tag that overlaps another is
+        // less readable than a tag that is not drawn
+        var spots=[[px+10,py-H/2],[px-10-w,py-H/2],[px-w/2,py+12],[px-w/2,py-12-H],
+                   [px+10,py+12],[px-10-w,py+12],[px+10,py-12-H],[px-10-w,py-12-H]];
+        if(near) spots=[spots[1],spots[3],spots[5],spots[7],spots[2],spots[4],spots[0]];
+        var at=null;
+        for(var k=0;k<spots.length;k++){
+          var bx=spots[k][0], by=spots[k][1];
+          if(bx<2||bx+w>MW-2||by<2||by+H>MH-2) continue;
+          // 16px of horizontal clearance, not 6. Two solid plates six pixels apart on the
+          // same baseline do not read as two labels, they read as one long bar with a gap
+          // in it — POPKUM and ROSEDALE were technically not overlapping and still wrong.
+          if(placed.some(function(q){ return bx<q.bx+q.w+16 && bx+w+16>q.bx
+                && by<q.by+q.h+5 && by+H+5>q.by; })) continue;
+          at=[bx,by]; break;
+        }
+        g.push('<rect x="'+(px-2.5).toFixed(1)+'" y="'+(py-2.5).toFixed(1)
+          +'" width="5" height="5" fill="var(--ink)" stroke="var(--card)" '
+          +'stroke-width="1.8"/>');
+        if(!at) return;
+        placed.push({bx:at[0],by:at[1],w:w,h:H});
+        g.push('<rect x="'+at[0].toFixed(1)+'" y="'+at[1].toFixed(1)+'" width="'
+          +w.toFixed(1)+'" height="'+H+'" fill="var(--ink)"/>');
+        g.push('<text x="'+(at[0]+w/2).toFixed(1)+'" y="'+(at[1]+9.8).toFixed(1)
+          +'" class="mtown">'+esc(label)+'</text>');
+      });
+
+      // The two ends: a bar CUT ACROSS the river, which is how a boundary sign reads on the
+      // ground, rather than a dot sitting on it that could be anything.
+      ends.forEach(function(m,k){
+        var q=k?sp[sp.length-1][sp[sp.length-1].length-2]||m:sp[0][1]||m;
+        var dx=fx(m)-fx(q), dy=fy(m)-fy(q), L=Math.hypot(dx,dy)||1;
+        var nx=-dy/L*8, ny=dx/L*8, x=fx(m), y=fy(m);
+        g.push('<line x1="'+(x-nx).toFixed(1)+'" y1="'+(y-ny).toFixed(1)+'" x2="'
+          +(x+nx).toFixed(1)+'" y2="'+(y+ny).toFixed(1)
+          +'" stroke="var(--card)" stroke-width="5.5"/>');
+        g.push('<line x1="'+(x-nx).toFixed(1)+'" y1="'+(y-ny).toFixed(1)+'" x2="'
+          +(x+nx).toFixed(1)+'" y2="'+(y+ny).toFixed(1)
+          +'" stroke="var(--ink)" stroke-width="2.2"/>');
       });
     }
     return '<svg viewBox="0 0 '+MW+' '+MH+'" role="img" aria-label="'+esc(r.name)+', '
-      +(whole?'whole':'the chosen stretch')+'">'+g.join("")+'</svg>';
+      +(whole?'the whole river, each stretch in its own colour'
+        :'the chosen stretch, from '+esc(foot(st.i))+' to '+esc(head(st.i)))+'">'
+      +g.join("")+'</svg>';
   }
 
   /*
