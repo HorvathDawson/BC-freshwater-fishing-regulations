@@ -37,9 +37,13 @@ def validate_candidate(item: dict, entry_data: dict) -> tuple[Entry | None, list
     """Validate one entry against its batch item. Returns (Entry|None, errors, unused_split_ids)."""
     data = dict(entry_data)
     data["regs_verbatim"] = item.get("raw_regs", "")      # inject authoritative source; don't trust the copy
-    if "symbols" in item:                                 # authoritative synopsis symbols: store as provenance
-        syms = list(item["symbols"])                      # AND derive entry-level tributaries.included from them
-        data["source_symbols"] = syms
+    # WHERE THE ROW IS PRINTED — one nested `source`, injected whole. The symbols also DERIVE
+    # entry-level tributaries.included, which is why they are read here and not merely stored.
+    syms = list(item.get("symbols") or [])
+    if any(k in item for k in ("symbols", "pages", "row_image")):
+        data["source"] = {"pages": list(item.get("pages") or []), "symbols": syms,
+                          "row_image": item.get("row_image") or ""}
+    if "symbols" in item:
         tribs = dict(data.get("tributaries") or {})
         tribs["included"] = symbols_include_tributaries(syms)
         data["tributaries"] = tribs

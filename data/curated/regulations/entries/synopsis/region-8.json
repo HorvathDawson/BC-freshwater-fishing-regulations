@@ -12,9 +12,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -83,7 +89,13 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -154,7 +166,13 @@
         ]
       },
       "regs_verbatim": "Rainbow and cutthroat trout catch and release; exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -256,7 +274,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -325,9 +349,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -396,7 +426,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -465,7 +501,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**\nIncludes all unnamed lakes within 2 km of Bluey Lake (except Bluey Lake itself and Kentucky Lake)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -566,9 +608,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\n**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -795,9 +843,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -934,7 +988,13 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1063,7 +1123,13 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1168,7 +1234,13 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1271,7 +1343,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** north of a line between Bald and Knob Points, Mar 1-May 31\nRainbow trout daily quota = 2, bass daily quota = 8, yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1440,7 +1518,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1509,9 +1593,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1580,7 +1670,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1649,7 +1745,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1718,9 +1820,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1789,9 +1897,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2\nBait ban\nMotorized vehicle closure. Walk-in access only. See sign at trailhead.",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1958,7 +2072,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2027,7 +2147,13 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2098,7 +2224,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2167,9 +2299,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2306,7 +2444,13 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2409,9 +2553,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2480,7 +2630,13 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2583,9 +2739,15 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 2\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2722,7 +2884,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**\nElectric motor only - max 7.5 kW; **WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2851,7 +3019,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2920,7 +3094,13 @@
         ]
       },
       "regs_verbatim": "Upstream of Burrell Creek: exempt from spring closure; bait ban Apr 1-Oct 31; trout/char daily quota = 1\nDownstream of Burrell Creek: bait ban July 1-Oct 31; rainbow trout catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3133,7 +3313,13 @@
         ]
       },
       "regs_verbatim": "Bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3202,9 +3388,15 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 1; Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_031.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3306,7 +3498,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_032.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3375,7 +3573,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_033.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3474,9 +3678,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_034.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3545,9 +3755,15 @@
         ]
       },
       "regs_verbatim": "No towing",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_035.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3616,9 +3832,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_036.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3717,9 +3939,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1; bait ban, single barbless hook; electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_037.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3915,7 +4143,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_038.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3984,9 +4218,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_075_row_039.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4055,7 +4295,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          75
+        ],
+        "symbols": [],
+        "row_image": "page_075_row_040.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4127,9 +4373,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 20\nEngine power restriction - 7.5 kW (10 hp) and speed restriction (8 km/h)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4230,9 +4482,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4301,7 +4559,13 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5, Yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4434,9 +4698,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4506,7 +4776,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure\n**No Fishing** July 25-Sept 15; bait ban Apr 1-Oct 31\nRainbow trout catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4671,7 +4947,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4804,9 +5086,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5063,9 +5351,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5202,9 +5496,15 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5305,9 +5605,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5534,9 +5840,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5605,7 +5917,13 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5676,7 +5994,13 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2; bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5812,9 +6136,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6011,9 +6341,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6082,7 +6418,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6218,7 +6560,13 @@
         ]
       },
       "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6319,9 +6667,15 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 2\n**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6427,7 +6781,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6496,7 +6856,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6567,7 +6933,13 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6704,7 +7076,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6803,7 +7181,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6874,7 +7258,13 @@
         ]
       },
       "regs_verbatim": "Rainbow trout daily quota = 2 (only one over 50 cm), bass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7050,7 +7440,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7291,7 +7687,13 @@
         ]
       },
       "regs_verbatim": "These isolated oxbows adjacent to Okanagan River downstream of the McIntyre Dam and upstream of Vaseux Lake are EXEMPT from the\nspring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7360,7 +7762,13 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5 (none over 30cm from July 1-Oct 31), bass daily quota = 8, yellow perch daily quota = 20\nBarbless hook July 1-Oct 31\nSpeed restriction on parts, no vessels (see definition on page 4) in 5 signed swimming areas",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7567,7 +7975,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7636,7 +8050,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Hardy Falls to Okanagan Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7705,7 +8125,13 @@
         "mus": []
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7776,7 +8202,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of Hwy 97 bridge to Okanagan Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7847,7 +8279,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_031.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7916,9 +8354,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_032.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7987,9 +8431,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_076_row_034.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8058,7 +8508,13 @@
         ]
       },
       "regs_verbatim": "No powered boats south of the CPR Bridge",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_033.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8129,7 +8585,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_035.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8198,7 +8660,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          76
+        ],
+        "symbols": [],
+        "row_image": "page_076_row_036.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8267,9 +8735,15 @@
         ]
       },
       "regs_verbatim": "See Burnell Lake",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8338,9 +8812,15 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8443,9 +8923,15 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 1 Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8552,7 +9038,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Westside Road Bridge to Okanagan Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8623,7 +9115,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Mara Lake upstream to Mara Bridge\n**No Fishing** 50 m upstream and 50 m downstream of Trinity Bridge, Jun 15-Nov 15\nRainbow trout/char catch and release; exempt from spring closure from Mara Bridge upstream to Sugar Lake\nUpstream of Sugar Lake: **No fishing** Sept 1-Oct 31; bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8838,9 +9336,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8909,9 +9413,15 @@
         ]
       },
       "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban, Apr 1-Oct 31; exempt from spring closure",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_077_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9047,7 +9557,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Sept 1-Oct 15",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9118,7 +9634,13 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5 (none over 35 cm from July 10-Oct 31)\nBass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9293,7 +9815,13 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9428,9 +9956,15 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9565,7 +10099,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9634,7 +10174,13 @@
         ]
       },
       "regs_verbatim": "Bull trout/Dolly Varden daily quota = 1 (none under 50 cm); single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9742,9 +10288,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9813,9 +10365,15 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9886,9 +10444,15 @@
         ]
       },
       "regs_verbatim": "See Friday, Saturday, and Sunday Lakes",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9957,7 +10521,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10026,7 +10596,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10095,7 +10671,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10166,7 +10748,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10269,7 +10857,13 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10402,7 +10996,13 @@
         ]
       },
       "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10535,7 +11135,13 @@
         ]
       },
       "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban Apr 1-Oct 31\nExempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10669,9 +11275,15 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10772,7 +11384,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10878,7 +11496,13 @@
         ]
       },
       "regs_verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11011,7 +11635,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11116,7 +11746,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** July 25-Sept 15\nRainbow trout catch and release; bait ban Apr 1-Oct 31\nExempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11281,7 +11917,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11414,7 +12056,13 @@
         ]
       },
       "regs_verbatim": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [],
+        "row_image": "page_077_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11613,9 +12261,15 @@
         ]
       },
       "regs_verbatim": "Yellow perch daily quota = 20\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          77
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_077_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",

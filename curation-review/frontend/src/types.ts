@@ -98,7 +98,9 @@ export interface Entry {
   entry_id: string;
   identity: Identity;
   regs_verbatim: string;
-  source_symbols: string[];
+  /** Where the row is PRINTED. Nested because it is all one fact about the book — it was a flat
+   *  `source_symbols` until a page number joined it. */
+  source: { pages: number[]; symbols: string[]; row_image: string };
   locked: boolean;
   reviewed_by: string;
   reviewed_at: string;

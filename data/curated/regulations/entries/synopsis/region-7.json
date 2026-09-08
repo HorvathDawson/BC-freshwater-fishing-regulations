@@ -12,7 +12,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -145,7 +151,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -214,7 +226,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -283,9 +301,15 @@
         ]
       },
       "regs_verbatim": "No Fishing within 500 m radius of the Upper Anzac bridge Aug 15-Mar 31, located at approximately UTM 10 552426, 6093011 (see map on\npage 62)\nFly fishing only Jul 1-Mar 31 upstream of the North Anzac River confluence (see map on page 62)",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_065_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -393,7 +417,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -526,7 +556,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** 500 m upstream and downstream of the Thorn Creek confluence or the Kemess Creek confluence",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -610,7 +646,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -679,7 +721,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1- Apr 30\nTrout daily quota = 1 (none over 50 cm); bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -846,7 +894,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -979,7 +1033,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1050,7 +1110,13 @@
         ]
       },
       "regs_verbatim": "See West Road River",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1119,7 +1185,13 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1190,9 +1262,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1261,9 +1339,15 @@
         ]
       },
       "regs_verbatim": "No powered boats; situated at the head of Boulder Creek",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1332,9 +1416,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 10",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1405,7 +1495,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure; no rainbow trout under 30 cm",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1506,9 +1602,15 @@
         ]
       },
       "regs_verbatim": "Catch and release; artificial fly only",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_071_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1607,9 +1709,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 10",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1680,9 +1788,15 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 2",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1764,7 +1878,13 @@
         ]
       },
       "regs_verbatim": "See North and South Cameron lakes",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1833,9 +1953,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 10; kokanee daily quota = 5",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -1938,7 +2064,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure; rainbow trout catch and release, Apr 1-June 30",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2041,7 +2173,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout daily and possession quotas = 1 (none under 30 cm)\nEngine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2174,7 +2312,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2307,7 +2451,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2376,7 +2526,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2445,7 +2601,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nTrout/char daily quota = 2 (none under 40 cm); bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2614,7 +2776,13 @@
         ]
       },
       "regs_verbatim": "Walleye daily and possession quotas = 3; northern pike daily and possession quotas = 3",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2717,7 +2885,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure; also EXEMPT from bait ban downstream of fishing boundary signs near its mouth",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2818,9 +2992,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout catch and release; bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -2983,9 +3163,15 @@
         ]
       },
       "regs_verbatim": "See Chunamun Lake",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3054,9 +3240,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream of the Horseshoe Road Bridge, Aug 15-Oct 15",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_071_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3129,7 +3321,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3198,7 +3396,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout daily quota = 2; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3331,9 +3535,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3496,7 +3706,13 @@
         ]
       },
       "regs_verbatim": "Catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3565,7 +3781,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nCatch and release, May 1-Oct 31",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3668,7 +3890,13 @@
         ]
       },
       "regs_verbatim": "Lake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3769,7 +3997,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** downstream (north) of the 200 Road Bridge, Apr 1-June 30 (see map on page 62)\nRainbow trout catch and release and exempt from spring closure upstream (south) of the 200 Road Bridge, Apr 1-June 30 (see map on\npage 62)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -3914,7 +4148,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout possession quota = 2 (only one over 50 cm); no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4047,7 +4287,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4116,7 +4362,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge. See Davis River",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4223,9 +4475,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_065_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4294,7 +4552,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4427,7 +4691,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** July 1-July 15",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4498,7 +4768,13 @@
         ]
       },
       "regs_verbatim": "Bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4567,7 +4843,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4636,7 +4918,13 @@
         ]
       },
       "regs_verbatim": "Trout/char catch and release; bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4773,7 +5061,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4842,9 +5136,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4913,9 +5213,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -4984,7 +5290,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]\nNo trout/char under 25 cm (bull trout catch and release); single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5130,7 +5442,13 @@
         ]
       },
       "regs_verbatim": "Burbot daily quota = 1",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5201,7 +5519,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_031.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5334,9 +5658,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 2; no powered boats",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_032.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5437,9 +5767,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_033.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5508,9 +5844,15 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_034.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5579,7 +5921,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 15-June 30",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_035.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5638,7 +5986,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_036.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5741,9 +6095,15 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_037.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5812,7 +6172,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** June 1-July 15\nRainbow trout daily quota = 2 (none over 50 cm); bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -5945,7 +6311,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_038.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6014,7 +6386,13 @@
         ]
       },
       "regs_verbatim": "Lake trout daily quota = 1 (none under 60 cm)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_039.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6085,7 +6463,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure; also EXEMPT from bait ban upstream of Cottonwood River",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_040.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6186,7 +6570,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_041.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6289,7 +6679,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure downstream of fishing boundary signs near its mouth",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [],
+        "row_image": "page_065_row_042.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6360,9 +6756,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_043.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6431,9 +6833,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_071_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6502,9 +6910,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** upstream of the Macleod Creek confluence, including Macleod Creek[Includes Tributaries], Sept 1-June 30",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_065_row_044.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6577,7 +6991,13 @@
         ]
       },
       "regs_verbatim": "Lake trout daily quota = 2 (none under 40 cm or over 60 cm); bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6708,7 +7128,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from confluence with Peace River to fishing boundary signs approximately 5 km upstream, Mar 1-June 30\nArctic grayling catch and release, Mountain whitefish catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -6846,9 +7272,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 1 (none over 40 cm); bait ban, single barbless hook; electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          65
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_065_row_045.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7041,7 +7473,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout catch and release; bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7204,7 +7642,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7337,7 +7781,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7470,9 +7920,15 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 1 (none under 35 cm)\nElectric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7579,7 +8035,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nTrout/char catch and release; bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7748,9 +8210,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 1 (none over 40 cm); bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -7913,7 +8381,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8046,7 +8520,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout possession quota = 2 (only one over 50 cm); no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8179,9 +8659,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8280,7 +8766,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8349,7 +8841,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8420,9 +8918,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_071_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8491,7 +8995,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nTrout/char daily quota = 2 (none under 40 cm)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8600,7 +9110,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8669,9 +9185,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 10",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8742,7 +9264,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Attichka Creek to a point 500 m upstream",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8821,7 +9349,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; not set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -8954,9 +9488,15 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9025,9 +9565,15 @@
         ]
       },
       "regs_verbatim": "No powered boats\nNote: La Salle Lake \"west\" is only stocked",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9126,7 +9672,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_031.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9291,7 +9843,13 @@
         ]
       },
       "regs_verbatim": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_032.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9376,9 +9934,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 2; bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9541,7 +10105,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines; unnamed lake approximately 300 m downstream of Tomas Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9704,7 +10274,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -9837,7 +10413,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nBull trout daily and possession quotas = 1 (none under 40 cm or over 60 cm), May 1-Aug 14\nBait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_033.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10002,7 +10584,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10071,9 +10659,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Sept 1-June 30",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_066_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10144,7 +10738,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10213,7 +10813,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Apr 1-Aug 31",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10284,7 +10890,13 @@
         ]
       },
       "regs_verbatim": "Artificial fly only from Carp Lake to War Falls (excluding War Lake)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10362,9 +10974,15 @@
         ]
       },
       "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)\nExempt from spring closure and from bait ban",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10463,7 +11081,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10532,7 +11156,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Sept 15-Oct 31; lake trout catch and release Nov 1-Sept 14",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_034.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10637,7 +11267,13 @@
         ]
       },
       "regs_verbatim": "Arctic grayling catch and release downstream of Moberly Lake, Mountain whitefish catch and release downstream of Moberly Lake",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_035.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10744,7 +11380,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nBull trout daily and possession quotas = 1 (none under 40 cm or over 60 cm), May 1-Aug 14\nBait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_036.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10915,7 +11557,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -10984,7 +11632,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout catch and release; bait ban, single barbless hook; unnamed lake located approximately 7.5 km south/southeast of Mt.\nMilligan",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11153,9 +11807,15 @@
         ]
       },
       "regs_verbatim": "EXEMPT from bait ban; Youth/Disabled Accompanied Water year round (see page 4)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11254,7 +11914,13 @@
         ]
       },
       "regs_verbatim": "Lake trout daily quota = 2 (none under 40 cm and none over 60 cm); single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_037.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11355,7 +12021,13 @@
         ]
       },
       "regs_verbatim": "Arctic grayling catch and release from Kinuseo Falls to signs about 2 km downstream",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_038.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11435,7 +12107,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout possession quota = 2 (only one over 50 cm); no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11568,7 +12246,13 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 5",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11639,7 +12323,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11772,7 +12462,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30\nBull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11879,7 +12575,13 @@
         ]
       },
       "regs_verbatim": "See Nation Arm (Williston Lake)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_032.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -11948,7 +12650,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_031.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12017,7 +12725,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure.\nRainbow trout catch and release from Cheslatta River to a boundary sign 5 km downstream and no rainbow trout under 35 cm from said\nsign downstream to Hwy 27 bridge\nExempt from bait ban downstream of Foothills Boulevard Bridge in Prince George",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_033.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12188,7 +12902,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [],
+        "row_image": "page_071_row_039.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12258,9 +12978,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** west of a line between fishing boundary signs on lakeshore near mouth of Corkscrew Creek, Apr 1-May 31",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_034.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12333,9 +13059,15 @@
         ]
       },
       "regs_verbatim": "See ice hut warning, page 63",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          71
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_071_row_040.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12410,9 +13142,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 1 (none over 40 cm); bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_066_row_035.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12575,7 +13313,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_036.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12708,7 +13452,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_037.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12777,7 +13527,13 @@
         ]
       },
       "regs_verbatim": "Arctic grayling catch and release; Kokanee daily quota = 10",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -12892,7 +13648,13 @@
         ]
       },
       "regs_verbatim": "Kokanee daily quota = 10\nArctic grayling catch and release, including tributaries; Mountain whitefish catch and release, including tributaries\nLake trout daily quota = 3\n**No Fishing** from mouth of Halfway River to fishing boundary signs approximately 5 km upstream and 5 km downstream, Mar 1-June 30\n**No Fishing between Peace Canyon Dam and Hwy 29 Bridge**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13138,7 +13900,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing**",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13220,7 +13988,13 @@
         ]
       },
       "regs_verbatim": "**NOTE: see mercury warning on **page 75",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          66
+        ],
+        "symbols": [],
+        "row_image": "page_066_row_038.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13289,9 +14063,15 @@
         ]
       },
       "regs_verbatim": "Catch and release all fish upstream of the Hasler Road Bridge",
-      "source_symbols": [
-        "Incl. Tribs"
-      ],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [
+          "Incl. Tribs"
+        ],
+        "row_image": "page_072_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13362,7 +14142,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_000.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13495,7 +14281,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from falls to Quarry Bridge",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_001.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13567,7 +14359,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_002.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13700,7 +14498,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13769,7 +14573,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -13934,7 +14744,13 @@
         ]
       },
       "regs_verbatim": "Bull trout daily quota = 1 (any size)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14005,7 +14821,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure.",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_003.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14074,7 +14896,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_004.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14143,9 +14971,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 2",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_005.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14216,7 +15050,13 @@
         ]
       },
       "regs_verbatim": "Trout/char daily quota = 2 (none over 40 cm); bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14354,7 +15194,13 @@
         ]
       },
       "regs_verbatim": "No set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_006.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14423,7 +15269,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_007.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14492,7 +15344,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14561,9 +15419,15 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_008.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14632,7 +15496,13 @@
         ]
       },
       "regs_verbatim": "Bait ban",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14701,9 +15571,15 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 15-May 14; **Class II water**[Includes Tributaries]** when open (Steelhead Stamp not required)**\nRainbow trout catch and release\nFly fishing only between fishing boundary signs approximately 250 m and 4 km downstream of the bridge near the François Lake outlet\nNo powered boats from François Lake to the falls\nSee Region 6 tables for restrictions applying to François Lake's outlet area",
-      "source_symbols": [
-        "Classified"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Classified"
+        ],
+        "row_image": "page_067_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -14938,9 +15814,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_072_row_009.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15009,7 +15891,13 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_010.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15078,7 +15966,13 @@
         ]
       },
       "regs_verbatim": "No set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15147,7 +16041,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure; rainbow trout catch and release, Apr 1-June 30",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15250,9 +16150,15 @@
         ]
       },
       "regs_verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_072_row_011.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15327,7 +16233,13 @@
         ]
       },
       "regs_verbatim": "Walleye daily quota = 1 (none under 50 cm)",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_012.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15398,7 +16310,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Apr 1-Aug 31\n**No Fishing** from upstream side of weir to CNR Bridge in Valemount",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15502,7 +16420,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15635,7 +16559,13 @@
         ]
       },
       "regs_verbatim": "Rainbow trout daily quota = 2",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15706,7 +16636,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout possession quota = 2 (only one over 50 cm); no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15839,9 +16775,15 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 2; bait ban, single barbless hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_017.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -15972,7 +16914,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** from Attichika Creek to a point 500 m upstream",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_018.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16045,7 +16993,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_019.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16178,7 +17132,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_020.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16311,9 +17271,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_021.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16382,7 +17348,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout possession quota = 2 (only one over 50 cm); no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_022.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16515,7 +17487,13 @@
         ]
       },
       "regs_verbatim": "No powered boats",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_023.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16584,7 +17562,13 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_024.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16653,7 +17637,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 100 m downstream of outlet weir at Swan Lake\nWalleye catch and release",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_013.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16757,7 +17747,13 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 10",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_027.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16828,7 +17824,13 @@
         ]
       },
       "regs_verbatim": "Brook trout daily quota = 10",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_028.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -16906,9 +17908,15 @@
         ]
       },
       "regs_verbatim": "Rainbow trout daily quota = 1 (none over 40 cm); single hook",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_025.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17009,9 +18017,15 @@
         ]
       },
       "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_026.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17080,7 +18094,13 @@
         ]
       },
       "regs_verbatim": "Bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_014.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17179,7 +18199,13 @@
         ]
       },
       "regs_verbatim": "Trout daily quota = 1 (none under 30 cm); artificial fly only\nFor regulations on the mainstem of the West Road River, see Region 5",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_030.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17314,7 +18340,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure downstream of signs near its mouth",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_029.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17385,7 +18417,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_031.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17518,7 +18556,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nRainbow trout daily quota = 1 (none over 40 cm); bait ban, single barbless hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_032.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17683,7 +18727,13 @@
         ]
       },
       "regs_verbatim": "No rainbow trout under 30 cm\nBait ban 500 m upstream and downstream of Causeway Road July 1-Oct 30\nSee Nation Arm\nREMINDER: Arctic grayling catch and release from tributaries\n**See mercury warning on **page 75 and definition of \"stream mouth\" on page 80 in the Provincial Regulations",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_033.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -17887,7 +18937,13 @@
         ]
       },
       "regs_verbatim": "No rainbow trout under 30 cm\n**See mercury warning page 57 in Region 7A**, and definition of \"stream mouth\" on page 80\nArctic grayling catch and release[Includes Tributaries]\nBull trout daily quota =1 (none under 30 cm or over 50 cm), Oct 16-Aug 14\nLake trout daily quota =3 (none under 30 cm, 1 over 50 cm), Nov 1-Sept 14",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_015.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -18099,7 +19155,13 @@
         ]
       },
       "regs_verbatim": "Exempt from spring closure; no rainbow trout under 30 cm",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_034.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -18200,9 +19262,15 @@
         ]
       },
       "regs_verbatim": "Electric motor only - max 7.5 kW",
-      "source_symbols": [
-        "Stocked"
-      ],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [
+          "Stocked"
+        ],
+        "row_image": "page_067_row_035.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -18271,7 +19339,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_036.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -18404,7 +19478,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** within 100 m of fishing boundary sign at outlet, May 15-July 31\nRainbow trout daily and possession quotas = 2 (none over 50 cm); bait ban, single hook",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          72
+        ],
+        "symbols": [],
+        "row_image": "page_072_row_016.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
@@ -18569,7 +19649,13 @@
         ]
       },
       "regs_verbatim": "**No Fishing** Nov 1-Apr 30\nLake trout catch and release; no set lines",
-      "source_symbols": [],
+      "source": {
+        "pages": [
+          67
+        ],
+        "symbols": [],
+        "row_image": "page_067_row_037.png"
+      },
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",

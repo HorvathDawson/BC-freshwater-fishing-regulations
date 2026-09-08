@@ -55,6 +55,8 @@ class ParseContext:
     boundaries_by_item: tuple[tuple[str, tuple[str, ...]], ...] = ()   # item_id -> its own cut-point ids
     raw_regs: str = ""
     symbols: tuple[str, ...] = ()                        # synopsis row symbols (e.g. 'Incl. Tribs')
+    pages: tuple[int, ...] = ()                          # synopsis page(s) the row is printed on
+    row_image: str = ""                                  # cropped image of the printed row
     review_hints: tuple[str, ...] = ()                    # prior reviewer findings (a REPASS re-parse)
     no_registry: bool = False                            # True: no registry match — split rules, bind nothing
     registry_note: str = ""                              # why (matcher status + reason), when no_registry
@@ -70,7 +72,8 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
                         region: str = "", row_index: int = -1, name: str = "",
                         symbols: tuple[str, ...] = (), review_hints: tuple[str, ...] = (),
                         also_items: tuple[RegistryItem, ...] = (),
-                        row_mus: tuple[str, ...] = ()) -> ParseContext:
+                        row_mus: tuple[str, ...] = (),
+                        pages: tuple[int, ...] = (), row_image: str = "") -> ParseContext:
     """Assemble the constrained menu for one item: its bindable boundaries + identity. Area `within`
     targets are intentionally excluded — area scoping is a curation step (see module docstring).
 
@@ -110,13 +113,17 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
         boundaries_by_item=by_item,
         raw_regs=raw_regs,
         symbols=tuple(symbols),
+        pages=tuple(pages),
+        row_image=row_image,
         review_hints=tuple(review_hints),
     )
 
 
 def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, registry_note: str,
                               region: str = "", mus: tuple[str, ...] = (), row_index: int = -1,
-                              symbols: tuple[str, ...] = ()) -> ParseContext:
+                              symbols: tuple[str, ...] = (),
+                              pages: tuple[int, ...] = (),
+                              row_image: str = "") -> ParseContext:
     """A parse menu for a row with NO registry match. The reg text is still split into rules, but there
     are no boundaries to bind — every rule goes to review and no extents are invented. Identity comes
     from the synopsis row (not a registry item)."""
@@ -133,6 +140,8 @@ def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, regist
         boundaries=(),
         raw_regs=raw_regs,
         symbols=tuple(symbols),
+        pages=tuple(pages),
+        row_image=row_image,
         no_registry=True,
         registry_note=registry_note,
     )

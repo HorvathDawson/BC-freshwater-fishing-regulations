@@ -4,7 +4,7 @@ The parser skewed nearly every entry to `tributaries.included=false`, even for r
 with the **[Includes Tributaries]** symbol ("Incl. Tribs"). That symbol is the authoritative entry-level
 signal but never survived into the entry, so the flag was lost. This joins each entry to its synopsis
 row (SAME source the parser reads, `load_synopsis_rows`) and writes back:
-  * `source_symbols` — the verbatim row symbols ('Incl. Tribs' / 'Classified' / 'Stocked'), so the entry
+  * `source.symbols` — the verbatim row symbols ('Incl. Tribs' / 'Classified' / 'Stocked'), so the entry
     is self-describing and re-validatable without the extraction file;
   * `tributaries.included = true` when the row is tributary-flagged.
 
@@ -70,8 +70,8 @@ def main() -> None:
             if syms is None:
                 continue
             entry_changed = False
-            if e.get("source_symbols") != syms:                 # store provenance (re-validatable later)
-                e["source_symbols"] = syms
+            if (e.get("source") or {}).get("symbols") != syms:  # store provenance (re-validatable later)
+                e["source"] = {**(e.get("source") or {}), "symbols": syms}
                 entry_changed = True
             if not e.get("locked"):                             # never override a hand-reviewed flag
                 tribs = e.setdefault("tributaries", {"included": False, "only": False, "excludes": []})
@@ -87,7 +87,7 @@ def main() -> None:
         if not args.dry_run:
             path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         total_changed += len(changed)
-        print(f"{path.name}: {len(changed)} entries updated (source_symbols / included)")
+        print(f"{path.name}: {len(changed)} entries updated (source.symbols / included)")
         for eid in changed:
             print(f"    {eid}")
     verb = "would update" if args.dry_run else "updated"

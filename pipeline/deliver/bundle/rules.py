@@ -133,8 +133,13 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                 # What the curator wrote, kept whole — see the note in schema.sql.
                 ident.get("name"),
                 e.get("regs_verbatim"),
-                json.dumps(e.get("source_symbols") or [], separators=(",", ":")),
+                # Provenance is nested under `source` now; it was a flat `source_symbols`
+                # until the page number joined it and made it obvious they were one fact.
+                json.dumps((e.get("source") or {}).get("symbols") or [],
+                           separators=(",", ":")),
                 json.dumps(ident.get("mus") or [], separators=(",", ":")),
+                json.dumps((e.get("source") or {}).get("pages") or [],
+                           separators=(",", ":")),
             ))
             for r in e.get("rules") or []:
                 rule_rows.append((

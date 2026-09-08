@@ -103,9 +103,9 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
   const isNoRegistry = entry.registry_status === "no_registry";
 
   // Parser skewed most entries to tributaries.included=false; flag when the authoritative synopsis
-  // symbol (source_symbols, injected at ingest) says the reg extends to tributaries but the global
+  // symbol (source.symbols, injected at ingest) says the reg extends to tributaries but the global
   // flag is off. Symbol-only — raw text mentions are per-rule, not the entry-level tributary flag.
-  const symbolSaysTributaries = (entry.source_symbols ?? []).some((s) => /incl.*trib/i.test(s));
+  const symbolSaysTributaries = (entry.source?.symbols ?? []).some((s) => /incl.*trib/i.test(s));
   const tribFlagMismatch = symbolSaysTributaries && entry.tributaries.included === false;
 
   const dirty = useMemo(

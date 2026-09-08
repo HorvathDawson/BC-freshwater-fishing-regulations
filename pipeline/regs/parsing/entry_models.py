@@ -7,7 +7,7 @@ file is frozen and checked in (`pipeline/regs/parsing/entries/region-N.json`); r
 merge, never an overwrite.
 
 Shape:
-    EntryFile{ region, entries:[ Entry{ identity, regs_verbatim, source_symbols, tributaries,
+    EntryFile{ region, entries:[ Entry{ identity, regs_verbatim, source, tributaries,
                                         scope:[Extent], rules:[ Rule{ extents:[Extent], … } ],
                                         parse_review, locked/reviewed_by/revisit } ] }
 
@@ -367,6 +367,39 @@ class Tributaries(BaseModel):
         return data
 
 
+class Source(BaseModel):
+    """WHERE THIS ROW IS PRINTED. Provenance, nested, because it is all one thing.
+
+    These started flat — `source_symbols` shipped on its own — and the moment a second one
+    arrived it was clear they are not siblings of `locked` and `reviewed_by` but members of a
+    single fact: the row in the book this entry was read from. Nested, a reader of the schema
+    can see at a glance which fields are OURS and which are the SOURCE's, and the next piece of
+    provenance has an obvious home instead of another `source_` prefix.
+
+    Everything here is injected at ingest from the batch item and never trusted from the model —
+    the same rule that governs `entry_id`, `regs_verbatim` and `identity.name`.
+    """
+
+    model_config = ConfigDict(frozen=True)
+    pages: List[int] = Field(
+        default_factory=list,
+        description="synopsis page number(s) this row is printed on. A LIST because seven MU 6-1 "
+        "lakes (Basalt, Chipmunk, Gatcho, Naglico, Pettry, Squirrel, Toms) are printed on two "
+        "pages each; recording one would be choosing between two true answers.",
+    )
+    symbols: List[str] = Field(
+        default_factory=list,
+        description="verbatim synopsis-row symbols ('Incl. Tribs', 'Classified', 'Stocked'), so "
+        "tributaries.included stays re-validatable against the source without the extraction file.",
+    )
+    row_image: str = Field(
+        default="",
+        description="filename of the cropped image of this row under "
+        "data/generated/regs/extraction/row_images/ — the last resort when the wording is "
+        "ambiguous, because it is a picture of the printed line itself.",
+    )
+
+
 class Entry(BaseModel):
     """One frozen parse for a synopsis row: identity + rules. Both the parser's output and the
     file a curator hand-edits (fix an extent, add a sections_override, correct a matched)."""
@@ -376,11 +409,11 @@ class Entry(BaseModel):
     entry_id: str = Field(..., description="stable id (e.g. 'atnarko_main'); rule_ids namespace under it")
     identity: Identity
     regs_verbatim: str = Field(..., description="exact copy of the input raw_regs")
-    source_symbols: List[str] = Field(
-        default_factory=list,
-        description="verbatim synopsis-row symbols for this entry ('Incl. Tribs', 'Classified', 'Stocked'). "
-        "Injected by ingest from the batch item — provenance so tributaries.included (and future "
-        "classified/stocked flags) stay re-validatable against the source without the extraction file.",
+    source: Source = Field(
+        default_factory=lambda: Source(),
+        description="where this row is printed in the book. Injected by validate/ingest from the "
+        "batch item — authoritative, never trusted from the model, the same rule that governs "
+        "`entry_id`, `regs_verbatim` and `identity.name`.",
     )
     locked: bool = Field(
         default=False,

@@ -70,6 +70,18 @@ def _row_entry_id(row: dict, m) -> str:
     return f"{base}@{mus}" if mus else base
 
 
+def _row_pages(row: dict) -> tuple[int, ...]:
+    """The synopsis page(s) a row is printed on, from the extraction.
+
+    A tuple, not a number. Seven MU 6-1 lakes are printed twice in the book — Basalt on 49 and
+    56, Naglico on 52 and 58, and five more — so a single page would be choosing between two
+    true answers. The extraction gives one `page` per ROW; rows that repeat are separate rows
+    here and the backfill unions them, so this reads what it is given and stays honest.
+    """
+    page = row.get("page")
+    return (int(page),) if isinstance(page, int) else ()
+
+
 def _item_payload(index: int, ctx) -> dict:
     """Batch payload for one synopsis row (one entry). `entry_id`, `registry_status`, and `registry_note`
     are injected into the Entry at ingest (authoritative — never trusted from the model), same as
@@ -91,6 +103,8 @@ def _item_payload(index: int, ctx) -> dict:
         "no_registry": ctx.no_registry,
         "registry_note": ctx.registry_note,
         "symbols": list(ctx.symbols),
+        "pages": list(ctx.pages),
+        "row_image": ctx.row_image,
     }
 
 
@@ -142,7 +156,8 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             ctx = build_no_registry_context(
                 entry_id=eid, name=m.water, raw_regs=raw, registry_note=note,
                 region=region_num(row), mus=tuple(sorted(parse_reg_mus(row))), row_index=m.index,
-                symbols=tuple(row.get("symbols", [])))
+                symbols=tuple(row.get("symbols", [])),
+                pages=_row_pages(row), row_image=row.get("image") or "")
             is_noreg = True
         else:
             # NO content dedupe here. Two rows resolving to one registry item with byte-identical
@@ -163,6 +178,8 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             ctx = build_parse_context(registry[m.item_id], raw_regs=raw, entry_id=eid,
                                       region=region_num(row), row_index=m.index, name=name,
                                       symbols=tuple(row.get("symbols", [])),
+                                      pages=_row_pages(row),
+                                      row_image=row.get("image") or "",
                                       review_hints=tuple((review_hints or {}).get(eid, ())),
                                       also_items=tuple(registry[i] for i in m.also if i in registry),
                                       row_mus=tuple(sorted(parse_reg_mus(row))))

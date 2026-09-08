@@ -4,7 +4,7 @@ One-time, idempotent, in-place migration for a datatype rev:
   * rename legacy Extent keys everywhere they appear (rule.extents, rule.tributary_excludes,
     entry.scope, tributaries.excludes): `item -> item_id`, `area -> area_id`, `kind -> area_kind`;
   * re-serialize every entry through the `EntryFile` model, which puts fields in canonical order and
-    MATERIALIZES newer additive fields (source_symbols, revisit, revisit_note, parse_review) with
+    MATERIALIZES newer additive fields (source, revisit, revisit_note, parse_review) with
     their defaults — so the on-disk shape matches what a fresh ingest writes.
 
 Nothing semantic changes (all legacy item/area/kind values are carried over verbatim under the new
