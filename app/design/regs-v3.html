@@ -182,12 +182,15 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .ruler svg{width:100%;display:block;cursor:ew-resize}
 /* what is under the finger, named — precision from feedback, not from target size */
 /* above the strip, not on it — the callout was covering the very band it names */
-.callout{position:absolute;left:16px;right:16px;bottom:100%;background:var(--ink);
-  color:var(--card);padding:7px 10px;display:flex;justify-content:space-between;
-  align-items:baseline;gap:10px;z-index:2;pointer-events:none}
-.callout b{font:600 13px/17px var(--ui);overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap}
-.callout span{font:700 9.5px/12px var(--ui);letter-spacing:1.1px;flex:none;opacity:.85}
+.callout{position:absolute;left:16px;right:16px;bottom:calc(100% - 10px);
+  background:var(--ink);color:var(--card);padding:8px 11px;display:flex;
+  justify-content:space-between;align-items:flex-start;gap:12px;z-index:3;
+  pointer-events:none;box-shadow:3px 3px 0 var(--slab)}
+/* the whole name, wrapped. A label you cannot read is worse than no label, and this one is
+   read with a finger sitting on the strip below it. */
+.callout b{font:600 12.5px/16px var(--ui)}
+.callout span{font:700 9.5px/12px var(--ui);letter-spacing:1.1px;flex:none;opacity:.85;
+  padding-top:2px}
 .ruler.scrubbing{background:var(--tint)}
 .rmark{font:700 8.5px var(--ui);letter-spacing:.7px;fill:var(--sub)}
 .rends{display:flex;justify-content:space-between;margin-top:5px;
@@ -199,7 +202,7 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .bar{flex:none;min-height:28px}
 .bd{flex:1;min-width:0}
 .nm{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.nm b{font:600 14.5px/21px var(--ui)}
+.nm b{font:600 13.5px/18px var(--ui)}
 .nm span:last-child{font:500 13px/17px var(--fig);color:var(--sub);flex:none}
 .df{display:block;font:400 12.5px/18px var(--ui);color:var(--sub);margin-top:2px}
 .add{color:var(--closed)} .rm{color:var(--open)} .same{color:var(--faint)}
@@ -212,23 +215,22 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .chev{flex:none;color:var(--quiet);font-size:16px;align-self:center}
 
 /* ---- stage 2: what -------------------------------------------------------- */
-.r{display:block;width:100%;text-align:left;border-top:1px solid var(--line);
-  padding:12px 18px 13px}
+/* A RULE ROW: a rail for severity, a number in its own gutter, the sentence at full width,
+   and the season on a meta line under it. The rail is the same device the stretch ladder
+   uses, so the two lists read as the same kind of object. */
+.r{display:flex;gap:11px;width:100%;text-align:left;border-top:1px solid var(--line);
+  padding:12px 18px 13px 15px;border-left:3px solid var(--quiet)}
 .r:hover{background:var(--wash)}
-.r.off{opacity:.6}
-.l1{display:flex;gap:10px;align-items:baseline}
-/* the severity mark: colour AND shape, so it survives a colour-blind reader and a
-   sunlit screen — the same rule the tab bar follows by underscoring the selected tab */
-.ic{flex:none;width:9px;margin-top:7px;align-self:flex-start}
-.ic.m3{height:9px;background:var(--closed)}
-.ic.m2{height:5px;margin-top:9px;background:var(--restricted)}
-.ic.m1{height:1.5px;margin-top:11px;background:var(--quiet)}
-.subj{flex:1;font:600 14.5px/21px var(--ui)}
-.win{flex:none;font:500 13px/17px var(--fig);color:var(--sub)}
-.win.now{color:var(--closed)}
-.ext{display:block;margin:2px 0 0 19px;font:400 12.5px/18px var(--ui);color:var(--sub)}
-.ext b{color:var(--ink);font-weight:600}
-.more{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 0 19px}
+.r.off{opacity:.55}
+.r.m3{border-left-color:var(--closed)}
+.r.m2{border-left-color:var(--restricted)}
+.r.m1{border-left-color:var(--quiet)}
+.rb{flex:1;min-width:0}
+.subj{display:block;font:600 14.5px/20px var(--ui)}
+.meta{display:block;margin-top:3px;font:500 11px/15px var(--fig);color:var(--sub);
+  letter-spacing:.2px}
+.meta.now{color:var(--ink)}
+.more{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 0}
 .tag{font:500 11px/14px var(--ui);letter-spacing:.3px;padding:4px 7px;
   background:var(--tint);color:var(--sub)}
 .tag.tr{background:color-mix(in srgb,var(--accent) 12%,transparent);
@@ -257,7 +259,7 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
   box-shadow:0 1px 0 var(--accent)}
 .quote mark i{font-style:normal;font-weight:700;font-size:9px;vertical-align:super;
   margin-left:2px;color:var(--accent)}
-.no{flex:none;width:15px;font:500 11px/21px var(--fig);color:var(--faint);
+.no{flex:none;width:16px;font:500 11px/20px var(--fig);color:var(--faint);
   text-align:right;font-variant-numeric:tabular-nums}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);
   font:500 11px/1.75 var(--fig);color:var(--faint)}
@@ -754,19 +756,14 @@ function build(name, mount){
    * the two ends get their own band under the map where small type and two lines are fine.
    */
   /*
-   * "…downstream of Boston Bar", not "fishing boundary signs 6500 m…".
+   * NOTHING IS TRUNCATED. These are the words a person needs on the ground.
    *
-   * These labels are almost all of the form <qualifier> of <PLACE>, and the PLACE is the
-   * half a reader needs — so a long one is trimmed from the FRONT, keeping the end. Cutting
-   * the other way turned "fishing boundary signs 100 m below the Slesse Creek confluence"
-   * into "fishing boundary signs…", which is every sign on the river.
+   * Both halves used to be cut to 26 characters, which turned "fishing boundary signs 100 m
+   * below the Slesse Creek confluence" into an ellipsis and a fragment — and a boundary you
+   * cannot read is a boundary you cannot find. They are long because the regulation had to
+   * describe a spot on a river bank to a stranger. Set them smaller and let them wrap.
    */
-  function short(s){
-    if(s.length<=26) return s;
-    var cut=s.slice(s.length-26), sp=cut.indexOf(" ");
-    return "…"+(sp>-1&&sp<13?cut.slice(sp+1):cut);
-  }
-  function rungName(i){ return short(foot(i))+" → "+short(head(i)); }
+  function rungName(i){ return foot(i)+" → "+head(i); }
 
   /* ------------------------------------------------------- stage 1: where */
   function whereView(){
@@ -779,8 +776,14 @@ function build(name, mount){
      * the ruler is the picker now. Fitted whole it answers what it is good at: which river
      * this is and where in the province, with every stretch in its own colour.
      */
-    h.push('<div class="mapbox">'+mapSvg(true)+'</div>');
+    /*
+     * ONE PLACE FOR THE NAVIGATOR. It was under the map on the river screen and above it on
+     * the stretch screen, so moving between the two made the control jump the height of a
+     * map. It goes directly under the header in both: it is what you steer with, so it sits
+     * where a reader's thumb finds it without hunting, and the map follows as the picture.
+     */
     h.push(ruler(false));
+    h.push('<div class="mapbox">'+mapSvg(true)+'</div>');
     /*
      * Seventeen rungs each headed CLOSED is seventeen lines that say nothing. A river-wide
      * night closure makes every stretch of the Fraser nominally closed, so the word is both
@@ -836,33 +839,41 @@ function build(name, mount){
   }
 
   /* -------------------------------------------------------- stage 2: what */
+  /*
+   * A RULE IS A SENTENCE AND A SEASON. Nothing else belongs on the line.
+   *
+   * The old row put the season in a mono badge floated RIGHT of the sentence, so every
+   * sentence wrapped early and ragged around a box whose width changed per row — "Hatchery
+   * rainbow trout (≤50cm) daily quota = 4" broke into three lines to make room for "JUL 1 –
+   * APR 30". Two things fought for one line and both lost.
+   *
+   * So the sentence gets the full width and the season goes UNDER it, on a meta line with
+   * whatever else qualifies the rule. The severity that used to be a small mark is now a
+   * rail down the left edge — the same device the stretch ladder uses, so the two lists read
+   * as the same kind of object — and the number sits in its own gutter rather than shoving
+   * the text along.
+   */
   function ruleRow(x,i,dupLoc,num){
     var on=live(x.windows), k=name+"/"+st.i+"/"+i, open=st.open[k];
     var inherited=x.via==="trib"&&x.src&&x.src!==name;
-    /*
-     * NO EXTENT LINE. It used to read "km 77 → 1315" under every single row, and it was true
-     * and worthless: the stretches ARE the extents, so every rule listed on this screen
-     * covers this whole stretch by construction. The line said the same thing on every row
-     * and cost one line each. What actually varies is the LOCATION text, and it is shown
-     * only where it is the one thing separating two otherwise identical rows.
-     */
-    var sub=[];
-    if(dupLoc&&x.location) sub.push('<b>'+esc(x.location)+'</b>');
-    if(x.windows&&x.windows.length>1) sub.push(esc(winWord(x.windows)));
-    return '<button class="r'+(on?"":" off")+'" data-rule="'+esc(k)+'">'
-      +'<span class="l1"><span class="no">'+(num||"")+'</span>'
-      +'<span class="ic '+(MARK[x.kind]||"m1")+'"></span>'
+    var meta=[winWord(x.windows)];
+    if(dupLoc&&x.location) meta.push(x.location);
+    return '<button class="r '+(MARK[x.kind]||"m1")+(on?"":" off")+'" data-rule="'
+      +esc(k)+'">'
+      +'<span class="no">'+(num||"")+'</span>'
+      +'<span class="rb">'
       +'<span class="subj">'+esc(x.details||x.kind)+'</span>'
-      +'<span class="win'+(on?" now":"")+'">'+winBadge(x.windows)+'</span></span>'
-      +(sub.length?'<span class="ext">'+sub.join(" · ")+'</span>':"")
+      +'<span class="meta'+(on?" now":"")+'">'+esc(meta.join(" · "))+'</span>'
       +(open?'<span class="more">'
-        +(x.location?'<span class="tag">'+esc(x.location)+'</span>':"")
+        +(x.location&&!(dupLoc&&x.location)
+          ?'<span class="tag">'+esc(x.location)+'</span>':"")
         +(x.species&&x.species.length
           ?'<span class="tag">'+esc(x.species.join(", "))+'</span>':"")
-        +(inherited?'<span class="tag tr">FROM '+esc(x.src.toUpperCase())+'</span>':"")
+        +(inherited?'<span class="tag tr">FROM '+esc(x.src)+'</span>':"")
         +'</span>':"")
-      +'</button>';
+      +'</span></button>';
   }
+
 
   /*
    * WHICH ROWS NEED THEIR LOCATION SHOWN.
