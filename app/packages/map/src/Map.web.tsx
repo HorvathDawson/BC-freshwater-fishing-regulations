@@ -89,7 +89,7 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
       // `gauges` rides in on the endpoints so the source EXISTS from the first frame;
       // its contents are then replaced imperatively below. Declaring it later would mean
       // rebuilding the whole style every half hour to move a few hundred dots.
-      style: runtimeStyle({ ...at, gauges: gauges ?? EMPTY_FC, outsideData }, theme,
+      style: runtimeStyle({ ...at, gauges: gauges ?? EMPTY_FC }, theme,
                           modes) as unknown as maplibregl.StyleSpecification,
       center: [initial.lon, initial.lat],
       zoom: initial.zoom,
