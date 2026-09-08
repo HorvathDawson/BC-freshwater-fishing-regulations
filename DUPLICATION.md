@@ -154,3 +154,87 @@ Ranked by consequence. Each was confirmed by reading both sites.
   not exist**.
 - `promote.py` tests `verdict in ("bound", "bind")` and `"bound"` is not a legal `Verdict` —
   pydantic rejects it, so half that condition is dead.
+
+---
+
+## From the regs-v3 prototype review, 8 September 2026
+
+Three agents audited `app/design/regs-v3.html` — UX standards, duplicated logic, and the
+screen's claims against the bundle. Everything below was reproduced before it was written
+down. The items fixed in the prototype are noted as such; the rest are the ones that matter,
+because they are defects in the DATA the prototype merely rendered faithfully.
+
+### Curation — a rule bound to water its own sentence excepts
+
+24. **The Fording River is painted CLOSED for 20.2 km of water that is legally open.**
+    `r4:elk_river_s_tributaries_see_exceptions@4-2+4-23` carries
+    `tributaries {included: true, only: true, excludes: []}`, so its `No fishing, Sep 1–Oct 31`
+    sweeps every tributary — while its own verbatim text reads *"EXCEPTIONS — SEE SEPARATE
+    LISTINGS FOR: … **Fording R. downstream of Josephine Falls** …"*. The exception list
+    exists only as prose in a `note` rule and was never structured, so the reach walk cannot
+    see it. The Fording's own entry says `Trout/char catch and release … bait ban` — open,
+    restricted. The screen quotes the excepting sentence two inches below the word CLOSED.
+25. **549 distinct rules are bound `via='trib'`**, and the same mechanism puts six Vedder
+    River rules — one a total June closure — across all 48 km of the Chilliwack, water that
+    lies entirely *above* the bridge those rules name. The resolver got it right on the
+    Vedder (`gnis:3062`, all `via='reach'`); the tributary walk put them back. This is
+    AGENTS §15 (`tributaries_pending`, "nothing downstream may treat such a binding as
+    complete") being treated as complete.
+26. **336 of 662 CLOSED verdicts corpus-wide rest on a closure that is not a closure of that
+    water** (for 2026-09-08): 208 sets / 1,714 waters via unscoped tributary inheritance;
+    46 sets / 307 waters via `Angling prohibited for non-guided non-resident aliens on
+    Saturdays and Sundays`; 74 sets / 75 lakes via `No ice fishing`. Champion Lake #1 is
+    painted CLOSED in September because ice fishing is prohibited.
+
+### Claims the app makes about itself
+
+27. "98.38% of waters have one set of rules end to end" is **streams only** — 11,957 of
+    19,693 items. Over all waters it is 99.01%. And **54% of those 11,763 streams have no
+    rules at all**; the honest sentence is "96.5% of the streams that have rules". A further
+    136 are not uniform once non-mainstem sections are counted, because the metric reads only
+    the busiest blue line.
+
+### Prototype defects, fixed 8 September 2026
+
+28. `narrows()` took no audience, so it demoted **every** species-bearing closure to a
+    restriction — including the closure naming the fish the reader had just chosen. A
+    sturgeon angler saw amber on water shut for sturgeon. *Fixed: `narrows(rule, groups)`.*
+29. `outs` was computed once at construction, so the species filter changed the rules list
+    and left every colour it governs — ruler bands, river ink, ladder rails, callout, pill —
+    exactly as they were. The same shape as finding 3. *Fixed: recomputed each render.*
+30. The verdict word appeared **only** on the river screen, so the stretch detail never said
+    whether you could fish and a single-run water — 98.38% of them — never showed it at all.
+    *Fixed: a verdict band above "In force today".*
+31. `‹ Back` was a 50×14px `<div>`, `tabIndex -1`, and **inert on both screens a reader
+    lands on**. *Fixed: a 44px `<button>`, labelled for its destination.*
+32. The ruler committed a navigation on a bare press-release with **no movement threshold**,
+    while the map beside it — an identical drag surface — required 2px. A thumb scrolling the
+    page navigated instead. *Fixed: a vertical-intent threshold.*
+33. `.r.off{opacity:.55}` put the "not in force today" meta line at **2.13:1** — the block
+    holding next week's closures, the one place a reader must read carefully. And dark
+    `--quiet` at `#2F363D` was **1.46:1**, painting the chevron and the note-severity rail,
+    so severity silently collapsed from three values to two. *Both fixed.*
+
+### Prototype defects still open (blockers for promotion)
+
+34. `outcome()` cannot return `unknown` — `uncertain` rules are filtered out and never used,
+    so an unplaceable closure renders **OPEN, green**. `status.ts` gets this right. Invisible
+    in the prototype only because its fixture has zero uncertain rules — the same "the
+    fixture had the same bug" failure as the date windows above.
+35. `WORD` has three members against `Outcome`'s four; there is no `.pill.unknown` and no
+    `.r.o-unknown`. The day `unknown` arrives the callout renders the string `undefined`.
+    Violates AGENTS rule 29.
+36. **No `cvd` palette at all** — the switcher offers light/dark/system on a screen whose
+    entire message is carried by red/amber/green.
+37. **No OpenStreetMap attribution anywhere.** `map-props.ts` is explicit that attribution
+    *moves* when `bare` is set, it does not disappear. This is a licence obligation.
+38. `var TODAY={month:9,day:7}` — a hard-coded date with no year, the exact regression
+    `dates.ts` documents. Right by luck: no rule in the corpus flips between 907 and 908.
+39. The prototype hand-rolls Web Mercator at **tile size 256** while `core/src/trace.ts` uses
+    **512** for a documented, measured reason. Promoting it puts every camera fit a factor of
+    two out. Also a fifth month table (`MON`, 1-indexed against `MONTHS`' 0-indexed), a second
+    severity table, a second rule identity (`key()` vs `id()` — and the weaker one drives the
+    ladder delta, which prints "same rules as below" at a real Fraser boundary), and a third
+    copy of the outcome colours with no guard.
+40. `marked()` drops a span that overlaps an earlier one, so where two rules are parsed from
+    one sentence the second rule's number has no anchor — the Fording's rules 1 and 2.

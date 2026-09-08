@@ -41,7 +41,7 @@
   :root:not([data-theme="light"]){
     --page:#0A0B0D; --card:#15181B; --wash:#101215; --tint:#1E2227;
     --line:#252A2F; --line2:#343B42;
-    --ink:#F0F2F0; --sub:#98A0A7; --faint:#7C858C; --quiet:#2F363D;
+    --ink:#F0F2F0; --sub:#98A0A7; --faint:#7C858C; --quiet:#68727B;
     --accent:#A97CFF; --on-accent:#100A22; --live:#37D6EA;
     --closed:#E8695A; --restricted:#e8a733; --open:#48b07a; --unknown:#a78bd0;
     --slab:rgba(0,0,0,.85);
@@ -50,7 +50,7 @@
 :root[data-theme="dark"]{
   --page:#0A0B0D; --card:#15181B; --wash:#101215; --tint:#1E2227;
   --line:#252A2F; --line2:#343B42;
-  --ink:#F0F2F0; --sub:#98A0A7; --faint:#7C858C; --quiet:#2F363D;
+  --ink:#F0F2F0; --sub:#98A0A7; --faint:#7C858C; --quiet:#68727B;
   --accent:#A97CFF; --on-accent:#100A22; --live:#37D6EA;
   --closed:#E8695A; --restricted:#e8a733; --open:#48b07a; --unknown:#a78bd0;
   --slab:rgba(0,0,0,.85);
@@ -109,8 +109,11 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 
 /* ---- header --------------------------------------------------------------- */
 .top{padding:14px 18px 13px;border-bottom:1px solid var(--line)}
+/* 44px of height, per Apple HIG and Material — it was 14. The negative margin keeps the
+   optical position while the target extends past the ink. */
 .back{font:700 11px/14px var(--ui);letter-spacing:1.4px;text-transform:uppercase;
-  color:var(--accent);margin-bottom:11px;display:inline-block;cursor:pointer}
+  color:var(--accent);display:inline-flex;align-items:center;min-height:44px;
+  margin:-13px 0 -2px;padding-right:14px;cursor:pointer}
 .wname{font:800 30px/34px var(--dis);letter-spacing:-.7px}
 /* the two ends of a stretch, and what it runs past. The labels are the regulation's own
    words, so they are as long as they need to be to be findable on the ground. */
@@ -181,6 +184,8 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
    outcome's own colour — never hue alone */
 .const{display:flex;align-items:center;gap:9px;padding:12px 18px;
   font:400 12.5px/18px var(--ui);color:var(--sub);border-bottom:1px solid var(--line)}
+.verdict{display:flex;align-items:center;gap:10px;padding:12px 18px;
+  border-bottom:1px solid var(--line);font:400 12.5px/17px var(--ui);color:var(--sub)}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;flex:none;
   font:700 12px/14px var(--ui);letter-spacing:.7px;text-transform:uppercase}
 .pill s{width:7px;height:7px;display:block;text-decoration:none}
@@ -263,7 +268,11 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .r{display:flex;gap:11px;width:100%;text-align:left;border-top:1px solid var(--line);
   padding:12px 18px 13px 15px;border-left:3px solid var(--quiet)}
 .r:hover{background:var(--wash)}
-.r.off{opacity:.55}
+/* NOT opacity. At .55 the meta line measured 2.13:1 — and this is the block holding next
+   week's closures, the one place a person must read carefully. */
+.r.off{background:var(--wash)}
+.r.off .subj{color:var(--sub)}
+.r.off .ic{opacity:.45}
 .r.m3{border-left-color:var(--closed)}
 .r.m2{border-left-color:var(--restricted)}
 .r.m1{border-left-color:var(--quiet)}
@@ -439,17 +448,35 @@ function esc(s){return String(s==null?"":s).replace(/[&<>]/g,function(c){
  */
 var TIME_OF_DAY=/sunset|sunrise|\d{1,2}:\d{2}\s*hours|\d\s*(?:am|pm)\b/i;
 var PART_OF_PLACE=/named side channels|within \d+\s*m\b|near .*(?:mouth|outlet|weir)/i;
-function narrows(r){
+/*
+ * A NARROWING IS RELATIVE TO WHO IS ASKING.
+ *
+ * This took no audience, so it demoted EVERY species-bearing closure to a restriction —
+ * including the one naming the very fish the reader had just ticked. A sturgeon angler was
+ * shown amber on water shut for sturgeon, by the same function whose comment calls a wrong
+ * colour here the worst thing this screen can get wrong. It narrowed on species, and then
+ * nobody asked "narrower than what?".
+ *
+ * Given a chosen group, a closure on that group's fish narrows on NOTHING the reader cares
+ * about: it shuts the water they came for, and it is a closure. With no group chosen the old
+ * behaviour is right, because "some fish are closed" is genuinely a restriction on a river
+ * you may still fish.
+ */
+function narrows(r, groups){
   if(r.kind!=="closure") return null;
-  if((r.species||[]).length) return "species";
+  if((r.species||[]).length){
+    if(groups&&groups.length&&appliesTo(r, groups)) return null;   // it shuts YOUR fish
+    return "species";
+  }
   var d=r.details||"";
   if(TIME_OF_DAY.test(d)) return "time";
   if(PART_OF_PLACE.test(d)) return "place";
   return null;                        // closes the water, full stop
 }
-function outcome(rs){ var L=rs.filter(function(r){return !r.uncertain&&live(r.windows);});
+function outcome(rs, groups){
+  var L=rs.filter(function(r){return !r.uncertain&&live(r.windows);});
   if(!L.length) return "open";
-  var shut=L.some(function(r){ return r.kind==="closure" && narrows(r)===null; });
+  var shut=L.some(function(r){ return r.kind==="closure" && narrows(r, groups)===null; });
   if(shut) return "closed";
   return L.some(function(r){ return (SEV[r.kind]||1)>=2; })?"restricted":"open"; }
 /* The next day any rule starts or stops. On a screen full of dates this is the only one
@@ -727,7 +754,24 @@ function build(name, mount){
     return rules.some(function(x){ return (x.species||[]).some(function(c){
       return g.codes.indexOf(c)>=0; }); });
   });
-  var outs=runs.map(function(run){return outcome(mineIn(run));});
+  /*
+   * THE VERDICTS ARE RECOMPUTED, NOT SNAPSHOT.
+   *
+   * `outs` was built once here, at construction, before the reader existed — so ticking a
+   * species changed the rules list and left every colour it governs exactly as it was: the
+   * ruler bands, the river ink, the ladder rails, the callout and the constant pill. The
+   * screen said one thing in the list and the opposite in the colours, in one viewport.
+   *
+   * This is the shape of the `within`-filter bug already in DUPLICATION.md — one path fixed,
+   * the other missed, and the divergence only visible on a second interaction. `outs` is a
+   * function now, so there is no snapshot to go stale.
+   */
+  var outs=[];
+  function recomputeOuts(){
+    var g=group();
+    outs=runs.map(function(run){ return outcome(mineIn(run), g); });
+  }
+  recomputeOuts();
 
   var mapMarks=[];
   function mapSvg(whole){
@@ -1392,6 +1436,21 @@ function build(name, mount){
         +'</dl>');
     }
     // The heading used to repeat the title above it word for word — "km 0–20 / KM 0–20".
+    /*
+     * THE ANSWER, ON THE SCREEN THAT PROMISES IT.
+     *
+     * The verdict lived only on the river screen — as a pill when every stretch agreed, or a
+     * word in each rung. So the screen titled "What applies here" never said whether you
+     * could fish, and a single-stretch water, which is 98.38% of them, never showed it at
+     * all: a reader had to infer it from a rail colour and the phrase "No fishing" somewhere
+     * in a list of ten.
+     */
+    var verdict=outcome(many?mineIn(runs[st.i]):here.concat(notMine), group());
+    h.push('<div class="verdict"><span class="pill '+verdict+'"><s></s>'+WORD[verdict]
+      +'</span><span>'+(verdict==="closed"
+        ?"for what you are fishing for, today"
+        :verdict==="restricted"?"open, with rules in force today"
+        :"nothing in force here today")+'</span></div>');
     h.push('<div class="sect"><span>In force today</span><em>'
       +(nowOwn.length+nowInh.length)+' of '+here.length+'</em></div>');
     h.push(groupBar());
@@ -1468,9 +1527,13 @@ function build(name, mount){
   }
 
   function render(){
+    recomputeOuts();          // the audience may have changed since the last paint
     var where=st.stage==="where", h=[];
-    h.push('<div class="top"><div class="back" data-back="1">‹ '
-      +(where||!many?"Back":esc(r.name))+'</div>'
+    /* A REAL BUTTON. It was a 50x14px <div> with tabIndex -1, inert on both screens a
+       reader lands on, and labelled "Back" exactly where it did nothing — while on the one
+       screen where it worked it said the river's name, duplicating the title beneath it. */
+    h.push('<div class="top"><button class="back" data-back="1">‹ '
+      +(where||!many?"All waters":"All "+runs.length+" stretches")+'</button>'
       +'<div class="wname">'+esc(r.name)+'</div>'
       +'<div class="wsub">'+(where
         ? runs.length+" STRETCHES · "+Math.round(r.total)+" KM"
@@ -1493,8 +1556,10 @@ function build(name, mount){
         for(var i=0;i<runs.length;i++){ if(px<xsAttr[i+1]) return i; }
         return runs.length-1;
       };
+      var from=null;
       rl.onpointerdown=function(ev){
-        if(rl.setPointerCapture) rl.setPointerCapture(ev.pointerId);
+        try{ rl.setPointerCapture(ev.pointerId); }catch(e){}
+        from=[ev.clientX, ev.clientY];
         st.scrub=pickAt(ev.clientX); render();
       };
       rl.onpointermove=function(ev){
@@ -1502,8 +1567,15 @@ function build(name, mount){
         var at=pickAt(ev.clientX);
         if(at!==st.scrub){ st.scrub=at; render(); }
       };
-      rl.onpointerup=function(){
+      rl.onpointerup=function(ev){
         if(st.scrub==null) return;
+        /* A VERTICAL SWIPE IS A SCROLL, NOT A CHOICE. There was no threshold at all, so a
+           thumb dragging down the page committed a navigation to whatever band it began on
+           — while the map beside it, an identical drag surface, required 2px. */
+        if(from&&Math.abs(ev.clientY-from[1])>Math.abs(ev.clientX-from[0])+8){
+          from=null; st.scrub=null; render(); return;
+        }
+        from=null;
         var pick=st.scrub; st.scrub=null;
         st.i=pick; st.stage="what"; st.later=false; st.z=0; st.pan=null;
         screen.scrollTop=0; render();
