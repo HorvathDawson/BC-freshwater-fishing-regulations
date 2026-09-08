@@ -198,8 +198,14 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
    the screen below it means. Chips WRAP rather than scroll sideways: a control that has to
    be scrolled to be seen whole is a control whose options are hidden, and with four groups
    there is no need — two rows at worst. */
-.fish{padding:9px 18px;border-bottom:1px solid var(--line);background:var(--card)}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
+/* THE FILTER AT REST IS A SENTENCE. The buttons only exist while somebody is changing it. */
+.fish{border-bottom:1px solid var(--line);background:var(--card)}
+.fish.open{background:var(--wash)}
+.fline{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;
+  text-align:left;padding:7px 18px 8px;font:400 12.5px/17px var(--ui);color:var(--sub)}
+.fline .n{flex:none;font:700 9.5px/12px var(--ui);letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 10px}
 .chip{padding:5px 10px;border:1.5px solid var(--line2);background:var(--card);
   font:600 12px/16px var(--ui);color:var(--sub);white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
@@ -548,7 +554,7 @@ function build(name, mount){
    */
   var many=runs.length>1;
   var st={stage:many?"where":"what", i:0, later:false, whole:false, open:{}, scrub:null,
-          z:0, pan:null, src:false, groups:[], other:false};
+          z:0, pan:null, src:false, groups:[], other:false, pick:false};
 
   var el=document.createElement("div"); el.className="phone";
   el.innerHTML='<div class="screen"></div><div class="tabbar">'+TABS+'</div>';
@@ -662,15 +668,38 @@ function build(name, mount){
    * about better than a caption beside it did, and buys back the 80px the caption was
    * costing on a 412px screen — which is why the chips were scrolling sideways at all.
    */
+  /*
+   * A SENTENCE, NOT A BAND OF BUTTONS.
+   *
+   * The chips were a permanent 40px row above the navigator on every screen — a control you
+   * touch once a season, given the same standing as the thing you steer with, and splitting
+   * the header from the river. What a reader needs at rest is not the control but its STATE,
+   * and one line says that: "Showing rules for sturgeon only". The buttons appear when
+   * somebody asks to change it and go away again afterwards.
+   *
+   * It sits directly under IN FORCE TODAY, because that is the count it qualifies — "5 of 8"
+   * means nothing without knowing that three belong to another fish.
+   */
+  function filterWords(){
+    var on=GROUPS.filter(function(g){ return st.groups.indexOf(g.id)>=0; })
+      .map(function(g){ return g.name.toLowerCase(); });
+    if(!on.length) return "Showing rules for all species";
+    if(on.length===1) return "Showing rules for "+on[0]+" only";
+    return "Showing rules for "+on.slice(0,-1).join(", ")+" and "+on[on.length-1];
+  }
   function groupBar(){
     if(!LIVE_GROUPS.length) return "";
     var none=!st.groups.length;
-    return '<div class="fish"><div class="chips">'
-      +'<button class="chip" data-group="" aria-pressed="'+none+'">All species</button>'
-      +LIVE_GROUPS.map(function(g){
-        return '<button class="chip" data-group="'+g.id+'" aria-pressed="'
-          +(st.groups.indexOf(g.id)>=0)+'">'+esc(g.name)+'</button>';
-      }).join("")+'</div></div>';
+    return '<div class="fish'+(st.pick?" open":"")+'">'
+      +'<button class="fline" data-pick="1"><span>'+esc(filterWords())+'</span>'
+      +'<span class="n">'+(st.pick?"Done":"Change")+'</span></button>'
+      +(st.pick?'<div class="chips">'
+        +'<button class="chip" data-group="" aria-pressed="'+none+'">All species</button>'
+        +LIVE_GROUPS.map(function(g){
+          return '<button class="chip" data-group="'+g.id+'" aria-pressed="'
+            +(st.groups.indexOf(g.id)>=0)+'">'+esc(g.name)+'</button>';
+        }).join("")+'</div>':"")
+      +'</div>';
   }
 
   function runRules(run){
@@ -1107,7 +1136,6 @@ function build(name, mount){
      * map. It goes directly under the header in both: it is what you steer with, so it sits
      * where a reader's thumb finds it without hunting, and the map follows as the picture.
      */
-    h.push(groupBar());
     h.push(ruler(false));                       // nothing chosen yet: no bracket
     h.push('<div class="mapbox">'+mapSvg(true)+zoomControls()+'</div>');
     /*
@@ -1129,6 +1157,7 @@ function build(name, mount){
      * Source at the top, because water runs down a screen the way it runs down a hill, and
      * scrolling up goes upstream.
      */
+    h.push(groupBar());
     h.push('<div class="lad"><div class="cap top"><s></s>'
       +'<span>The head · upstream</span></div>');
     // Source at the top: water runs down the screen, so scrolling up goes upstream.
@@ -1290,7 +1319,6 @@ function build(name, mount){
     var num=new Map(), seq=0;
     nowOwn.concat(nowInh, later).forEach(function(x){ num.set(x, ++seq); });
     var h=[];
-    h.push(groupBar());
     if(many) h.push(ruler(true));               // a stretch is chosen: bracket it
     h.push('<div class="mapbox">'+mapSvg(false)+zoomControls()+'</div>');
     // No PAST line. The map beneath already shows those towns, in OpenStreetMap's own
@@ -1315,6 +1343,7 @@ function build(name, mount){
     // The heading used to repeat the title above it word for word — "km 0–20 / KM 0–20".
     h.push('<div class="sect"><span>In force today</span><em>'
       +(nowOwn.length+nowInh.length)+' of '+here.length+'</em></div>');
+    h.push(groupBar());
     h.push(rows(nowOwn,'n',num));
     if(nowInh.length){
       h.push('<div class="from">Also in force here, written for the <b>'+esc(src)
@@ -1467,6 +1496,8 @@ function build(name, mount){
     if(sc) sc.onclick=function(){ st.src=!st.src; render(); };
     var ot=screen.querySelector("[data-other]");
     if(ot) ot.onclick=function(){ st.other=!st.other; render(); };
+    var pk=screen.querySelector("[data-pick]");
+    if(pk) pk.onclick=function(){ st.pick=!st.pick; render(); };
     screen.querySelectorAll("[data-group]").forEach(function(n){
       n.onclick=function(){
         var id=n.getAttribute("data-group");
