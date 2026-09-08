@@ -126,10 +126,7 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .mapbox{background:var(--tint);border-bottom:1px solid var(--line);line-height:0}
 .mapbox svg{width:100%;display:block}
 /* map labels: painted stroke-then-fill so a name stays legible over any tile */
-/* A PRINTED TAG, not haloed text. 9.5px is TYPE.tab, the smallest size this app sets;
-   8px with a white halo on a pale green tile was below anything the design allows, and
-   OpenStreetMap's own labels were more legible than ours on our own map. */
-.mtown{font:700 9.5px var(--ui);letter-spacing:1.1px;fill:var(--card);text-anchor:middle}
+/* No .mtown any more: the basemap carries the place names, so we draw none. See mapSvg. */
 /*
  * The basemap in the dark theme.
  *
@@ -145,13 +142,15 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
  */
 /* The basemap is GROUND. At full saturation OpenStreetMap's own place labels compete with
    ours for the same job, and its motorway reds compete with the closure colour. */
-.mapbox image{filter:saturate(.3) brightness(1.07) contrast(.92)}
+/* The tile is the label layer now, so it is no longer pushed as far back — just enough
+   desaturation that its motorway reds do not read as a closure. */
+.mapbox image{filter:saturate(.55)}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .mapbox image{
-    filter:invert(1) hue-rotate(180deg) saturate(.25) brightness(.78)}
+    filter:invert(1) hue-rotate(180deg) saturate(.45) brightness(.82)}
 }
 :root[data-theme="dark"] .mapbox image{
-  filter:invert(1) hue-rotate(180deg) saturate(.25) brightness(.78)}
+  filter:invert(1) hue-rotate(180deg) saturate(.45) brightness(.82)}
 .mapcap{font:500 11px/14px var(--ui);letter-spacing:.3px;color:var(--faint);margin:0;
   padding:7px 18px 8px;border-bottom:1px solid var(--line);background:var(--wash)}
 /* the status pill, from StatusPill.tsx: a 13%-tint ground, a square dot, the word in the
@@ -366,8 +365,7 @@ function build(name, mount){
     var pts=[];
     if(whole){ runs.forEach(function(x){x.pts.forEach(function(p){pts=pts.concat(p);});});
                r.side.forEach(function(x){pts=pts.concat(x.pts);}); }
-    else { runs[st.i].pts.forEach(function(p){pts=pts.concat(p);});
-           (runs[st.i].towns||[]).forEach(function(x){pts.push([x.lon,x.lat]);}); }
+    else { runs[st.i].pts.forEach(function(p){pts=pts.concat(p);}); }
     if(!pts.length) pts=[[-123,49]];
     var lo=[Math.min.apply(null,pts.map(function(p){return p[0];})),
             Math.min.apply(null,pts.map(function(p){return p[1];}))];
@@ -410,7 +408,7 @@ function build(name, mount){
         if(ty<0||ty>=n)continue;
         g.push('<image href="https://tile.openstreetmap.org/'+Z+'/'+(((tx%n)+n)%n)+'/'+ty
           +'.png" x="'+(tx*sz-wx).toFixed(1)+'" y="'+(ty*sz-wy).toFixed(1)
-          +'" width="256" height="256" opacity=".45"/>'); }
+          +'" width="256" height="256" opacity=".82"/>'); }
     // Side channels are drawn, never listed: province-wide only 7 waters of 1,353 carry a
     // rule on a side channel that the mainstem beside it does not already carry.
     r.side.forEach(function(sc){ if(sc.pts.length>1)
@@ -421,8 +419,12 @@ function build(name, mount){
       run.pts.forEach(function(p){ if(p.length<2) return;
         // the halo is the CARD colour, so the river reads as drawn on the app rather than
         // on the tile; white was a third colour that belonged to neither
+        // the whole-river view is a province at a time, where a 2px line is a thread; the
+        // tiles carry their own labels now and are no longer washed out, so the river has to
+        // hold its own against them
         g.push('<path d="'+path(p)+'" fill="none" stroke="var(--card)" stroke-width="'
-          +(on?8:4.5)+'" opacity=".85" stroke-linecap="round" stroke-linejoin="round"/>');
+          +(on?8:whole?6:4.5)+'" opacity=".85" stroke-linecap="round" '
+          +'stroke-linejoin="round"/>');
         /*
          * THE REST OF THE RIVER KEEPS ITS COLOUR.
          *
@@ -433,7 +435,8 @@ function build(name, mount){
          * to stop meaning anything.
          */
         g.push('<path d="'+path(p)+'" fill="none" stroke="var(--'+outs[i]+')" '
-          +'stroke-width="'+(on?4.5:2)+'" stroke-opacity="'+(on||whole?1:.55)+'" '
+          +'stroke-width="'+(on?4.5:whole?3:2)+'" stroke-opacity="'
+          +(on||whole?1:.55)+'" '
           +'stroke-linecap="round" stroke-linejoin="round" data-i="'+i+'" '
           +'style="cursor:pointer"/>'); });
     });
@@ -465,43 +468,20 @@ function build(name, mount){
        * the Fraser's boundary signs, which is precisely why somebody wants to see them, and
        * suppressing them left that map with no place name on it at all.
        */
-      var placed=[];
-      (runs[st.i].towns||[]).forEach(function(x){
-        var px=fx([x.lon,x.lat]), py=fy([x.lon,x.lat]);
-        if(px<2||px>MW-2||py<2||py>MH-2) return;
-        var label=x.name.toUpperCase(), w=label.length*6.8+12, H=14;
-        var near=ends.some(function(m){
-          return Math.abs(fx(m)-px)<15 && Math.abs(fy(m)-py)<15; });
-        // try each side of the mark, then above and below, and take the first that is
-        // inside the frame and clear of every tag already down
-        // eight candidates, not four: two tags on the Chilliwack ran into each other with
-        // only left/right/above/below to choose from, and a tag that overlaps another is
-        // less readable than a tag that is not drawn
-        var spots=[[px+10,py-H/2],[px-10-w,py-H/2],[px-w/2,py+12],[px-w/2,py-12-H],
-                   [px+10,py+12],[px-10-w,py+12],[px+10,py-12-H],[px-10-w,py-12-H]];
-        if(near) spots=[spots[1],spots[3],spots[5],spots[7],spots[2],spots[4],spots[0]];
-        var at=null;
-        for(var k=0;k<spots.length;k++){
-          var bx=spots[k][0], by=spots[k][1];
-          if(bx<2||bx+w>MW-2||by<2||by+H>MH-2) continue;
-          // 16px of horizontal clearance, not 6. Two solid plates six pixels apart on the
-          // same baseline do not read as two labels, they read as one long bar with a gap
-          // in it — POPKUM and ROSEDALE were technically not overlapping and still wrong.
-          if(placed.some(function(q){ return bx<q.bx+q.w+16 && bx+w+16>q.bx
-                && by<q.by+q.h+5 && by+H+5>q.by; })) continue;
-          at=[bx,by]; break;
-        }
-        g.push('<rect x="'+(px-2.5).toFixed(1)+'" y="'+(py-2.5).toFixed(1)
-          +'" width="5" height="5" fill="var(--ink)" stroke="var(--card)" '
-          +'stroke-width="1.8"/>');
-        if(!at) return;
-        placed.push({bx:at[0],by:at[1],w:w,h:H});
-        g.push('<rect x="'+at[0].toFixed(1)+'" y="'+at[1].toFixed(1)+'" width="'
-          +w.toFixed(1)+'" height="'+H+'" fill="var(--ink)"/>');
-        g.push('<text x="'+(at[0]+w/2).toFixed(1)+'" y="'+(at[1]+9.8).toFixed(1)
-          +'" class="mtown">'+esc(label)+'</text>');
-      });
-
+      /*
+       * NO PLACE LABELS OF OUR OWN. The tile already carries them.
+       *
+       * There were ink tags here for the settlements along the stretch, and every problem
+       * they had came from being a second labelling system fighting the first: they
+       * overlapped each other, they sat on top of the river, they clipped at the frame, and
+       * they had to be sized by guessing at the width of a string. OpenStreetMap has already
+       * placed Vancouver, Hope, Lytton and Prince George on this raster, without collisions,
+       * at every zoom. Reproducing that badly was the whole cost of drawing them.
+       *
+       * The names are not lost — the PAST line in the band below still lists them, in text,
+       * where a long name is free. What the map keeps is the one thing the tile cannot know:
+       * the stretch, and where it starts and stops.
+       */
       // The two ends: a bar CUT ACROSS the river, which is how a boundary sign reads on the
       // ground, rather than a dot sitting on it that could be anything.
       ends.forEach(function(m,k){
@@ -550,14 +530,48 @@ function build(name, mount){
    * are not. A 1 km stretch is a quarter of a pixel here, which is honest — so its BOUNDARY
    * is drawn as a full-height tick, and the tick is the thing you can see and aim at.
    */
+  /*
+   * A MINIMUM WIDTH, AND WHAT IT COSTS.
+   *
+   * At true scale the Fraser's 1 km stretches are a quarter of a pixel — invisible, and
+   * impossible to aim at even with a boundary tick to sight on. Every segment gets 7px, and
+   * the space comes proportionally out of the ones with room to spare, applied repeatedly
+   * until nothing is under the floor again.
+   *
+   * So the ruler is no longer strictly to scale, and that is a real trade: the top 642 km of
+   * the Fraser now looks like about half the river rather than the half it actually is.
+   * What survives is the ordering, the rough proportion, and the thing worth seeing — that
+   * every boundary sits in the downstream part of the river. `at()` is the ONE mapping from
+   * kilometres to pixels, so bands, boundary ticks, landmarks and the tap all agree about
+   * where a place is; two of them disagreeing would be worse than any distortion.
+   */
   function ruler(compact){
     var W=380, BH=compact?13:19, TOP=compact?4:7, y0=TOP+7;
     var H=y0+BH+(compact?7:30);
-    var X=function(km){ return 2+(W-4)*km/r.total; };
+    var SPAN=W-4, MIN=Math.min(7, SPAN/runs.length);
+    var w=runs.map(function(run){ return (run.to-run.from)/r.total*SPAN; });
+    for(var pass=0;pass<8;pass++){
+      var small=0, bigSum=0;
+      w.forEach(function(v){ if(v<MIN) small++; else bigSum+=v; });
+      if(!small || bigSum<=0) break;
+      var k=(SPAN-small*MIN)/bigSum;
+      w=w.map(function(v){ return v<MIN?MIN:v*k; });
+    }
+    var xs=[2];
+    w.forEach(function(v){ xs.push(xs[xs.length-1]+v); });
+    var X=function(km){
+      for(var i=0;i<runs.length;i++){
+        if(km<=runs[i].to || i===runs.length-1){
+          var d=runs[i].to-runs[i].from, f=d>0?(km-runs[i].from)/d:0;
+          return xs[i]+Math.max(0,Math.min(1,f))*(xs[i+1]-xs[i]);
+        }
+      }
+      return xs[xs.length-1];
+    };
     var g=[];
     runs.forEach(function(run,i){
-      var a=X(run.from), b=X(run.to);
-      g.push('<rect x="'+a.toFixed(2)+'" y="'+y0+'" width="'+Math.max(b-a,0.4).toFixed(2)
+      var a=xs[i], b=xs[i+1];
+      g.push('<rect x="'+a.toFixed(2)+'" y="'+y0+'" width="'+(b-a).toFixed(2)
         +'" height="'+BH+'" fill="var(--'+outs[i]+')" opacity="'+(i===st.i?1:.8)+'"/>');
     });
     runs.forEach(function(run,i){ if(!i) return;
@@ -565,7 +579,7 @@ function build(name, mount){
         +X(run.from).toFixed(2)+'" y2="'+(y0+BH+3)+'" stroke="var(--ink)" '
         +'stroke-width="1.2"/>'); });
     // where you are: a bracket in ink, over the band rather than instead of its colour
-    var sa=X(runs[st.i].from), sb=X(runs[st.i].to);
+    var sa=xs[st.i], sb=xs[st.i+1];
     g.push('<rect x="'+(sa-1.5).toFixed(2)+'" y="'+(y0-3)+'" width="'
       +Math.max(sb-sa+3,4).toFixed(2)+'" height="'+(BH+6)
       +'" fill="none" stroke="var(--ink)" stroke-width="2"/>');
@@ -588,7 +602,8 @@ function build(name, mount){
       +esc(r.name)+', mouth to head, '+Math.round(r.total)
       +' kilometres, each stretch in its own colour">'+g.join("")
       +'<rect x="0" y="0" width="'+W+'" height="'+H+'" fill="transparent" '
-      +'data-ruler="1" style="cursor:pointer"/></svg>'
+      +'data-ruler="1" data-xs="'+xs.map(function(v){return v.toFixed(1);}).join(",")
+      +'" style="cursor:pointer"/></svg>'
       +'<div class="rends"><span>MOUTH</span><span>'+Math.round(r.total)
       +' KM · HEAD</span></div></div>';
   }
@@ -631,6 +646,15 @@ function build(name, mount){
   /* ------------------------------------------------------- stage 1: where */
   function whereView(){
     var h=[], varies=outs.some(function(o){return o!==outs[0];});
+    /*
+     * THE MAP COMES BACK, with a job it can do.
+     *
+     * Removing it left a multi-stretch water opening on no map at all, which is a worse
+     * first screen than a poor map. It was never useless — it was useless as a PICKER, and
+     * the ruler is the picker now. Fitted whole it answers what it is good at: which river
+     * this is and where in the province, with every stretch in its own colour.
+     */
+    h.push('<div class="mapbox">'+mapSvg(true)+'</div>');
     h.push(ruler(false));
     /*
      * Seventeen rungs each headed CLOSED is seventeen lines that say nothing. A river-wide
@@ -822,10 +846,14 @@ function build(name, mount){
     screen.innerHTML=h.join("");
     var rl=screen.querySelector("[data-ruler]");
     if(rl) rl.onclick=function(ev){
+      // invert the ruler's OWN layout rather than assuming true scale — with minimum widths
+      // in play those are different answers, and the wrong one picks the neighbouring
+      // stretch near every boundary
       var box=rl.getBoundingClientRect();
-      var km=((ev.clientX-box.left)/box.width*380-2)/376*r.total;
-      var pick=0;
-      runs.forEach(function(run,i){ if(km>=run.from-0.01) pick=i; });
+      var px=(ev.clientX-box.left)/box.width*380;
+      var xs=rl.getAttribute("data-xs").split(",").map(Number);
+      var pick=runs.length-1;
+      for(var i=0;i<runs.length;i++){ if(px<xs[i+1]){ pick=i; break; } }
       st.i=pick; st.stage="what"; st.later=false; screen.scrollTop=0; render();
     };
     screen.querySelectorAll("[data-go]").forEach(function(n){
