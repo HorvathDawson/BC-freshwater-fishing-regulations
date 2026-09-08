@@ -1,12 +1,12 @@
 {
-  "_about": "Blanket area closures \u2014 cut ALL streams that cross the polygon (first-enter/last-exit) and flag the inside reaches (in_areas). Unlike splits.json area_boundary anchors (scoped to one system), these apply to every stream. Consumed by the graph build; a `within(area)` reg binds to the inside sections at match time. Selector: layer + name_field + either which:'all' or a SQL `where`.",
+  "_about": "Blanket area closures — cut ALL streams that cross the polygon (first-enter/last-exit) and flag the inside reaches (in_areas). Unlike splits.json area_boundary anchors (scoped to one system), these apply to every stream. Consumed by the graph build; a `within(area)` reg binds to the inside sections at match time. Selector: layer + name_field + either which:'all' or a SQL `where`.",
   "areas": [
     {
       "id": "national_parks",
       "layer": "parks_nat",
       "name_field": "ENGLISH_NAME",
       "which": "all",
-      "note": "All national parks (102) \u2014 closures apply to all waters within.",
+      "note": "All national parks (102) — closures apply to all waters within.",
       "cut": true,
       "tile_layer": "park",
       "tile_kind": "national",
@@ -41,7 +41,7 @@
       "per_feature": true,
       "label_default": "Restricted-access land",
       "where": "restriction_level = 'closed'",
-      "note": "OSM land the public cannot enter \u2014 access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers).",
+      "note": "OSM land the public cannot enter — access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers).",
       "cut": true,
       "tile_layer": "no_access",
       "tile_kind": "closed",
@@ -55,7 +55,7 @@
       "per_feature": true,
       "label_default": "Permission-only land",
       "where": "restriction_level = 'restricted'",
-      "note": "The other half of land_access: places you MAY enter, with permission \u2014 access=permit/permissive/customers. Four of them, and two hold real water: the UBC Malcolm Knapp Research Forest and Ten Mile Point Ecological Reserve. They were dropped entirely, because `restricted_land_access` takes only restriction_level='closed' and nothing else claimed the rest; v1 drew every level. NEVER cut: the cut policy is for blanket closures with a hard boundary, and 'ask first' is not a closure. Membership only, so an advisory can bind to the reaches inside.",
+      "note": "The other half of land_access: places you MAY enter, with permission — access=permit/permissive/customers. Four of them, and two hold real water: the UBC Malcolm Knapp Research Forest and Ten Mile Point Ecological Reserve. They were dropped entirely, because `restricted_land_access` takes only restriction_level='closed' and nothing else claimed the rest; v1 drew every level. NEVER cut: the cut policy is for blanket closures with a hard boundary, and 'ask first' is not a closure. Membership only, so an advisory can bind to the reaches inside.",
       "cut": false,
       "tile_layer": "no_access",
       "tile_kind": "permit",
@@ -68,7 +68,7 @@
       "name_field": "PROTECTED_LANDS_NAME",
       "where": "PROTECTED_LANDS_DESIGNATION <> 'ECOLOGICAL RESERVE'",
       "cut": false,
-      "note": "BC provincial parks, protected areas and recreation areas (782). Regs name these directly \u2014 STRATHCONA PARK WATERS, KIKOMUN CREEK PARK, BOWRON LAKE Park, Garibaldi, Hamber \u2014 and every one of those entries is currently no_registry because the area does not exist to bind to. Membership-only: a park boundary is not a drainage divide, but these are advisories and gear rules rather than the blanket closures that need an exact inside/outside edge.",
+      "note": "BC provincial parks, protected areas and recreation areas (782). Regs name these directly — STRATHCONA PARK WATERS, KIKOMUN CREEK PARK, BOWRON LAKE Park, Garibaldi, Hamber — and every one of those entries is currently no_registry because the area does not exist to bind to. Membership-only: a park boundary is not a drainage divide, but these are advisories and gear rules rather than the blanket closures that need an exact inside/outside edge.",
       "tile_layer": "park",
       "tile_kind": "provincial",
       "tile_visible_px": 4.0
@@ -102,9 +102,31 @@
       "cut": false,
       "note": "929 reserves and treaty lands. PROV_ABORIGINAL_LANDS_ADVISORY in the archived base regs targets this layer: an advisory about access and permission, not a fishing closure. Membership-only and never cut.",
       "tile_layer": "indigenous_land"
+    },
+    {
+      "id": "regions",
+      "kind": "region",
+      "layer": "wmu",
+      "name_field": "REGION_RESPONSIBLE_ID",
+      "which": "all",
+      "cut": true,
+      "note": "The nine management regions the synopsis is written in, dissolved from the 225 wildlife management units by REGION_RESPONSIBLE_ID. CUT, because a regulation is written PER REGION and a water running through two of them needs a section boundary between the halves or a region's rules cannot be attached to its own half — the Fraser already carries three such boundaries, placed by hand at the Chilcotin, the Williams Lake River and the Cottonwood. Measured before adding: 62 of 11,957 streams cross a region boundary, 59 of them touching two regions, 2 touching three and 1 touching four. Dissolved on the ID and not the NAME, because 7A Omineca and 7B Omineca share a name and are two regions in the book with different rules; dissolving on the name would merge them and lose the boundary the synopsis prints.",
+      "tile_layer": "region",
+      "label_term": "Region"
+    },
+    {
+      "id": "management_units",
+      "kind": "mu",
+      "layer": "wmu",
+      "name_field": "WILDLIFE_MGMT_UNIT_ID",
+      "where": "WILDLIFE_MGMT_UNIT_ID IN ('1-1', '1-2', '1-3', '1-4', '1-5', '1-6', '6-12', '6-13')",
+      "cut": true,
+      "note": "The management units that carry regulations of their own, rather than inheriting their region's. 1-1 to 1-6 are the six southern Vancouver Island units; 6-12 and 6-13 are the two lower Skeena units. CUT for the same reason as the regions: a rule written for MU 6-12 needs a boundary at the edge of 6-12 to attach to, and without one it either spreads to water it does not govern or cannot be bound at all. Only these eight — every other MU takes its region's rules, and cutting all 225 would add boundaries no regulation asks for. Add to the `where` as further MUs turn out to carry their own.",
+      "tile_layer": "mu",
+      "label_term": "MU"
     }
   ],
-  "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary \u2014 national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut.",
+  "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut.",
   "_tile_note": "`tile_layer` names the vector-tile layer this area's POLYGONS are drawn in (pipeline/deliver/tiles/layers.py). It is here, not in the tile exporter, so a selector is written once: the graph build uses it to stamp `in_areas` and the exporter uses the same def to draw the boundary. Two copies of a selector is two things that can disagree about what a park is.",
   "_tile_visible_px": "How many screen pixels a polygon's side must reach before it is drawn. The ladder's default is 3. LOWER means it appears EARLIER (further zoomed out), and that is a policy knob, not a rendering one: a national park, an ecological reserve or land with no public access at 1.0 px survives two to three zooms further out than a provincial park at 4.0, because arriving somewhere you may not fish is a worse outcome than a tidy map. See export_admin."
 }

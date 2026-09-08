@@ -71,8 +71,47 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     return out
 
 
-def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain]) -> list[SplitPoint]:
-    """Cut every chain crossing each polygon at first-enter/last-exit (transition cutting)."""
+def _neighbour_label(polys_by_name: dict, line, m: float, here: str, term: str) -> str:
+    """What this cut SEPARATES, in words a person can act on.
+
+    The label used to be the polygon's own name, which for an administrative area whose name
+    is its number reads "2" — a boundary labelled with one number and no side. These labels
+    surface in the app as the ends of a stretch ("From … / To …"), so a cut has to say what
+    is on the other side of it: `Region 2 – Region 3 boundary`.
+
+    The other side is found by stepping 300 m along the chain either way and asking which
+    sibling polygon contains each point. A step is needed because the cut sits ON the shared
+    edge, where both polygons and neither can claim it; 300 m clears the edge without
+    skipping a genuinely narrow neighbour. Where nothing sits on the far side — the coast,
+    the provincial border, a gap in the coverage — the cut names the one area it bounds.
+    """
+    L = line.length
+    other = None
+    for d in (m - 300.0, m + 300.0):
+        if d < 0 or d > L:
+            continue
+        pt = line.interpolate(d)
+        for nm, poly in polys_by_name.items():
+            if nm != here and poly.contains(pt):
+                other = nm
+                break
+        if other:
+            break
+    if other:
+        a, b = sorted((here, other), key=lambda v: (len(v), v))
+        return f"{term} {a} – {term} {b} boundary"
+    return f"{term} {here} boundary"
+
+
+def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
+                        term: str = "") -> list[SplitPoint]:
+    """Cut every chain crossing each polygon at first-enter/last-exit (transition cutting).
+
+    `term` names what kind of area these are — "Region", "MU". When given, a cut is labelled
+    by what it SEPARATES rather than by the polygon it happens to belong to; see
+    `_neighbour_label`. Without it the behaviour is unchanged and the label is the area's own
+    name, which is what a park wants: "Garibaldi Provincial Park" already reads as a place.
+    """
     from shapely.strtree import STRtree
 
     keep = [c for c in chains if c.geometry is not None and not c.geometry.is_empty]
@@ -85,7 +124,9 @@ def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain]) -> list[Spl
         for i in tree.query(poly):                 # bbox candidates; transition cutter filters non-crossers
             c = keep[i]
             for m in _area_transition_measures(c.geometry, poly, boundary):
+                label = (_neighbour_label(polys_by_name, c.geometry, m, name, term)
+                         if term else name)
                 out.append(SplitPoint(split_id=f"area:{name}", blk=c.blk,
                                       route_measure=c.mouth_measure + m, fid="",
-                                      label=name, anchor_type=AnchorType.area_boundary))
+                                      label=label, anchor_type=AnchorType.area_boundary))
     return out

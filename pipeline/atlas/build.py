@@ -721,7 +721,11 @@ def main() -> None:
                 continue
             catalog_polys[ad["id"]] = polys
             if ad.get("cut", True):                    # `cut` flag is the SOLE cut trigger (default on)
-                apts = resolve_area_splits(polys, chains)
+                # `label_term` turns a cut's label from the polygon's own name into what it
+                # SEPARATES — "Region 2 – Region 3 boundary" rather than "2". An area whose
+                # name already reads as a place ("Garibaldi Provincial Park") sets no term
+                # and keeps its name.
+                apts = resolve_area_splits(polys, chains, term=ad.get("label_term", ""))
                 split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
             else:
