@@ -511,32 +511,41 @@ function build(name, mount){
     r.side.forEach(function(sc){ if(sc.pts.length>1)
       g.push('<path d="'+path(sc.pts)+'" fill="none" stroke="#7d8b93" stroke-width="1" '
         +'stroke-opacity=".5"/>'); });
+    /*
+     * EVERY HALO FIRST, THEN EVERY LINE. This is why the Fraser was DOTTED.
+     *
+     * The river is drawn one section at a time — 87 of them on the Fraser — and each was
+     * pushing its halo and then its line before the next section pushed anything. So section
+     * N's halo, an opaque 6px stroke laid down later, painted over the end of section N-1's
+     * 3px line. At a single stretch's scale that overlap is a rounded cap nobody notices;
+     * across a whole province, where consecutive sections are a few pixels long, it ate most
+     * of the river and left a dotted trail.
+     *
+     * Two passes. The halo is a backing sheet for the WHOLE river, so it has to be finished
+     * before any ink goes on it.
+     */
+    var halo=[], ink=[];
     runs.forEach(function(run,i){
       var on=i===st.i&&!whole;
       run.pts.forEach(function(p){ if(p.length<2) return;
-        // the halo is the CARD colour, so the river reads as drawn on the app rather than
-        // on the tile; white was a third colour that belonged to neither
-        // the whole-river view is a province at a time, where a 2px line is a thread; the
-        // tiles carry their own labels now and are no longer washed out, so the river has to
-        // hold its own against them
-        g.push('<path d="'+path(p)+'" fill="none" stroke="var(--card)" stroke-width="'
+        var d=path(p);
+        // the halo is the CARD colour, so the river reads as drawn on the app rather than on
+        // the tile; white was a third colour belonging to neither
+        halo.push('<path d="'+d+'" fill="none" stroke="var(--card)" stroke-width="'
           +(on?8:whole?6:4.5)+'" opacity=".85" stroke-linecap="round" '
           +'stroke-linejoin="round"/>');
         /*
-         * THE REST OF THE RIVER KEEPS ITS COLOUR.
-         *
-         * Focusing a stretch used to flatten every other one to grey, which threw away the
-         * only thing the surrounding water was there to say — that the reach above is also
-         * closed, that the one below is not. The selection is carried by WEIGHT instead:
-         * 4.5px against 2, which is a difference you can see without the neighbours having
-         * to stop meaning anything.
+         * THE REST OF THE RIVER KEEPS ITS COLOUR. Focusing a stretch used to flatten every
+         * other one to grey, throwing away the only thing the surrounding water was there
+         * to say. The selection is carried by WEIGHT instead.
          */
-        g.push('<path d="'+path(p)+'" fill="none" stroke="var(--'+outs[i]+')" '
+        ink.push('<path d="'+d+'" fill="none" stroke="var(--'+outs[i]+')" '
           +'stroke-width="'+(on?4.5:whole?3:2)+'" stroke-opacity="'
-          +(on||whole?1:.55)+'" '
-          +'stroke-linecap="round" stroke-linejoin="round" data-i="'+i+'" '
-          +'style="cursor:pointer"/>'); });
+          +(on||whole?1:.55)+'" stroke-linecap="round" stroke-linejoin="round" '
+          +'data-i="'+i+'" style="cursor:pointer"/>'); });
     });
+    g=g.concat(halo, ink);
+
     if(!whole){
       /*
        * WHAT THE MAP SAYS, AND WHAT IT LEAVES TO THE BAND BELOW IT.
