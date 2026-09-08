@@ -603,8 +603,21 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     # interns and writes. See pipeline/deliver/bundle/rules.py for why it must not re-derive.
     _reaches = _reach_run(build_dir)
     if _reaches is None:
-        for _t in ("entry", "rule", "section_ruleset", "ruleset"):
-            cov.skip(_t, f"no reach run reports build {build_dir.name!r}")
+        # NOT `cov.skip`. A skipped table prints "not wired" and exits 0, and for the
+        # regulations that is a province-wide lie: `statusFor` is written so that a section
+        # with no rule row means "open under the general rules", which is correct against a
+        # table that HAS rows. Against an empty one, every water in British Columbia renders
+        # OPEN · GENERAL RULES and the build reports success.
+        #
+        # `skip` is right for a table whose producer genuinely does not exist yet — the
+        # bathymetry charts, the stocking roster. It is wrong for one whose absence changes
+        # what the app asserts about closed water.
+        raise SystemExit(
+            f"no reach run reports build {build_dir.name!r} under {GENERATED.reaches}.\n"
+            f"  Bundling without one produces a bundle in which every water in the province\n"
+            f"  renders as open. Run:\n"
+            f"    python -m pipeline.atlas.reach.cli --build {build_dir} --out "
+            f"{GENERATED.reaches / build_dir.name}")
     else:
         print(f"     rules: reading {_reaches.relative_to(REPO_ROOT)}")
         _rules.write(db, _reaches, CURATED.regulations.entries.synopsis.parent, cov)
@@ -631,6 +644,11 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     # opened — and `pipeline.tools.emit_gauge_policy --check` is what keeps THAT honest.
     from pipeline.gauges.consume.shed import TRUST_BANDS
 
+    # The edition this bundle is: the atlas build it came from, and the regulation year it
+    # is good until. `valid_until` is empty when the corpus does not state one — empty is
+    # readable as "no expiry known", where a fabricated date would be read as a promise.
+    _version = f"{build_dir.name}+{GENERATED.reaches.name}"
+    _valid_until = ""
     _reach_digest, _reach_run_name = "", ""
     if _reaches is not None:
         try:
@@ -645,6 +663,20 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
         ("build", str(build_dir)),
         ("generated_by", "python -m pipeline.deliver.bundle"),
         ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),
+        # THE TWO KEYS THE CLIENT ACTUALLY READS, and neither was written.
+        #
+        # `source.ts` asks for `version` and `valid_until`; this table held `schema`,
+        # `build`, `generated_by` and `trust_bands`. So `info()` returned
+        # `{version: "unknown", validUntil: null}` on every real bundle — silently, through
+        # `??` — and `validUntil` is the STALENESS GATE. The app's own contract says a stale
+        # answer must never render as a live one, and it could not know it was stale.
+        #
+        # It survived because the dev fixture writes a THIRD key set that happens to include
+        # `version`, so the app's tests were green against a file the pipeline does not
+        # produce. Same shape as the date-window bug: two artifacts agreeing with each other
+        # and neither agreeing with the client.
+        ("version", _version),
+        ("valid_until", _valid_until or ""),
         # WHICH ATLAS THESE RULES WERE RESOLVED AGAINST.
         #
         # `section_ruleset` binds rules to section ids, and section ids are minted by the

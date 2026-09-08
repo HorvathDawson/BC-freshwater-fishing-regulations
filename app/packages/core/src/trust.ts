@@ -356,8 +356,15 @@ export function estimate(targetAreaKm2: number | null,
 
 /* ------------------------------------------------------------------- the basin field --- */
 
-/** Record length past which more years stop buying confidence. Mirrors the panel's. */
-const BASIN_RECORD_FULL_YEARS = 30;
+/*
+ * NO SECOND CONSTANT. This was `BASIN_RECORD_FULL_YEARS = 30`, under a comment saying it
+ * mirrored the panel's — and the panel's is 20 (`RECORD_FULL_YEARS` above, and
+ * `panel.py:117`). A comment asserting agreement while the numbers differed is worse than
+ * two numbers with no comment: it tells the next reader the reconciliation is already done.
+ *
+ * The basin field weights a gauge by record length for the same reason the reach panels do,
+ * so it is the same ceiling, and there is now only one place to change it.
+ */
 
 /** One gauge's contribution to a watershed group's colour. */
 export interface BasinVote {
@@ -391,9 +398,9 @@ export interface BasinVote {
  *     observes. A gauge on the mainstem speaks for most of the group; a creek gauge speaks
  *     for a corner of it. Weighting is by AREA SHARE rather than raw area so the number is
  *     a proportion of what is observed here, not a quantity that a big group would inflate.
- *   · RECORD, saturating at 30 years, because a percentile is a claim about history and a
- *     three-year baseline is a weaker claim than a ninety-year one. Same shape and same
- *     ceiling as the panel's, deliberately.
+ *   · RECORD, saturating at RECORD_FULL_YEARS, because a percentile is a claim about
+ *     history and a three-year baseline is a weaker claim than a ninety-year one — the
+ *     same ceiling as the reach panels, and now literally the same constant.
  *
  * What is NOT here is a direction penalty or an area-ratio error term. Those exist in the
  * panel because it TRANSFERS a reading from a donor to a specific reach it is not standing
@@ -411,7 +418,7 @@ export function basinStanding(votes: readonly BasinVote[]): number | null {
     // back to an equal split rather than to zero weight for everybody.
     const share = totalArea > 0 ? Math.max(0, v.areaKm2 ?? 0) / totalArea
                                 : 1 / Math.max(1, votes.length);
-    const record = Math.min(1, Math.max(0, v.years / BASIN_RECORD_FULL_YEARS));
+    const record = Math.min(1, Math.max(0, v.years / RECORD_FULL_YEARS));
     const w = share * record;
     if (w <= 0) continue;
     sumW += w;

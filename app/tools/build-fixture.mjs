@@ -352,6 +352,10 @@ insert("INSERT INTO meta VALUES (?,?)", [
   ["version", `riffle-${src.report?.build ?? "full"}`],
   ["source", "design/riffle.html — build 54ea0bb4, Chilliwack/Harrison valley"],
   ["generated_by", "pnpm fixture"],
+  // The staleness gate. Empty means "no expiry known", which the client renders as no
+  // promise; a fabricated date would read as one. Present because the CLIENT reads it —
+  // a fixture that omits a key the app asks for is a green suite testing the wrong file.
+  ["valid_until", ""],
   ["shed_rule", JSON.stringify(src.shed_rule ?? {})],
   ["attribution", JSON.stringify(src.attr ?? {})],
 ]);

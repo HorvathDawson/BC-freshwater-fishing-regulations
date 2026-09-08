@@ -13,7 +13,7 @@
  */
 import { useMemo, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
-import { standingWord, type Standing } from "@app/core";
+import { percentileOrdinal, standingWord, type Standing } from "@app/core";
 import type { Parameter, RegsSource, SectionId, StationId } from "@app/data";
 import type { TileEndpoints } from "@app/map";
 import { useConditions, useGaugeParameters, useGaugeTrace, useHydrograph, usePanel,
@@ -238,7 +238,7 @@ export function ConditionsPanel({ source, section, palette, tiles, theme, colour
               // one; core's own vocabulary calls that "no-record" rather than leaving it
               // unsaid.
               ? `${standingWord((c.standing ?? NO_RECORD) as Standing)} — ` +
-                `${Math.round(c.percentile * 100)}th percentile for the date`
+                `${percentileOrdinal(c.percentile)} percentile for the date`
               : "There is a reading here, but no record to compare it against."}
           </Text>
           <Text style={{ ...TYPE.small, fontSize: 11.5, color: palette.faint }}>

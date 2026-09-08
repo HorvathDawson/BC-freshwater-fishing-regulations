@@ -67,9 +67,16 @@ export function ordinal(n: number): string {
  *
  * Takes 0–1, like every percentile in this app.
  */
-export function percentileLabel(p: number): string {
+export function percentileOrdinal(p: number): string {
   const pct = p * 100;
-  return `p${ordinal(pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct))}`;
+  // Below one per cent keeps a decimal: rounding to "0th" would say the river has never
+  // been lower, which is a different and much stronger claim.
+  return ordinal(pct < 1 ? Number(pct.toFixed(1)) : Math.round(pct));
+}
+
+/** The same thing with the `p` prefix, for a chip where the word does not fit. */
+export function percentileLabel(p: number): string {
+  return `p${percentileOrdinal(p)}`;
 }
 
 /**

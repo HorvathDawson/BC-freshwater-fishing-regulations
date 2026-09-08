@@ -4,6 +4,7 @@
  * Separated from the screens because all four tabs use the same shapes, and because the
  * map itself must never be asked to draw UI — everything here sits above it.
  */
+import { percentileOrdinal } from "@app/core";
 import { Pressable, ScrollView, Text, View, type ViewStyle } from "react-native";
 import { TYPE } from "./type";
 import type { Palette } from "./theme";
@@ -138,7 +139,7 @@ export function LegendRamp({ palette, stops, low, high, marks, mid }: {
         {counts.map((n, i) => n === 0 ? null : (
           <View key={i}
                 accessibilityLabel={`${n} ${n === 1 ? "gauge" : "gauges"} near the `
-                                    + `${Math.round((i + 0.5) / BINS * 100)}th percentile`}
+                                    + `${percentileOrdinal((i + 0.5) / BINS)} percentile`}
                 style={{ position: "absolute", bottom: 14,
                          left: `${(i / BINS) * 100}%`, width: `${(1 / BINS) * 100}%`,
                          paddingHorizontal: 0.5 }}>
