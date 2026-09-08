@@ -33,7 +33,7 @@ const source = (over: Partial<RegsSource> = {}): RegsSource => ({
 
 const base = {
   at: { lat: 49.0974, lon: -121.9675 },
-  item: null, section: "380887781:0" as SectionId, waterName: "Chilliwack River",
+  item: null, section: 1 as SectionId, waterName: "Chilliwack River",
   group: "provincial" as const, title: "", now: VISITED, visitedAt: VISITED,
 };
 
@@ -97,7 +97,8 @@ describe("captureSpot", () => {
     // section_id survives a rebuild only 94% of the time. It is kept to replay the trace
     // and nothing may look a spot up by it — `item` is the durable id.
     const s = await captureSpot({ source: source(), ...base });
-    expect(s.section).toBe("380887781:0");
+    // The handle, unchanged — captureSpot must not launder or re-derive it.
+    expect(s.section).toBe(1);
     expect(s.item).toBeNull();
   });
 });

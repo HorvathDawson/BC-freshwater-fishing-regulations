@@ -6,6 +6,7 @@
  * "conditions") and @app/map resolves that through the generated style, so the phone and
  * the desktop cannot colour the same river differently.
  */
+import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type TileEndpoints } from "@app/map";
 import type { PlainDate } from "@app/core";
@@ -24,18 +25,18 @@ export function MapScreen({ at, palette, theme, view, modes, groups, hide, on, c
   /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
   hide?: readonly string[];
   modes?: Record<string, string>;
-  onPressFeature?: (layerId: string, featureId: string,
+  onPressFeature?: (layerId: string, featureId: SectionKey,
                     lat?: number, lon?: number) => void;
   onMoved?: (at: Camera) => void;
   /** A raw tapped coordinate — for picking a PLACE rather than a feature. */
   onMapPoint?: (lat: number, lon: number) => void;
   /** Feature ids to draw as selected. */
-  highlight?: readonly string[];
+  highlight?: readonly SectionKey[];
   /** Per-feature values a colour mode reads. The map's own channel — see MapProps.data. */
   data?: Record<string, Record<string, Record<string, unknown>>>;
   /** Gauge points as GeoJSON. Only the Conditions view draws them. */
   gauges?: string;
-  onVisible?: (sections: readonly string[]) => void;
+  onVisible?: (sections: readonly SectionKey[]) => void;
   /** A point to mark — where the user tapped. */
   marker?: { lat: number; lon: number } | null;
   on: PlainDate; camera: Camera;

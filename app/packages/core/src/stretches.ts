@@ -18,9 +18,18 @@
  * Sections arrive mouth-to-source, so adjacency in the list is adjacency on the water.
  */
 
+/**
+ * Whatever the caller uses to name a section. `core` never looks inside it — it compares
+ * nothing, parses nothing, and only carries it through — so it must not have an opinion:
+ * the bundle names sections by an integer handle, and a test or a fixture may name them
+ * with a string. Pinning this to `string` made the id's SHAPE a core concern, which it is
+ * not, and would have forced every caller of `runsOfSameRules` to launder it.
+ */
+export type SectionKey = string | number;
+
 /** A section with the id of the rule set covering it — `null` where no rule reaches it. */
 export interface SectionSet {
-  section: string;
+  section: SectionKey;
   setId: number | null;
 }
 

@@ -20,7 +20,23 @@ import type { BasinMember,
   StationId,
 } from "../index";
 import * as Q from "./queries";
-import { json, num, str, type Db, type Row } from "./db";
+import { json, num, str, type Cell, type Db, type Row } from "./db";
+
+/**
+ * A section handle out of SQLite.
+ *
+ * ONE conversion, so nothing can decide for itself that a section is a string again. A
+ * section is an integer handle into the atlas's section_handles.txt — see the SectionId
+ * doc in ../index. A null handle is a build defect (every section-keyed row is keyed by a
+ * NOT NULL column), so it fails here rather than becoming section 0, which exists and is a
+ * real piece of river.
+ */
+const sid = (v: Cell): SectionId => {
+  const n = typeof v === "number" ? v : Number(v);
+  if (v == null || !Number.isInteger(n))
+    throw new Error(`section handle is not an integer: ${JSON.stringify(v)}`);
+  return n as SectionId;
+};
 
 /** Rule kinds core knows. Anything else is a build that added one without telling us. */
 const KINDS = new Set<RuleKind>(["closure", "gear_restriction", "harvest",
@@ -110,7 +126,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     for (let i = 0; i < sections.length; i += 500) {
       const chunk = sections.slice(i, i + 500);
       for (const r of await db.all(Q.rulesForSections(chunk.length), ...chunk)) {
-        const id = str(r.section_id) as SectionId;
+        const id = sid(r.sid);
         sets.set(id, Number(r.set_id));
         (rules.get(id) ?? rules.set(id, []).get(id)!)
           .push(toRule(r, str(r.via) === "trib" ? "trib" : "reach", group));
@@ -156,7 +172,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     async regsForItem(id, on, group): Promise<ItemRegs | null> {
       const item = await db.get(Q.ITEM, id);
       if (!item) return null;
-      const sections = (await db.all(Q.SECTIONS_FOR_ITEM, id)).map((r) => str(r.section_id) as SectionId);
+      const sections = (await db.all(Q.SECTIONS_FOR_ITEM, id)).map((r) => sid(r.sid));
       const { rules: bySection, sets } = await rulesBySection(sections, group);
       const entry = await db.get(Q.ENTRY_FOR_ITEM, id);
       const rules = entry
@@ -273,7 +289,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       const best = live
         ? rows.find((r) => live.has(str(r.station))) ?? rows[0]!
         : rows[0]!;
-      return link(best, str(best.section_id) as SectionId, live);
+      return link(best, sid(best.sid), live);
     },
 
     async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {
@@ -287,7 +303,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       for (let i = 0; i < sections.length; i += 400) {
         const chunk = sections.slice(i, i + 400);
         for (const r of await db.all(Q.gaugesForSections(chunk.length), ...chunk, ...chunk))
-          out.set(str(r.section_id) as SectionId, str(r.station) as StationId);
+          out.set(sid(r.sid), str(r.station) as StationId);
       }
       return out;
     },
@@ -298,7 +314,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       for (let i = 0; i < sections.length; i += 500) {
         const chunk = sections.slice(i, i + 500);
         for (const r of await db.all(Q.panelsForSections(chunk.length), ...chunk)) {
-          const sec = str(r.section_id) as SectionId;
+          const sec = sid(r.sid);
           let panel = out.get(sec);
           if (!panel) {
             panel = { areaKm2: r.target_area === null ? null : Number(r.target_area),
@@ -328,7 +344,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       for (let i = 0; i < sections.length; i += 500) {
         const chunk = sections.slice(i, i + 500);
         for (const r of await db.all(Q.lakeStationsFor(chunk.length), ...chunk))
-          out.set(str(r.section_id) as SectionId, str(r.station) as StationId);
+          out.set(sid(r.sid), str(r.station) as StationId);
       }
       return out;
     },
@@ -384,11 +400,21 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       const param: Parameter = parameter ?? obs?.parameter ?? "discharge";
       const clim = await db.all(Q.CLIMATOLOGY, station, param);
       const pentads: (Band | null)[] = Array.from({ length: 73 }, () => null);
-      for (const r of clim) {
-        const i = Number(r.pentad);
-        if (i >= 0 && i < 73 && r.p10 !== null)
-          pentads[i] = [Number(r.p10), Number(r.p25), Number(r.p50),
-                        Number(r.p75), Number(r.p90)] as Band;
+      // The envelope arrives as ONE blob — see schema.sql for why, and for the layout:
+      // per pentad, ordered, little-endian, uint8 pentad then five float32.
+      // A short or ragged blob is treated as no envelope rather than half of one: a band
+      // built from a truncated read would be silently wrong at exactly one time of year.
+      const raw = clim[0]?.bands as Uint8Array | ArrayBuffer | null | undefined;
+      if (raw) {
+        const bytes = raw instanceof Uint8Array ? raw : new Uint8Array(raw);
+        const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        for (let o = 0; o + 21 <= bytes.byteLength; o += 21) {
+          const i = dv.getUint8(o);
+          if (i >= 73) continue;
+          pentads[i] = [dv.getFloat32(o + 1, true), dv.getFloat32(o + 5, true),
+                        dv.getFloat32(o + 9, true), dv.getFloat32(o + 13, true),
+                        dv.getFloat32(o + 17, true)] as Band;
+        }
       }
       const hasClim = pentads.some((b) => b !== null);
 
@@ -478,15 +504,15 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       // Walk the stored pointers. They exist only inside a gauge's watershed, which is
       // exactly the path this walks — so running out of pointers IS the end of the trace.
       const path: SectionId[] = [from];
-      const seen = new Set<string>([from]);
-      let at: string = from;
+      const seen = new Set<SectionId>([from]);
+      let at: SectionId = from;
       for (let i = 0; i < 5000; i++) {
         const r = await db.get(Q.DOWN_FROM, at);
         if (!r) break;
-        at = str(r.down_id);
+        at = sid(r.down_sid);
         if (seen.has(at)) break;     // a braid that loops is a build defect, not a hang
         seen.add(at);
-        path.push(at as SectionId);
+        path.push(at);
       }
       return path;
     },
@@ -502,12 +528,12 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       if (!members.length) return [];
 
       const stations = members.map((m) => m.station);
-      const places = new Map<string, { name: string; section: string | null;
+      const places = new Map<string, { name: string; section: SectionId | null;
                                        lon: number | null; lat: number | null }>();
       for (const r of await db.all(Q.gaugePlaces(stations.length), ...stations))
         places.set(str(r.station), {
           name: str(r.name),
-          section: r.section_id == null ? null : str(r.section_id),
+          section: r.sid == null ? null : sid(r.sid),
           lon: num(r.lon), lat: num(r.lat),
         });
 
@@ -523,14 +549,15 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
        * never arrives: a chain that runs past its target is not a route to it, and drawing
        * it would light up water the gauge has nothing to do with.
        */
-      const walk = async (from: string, stop: string): Promise<string[] | null> => {
-        const path: string[] = [from];
-        const seen = new Set<string>([from]);
+      const walk = async (from: SectionId, stop: SectionId):
+          Promise<SectionId[] | null> => {
+        const path: SectionId[] = [from];
+        const seen = new Set<SectionId>([from]);
         let at = from;
         for (let i = 0; i < 5000 && at !== stop; i++) {
           const r = await db.get(Q.DOWN_FROM, at);
           if (!r) return null;
-          at = str(r.down_id);
+          at = sid(r.down_sid);
           if (seen.has(at)) return null;   // a looping braid is a build defect, not a hang
           seen.add(at);
           path.push(at);
@@ -542,7 +569,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
       for (const m of members) {
         const place = places.get(m.station);
         const gaugeSection = place?.section ?? null;
-        let path: string[] = [];
+        let path: SectionId[] = [];
         if (gaugeSection === section) {
           path = [section];                // the gauge is ON this reach; the route is the spot
         } else if (gaugeSection) {
@@ -554,7 +581,7 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
         out.push({
           station: m.station, name: place?.name ?? null,
           lon: place?.lon ?? null, lat: place?.lat ?? null,
-          role: m.role, path: path as SectionId[],
+          role: m.role, path,
         });
       }
       return out;

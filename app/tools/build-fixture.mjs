@@ -76,21 +76,64 @@ for (const w of src.waters) {
 // none, and "not regulated" is not "not findable".
 const idOf = (name, e) => e.item ?? `name:${name}`;
 
-counts.item = insert("INSERT OR REPLACE INTO item VALUES (?,?,?)",
-  [...byName].sort().map(([n, e]) => [idOf(n, e), n, e.kind]));
+// `ord` is assigned here exactly as the production bundler assigns it: insertion order,
+// one per distinct item_id. It is a storage handle for place_water, never an identity.
+const ordOf = new Map();
+for (const [n, e] of [...byName].sort())
+  if (!ordOf.has(idOf(n, e))) ordOf.set(idOf(n, e), ordOf.size);
+// COLUMNS NAMED, like the bundler: `item` grew a column, and the positional form would
+// have shifted the name into item_id with nothing raising.
+counts.item = insert("INSERT OR REPLACE INTO item (ord, item_id, name, kind) VALUES (?,?,?,?)",
+  [...byName].sort().map(([n, e]) => [ordOf.get(idOf(n, e)), idOf(n, e), n, e.kind]));
 counts.alias = insert("INSERT INTO alias VALUES (?,?)",
   [...byName].flatMap(([n, e]) => (src.alias[n] ?? []).map((a) => [idOf(n, e), a])));
-counts.item_section = insert("INSERT INTO item_section VALUES (?,?)",
-  [...byName].flatMap(([n, e]) => e.sections.map((s) => [idOf(n, e), s])));
+// THE FIXTURE'S OWN HANDLE TABLE, built the way the atlas builds the real one: every
+// section this fixture names, in the water's own order (blue line, then measure AS A
+// NUMBER), handle = position, ONE-BASED because 0 means "no section". See
+// pipeline/common/section_handles — and pipeline/tests/test_section_handles.py, which is
+// what keeps that order true on the other side.
+const allSections = [...new Set([
+  ...[...byName].flatMap(([, e]) => e.sections),
+  ...Object.keys(src.gauge_shed), ...Object.keys(src.down),
+  ...Object.values(src.down),
+  // Rule bindings too. A section can carry a regulation without belonging to a named item
+  // or sitting in a gauge's shed, and leaving those out made `sid()` throw halfway through
+  // the build — which is the right failure: a handle table that does not cover every
+  // section the bundle mentions cannot be used to name them.
+  ...Object.values(src.rule_sections).flatMap((xs) => xs ?? []),
+])].sort((a, b) => {
+  const [al, am] = String(a).split(":");
+  const [bl, bm] = String(b).split(":");
+  return al === bl ? Number(am) - Number(bm) : String(al).localeCompare(String(bl));
+});
+const SID = new Map(allSections.map((s, i) => [s, i + 1]));
+/** A fixture section name to its handle. Unknown names fail loudly — 0 is not a handle. */
+const sid = (s) => {
+  const h = SID.get(s);
+  if (h === undefined) throw new Error(`fixture: no handle for section ${s}`);
+  return h;
+};
+
+counts.item_section = insert("INSERT INTO item_section (ord, sid) VALUES (?,?)",
+  [...byName].flatMap(([n, e]) => e.sections.map((s) => [ordOf.get(idOf(n, e)), sid(s)])));
 
 // ---- regulations ------------------------------------------------------------------
 const entries = Object.entries(src.entries).sort();
-counts.entry = insert("INSERT INTO entry VALUES (?,?,?,?,?,?,?)", entries.map(([id, e]) => [
+// COLUMNS NAMED. This read `VALUES (?,?,?,?,?,?,?)` against an eight-column table and had
+// been failing since `pages` was added — so the fixture could not be rebuilt at all, and the
+// committed one silently went stale. Exactly the fault that shipped an empty `entry` table in
+// the production bundler; naming the columns is what stops it being possible.
+counts.entry = insert(
+  "INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols, mus, pages) " +
+  "VALUES (?,?,?,?,?,?,?,?)", entries.map(([id, e]) => [
   // display name, then the full curated one — two columns, because the short one told a
   // river it joins itself. See schema.sql.
   id, id, e.identity?.display_name ?? e.identity?.name ?? id, e.identity?.name ?? id,
   e.regs_verbatim ?? "",
-  JSON.stringify(e.source_symbols ?? []), JSON.stringify(e.identity?.mus ?? []),
+  // `source` is the nested shape; `source_symbols` was the flat field it replaced.
+  JSON.stringify(e.source?.symbols ?? e.source_symbols ?? []),
+  JSON.stringify(e.identity?.mus ?? []),
+  JSON.stringify(e.source?.pages ?? []),
 ]));
 /**
  * The verbatim date strings, as the structured windows the client reads.
@@ -182,7 +225,8 @@ for (const section of [...bySection.keys()].sort()) {
   }
   sectionSet.push([section, id]);
 }
-counts.section_ruleset = insert("INSERT INTO section_ruleset VALUES (?,?)", sectionSet);
+counts.section_ruleset = insert("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)",
+  sectionSet.map(([section, id]) => [sid(section), id]));
 counts.ruleset = insert("INSERT INTO ruleset VALUES (?,?,?,?)",
   sets.flatMap((rows, id) => rows.map(([e, r, via]) => [id, e, r, via])));
 
@@ -220,13 +264,19 @@ for (const [band, sections] of Object.entries(shedBands)) {
 // No liveness column of any kind. The bundle says a gauge exists and where; the feed
 // index says which are talking, by containing them. Any boolean here would be right the
 // week the fixture was cut and wrong afterwards.
-counts.gauge = insert("INSERT INTO gauge VALUES (?,?,?,?,?,?,?,?,?,?)",
+// COLUMNS NAMED, and `sid` is a HANDLE. Positionally this still had ten values for ten
+// columns, so nothing would have raised — it would simply have written the section STRING
+// into an INTEGER column, which SQLite stores happily and every join then misses.
+counts.gauge = insert(
+  "INSERT INTO gauge (station, name, item_id, sid, lon, lat, area_km2, mag, matched_by, "
+  + "match_m) VALUES (?,?,?,?,?,?,?,?,?,?)",
   src.gauges.map((g) => {
     const section = Object.keys(src.gauge_shed)
       .filter((s) => src.gauge_shed[s] === g.id).sort()[0] ?? null;
     // The design fixture's gauges were placed by hand, so their provenance is exactly
     // that — recorded rather than left null, which would read as "never attempted".
-    return [g.id, g.name, section ? (src.section_item?.[section] ?? null) : null, section,
+    return [g.id, g.name, section ? (src.section_item?.[section] ?? null) : null,
+            section === null ? null : sid(section),
             g.at?.[0] ?? null, g.at?.[1] ?? null, g.area_km2 ?? null, NOMINAL_GAUGE_MAG,
             "fixture", null];
   }));
@@ -239,10 +289,11 @@ counts.gauge = insert("INSERT INTO gauge VALUES (?,?,?,?,?,?,?,?,?,?)",
 // to a "none" band here invented a fourth value, and because three test files asserted
 // against this file rather than against a real bundle, that invention looked like the
 // contract for months. The refusal reaches the client as a null link, not as a labelled row.
-counts.section_gauge = insert("INSERT OR REPLACE INTO section_gauge VALUES (?,?,?,?)",
+counts.section_gauge = insert(
+  "INSERT OR REPLACE INTO section_gauge (sid, station, trust, mag) VALUES (?,?,?,?)",
   Object.entries(src.gauge_shed).sort()
     .filter(([section]) => src.shed_q[section] && src.shed_q[section] !== "none")
-    .map(([section, station]) => [section, station, src.shed_q[section],
+    .map(([section, station]) => [sid(section), station, src.shed_q[section],
                                   shedMag[section] ?? null]));
 
 /*
@@ -268,10 +319,11 @@ const panelDonors = src.gauges
   .filter((g) => g.area_km2)
   .map((g) => [g.id, g.area_km2]);
 if (panelDonors.length) {
-  counts.section_panel = insert("INSERT OR REPLACE INTO section_panel VALUES (?,?,?)",
+  counts.section_panel = insert(
+    "INSERT OR REPLACE INTO section_panel (sid, panel_id, area_km2) VALUES (?,?,?)",
     // One panel for the whole fixture shed: same donors, so the dictionary interns to a
     // single row — which is the shape the real bundle has and the client must handle.
-    shedSections.map((section) => [section, 1, shedMag[section]
+    shedSections.map((section) => [sid(section), 1, shedMag[section]
       // Area from the same drainage relation the pipeline fits, so a fixture ratio is a
       // plausible ratio rather than an invented one.
       ? 1.237 * Math.pow(shedMag[section], 0.851) : null]));
@@ -288,17 +340,34 @@ if (panelDonors.length) {
 
 // Only inside a shed. The contract cuts the rest and nothing is lost.
 const inShed = new Set(Object.keys(src.gauge_shed));
-counts.section_down = insert("INSERT OR REPLACE INTO section_down VALUES (?,?)",
-  Object.entries(src.down).filter(([s]) => inShed.has(s)).sort());
+counts.section_down = insert(
+  "INSERT OR REPLACE INTO section_down (sid, down_sid) VALUES (?,?)",
+  Object.entries(src.down).filter(([s]) => inShed.has(s)).sort()
+    .map(([s, d]) => [sid(s), sid(d)]));
 
 // KEYED BY PARAMETER, because a station measuring both stage and discharge has TWO
 // envelopes in two different units. The design deck only carries the discharge one, so
 // that is what this writes — labelled, rather than left ambiguous for a reader to assume.
-counts.gauge_clim = insert("INSERT OR REPLACE INTO gauge_clim VALUES (?,?,?,?,?,?,?,?)",
-  src.gauges.flatMap((g) => (g.clim?.band ?? []).map((b, i) =>
+// ONE BLOB PER ENVELOPE, packed exactly as the bundler packs it — see schema.sql:
+// per pentad, ordered, little-endian, uint8 pentad then five float32. A pentad whose
+// bands are incomplete is OMITTED rather than written as zeros, because a zero band is a
+// claim about the river and a missing one is not.
+counts.gauge_clim = insert(
+  "INSERT OR REPLACE INTO gauge_clim (station, parameter, bands) VALUES (?,?,?)",
+  src.gauges.flatMap((g) => {
+    const band = g.clim?.band ?? [];
+    if (!band.length) return [];
     // stored p10/p25/p50/p75/p90 — p0 and p100 do not interpolate (82% error, §5)
-    [g.id, "discharge", i,
-     b[1] ?? null, b[2] ?? null, b[3] ?? null, b[4] ?? null, b[5] ?? null])));
+    const rows = band.map((b, i) => [i, b[1], b[2], b[3], b[4], b[5]])
+                     .filter(([i, ...v]) => i < 73 && v.every((x) => x != null));
+    if (!rows.length) return [];
+    const buf = Buffer.alloc(rows.length * 21);
+    rows.forEach(([i, ...v], n) => {
+      buf.writeUInt8(i, n * 21);
+      v.forEach((x, k) => buf.writeFloatLE(x, n * 21 + 1 + k * 4));
+    });
+    return [[g.id, "discharge", buf]];
+  }));
 
 // ---- lakes ------------------------------------------------------------------------
 counts.chart = insert("INSERT INTO chart VALUES (?,?,?,?,?,?,?,?,?)",
@@ -339,18 +408,31 @@ for (const w of src.waters) {
   const cur = anchor.get(w.name);
   if (!cur || (w.mag ?? 0) > cur.mag) anchor.set(w.name, { lat, lon, mag: w.mag ?? 0 });
 }
-// Keyed on item_id, like the production bundler. A name that has no item is skipped
+// Keyed on item.ord, like the production bundler. A name that has no item is skipped
 // rather than given a minted id — a forged id fails every later lookup silently.
 const itemOfName = new Map([...byName].map(([n, e]) => [n, idOf(n, e)]));
+// ONE ROW PER (place, item), THE NEAREST — the same rule the bundler applies with its
+// `best` map. The anchors are keyed by NAME and several names share an item_id, so without
+// this a water appears twice in "waters near here" at two different distances. It went
+// unnoticed while the table had no primary key; the key now makes it a hard failure.
 const nearRows = [];
-for (const p of places)
+for (const p of places) {
+  const best = new Map();
   for (const [name, a] of anchor) {
     const item = itemOfName.get(name);
     if (!item) continue;
     const d = km(p.lat, p.lon, a.lat, a.lon);
-    if (d <= 25) nearRows.push([p.id, item, Number(d.toFixed(2))]);
+    if (d > 25) continue;
+    const cur = best.get(item);
+    if (cur === undefined || d < cur) best.set(item, d);
   }
-counts.place_water = insert("INSERT INTO place_water VALUES (?,?,?)", nearRows);
+  // centikm, and rounded through two decimals of a km first so it is the same number
+  // the old REAL column held — see schema.sql.
+  for (const [item, d] of best)
+    nearRows.push([p.id, Math.round(Number(d.toFixed(2)) * 100), ordOf.get(item)]);
+}
+counts.place_water = insert("INSERT INTO place_water (place_id, ckm, ord) VALUES (?,?,?)",
+                            nearRows);
 
 // ---- indexes, written AFTER the rows so they are built once ------------------------
 db.exec(readFileSync(here("../../pipeline/deliver/bundle/indexes.sql"), "utf8"));

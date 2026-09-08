@@ -17,6 +17,7 @@
  * claim is about geography. A map of ONE gauge under a table of four — which is what this
  * screen showed before — draws the model the panel exists to replace.
  */
+import type { SectionKey } from "@app/core";
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import { catchmentLabel, confidenceWord, interval, inTen, metresApart, ordinal,
@@ -126,7 +127,7 @@ export function DonorPanel({ palette, value, at, theme, from, selected, onSelect
    * the interesting part — how the water here relates to the water at the gauge is, and a
    * single highlight colour cannot say whether the whole river is low or only this end.
    */
-  chain?: readonly string[];
+  chain?: readonly SectionKey[];
   data?: Record<string, Record<string, Record<string, unknown>>>;
   /**
    * How far ahead this estimate is for — 0 is now.

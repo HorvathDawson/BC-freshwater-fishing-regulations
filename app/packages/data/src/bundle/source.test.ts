@@ -64,9 +64,9 @@ describe("the bundle source", () => {
   });
 
   it("resolves a tapped section to the water it belongs to", async () => {
-    const section = (await db.all("SELECT section_id FROM item_section LIMIT 1"))[0]!
-      .section_id as string;
-    const item = await src.itemForSection(section as SectionId);
+    const row = (await db.all("SELECT sid FROM item_section LIMIT 1"))[0]!;
+    const section = Number(row.sid) as SectionId;
+    const item = await src.itemForSection(section);
     expect(item).toBeTruthy();
     const sheet = await src.regsForItem(item!, ON, "provincial");
     expect(sheet!.reaches.map((r) => r.section)).toContain(section);
@@ -75,8 +75,8 @@ describe("the bundle source", () => {
   it("answers for EVERY section asked about, including ones with no rule", async () => {
     // "Open under the general rules" is an answer. A missing map entry would make the
     // caller fall back to a default, and the map would be coloured by an assumption.
-    const ids = (await db.all("SELECT section_id FROM item_section LIMIT 25"))
-      .map((r) => r.section_id as SectionId);
+    const ids = (await db.all("SELECT sid FROM item_section LIMIT 25"))
+      .map((r) => Number(r.sid) as SectionId);
     const out = await src.statusFor(ids, ON, "provincial");
     expect(out.size).toBe(ids.length);
     for (const id of ids) expect(out.get(id)).toBeTruthy();
@@ -118,10 +118,10 @@ describe("the bundle source", () => {
     expect(bands.map((r) => r.trust).sort()).toEqual(["fair", "good", "weak"]);
 
     const ungauged = await db.get(
-      "SELECT s.section_id FROM item_section s " +
-      "LEFT JOIN section_gauge g USING(section_id) WHERE g.section_id IS NULL LIMIT 1");
+      "SELECT s.sid FROM item_section s " +
+      "LEFT JOIN section_gauge g USING(sid) WHERE g.sid IS NULL LIMIT 1");
     if (!ungauged) return;
-    expect(await src.gaugeForSection(ungauged.section_id as SectionId)).toBeNull();
+    expect(await src.gaugeForSection(Number(ungauged.sid) as SectionId)).toBeNull();
   });
 
   it("answers whether a WATER has a gauge, not just the reach you tapped", async () => {
@@ -140,9 +140,10 @@ describe("the bundle source", () => {
     const link = await src.gaugeForItem("gnis:8634" as ItemId);
     const biggest = await db.get(
       "SELECT sg.station FROM item_section it " +
-      "JOIN section_gauge sg ON sg.section_id = it.section_id " +
+      "JOIN item i ON i.ord = it.ord " +
+      "JOIN section_gauge sg ON sg.sid = it.sid " +
       "LEFT JOIN gauge g USING(station) " +
-      "WHERE it.item_id = 'gnis:8634' AND sg.trust = 'good' " +
+      "WHERE i.item_id = 'gnis:8634' AND sg.trust = 'good' " +
       "ORDER BY sg.mag DESC, sg.station LIMIT 1");
     expect(link!.station).toBe(biggest!.station);
   });
@@ -155,8 +156,8 @@ describe("the bundle source", () => {
 
   it("carries both magnitudes so a sheet can show its working", async () => {
     const row = await db.get(
-      "SELECT section_id FROM section_gauge WHERE trust = 'good' AND mag IS NOT NULL LIMIT 1");
-    const link = await src.gaugeForSection(row!.section_id as SectionId);
+      "SELECT sid FROM section_gauge WHERE trust = 'good' AND mag IS NOT NULL LIMIT 1");
+    const link = await src.gaugeForSection(Number(row!.sid) as SectionId);
     expect(link!.reachMagnitude).toBeGreaterThan(0);
     expect(link!.gaugeMagnitude).toBeGreaterThan(link!.reachMagnitude);
   });
@@ -181,8 +182,8 @@ describe("the bundle source", () => {
   });
 
   it("traces downstream without hanging on a braid", async () => {
-    const from = (await db.all("SELECT section_id FROM section_down LIMIT 1"))[0]!
-      .section_id as SectionId;
+    const downRow = (await db.all("SELECT sid FROM section_down LIMIT 1"))[0]!;
+    const from = Number(downRow.sid) as SectionId;
     const path = await src.traceToGauge(from);
     expect(path[0]).toBe(from);
     expect(new Set(path).size).toBe(path.length);    // no repeats
@@ -215,7 +216,7 @@ describe("the gauge model", () => {
     // is a worse answer to the same question rather than a second opinion. The variety
     // that matters lives at river level, where reaches have different bests.
     const dupe = await db.get(
-      "SELECT section_id, COUNT(*) n FROM section_gauge GROUP BY section_id " +
+      "SELECT sid, COUNT(*) n FROM section_gauge GROUP BY sid " +
       "HAVING n > 1 LIMIT 1");
     expect(dupe, "a reach with two gauges").toBeUndefined();
   });
@@ -267,7 +268,8 @@ describe("the gauge model", () => {
         return db.all(sql, ...args);
       },
     };
-    const many = Array.from({ length: 2500 }, (_, i) => `synthetic:${i}` as SectionId);
+    // Handles, not names — and starting at 1, because 0 is reserved for "no section".
+    const many = Array.from({ length: 2500 }, (_, i) => (i + 1) as SectionId);
     const out = await makeBundleSource(spy).statusFor(many, ON, "provincial");
     // Every id gets an answer — "open under the general rules" is an answer, not an absence.
     expect(out.size).toBe(many.length);
@@ -298,11 +300,11 @@ describe("the gauge model", () => {
     // And it has to survive the thing that actually reads it. A section under this rule,
     // asked on a day inside its window and a day outside, must not throw either time.
     const covered = (await db.all(
-      "SELECT sr.section_id FROM section_ruleset sr JOIN ruleset rs USING(set_id) " +
+      "SELECT sr.sid FROM section_ruleset sr JOIN ruleset rs USING(set_id) " +
       "WHERE rs.entry_id = ? AND rs.rule_id = ? LIMIT 1",
       str(seasonal!.entry_id), str(seasonal!.rule_id)))[0];
     if (!covered) return;                    // this rule binds nowhere in the slice
-    const id = str(covered.section_id) as SectionId;
+    const id = Number(covered.sid) as SectionId;
     const w = parsed[0]!;
     for (const day of [{ year: 2026, month: w.from.month, day: w.from.day },
                        { year: 2026, month: w.to.month, day: w.to.day },

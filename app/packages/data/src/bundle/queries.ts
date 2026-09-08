@@ -22,17 +22,21 @@ export const ITEM = "SELECT item_id, name, kind FROM item WHERE item_id = ?";
  * measures came back interleaved, and the sheet drew its stretches out of order while
  * saying they were in order.
  *
- * Split and cast, so the measure sorts as the number it is. Blue line first because an item
- * is not one line — "Fraser River" spans 151 of them, braids and side channels included —
+ * The split-and-cast is gone because the ORDER IS NOW THE HANDLE. `sid` is an index into
+ * the atlas's section_handles.txt, and that table is built in the water's own order — blue
+ * line, then measure as a number — so `ORDER BY sid` is the same sequence this used to
+ * compute, and it is free, because it is the primary key. Blue line first still matters: an
+ * item is not one line ("Fraser River" spans 151 of them, braids and side channels included)
  * and a run of sections must never be assembled across two different waters.
+ * `pipeline/tests/test_section_handles.py` is what keeps that order true.
  */
 export const SECTIONS_FOR_ITEM =
-  "SELECT section_id FROM item_section WHERE item_id = ? " +
-  "ORDER BY substr(section_id, 1, instr(section_id, ':') - 1), " +
-  "         CAST(substr(section_id, instr(section_id, ':') + 1) AS INTEGER)";
+  "SELECT s.sid FROM item_section s JOIN item i ON i.ord = s.ord " +
+  "WHERE i.item_id = ? ORDER BY s.sid";
 
 export const ITEM_FOR_SECTION =
-  "SELECT item_id FROM item_section WHERE section_id = ? LIMIT 1";
+  "SELECT i.item_id FROM item_section s JOIN item i ON i.ord = s.ord " +
+  "WHERE s.sid = ? LIMIT 1";
 
 export const ENTRY_FOR_ITEM =
   "SELECT entry_id, name, full_name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
@@ -62,19 +66,19 @@ export const RULES_FOR_ENTRY =
  * `runsOfSameRules` in @app/core.
  */
 export const rulesForSections = (n: number) =>
-  "SELECT sr.section_id, sr.set_id, rs.via, " +
+  "SELECT sr.sid, sr.set_id, rs.via, " +
   "       r.entry_id, r.rule_id, r.kind, r.scope, r.windows, r.species, r.subject, " +
   "       r.details, " +
   "       r.uncertain, r.text, r.location " +
   "FROM section_ruleset sr " +
   "JOIN ruleset rs ON rs.set_id = sr.set_id " +
   "JOIN rule r ON r.entry_id = rs.entry_id AND r.rule_id = rs.rule_id " +
-  `WHERE sr.section_id IN (${placeholders(n)})`;
+  `WHERE sr.sid IN (${placeholders(n)})`;
 
 /** Just the set each section belongs to — for grouping, with no rule bodies fetched. */
 export const setsForSections = (n: number) =>
-  "SELECT section_id, set_id FROM section_ruleset " +
-  `WHERE section_id IN (${placeholders(n)})`;
+  "SELECT sid, set_id FROM section_ruleset " +
+  `WHERE sid IN (${placeholders(n)})`;
 
 /**
  * Name search.
@@ -98,8 +102,8 @@ export const SEARCH =
   ") ORDER BY rank, length(name), name LIMIT ?2";
 
 export const PIECES =
-  "SELECT item_id, count(*) AS n FROM item_section " +
-  `WHERE item_id IN (%IDS%) GROUP BY item_id`;
+  "SELECT i.item_id, count(*) AS n FROM item_section s JOIN item i ON i.ord = s.ord " +
+  `WHERE i.item_id IN (%IDS%) GROUP BY i.item_id`;
 
 export const SEARCH_PLACES =
   // Biggest first among equally good matches: someone typing "vic" means Victoria, not a
@@ -116,9 +120,9 @@ export const SEARCH_PLACES =
  * id that fails `itemExists` and routes a tap nowhere.
  */
 export const WATERS_NEAR =
-  "SELECT i.item_id, i.name, i.kind, pw.km FROM place_water pw " +
-  "JOIN item i USING(item_id) " +
-  "WHERE pw.place_id = ? ORDER BY pw.km LIMIT ?";
+  "SELECT i.item_id, i.name, i.kind, pw.ckm / 100.0 AS km FROM place_water pw " +
+  "JOIN item i ON i.ord = pw.ord " +
+  "WHERE pw.place_id = ? ORDER BY pw.ckm LIMIT ?";
 
 // ---- conditions ------------------------------------------------------------------
 /**
@@ -130,9 +134,9 @@ export const WATERS_NEAR =
  */
 export const GAUGE_FOR_SECTION =
   "SELECT sg.station, sg.trust, sg.mag AS reach_mag, g.name, g.lon, g.lat, g.area_km2, " +
-  "       g.mag, g.section_id AS gauge_section " +
+  "       g.mag, g.sid AS gauge_section " +
   "FROM section_gauge sg LEFT JOIN gauge g USING(station) " +
-  "WHERE sg.section_id = ?";
+  "WHERE sg.sid = ?";
 
 /**
  * A station ON this lake — a LEVEL, not a discharge.
@@ -183,12 +187,12 @@ export const LAKE_GAUGES =
  * `GaugeLink.live` marks and the UI says out loud.
  */
 export const GAUGE_FOR_ITEM =
-  "SELECT sg.section_id, sg.station, sg.trust, sg.mag AS reach_mag, " +
+  "SELECT sg.sid, sg.station, sg.trust, sg.mag AS reach_mag, " +
   "       g.name, g.lon, g.lat, g.area_km2, g.mag " +
-  "FROM item_section it " +
-  "JOIN section_gauge sg ON sg.section_id = it.section_id " +
+  "FROM item_section it JOIN item i ON i.ord = it.ord " +
+  "JOIN section_gauge sg ON sg.sid = it.sid " +
   "LEFT JOIN gauge g USING(station) " +
-  "WHERE it.item_id = ? " +
+  "WHERE i.item_id = ? " +
   "ORDER BY (CASE sg.trust WHEN 'good' THEN 0 WHEN 'fair' THEN 1 ELSE 2 END), " +
   "         COALESCE(sg.mag, 0) DESC, sg.station LIMIT 8";
 
@@ -221,13 +225,14 @@ export const gaugesForSections = (n: number) =>
    * colour that changes when the query planner changes its mind is worse than either
    * choice. 196 lake_gauge rows over fewer lakes, so this is rare.
    */
-  `SELECT section_id, station, trust FROM section_gauge WHERE section_id IN (${placeholders(n)})
+  `SELECT sid, station, trust FROM section_gauge WHERE sid IN (${placeholders(n)})
    UNION ALL
-   SELECT it.section_id, min(lg.station) AS station, 'good' AS trust
-     FROM item_section it JOIN lake_gauge lg ON lg.item_id = it.item_id
-    WHERE it.section_id IN (${placeholders(n)})
-      AND it.section_id NOT IN (SELECT section_id FROM section_gauge)
-    GROUP BY it.section_id`;
+   SELECT it.sid, min(lg.station) AS station, 'good' AS trust
+     FROM item_section it JOIN item i ON i.ord = it.ord
+                          JOIN lake_gauge lg ON lg.item_id = i.item_id
+    WHERE it.sid IN (${placeholders(n)})
+      AND it.sid NOT IN (SELECT sid FROM section_gauge)
+    GROUP BY it.sid`;
 
 /**
  * Lakes with a station IN them, and nothing else.
@@ -247,10 +252,11 @@ export const gaugesForSections = (n: number) =>
  * colour that changes when the query planner changes its mind is worse than either choice.
  */
 export const lakeStationsFor = (n: number) =>
-  `SELECT it.section_id, min(lg.station) AS station
-     FROM item_section it JOIN lake_gauge lg ON lg.item_id = it.item_id
-    WHERE it.section_id IN (${placeholders(n)})
-    GROUP BY it.section_id`;
+  `SELECT it.sid, min(lg.station) AS station
+     FROM item_section it JOIN item i ON i.ord = it.ord
+                          JOIN lake_gauge lg ON lg.item_id = i.item_id
+    WHERE it.sid IN (${placeholders(n)})
+    GROUP BY it.sid`;
 
 /**
  * The panel for each of these sections, members in weight order.
@@ -260,26 +266,25 @@ export const lakeStationsFor = (n: number) =>
  * that river's donors once rather than once per reach.
  */
 export const panelsForSections = (n: number) =>
-  `SELECT sp.section_id, sp.area_km2 AS target_area,
+  `SELECT sp.sid, sp.area_km2 AS target_area,
           pm.ord, pm.station, pm.role, pm.area_km2 AS donor_area, pm.years,
           pm.regulated, pm.same_river
      FROM section_panel sp JOIN panel_member pm ON pm.panel_id = sp.panel_id
-    WHERE sp.section_id IN (${placeholders(n)})
-    ORDER BY sp.section_id, pm.ord`;
+    WHERE sp.sid IN (${placeholders(n)})
+    ORDER BY sp.sid, pm.ord`;
 
 // ONE ENVELOPE PER (STATION, PARAMETER). A station that measures both stage and discharge
 // has two, in two different units, and asking for "the" envelope of such a station is how a
 // level ends up compared against a discharge — a percentile that looks fine and means
 // nothing. The parameter is always part of the key.
 export const CLIMATOLOGY =
-  "SELECT pentad, p10, p25, p50, p75, p90 FROM gauge_clim " +
-  "WHERE station = ? AND parameter = ? ORDER BY pentad";
+  "SELECT bands FROM gauge_clim WHERE station = ? AND parameter = ?";
 
 /** Which quantities this station has an envelope for — the toggle offers only these. */
 export const CLIM_PARAMETERS =
   "SELECT DISTINCT parameter FROM gauge_clim WHERE station = ? ORDER BY parameter";
 
-export const DOWN_FROM = "SELECT down_id FROM section_down WHERE section_id = ?";
+export const DOWN_FROM = "SELECT down_sid FROM section_down WHERE sid = ?";
 
 /**
  * Every catchment that has a station, in one read.
@@ -300,7 +305,7 @@ export const BASIN_MEMBERS =
  * spot to each of its donors, and each donor to be pinned where it actually stands.
  */
 export const gaugePlaces = (n: number) =>
-  `SELECT station, name, section_id, lon, lat, area_km2
+  `SELECT station, name, sid, lon, lat, area_km2
      FROM gauge WHERE station IN (${placeholders(n)})`;
 
 // ---- lakes -----------------------------------------------------------------------

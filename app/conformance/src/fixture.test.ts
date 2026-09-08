@@ -1,4 +1,4 @@
-import { makeFixtureSource } from "@app/data/fixture";
+import { FIXTURE_SECTIONS, makeFixtureSource } from "@app/data/fixture";
 import { runConformance } from "./suite";
 
-runConformance("fixture", async () => makeFixtureSource());
+runConformance("fixture", async () => makeFixtureSource(), FIXTURE_SECTIONS);

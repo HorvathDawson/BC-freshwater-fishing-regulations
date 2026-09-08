@@ -12,6 +12,7 @@ declare const __DEV__: boolean | undefined;
  * needs a real DOM node to attach a canvas to, and on this platform RNW is producing divs
  * anyway. The native renderer is a different file for exactly this reason.
  */
+import type { SectionKey } from "@app/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
@@ -275,7 +276,7 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
         },
         setPaint: (id: string, prop: string, value: unknown) =>
           m.getLayer(id) && m.setPaintProperty(id, prop as never, value as never),
-        setFeatureState: (layerId: string, featureId: string, s: Record<string, unknown>) => {
+        setFeatureState: (layerId: string, featureId: SectionKey, s: Record<string, unknown>) => {
           const src = (m.getLayer(layerId) as { source?: string } | undefined)?.source;
           if (src) m.setFeatureState({ source: src, sourceLayer: layerId, id: featureId }, s);
         },
@@ -466,10 +467,22 @@ export function Map({ at, theme, view, modes, groups, hide, initial, data, onPre
        * and adding 333,526 features to a query bounded by the viewport would be work for
        * an answer that is always "no station".
        */
-      const seen = new Set<string>();
+      /*
+       * THE ID IS NOT STRINGIFIED, and it used to be.
+       *
+       * `String(f.id)` was harmless while a section id WAS a string. It is an integer
+       * handle now, and the bundle answers with a Map keyed by that integer — so a
+       * stringified id looked up nothing, `standings` came back empty, and the Conditions
+       * map painted every river as unmeasured. No error anywhere: a Map miss is a
+       * `undefined`, and "no reading" is a legitimate answer this app draws on purpose.
+       *
+       * A Set of numbers de-duplicates exactly as well as a Set of strings, so passing the
+       * id through unchanged costs nothing and removes the conversion that could be wrong.
+       */
+      const seen = new Set<SectionKey>();
       for (const f of m.queryRenderedFeatures())
         if (f.id !== undefined && (f.sourceLayer === "stream" || f.sourceLayer === "lake"))
-          seen.add(String(f.id));
+          seen.add(f.id as SectionKey);
       if (seen.size) cb([...seen]);
     };
     m.on("idle", report);

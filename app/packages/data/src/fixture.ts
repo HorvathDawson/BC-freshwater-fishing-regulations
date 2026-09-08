@@ -51,6 +51,43 @@ const CHILLIWACK: { item: string; name: string; reaches: Reach[] } = {
 const JEPERSON = { item: "gnis:11481", name: "Jeperson Side Channel",
                    section: "355994562:0", alias: "Greyell Slough" };
 
+/**
+ * The fixture's own handle table, built the way the atlas builds the real one.
+ *
+ * A section is an INTEGER HANDLE everywhere else — in the tile, in the bundle, in
+ * `SectionId` — and a fixture that kept strings would be the one place the app's own model
+ * did not hold, which is exactly where a bug hides from its tests. So the sections this
+ * fixture names are sorted into the water's own order (blue line, then measure as a NUMBER —
+ * see pipeline/common/section_handles) and the handle is the index.
+ */
+const ORDERED = [...CHILLIWACK.reaches.map((r) => r.section), JEPERSON.section]
+  .sort((a, b) => {
+    const [al, am] = a.split(":");
+    const [bl, bm] = b.split(":");
+    return al! === bl! ? Number(am) - Number(bm) : al!.localeCompare(bl!);
+  });
+const HANDLES = new Map<string, SectionId>(
+  ORDERED.map((s, i) => [s, i as unknown as SectionId]));
+/** A fixture section name to its handle. Unknown names fail loudly — a silent 0 is a reach. */
+const handleOf = (s: string): SectionId => {
+  const h = HANDLES.get(s);
+  if (h === undefined) throw new Error(`fixture: no handle for section ${s}`);
+  return h;
+};
+
+/**
+ * The sections a test may need to NAME, exported rather than written down in the test.
+ *
+ * A handle only means something against the table that minted it, so a literal in a test
+ * would be a guess about this file's internals. These are the two the conformance suite
+ * needs: the reach carrying the June closure, and the side channel whose only rule could
+ * never be placed.
+ */
+export const FIXTURE_SECTIONS = {
+  get lowerChilliwack(): SectionId { return handleOf(CHILLIWACK.reaches[0]!.section); },
+  get jeperson(): SectionId { return handleOf(JEPERSON.section); },
+};
+
 const GAUGE = {
   station: "08MH001", name: "Chilliwack River at Vedder Crossing",
   magnitude: 2182, discharge: 15.7, level: 1.487, percentile: 0.038,
@@ -78,12 +115,12 @@ const ELF = {
 };
 
 export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): RegsSource {
-  const sectionRules = new Map<string, Rule[]>(
-    CHILLIWACK.reaches.map((r) => [r.section, r.rules]),
+  const sectionRules = new Map<SectionId, Rule[]>(
+    CHILLIWACK.reaches.map((r) => [handleOf(r.section), r.rules]),
   );
-  sectionRules.set(JEPERSON.section, [UNPLACEABLE]);
+  sectionRules.set(handleOf(JEPERSON.section), [UNPLACEABLE]);
 
-  const statusOf = (section: string, on: PlainDate, group: SpeciesGroup): Status =>
+  const statusOf = (section: SectionId, on: PlainDate, group: SpeciesGroup): Status =>
     evaluate({ rules: sectionRules.get(section) ?? [], on, group });
 
   return {
@@ -99,8 +136,8 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
 
     async itemExists(i) { return i === CHILLIWACK.item || i === JEPERSON.item; },
     async itemForSection(s) {
-      if (sectionRules.has(s) && s !== JEPERSON.section) return id<ItemId>(CHILLIWACK.item);
-      if (s === JEPERSON.section) return id<ItemId>(JEPERSON.item);
+      if (sectionRules.has(s) && s !== handleOf(JEPERSON.section)) return id<ItemId>(CHILLIWACK.item);
+      if (s === handleOf(JEPERSON.section)) return id<ItemId>(JEPERSON.item);
       return null;
     },
 
@@ -109,12 +146,12 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       return {
         item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name,
         reaches: CHILLIWACK.reaches.map((r) => ({
-          section: id<SectionId>(r.section), seq: r.seq,
+          section: handleOf(r.section), seq: r.seq,
           // One section per stretch in the hand-written fixture: it names distinct reaches
           // already, so there is nothing to collapse.
-          sections: [id<SectionId>(r.section)], pieces: 1,
+          sections: [handleOf(r.section)], pieces: 1,
           lowerLabel: r.lo, upperLabel: r.hi,
-          status: statusOf(r.section, on, group),
+          status: statusOf(handleOf(r.section), on, group),
         })),
         rules: [UPSTREAM_CLOSURE, JUNE_CLOSURE, FLY_ONLY],
         area: [{
@@ -172,7 +209,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       // refuse to speak for it — that is the whole point of the magnitude floor. 12 against
       // 273,576 is a ten-thousandth, below even the `weak` floor, so the bundler writes NO
       // ROW: the honest answer is a null link, not a fourth band meaning "none".
-      if (s === JEPERSON.section) return null;
+      if (s === handleOf(JEPERSON.section)) return null;
       return {
         station: id<StationId>(GAUGE.station), name: GAUGE.name, trust: "good",
         reachMagnitude: GAUGE.magnitude, gaugeMagnitude: GAUGE.magnitude,
@@ -184,7 +221,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       // The best reach on the water, which is not the same as any particular one: the
       // Jeperson creek section would answer "weak", the river as a whole answers "good".
       if (i !== CHILLIWACK.item) return null;
-      return this.gaugeForSection(id<SectionId>(CHILLIWACK.reaches[0]!.section));
+      return this.gaugeForSection(handleOf(CHILLIWACK.reaches[0]!.section));
     },
     async stationsFor(sections): Promise<ReadonlyMap<SectionId, StationId>> {
       const out = new Map<SectionId, StationId>();
@@ -258,7 +295,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
       return st === GAUGE.station ? ["discharge", "level"] : [];
     },
     async traceToGauge(from) {
-      return sectionRules.has(from) ? [id<SectionId>(from)] : [];
+      return sectionRules.has(from) ? [from] : [];
     },
     // No panel in the fixture (`panelsFor` is empty), so no routes. Empty and not a throw:
     // "this water has no donors" is a real answer the screens must render.
@@ -272,7 +309,7 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
     // No `this`: a source is routinely destructured, and a fixture that only works while
     // its methods are still attached to the object is a trap set for the next test.
     async waterFor(sec) {
-      if (sec === JEPERSON.section)
+      if (sec === handleOf(JEPERSON.section))
         return { item: id<ItemId>(JEPERSON.item), name: JEPERSON.name, kind: "stream" };
       return sectionRules.has(sec)
         ? { item: id<ItemId>(CHILLIWACK.item), name: CHILLIWACK.name, kind: "stream" }

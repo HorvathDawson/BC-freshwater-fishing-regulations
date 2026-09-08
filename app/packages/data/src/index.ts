@@ -19,8 +19,20 @@ import type {
 
 /** Durable across rebuilds — 99.88% stable. The only id that crosses an artifact boundary. */
 export type ItemId = string & { readonly __brand: "ItemId" };
-/** A section of water. Valid only against the tile set it shipped with. */
-export type SectionId = string & { readonly __brand: "SectionId" };
+/**
+ * A section of water — an INTEGER HANDLE, not a name.
+ *
+ * It is an index into the atlas's `section_handles.txt`, carried identically by the tile
+ * (as the feature id state is set on) and by every section-keyed table in the bundle. It is
+ * meaningless without that table and it changes whenever the atlas is rebuilt, so it must
+ * never be persisted, put in a URL, or sent to a feed — which is AGENTS rule 5, now
+ * structural rather than a rule to remember.
+ *
+ * The bundle's `meta.section_handles` and the tile's `atlas.meta.json` carry the table's
+ * digest. A mismatch is not a lookup that misses; it is a lookup that HITS THE WRONG
+ * SECTION, so the pair is refused rather than rendered.
+ */
+export type SectionId = number & { readonly __brand: "SectionId" };
 export type StationId = string & { readonly __brand: "StationId" };
 export type PlaceId = string & { readonly __brand: "PlaceId" };
 

@@ -17,12 +17,37 @@ import type { ItemId, RegsSource, SectionId, StationId } from "@app/data";
 const AUG = { year: 2026, month: 8, day: 30 } satisfies PlainDate;
 const JUN = { year: 2026, month: 6, day: 15 } satisfies PlainDate;
 const CHILLIWACK = "gnis:8634" as ItemId;
-const LOWER_REACH = "380887781:0" as SectionId;
-const JEPERSON = "355994562:0" as SectionId;
+/**
+ * A handle no table issues, for "look up something that is not there". Not `0` — that is
+ * reserved for "no section" and would test a different thing — and not a big round number
+ * pulled from nowhere: it is past the end of any table either source builds.
+ */
+const NO_SUCH_SECTION = 2_000_000_000 as SectionId;
 
-export function runConformance(name: string, make: () => Promise<RegsSource>) {
+/**
+ * THE SECTIONS COME FROM THE CALLER, and that is forced rather than tidy.
+ *
+ * A section is an integer HANDLE — an index into the atlas's section_handles.txt — so it is
+ * meaningful only against the artifact that minted it. This suite runs against every
+ * RegsSource, and the fixture's table and the province bundle's table are different tables:
+ * a literal here would pass against one source and fail against the next, which is the
+ * opposite of what a conformance suite is for. So each source names its own two sections
+ * and the suite tests the BEHAVIOUR. `item_id` stays written down, because that one is
+ * durable across rebuilds (99.88%) and identical in every source.
+ */
+export interface ConformanceSections {
+  /** The lowest reach of the named water — the one carrying the June closure. */
+  lowerChilliwack: SectionId;
+  /** The side channel whose only rule could never be placed. */
+  jeperson: SectionId;
+}
+
+export function runConformance(name: string, make: () => Promise<RegsSource>,
+                               sections: ConformanceSections) {
   const T = (what: string, fn: (s: RegsSource) => Promise<void>) =>
     it(`${name}: ${what}`, async () => { await fn(await make()); });
+  const LOWER_REACH = sections.lowerChilliwack;
+  const JEPERSON = sections.jeperson;
 
   // ---- identity ----
   T("reports a bundle version and an edition expiry", async (s) => {
@@ -53,7 +78,7 @@ export function runConformance(name: string, make: () => Promise<RegsSource>) {
 
   T("a section resolves to the item that owns it", async (s) => {
     expect(await s.itemForSection(LOWER_REACH)).toBe(CHILLIWACK);
-    expect(await s.itemForSection("nope:0" as SectionId)).toBeNull();
+    expect(await s.itemForSection(NO_SUCH_SECTION)).toBeNull();
   });
 
   // ---- regulations ----

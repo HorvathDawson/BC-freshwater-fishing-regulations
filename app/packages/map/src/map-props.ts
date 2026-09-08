@@ -2,6 +2,9 @@
  * What an app may ask a map for. Identical on both platforms by construction — a prop that
  * only one renderer honours is how the two maps start diverging.
  */
+// A feature id on our own layers IS a section handle — an integer. `SectionKey` keeps
+// this honest without `map` having to know which artifact minted it.
+import type { SectionKey } from "@app/core";
 import type { ViewStyle } from "react-native";
 import type { TileEndpoints } from "./runtime-style";
 
@@ -111,7 +114,7 @@ export interface MapProps {
    * The coordinate is the second half of the answer on a long river: "the Fraser" is 1,375
    * km and "how does this spot reach the gauge" is a question about a point on it.
    */
-  onPressFeature?: (layerId: string, featureId: string,
+  onPressFeature?: (layerId: string, featureId: SectionKey,
                     lat?: number, lon?: number) => void;
   /**
    * Renderer failures. Not optional in spirit: an empty map and a map whose tiles failed
@@ -128,7 +131,7 @@ export interface MapProps {
    */
   onMapPoint?: (lat: number, lon: number) => void;
   /** Feature ids to draw as selected. Applied by feature-state, never by mutating paint. */
-  highlight?: readonly string[];
+  highlight?: readonly SectionKey[];
   /** Gauge points as GeoJSON, drawn as a dot plus its reading. Replaced per feed tick. */
   gauges?: string;
   /**
@@ -136,7 +139,7 @@ export interface MapProps {
    *
    * Debounced by the map — it fires after movement settles, not on every frame of a pan.
    */
-  onVisible?: (sections: readonly string[]) => void;
+  onVisible?: (sections: readonly SectionKey[]) => void;
   /**
    * A point to mark, e.g. the spot a person just tapped.
    *

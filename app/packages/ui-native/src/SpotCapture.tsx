@@ -23,6 +23,7 @@
  * overlay entirely while picking, because a coloured line over the imagery hides the very
  * thing you came to look at.
  */
+import type { SectionKey } from "@app/core";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import type { PlainDate, SpeciesGroup } from "@app/core";
@@ -75,8 +76,9 @@ export function SpotCapture(props: SpotCaptureProps) {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
 
-  const pickWater = async (_layer: string, featureId: string) => {
-    const section = featureId as SectionId;
+  const pickWater = async (_layer: string, featureId: SectionKey) => {
+    // The tile's feature id IS the section handle — see SectionId in @app/data.
+    const section = Number(featureId) as SectionId;
     const item = await source.itemForSection(section);
     const sheet = item ? await source.regsForItem(item, on, group) : null;
     setWater({ section, item, name: sheet?.name ?? null });

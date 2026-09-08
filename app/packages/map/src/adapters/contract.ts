@@ -6,6 +6,7 @@
  * Layers come from the generated catalog; colours come from tokens; the active
  * colouring comes from a view. That is what keeps the platforms looking the same.
  */
+import type { SectionKey } from "@app/core";
 import {
   MAP_STYLE, STYLE_META, colorExpression, defaultView, isRuntimeLayer, resolveTheme,
   type Tokens,
@@ -17,7 +18,7 @@ export interface MapHandle {
   /** Narrow a layer to a zoom range for the current view — see `minzoomByView`. */
   setZoomRange?(layerId: string, minzoom: number, maxzoom?: number): void;
   setPaint(layerId: string, prop: string, value: unknown): void;
-  setFeatureState(layerId: string, featureId: string, state: Record<string, unknown>): void;
+  setFeatureState(layerId: string, featureId: SectionKey, state: Record<string, unknown>): void;
   clearFeatureStates(layerId: string): void;
 }
 
@@ -41,7 +42,7 @@ export interface MapAdapter {
   /** Re-apply colours after a theme or user-palette change, keeping the current view. */
   applyTheme(h: MapHandle, viewId: string, themeName: string, overrides?: Tokens): void;
   /** Highlight by id via feature-state — never by mutating paint. */
-  highlight(h: MapHandle, featureIds: string[]): void;
+  highlight(h: MapHandle, featureIds: SectionKey[]): void;
   /** Push the per-feature data a colour mode reads (status, discharge, …). */
   setData(h: MapHandle, layerId: string, values: Record<string, Record<string, unknown>>): void;
 }

@@ -7,6 +7,7 @@
  * the "plain" view unless the caller asks otherwise, so a thumbnail never argues with the
  * screen it sits under.
  */
+import type { SectionKey } from "@app/core";
 import { Text, View } from "react-native";
 import { Map, type Camera, type TileEndpoints } from "@app/map";
 import { TYPE } from "./type";
@@ -18,7 +19,7 @@ export function MiniMap({ at, palette, theme, camera, height = 190, view = "regu
   height?: number; view?: string; hint?: string;
   data?: Record<string, Record<string, Record<string, unknown>>>;
   /** Reaches to draw as selected — the route panel lights the chain down to the gauge. */
-  highlight?: readonly string[];
+  highlight?: readonly SectionKey[];
   marker?: { lat: number; lon: number } | null;
   pins?: readonly { lat: number; lon: number; tone?: string; title?: string }[];
   /** Strip the renderer's zoom stack, compass, scale bar and attribution — see MapProps. */

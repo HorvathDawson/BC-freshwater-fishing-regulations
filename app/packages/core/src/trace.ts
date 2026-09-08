@@ -12,6 +12,7 @@
  * completely different claims about a river.
  */
 import type { GaugeTrust } from "./flow";
+import type { SectionKey } from "./stretches";
 
 export interface GaugeTrace {
   /** The station this reach drains through. Null means no station may speak for it. */
@@ -19,8 +20,17 @@ export interface GaugeTrace {
   stationName: string | null;
   /** How much of the gauge's watershed this reach is. */
   trust: GaugeTrust | null;
-  /** The reaches between here and the gauge, this one first. */
-  path: readonly string[];
+  /**
+   * The reaches between here and the gauge, this one first.
+   *
+   * SectionKey, because a section is an integer handle in the bundle and `core` has no
+   * business knowing which. NOTE what this means for a SAVED SPOT: these handles are valid
+   * only against the atlas that produced them, so a spot pinned before a rebuild carries a
+   * route that no longer refers to anything. That is why the trace is drawn from the
+   * frozen `lon`/`lat` below when they are present, and why a path alone may not be
+   * resolved back into water — see AGENTS rule 5.
+   */
+  path: readonly SectionKey[];
   /** Along-channel distance to the station. Null when nothing has computed it. */
   metres: number | null;
   /** FWA stream magnitudes the trust was derived from. */
