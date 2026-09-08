@@ -16,11 +16,13 @@ import { TYPE } from "./type";
 import { mapChrome, type Palette } from "./theme";
 
 
-export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
+export function MapScreen({ at, palette, theme, view, modes, groups, hide, on, camera,
                             onDate, onLayers, onPressFeature, onMoved, onMapPoint, horizons,
                             highlight, marker, data, gauges, onVisible, onError }: {
   at: TileEndpoints; palette: Palette; theme: string; view: string;
   groups?: Record<string, boolean>;
+  /** Layers this view does not draw — see `hiddenLayers`. Not a user toggle. */
+  hide?: readonly string[];
   modes?: Record<string, string>;
   onPressFeature?: (layerId: string, featureId: string,
                     lat?: number, lon?: number) => void;
@@ -47,7 +49,8 @@ export function MapScreen({ at, palette, theme, view, modes, groups, on, camera,
 }) {
   return (
     <View style={{ flex: 1, backgroundColor: palette.tint }}>
-      <Map at={at} theme={theme} view={view} modes={modes} groups={groups} initial={camera}
+      <Map at={at} theme={theme} view={view} modes={modes} groups={groups} hide={hide}
+           initial={camera}
            onPressFeature={onPressFeature} onMoved={onMoved} onMapPoint={onMapPoint}
            highlight={highlight} marker={marker} data={data} gauges={gauges}
            onVisible={onVisible} onError={onError}

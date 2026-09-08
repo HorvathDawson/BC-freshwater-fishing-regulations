@@ -235,4 +235,36 @@ describe("the flow ramp's units", () => {
     expect(expr[2]).not.toBe(t["color.flow.f1"]);
     expect(expr[2]).not.toBe(t["color.water.unmapped"]);
   });
+
+  it("a view's hidden layers are real layers, and not user toggles", () => {
+    /*
+     * WHY THIS EXISTS. The Conditions screen wanted the management-unit and region
+     * boundaries off, and asked for it through `groups` — `{...activeGroups, admin: false}`.
+     * The `admin` group is deliberately NOT toggleable, so the adapter refused the call: the
+     * boundaries kept drawing and the console filled with "layer group admin is not
+     * toggleable", seven times a render. The screen reported success and hid nothing.
+     *
+     * So a view states which layers it does not draw, and this holds that list to real
+     * layers. The second assertion is the point: if a hidden layer's group were toggleable,
+     * the view would be taking a decision that belongs to the user.
+     */
+    // `layerGroup` is the meta's own roster of every layer and the group it belongs to.
+    const ids = new Set(Object.keys(STYLE_META.layerGroup));
+    const byGroup = new Map(STYLE_META.groups.map((g) => [g.id, g]));
+    for (const v of STYLE_META.views)
+      for (const id of v.hide ?? []) {
+        expect(ids.has(id), `view "${v.id}" hides unknown layer "${id}"`).toBe(true);
+        const group = byGroup.get(STYLE_META.layerGroup[id] ?? "");
+        expect(group?.toggleable,
+               `"${id}" is in a toggleable group — that is the user's choice, not the view's`)
+          .toBe(false);
+      }
+  });
+
+  it("the Conditions view is the one that hides the boundaries", () => {
+    // Named, so deleting it from the style fails here rather than silently restoring lines
+    // over the flow field.
+    const conditions = STYLE_META.views.find((v) => v.id === "conditions");
+    expect([...(conditions?.hide ?? [])].sort()).toEqual(["mu", "region"]);
+  });
 });

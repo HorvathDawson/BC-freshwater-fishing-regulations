@@ -17,7 +17,8 @@ import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelSta
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 type FlowParam = Parameter | "both" | "temperature";
 import type { Spot, WeatherSource } from "@app/data/spots";
-import { toggleableGroups, type Camera, type TileEndpoints } from "@app/map";
+import { hiddenLayers, toggleableGroups,
+         type Camera, type TileEndpoints } from "@app/map";
 import { ChartControls } from "./ChartControls";
 import { DateSheet } from "./DateSheet";
 import { LegendCount, LegendRamp, LegendStrip } from "./Chrome";
@@ -439,18 +440,16 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
                      }}
                      view="plain" modes={modes}
                      /*
-                      * NO ADMINISTRATIVE BOUNDARIES OVER THE FIELD.
-                      *
-                      * The eight management regions draw as a heavy web with a numeral in
-                      * every cell, and over the basin field they read as the subject of the
-                      * map rather than as context — the reader is looking for a colour and
-                      * finding a border. They are navigation, and the Conditions tab is not
-                      * a screen you navigate by region: it answers one question about
-                      * water. They stay on the Map tab, where there is a reason to want
-                      * them and no field to fight.
+                      * NOT `groups`. Which layers the Conditions view draws is stated in
+                      * the style (`views[].hide`), because that is a property of the view
+                      * rather than of a screen. This tried `{...activeGroups, admin: false}`
+                      * and `admin` is deliberately not toggleable — the adapter refused the
+                      * call, the boundaries kept drawing, and the console filled up.
                       */
-                     groups={tab === "conditions"
-                       ? { ...activeGroups, admin: false } : activeGroups}
+                     groups={activeGroups}
+                     // The list is the style's; the trigger is this screen's, because the
+                     // app drives by mode and never renders the named view.
+                     hide={tab === "conditions" ? hiddenLayers("conditions") : []}
                      onDate={onDateChange ? () => setDateOpen(true) : undefined}
                      // The Conditions tab swaps the date control for the horizons — see
                      // MapScreen. Temperature has no forecast, so it keeps neither.

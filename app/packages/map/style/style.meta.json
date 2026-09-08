@@ -123,7 +123,12 @@
         "stream__label": "plain",
         "region__label": "plain",
         "mu__label": "plain"
-      }
+      },
+      "hide": [
+        "mu",
+        "region"
+      ],
+      "$comment": "HIDE, NOT A GROUP TOGGLE. Management-unit and region boundaries answer \"which table of regulations governs here\", which is not a question the Conditions map is asking — over a flow field they are lines a reader has to learn to ignore. The app tried to turn them off by passing `admin: false` in `groups`, and the `admin` group is deliberately NOT toggleable, so the adapter refused it: the boundaries kept drawing and the console filled with \"layer group admin is not toggleable\". Which layers a VIEW draws is a property of the view, so it is stated here rather than asserted by a screen."
     },
     {
       "id": "temperature",

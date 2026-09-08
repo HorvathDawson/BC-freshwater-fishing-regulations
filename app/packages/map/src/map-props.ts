@@ -90,6 +90,16 @@ export interface MapProps {
    * this is what the Layers panel actually sets.
    */
   modes?: Record<string, string>;
+  /**
+   * Layers this screen does not draw at all — from `hiddenLayers(viewId)`.
+   *
+   * SEPARATE FROM `groups`, which is a user's choice among what a view offers. This is the
+   * view's own decision and it is not the user's to make. Passing it through `groups`
+   * instead is what produced "layer group admin is not toggleable" seven times a render,
+   * with the boundaries still drawing: `admin` is deliberately fixed, so the adapter
+   * refused the call and the screen quietly kept the layers it meant to hide.
+   */
+  hide?: readonly string[];
   /** Which toggleable layer groups are on. Absent means "leave the style's default". */
   groups?: Record<string, boolean>;
   initial: Camera;

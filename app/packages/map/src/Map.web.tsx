@@ -66,7 +66,8 @@ function useOutsideMask(url: string | undefined): unknown {
   return got;
 }
 
-export function Map({ at, theme, view, modes, groups, initial, data, onPressFeature, chrome,
+export function Map({ at, theme, view, modes, groups, hide, initial, data, onPressFeature,
+                     chrome,
                       onError, onMoved, onMapPoint, highlight, marker, style,
                       gauges, onVisible, pins, bare }: MapProps) {
   const host = useRef<HTMLDivElement | null>(null);
@@ -310,6 +311,18 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
         try { adapter.current.setLayerMode(handle, id, mode, theme); }
         catch (e) { onError?.(e instanceof Error ? e : new Error(String(e))); }
       }
+      /*
+       * The view's own layers, hidden here rather than through `groups`.
+       *
+       * Every layer the style CAN hide is set explicitly each pass — not just the ones in
+       * `hide` — because leaving Conditions has to put them back, and a one-way toggle is
+       * how a boundary disappears for the rest of the session.
+       */
+      for (const v of STYLE_META.views)
+        for (const id of v.hide ?? [])
+          if (m.getLayer(id))
+            m.setLayoutProperty(id, "visibility",
+                                (hide ?? []).includes(id) ? "none" : "visible");
       for (const [id, on] of Object.entries(groups ?? {})) {
         try { adapter.current.setGroupVisible(handle, id, on); }
         catch (e) { onError?.(e instanceof Error ? e : new Error(String(e))); }
@@ -318,7 +331,7 @@ export function Map({ at, theme, view, modes, groups, initial, data, onPressFeat
         adapter.current.setData(handle, layerId, values);
     };
     if (m.isStyleLoaded()) apply(); else m.once("load", apply);
-  }, [view, modes, theme, data, groups, onError]);
+  }, [view, modes, theme, data, groups, hide, onError]);
 
   useEffect(() => {
     const m = map.current;

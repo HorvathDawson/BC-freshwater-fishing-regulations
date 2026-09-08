@@ -13,6 +13,16 @@ export interface MapView {
   id: string; label: string; default?: boolean;
   /** layerId -> colour mode name */
   modes: Record<string, string>;
+  /**
+   * Layers this view does not draw at all.
+   *
+   * Separate from the group toggles, which are a USER's choice among the things a view
+   * offers. This is the view's own: the Conditions map does not draw administrative
+   * boundaries because "which regulations table governs here" is not the question it asks.
+   * The app cannot express that through `groups` — `admin` is deliberately not toggleable —
+   * and trying produced a refused call and a boundary that kept drawing.
+   */
+  hide?: string[];
 }
 export type TokenRef = { token: string };
 export type ColorMode =
@@ -89,6 +99,17 @@ export const isRuntimeLayer = (layerId: string): boolean =>
 export const layerIds = (): string[] => MAP_STYLE.layers.map((l) => l.id);
 export const toggleableGroups = (): LayerGroup[] => STYLE_META.groups.filter((g) => g.toggleable);
 export const views = (): MapView[] => STYLE_META.views;
+
+/**
+ * Layers a view does not draw. The LIST lives in the style; the TRIGGER is the app's.
+ *
+ * Not keyed on the rendered view, deliberately. The app renders `view="plain"` and drives
+ * everything by setting each layer's MODE — so a rule keyed on "the conditions view" is a
+ * rule that never fires, which is exactly how `minzoomByView` sat dead until it was rekeyed
+ * to `minzoomByMode`. The screen knows which tab it is on; it asks for the list by name.
+ */
+export const hiddenLayers = (viewId: string): readonly string[] =>
+  STYLE_META.views.find((v) => v.id === viewId)?.hide ?? [];
 export const defaultView = (): MapView => {
   const v = STYLE_META.views.find((x) => x.default);
   if (!v) throw new Error("no default view");
