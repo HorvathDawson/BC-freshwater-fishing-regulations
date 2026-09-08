@@ -121,3 +121,47 @@ def test_every_bound_rule_reaches_at_least_one_section_in_the_bundle():
         "                WHERE x.entry_id = rule.entry_id AND x.rule_id = rule.rule_id)"
     ).fetchall()
     assert not orphans, f"{len(orphans)} bound rules cover no section, e.g. {orphans[:3]}"
+
+
+def test_every_insert_matches_its_table():
+    """An INSERT with positional placeholders must agree with the schema it writes into.
+
+    This is here because it did not, and nothing caught it. A `pages` column was added to
+    `entry` while `INSERT INTO entry VALUES (?,?,?,?,?,?,?)` kept seven placeholders, and the
+    985-test suite passed: no test builds a bundle, so the disagreement only surfaced 90
+    seconds into a province-wide rebuild, after the panels and the basins and the gauge match
+    had all been recomputed — and it left a 42 MB bundle with zero entries in it.
+
+    The fix in `rules.py` was to NAME the columns, which makes the failure impossible rather
+    than merely tested. This asserts the property for every INSERT in the module, so the next
+    positional one is caught at the cost of a millisecond instead of a rebuild.
+    """
+    import re
+
+    schema = (Path(__file__).resolve().parents[1]
+              / "deliver/bundle/schema.sql").read_text(encoding="utf-8")
+    src = (Path(__file__).resolve().parents[1]
+           / "deliver/bundle/rules.py").read_text(encoding="utf-8")
+
+    def columns_of(table: str) -> int:
+        m = re.search(rf"CREATE TABLE {table} \((.*?)\)\s*(?:WITHOUT ROWID)?;",
+                      schema, re.S)
+        assert m, f"no CREATE TABLE for {table}"
+        body = re.sub(r"--[^\n]*", "", m.group(1))
+        depth, cols, cur = 0, [], ""
+        for ch in body:
+            if ch == "(": depth += 1
+            elif ch == ")": depth -= 1
+            if ch == "," and depth == 0:
+                cols.append(cur); cur = ""
+            else:
+                cur += ch
+        cols.append(cur)
+        return sum(1 for c in cols
+                   if c.strip() and not c.strip().upper().startswith("PRIMARY KEY"))
+
+    positional = re.findall(r'INSERT INTO (\w+) VALUES \(([?,]+)\)', src)
+    for table, marks in positional:
+        assert marks.count("?") == columns_of(table), (
+            f"INSERT INTO {table} supplies {marks.count('?')} values but the table has "
+            f"{columns_of(table)} columns — name the columns in the INSERT")

@@ -155,7 +155,12 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
                     r.get("rule_text"), r.get("display_location"),
                 ))
 
-    db.executemany("INSERT INTO entry VALUES (?,?,?,?,?,?,?)", entry_rows)
+    # NAMED, not positional. A `pages` column was added to the schema while this line kept
+    # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild
+    # — which then wrote a 42 MB bundle with zero entries in it. Naming the columns makes that
+    # failure impossible rather than merely tested.
+    db.executemany("INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols,"
+                   "                   mus, pages) VALUES (?,?,?,?,?,?,?,?)", entry_rows)
     cov.filled("entry", len(entry_rows))
     db.executemany("INSERT INTO rule VALUES (?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
