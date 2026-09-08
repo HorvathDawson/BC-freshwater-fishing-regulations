@@ -124,7 +124,8 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 
 /* ---- stage 1: where ------------------------------------------------------- */
 .mapbox{position:relative;background:var(--tint);border-bottom:1px solid var(--line);
-  line-height:0;touch-action:none}
+  line-height:0;touch-action:none;overflow:hidden;cursor:grab}
+.mapbox:active{cursor:grabbing}
 .zoom{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;
   border:1.5px solid var(--ink);background:var(--card)}
 .zoom button{width:30px;height:30px;font:600 17px/1 var(--ui);color:var(--ink);
@@ -154,7 +155,8 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
    ours for the same job, and its motorway reds compete with the closure colour. */
 /* The tile is the label layer now, so it is no longer pushed as far back — just enough
    desaturation that its motorway reds do not read as a closure. */
-.mapbox image{filter:saturate(.55)}
+.mapbox image{filter:saturate(.55);-webkit-user-drag:none;user-select:none;
+  pointer-events:none}
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]) .mapbox image{
     filter:invert(1) hue-rotate(180deg) saturate(.45) brightness(.82)}
@@ -485,9 +487,24 @@ function build(name, mount){
      * distance the finger moved. Zooming out past the fit is not offered — there is nothing
      * out there that the ruler does not already say better.
      */
-    if(!whole) Z+=Math.min(st.z||0,4);
+    Z+=Math.min(st.z||0,4);
     c0=merc([(lo[0]+hi[0])/2,(lo[1]+hi[1])/2],Z);
-    if(!whole&&st.pan) c0=[c0[0]-st.pan[0], c0[1]-st.pan[1]];
+    /*
+     * THE SUBJECT CANNOT LEAVE THE FRAME.
+     *
+     * Two drags on the Fraser's overview put the map over Lethbridge, in Alberta, with no
+     * river on screen and nothing to say so. A map you can lose the subject on is a map that
+     * needs an undo, and Reset is a poor substitute for not going wrong. The pan is clamped
+     * so at least 30px of the fitted content stays in view on each axis — enough to see
+     * which way to drag back.
+     */
+    if(st.pan){
+      var A=merc(lo,Z), B=merc(hi,Z);
+      var maxX=Math.abs(B[0]-A[0])/2+MW/2-30, maxY=Math.abs(B[1]-A[1])/2+MH/2-30;
+      st.pan=[Math.max(-maxX,Math.min(maxX,st.pan[0])),
+              Math.max(-maxY,Math.min(maxY,st.pan[1]))];
+      c0=[c0[0]-st.pan[0], c0[1]-st.pan[1]];
+    }
   }
   function fx(p){return MW/2+(merc(p,Z)[0]-c0[0]);}
   function fy(p){return MH/2+(merc(p,Z)[1]-c0[1]);}
@@ -507,7 +524,10 @@ function build(name, mount){
         if(ty<0||ty>=n)continue;
         g.push('<image href="https://tile.openstreetmap.org/'+Z+'/'+(((tx%n)+n)%n)+'/'+ty
           +'.png" x="'+(tx*sz-wx).toFixed(1)+'" y="'+(ty*sz-wy).toFixed(1)
-          +'" width="256" height="256" opacity=".82"/>'); }
+          // A tile is a picture, and a browser drags pictures: without this the native
+          // image-drag hijacks the gesture and can even navigate to the tile.
+          +'" width="256" height="256" opacity=".82" preserveAspectRatio="none" '
+          +'style="pointer-events:none"/>'); }
     // Side channels are drawn, never listed: province-wide only 7 waters of 1,353 carry a
     // rule on a side channel that the mainstem beside it does not already carry.
     r.side.forEach(function(sc){ if(sc.pts.length>1)
@@ -735,6 +755,16 @@ function build(name, mount){
       +' KM · HEAD</span></div></div>';
   }
 
+  /** The same controls on both maps. Their "fit" differs — the whole river, or one
+   *  stretch — but a map that zooms and drags on one screen and is inert on the other is a
+   *  map that teaches a reader not to try. */
+  function zoomControls(){
+    return '<div class="zoom"><button data-zoom="1" aria-label="Zoom in">+</button>'
+      +'<button data-zoom="-1" aria-label="Zoom out"'+((st.z||0)?"":" disabled")
+      +'>\u2212</button></div>'
+      +(((st.z||0)||st.pan)?'<button class="zreset" data-zoom="0">Reset</button>':"");
+  }
+
   function foot(i){
     if(i<=0) return "the mouth";
     return runs[i].label||"km "+Math.round(runs[i].from);
@@ -783,7 +813,7 @@ function build(name, mount){
      * where a reader's thumb finds it without hunting, and the map follows as the picture.
      */
     h.push(ruler(false));
-    h.push('<div class="mapbox">'+mapSvg(true)+'</div>');
+    h.push('<div class="mapbox">'+mapSvg(true)+zoomControls()+'</div>');
     /*
      * Seventeen rungs each headed CLOSED is seventeen lines that say nothing. A river-wide
      * night closure makes every stretch of the Fraser nominally closed, so the word is both
@@ -937,12 +967,7 @@ function build(name, mount){
     nowOwn.concat(nowInh, later).forEach(function(x){ num.set(x, ++seq); });
     var h=[];
     if(many) h.push(ruler(true));
-    h.push('<div class="mapbox">'+mapSvg(false)
-      +'<div class="zoom"><button data-zoom="1" aria-label="Zoom in">+</button>'
-      +'<button data-zoom="-1" aria-label="Zoom out"'+((st.z||0)?"":" disabled")
-      +'>\u2212</button></div>'
-      +((st.z||0)?'<button class="zreset" data-zoom="0">Fit stretch</button>':"")
-      +'</div>');
+    h.push('<div class="mapbox">'+mapSvg(false)+zoomControls()+'</div>');
     // No PAST line. The map beneath already shows those towns, in OpenStreetMap's own
     // labels, in their places — which is more than a comma-separated list could say.
     if(many) h.push('<dl class="ends">'
@@ -1053,8 +1078,8 @@ function build(name, mount){
       n.onclick=function(){ var k=n.getAttribute("data-rule");
         st.open[k]=!st.open[k]; render(); }; });
     var b=screen.querySelector("[data-back]");
-    if(b) b.onclick=function(){ if(many&&!where){ st.stage="where"; screen.scrollTop=0;
-      render(); } };
+    if(b) b.onclick=function(){ if(many&&!where){ st.stage="where"; st.z=0; st.pan=null;
+      screen.scrollTop=0; render(); } };
     var l=screen.querySelector("[data-later]");
     if(l) l.onclick=function(){ st.later=!st.later; render(); };
     screen.querySelectorAll("[data-zoom]").forEach(function(n){
@@ -1071,20 +1096,48 @@ function build(name, mount){
         render();
       };
     });
-    var mb=screen.querySelector(".mapbox svg");
-    if(mb&&(st.z||0)>0){
+    /*
+     * DRAGGING THE MAP, WITHOUT DESTROYING THE THING BEING DRAGGED.
+     *
+     * This did not work at all, for two separate reasons. It was gated behind `st.z > 0`, so
+     * at the default fit — which is where a reader first tries — nothing happened. And it
+     * called `render()` on every pointermove, which rewrites the whole screen and therefore
+     * destroys the very SVG the pointer was captured on: even zoomed in, a drag died after
+     * one frame.
+     *
+     * The drag moves the existing node with a CSS transform instead. That is instant, needs
+     * no new tiles, and cannot invalidate its own capture. Only on release is the offset
+     * committed and the map re-rendered — the one moment new tiles are actually wanted.
+     * Under two pixels counts as a tap rather than a drag.
+     */
+    var box=screen.querySelector(".mapbox"), svg=box&&box.querySelector("svg");
+    if(box&&svg){
       var from=null;
-      mb.onpointerdown=function(ev){
-        if(mb.setPointerCapture) mb.setPointerCapture(ev.pointerId);
-        from=[ev.clientX,ev.clientY,(st.pan||[0,0])[0],(st.pan||[0,0])[1]];
+      box.onpointerdown=function(ev){
+        if(ev.target.closest&&ev.target.closest(".zoom,.zreset")) return;
+        // Capture is an optimisation — it keeps the drag alive if the finger leaves the
+        // box — and it THROWS when the pointer id is not live. Letting that propagate
+        // aborted the handler before `from` was set, so the whole drag never started.
+        try{ box.setPointerCapture(ev.pointerId); }catch(e){}
+        from=[ev.clientX,ev.clientY];
+        svg.style.willChange="transform";
       };
-      mb.onpointermove=function(ev){
+      box.onpointermove=function(ev){
         if(!from) return;
-        var k=380/mb.getBoundingClientRect().width;
-        st.pan=[from[2]+(ev.clientX-from[0])*k, from[3]+(ev.clientY-from[1])*k];
+        svg.style.transform="translate("+(ev.clientX-from[0])+"px,"
+          +(ev.clientY-from[1])+"px)";
+      };
+      var release=function(ev){
+        if(!from) return;
+        var k=380/box.getBoundingClientRect().width;
+        var dx=(ev.clientX-from[0])*k, dy=(ev.clientY-from[1])*k;
+        from=null; svg.style.transform=""; svg.style.willChange="";
+        if(Math.abs(dx)<2&&Math.abs(dy)<2) return;
+        st.pan=[(st.pan?st.pan[0]:0)+dx, (st.pan?st.pan[1]:0)+dy];
         render();
       };
-      mb.onpointerup=mb.onpointercancel=function(){ from=null; };
+      box.onpointerup=release;
+      box.onpointercancel=function(){ from=null; svg.style.transform=""; };
     }
   }
   render();
