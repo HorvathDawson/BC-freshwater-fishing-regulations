@@ -91,6 +91,9 @@ _MAX_ROUTE_OVER_DIAGONAL = 3.0
 def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) -> dict:
     """Flowing water, from the geometry sidecar. Lines only — waterbodies are polygons and
     come from ``export_waterbodies`` below."""
+    from pipeline.common.section_handles import read as _read_handles
+
+    _, sid = _read_handles(build_dir)
     from pyproj import Transformer
     tf = Transformer.from_crs(3005, 4326, always_xy=True)
 
@@ -161,7 +164,10 @@ def export_streams(build_dir: Path, out_dir: Path, *, limit: int | None = None) 
             continue
         nm = display(node.display_name)
         write(_to4326(g, tf), {
-            "section_id": sec,
+            # THE HANDLE, not the string — the bundle keys every section table by it, and
+            # this is the feature id the app sets state on, so the two must be the same
+            # number. See pipeline/common/section_handles.
+            "section_id": sid[sec],
             "item": item_of.get(sec),
             "name": nm,
             "alt": haystack(nm, sorted(variants.get(sec, ()))),
@@ -195,6 +201,9 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
     is what this draws; the under-lake fid run is the route a river takes through it and is
     drawn separately, dotted, by ``export_streams``.
     """
+    from pipeline.common.section_handles import read as _read_handles
+
+    _, sid = _read_handles(build_dir)
     from pyproj import Transformer
     tf = Transformer.from_crs(3005, 4326, always_xy=True)
 
@@ -225,7 +234,7 @@ def export_waterbodies(build_dir: Path, gpkg: str, out_dir: Path) -> dict:
         write, _ = writers[lname]
         nm = display(node.display_name)
         write(_to4326(g, tf), {
-            "section_id": nid,
+            "section_id": sid[nid],
             "item": item_of.get(nid),
             "name": nm,
             "alt": haystack(nm, sorted(variants.get(nid, ()))),
@@ -304,8 +313,17 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
     for ad in load_area_split_defs():
         lname = ad.get("tile_layer")
         if not lname:
+            # AN AREA MAY OPT OUT, BUT ONLY OUT LOUD. `not_drawn` carries the reason, so a
+            # boundary that never ships is a decision somebody wrote down rather than a
+            # missing field nobody noticed — which is the whole point of the guard below.
+            # An area can still be CUT and STAMPED without being drawn: the MU groups are
+            # unions of units whose own outlines already draw, and a zone rule resolves off
+            # the `mus` attribute every feature already carries.
+            if ad.get("not_drawn"):
+                continue
             raise SystemExit(f"areas.json: '{ad['id']}' has no tile_layer — every area must say "
-                             f"which tile layer draws it, or its boundary silently never ships.")
+                             f"which tile layer draws it, or its boundary silently never ships. "
+                             f"To leave it undrawn on purpose, set `not_drawn` to the reason.")
         if lname not in BY_NAME:
             raise SystemExit(f"areas.json: '{ad['id']}' names tile_layer '{lname}', which is not "
                              f"in pipeline/deliver/tiles/layers.py")

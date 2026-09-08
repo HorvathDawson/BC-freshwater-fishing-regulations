@@ -148,9 +148,18 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
     ~90 KB gzipped — small enough that no server-side search is needed anywhere.
     """
     items = [i for i in json.loads(registry.read_text())["items"] if is_water(i)]
-    db.executemany("INSERT OR REPLACE INTO item VALUES (?,?,?)",
-                   ((i["id"], i["name"], i.get("kind")) for i in items))
-    cov.filled("item", len(items))
+    # `ord` is assigned here, by insertion order, and is the ONLY place it is assigned.
+    # setdefault rather than enumerate: the old write was INSERT OR REPLACE, so a repeated
+    # item_id collapsed silently — with ord as the key it would instead insert twice and
+    # trip the UNIQUE on item_id, turning a tolerated duplicate into a failed build.
+    ords: dict[str, int] = {}
+    for i in items:
+        ords.setdefault(i["id"], len(ords))
+    # COLUMNS NAMED. `item` grew a column and the positional form would have silently
+    # shifted name into item_id — the same fault that shipped an empty `entry` table.
+    db.executemany("INSERT OR REPLACE INTO item (ord, item_id, name, kind) VALUES (?,?,?,?)",
+                   ((ords[i["id"]], i["id"], i["name"], i.get("kind")) for i in items))
+    cov.filled("item", len(ords))
 
     # Normalised the way the TILE normalises its search haystack — same function, imported.
     # The registry carries both cases of many strings ("EAST WHITE RIVER" and "East White
@@ -174,8 +183,19 @@ def _items(db: sqlite3.Connection, registry: Path, cov: Coverage) -> None:
 
     # Clustered by item so one water's sections land together: `regsForItem` should be one
     # or two range reads, and that is a property of the write order, not of the format.
-    pairs = [(i["id"], s) for i in items for s in i.get("section_ids", [])]
-    db.executemany("INSERT INTO item_section VALUES (?,?)", pairs)
+    # HANDLES ON BOTH SIDES — item.ord and the section handle. A section the handle table
+    # does not know cannot be written: it would mean this registry and that atlas are not the
+    # same build, and a wrong handle is worse than a missing row.
+    from pipeline.common.section_handles import read as _read_handles
+
+    _, sid = _read_handles(registry.parent)
+    _unknown = [s for i in items for s in i.get("section_ids", []) if s not in sid]
+    if _unknown:
+        raise SystemExit(f"item_section: {len(_unknown):,} sections are not in the handle "
+                         f"table (e.g. {_unknown[:3]}) — the registry and section_handles.txt "
+                         f"are from different builds")
+    pairs = [(ords[i["id"]], sid[s]) for i in items for s in i.get("section_ids", [])]
+    db.executemany("INSERT INTO item_section (ord, sid) VALUES (?,?)", pairs)
     cov.filled("item_section", len(pairs))
 
 
@@ -276,11 +296,14 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
         cov.skip("place_water", "no named section has geometry in this build")
         return
     tree = STRtree([geoms[s] for s in keys])
+    # Read the handles back rather than passing them across half the module: `item` is
+    # already written by the time this runs, and one source for `ord` cannot drift.
+    ords: dict[str, int] = dict(db.execute("SELECT item_id, ord FROM item"))
 
     pts = gpd.GeoSeries([Point(p["lon"], p["lat"]) for p in places], crs=4326).to_crs(3005)
 
     radius_m = radius_km * 1000.0
-    rows: list[tuple[int, str, float]] = []
+    rows: list[tuple[int, int, int]] = []
     for n, (place, pt) in enumerate(zip(places, pts), 1):
         best: dict[str, tuple[str, float]] = {}
         for ix in tree.query(pt.buffer(radius_m)):
@@ -291,9 +314,12 @@ def _place_water(db: sqlite3.Connection, build_dir: Path, places: list[dict],
             if item_id not in best or d < best[item_id][1]:
                 best[item_id] = (name, d)
         for item_id, (_name, d) in best.items():
-            rows.append((n, item_id, round(d / 1000.0, 2)))
+            # The SAME number today's REAL column holds, as an integer: round to the two
+            # decimals of a km first, then scale. Rounding the metres directly would differ
+            # from the old value at a .5 boundary, and this is meant to be lossless.
+            rows.append((n, int(round(round(d / 1000.0, 2) * 100)), ords[item_id]))
 
-    db.executemany("INSERT INTO place_water VALUES (?,?,?)", rows)
+    db.executemany("INSERT INTO place_water (place_id, ckm, ord) VALUES (?,?,?)", rows)
     cov.filled("place_water", len(rows))
 
 
@@ -333,6 +359,13 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     from pipeline.gauges import build_gauge_sheds, lake_gauge_links
     from pipeline.gauges.generate.match import nodes_for, read_match, summarise
     from pipeline.gauges.consume.shed import downstream_map, load_stations
+
+    from pipeline.common.section_handles import read as _read_handles
+
+    # Every section this function writes is named by its handle. Loaded once (the loader
+    # memoises) and shared by gauge, section_gauge, section_panel and section_down, so those
+    # four cannot disagree about what a section is called.
+    _, sid = _read_handles(build_dir)
 
     stations = load_stations(stations_path)
     with graph_path.open("rb") as fh:
@@ -383,7 +416,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     # where it is; the feed index says which are talking, by containing them.
     db.executemany("INSERT INTO gauge VALUES (?,?,?,?,?,?,?,?,?,?)", [
         (s["station"], s["name"],
-         owner.get(matched.get(s["station"], "")), matched.get(s["station"]),
+         owner.get(matched.get(s["station"], "")),
+         sid.get(matched[s["station"]]) if s["station"] in matched else None,
          s["lon"], s["lat"], s.get("area_km2"),
          (graph.nodes[matched[s["station"]]].stream_magnitude
           if s["station"] in matched else None),
@@ -401,8 +435,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     links = build_gauge_sheds(graph, stations, matched, prefer=active, report=shed_lost)
     # `links` arrives grouped by section, best ratio first; `seq` freezes that order so a
     # client takes row 0 and never has to re-derive the judgement.
-    db.executemany("INSERT INTO section_gauge VALUES (?,?,?,?)",
-                   [(l.section_id, l.station, l.trust,
+    db.executemany("INSERT INTO section_gauge (sid, station, trust, mag) VALUES (?,?,?,?)",
+                   [(sid[l.section_id], l.station, l.trust,
                      graph.nodes[l.section_id].stream_magnitude) for l in links])
     cov.filled("section_gauge", len(links))
 
@@ -422,12 +456,28 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
     clim_path = CLIM_PATH
     if clim_path.exists():
         clim = json.loads(clim_path.read_text(encoding="utf-8"))
-        rows = [(st, param, int(pent), *bands)
-                for st, by_param in sorted(clim.get("stations", {}).items())
-                for param, by_pent in sorted(by_param.items())
-                for pent, bands in sorted(by_pent.items(), key=lambda kv: int(kv[0]))]
-        db.executemany("INSERT INTO gauge_clim VALUES (?,?,?,?,?,?,?,?)", rows)
+        # ONE BLOB PER (station, parameter) — the packing is described in schema.sql. Built
+        # here rather than in a helper because this is the only writer; the only READER is
+        # the app, and `pipeline/tests/test_bundle_clim.py` pins the two to the same layout.
+        import struct
+
+        rows, n_pentads = [], 0
+        for st, by_param in sorted(clim.get("stations", {}).items()):
+            for param, by_pent in sorted(by_param.items()):
+                buf = bytearray()
+                for pent, bands in sorted(by_pent.items(), key=lambda kv: int(kv[0])):
+                    pe = int(pent)
+                    if not 0 <= pe < 73:      # the axis is 73 pentads; anything else is a bug
+                        raise SystemExit(f"gauge_clim: pentad {pe} out of range for {st}/{param}")
+                    buf.append(pe)
+                    buf += struct.pack("<5f", *(float(b) for b in bands))
+                    n_pentads += 1
+                if buf:
+                    rows.append((st, param, bytes(buf)))
+        db.executemany("INSERT INTO gauge_clim (station, parameter, bands) VALUES (?,?,?)",
+                       rows)
         cov.filled("gauge_clim", len(rows))
+        print(f"     clim: {n_pentads:,} pentads packed into {len(rows):,} envelopes")
 
         srows = [(st, param, s_.get("from_year"), s_.get("to_year"), s_.get("years"),
                   s_.get("days"))
@@ -485,7 +535,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
                   for st in matched
                   if years_by_station.get(st, 0) >= MIN_RECORD_YEARS]
         panels = build_panels(graph, model, donors)
-        db.executemany("INSERT INTO section_panel VALUES (?,?,?)", panels.section_rows())
+        db.executemany("INSERT INTO section_panel (sid, panel_id, area_km2) VALUES (?,?,?)",
+                       [(sid[_s], _p, _a) for _s, _p, _a in panels.section_rows()])
         db.executemany("INSERT INTO panel_member VALUES (?,?,?,?,?,?,?,?)",
                        panels.member_rows())
         cov.filled("section_panel", len(panels.by_section))
@@ -540,8 +591,8 @@ def _gauges(db: sqlite3.Connection, build_dir: Path, data_dir: Path, cov: Covera
         cov.skip("basin_member", f"not built: {_exc}")
 
     down = downstream_map(graph, (l.section_id for l in links))
-    db.executemany("INSERT INTO section_down VALUES (?,?)",
-                   [(s, down[s]) for s in sorted(down)])
+    db.executemany("INSERT INTO section_down (sid, down_sid) VALUES (?,?)",
+                   [(sid[s], sid[down[s]]) for s in sorted(down)])
     cov.filled("section_down", len(down))
 
     bands: dict[str, int] = {}
@@ -620,7 +671,8 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
             f"{GENERATED.reaches / build_dir.name}")
     else:
         print(f"     rules: reading {_reaches.relative_to(REPO_ROOT)}")
-        _rules.write(db, _reaches, CURATED.regulations.entries.synopsis.parent, cov)
+        _rules.write(db, _reaches, CURATED.regulations.entries.synopsis.parent, cov,
+                     build_dir=build_dir)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been
     # pointed at this. Named individually rather than left silently empty.
@@ -647,6 +699,9 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
     # The edition this bundle is: the atlas build it came from, and the regulation year it
     # is good until. `valid_until` is empty when the corpus does not state one — empty is
     # readable as "no expiry known", where a fabricated date would be read as a promise.
+    from pipeline.common.section_handles import digest_for as _digest_for
+
+    _handles_digest = _digest_for(build_dir)
     _version = f"{build_dir.name}+{GENERATED.reaches.name}"
     _valid_until = ""
     _reach_digest, _reach_run_name = "", ""
@@ -663,6 +718,11 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
         ("build", str(build_dir)),
         ("generated_by", "python -m pipeline.deliver.bundle"),
         ("trust_bands", json.dumps({b: f for b, f in TRUST_BANDS})),
+        # THE VINTAGE THE TILE MUST MATCH. Every `sid` in this bundle is an index into the
+        # atlas's section_handles.txt; the tile carries handles from the same table and
+        # publishes this digest in its sidecar. If the two differ, a lookup does not miss —
+        # it HITS THE WRONG SECTION, so the app must refuse to colour rather than proceed.
+        ("section_handles", _handles_digest),
         # THE TWO KEYS THE CLIENT ACTUALLY READS, and neither was written.
         #
         # `source.ts` asks for `version` and `valid_until`; this table held `schema`,

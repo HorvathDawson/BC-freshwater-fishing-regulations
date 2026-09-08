@@ -103,7 +103,8 @@ def intern_sets(rows) -> tuple[dict[str, int], list[list[tuple[str, str, str]]]]
     return section_set, sets
 
 
-def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None:
+def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
+          build_dir: Path | None = None) -> None:
     """Write `entry`, `rule`, `section_ruleset` and `ruleset`."""
     sections_file = reaches / "rule_section.jsonl"
     if not sections_file.exists():
@@ -166,7 +167,21 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov) -> None
     cov.filled("rule", len(rule_rows))
 
     section_set, sets = intern_sets(_jsonl(sections_file))
-    db.executemany("INSERT INTO section_ruleset VALUES (?,?)", section_set.items())
+    # The section is named by its HANDLE here, as everywhere else in the bundle. A rule bound
+    # to a section the handle table does not know means the reach run and the atlas are not
+    # the same build — which would silently bind rules to the wrong water, so it stops here.
+    from pipeline.common.section_handles import read as _read_handles
+
+    if build_dir is None:
+        raise SystemExit("rules.write needs build_dir to resolve section handles")
+    _, sid = _read_handles(build_dir)
+    _unknown = [s for s in section_set if s not in sid]
+    if _unknown:
+        raise SystemExit(
+            f"section_ruleset: {len(_unknown):,} bound sections are not in the handle table "
+            f"(e.g. {_unknown[:3]}) — the reach run and section_handles.txt disagree")
+    db.executemany("INSERT INTO section_ruleset (sid, set_id) VALUES (?,?)",
+                   [(sid[k], v) for k, v in section_set.items()])
     cov.filled("section_ruleset", len(section_set))
     db.executemany("INSERT INTO ruleset VALUES (?,?,?,?)",
                    ((i, e, r, s) for i, rows in enumerate(sets) for e, r, s in rows))

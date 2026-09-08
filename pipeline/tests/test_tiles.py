@@ -98,20 +98,57 @@ def _areas():
     return json.loads(CURATED.waters.areas.read_text())["areas"]
 
 
-def test_every_area_declares_a_tile_layer_that_exists():
-    """Without this an area is stamped on sections but its boundary never draws."""
+def test_every_area_either_declares_a_real_tile_layer_or_says_why_not():
+    """Without this an area is stamped on sections but its boundary never draws.
+
+    An area may legitimately not be drawn — the MU groups are unions of units whose own
+    outlines already ship on the `mu` layer, and drawing the union would stack a second
+    boundary on top of them. So the rule is not "must draw", it is "must not fail to draw by
+    accident": either name a layer that exists, or write down why there is no layer.
+    """
     for a in _areas():
-        assert a.get("tile_layer"), f"{a['id']} has no tile_layer"
+        if a.get("not_drawn"):
+            assert not a.get("tile_layer"), (
+                f"{a['id']} says not_drawn but also names a tile_layer — one or the other")
+            assert isinstance(a["not_drawn"], str) and len(a["not_drawn"]) > 20, (
+                f"{a['id']}: not_drawn must carry the reason, not just a flag")
+            continue
+        assert a.get("tile_layer"), f"{a['id']} has no tile_layer and no not_drawn reason"
         assert a["tile_layer"] in BY_NAME, f"{a['id']} -> unknown layer {a['tile_layer']}"
 
 
-def test_only_hard_closures_cut_the_streams_that_cross_them():
-    """Cutting is reserved for blanket closures with a hard edge. A watershed boundary is a
-    drainage divide — water does not cross it — and cutting the Liard would re-cut 322,626
-    sections to buy nothing."""
+def test_only_hard_closures_and_regulatory_zones_cut_the_streams_that_cross_them():
+    """TWO categories may cut, for two different reasons, and nothing else may.
+
+    A HARD CLOSURE, because the edge is where fishing stops. A park boundary is a real line
+    on the water and a section straddling it is half open and half shut.
+
+    A REGULATORY ZONE, because the synopsis is written PER ZONE. Water crosses a region
+    boundary freely — that is the whole point, and it is why the drainage-divide argument
+    below does not apply here. A river running through two regions needs a section boundary
+    between the halves or region 5's rules cannot attach to the half that is in region 5.
+    The Fraser already carried three such boundaries placed BY HAND, at the Chilcotin, the
+    Williams Lake River and the Cottonwood; this generalises that to all nine regions and to
+    the two management-unit groups the synopsis writes group regulations for.
+
+    WHAT IT COST, measured, which is the part that makes it admissible: 3,054 region
+    transitions and 46 MU-group transitions cut, +1,086 graph nodes (0.06%) and +1,098 rule
+    bindings on 1.72M (0.06%). Afterwards 1,956,216 of 1,956,450 sections (99.99%) resolve to
+    exactly ONE region, which is what lets a zone rule be a lookup on the tile's own `mus`
+    attribute rather than a stored membership list.
+
+    A WATERSHED BOUNDARY IS STILL NOT ADMISSIBLE, and this is the contrast that defines the
+    rule: it is a drainage divide, so water does not cross it, so no section straddles it and
+    no rule is waiting on the cut. Cutting the Liard would re-cut 322,626 sections to buy
+    nothing.
+    """
     cut = {a["id"] for a in _areas() if a.get("cut", True)}
-    assert cut == {"national_parks", "ecological_reserves",
-                   "chilkoot_trail", "restricted_land_access"}
+    assert cut == {
+        # hard closures — the edge is where fishing stops
+        "national_parks", "ecological_reserves", "chilkoot_trail", "restricted_land_access",
+        # regulatory zones — the synopsis is written per zone
+        "regions", "mu_group_south_island", "mu_group_lower_skeena",
+    }
 
 
 def test_the_regulated_areas_the_synopsis_names_all_exist():

@@ -18,11 +18,29 @@
 CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT) WITHOUT ROWID;
 
 -- identity ------------------------------------------------------------------------
--- item_id is durable across a rebuild (99.88%, measured). section_id is not (94%), and
--- must never leave the bundle — not in a URL, a saved pin, or a feed (AGENTS rule 5).
-CREATE TABLE item (item_id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT);
+-- item_id is durable across a rebuild (99.88%, measured). A SECTION is not named by a string
+-- here at all: it is named by `sid`, its index in the atlas's `section_handles.txt`. That is
+-- 3 bytes instead of ~12 and takes 12.5 MB off the bundle, and it makes AGENTS rule 5 —
+-- section identity must never leave the bundle, not in a URL, a saved pin, or a feed —
+-- structural rather than a rule to remember: a handle is meaningless without the table that
+-- made it, and it changes whenever the atlas does.
+--
+-- THE TILE CARRIES THE SAME HANDLE, so the two artifacts must be built from one atlas. The
+-- table's digest is in `meta.section_handles` and in the tile sidecar, and the app compares
+-- them before it colours anything: a mismatch is not a missing lookup, it is a hit on the
+-- WRONG section, which would show real regulations for the wrong piece of river.
+-- `ord` IS THE ROWID, and it exists so place_water can name an item in two bytes instead
+-- of eleven. It is a STORAGE HANDLE, not an identity: it is assigned by insertion order and
+-- is NOT durable across a rebuild, so it must never leave the bundle. `item_id` is still the
+-- identity and still unique — the UNIQUE index below is the same b-tree the old TEXT PRIMARY
+-- KEY built, so naming the rowid costs nothing and buys 15.9 MB (measured) in place_water.
+CREATE TABLE item (ord INTEGER PRIMARY KEY, item_id TEXT NOT NULL UNIQUE,
+                   name TEXT NOT NULL, kind TEXT);
 CREATE TABLE alias (item_id TEXT NOT NULL, alias TEXT NOT NULL);
-CREATE TABLE item_section (item_id TEXT NOT NULL, section_id TEXT NOT NULL);
+-- `ord` and `sid` are HANDLES, not ids — item.ord and the section handle table. See
+-- pipeline/common/section_handles for who owns the section one and why it may never leave
+-- the bundle.
+CREATE TABLE item_section (ord INTEGER NOT NULL, sid INTEGER NOT NULL);
 
 -- regulations ---------------------------------------------------------------------
 -- `name` is the display name — "Chilliwack River". `full_name` is what the curator wrote:
@@ -96,8 +114,8 @@ CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL, kind TEXT,
 -- NOTHING ABOUT THIS TOUCHES THE TILE. `mus` and `areas` ride on tile features because
 -- administrative geography exists whether or not anything is regulated; a rule-derived set
 -- does not, and the map is not where regulation knowledge lives.
-CREATE TABLE section_ruleset (section_id TEXT PRIMARY KEY,
-                              set_id INTEGER NOT NULL) WITHOUT ROWID;
+CREATE TABLE section_ruleset (sid INTEGER PRIMARY KEY,
+                              set_id INTEGER NOT NULL);
 
 -- The sets themselves: 1,905 of them across 6,622 rows.
 --
@@ -131,7 +149,7 @@ CREATE TABLE ruleset (set_id INTEGER NOT NULL, entry_id TEXT NOT NULL, rule_id T
 -- without a record of which rows lean on that mechanism there is no telling a link that is
 -- holding from one about to break. `matched_by` is null when nothing resolved.
 CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
-                    item_id TEXT, section_id TEXT,
+                    item_id TEXT, sid INTEGER,
                     lon REAL, lat REAL, area_km2 REAL, mag INTEGER,
                     matched_by TEXT, match_m REAL) WITHOUT ROWID;
 
@@ -151,8 +169,8 @@ CREATE TABLE gauge (station TEXT PRIMARY KEY, name TEXT NOT NULL,
 -- `mag` is THIS section's stream magnitude, against `gauge.mag` for the station's. The
 -- band alone cannot rank two gauges: 'good' spans a tenth of a watershed to all of it, so
 -- ordering on it picked a 13 km2 creek station over the Cowichan's own river gauge.
-CREATE TABLE section_gauge (section_id TEXT PRIMARY KEY, station TEXT NOT NULL,
-                            trust TEXT NOT NULL, mag INTEGER) WITHOUT ROWID;
+CREATE TABLE section_gauge (sid INTEGER PRIMARY KEY, station TEXT NOT NULL,
+                            trust TEXT NOT NULL, mag INTEGER);
 
 -- THE DONOR PANEL ------------------------------------------------------------------
 --
@@ -176,9 +194,9 @@ CREATE TABLE section_gauge (section_id TEXT PRIMARY KEY, station TEXT NOT NULL,
 -- has both halves of every ratio. It is the value at the section's OUTLET; a tap partway up
 -- is refined by `section_profile` (the staircase), which is why this is stored per section
 -- rather than folded into the panel.
-CREATE TABLE section_panel (section_id TEXT PRIMARY KEY,
+CREATE TABLE section_panel (sid INTEGER PRIMARY KEY,
                             panel_id INTEGER NOT NULL,
-                            area_km2 REAL) WITHOUT ROWID;
+                            area_km2 REAL);
 
 -- One row per donor in a panel.
 --
@@ -281,7 +299,7 @@ CREATE TABLE lake_gauge (item_id TEXT NOT NULL, station TEXT NOT NULL,
 -- runs downstream of its gauge, and the last member's neighbour is outside it. A trace that
 -- runs out of pointers has reached the edge of what any gauge speaks for; that is the
 -- answer, not missing data, and the client must render it as the end of the chain.
-CREATE TABLE section_down (section_id TEXT PRIMARY KEY, down_id TEXT NOT NULL) WITHOUT ROWID;
+CREATE TABLE section_down (sid INTEGER PRIMARY KEY, down_sid INTEGER NOT NULL);
 
 -- Pentad-sampled percentiles. p0 and p100 are absent on purpose: they do not interpolate
 -- (82% error, measured), and a wrong extreme is worse than no extreme.
@@ -302,10 +320,32 @@ CREATE TABLE section_down (section_id TEXT PRIMARY KEY, down_id TEXT NOT NULL) W
 -- level envelope, and they answer different questions. "Is the river low" and "is the river
 -- deep" are not the same query, and their units are not comparable, so they are never
 -- folded into one distribution.
+-- ONE ROW PER ENVELOPE, NOT PER PENTAD, because the envelope is what is always read: the
+-- only query is "every pentad for this station and quantity", and `bandAt` wants the whole
+-- array. 152,276 rows become 2,398 blobs. Measured:
+--
+--     73 rows of 5 REAL, WITHOUT ROWID      10.08 MB    26.5 us
+--     this                                   4.06 MB    10.1 us
+--
+-- NOTE THE ROWID. The same blob in a WITHOUT ROWID table came to 9.01 MB, not 4.06: an
+-- index b-tree keeps only ~1000 bytes of payload local, so every 1.3 KB envelope spilled
+-- and burned a whole 4096-byte overflow page — 3.25 MB of data in 8.98 MB of pages. A rowid
+-- table keeps ~4061 local, so the blob stays inline. The UNIQUE index in indexes.sql is what
+-- (station, parameter) is looked up by.
+--
+-- THIS IS THE OPPOSITE CHOICE TO place_water, ON PURPOSE. There the query is "the nearest N",
+-- so a blob would have to be fully read to answer it and SQL does the job better. Here the
+-- query IS the whole group, so the blob is the answer already decoded. Access pattern
+-- decides, not size.
+--
+-- `bands` is, per pentad, ordered by pentad, little-endian:
+--     uint8 pentad, then float32 p10, p25, p50, p75, p90     (21 bytes)
+--
+-- FLOAT32 IS NOT A ROUNDING. Worst relative error over all 761,380 values is 5.9e-08 —
+-- 0.0000009 m3/s on a 15.80 m3/s reading, against a transfer error of +/-11.7 PERCENTILE
+-- POINTS. The precision that matters was never in the eighth digit.
 CREATE TABLE gauge_clim (station TEXT NOT NULL, parameter TEXT NOT NULL,
-                         pentad INTEGER NOT NULL,
-                         p10 REAL, p25 REAL, p50 REAL, p75 REAL, p90 REAL,
-                         PRIMARY KEY (station, parameter, pentad)) WITHOUT ROWID;
+                         bands BLOB NOT NULL);
 
 -- What the envelope above is BUILT FROM, so a reader can weigh it.
 --
@@ -366,11 +406,30 @@ CREATE TABLE place (place_id INTEGER PRIMARY KEY, osm TEXT NOT NULL, name TEXT, 
 -- Measured to every named WATERBODY, not to every section. That is what makes the full
 -- matrix cheap enough to just compute rather than approximate.
 --
--- Keyed on item_id, not on the display name: joining a precompute back to a water by its
--- NAME is the classic silent mismatch, and item_id is the id that survives a rebuild
--- (99.88%, AGENTS rule 5). The name rides along so a list can be rendered without a join.
--- No name column: it is `item.name`, and duplicating it across 350,000 rows cost more
--- than the whole rest of the bundle. One join, or none at all if the caller already has
--- the item.
-CREATE TABLE place_water (place_id INTEGER NOT NULL, item_id TEXT NOT NULL,
-                          km REAL NOT NULL);
+-- NEVER KEYED ON THE DISPLAY NAME: joining a precompute back to a water by its NAME is the
+-- classic silent mismatch. It is keyed on `item.ord`, which resolves to item_id in the same
+-- join that fetches the name — and item_id is the id that survives a rebuild (99.88%, AGENTS
+-- rule 5), which ord deliberately is not. No name column either: it is `item.name`, and
+-- duplicating it across 379,673 rows cost more than the whole rest of the bundle.
+--
+-- THREE INTEGERS, AND THE TABLE IS ITS OWN INDEX. This was (place_id, item_id TEXT, km REAL)
+-- with a separate `water_by_place(place_id, km)` index, and the pair cost 20.9 MB — a third
+-- of the entire bundle. Measured, on the real 379,673 rows:
+--
+--     today (TEXT id + REAL km + index)        20.88 MB     21 us
+--     WITHOUT ROWID, same columns              12.17 MB     18 us
+--     this                                      4.94 MB     14 us
+--     one packed blob per place                 2.33 MB     25 us
+--
+-- Smaller AND faster, which is not a trade: the win is fewer pages, and on the web every
+-- statement is an HTTP range request. The blob was smaller still and was rejected — it buys
+-- 2.6 MB by making the rows unreadable to the sqlite CLI, to a test, and to any question we
+-- have not thought of yet, such as "which places are near this water".
+--
+-- `ckm` IS CENTIKM AND IS LOSSLESS. Every distance was already rounded to two decimals and
+-- capped at 25.00 km, so 0..2500 is the same number in 2 bytes rather than 8 — not a coarser
+-- one. `ord` is item.ord, a storage handle; the caller joins for the id and the name.
+CREATE TABLE place_water (place_id INTEGER NOT NULL,
+                          ckm INTEGER NOT NULL,     -- hundredths of a km, 0..2500
+                          ord INTEGER NOT NULL,     -- item.ord, NOT an item_id
+                          PRIMARY KEY (place_id, ckm, ord)) WITHOUT ROWID;

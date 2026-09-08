@@ -882,6 +882,13 @@ def main() -> None:
     _tick("add_mu_sets")
     write_registry(registry, out / "registry.json")
     print(f"  registry -> {out / 'registry.json'}")
+    # THE SECTION HANDLE TABLE, written here because this is where the set of sections is
+    # finally known and because exactly one place may decide it. The tile and the bundle both
+    # read it; neither invents an order. See pipeline/common/section_handles.
+    from pipeline.common.section_handles import FILENAME as _HANDLES, write as _write_handles
+
+    _hd = _write_handles(graph.nodes.keys(), out)
+    print(f"  {len(graph.nodes):,} section handles -> {out / _HANDLES}  (digest {_hd})")
     # Lazy area catalog (polygons only; membership computed at resolve time) — see DECISION 2026-08-16.
     if catalog_polys:
         from pipeline.atlas.splits.area_catalog import catalog_entries, write_area_catalog

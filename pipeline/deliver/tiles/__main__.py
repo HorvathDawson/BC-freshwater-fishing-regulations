@@ -87,6 +87,25 @@ def main() -> None:
                       minzoom=a.minzoom, maxzoom=a.maxzoom, verbose=a.verbose)
     mb = out.stat().st_size / 1e6
     print(f"\n{out}  {mb:,.1f} MB   total {time.time() - t0:,.0f}s")
+    _write_sidecar(build_dir, out_dir)
+
+
+def _write_sidecar(build_dir: Path, out_dir: Path) -> None:
+    """`atlas.meta.json` — the vintage the bundle has to match.
+
+    A SEPARATE FILE AND NOT PMTILES METADATA, because the app has to read it on both
+    platforms: the web map goes through the `pmtiles` protocol and the device map through
+    maplibre-react-native, and only one of those gives a page access to the archive header.
+    A 100-byte JSON file next to the archive is readable by both with no library at all.
+    """
+    import json
+
+    from pipeline.common.section_handles import digest_for
+
+    meta = {"section_handles": digest_for(build_dir), "build": build_dir.name}
+    p = out_dir / "atlas.meta.json"
+    p.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    print(f"{p}  {meta}")
 
 
 if __name__ == "__main__":

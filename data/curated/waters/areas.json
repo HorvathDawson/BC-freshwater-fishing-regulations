@@ -124,7 +124,8 @@
       "label_term": "",
       "cut": true,
       "note": "Southern Vancouver Island. The regulation is written for the GROUP — 'No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions)' — so the area is the UNION and the boundaries between 1-2 and 1-3 are internal to it. Combined rather than cut per unit: six polygons would add five boundaries no regulation asks for, and a rule would have to name six areas instead of one.",
-      "tile_layer": "mu_group"
+      "tile_layer": null,
+      "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
     },
     {
       "id": "mu_group_lower_skeena",
@@ -136,7 +137,8 @@
       "label_term": "",
       "cut": true,
       "note": "Lower Skeena. 'Bait ban: applies to all streams in Management Units 6-12 and 6-13, Nov 1-Apr 30' — again one area, written as two unit numbers. Combined for the same reason.",
-      "tile_layer": "mu_group"
+      "tile_layer": null,
+      "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
     }
   ],
   "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut. Regions and MU groups are also cut, for a different reason than a closure: a regulation written per region or per group of units needs a section boundary at that area's edge or it cannot be attached to its own half of a water that crosses it.",
