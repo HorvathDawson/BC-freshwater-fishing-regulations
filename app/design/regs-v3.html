@@ -273,10 +273,17 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
   border-left:3px solid var(--accent);font:400 12.5px/18px var(--ui);color:var(--sub)}
 .from b{font-weight:700;color:var(--ink)}
 .quote{margin:0 18px 18px;border:1px solid var(--line2)}
-.qh{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;
-  background:var(--wash);border-bottom:1px solid var(--line2);font:700 10px/13px var(--ui);
-  letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
-.qh span:last-child{flex:none}
+/* The regulation's OWN name, as the book prints it — "ELK RIVER (downstream of Elko Dam)".
+   NOT uppercased: the book's casing carries the distinction between the shouted water name
+   and the quiet parenthetical saying WHICH REACH, and uppercasing threw that away. */
+.qh{display:flex;justify-content:space-between;gap:10px;padding:9px 10px;
+  background:var(--wash);border-bottom:1px solid var(--line2);
+  font:600 12px/16px var(--ui);color:var(--ink)}
+.qh span:last-child{flex:none;font:500 11px/16px var(--fig);color:var(--faint)}
+/* the symbols printed beside the row, which change what it means */
+.syms{display:flex;flex-wrap:wrap;gap:5px;padding:9px 10px 0}
+.sym{font:700 9.5px/12px var(--ui);letter-spacing:.9px;text-transform:uppercase;
+  padding:4px 7px;border:1.5px solid var(--line2);color:var(--sub)}
 .quote pre{margin:0;padding:11px;font:500 11.5px/1.65 var(--fig);white-space:pre-wrap;
   color:var(--sub)}
 /* the number is the link: same digit on the rule and on the sentence it came from */
@@ -754,7 +761,7 @@ function build(name, mount){
       var a=xs[i], b=xs[i+1];
       g.push('<rect x="'+a.toFixed(2)+'" y="'+y0+'" width="'+(b-a).toFixed(2)
         +'" height="'+BH+'" fill="var(--'+outs[i]+')" opacity="'
-        +(i===((st.scrub==null)?st.i:st.scrub)?1:.8)+'"/>');
+        +((compact||st.scrub!=null)&&i===((st.scrub==null)?st.i:st.scrub)?1:.8)+'"/>');
     });
     runs.forEach(function(run,i){ if(!i) return;
       g.push('<line x1="'+X(run.from).toFixed(2)+'" y1="'+(y0-3)+'" x2="'
@@ -771,18 +778,31 @@ function build(name, mount){
      * people to pull. The tab is also what makes the handle findable when the stretch under
      * it is eleven pixels wide, because the tab is a constant size.
      */
-    var cur=(st.scrub==null)?st.i:st.scrub;
-    var sa=xs[cur], sb=xs[cur+1], mid=(sa+sb)/2;
-    g.push('<rect x="'+(sa-1.5).toFixed(2)+'" y="'+(y0-3)+'" width="'
-      +Math.max(sb-sa+3,4).toFixed(2)+'" height="'+(BH+6)
-      +'" fill="none" stroke="var(--ink)" stroke-width="2"/>');
-    var TW=compact?15:19, TH=compact?7:9, ty=y0-3-TH;
-    g.push('<rect x="'+(mid-TW/2).toFixed(2)+'" y="'+ty+'" width="'+TW+'" height="'+TH
-      +'" fill="var(--ink)"/>');
-    for(var gi=-1;gi<=1;gi++)
-      g.push('<line x1="'+(mid+gi*3.5).toFixed(2)+'" y1="'+(ty+2)+'" x2="'
-        +(mid+gi*3.5).toFixed(2)+'" y2="'+(ty+TH-2)
-        +'" stroke="var(--card)" stroke-width="1"/>');
+    /*
+     * ON THE WHOLE-RIVER VIEW, NOTHING IS CHOSEN YET — so nothing is highlighted.
+     *
+     * The bracket sat on stretch 1 the moment the screen opened, which is a lie: the reader
+     * has picked nothing, and a highlight on an arbitrary stretch says they have. It also
+     * made the strip read as a display of state rather than something to operate. So the
+     * first screen shows the river and the invitation, and the handle appears under the
+     * finger the moment a drag begins. On a stretch screen the bracket is always drawn,
+     * because there you ARE somewhere and the only question is where.
+     */
+    var showSel = compact || st.scrub!=null;
+    if(showSel){
+      var cur=(st.scrub==null)?st.i:st.scrub;
+      var sa=xs[cur], sb=xs[cur+1], mid=(sa+sb)/2;
+      g.push('<rect x="'+(sa-1.5).toFixed(2)+'" y="'+(y0-3)+'" width="'
+        +Math.max(sb-sa+3,4).toFixed(2)+'" height="'+(BH+6)
+        +'" fill="none" stroke="var(--ink)" stroke-width="2"/>');
+      var TW=compact?15:19, TH=compact?7:9, ty=y0-3-TH;
+      g.push('<rect x="'+(mid-TW/2).toFixed(2)+'" y="'+ty+'" width="'+TW+'" height="'+TH
+        +'" fill="var(--ink)"/>');
+      for(var gi=-1;gi<=1;gi++)
+        g.push('<line x1="'+(mid+gi*3.5).toFixed(2)+'" y1="'+(ty+2)+'" x2="'
+          +(mid+gi*3.5).toFixed(2)+'" y2="'+(ty+TH-2)
+          +'" stroke="var(--card)" stroke-width="1"/>');
+    }
     if(!compact){
       var placed=[];
       (r.landmarks||[]).forEach(function(m){
@@ -792,8 +812,15 @@ function build(name, mount){
           return q.row===row && bx<q.bx+q.w+7 && bx+w+7>q.bx; })) row++;
         if(row>1) return;
         placed.push({bx:bx,w:w,row:row});
+        /* A DOTTED LEADER, not a three-pixel nub. The nub told you a town was somewhere
+           near the label; the leader says WHICH POINT ON THE RIVER the label belongs to,
+           which is the only thing it was ever for — so it runs all the way down to the name,
+           and the name's own row decides how far that is. */
+        var ly=y0+BH+8+row*11;
         g.push('<line x1="'+px.toFixed(2)+'" y1="'+(y0+BH)+'" x2="'+px.toFixed(2)
-          +'" y2="'+(y0+BH+3)+'" stroke="var(--faint)" stroke-width="1"/>');
+          +'" y2="'+ly+'" stroke="var(--quiet)" stroke-width="1" '
+          +'stroke-dasharray="1.5 1.5"/>');
+        g.push('<circle cx="'+px.toFixed(2)+'" cy="'+(y0+BH)+'" r="1.6" fill="var(--sub)"/>');
         g.push('<text x="'+bx.toFixed(2)+'" y="'+(y0+BH+11+row*11)+'" class="rmark">'
           +esc(label)+'</text>');
       });
@@ -1129,8 +1156,16 @@ function build(name, mount){
         // and both blocks were headed simply "ELK RIVER", which reads as one row printed twice.
         h.push('<div class="quote"><div class="qh"><span>'
           +esc(grp.e.full||grp.e.name||"")+'</span><span>'
-          +esc((grp.e.mus||[]).join(", "))+'</span></div><pre>'
-          +marked(grp.e.verbatim, grp.items)+'</pre>'
+          +esc((grp.e.mus||[]).join(", "))+'</span></div>'
+          /* THE ROW'S SYMBOLS. "Incl. Tribs", "Classified" and "Stocked" are printed beside
+             the row in the book and they CHANGE WHAT IT MEANS — `Incl. Tribs` is the
+             difference between a rule on one creek and a rule on a whole drainage. They rode
+             in the entry as provenance and were never shown, so the quoted row was missing
+             part of itself. */
+          +((grp.e.symbols||[]).length
+            ?'<div class="syms">'+grp.e.symbols.map(function(s){
+                return '<span class="sym">'+esc(s)+'</span>'; }).join("")+'</div>':"")
+          +'<pre>'+marked(grp.e.verbatim, grp.items)+'</pre>'
           +'<a class="pdf" target="_blank" rel="noopener" href="'+esc(SYNOPSIS)
           +(pg?"#page="+pg:"")+'">Open the synopsis'+(pg?' at page '+pg:'')+' \u2197</a></div>');
       });
