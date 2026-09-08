@@ -52,6 +52,15 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     if g.empty:
         return out
 
+    if area_def.get("combine"):
+        # ONE POLYGON FOR A GROUP OF UNITS, because that is the shape the regulation has.
+        # The book writes "No Fishing in any stream in Management Units 1-1 to 1-6" — the
+        # area is the UNION, and the boundaries between 1-2 and 1-3 are internal to it. Cut
+        # per unit and the graph gains five boundaries no regulation asks for, and a rule
+        # has to name six areas instead of one.
+        geom = g.geometry.union_all()
+        return {} if geom is None or geom.is_empty else {str(area_def["combine"]): geom}
+
     if area_def.get("per_feature"):
         idf = area_def.get("id_field", "")
         default = area_def.get("label_default", "Restricted area")
@@ -97,20 +106,27 @@ def _neighbour_label(polys_by_name: dict, line, m: float, here: str, term: str) 
                 break
         if other:
             break
+    lead = f"{term} " if term else ""
     if other:
         a, b = sorted((here, other), key=lambda v: (len(v), v))
-        return f"{term} {a} – {term} {b} boundary"
-    return f"{term} {here} boundary"
+        return f"{lead}{a} – {lead}{b} boundary"
+    return f"{lead}{here} boundary"
 
 
 def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
-                        term: str = "") -> list[SplitPoint]:
+                        term: str | None = None) -> list[SplitPoint]:
     """Cut every chain crossing each polygon at first-enter/last-exit (transition cutting).
 
-    `term` names what kind of area these are — "Region", "MU". When given, a cut is labelled
-    by what it SEPARATES rather than by the polygon it happens to belong to; see
-    `_neighbour_label`. Without it the behaviour is unchanged and the label is the area's own
-    name, which is what a park wants: "Garibaldi Provincial Park" already reads as a place.
+    `term` has three states, because there are three kinds of name:
+
+      * ``None`` — label the cut with the area's own name. What a park wants: "Garibaldi
+        Provincial Park" already reads as a place.
+      * ``""`` — the name is already a readable phrase but the cut is an EDGE of it:
+        "Management Units 1-1 to 1-6 boundary".
+      * a word — the name is a bare identifier and needs it: "Region 2 – Region 3 boundary".
+
+    In the last two the cut is labelled by what it SEPARATES rather than by whichever polygon
+    it happened to belong to; see `_neighbour_label`.
     """
     from shapely.strtree import STRtree
 
@@ -124,8 +140,8 @@ def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
         for i in tree.query(poly):                 # bbox candidates; transition cutter filters non-crossers
             c = keep[i]
             for m in _area_transition_measures(c.geometry, poly, boundary):
-                label = (_neighbour_label(polys_by_name, c.geometry, m, name, term)
-                         if term else name)
+                label = (name if term is None
+                         else _neighbour_label(polys_by_name, c.geometry, m, name, term))
                 out.append(SplitPoint(split_id=f"area:{name}", blk=c.blk,
                                       route_measure=c.mouth_measure + m, fid="",
                                       label=label, anchor_type=AnchorType.area_boundary))

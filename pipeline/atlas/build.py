@@ -725,7 +725,7 @@ def main() -> None:
                 # SEPARATES — "Region 2 – Region 3 boundary" rather than "2". An area whose
                 # name already reads as a place ("Garibaldi Provincial Park") sets no term
                 # and keeps its name.
-                apts = resolve_area_splits(polys, chains, term=ad.get("label_term", ""))
+                apts = resolve_area_splits(polys, chains, term=ad.get("label_term"))
                 split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
             else:
