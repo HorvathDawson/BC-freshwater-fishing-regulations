@@ -40,6 +40,12 @@ function boundaryState(b: Boundary): { cls: string; text: string; title: string 
   return null;
 }
 
+/* The book the synopsis rows were read out of — the same file `extract_synopsis.py` downloads.
+   `source.pages` are its PDF pages, so #page= lands on the right one. */
+const SYNOPSIS_PDF =
+  "https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/" +
+  "fishing-and-hunting/freshwater-fishing/fishing_synopsis.pdf";
+
 export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfirmed, onNavigate,
                               reloadKey = 0 }: Props) {
   const { item, unused_curated_splits, match, source_image } = detail;
@@ -361,13 +367,30 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
         </div>
       )}
 
-      {/* Source synopsis row-crop — always shown so the curator reads the original alongside the parse */}
-      {source_image && (
+      {/* Source synopsis row-crop — always shown so the curator reads the original alongside the
+          parse — and now WHICH PAGE it was printed on, so a curator who wants the surrounding
+          context can open the book rather than hunting for the row. `entry.source.pages` is a
+          list because seven MU 6-1 lakes are printed twice. */}
+      {(source_image || (entry.source?.pages ?? []).length > 0) && (
         <div className="section source-image">
-          <div className="dim" style={{ marginBottom: 4 }}>source row (synopsis)</div>
-          <a href={`/api/row-image/${source_image}`} target="_blank" rel="noreferrer" title="open full size">
-            <img src={`/api/row-image/${source_image}`} alt="source regulation row crop" />
-          </a>
+          <div className="dim" style={{ marginBottom: 4 }}>
+            source row (synopsis)
+            {(entry.source?.pages ?? []).length > 0 && (
+              <> · {entry.source.pages.length > 1 ? "pages" : "page"}{" "}
+                {entry.source.pages.map((n, i) => (
+                  <span key={n}>
+                    {i > 0 && ", "}
+                    <a href={`${SYNOPSIS_PDF}#page=${n}`} target="_blank" rel="noreferrer">{n}</a>
+                  </span>
+                ))}
+              </>
+            )}
+          </div>
+          {source_image && (
+            <a href={`/api/row-image/${source_image}`} target="_blank" rel="noreferrer" title="open full size">
+              <img src={`/api/row-image/${source_image}`} alt="source regulation row crop" />
+            </a>
+          )}
         </div>
       )}
 

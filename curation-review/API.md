@@ -51,7 +51,7 @@ covers all of them. `reference_only` marks a "See X" pointer row that carries no
   "related_entries": [ {"entry_id":"wbk:329707189","region":"2","name":"VEDDER RIVER","locked":false,
                         "n_rules":1,"pointer":true,"shared_items":[{"id":"gnis:3062","name":"Vedder River"}]} ],
   "unused_curated_splits": [ {"id":"foo_falls","label":"Foo Falls","anchor_type":"confluence"} ],
-  "source_image": "row_00123.png"
+  "source_image": "row_00123.png"   // now read from entry.source.row_image when present
 }
 ```
 `item.boundaries` is the **union over the item AND `also_items`**, each tagged with its owning
