@@ -316,6 +316,17 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
   margin-left:2px;color:var(--accent)}
 .no{flex:none;width:16px;font:500 11px/20px var(--fig);color:var(--faint);
   text-align:right;font-variant-numeric:tabular-nums}
+/* the number is a link to the sentence this rule was read out of, and back again */
+a.no{text-decoration:none;color:var(--accent);cursor:pointer}
+a.no:hover{text-decoration:underline}
+.quote mark{cursor:pointer}
+/* where you landed — long enough to see, not long enough to nag */
+.flash{animation:flash 1.4s ease-out}
+@keyframes flash{
+  0%,45%{background:color-mix(in srgb,var(--accent) 42%,transparent)}
+  100%{background:color-mix(in srgb,var(--accent) 15%,transparent)}}
+@media (prefers-reduced-motion:reduce){
+  .flash{animation:none;outline:2px solid var(--accent)}}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);
   font:500 11px/1.75 var(--fig);color:var(--faint)}
 </style>
@@ -509,14 +520,20 @@ function marked(verbatim, items){
     if(at) spans.push({a:at[0], b:at[1], n:it.n});
   });
   spans.sort(function(p,q){ return p.a-q.a || q.b-p.b; });
-  var out="", cur=0;
+  var out="", cur=0, shown=[];
   spans.forEach(function(s){
     if(s.a<cur) return;                       // overlapping matches: keep the first
-    out+=esc(raw.slice(cur,s.a))+'<mark>'+esc(raw.slice(s.a,s.b))
+    out+=esc(raw.slice(cur,s.a))
+        +'<mark id="src-'+s.n+'" data-back-to="'+s.n+'">'+esc(raw.slice(s.a,s.b))
         +'<i>'+s.n+'</i></mark>';
+    shown.push(s.n);
     cur=s.b;
   });
-  return out+esc(raw.slice(cur));
+  /* WHAT IT COULD ACTUALLY ANCHOR. A rule whose sentence is not found, or whose span is
+     swallowed by an earlier one, gets no mark — and its number must not then link to a
+     place that does not exist, inside the one feature whose whole promise is "here is
+     where this came from". */
+  return {html: out+esc(raw.slice(cur)), shown: shown};
 }
 
 /*
@@ -554,7 +571,7 @@ function build(name, mount){
    */
   var many=runs.length>1;
   var st={stage:many?"where":"what", i:0, later:false, whole:false, open:{}, scrub:null,
-          z:0, pan:null, src:false, groups:[], other:false, pick:false};
+          z:0, pan:null, src:false, groups:[], other:false, pick:false, jump:null};
 
   var el=document.createElement("div"); el.className="phone";
   el.innerHTML='<div class="screen"></div><div class="tabbar">'+TABS+'</div>';
@@ -1232,6 +1249,7 @@ function build(name, mount){
    * as the same kind of object — and the number sits in its own gutter rather than shoving
    * the text along.
    */
+  var LINKABLE={};
   function ruleRow(x,i,dupLoc,num){
     var on=live(x.windows), k=name+"/"+st.i+"/"+i, open=st.open[k];
     var inherited=x.via==="trib"&&x.src&&x.src!==name;
@@ -1239,7 +1257,12 @@ function build(name, mount){
     if(dupLoc&&x.location) meta.push(x.location);
     return '<button class="r '+(MARK[x.kind]||"m1")+(on?"":" off")+'" data-rule="'
       +esc(k)+'">'
-      +'<span class="no">'+(num||"")+'</span>'
+      /* THE NUMBER IS THE DOOR. It paired a rule with its sentence and then left the reader
+         to go looking; tapping it opens the source and puts them on the line. */
+      +(num&&LINKABLE[num]
+        ?'<a class="no go" href="#src-'+num+'" data-goto="'+num+'" id="rule-'+num+'">'
+          +num+'</a>'
+        :'<span class="no"'+(num?' id="rule-'+num+'"':'')+'>'+(num||"")+'</span>')
       +'<span class="rb">'
       +'<span class="subj">'+esc(x.details||x.kind)+'</span>'
       +'<span class="meta'+(on?" now":"")+'">'+esc(meta.join(" · "))+'</span>'
@@ -1318,6 +1341,34 @@ function build(name, mount){
      */
     var num=new Map(), seq=0;
     nowOwn.concat(nowInh, later).forEach(function(x){ num.set(x, ++seq); });
+
+    // THE SOURCE IS BUILT BEFORE THE ROWS, so a row knows whether its number has anywhere
+    // to go. See `marked` for why some numbers cannot be anchored.
+    var byEntry=new Map();
+    nowOwn.concat(nowInh, st.later?later:[], st.other?notMine:[]).forEach(function(x){
+      var e=(r.entries||{})[x.entry];
+      if(!e||!e.verbatim) return;
+      var k=e.verbatim;
+      if(!byEntry.has(k)) byEntry.set(k, {e:e, items:[]});
+      byEntry.get(k).items.push({rule:x, n:num.get(x)});
+    });
+    var quotes=[];
+    LINKABLE={};
+    byEntry.forEach(function(grp){
+      var m=marked(grp.e.verbatim, grp.items);
+      m.shown.forEach(function(n){ LINKABLE[n]=1; });
+      var pg=(grp.e.pages||[])[0];
+      quotes.push('<div class="quote"><div class="qh"><span>'
+        +esc(grp.e.full||grp.e.name||"")+'</span><span>'
+        +esc((grp.e.mus||[]).join(", "))+'</span></div>'
+        +((grp.e.symbols||[]).length
+          ?'<div class="syms">'+grp.e.symbols.map(function(s){
+              return '<span class="sym">'+esc(s)+'</span>'; }).join("")+'</div>':"")
+        +'<pre>'+m.html+'</pre>'
+        +'<a class="pdf" target="_blank" rel="noopener" href="'+esc(SYNOPSIS)
+        +(pg?"#page="+pg:"")+'">Open the synopsis'+(pg?' at page '+pg:'')
+        +' \u2197</a></div>');
+    });
     var h=[];
     if(many) h.push(ruler(true));               // a stretch is chosen: bracket it
     h.push('<div class="mapbox">'+mapSvg(false)+zoomControls()+'</div>');
@@ -1401,7 +1452,7 @@ function build(name, mount){
      * ingest from the extraction row, and the 1,393 entries parsed before that path existed
      * were backfilled from those same rows.
      */
-    if(byEntry.size){
+    if(quotes.length){
       var pages=[];
       byEntry.forEach(function(g){ (g.e.pages||[]).forEach(function(n){
         if(pages.indexOf(n)<0) pages.push(n); }); });
@@ -1411,26 +1462,7 @@ function build(name, mount){
         +(pages.length?'Printed on '+plural(pages)+' of the 2025–2027 synopsis'
           :'The 2025–2027 freshwater synopsis')
         +'</span></span><span class="n">'+(st.src?"HIDE":"SHOW")+'</span></button>');
-      if(st.src) byEntry.forEach(function(grp){
-        var pg=(grp.e.pages||[])[0];
-        // The FULL name, not the display name. The Fording draws on two Elk River entries —
-        // "ELK RIVER (upstream of Elko Dam)" and "ELK RIVER'S TRIBUTARIES (see exceptions)" —
-        // and both blocks were headed simply "ELK RIVER", which reads as one row printed twice.
-        h.push('<div class="quote"><div class="qh"><span>'
-          +esc(grp.e.full||grp.e.name||"")+'</span><span>'
-          +esc((grp.e.mus||[]).join(", "))+'</span></div>'
-          /* THE ROW'S SYMBOLS. "Incl. Tribs", "Classified" and "Stocked" are printed beside
-             the row in the book and they CHANGE WHAT IT MEANS — `Incl. Tribs` is the
-             difference between a rule on one creek and a rule on a whole drainage. They rode
-             in the entry as provenance and were never shown, so the quoted row was missing
-             part of itself. */
-          +((grp.e.symbols||[]).length
-            ?'<div class="syms">'+grp.e.symbols.map(function(s){
-                return '<span class="sym">'+esc(s)+'</span>'; }).join("")+'</div>':"")
-          +'<pre>'+marked(grp.e.verbatim, grp.items)+'</pre>'
-          +'<a class="pdf" target="_blank" rel="noopener" href="'+esc(SYNOPSIS)
-          +(pg?"#page="+pg:"")+'">Open the synopsis'+(pg?' at page '+pg:'')+' \u2197</a></div>');
-      });
+      if(st.src) h.push(quotes.join(""));
     }
     return h.join("");
   }
@@ -1498,6 +1530,37 @@ function build(name, mount){
     if(ot) ot.onclick=function(){ st.other=!st.other; render(); };
     var pk=screen.querySelector("[data-pick]");
     if(pk) pk.onclick=function(){ st.pick=!st.pick; render(); };
+    /*
+     * BOTH WAYS BETWEEN A RULE AND ITS SENTENCE.
+     *
+     * The numbers said these two things were the same thing and then left the reader to
+     * scroll and count. Tapping a rule's number opens the source block if it is closed and
+     * puts them on the line; tapping the line goes back to the rule. `render()` rebuilds the
+     * DOM, so the scroll cannot happen in the handler — the target is parked in `st.jump` and
+     * the render that follows performs it.
+     */
+    screen.querySelectorAll("[data-goto]").forEach(function(n){
+      n.onclick=function(ev){
+        // The number sits INSIDE the row button, so without this the row's own handler fires
+        // straight after, re-renders, and throws away the scroll and the flash the jump had
+        // just performed.
+        ev.preventDefault(); ev.stopPropagation();
+        st.src=true; st.jump="src-"+n.getAttribute("data-goto"); render();
+      };
+    });
+    screen.querySelectorAll("[data-back-to]").forEach(function(n){
+      n.onclick=function(){ st.jump="rule-"+n.getAttribute("data-back-to"); render(); };
+    });
+    if(st.jump){
+      var target=screen.querySelector("#"+st.jump);
+      st.jump=null;
+      if(target){
+        var box=target.getBoundingClientRect(), sb=screen.getBoundingClientRect();
+        screen.scrollTop += (box.top-sb.top) - screen.clientHeight/3;
+        target.classList.add("flash");
+        setTimeout(function(){ target.classList.remove("flash"); }, 1400);
+      }
+    }
     screen.querySelectorAll("[data-group]").forEach(function(n){
       n.onclick=function(){
         var id=n.getAttribute("data-group");
