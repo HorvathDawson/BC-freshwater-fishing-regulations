@@ -1,0 +1,805 @@
+{
+  "region": "5",
+  "entries": [
+    {
+      "entry_id": "z5:spring_stream_closure",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — spring stream closure",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1–Jun 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "restriction_type": "closure",
+          "details": "No fishing in any stream, Apr 1 – Jun 30 (Fraser River Watershed of Region 5, including the Thompson River Watershed)",
+          "rule_text": "No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1–Jun 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+          "location_text": "in Fraser River Watershed of Region 5 (including the Thompson River Watershed)",
+          "display_location": "Any stream in the Fraser River Watershed portion of Region 5",
+          "dates": [
+            "Apr 1–Jun 30"
+          ],
+          "exception": "EXCEPT the mainstem of the Fraser River and other streams listed in the tables",
+          "needs_review": true,
+          "review_reason": "The closure covers only the Fraser River Watershed portion of Region 5 (including the Thompson River Watershed) and excepts the Fraser mainstem; no such area exists, so it is bound to the whole of area:region:5 and over-reaches into Region 5 streams outside the Fraser watershed.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Scope 'Fraser River Watershed of Region 5' has no area id; bound to area:region:5 pending a watershed-intersection area."
+      ]
+    },
+    {
+      "entry_id": "z5:single_barbless_hook_streams",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — single barbless hooks in streams",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Only single barbless hooks may be used in all streams, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hooks only in all streams, all year",
+          "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+          "location_text": "in all streams",
+          "display_location": "Any stream in Region 5",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:no_minimum_size_lakes",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — no minimum size limit in lakes",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "There is no minimum size limit in lakes (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "no_minimum_size_lakes.r1",
+          "restriction_type": "note",
+          "details": "No minimum size limit in lakes (see tables for exceptions)",
+          "rule_text": "There is no minimum size limit in lakes (see tables for exceptions).",
+          "location_text": "in lakes",
+          "display_location": "Any lake in Region 5",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:classified_waters",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — Classified Waters licence",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Classified Waters require a Classified Waters licence in addition to a basic angling licence. See waterbody tables.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "classified_waters.r1",
+          "restriction_type": "licensing",
+          "details": "A Classified Waters licence is required in addition to a basic angling licence",
+          "rule_text": "Classified Waters require a Classified Waters licence in addition to a basic angling licence.",
+          "location_text": "",
+          "display_location": "Classified Waters in Region 5",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:steelhead_stamp",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — Steelhead Conservation Surcharge Stamp",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_stamp.r1",
+          "restriction_type": "licensing",
+          "details": "Basic licence must carry a Steelhead Conservation Surcharge Stamp to fish for steelhead",
+          "rule_text": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
+          "location_text": "anywhere in B.C.",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "ST"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:trout_char_daily_quota",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — trout and char daily quota",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_daily_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 (all species combined), including no more than 1 over 50 cm",
+          "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Species phrase 'Trout and Char' resolved as resolve_species_phrase('Trout') + resolve_species_phrase('Char') = RB/CT/WCT/CCT/GB/GT + SLV (Char, General)."
+      ]
+    },
+    {
+      "entry_id": "z5:trout_char_over_50cm",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — trout and char size limit",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_over_50cm.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 1 over 50 cm",
+          "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:trout_char_stream_limit",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — trout and char stream limit",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 2 from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_stream_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 2 from streams",
+          "rule_text": "Trout and Char: not more than 2 from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 5",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:bull_trout_limit",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — bull trout (Dolly Varden) limit",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 1 Dolly Varden/bull trout.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 1 Dolly Varden/bull trout",
+          "rule_text": "Trout and Char: not more than 1 Dolly Varden/bull trout.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:lake_trout_limit",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — lake trout limit",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 2 lake trout.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 2 lake trout",
+          "rule_text": "Trout and Char: not more than 2 lake trout.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:steelhead_release",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — steelhead release",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "All steelhead must be released.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all steelhead",
+          "rule_text": "All steelhead must be released.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "ST"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:lake_trout_seasonal_release",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — lake trout autumn release",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Release lake trout Oct 1–Nov 30.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all lake trout, Oct 1 – Nov 30",
+          "rule_text": "Release lake trout Oct 1–Nov 30.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "LT"
+          ],
+          "dates": [
+            "Oct 1–Nov 30"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:bull_trout_stream_release",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — bull trout stream release",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_stream_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all bull trout (Dolly Varden) from streams, Aug 1 – Oct 31",
+          "rule_text": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 5",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "dates": [
+            "Aug 1–Oct 31"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:bass_closed",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — bass closure",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Bass: 0 quota, closed to all fishing.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bass_closed.r1",
+          "restriction_type": "closure",
+          "details": "Bass closed to all fishing — daily quota 0",
+          "rule_text": "Bass: 0 quota, closed to all fishing.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "BS"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:burbot_quota",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — burbot daily quota",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Burbot: 5.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "burbot_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5",
+          "rule_text": "Burbot: 5.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "BB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:kokanee_quota",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — kokanee daily quota",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: 5 (none from streams).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 (none from streams)",
+          "rule_text": "Kokanee: 5 (none from streams).",
+          "location_text": "",
+          "display_location": "Any lake in Region 5",
+          "species": [
+            "KO"
+          ],
+          "exception": "none from streams",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:kokanee_closed_streams",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — kokanee closed in streams",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: none from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_closed_streams.r1",
+          "restriction_type": "closure",
+          "details": "No kokanee may be kept from streams",
+          "rule_text": "Kokanee: none from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 5",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:whitefish_quota",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — whitefish daily quota",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Whitefish: 15 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "whitefish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 15 (all species combined)",
+          "rule_text": "Whitefish: 15 (all species combined).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "WF"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:possession_quota",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — possession quota",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota is 2 daily quotas (see tables for exceptions)",
+          "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:salmon_dfo_notice",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — salmon regulations are DFO's",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "salmon_dfo_notice.r1",
+          "restriction_type": "note",
+          "details": "Non-tidal salmon regulations are not in this Synopsis — see DFO regulations",
+          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "SA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:bass_illegal_notice",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — fishing for bass is illegal",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "It is illegal to fish for bass in the Cariboo Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bass_illegal_notice.r1",
+          "restriction_type": "note",
+          "details": "Illegal to fish for bass in the Cariboo Region — part of B.C.'s approach to illegal fish introductions",
+          "rule_text": "It is illegal to fish for bass in the Cariboo Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+          "location_text": "in the Cariboo Region",
+          "display_location": "Anywhere in Region 5",
+          "species": [
+            "BS"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:ice_fishing_huts_notice",
+      "identity": {
+        "name": "Region 5",
+        "display_name": "Region 5 — ice fishing huts",
+        "region": "5",
+        "mus": []
+      },
+      "regs_verbatim": "Ice Fishing Huts: Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "ice_fishing_huts_notice.r1",
+          "restriction_type": "note",
+          "details": "Ice fishing huts must be removed from lakes before spring breakup — an offence under the Environmental Management Act",
+          "rule_text": "Ice Fishing Huts: Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+          "location_text": "from lakes",
+          "display_location": "Any lake in Region 5",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:5",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

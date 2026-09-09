@@ -120,7 +120,14 @@ class Extent(BaseModel):
         "sit on different waters). Mutually exclusive with item_id.",
     )
     area_id: Optional[str] = Field(default=None, description="area id (op=within), e.g. 'area:watershed:liard_river'")
-    area_kind: Optional[str] = Field(default=None, description="admin area kind (op=within), e.g. 'park'")
+    area_kind: Optional[str] = Field(
+        default=None,
+        description="admin area FAMILY (op=within), used INSTEAD of area_id when a regulation "
+        "is written against every area of a kind: 'national_parks', 'ecological_reserves', "
+        "'restricted_land_access', 'indigenous_land', 'wma', 'park'. The resolver takes the "
+        "union of every `area:<kind>:*` item, so 'prohibited in National Parks' is one extent "
+        "rather than seven ids that go stale when the province gazettes another one.",
+    )
     feature_types: List[str] = Field(
         default_factory=list,
         description="op=within only: restrict the area's members to these feature kinds "
@@ -147,8 +154,8 @@ class Extent(BaseModel):
             raise ValueError(f"op between needs exactly 2 split ids, got {n}")
         if self.op == Op.WHOLE and n != 0:
             raise ValueError(f"op whole takes no split ids, got {n}")
-        if self.op == Op.WITHIN and not (self.area_id or self.splits):
-            raise ValueError("op within needs an area (or bounding split ids)")
+        if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
+            raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:
             if self.op != Op.WITHIN:
                 raise ValueError("feature_types is only valid for op=within")

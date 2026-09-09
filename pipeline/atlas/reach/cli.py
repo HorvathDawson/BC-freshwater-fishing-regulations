@@ -32,8 +32,19 @@ def main() -> int:
     build = Path(args.build)
     registry = load_registry(str(build / "registry.json"))
     graph = read_artifact(str(build / "graph.pkl"))
-    entries = parse_io.read_entries_dir(
-        Path(args.entries) if args.entries else parse_io.entries_dir())
+    # EVERY SOURCE, not just the synopsis. The reach builder is a CONSUMER of the corpus:
+    # zone regulations, park closures and the salmon entries are the same kind of thing to
+    # it as a river row, and a rule that binds to an area binds through the same resolver.
+    # `--entries` still names ONE directory, for building against a single source in
+    # isolation.
+    if args.entries:
+        entries = parse_io.read_entries_dir(Path(args.entries))
+    else:
+        entries = parse_io.read_all_entries()
+        srcs = [n for n, _ in parse_io.entry_sources()]
+        print(f"  entries from {len(srcs)} source(s): {', '.join(srcs)}")
+        for note in parse_io.skipped_sources():
+            print(f"  (not an EntryFile source — {note})")
 
     result = build_reaches(entries, registry, graph, build=build.name)
     r = result.report

@@ -1,0 +1,972 @@
+{
+  "region": "7A",
+  "entries": [
+    {
+      "entry_id": "z7a:spring_stream_closure",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — spring stream closure",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "No fishing in any stream of Zone A, Apr 1–Jun 30. See tables for exceptions.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "restriction_type": "closure",
+          "details": "No fishing in any stream, Apr 1 - Jun 30 (see tables for exceptions)",
+          "rule_text": "No fishing in any stream of Zone A, Apr 1–Jun 30. See tables for exceptions.",
+          "location_text": "in any stream of Zone A",
+          "display_location": "Any stream in Region 7A",
+          "dates": [
+            "Apr 1–Jun 30"
+          ],
+          "exception": "See tables for exceptions.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:single_barbless_hook_streams",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — single barbless hooks in streams",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Only single barbless hooks may be used in all streams, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hooks only in all streams, all year",
+          "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+          "location_text": "in all streams",
+          "display_location": "Any stream in Region 7A",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:bait_ban_streams",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — bait ban in streams",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Bait ban applies to all streams of Zone A, all year. See tables for exceptions.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bait_ban_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban in all streams, all year (see tables for exceptions)",
+          "rule_text": "Bait ban applies to all streams of Zone A, all year. See tables for exceptions.",
+          "location_text": "to all streams of Zone A",
+          "display_location": "Any stream in Region 7A",
+          "exception": "See tables for exceptions.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:set_lining_lakes",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — set lining in lakes",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Set lining is only permitted in the lakes of Zone A. Set lines restricted to one line with a single hook (gap ≥3 cm), marked with angler's name, address and phone. Any game fish caught other than burbot must be released.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "set_lining_lakes.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Set lining permitted in lakes only — one line with a single hook (gap 3 cm or more), marked with the angler's name, address and phone",
+          "rule_text": "Set lining is only permitted in the lakes of Zone A. Set lines restricted to one line with a single hook (gap ≥3 cm), marked with angler's name, address and phone.",
+          "location_text": "in the lakes of Zone A",
+          "display_location": "Any lake or reservoir in Region 7A",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        },
+        {
+          "rule_id": "set_lining_lakes.r2",
+          "restriction_type": "harvest",
+          "details": "Release all game fish other than burbot caught on a set line",
+          "rule_text": "Any game fish caught other than burbot must be released.",
+          "location_text": "",
+          "display_location": "Any lake or reservoir in Region 7A",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Species phrase 'game fish' does not resolve to a code in the species table; set_lining_lakes.r2 is left with no species (all species) and the burbot carve-out is carried in details only."
+      ]
+    },
+    {
+      "entry_id": "z7a:trout_char_daily_quota",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — trout and char daily quota",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_daily_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 trout and char (all species combined), including no more than 1 over 50 cm",
+          "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:trout_char_over_50cm_limit",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — trout and char size limit",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_over_50cm_limit.r1",
+          "restriction_type": "harvest",
+          "details": "Trout and char: no more than 1 over 50 cm",
+          "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:trout_char_stream_limit",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — trout and char limit from streams",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 2 from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_stream_limit.r1",
+          "restriction_type": "harvest",
+          "details": "Trout and char: no more than 2 from streams",
+          "rule_text": "Trout and Char: not more than 2 from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7A",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:lake_trout_limit",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — lake trout daily limit",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 3 lake trout.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 3 lake trout in the daily quota",
+          "rule_text": "Trout and Char: not more than 3 lake trout.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:bull_trout_limit",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — bull trout daily limit",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 1 bull trout (Dolly Varden). May only be retained Oct 16–Aug 14, from lakes only, 30–50 cm in length.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 1 bull trout (Dolly Varden); may be retained Oct 16 - Aug 14 only, from lakes only, 30-50 cm in length",
+          "rule_text": "Trout and Char: not more than 1 bull trout (Dolly Varden). May only be retained Oct 16–Aug 14, from lakes only, 30–50 cm in length.",
+          "location_text": "from lakes only",
+          "display_location": "Any lake or reservoir in Region 7A",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "dates": [
+            "Oct 16–Aug 14"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:bull_trout_stream_release",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — bull trout release in streams",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Release bull trout (Dolly Varden) from streams, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_stream_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all bull trout (Dolly Varden) from streams, all year",
+          "rule_text": "Release bull trout (Dolly Varden) from streams, all year.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7A",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:bull_trout_lake_seasonal_release",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — seasonal bull trout release in lakes",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Release bull trout (Dolly Varden) from lakes Aug 15–Oct 15.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_lake_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all bull trout (Dolly Varden) from lakes, Aug 15 - Oct 15",
+          "rule_text": "Release bull trout (Dolly Varden) from lakes Aug 15–Oct 15.",
+          "location_text": "from lakes",
+          "display_location": "Any lake or reservoir in Region 7A",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "dates": [
+            "Aug 15–Oct 15"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:lake_trout_seasonal_release",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — seasonal lake trout release",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Release lake trout of any size Sept 15–Oct 31.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all lake trout of any size, Sept 15 - Oct 31",
+          "rule_text": "Release lake trout of any size Sept 15–Oct 31.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "LT"
+          ],
+          "dates": [
+            "Sept 15–Oct 31"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:lake_trout_under_30cm_release",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — lake trout minimum size",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Release lake trout under 30 cm, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_under_30cm_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all lake trout under 30 cm, all year",
+          "rule_text": "Release lake trout under 30 cm, all year.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:arctic_grayling_release",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — Arctic grayling catch and release",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Arctic Grayling: catch and release only.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "arctic_grayling_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all Arctic grayling — catch and release only",
+          "rule_text": "Arctic Grayling: catch and release only.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "GR"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:burbot_quota",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — burbot daily quota",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Burbot: 5.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "burbot_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 burbot",
+          "rule_text": "Burbot: 5.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "BB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:kokanee_quota",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — kokanee daily quota",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: 10 (none from streams).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 10 kokanee; none may be kept from streams",
+          "rule_text": "Kokanee: 10 (none from streams).",
+          "location_text": "none from streams",
+          "display_location": "Any lake or reservoir in Region 7A",
+          "species": [
+            "KO"
+          ],
+          "exception": "none from streams",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:kokanee_closed_streams",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — no kokanee from streams",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: none from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_closed_streams.r1",
+          "restriction_type": "closure",
+          "details": "No kokanee may be kept from streams",
+          "rule_text": "Kokanee: none from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7A",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:sturgeon_closed",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — white sturgeon closure",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "White Sturgeon: closed to all fishing.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "sturgeon_closed.r1",
+          "restriction_type": "closure",
+          "details": "White sturgeon closed to all fishing",
+          "rule_text": "White Sturgeon: closed to all fishing.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "WSG"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:whitefish_quota",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — whitefish daily quota",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Whitefish: 15 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "whitefish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 15 whitefish (all species combined)",
+          "rule_text": "Whitefish: 15 (all species combined).",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "WF"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:possession_quota",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — possession quotas",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota is 2 daily quotas (see tables for exceptions)",
+          "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "exception": "(see tables for exceptions)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:lake_trout_possession",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — lake trout possession quota",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Lake trout: possession quota = 1 daily quota.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_possession.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 1 daily quota for lake trout",
+          "rule_text": "Lake trout: possession quota = 1 daily quota.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:bull_trout_possession",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — bull trout possession quota",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Bull trout (Dolly Varden): possession quota = 1 daily quota.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_possession.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 1 daily quota for bull trout (Dolly Varden)",
+          "rule_text": "Bull trout (Dolly Varden): possession quota = 1 daily quota.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:salmon_notice",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — salmon regulations notice",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "salmon_notice.r1",
+          "restriction_type": "note",
+          "details": "Non-tidal salmon fishing regulations are not in this Synopsis — see DFO regulations",
+          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+          "location_text": "",
+          "display_location": "Region 7A",
+          "species": [
+            "SA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:tagging_program_notice",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — fish tagging studies notice",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "The Ministry and partners are conducting tagging studies on various species throughout the Omineca region. Some tags offer cash rewards. Report tag number, colour, date, time and location to Prince George office: (250) 614-7400.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "tagging_program_notice.r1",
+          "restriction_type": "note",
+          "details": "Tagging studies are under way on various species in the Omineca region; some tags carry cash rewards. Report tag number, colour, date, time and location to the Prince George office at (250) 614-7400.",
+          "rule_text": "The Ministry and partners are conducting tagging studies on various species throughout the Omineca region. Some tags offer cash rewards. Report tag number, colour, date, time and location to Prince George office: (250) 614-7400.",
+          "location_text": "throughout the Omineca region",
+          "display_location": "Region 7A (Omineca)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:sturgeon_report_notice",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — white sturgeon reporting notice",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "White Sturgeon in Nechako and Upper Fraser are SARA-listed endangered. Report all sightings or incidental captures to 250-614-7400. See nechakowhitesturgeon.org.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "sturgeon_report_notice.r1",
+          "restriction_type": "note",
+          "details": "White sturgeon in the Nechako and Upper Fraser are SARA-listed endangered. Report sightings or incidental captures to 250-614-7400; see nechakowhitesturgeon.org.",
+          "rule_text": "White Sturgeon in Nechako and Upper Fraser are SARA-listed endangered. Report all sightings or incidental captures to 250-614-7400. See nechakowhitesturgeon.org.",
+          "location_text": "in Nechako and Upper Fraser",
+          "display_location": "Nechako and Upper Fraser waters in Region 7A",
+          "species": [
+            "WSG"
+          ],
+          "needs_review": true,
+          "review_reason": "Notice names the Nechako and Upper Fraser populations, but there is no watershed area for them, so the extent binds the whole of Region 7A — narrow to the Nechako and Upper Fraser watersheds when those areas exist.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7a:ice_fishing_huts_notice",
+      "identity": {
+        "name": "Region 7A",
+        "display_name": "Region 7A — ice fishing huts notice",
+        "region": "7A",
+        "mus": []
+      },
+      "regs_verbatim": "Ice Fishing Huts: Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "ice_fishing_huts_notice.r1",
+          "restriction_type": "note",
+          "details": "Ice fishing huts must be removed from lakes before spring breakup — failure to do so is an offence under the Environmental Management Act",
+          "rule_text": "Ice Fishing Huts: Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+          "location_text": "from lakes",
+          "display_location": "Any lake or reservoir in Region 7A",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7a",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -48,6 +48,88 @@ def entries_dir() -> Path:
     return CURATED.regulations.entries.synopsis
 
 
+def entries_root() -> Path:
+    """The directory the per-source EntryFile directories live under.
+
+    Derived from `entries_dir()` rather than configured separately, so the two cannot name
+    different places. There is no `curated.regulations.entries.root` for the same reason
+    there is no second definition of anything else here.
+    """
+    return entries_dir().parent
+
+
+def entry_sources() -> list[tuple[str, Path]]:
+    """`(name, dir)` for every EntryFile source under the root, synopsis first.
+
+    A SOURCE IS A DIRECTORY OF EntryFiles, and this checks rather than assumes: the DFO
+    salmon directory sits under the same root and holds `region-*.json` files of a
+    completely different shape (`waters`, `locations`, `scopes` — curated DFO data that has
+    not been converted to entries yet). Globbing every subdirectory would read those as
+    EntryFiles, find no `entries` key, and quietly contribute nothing. So a directory
+    qualifies only if it actually contains entries, and `skipped_sources()` says which did
+    not, because a source that silently contributes nothing is the failure this guards.
+
+    Synopsis leads because it is the corpus everything else is a supplement to; the rest
+    follow in name order so the merge is deterministic.
+    """
+    root, first = entries_root(), entries_dir()
+    out: list[tuple[str, Path]] = []
+    for d in sorted(root.iterdir(), key=lambda p: (p != first, p.name)):
+        if d.is_dir() and _holds_entries(d):
+            out.append((d.name, d))
+    return out
+
+
+def skipped_sources() -> list[str]:
+    """Directories under the entries root that are NOT EntryFile sources, with a reason."""
+    root, out = entries_root(), []
+    for d in sorted(root.iterdir()):
+        if not d.is_dir() or _holds_entries(d):
+            continue
+        files = list(d.glob("region-*.json"))
+        out.append(f"{d.name}: "
+                   + ("no region-*.json" if not files
+                      else f"{len(files)} region file(s), none carrying an `entries` key"))
+    return out
+
+
+def _holds_entries(d: Path) -> bool:
+    for p in sorted(d.glob("region-*.json")):
+        try:
+            if json.loads(p.read_text(encoding="utf-8")).get("entries"):
+                return True
+        except (OSError, ValueError):
+            continue
+    return False
+
+
+def read_all_entries() -> dict[str, dict]:
+    """Every entry from every source, merged — what a CONSUMER of the corpus reads.
+
+    NOT what the parser reads. `entries_dir()` is the synopsis directory and stays that way:
+    every tool that re-parses, prunes, backfills or remaps is about the synopsis and writes
+    back into it, so pointing those at a merged view would have them write another source's
+    entries into synopsis files.
+
+    AN ID COLLISION IS FATAL, not namespaced. Namespacing would rename ids that are already
+    written into reach runs and bundles, and an id that changes meaning between builds is
+    the one thing `entry_id` may never do. Two sources claiming the same id is a curation
+    mistake with two curators behind it, and it should stop the build and name them both.
+    """
+    merged: dict[str, dict] = {}
+    origin: dict[str, str] = {}
+    for name, d in entry_sources():
+        for eid, entry in read_entries_dir(d).items():
+            if eid in merged:
+                raise SystemExit(
+                    f"entry_id {eid!r} is claimed by two sources: {origin[eid]!r} and "
+                    f"{name!r}. Ids are written into reach runs and bundles, so one of them "
+                    f"has to be renamed at the source rather than resolved here.")
+            merged[eid] = entry
+            origin[eid] = name
+    return merged
+
+
 def region_ids(dir_: Path | None = None) -> list[str]:
     """Region ids (e.g. ['1','2',…]) for which an EntryFile exists."""
     d = dir_ or entries_dir()

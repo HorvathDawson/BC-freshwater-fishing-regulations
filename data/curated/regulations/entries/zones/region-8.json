@@ -1,0 +1,731 @@
+{
+  "region": "8",
+  "entries": [
+    {
+      "entry_id": "z8:spring_stream_closure",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — spring stream closure",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "No fishing in any stream in Region 8 from Apr 1–Jun 30. See tables for exceptions.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "restriction_type": "closure",
+          "details": "No fishing in any stream, Apr 1 – Jun 30",
+          "rule_text": "No fishing in any stream in Region 8 from Apr 1–Jun 30.",
+          "location_text": "in Region 8",
+          "display_location": "Any stream in Region 8",
+          "dates": [
+            "Apr 1–Jun 30"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:single_barbless_hook_streams",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — single barbless hooks in streams",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Only single barbless hooks may be used in all streams, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hooks only in all streams, all year",
+          "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+          "location_text": "in all streams",
+          "display_location": "Any stream in Region 8",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:trout_char_daily_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — trout and char daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_daily_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 (all species combined), including no more than 1 over 50 cm",
+          "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Species phrase 'Trout and Char' resolved as resolve_species_phrase('Trout') + resolve_species_phrase('Char') = RB/CT/WCT/CCT/GB/GT + SLV (Char, General)."
+      ]
+    },
+    {
+      "entry_id": "z8:trout_char_over_50cm",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — trout and char size limit",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_over_50cm.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 1 over 50 cm",
+          "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:trout_char_stream_limit",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — trout and char stream limit",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 4 from streams (only 2 over 30 cm).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_stream_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 4 from streams, of which no more than 2 over 30 cm",
+          "rule_text": "Trout and Char: not more than 4 from streams (only 2 over 30 cm).",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 8",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:brook_trout_stream_bonus",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — brook trout stream retention",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "You may retain 20 brook trout from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "brook_trout_stream_bonus.r1",
+          "restriction_type": "harvest",
+          "details": "May retain 20 brook trout from streams",
+          "rule_text": "You may retain 20 brook trout from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 8",
+          "species": [
+            "EB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:bull_trout_stream_release",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — bull trout stream release",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Release bull trout (Dolly Varden) from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_stream_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all bull trout (Dolly Varden) from streams",
+          "rule_text": "Release bull trout (Dolly Varden) from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 8",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:bass_closed",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — bass closure",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Bass: 0 quota, closed to fishing (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bass_closed.r1",
+          "restriction_type": "closure",
+          "details": "Bass closed to fishing — daily quota 0 (see tables for exceptions)",
+          "rule_text": "Bass: 0 quota, closed to fishing (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "BS"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:burbot_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — burbot daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Burbot: 2.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "burbot_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 2",
+          "rule_text": "Burbot: 2.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "BB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:crappie_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — crappie daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Crappie: 20.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "crappie_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 20",
+          "rule_text": "Crappie: 20.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "BCB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Species phrase 'Crappie' has no collective code; resolved to BCB (Black Crappie), the only crappie in the BC species table."
+      ]
+    },
+    {
+      "entry_id": "z8:crayfish_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — crayfish daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Crayfish: 25.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "crayfish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 25",
+          "rule_text": "Crayfish: 25.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "CRA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Species phrase 'Crayfish' resolved to CRA (Signal Crayfish) per the spec's known-gaps list."
+      ]
+    },
+    {
+      "entry_id": "z8:kokanee_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — kokanee daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: 5 (none from streams).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 (none from streams)",
+          "rule_text": "Kokanee: 5 (none from streams).",
+          "location_text": "",
+          "display_location": "Any lake in Region 8",
+          "species": [
+            "KO"
+          ],
+          "exception": "none from streams",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:kokanee_closed_streams",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — kokanee closed in streams",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: none from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_closed_streams.r1",
+          "restriction_type": "closure",
+          "details": "No kokanee may be kept from streams",
+          "rule_text": "Kokanee: none from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 8",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:walleye_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — walleye daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Walleye: 8.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "walleye_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 8",
+          "rule_text": "Walleye: 8.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "WP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:whitefish_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — whitefish daily quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Whitefish: 15 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "whitefish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 15 (all species combined)",
+          "rule_text": "Whitefish: 15 (all species combined).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "WF"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:yellow_perch_closed",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — yellow perch closure",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Yellow Perch: 0 quota, closed to fishing (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "yellow_perch_closed.r1",
+          "restriction_type": "closure",
+          "details": "Yellow perch closed to fishing — daily quota 0 (see tables for exceptions)",
+          "rule_text": "Yellow Perch: 0 quota, closed to fishing (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "YP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:possession_quota",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — possession quota",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota is 2 daily quotas (see tables for exceptions)",
+          "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:salmon_dfo_notice",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — salmon regulations are DFO's",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations (including Osoyoos Lake sockeye fishery enquiries).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "salmon_dfo_notice.r1",
+          "restriction_type": "note",
+          "details": "Non-tidal salmon regulations are not in this Synopsis — see DFO regulations, including Osoyoos Lake sockeye enquiries",
+          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations (including Osoyoos Lake sockeye fishery enquiries).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "SA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:crayfish_trap_turtle_notice",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — crayfish trap openings",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "Crayfish trapping: use traps with minimally-sized circular openings to reduce chance of capturing Western Painted Turtles.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "crayfish_trap_turtle_notice.r1",
+          "restriction_type": "note",
+          "details": "Use crayfish traps with minimally-sized circular openings to avoid capturing Western Painted Turtles",
+          "rule_text": "Crayfish trapping: use traps with minimally-sized circular openings to reduce chance of capturing Western Painted Turtles.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "species": [
+            "CRA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:syilx_territory_notice",
+      "identity": {
+        "name": "Region 8",
+        "display_name": "Region 8 — Syilx traditional territory",
+        "region": "8",
+        "mus": []
+      },
+      "regs_verbatim": "The Okanagan is the traditional territory of the Syilx people. The Province collaborates with ONA on key initiatives to restore and manage fish stocks.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "syilx_territory_notice.r1",
+          "restriction_type": "note",
+          "details": "The Okanagan is Syilx traditional territory; the Province collaborates with the Okanagan Nation Alliance on fish stock restoration",
+          "rule_text": "The Okanagan is the traditional territory of the Syilx people. The Province collaborates with ONA on key initiatives to restore and manage fish stocks.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 8",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:8"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

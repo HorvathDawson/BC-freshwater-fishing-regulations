@@ -147,7 +147,7 @@ def test_only_hard_closures_and_regulatory_zones_cut_the_streams_that_cross_them
         # hard closures — the edge is where fishing stops
         "national_parks", "ecological_reserves", "chilkoot_trail", "restricted_land_access",
         # regulatory zones — the synopsis is written per zone
-        "regions", "mu_group_south_island", "mu_group_lower_skeena",
+        "regions", "mu_group_south_island", "mu_group_haida_gwaii",
     }
 
 

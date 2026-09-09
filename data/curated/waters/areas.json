@@ -128,7 +128,7 @@
       "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
     },
     {
-      "id": "mu_group_lower_skeena",
+      "id": "mu_group_haida_gwaii",
       "kind": "mu_group",
       "layer": "wmu",
       "name_field": "WILDLIFE_MGMT_UNIT_ID",
@@ -136,7 +136,7 @@
       "combine": "Management Units 6-12 and 6-13",
       "label_term": "",
       "cut": true,
-      "note": "Lower Skeena. 'Bait ban: applies to all streams in Management Units 6-12 and 6-13, Nov 1-Apr 30' — again one area, written as two unit numbers. Combined for the same reason.",
+      "note": "HAIDA GWAII, which is MUs 6-12 and 6-13 — administratively in Region 6, but the Region 1 preamble governs it: 'all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)'. This def was first written as 'Lower Skeena', which is wrong, and it was caught three ways: the archived rule text names Haida Gwaii outright, a second reader flagged it, and the polygon's centroid is lon -131.5 lat 53.2 — the islands, not Terrace. The AREA ID slugs from `combine`, not from this id, so nothing downstream moved when the name was corrected. Combined because the bait ban and the Region 1 preamble are both written for the pair.",
       "tile_layer": null,
       "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
     }

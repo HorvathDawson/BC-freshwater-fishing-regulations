@@ -1,0 +1,1078 @@
+{
+  "region": "7B",
+  "entries": [
+    {
+      "entry_id": "z7b:single_barbless_hook_streams",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — single barbless hooks in streams",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Only single barbless hooks may be used in all streams, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hooks only in all streams, all year",
+          "rule_text": "Only single barbless hooks may be used in all streams, all year.",
+          "location_text": "in all streams",
+          "display_location": "Any stream in Region 7B",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:bait_ban_streams",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — bait ban in streams",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Bait ban applies to all streams of Zone B, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bait_ban_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban in all streams, all year",
+          "rule_text": "Bait ban applies to all streams of Zone B, all year.",
+          "location_text": "to all streams of Zone B",
+          "display_location": "Any stream in Region 7B",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:finfish_bait_ban",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — fin fish may not be used as bait",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Fin fish may not be used as bait in any waters of Zone B.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "finfish_bait_ban.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Fin fish may not be used as bait in any waters",
+          "rule_text": "Fin fish may not be used as bait in any waters of Zone B.",
+          "location_text": "in any waters of Zone B",
+          "display_location": "Region 7B",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:set_lining_prohibited",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — set lining prohibited",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Set lining is not permitted in Zone B.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "set_lining_prohibited.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Set lining is not permitted",
+          "rule_text": "Set lining is not permitted in Zone B.",
+          "location_text": "in Zone B",
+          "display_location": "Region 7B",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:ice_fishing_huts_notice",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — ice fishing huts notice",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Ice fishing huts should have the owner's contact information displayed when left unoccupied. Failure to remove before spring breakup is an offence under the Environmental Management Act.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "ice_fishing_huts_notice.r1",
+          "restriction_type": "note",
+          "details": "Ice fishing huts should display the owner's contact information when left unoccupied, and must be removed before spring breakup — failure to remove is an offence under the Environmental Management Act",
+          "rule_text": "Ice fishing huts should have the owner's contact information displayed when left unoccupied. Failure to remove before spring breakup is an offence under the Environmental Management Act.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:trout_char_daily_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — trout and char daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_daily_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 trout and char (all species combined), including no more than 1 over 50 cm",
+          "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:trout_char_over_50cm_limit",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — trout and char size limit",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_over_50cm_limit.r1",
+          "restriction_type": "harvest",
+          "details": "Trout and char: no more than 1 over 50 cm",
+          "rule_text": "Trout and Char: not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:trout_char_stream_limit",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — trout and char limit from streams",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 2 from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_stream_limit.r1",
+          "restriction_type": "harvest",
+          "details": "Trout and char: no more than 2 from streams",
+          "rule_text": "Trout and Char: not more than 2 from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7B",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:lake_trout_limit",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — lake trout daily limit",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Trout and Char: not more than 2 lake trout.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_limit.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 2 lake trout in the daily quota",
+          "rule_text": "Trout and Char: not more than 2 lake trout.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:lake_trout_under_30cm_release",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — lake trout minimum size",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Release lake trout under 30 cm, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_under_30cm_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all lake trout under 30 cm, all year",
+          "rule_text": "Release lake trout under 30 cm, all year.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:lake_trout_seasonal_release",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — seasonal lake trout release",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Release lake trout of any size Sept 15–Oct 31.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all lake trout of any size, Sept 15 - Oct 31",
+          "rule_text": "Release lake trout of any size Sept 15–Oct 31.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "LT"
+          ],
+          "dates": [
+            "Sept 15–Oct 31"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:rainbow_stream_seasonal_release",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — seasonal rainbow trout release in streams",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Release rainbow trout of any size from streams May 1–Jun 15.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "rainbow_stream_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all rainbow trout of any size from streams, May 1 - Jun 15",
+          "rule_text": "Release rainbow trout of any size from streams May 1–Jun 15.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7B",
+          "species": [
+            "RB"
+          ],
+          "dates": [
+            "May 1–Jun 15"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:arctic_grayling_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — Arctic grayling daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Arctic Grayling: 2 (none under 30 cm and only 1 over 45 cm).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "arctic_grayling_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 2 Arctic grayling — none under 30 cm and no more than 1 over 45 cm",
+          "rule_text": "Arctic Grayling: 2 (none under 30 cm and only 1 over 45 cm).",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "GR"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:arctic_grayling_seasonal_release",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — seasonal Arctic grayling release",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Release Arctic grayling of any size May 1–Jun 15.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "arctic_grayling_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all Arctic grayling of any size, May 1 - Jun 15",
+          "rule_text": "Release Arctic grayling of any size May 1–Jun 15.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "GR"
+          ],
+          "dates": [
+            "May 1–Jun 15"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:burbot_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — burbot daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Burbot: 5.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "burbot_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 burbot",
+          "rule_text": "Burbot: 5.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "BB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:goldeye_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — goldeye daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Goldeye: 10.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "goldeye_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 10 goldeye",
+          "rule_text": "Goldeye: 10.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "GE"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:inconnu_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — inconnu daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Inconnu: 1.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "inconnu_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 1 inconnu",
+          "rule_text": "Inconnu: 1.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "IN"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:kokanee_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — kokanee daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: 10 (none from streams, except Peace River).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 10 kokanee; none may be kept from streams except the Peace River",
+          "rule_text": "Kokanee: 10 (none from streams, except Peace River).",
+          "location_text": "none from streams, except Peace River",
+          "display_location": "Any lake or reservoir in Region 7B",
+          "species": [
+            "KO"
+          ],
+          "exception": "except Peace River",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:kokanee_closed_streams",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — no kokanee from streams",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: none from streams (except Peace River).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_closed_streams.r1",
+          "restriction_type": "closure",
+          "details": "No kokanee may be kept from streams, except the Peace River",
+          "rule_text": "Kokanee: none from streams (except Peace River).",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7B",
+          "species": [
+            "KO"
+          ],
+          "exception": "(except Peace River)",
+          "needs_review": true,
+          "review_reason": "The Peace River is excepted, but a within-area extent cannot carve it out, so this closure currently covers every stream in Region 7B — add a Peace River exclusion.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:northern_pike_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — northern pike daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Northern Pike: 3 (only 1 over 90 cm).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "northern_pike_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 3 northern pike — no more than 1 over 90 cm",
+          "rule_text": "Northern Pike: 3 (only 1 over 90 cm).",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "NP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:walleye_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — walleye daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Walleye: 3 (only 1 over 70 cm).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "walleye_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 3 walleye — no more than 1 over 70 cm",
+          "rule_text": "Walleye: 3 (only 1 over 70 cm).",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "WP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:walleye_stream_seasonal_release",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — seasonal walleye release in streams",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Release all walleye from streams Apr 1–May 15.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "walleye_stream_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all walleye from streams, Apr 1 - May 15",
+          "rule_text": "Release all walleye from streams Apr 1–May 15.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 7B",
+          "species": [
+            "WP"
+          ],
+          "dates": [
+            "Apr 1–May 15"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:whitefish_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — whitefish daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Whitefish: 15 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "whitefish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 15 whitefish (all species combined)",
+          "rule_text": "Whitefish: 15 (all species combined).",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "WF"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:yellow_perch_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — yellow perch daily quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Yellow Perch: 5.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "yellow_perch_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5 yellow perch",
+          "rule_text": "Yellow Perch: 5.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "YP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:possession_quota",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — possession quotas",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota is 2 daily quotas (see tables for exceptions)",
+          "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "exception": "(see tables for exceptions)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:arctic_grayling_possession",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — Arctic grayling possession quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Arctic grayling: possession quota = 1 daily quota.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "arctic_grayling_possession.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 1 daily quota for Arctic grayling",
+          "rule_text": "Arctic grayling: possession quota = 1 daily quota.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "GR"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:bull_trout_possession",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — bull trout possession quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Bull trout: possession quota = 1 daily quota.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_possession.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 1 daily quota for bull trout",
+          "rule_text": "Bull trout: possession quota = 1 daily quota.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "BT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:lake_trout_possession",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — lake trout possession quota",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "Lake trout: possession quota = 1 daily quota.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_possession.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 1 daily quota for lake trout",
+          "rule_text": "Lake trout: possession quota = 1 daily quota.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:bull_trout_dolly_varden_notice",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — bull trout and Dolly Varden notice",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "NOTE: Bull trout and Dolly Varden are two distinct species. Only bull trout are found in the Peace Region.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_dolly_varden_notice.r1",
+          "restriction_type": "note",
+          "details": "Bull trout and Dolly Varden are two distinct species; only bull trout are found in the Peace Region",
+          "rule_text": "NOTE: Bull trout and Dolly Varden are two distinct species. Only bull trout are found in the Peace Region.",
+          "location_text": "",
+          "display_location": "Region 7B",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:site_c_tagging_notice",
+      "identity": {
+        "name": "Region 7B",
+        "display_name": "Region 7B — Site C fish tagging notice",
+        "region": "7B",
+        "mus": []
+      },
+      "regs_verbatim": "BC Hydro is tracking fish movement throughout the Site C Reservoir, Peace River and tributaries using telemetry. Return tags by emailing tagreturns@golder.com or calling (250) 785-9281. For other areas call (250) 787-3415.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "site_c_tagging_notice.r1",
+          "restriction_type": "note",
+          "details": "BC Hydro is tracking fish movement by telemetry in the Site C Reservoir, Peace River and tributaries. Return tags to tagreturns@golder.com or (250) 785-9281; other areas (250) 787-3415.",
+          "rule_text": "BC Hydro is tracking fish movement throughout the Site C Reservoir, Peace River and tributaries using telemetry. Return tags by emailing tagreturns@golder.com or calling (250) 785-9281. For other areas call (250) 787-3415.",
+          "location_text": "throughout the Site C Reservoir, Peace River and tributaries",
+          "display_location": "Site C Reservoir, Peace River and tributaries in Region 7B",
+          "needs_review": true,
+          "review_reason": "Notice names the Site C Reservoir, the Peace River and its tributaries, but there is no area for them, so the extent binds the whole of Region 7B — narrow to those waters when an area exists.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:7b"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

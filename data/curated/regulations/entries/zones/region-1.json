@@ -1,0 +1,744 @@
+{
+  "region": "1",
+  "entries": [
+    {
+      "entry_id": "z1:mu_group_south_island_summer_closure",
+      "identity": {
+        "name": "Management Units 1-1 to 1-6",
+        "display_name": "Southern Vancouver Island (MUs 1-1 to 1-6)",
+        "region": "1",
+        "mus": [
+          "1-1",
+          "1-2",
+          "1-3",
+          "1-4",
+          "1-5",
+          "1-6"
+        ]
+      },
+      "regs_verbatim": "No fishing in any stream in Management Units 1-1 to 1-6 from July 15 to August 31 (see water specific regulations table for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "mu_group_south_island.r1",
+          "restriction_type": "closure",
+          "details": "No fishing in any stream, Jul 15 - Aug 31",
+          "rule_text": "No fishing in any stream in Management Units 1-1 to 1-6 from July 15 to August 31",
+          "location_text": "in Management Units 1-1 to 1-6",
+          "display_location": "Any stream in Management Units 1-1 to 1-6",
+          "dates": [
+            "July 15 to August 31"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:mu_group:management_units_1_1_to_1_6",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:trout_daily_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Trout daily quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Trout: 4 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_daily_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 4 (all species combined)",
+          "rule_text": "Trout: 4 (all species combined).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "TRT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:trout_over_50cm",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Trout size limit",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Trout: not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_over_50cm.r1",
+          "restriction_type": "harvest",
+          "details": "No more than 1 trout over 50 cm in the daily quota (2 hatchery steelhead over 50 cm allowed)",
+          "rule_text": "Trout: not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "TRT"
+          ],
+          "exception": "(2 hatchery steelhead over 50 cm allowed)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:trout_stream_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Trout quota from streams",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Trout from streams: max 2 (must be hatchery origin).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_stream_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 2 trout from streams; hatchery origin only",
+          "rule_text": "Trout from streams: max 2 (must be hatchery origin).",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 1",
+          "species": [
+            "TRT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:wild_steelhead_release",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Wild steelhead release",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Release all wild steelhead.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "wild_steelhead_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all wild steelhead",
+          "rule_text": "Release all wild steelhead.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "ST"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:char_release",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Char release",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Release all char (includes Dolly Varden).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "char_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all char, including Dolly Varden",
+          "rule_text": "Release all char (includes Dolly Varden).",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "SLV",
+            "DV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:bass_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Bass daily quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Bass: unlimited.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bass_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota unlimited",
+          "rule_text": "Bass: unlimited.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "BS"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:crayfish_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Crayfish daily quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Crayfish: 25.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "crayfish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 25",
+          "rule_text": "Crayfish: 25.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "CRA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:kokanee_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Kokanee daily quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: 5 (none from streams).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota 5",
+          "rule_text": "Kokanee: 5",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        },
+        {
+          "rule_id": "kokanee_quota.r2",
+          "restriction_type": "closure",
+          "details": "No kokanee may be kept from streams",
+          "rule_text": "none from streams",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 1",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:kokanee_streams_closed",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — No kokanee from streams",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: none from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_streams_closed.r1",
+          "restriction_type": "closure",
+          "details": "No kokanee may be kept from streams",
+          "rule_text": "Kokanee: none from streams.",
+          "location_text": "from streams",
+          "display_location": "Any stream in Region 1",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:white_sturgeon_release",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — White sturgeon catch and release",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "White Sturgeon: catch and release only.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "white_sturgeon_release.r1",
+          "restriction_type": "harvest",
+          "details": "Catch and release only — release all white sturgeon",
+          "rule_text": "White Sturgeon: catch and release only.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "WSG"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:yellow_perch_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Yellow perch daily quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Yellow perch: unlimited.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "yellow_perch_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Daily quota unlimited",
+          "rule_text": "Yellow perch: unlimited.",
+          "location_text": "",
+          "display_location": "Anywhere in Region 1",
+          "species": [
+            "YP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:wild_trout_stream_release",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Wild trout release in streams",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Release of all wild origin trout in streams required. Only hatchery origin trout (identified by healed adipose fin scar) may be harvested from streams. Does not apply to lakes.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "wild_trout_stream_release.r1",
+          "restriction_type": "harvest",
+          "details": "Release all wild trout in streams; only hatchery trout (healed adipose fin scar) may be kept. Does not apply to lakes.",
+          "rule_text": "Release of all wild origin trout in streams required. Only hatchery origin trout (identified by healed adipose fin scar) may be harvested from streams. Does not apply to lakes.",
+          "location_text": "in streams",
+          "display_location": "Any stream in Region 1",
+          "species": [
+            "TRT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:single_barbless_hook_streams",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Single barbless hook in streams",
+        "region": "1",
+        "mus": [
+          "6-12",
+          "6-13"
+        ]
+      },
+      "regs_verbatim": "Single barbless hook must be used in all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13), all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook required in all streams, all year",
+          "rule_text": "Single barbless hook must be used in all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13), all year.",
+          "location_text": "in all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)",
+          "display_location": "Any stream in Region 1 or Haida Gwaii (MUs 6-12, 6-13)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
+            },
+            {
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:bait_ban_streams",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Bait ban in streams",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Bait ban applies to all streams of Region 1, all year, with some exceptions noted in the tables.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bait_ban_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Bait ban in all streams, all year; see the water-specific tables for exceptions",
+          "rule_text": "Bait ban applies to all streams of Region 1, all year, with some exceptions noted in the tables.",
+          "location_text": "to all streams of Region 1",
+          "display_location": "Any stream in Region 1",
+          "exception": "with some exceptions noted in the tables",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:possession_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Possession quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Possession quotas = 2 daily quotas.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 2 daily quotas",
+          "rule_text": "Possession quotas = 2 daily quotas.",
+          "location_text": "",
+          "display_location": "Region 1 and Haida Gwaii (MUs 6-12, 6-13)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            },
+            {
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Archive record scopes this Region 1 preamble rule to MUs 6-12 and 6-13 (Haida Gwaii) as well as Region 1; the MUs are not named in the rule text, so the second extent comes from the archive's include_mu_ids, not the prose."
+      ]
+    },
+    {
+      "entry_id": "z1:steelhead_annual_quota",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Steelhead annual quota",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_annual_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Annual quota 10 steelhead per licence year, B.C.-wide; hatchery steelhead only",
+          "rule_text": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+          "location_text": "",
+          "display_location": "Region 1 and Haida Gwaii (MUs 6-12, 6-13)",
+          "species": [
+            "ST"
+          ],
+          "exception": "(only hatchery steelhead may be retained)",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            },
+            {
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Archive record scopes this Region 1 preamble rule to MUs 6-12 and 6-13 (Haida Gwaii) as well as Region 1; the MUs are not named in the rule text, so the second extent comes from the archive's include_mu_ids, not the prose."
+      ]
+    },
+    {
+      "entry_id": "z1:salmon_notice",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Salmon regulations notice",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations at https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/salmon-saumon-eng.html. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "salmon_notice.r1",
+          "restriction_type": "note",
+          "details": "Non-tidal salmon regulations are set by DFO, not this Synopsis; closures and gear restrictions printed here apply to salmon as well",
+          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations at https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/salmon-saumon-eng.html. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+          "location_text": "",
+          "display_location": "Region 1 and Haida Gwaii (MUs 6-12, 6-13)",
+          "species": [
+            "SA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1"
+            },
+            {
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
+            }
+          ]
+        }
+      ],
+      "audit_log": [
+        "Archive record scopes this Region 1 preamble rule to MUs 6-12 and 6-13 (Haida Gwaii) as well as Region 1; the MUs are not named in the rule text, so the second extent comes from the archive's include_mu_ids, not the prose."
+      ]
+    },
+    {
+      "entry_id": "z1:mercury_advisory_smallmouth_bass",
+      "identity": {
+        "name": "Region 1",
+        "display_name": "Region 1 — Mercury advisory for Smallmouth Bass",
+        "region": "1",
+        "mus": []
+      },
+      "regs_verbatim": "Mercury advisory: Mercury levels in larger Smallmouth Bass in lakes on Vancouver Island and the Gulf Islands may be above national guidelines. The general public, especially children and women of child bearing age, are recommended to limit consumption of Smallmouth Bass.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "mercury_advisory_smallmouth_bass.r1",
+          "restriction_type": "note",
+          "details": "Mercury advisory — mercury in larger Smallmouth Bass may exceed national guidelines; children and women of child bearing age should limit consumption",
+          "rule_text": "Mercury advisory: Mercury levels in larger Smallmouth Bass in lakes on Vancouver Island and the Gulf Islands may be above national guidelines. The general public, especially children and women of child bearing age, are recommended to limit consumption of Smallmouth Bass.",
+          "location_text": "in lakes on Vancouver Island and the Gulf Islands",
+          "display_location": "Lakes on Vancouver Island and the Gulf Islands",
+          "species": [
+            "SMB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

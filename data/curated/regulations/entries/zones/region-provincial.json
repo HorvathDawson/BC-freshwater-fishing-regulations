@@ -1,0 +1,253 @@
+{
+  "region": "provincial",
+  "entries": [
+    {
+      "entry_id": "zp:national_parks",
+      "identity": {
+        "name": "National Parks",
+        "display_name": "National Parks in B.C.",
+        "region": "",
+        "mus": []
+      },
+      "regs_verbatim": "Freshwater fishing is prohibited in National Parks unless opened under the National Parks Fishing Regulations. Where open, anglers require a National Park Fishing Permit to fish in park waters.",
+      "source": {
+        "pages": [
+          9,
+          10
+        ],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "national_parks.r1",
+          "restriction_type": "closure",
+          "details": "Fishing prohibited unless opened under the National Parks Fishing Regulations",
+          "rule_text": "Freshwater fishing is prohibited in National Parks unless opened under the National Parks Fishing Regulations.",
+          "location_text": "in National Parks",
+          "display_location": "Inside a National Park",
+          "extents": [
+            {
+              "op": "within",
+              "area_kind": "national_parks"
+            }
+          ]
+        },
+        {
+          "rule_id": "national_parks.r2",
+          "restriction_type": "licensing",
+          "details": "A National Park Fishing Permit is required where fishing is open",
+          "rule_text": "Where open, anglers require a National Park Fishing Permit to fish in park waters.",
+          "location_text": "in park waters",
+          "display_location": "Inside a National Park",
+          "extents": [
+            {
+              "op": "within",
+              "area_kind": "national_parks"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "zp:ecological_reserves",
+      "identity": {
+        "name": "Ecological Reserves",
+        "display_name": "Ecological Reserves in B.C.",
+        "region": "",
+        "mus": []
+      },
+      "regs_verbatim": "Fishing is prohibited in Ecological Reserves in B.C.",
+      "source": {
+        "pages": [
+          9
+        ],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "ecological_reserves.r1",
+          "restriction_type": "closure",
+          "details": "Fishing prohibited in all Ecological Reserves",
+          "rule_text": "Fishing is prohibited in Ecological Reserves in B.C.",
+          "location_text": "in Ecological Reserves in B.C.",
+          "display_location": "Inside an Ecological Reserve",
+          "extents": [
+            {
+              "op": "within",
+              "area_kind": "ecological_reserves"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "zp:restricted_land_access",
+      "identity": {
+        "name": "Closed land with no public access",
+        "display_name": "Closed land — no public access",
+        "region": "",
+        "mus": []
+      },
+      "regs_verbatim": "This waterbody may be located near or within closed land with no public access, such as a military base or a closed watershed.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "restricted_land_access.r1",
+          "restriction_type": "note",
+          "details": "Inside closed land with no public access — a military base or a closed watershed. Check the boundary before visiting.",
+          "rule_text": "This waterbody may be located near or within closed land with no public access, such as a military base or a closed watershed.",
+          "location_text": "near or within closed land with no public access",
+          "display_location": "Inside closed land with no public access",
+          "extents": [
+            {
+              "op": "within",
+              "area_kind": "restricted_land_access"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "zp:indigenous_land_advisory",
+      "identity": {
+        "name": "Indigenous traditional territory",
+        "display_name": "Indigenous traditional territory",
+        "region": "",
+        "mus": []
+      },
+      "regs_verbatim": "This area overlaps with Indigenous traditional territory. Anglers should be aware that additional rules or access restrictions may apply. Please respect Indigenous rights, cultural practices, and any posted signage.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "indigenous_land.r1",
+          "restriction_type": "note",
+          "details": "Overlaps Indigenous traditional territory — additional rules or access restrictions may apply",
+          "rule_text": "This area overlaps with Indigenous traditional territory. Anglers should be aware that additional rules or access restrictions may apply. Please respect Indigenous rights, cultural practices, and any posted signage.",
+          "location_text": "overlaps with Indigenous traditional territory",
+          "display_location": "Overlapping Indigenous traditional territory",
+          "extents": [
+            {
+              "op": "within",
+              "area_kind": "indigenous_land"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "zp:ubc_malcolm_knapp_research_forest",
+      "identity": {
+        "name": "UBC Malcolm Knapp Research Forest",
+        "display_name": "UBC Malcolm Knapp Research Forest (Maple Ridge)",
+        "region": "2",
+        "mus": []
+      },
+      "regs_verbatim": "No fishing in any lake in the UBC Malcolm Knapp Research Forest near Maple Ridge.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "malcolm_knapp.r1",
+          "restriction_type": "closure",
+          "details": "All lakes closed",
+          "rule_text": "No fishing in any lake in the UBC Malcolm Knapp Research Forest near Maple Ridge.",
+          "location_text": "in the UBC Malcolm Knapp Research Forest near Maple Ridge",
+          "display_location": "UBC Malcolm Knapp Research Forest",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:permit_land_access:ubc_malcolm_knapp_research_forest_1166294466",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "zp:lost_lagoon",
+      "identity": {
+        "name": "Lost Lagoon",
+        "display_name": "Lost Lagoon (Stanley Park)",
+        "region": "2",
+        "mus": []
+      },
+      "regs_verbatim": "Fishing is banned in Lost Lagoon. The lagoon is an ecologically sensitive area that suffers from poor water quality and shallow depths due to a lack of natural tidal flushing.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [
+        "wbk:329532481"
+      ],
+      "rules": [
+        {
+          "rule_id": "lost_lagoon.r1",
+          "restriction_type": "closure",
+          "details": "Fishing closed — ecologically sensitive, poor water quality",
+          "rule_text": "Fishing is banned in Lost Lagoon.",
+          "location_text": "in Lost Lagoon",
+          "display_location": "Lost Lagoon",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "zp:beaver_lake_stanley_park",
+      "identity": {
+        "name": "Beaver Lake",
+        "display_name": "Beaver Lake (Stanley Park)",
+        "region": "2",
+        "mus": []
+      },
+      "regs_verbatim": "Fishing is not permitted in Beaver Lake. It serves as a rare, naturally occurring salmon-bearing stream system within the city limits.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [
+        "wbk:329532620"
+      ],
+      "rules": [
+        {
+          "rule_id": "beaver_lake.r1",
+          "restriction_type": "closure",
+          "details": "Fishing closed — salmon-bearing system within city limits",
+          "rule_text": "Fishing is not permitted in Beaver Lake.",
+          "location_text": "in Beaver Lake",
+          "display_location": "Beaver Lake",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

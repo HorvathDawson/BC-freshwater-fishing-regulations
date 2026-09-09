@@ -140,6 +140,19 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float) -> tuple[
     return inside, straddling
 
 
+def _kind_of(g, section_id: str) -> str:
+    """A section's feature kind — `stream`, `lake`, `wetland` — for `feature_types`.
+
+    Lower-cased and stringified because the graph stores an enum and the authored extent
+    stores text, and the two only have to agree here.
+    """
+    n = g.nodes.get(section_id)
+    if n is None:
+        return ""
+    k = getattr(n, "kind", None)
+    return str(getattr(k, "value", k) or "").lower()
+
+
 def _waters(g, section_ids) -> list[str]:
     """The distinct named waters a reach actually lands on, in size order (biggest share first).
 
@@ -231,19 +244,56 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # area when there is no universe to intersect with — the rule's own scope decides, so nothing
         # has to classify areas into admin-vs-qualifying and the two cannot drift apart.
         aid = str(ex.get("area_id") or "")
-        if not aid:
+        kind_of_area = str(ex.get("area_kind") or "")
+        if not aid and not kind_of_area:
             _fail("within_without_area_id")
             return None
-        key = aid if aid.startswith("area:") else f"area:{aid}"
-        if key not in reg:
-            _fail("area_id_not_in_registry", aid)
-            return None
-        area_sections = set(reg[key].section_ids)
+        if kind_of_area:
+            # A WHOLE FAMILY OF AREAS, because some regulations are written against one.
+            # "Freshwater fishing is prohibited in National Parks" is about all seven, and
+            # the ecological-reserve closure is about all 120 — as `area_id` extents that
+            # would be 127 hand-listed ids that go stale the moment the province gazettes
+            # another reserve. `area_kind` was in the model for this and, like
+            # `feature_types` beside it, no resolver had ever read it.
+            #
+            # The union, not each in turn: the rule is one rule and its sections are one
+            # set. An empty family is a failure and not an empty closure — it means the
+            # kind is misspelled or the atlas never built those polygons.
+            prefix = f"area:{kind_of_area}:"
+            members = [i for k, i in reg.items() if k.startswith(prefix)]
+            if not members:
+                _fail("area_kind_matches_nothing", kind_of_area)
+                return None
+            area_sections = {s for i in members for s in i.section_ids}
+        else:
+            key = aid if aid.startswith("area:") else f"area:{aid}"
+            if key not in reg:
+                _fail("area_id_not_in_registry", aid)
+                return None
+            area_sections = set(reg[key].section_ids)
+        # FEATURE TYPES ARE APPLIED HERE, and were not applied anywhere at all.
+        #
+        # `Extent.feature_types` has been in the model, documented and validated, since the
+        # model was written — and no resolver ever read it. The first zone rule to use it
+        # ("No fishing in any STREAM in Management Units 1-1 to 1-6") bound all 23,391
+        # sections inside the area: 16,528 streams, and also 4,151 lakes and 2,712 wetlands
+        # that the regulation does not mention. A closure on water a rule never named is
+        # the same failure as the Fording River, arrived at from the other direction.
+        #
+        # An unknown kind is EXCLUDED rather than kept. The alternative is a rule that says
+        # "streams only" quietly covering something the atlas could not classify.
+        kinds = {str(t).lower() for t in (ex.get("feature_types") or [])}
+        if kinds:
+            area_sections = {s for s in area_sections if _kind_of(g, s) in kinds}
+            if not area_sections:
+                _fail("area_has_no_features_of_type",
+                      f"{aid or kind_of_area} / {sorted(kinds)}")
+                return None
         sec = (universe & area_sections) if universe else area_sections
         if not sec:
             # The water and the area do not meet. Real curation signal, not a resolver failure: it
             # means the rule paired a water with an area it never enters.
-            _fail("area_does_not_meet_this_water", aid)
+            _fail("area_does_not_meet_this_water", aid or kind_of_area)
             return None
         return {"sections": sorted(sec), "unclassified": [], "ambiguous_cut": [],
                 "waters": _waters(g, sec), "window": None}

@@ -1,0 +1,848 @@
+{
+  "region": "3",
+  "entries": [
+    {
+      "entry_id": "z3:spring_stream_closure",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — spring stream closure",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "No fishing in any stream in Region 3 from Jan 1 to June 30 (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "restriction_type": "closure",
+          "details": "No fishing in any stream, Jan 1 - Jun 30 (see tables for exceptions)",
+          "rule_text": "No fishing in any stream in Region 3 from Jan 1 to June 30",
+          "location_text": "in Region 3",
+          "display_location": "Any stream in Region 3",
+          "dates": [
+            "Jan 1 to June 30"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:single_barbless_hook_streams",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — single barbless hook in streams",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Single barbless hook must be used in all streams of Region 3, all year.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook_streams.r1",
+          "restriction_type": "gear_restriction",
+          "details": "Single barbless hook required in all streams, all year",
+          "rule_text": "Single barbless hook must be used in all streams of Region 3, all year.",
+          "location_text": "in all streams of Region 3",
+          "display_location": "Any stream in Region 3",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:steelhead_surcharge",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — Steelhead Conservation Surcharge Stamp",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. A Steelhead Stamp is mandatory when fishing most Classified Waters regardless of species.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_surcharge.r1",
+          "restriction_type": "note",
+          "details": "Steelhead: a Steelhead Conservation Surcharge Stamp must validate the basic licence to fish for steelhead",
+          "rule_text": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
+          "location_text": "anywhere in B.C.",
+          "display_location": "Anywhere in Region 3",
+          "species": [
+            "ST"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        },
+        {
+          "rule_id": "steelhead_surcharge.r2",
+          "restriction_type": "note",
+          "details": "A Steelhead Stamp is mandatory on most Classified Waters, regardless of species",
+          "rule_text": "A Steelhead Stamp is mandatory when fishing most Classified Waters regardless of species.",
+          "location_text": "when fishing most Classified Waters",
+          "display_location": "Classified Waters in Region 3",
+          "needs_review": true,
+          "review_reason": "Applies only to Classified Waters, which have no area id; bound to the whole of Region 3 and so is broader than the source. Narrow when a Classified Waters area exists.",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:trout_char_daily_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — trout/char daily quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Trout/char: 5 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_daily_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Trout/char: daily quota 5 (all species combined)",
+          "rule_text": "Trout/char: 5 (all species combined).",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:trout_char_over_50cm",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — trout/char over 50 cm",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Trout/char: not more than 1 over 50 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_over_50cm.r1",
+          "restriction_type": "harvest",
+          "details": "Trout/char: no more than 1 over 50 cm",
+          "rule_text": "Trout/char: not more than 1 over 50 cm.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:trout_char_stream_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — trout/char from streams",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Trout/char from streams: max 4.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "trout_char_stream_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Trout/char: daily quota 4 from streams",
+          "rule_text": "Trout/char from streams: max 4.",
+          "location_text": "from streams",
+          "display_location": "Streams in Region 3",
+          "species": [
+            "TRT",
+            "SLV"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:char_limit",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — bull trout and lake trout",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Max 1 bull trout (Dolly Varden) or lake trout. None under 60 cm.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "char_limit.r1",
+          "restriction_type": "harvest",
+          "details": "Bull trout (Dolly Varden) and lake trout: daily quota 1 combined, none under 60 cm",
+          "rule_text": "Max 1 bull trout (Dolly Varden) or lake trout. None under 60 cm.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "BT",
+            "DV",
+            "LT"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:steelhead_release",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — release all steelhead",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Release ALL steelhead.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_release.r1",
+          "restriction_type": "harvest",
+          "details": "Steelhead: release all",
+          "rule_text": "Release ALL steelhead.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "ST"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:bull_trout_stream_release",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — bull trout release in streams",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bull_trout_stream_release.r1",
+          "restriction_type": "harvest",
+          "details": "Bull trout (Dolly Varden): release all from streams, Aug 1 - Oct 31",
+          "rule_text": "Release bull trout (Dolly Varden) from streams Aug 1–Oct 31.",
+          "location_text": "from streams",
+          "display_location": "Streams in Region 3",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "dates": [
+            "Aug 1–Oct 31"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:lake_trout_seasonal_release",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — lake trout release Oct 15 - Jan 31",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Release lake trout Oct 15–Jan 31.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "lake_trout_seasonal_release.r1",
+          "restriction_type": "harvest",
+          "details": "Lake trout: release all, Oct 15 - Jan 31",
+          "rule_text": "Release lake trout Oct 15–Jan 31.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "LT"
+          ],
+          "dates": [
+            "Oct 15–Jan 31"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:bass_closed",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — bass closed",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Bass: 0 quota, closed to fishing.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bass_closed.r1",
+          "restriction_type": "closure",
+          "details": "Bass: closed to fishing, daily quota 0",
+          "rule_text": "Bass: 0 quota, closed to fishing.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "BS"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:burbot_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — burbot daily quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Burbot: 2.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "burbot_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Burbot: daily quota 2",
+          "rule_text": "Burbot: 2.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "BB"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:crayfish_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — crayfish daily quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Crayfish: 25.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "crayfish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Crayfish: daily quota 25",
+          "rule_text": "Crayfish: 25.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "CRA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:kokanee_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — kokanee daily quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: 5 (none from streams).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Kokanee: daily quota 5, none from streams",
+          "rule_text": "Kokanee: 5 (none from streams).",
+          "location_text": "none from streams",
+          "display_location": "Lakes and reservoirs in Region 3",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3",
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:kokanee_stream_closed",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — no kokanee from streams",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Kokanee: none from streams.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "kokanee_stream_closed.r1",
+          "restriction_type": "closure",
+          "details": "Kokanee: none may be kept from streams",
+          "rule_text": "Kokanee: none from streams.",
+          "location_text": "from streams",
+          "display_location": "Streams in Region 3",
+          "species": [
+            "KO"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3",
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:whitefish_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — whitefish daily quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Whitefish: 15 (all species combined).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "whitefish_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Whitefish: daily quota 15 (all species combined)",
+          "rule_text": "Whitefish: 15 (all species combined).",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "WF"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:sturgeon_release",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — white sturgeon catch and release",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "White Sturgeon: catch and release only.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "sturgeon_release.r1",
+          "restriction_type": "harvest",
+          "details": "White sturgeon: release all, catch and release only",
+          "rule_text": "White Sturgeon: catch and release only.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "WSG"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:yellow_perch_closed",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — yellow perch closed",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Yellow Perch: 0 quota, closed to fishing.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "yellow_perch_closed.r1",
+          "restriction_type": "closure",
+          "details": "Yellow perch: closed to fishing, daily quota 0",
+          "rule_text": "Yellow Perch: 0 quota, closed to fishing.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "YP"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:possession_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — possession quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Possession quota 2 daily quotas (see tables for exceptions)",
+          "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
+          "location_text": "",
+          "display_location": "Region 3",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:steelhead_annual_quota",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — steelhead annual quota",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_annual_quota.r1",
+          "restriction_type": "harvest",
+          "details": "Steelhead: annual quota 10 per licence year for all B.C.; only hatchery steelhead may be retained",
+          "rule_text": "Annual catch quota for all B.C.: 10 steelhead per licence year (only hatchery steelhead may be retained).",
+          "location_text": "for all B.C.",
+          "display_location": "Anywhere in Region 3",
+          "species": [
+            "ST"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:salmon_dfo_notice",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — salmon regulations are DFO's",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "salmon_dfo_notice.r1",
+          "restriction_type": "note",
+          "details": "Salmon: non-tidal salmon regulations are not in this Synopsis — see DFO. Closures and gear restrictions in this Synopsis apply to salmon as well",
+          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "species": [
+            "SA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:report_tagged_fish",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — report tagged fish",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "Please report tagged fish to the Fish and Wildlife Regional Office in Kamloops at 1-800-388-1606. Include tag number and colour, fish length and weight, and location of capture.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "report_tagged_fish.r1",
+          "restriction_type": "note",
+          "details": "Report tagged fish to the Fish and Wildlife Regional Office in Kamloops at 1-800-388-1606, with tag number and colour, fish length and weight, and location of capture",
+          "rule_text": "Please report tagged fish to the Fish and Wildlife Regional Office in Kamloops at 1-800-388-1606. Include tag number and colour, fish length and weight, and location of capture.",
+          "location_text": "",
+          "display_location": "Region 3",
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z3:bass_perch_illegal",
+      "identity": {
+        "name": "Region 3",
+        "display_name": "Region 3 — bass and perch may not be fished for",
+        "region": "3",
+        "mus": []
+      },
+      "regs_verbatim": "It is illegal to fish for bass or perch in the Thompson-Nicola Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "bass_perch_illegal.r1",
+          "restriction_type": "note",
+          "details": "Bass and perch: it is illegal to fish for them in the Thompson-Nicola Region",
+          "rule_text": "It is illegal to fish for bass or perch in the Thompson-Nicola Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+          "location_text": "in the Thompson-Nicola Region",
+          "display_location": "Region 3 (Thompson-Nicola)",
+          "species": [
+            "BS",
+            "P"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_id": "area:region:3"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
