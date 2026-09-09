@@ -34,7 +34,18 @@ def test_resolve_specific_and_group_and_collective():
     assert resolve_species_phrase("Bull Trout") == ["BT"]
     assert resolve_species_phrase("steelhead") == ["ST"]
     assert resolve_species_phrase("char") == ["SLV"]                # a group code
-    assert resolve_species_phrase("trout") == ["RB", "CT", "WCT", "CCT", "GB", "GT"]  # collective
+    # A GROUP CODE, NOT SIX SPECIES, and that changed deliberately.
+    #
+    # "Trout: 4" is one claim about trout. Written as six codes it becomes six claims that
+    # happen to coincide: a correction has to find all six, and the stored rule no longer
+    # resembles the sentence it came from. `TRT` is synthetic — the official table has 27
+    # "General" rows and none is trout, because trout is not a taxon — and `expand_group`
+    # turns it back into species for anything that needs them.
+    assert resolve_species_phrase("trout") == ["TRT"]
+    assert expand_group("TRT") == frozenset({"RB", "CT", "WCT", "CCT", "GB", "GT"})
+    # "Trout and Char" is the commonest line in the synopsis and used to resolve to nothing,
+    # so every parse composed it by hand from the two halves — three chances to differ.
+    assert resolve_species_phrase("Trout and Char") == ["TRT", "SLV"]
     assert resolve_species_phrase("spacefish") == []               # unknown -> empty, no guess
 
 

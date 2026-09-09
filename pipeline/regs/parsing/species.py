@@ -60,10 +60,35 @@ def _load() -> dict[str, SpeciesRow]:
 
 
 SPECIES: dict[str, SpeciesRow] = _load()
-KNOWN_SPECIES_CODES: frozenset[str] = frozenset(SPECIES)
+#: SYNTHETIC groups — a regulatory word with no row in the official table.
+#:
+#: The CSV has 27 "General" rows and none of them is trout, because trout is not a taxon: the
+#: six the regulations mean span three genera (*Oncorhynchus* rainbow and cutthroat, *Salmo*
+#: brown, and Golden). `TR` cannot be borrowed — the table already uses it for "Unidentifiable
+#: Trout - only fry <70mm in length", which is a different and much narrower claim.
+#:
+#: So `TRT` is ours, and it is marked as ours. Everything above this line comes from the
+#: authoritative CSV; everything here is a curated regulatory grouping, and the distinction
+#: has to survive because one is a fact and the other is a judgement.
+#:
+#: WHY STORE THE GROUP AT ALL rather than the six codes. A rule that says "Trout: 4" is one
+#: claim about trout, and writing it as six codes states six claims that happen to coincide —
+#: so a later correction has to find and fix all six, a reader cannot see which word the
+#: synopsis used, and "trout and char" becomes seven codes that no longer resemble the
+#: sentence they came from. `expand_group` turns it back into species wherever that is what a
+#: caller needs.
+_SYNTHETIC_GROUPS: dict[str, tuple[str, set[str]]] = {
+    "TRT": ("Trout (General)", {"RB", "CT", "WCT", "CCT", "GB", "GT"}),
+}
+
+
+#: Every code a `Rule.species` may carry — the CSV's, plus the synthetic groups above.
+KNOWN_SPECIES_CODES: frozenset[str] = frozenset(SPECIES) | frozenset(_SYNTHETIC_GROUPS)
 
 # code -> common name (convenience for display / prompt building)
 COMMON_NAME: dict[str, str] = {c: r.common_name for c, r in SPECIES.items()}
+COMMON_NAME.update({c: n for c, (n, _m) in _SYNTHETIC_GROUPS.items()
+                    if c not in COMMON_NAME})
 
 
 # ---------------------------------------------------------------------------
@@ -113,8 +138,18 @@ def _build_groups() -> dict[str, frozenset[str]]:
     return groups
 
 
+
+
+def _with_synthetic(groups: dict[str, frozenset[str]]) -> dict[str, frozenset[str]]:
+    for code, (_name, members) in _SYNTHETIC_GROUPS.items():
+        if code in SPECIES:                      # the CSV grew one; defer to it
+            continue
+        groups[code] = frozenset(members)
+    return groups
+
+
 # group code -> member species codes (only groups with derivable membership appear)
-GROUPS: dict[str, frozenset[str]] = _build_groups()
+GROUPS: dict[str, frozenset[str]] = _with_synthetic(_build_groups())
 
 
 def expand_group(code: str) -> frozenset[str]:
@@ -172,9 +207,19 @@ _ALIASES: dict[str, str] = {
 # collective regs words that map to MULTIPLE official codes with no single official code of their own.
 # Generic "trout" is the big one — BC has no "Trout (General)" code, so we list the resident trouts
 # (char is its own group, SLV, so excluded here). EXPERT REVIEW.
+#: A regulatory phrase -> the code(s) to store. Prefer a GROUP code over a list of species:
+#: it keeps the stored rule the same shape as the sentence it came from.
+#:
+#: "trout and char" is here because it is one of the commonest lines in the synopsis
+#: ("Trout and Char: 5") and every reader of this table had to compose it by hand from the
+#: two halves — three independent parses did exactly that, which is three chances to differ.
 _COLLECTIVE_TERMS: dict[str, list[str]] = {
-    "trout": ["RB", "CT", "WCT", "CCT", "GB", "GT"],
-    "trouts": ["RB", "CT", "WCT", "CCT", "GB", "GT"],
+    "trout": ["TRT"],
+    "trouts": ["TRT"],
+    "trout and char": ["TRT", "SLV"],
+    "trout char": ["TRT", "SLV"],
+    "trout/char": ["TRT", "SLV"],
+    "char and trout": ["TRT", "SLV"],
 }
 
 
