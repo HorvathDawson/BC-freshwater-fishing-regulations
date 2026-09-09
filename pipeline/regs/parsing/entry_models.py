@@ -207,6 +207,15 @@ class Limit(BaseModel):
     THE TWO SIZE BOUNDS ARE NOT ONE FIELD WITH A SIGN. "none under 60 cm" protects small fish
     and "not more than 1 over 50 cm" caps large ones; storing a single number would make
     those indistinguishable, and they are opposite instructions.
+
+    BOTH BOUNDS TOGETHER IS A REAL SHAPE, and this class used to refuse it on the stated
+    grounds that "nothing in the synopsis writes" a band. That was wrong, and wrong in the
+    way a validator must never be — it was asserted from recall rather than measured. The
+    corpus writes a slot eight times ("Lake trout daily quota = 2 (none under 40 cm or over
+    60 cm)") and a PROTECTED band ten times ("only 1 over 90 cm, none between 60 cm and 90
+    cm"). The protected band cannot be decomposed at all: "none over 60" and "none under 90"
+    as siblings forbid every fish. So a limit may carry both, and `band` says which of the
+    two readings is meant.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -234,6 +243,13 @@ class Limit(BaseModel):
     )
     over_cm: Optional[int] = Field(default=None, description="applies to fish LONGER than this")
     under_cm: Optional[int] = Field(default=None, description="applies to fish SHORTER than this")
+    band: bool = Field(
+        default=False,
+        description="how to read a limit carrying BOTH bounds. False (a slot) = the fish must "
+        "be BETWEEN them: 'none under 40 cm or over 60 cm' keeps the middle. True (a protected "
+        "band) = the fish must be OUTSIDE them: 'none between 60 cm and 90 cm' keeps the ends. "
+        "The same two numbers, opposite meanings, so it cannot be inferred.",
+    )
     water: Optional[Water] = Field(default=None, description="only in this kind of water")
     origin: Optional[Origin] = Field(default=None)
     within: Optional[str] = Field(
@@ -248,10 +264,8 @@ class Limit(BaseModel):
             raise ValueError("a limit is `unlimited` or has a `take`, not both")
         if self.per_daily is not None and self.kind is not LimitKind.POSSESSION:
             raise ValueError("`per_daily` is only meaningful on a possession limit")
-        if self.over_cm is not None and self.under_cm is not None:
-            raise ValueError(
-                "over_cm and under_cm on one limit describe a band nothing in the synopsis "
-                "writes; use two limits")
+        if self.band and not (self.over_cm is not None and self.under_cm is not None):
+            raise ValueError("a `band` limit needs both over_cm and under_cm")
         if self.within and not self.within.strip():
             raise ValueError("`within` names a parent limit id")
         bad = [c for c in self.species if c not in KNOWN_SPECIES_CODES]
