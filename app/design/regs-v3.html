@@ -371,6 +371,7 @@ a.no:hover{text-decoration:underline}
 .qt tr.sub td{border-bottom:1px solid var(--line)}
 .qt tr.sub .fish{padding-left:14px;font-weight:400;color:var(--sub)}
 .qt tr.sub .fish:before{content:"↳ ";color:var(--quiet)}
+.qfoot{font:400 11.5px/1.5 var(--ui);color:var(--sub);margin:-4px 0 12px}
 .qtitle{font:700 10px var(--fig);letter-spacing:.11em;text-transform:uppercase;
   color:var(--faint);margin:14px 0 2px}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);
@@ -676,10 +677,17 @@ function plural(ns){
  *
  * The same nine rules as a list read "Crayfish: daily quota 25", "Burbot: daily quota 2",
  * "Kokanee: daily quota 5 — none from streams" — nine sentences that each restate the shape
- * so the reader can find the one number in them. Down a column the numbers line up and the
+ * so a reader can find the one number in them. Down a column the numbers line up and the
  * differences are the only thing left to see.
  *
- * A SUB-LIMIT IS AN INDENTED ROW, not a row of its own: "1 char" and "none under 60 cm" are
+ * GROUPED BY FISH, NOT BY RULE. The synopsis states "Trout/char: 5 (all species combined)"
+ * and "Trout/char from streams: max 4" as two separate sentences, so they arrive as two
+ * rules — and listed as two rows they read as a contradiction rather than a general limit
+ * and its narrowing. Same fish, one qualified: the qualified one belongs UNDER the other.
+ * This is a display decision and stays one; the entries keep the two sentences they came
+ * from, because the chain of custody is per sentence.
+ *
+ * A SUB-LIMIT IS AN INDENTED ROW for the same reason: "1 char" and "none under 60 cm" are
  * one instruction, and two flat rows would read as two rules that happen to be adjacent.
  *
  * Built from `limits` only. A rule with none is left in the list above rather than given an
@@ -689,25 +697,52 @@ function plural(ns){
 function quotaTable(items){
   var withLimits=items.filter(function(x){ return (x.limits||[]).length; });
   if(!withLimits.length) return "";
-  var h=['<div class="qtitle">Quotas here</div><table class="qt">'
-        +'<tr><th>Fish</th><th>Keep</th><th>Conditions</th></tr>'];
+
+  // A possession quota is a MULTIPLIER ON EVERY ROW, not a row of its own. It names no fish
+  // — it cannot, it is about all of them — so as a row it rendered a "—" in the Fish column
+  // and invited the reader to wonder which fish had no name. It is a footnote.
+  var foot=[], rows=[];
+  var groups=new Map();
   withLimits.forEach(function(x){
-    var lims=x.limits, tops=lims.filter(function(l){ return !l.within; });
-    (tops.length?tops:lims).forEach(function(top){
-      h.push(row(top, x, false));
-      lims.filter(function(k){ return k.within&&k.within===top.id; })
-          .forEach(function(k){ h.push(row(k, x, true)); });
+    (x.limits||[]).forEach(function(l){
+      if(l.kind==="possession"&&l.per_daily!=null){
+        foot.push(l.per_daily+"\u00d7 the daily quota may be held in possession");
+        return;
+      }
+      if(l.within) return;                    // drawn under its parent, below
+      var fish=(l.species&&l.species.length)?l.species:(x.species||[]);
+      var key=fish.slice().sort().join(",")+"|"+(l.kind||"daily");
+      if(!groups.has(key)) groups.set(key, {fish:fish, base:null, narrow:[], x:x});
+      var g=groups.get(key);
+      var qualified=(l.water||l.over_cm!=null||l.under_cm!=null||l.origin);
+      // The unqualified limit is the general one; anything carrying a qualifier narrows it.
+      if(!qualified&&!g.base) g.base={l:l, x:x}; else g.narrow.push({l:l, x:x});
+      (x.limits||[]).filter(function(k){ return k.within&&k.within===l.id; })
+                    .forEach(function(k){ g.narrow.push({l:k, x:x, kid:true}); });
     });
   });
-  h.push('</table>');
+  groups.forEach(function(g){
+    var head=g.base||g.narrow.shift();
+    if(!head) return;
+    rows.push(row(head.l, g.fish, false));
+    g.narrow.forEach(function(n){ rows.push(row(n.l, g.fish, true)); });
+  });
+  if(!rows.length) return "";
+  var h=['<div class="qtitle">Quotas here</div><table class="qt">'
+        +'<tr><th>Fish</th><th>Keep</th><th>Conditions</th></tr>'
+        +rows.join("")+'</table>'];
+  if(foot.length){
+    var uniq=foot.filter(function(v,i,a){ return a.indexOf(v)===i; });
+    h.push('<div class="qfoot">'+esc(uniq.join(" \u00b7 "))+'</div>');
+  }
   return h.join("");
 
-  function row(l, x, sub){
-    var fish=sub ? (l.species&&l.species.length ? speciesWords(l.species) : "")
-                 : speciesWords((l.species&&l.species.length)?l.species:(x.species||[]));
-    var keep = l.unlimited ? "∞"
-             : (l.kind==="possession"&&l.per_daily!=null) ? (l.per_daily+"×")
-             : (l.take===0 ? "0" : (l.take==null ? "—" : String(l.take)));
+  function row(l, fish, sub){
+    var who=sub ? ((l.species&&l.species.length&&
+                    l.species.join(",")!==fish.join(",")) ? speciesWords(l.species) : "")
+                : speciesWords(fish);
+    var keep = l.unlimited ? "\u221e"
+             : (l.take===0 ? "0" : (l.take==null ? "\u2014" : String(l.take)));
     var cond=[];
     if(l.combined) cond.push("all species combined");
     if(l.over_cm!=null) cond.push("over "+l.over_cm+" cm");
@@ -715,11 +750,10 @@ function quotaTable(items){
     if(l.water) cond.push("in "+l.water+"s");
     if(l.origin) cond.push(l.origin+" only");
     if(l.kind==="annual") cond.push("per licence year");
-    if(l.kind==="possession"&&l.per_daily!=null) cond.push("daily quotas, in possession");
     return '<tr'+(sub?' class="sub"':'')+'>'
-      +'<td class="fish">'+esc(fish||(sub?"":"—"))+'</td>'
+      +'<td class="fish">'+esc(who)+'</td>'
       +'<td class="keep'+(l.take===0?' zero':'')+'">'+esc(keep)+'</td>'
-      +'<td class="cond">'+esc(cond.join(" · "))+'</td></tr>';
+      +'<td class="cond">'+esc(cond.join(" \u00b7 "))+'</td></tr>';
   }
 }
 
