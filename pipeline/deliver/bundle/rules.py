@@ -60,7 +60,12 @@ def _specificity(rule: dict) -> str:
     day being a silent behaviour change.
     """
     for ex in rule.get("extents") or []:
-        if ex.get("area_id"):
+        # `area_kind` counts as much as `area_id`. It names a FAMILY of areas — every
+        # national park, every ecological reserve — and a rule written against one is a zone
+        # rule by any reading. Checking only `area_id` scoped five of them as `section`,
+        # which would have let a province-wide park closure outrank the water-specific
+        # regulation it is supposed to sit under.
+        if ex.get("area_id") or ex.get("area_kind"):
             return "area"
     return "section"
 
