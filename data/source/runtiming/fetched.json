@@ -1,0 +1,27 @@
+{
+  "_": [
+    "Provenance for the three verbatim pages beside this file. Written by",
+    "pipeline/runtiming/fetch/explorer.py; this copy was recorded by hand for the pages",
+    "fetched during the initial build.",
+    "",
+    "The pages are saved AS THEY ARRIVED. The flight payload inside them is a Next.js",
+    "implementation detail that will change shape when the site upgrades, so keeping the raw",
+    "HTML means a parser change never needs a re-fetch, and a re-fetch never silently",
+    "rewrites what a build believed."
+  ],
+  "fetched_at": "2026-09-08",
+  "base": "https://www.salmonexplorer.ca/explore/data/{}/all-regions/all-species/all-cus/",
+  "pages": {
+    "run-timing": {"bytes": 1610062},
+    "catch-and-run-size": {"bytes": 3014990},
+    "biological-status": {"bytes": 3009375}
+  },
+  "upstream_dataset": {
+    "name": "Average Run Timing of Salmon and Steelhead Conservation Units",
+    "datasetid": 90,
+    "publisher": "Pacific Salmon Foundation",
+    "landing": "https://data.salmonwatersheds.ca/result?datasetid=90",
+    "updated": "2024-09-10",
+    "source_data_from": ["LGL Ltd.", "Fisheries and Oceans Canada", "Pacific Salmon Commission"]
+  }
+}

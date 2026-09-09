@@ -10,6 +10,12 @@ source/bathymetry_pdfs/
 source/hydat.sqlite3
 source/*.gpkg
 source/*.pmtiles
+
+# Run timing: the three Explorer pages beside it ARE tracked — they are the verbatim vendor
+# source a build was made from, and `fishing_synopsis.pdf` sets that precedent. The vector
+# tile cache is not: 748 binary tiles that `pipeline.runtiming.fetch.boundaries` re-fetches
+# in about a minute, and that nothing reads except the polygon stitcher.
+source/runtiming/cu_tiles/
 *.gpkg
 *.pmtiles
 

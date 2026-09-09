@@ -132,6 +132,16 @@ class Domain(BaseModel):
     _abs = field_validator("*", mode="before")(_absolute)
 
 
+class RunTiming(BaseModel):
+    """Authored run-timing curation. See `data/curated/runtiming/review.json`."""
+
+    model_config = ConfigDict(frozen=True)
+
+    review: FilePath
+
+    _abs = field_validator("*", mode="before")(_absolute)
+
+
 class Curated(BaseModel):
     """Every path whose loss costs human time rather than CPU."""
 
@@ -143,6 +153,7 @@ class Curated(BaseModel):
     gauges: Domain
     stocking: Domain
     bathymetry: Domain
+    runtiming: RunTiming
 
     _abs = field_validator("base", mode="before")(_absolute)
 
@@ -235,9 +246,10 @@ class Generated(BaseModel):
     scratch: Path
     regs: GeneratedRegs
     gauges: GeneratedGauges
+    runtiming: Path
 
     _abs = field_validator("base", "reaches", "bundle", "tiles", "added_streams", "scratch",
-                           mode="before")(_absolute)
+                           "runtiming", mode="before")(_absolute)
 
     # --- builds -----------------------------------------------------------------------
 

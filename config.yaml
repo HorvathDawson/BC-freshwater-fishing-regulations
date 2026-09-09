@@ -51,6 +51,10 @@ generated:
   gauges:
     feeds: "data/generated/gauges/feeds"               # per-station published JSON
 
+  # Run timing (pipeline/runtiming/generate): runs.json, the section->CU index, the
+  # deduplicated profiles and the colour cube. Re-runnable from data/source/runtiming/.
+  runtiming: "data/generated/runtiming"
+
 # ============================================================================
 # Input Data Directories
 # ============================================================================
@@ -135,6 +139,14 @@ curated:
     entries:
       synopsis: "data/curated/regulations/entries/synopsis"
       dfo_salmon: "data/curated/regulations/entries/dfo_salmon"
+
+  # --- run timing: authored gaps and labels --------------------------------------
+  #
+  # AUTHORED, and short by design. 100 of 463 CU names state their own run, so the labels
+  # that separate a summer run from a winter one are mostly derived. What cannot be derived
+  # is a water an angler will look up and find nothing for — see `coverage_gaps`.
+  runtiming:
+    review: "data/curated/runtiming/review.json"
 
   # --- matches: machine-produced, human-reviewed ---------------------------------
   #

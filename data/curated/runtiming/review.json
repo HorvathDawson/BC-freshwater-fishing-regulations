@@ -1,0 +1,35 @@
+{
+  "_": [
+    "AUTHORED. A person typed this; no program writes it. It is an INPUT to",
+    "pipeline/runtiming/generate, in the same relation review.json has to gauge matching.",
+    "",
+    "Two things live here, and neither is recreatable by re-running anything:",
+    "",
+    "  run_labels     when two runs of one species share a reach and the Pacific Salmon",
+    "                 Explorer's CU names do not say which is which. 100 of 463 names",
+    "                 state their own run ('Skeena Coastal Summers'), and every multi-run",
+    "                 STEELHEAD case is already separable that way, so this is short by",
+    "                 design. Where two DIFFERENT populations overlap - Wannock and Rivers",
+    "                 Inlet chinook on one reach - the CU name is the distinguisher and no",
+    "                 label belongs here.",
+    "",
+    "  coverage_gaps  waters an angler will look up and find nothing for, with the reason.",
+    "                 Recording a gap is not filling it: the app should say 'no chinook",
+    "                 timing here' rather than draw an empty layer and let the reader",
+    "                 conclude there are no fish."
+  ],
+
+  "run_labels": {},
+
+  "coverage_gaps": [
+    {
+      "item_id": "gnis:8634",
+      "water": "Chilliwack River",
+      "species": "Chinook",
+      "sections": 20,
+      "reason": "No Pacific Salmon Explorer chinook Conservation Unit reaches the Chilliwack/Vedder. The three Lower Fraser chinook CUs - Lower Fraser River (Fall 4-1), Lower Fraser River (Summer 5-2) and Lower Fraser River-Maria Slough (Summer 4-1) - all have southern boundaries at 49.22 N; the Chilliwack River runs at about 49.10 N. Chum, Coho, Pink, Sockeye and Steelhead CUs all cover it.",
+      "verified": "2026-09-08",
+      "action": "surface as a stated gap. Do NOT borrow a neighbouring CU's timing: the Vedder chinook fishery is largely hatchery-origin and its timing is a hatchery release schedule, not the wild Lower Fraser curve."
+    }
+  ]
+}
