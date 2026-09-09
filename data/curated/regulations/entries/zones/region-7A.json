@@ -830,41 +830,6 @@
       ]
     },
     {
-      "entry_id": "z7a:salmon_notice",
-      "identity": {
-        "name": "Region 7A",
-        "display_name": "Region 7A — salmon regulations notice",
-        "region": "7A",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "salmon_notice.r1",
-          "restriction_type": "note",
-          "details": "Non-tidal salmon fishing regulations are not in this Synopsis — see DFO regulations",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
-          "location_text": "",
-          "display_location": "Region 7A",
-          "species": [
-            "SA"
-          ],
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "entry_id": "z7a:tagging_program_notice",
       "identity": {
         "name": "Region 7A",

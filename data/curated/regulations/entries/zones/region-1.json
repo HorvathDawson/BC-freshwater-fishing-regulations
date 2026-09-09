@@ -65,7 +65,7 @@
         {
           "rule_id": "trout_daily_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 4 (all species combined)",
+          "details": "Trout — daily quota 4 (all species combined)",
           "rule_text": "Trout: 4 (all species combined).",
           "location_text": "",
           "display_location": "Anywhere in Region 1",
@@ -245,7 +245,7 @@
         {
           "rule_id": "bass_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota unlimited",
+          "details": "Bass — daily quota unlimited",
           "rule_text": "Bass: unlimited.",
           "location_text": "",
           "display_location": "Anywhere in Region 1",
@@ -280,7 +280,7 @@
         {
           "rule_id": "crayfish_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 25",
+          "details": "Crayfish — daily quota 25",
           "rule_text": "Crayfish: 25.",
           "location_text": "",
           "display_location": "Anywhere in Region 1",
@@ -315,7 +315,7 @@
         {
           "rule_id": "kokanee_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5",
+          "details": "Kokanee — daily quota 5",
           "rule_text": "Kokanee: 5",
           "location_text": "",
           "display_location": "Anywhere in Region 1",
@@ -443,7 +443,7 @@
         {
           "rule_id": "yellow_perch_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota unlimited",
+          "details": "Yellow Perch — daily quota unlimited",
           "rule_text": "Yellow perch: unlimited.",
           "location_text": "",
           "display_location": "Anywhere in Region 1",
@@ -644,48 +644,6 @@
             "ST"
           ],
           "exception": "(only hatchery steelhead may be retained)",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:1"
-            },
-            {
-              "op": "within",
-              "area_id": "area:mu_group:management_units_6_12_and_6_13"
-            }
-          ]
-        }
-      ],
-      "audit_log": [
-        "Archive record scopes this Region 1 preamble rule to MUs 6-12 and 6-13 (Haida Gwaii) as well as Region 1; the MUs are not named in the rule text, so the second extent comes from the archive's include_mu_ids, not the prose."
-      ]
-    },
-    {
-      "entry_id": "z1:salmon_notice",
-      "identity": {
-        "name": "Region 1",
-        "display_name": "Region 1 — Salmon regulations notice",
-        "region": "1",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations at https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/salmon-saumon-eng.html. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "salmon_notice.r1",
-          "restriction_type": "note",
-          "details": "Non-tidal salmon regulations are set by DFO, not this Synopsis; closures and gear restrictions printed here apply to salmon as well",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations at https://www.pac.dfo-mpo.gc.ca/fm-gp/rec/salmon-saumon-eng.html. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
-          "location_text": "",
-          "display_location": "Region 1 and Haida Gwaii (MUs 6-12, 6-13)",
-          "species": [
-            "SA"
-          ],
           "extents": [
             {
               "op": "within",

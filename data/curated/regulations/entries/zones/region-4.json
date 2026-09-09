@@ -117,40 +117,6 @@
       ]
     },
     {
-      "entry_id": "z4:classified_waters_licence",
-      "identity": {
-        "name": "Region 4",
-        "display_name": "Region 4 — Classified Waters licence",
-        "region": "4",
-        "mus": []
-      },
-      "regs_verbatim": "Classified Waters require a Classified Waters licence in addition to a basic angling licence. See waterbody tables.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "classified_waters_licence.r1",
-          "restriction_type": "licensing",
-          "details": "A Classified Waters licence is required in addition to a basic angling licence",
-          "rule_text": "Classified Waters require a Classified Waters licence in addition to a basic angling licence.",
-          "location_text": "Classified Waters",
-          "display_location": "Classified Waters in Region 4",
-          "needs_review": true,
-          "review_reason": "Applies only to Classified Waters, which have no area id; bound to the whole of Region 4 and so is broader than the source. Narrow when a Classified Waters area exists.",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:4"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "entry_id": "z4:trout_char_daily_quota",
       "identity": {
         "name": "Region 4",
@@ -754,38 +720,6 @@
       ]
     },
     {
-      "entry_id": "z4:fish_consumption_notice",
-      "identity": {
-        "name": "Region 4",
-        "display_name": "Region 4 — fish consumption advisory",
-        "region": "4",
-        "mus": []
-      },
-      "regs_verbatim": "Fish Consumption Notice: for Region 4 waters, see the Interior Region fish consumption tables.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "fish_consumption_notice.r1",
-          "restriction_type": "note",
-          "details": "Fish consumption advisory: see the Interior Region fish consumption tables for Region 4 waters",
-          "rule_text": "Fish Consumption Notice: for Region 4 waters, see the Interior Region fish consumption tables.",
-          "location_text": "for Region 4 waters",
-          "display_location": "Region 4",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:4"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "entry_id": "z4:creston_valley_wma_permit",
       "identity": {
         "name": "Creston Valley Wildlife Management Area",
@@ -845,41 +779,6 @@
             "YP",
             "NP",
             "WP"
-          ],
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:4"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z4:salmon_dfo_notice",
-      "identity": {
-        "name": "Region 4",
-        "display_name": "Region 4 — salmon regulations are DFO's",
-        "region": "4",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "salmon_dfo_notice.r1",
-          "restriction_type": "note",
-          "details": "Salmon: non-tidal salmon regulations are not in this Synopsis — see DFO. Closures and gear restrictions in this Synopsis apply to salmon as well",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
-          "location_text": "",
-          "display_location": "Region 4",
-          "species": [
-            "SA"
           ],
           "extents": [
             {

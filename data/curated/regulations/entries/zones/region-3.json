@@ -75,57 +75,6 @@
       ]
     },
     {
-      "entry_id": "z3:steelhead_surcharge",
-      "identity": {
-        "name": "Region 3",
-        "display_name": "Region 3 — Steelhead Conservation Surcharge Stamp",
-        "region": "3",
-        "mus": []
-      },
-      "regs_verbatim": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C. A Steelhead Stamp is mandatory when fishing most Classified Waters regardless of species.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "steelhead_surcharge.r1",
-          "restriction_type": "note",
-          "details": "Steelhead: a Steelhead Conservation Surcharge Stamp must validate the basic licence to fish for steelhead",
-          "rule_text": "Your basic licence must be validated with a Steelhead Conservation Surcharge Stamp if you fish for steelhead anywhere in B.C.",
-          "location_text": "anywhere in B.C.",
-          "display_location": "Anywhere in Region 3",
-          "species": [
-            "ST"
-          ],
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:3"
-            }
-          ]
-        },
-        {
-          "rule_id": "steelhead_surcharge.r2",
-          "restriction_type": "note",
-          "details": "A Steelhead Stamp is mandatory on most Classified Waters, regardless of species",
-          "rule_text": "A Steelhead Stamp is mandatory when fishing most Classified Waters regardless of species.",
-          "location_text": "when fishing most Classified Waters",
-          "display_location": "Classified Waters in Region 3",
-          "needs_review": true,
-          "review_reason": "Applies only to Classified Waters, which have no area id; bound to the whole of Region 3 and so is broader than the source. Narrow when a Classified Waters area exists.",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:3"
-            }
-          ]
-        }
-      ]
-    },
-    {
       "entry_id": "z3:trout_char_daily_quota",
       "identity": {
         "name": "Region 3",
@@ -731,41 +680,6 @@
           "display_location": "Anywhere in Region 3",
           "species": [
             "ST"
-          ],
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:3"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z3:salmon_dfo_notice",
-      "identity": {
-        "name": "Region 3",
-        "display_name": "Region 3 — salmon regulations are DFO's",
-        "region": "3",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "salmon_dfo_notice.r1",
-          "restriction_type": "note",
-          "details": "Salmon: non-tidal salmon regulations are not in this Synopsis — see DFO. Closures and gear restrictions in this Synopsis apply to salmon as well",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations. When fresh waters are closed to fishing or have gear restrictions in this Synopsis, those regulations apply to salmon as well.",
-          "location_text": "",
-          "display_location": "Region 3",
-          "species": [
-            "SA"
           ],
           "extents": [
             {

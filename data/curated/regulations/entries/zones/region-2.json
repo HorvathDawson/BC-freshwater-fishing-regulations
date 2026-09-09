@@ -167,7 +167,7 @@
         {
           "rule_id": "trout_char_daily_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 4 (all species combined)",
+          "details": "Trout and Char — daily quota 4 (all species combined)",
           "rule_text": "Trout/char: 4 (all species combined).",
           "location_text": "",
           "display_location": "Anywhere in Region 2",
@@ -429,7 +429,7 @@
         {
           "rule_id": "bass_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 20 (Mill Lake excepted — see the water-specific table)",
+          "details": "Bass — daily quota 20 (Mill Lake excepted — see the water-specific table)",
           "rule_text": "Bass: 20 (excluding Mill Lake — see page 24 for quota).",
           "location_text": "",
           "display_location": "Anywhere in Region 2",
@@ -465,7 +465,7 @@
         {
           "rule_id": "crappie_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 20",
+          "details": "Crappie — daily quota 20",
           "rule_text": "Crappie: 20.",
           "location_text": "",
           "display_location": "Anywhere in Region 2",
@@ -503,7 +503,7 @@
         {
           "rule_id": "crayfish_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 25",
+          "details": "Crayfish — daily quota 25",
           "rule_text": "Crayfish: 25.",
           "location_text": "",
           "display_location": "Anywhere in Region 2",
@@ -538,7 +538,7 @@
         {
           "rule_id": "kokanee_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5",
+          "details": "Kokanee — daily quota 5",
           "rule_text": "Kokanee: 5",
           "location_text": "",
           "display_location": "Anywhere in Region 2",
@@ -593,7 +593,7 @@
         {
           "rule_id": "whitefish_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 15 (all species combined)",
+          "details": "Whitefish — daily quota 15 (all species combined)",
           "rule_text": "Whitefish: 15 (all species combined).",
           "location_text": "",
           "display_location": "Anywhere in Region 2",

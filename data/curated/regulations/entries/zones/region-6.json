@@ -1230,44 +1230,6 @@
       ]
     },
     {
-      "entry_id": "z6:r6_salmon_notice",
-      "identity": {
-        "name": "Region 6",
-        "display_name": "Region 6 — non-tidal salmon regulations notice",
-        "region": "6",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "r6_salmon_notice.r1",
-          "restriction_type": "note",
-          "details": "Non-tidal salmon regulations are not in this Synopsis - see the DFO regulations",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
-          "location_text": "",
-          "display_location": "Region 6 (province-wide notice)",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:6"
-            }
-          ],
-          "species": [
-            "SA"
-          ]
-        }
-      ],
-      "audit_log": [
-        "Notice is province-wide but is filed under Region 6 in the source; bound to Region 6 only."
-      ]
-    },
-    {
       "entry_id": "z6:r6_skeena_quality_waters",
       "identity": {
         "name": "Region 6",

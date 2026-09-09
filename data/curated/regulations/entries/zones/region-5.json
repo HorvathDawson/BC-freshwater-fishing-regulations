@@ -81,41 +81,6 @@
       ]
     },
     {
-      "entry_id": "z5:no_minimum_size_lakes",
-      "identity": {
-        "name": "Region 5",
-        "display_name": "Region 5 — no minimum size limit in lakes",
-        "region": "5",
-        "mus": []
-      },
-      "regs_verbatim": "There is no minimum size limit in lakes (see tables for exceptions).",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "no_minimum_size_lakes.r1",
-          "restriction_type": "note",
-          "details": "No minimum size limit in lakes (see tables for exceptions)",
-          "rule_text": "There is no minimum size limit in lakes (see tables for exceptions).",
-          "location_text": "in lakes",
-          "display_location": "Any lake in Region 5",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:5",
-              "feature_types": [
-                "lake"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
       "entry_id": "z5:classified_waters",
       "identity": {
         "name": "Region 5",
@@ -201,7 +166,7 @@
         {
           "rule_id": "trout_char_daily_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5 (all species combined), including no more than 1 over 50 cm",
+          "details": "Trout and Char — daily quota 5 (all species combined), including no more than 1 over 50 cm",
           "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
           "location_text": "",
           "display_location": "Anywhere in Region 5",
@@ -240,7 +205,7 @@
         {
           "rule_id": "trout_char_over_50cm.r1",
           "restriction_type": "harvest",
-          "details": "No more than 1 over 50 cm",
+          "details": "Trout and Char — no more than 1 over 50 cm",
           "rule_text": "Trout and Char: not more than 1 over 50 cm.",
           "location_text": "",
           "display_location": "Anywhere in Region 5",
@@ -276,7 +241,7 @@
         {
           "rule_id": "trout_char_stream_limit.r1",
           "restriction_type": "harvest",
-          "details": "No more than 2 from streams",
+          "details": "Trout and Char — no more than 2 from streams",
           "rule_text": "Trout and Char: not more than 2 from streams.",
           "location_text": "from streams",
           "display_location": "Any stream in Region 5",
@@ -536,7 +501,7 @@
         {
           "rule_id": "burbot_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5",
+          "details": "Burbot — daily quota 5",
           "rule_text": "Burbot: 5.",
           "location_text": "",
           "display_location": "Anywhere in Region 5",
@@ -571,7 +536,7 @@
         {
           "rule_id": "kokanee_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5 (none from streams)",
+          "details": "Kokanee — daily quota 5 (none from streams)",
           "rule_text": "Kokanee: 5 (none from streams).",
           "location_text": "",
           "display_location": "Any lake in Region 5",
@@ -648,7 +613,7 @@
         {
           "rule_id": "whitefish_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 15 (all species combined)",
+          "details": "Whitefish — daily quota 15 (all species combined)",
           "rule_text": "Whitefish: 15 (all species combined).",
           "location_text": "",
           "display_location": "Anywhere in Region 5",
@@ -687,41 +652,6 @@
           "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
           "location_text": "",
           "display_location": "Anywhere in Region 5",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:5"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z5:salmon_dfo_notice",
-      "identity": {
-        "name": "Region 5",
-        "display_name": "Region 5 — salmon regulations are DFO's",
-        "region": "5",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "salmon_dfo_notice.r1",
-          "restriction_type": "note",
-          "details": "Non-tidal salmon regulations are not in this Synopsis — see DFO regulations",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
-          "location_text": "",
-          "display_location": "Anywhere in Region 5",
-          "species": [
-            "SA"
-          ],
           "extents": [
             {
               "op": "within",

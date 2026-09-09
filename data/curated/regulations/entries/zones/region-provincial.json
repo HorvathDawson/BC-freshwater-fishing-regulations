@@ -248,6 +248,41 @@
           ]
         }
       ]
+    },
+    {
+      "entry_id": "zp:salmon_not_in_this_synopsis",
+      "identity": {
+        "name": "Non-tidal salmon",
+        "display_name": "Non-tidal salmon — see DFO",
+        "region": "",
+        "mus": []
+      },
+      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations.",
+      "source": {
+        "pages": [],
+        "symbols": [],
+        "row_image": ""
+      },
+      "matched": [],
+      "rules": [
+        {
+          "rule_id": "salmon_dfo.r1",
+          "restriction_type": "note",
+          "details": "Salmon regulations are DFO's, not in this synopsis",
+          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis.",
+          "location_text": "",
+          "display_location": "Anywhere in B.C.",
+          "species": [
+            "SA"
+          ],
+          "extents": [
+            {
+              "op": "within",
+              "area_kind": "region"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

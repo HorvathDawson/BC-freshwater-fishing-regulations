@@ -93,7 +93,7 @@
         {
           "rule_id": "trout_char_daily_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5 (all species combined), including no more than 1 over 50 cm",
+          "details": "Trout and Char — daily quota 5 (all species combined), including no more than 1 over 50 cm",
           "rule_text": "Trout and Char: 5 (all species combined), including not more than 1 over 50 cm.",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -132,7 +132,7 @@
         {
           "rule_id": "trout_char_over_50cm.r1",
           "restriction_type": "harvest",
-          "details": "No more than 1 over 50 cm",
+          "details": "Trout and Char — no more than 1 over 50 cm",
           "rule_text": "Trout and Char: not more than 1 over 50 cm.",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -168,7 +168,7 @@
         {
           "rule_id": "trout_char_stream_limit.r1",
           "restriction_type": "harvest",
-          "details": "No more than 4 from streams, of which no more than 2 over 30 cm",
+          "details": "Trout and Char — no more than 4 from streams, of which no more than 2 over 30 cm",
           "rule_text": "Trout and Char: not more than 4 from streams (only 2 over 30 cm).",
           "location_text": "from streams",
           "display_location": "Any stream in Region 8",
@@ -319,7 +319,7 @@
         {
           "rule_id": "burbot_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 2",
+          "details": "Burbot — daily quota 2",
           "rule_text": "Burbot: 2.",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -354,7 +354,7 @@
         {
           "rule_id": "crappie_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 20",
+          "details": "Crappie — daily quota 20",
           "rule_text": "Crappie: 20.",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -392,7 +392,7 @@
         {
           "rule_id": "crayfish_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 25",
+          "details": "Crayfish — daily quota 25",
           "rule_text": "Crayfish: 25.",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -430,7 +430,7 @@
         {
           "rule_id": "kokanee_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 5 (none from streams)",
+          "details": "Kokanee — daily quota 5 (none from streams)",
           "rule_text": "Kokanee: 5 (none from streams).",
           "location_text": "",
           "display_location": "Any lake in Region 8",
@@ -507,7 +507,7 @@
         {
           "rule_id": "walleye_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 8",
+          "details": "Walleye — daily quota 8",
           "rule_text": "Walleye: 8.",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -542,7 +542,7 @@
         {
           "rule_id": "whitefish_quota.r1",
           "restriction_type": "harvest",
-          "details": "Daily quota 15 (all species combined)",
+          "details": "Whitefish — daily quota 15 (all species combined)",
           "rule_text": "Whitefish: 15 (all species combined).",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
@@ -616,41 +616,6 @@
           "rule_text": "Possession quotas = 2 daily quotas (see tables for exceptions).",
           "location_text": "",
           "display_location": "Anywhere in Region 8",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:8"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z8:salmon_dfo_notice",
-      "identity": {
-        "name": "Region 8",
-        "display_name": "Region 8 — salmon regulations are DFO's",
-        "region": "8",
-        "mus": []
-      },
-      "regs_verbatim": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations (including Osoyoos Lake sockeye fishery enquiries).",
-      "source": {
-        "pages": [],
-        "symbols": [],
-        "row_image": ""
-      },
-      "matched": [],
-      "rules": [
-        {
-          "rule_id": "salmon_dfo_notice.r1",
-          "restriction_type": "note",
-          "details": "Non-tidal salmon regulations are not in this Synopsis — see DFO regulations, including Osoyoos Lake sockeye enquiries",
-          "rule_text": "Non-tidal salmon fishing regulations are not included in this Synopsis. See DFO regulations (including Osoyoos Lake sockeye fishery enquiries).",
-          "location_text": "",
-          "display_location": "Anywhere in Region 8",
-          "species": [
-            "SA"
-          ],
           "extents": [
             {
               "op": "within",

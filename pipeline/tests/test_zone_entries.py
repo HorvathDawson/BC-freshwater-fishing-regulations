@@ -184,6 +184,12 @@ def test_every_area_kind_matches_at_least_one_area():
     known = _registry_area_ids()
     if not known:
         pytest.skip("no atlas build on disk to check kinds against")
+    if not any(a.startswith("area:region:") for a in known):
+        # Same stale-build case as the id check above: a build made before the region areas
+        # existed matches no `area:region:*`, which is a fact about the artifact on disk and
+        # not about these entries.
+        pytest.skip("the default build predates the region areas — rebuild it, or point "
+                    "config.yaml's atlas.default_build at a build that has them")
     for p, e in _entries():
         for r in e.rules:
             for ex in r.extents:
