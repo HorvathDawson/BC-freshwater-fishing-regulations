@@ -68,9 +68,15 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- DO NOT CONFUSE IT WITH `ruleset.via`, which is how a rule REACHES one section. They are
 -- orthogonal: specificity is a property of the rule, provenance of the (section, rule) pair,
 -- and an earlier draft of this schema had one column trying to be both.
+-- `limits` is the quota AS NUMBERS: a JSON list of {take, over_cm, under_cm, water, kind,
+-- combined, origin, within}. Empty is NOT "no limit" — it means nobody has structured that
+-- rule yet and `details` is still the only place its count exists. It ships so a client can
+-- lay quotas out as a table and show which of two rules overrides the other, neither of
+-- which is possible against a sentence. See pipeline/regs/parsing/entry_models::Limit, and
+-- limit_words for the ONE place those numbers are turned back into English.
 CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL, kind TEXT,
                    scope TEXT NOT NULL DEFAULT 'section',   -- section | mu | area
-                   windows TEXT, species TEXT,
+                   windows TEXT, species TEXT, limits TEXT,
                    -- TWO DIFFERENT THINGS, and they were one column for a while.
                    --
                    -- `subject` is the PRECEDENCE KEY: a rule written for this water replaces

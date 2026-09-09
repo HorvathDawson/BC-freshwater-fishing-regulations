@@ -106,6 +106,12 @@
               "op": "within",
               "area_id": "area:region:3"
             }
+          ],
+          "limits": [
+            {
+              "take": 5,
+              "combined": true
+            }
           ]
         }
       ]
@@ -181,6 +187,12 @@
                 "stream"
               ]
             }
+          ],
+          "limits": [
+            {
+              "take": 4,
+              "water": "stream"
+            }
           ]
         }
       ]
@@ -217,6 +229,17 @@
             {
               "op": "within",
               "area_id": "area:region:3"
+            }
+          ],
+          "limits": [
+            {
+              "take": 1,
+              "id": "c"
+            },
+            {
+              "take": 0,
+              "under_cm": 60,
+              "within": "c"
             }
           ]
         }
@@ -368,6 +391,11 @@
               "op": "within",
               "area_id": "area:region:3"
             }
+          ],
+          "limits": [
+            {
+              "take": 0
+            }
           ]
         }
       ]
@@ -403,6 +431,11 @@
               "op": "within",
               "area_id": "area:region:3"
             }
+          ],
+          "limits": [
+            {
+              "take": 2
+            }
           ]
         }
       ]
@@ -437,6 +470,11 @@
             {
               "op": "within",
               "area_id": "area:region:3"
+            }
+          ],
+          "limits": [
+            {
+              "take": 25
             }
           ]
         }
@@ -475,6 +513,17 @@
               "feature_types": [
                 "lake"
               ]
+            }
+          ],
+          "limits": [
+            {
+              "take": 5,
+              "id": "k"
+            },
+            {
+              "take": 0,
+              "water": "stream",
+              "within": "k"
             }
           ]
         }
@@ -548,6 +597,12 @@
             {
               "op": "within",
               "area_id": "area:region:3"
+            }
+          ],
+          "limits": [
+            {
+              "take": 15,
+              "combined": true
             }
           ]
         }
@@ -650,6 +705,12 @@
             {
               "op": "within",
               "area_id": "area:region:3"
+            }
+          ],
+          "limits": [
+            {
+              "kind": "possession",
+              "per_daily": 2
             }
           ]
         }

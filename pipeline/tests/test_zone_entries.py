@@ -198,3 +198,51 @@ def test_every_area_kind_matches_at_least_one_area():
                     assert any(a.startswith(pre) for a in known), (
                         f"{p.name}: {e.entry_id}::{r.rule_id} names area_kind "
                         f"{ex.area_kind!r} and no `{pre}*` area exists")
+
+
+@pytest.mark.skipif(not _files(), reason="no zone entries authored yet")
+def test_a_limit_does_not_claim_more_than_its_own_sentence():
+    """THE CHAIN OF CUSTODY, EXTENDED TO NUMBERS.
+
+    `rule_text` is already required to be a substring of `regs_verbatim`, so no rule can be
+    invented. A `limit` is the same claim in a different notation and needs the same
+    discipline: authoring one is retyping a number, and retyping is where a number changes.
+
+    Caught immediately — the first hand-authored sample gave "Trout/char: 5 (all species
+    combined)" a "no more than 1 over 50 cm" sub-limit that belongs to a DIFFERENT rule in
+    the same region. The quota was right and the sentence never said it.
+
+    Only the checkable half is checked: a size bound has to have a size in the text, and a
+    number that may be kept has to appear. Whether 5 is the right 5 is a reader's job.
+    """
+    import re
+
+    for p, e in _entries():
+        for r in e.rules:
+            text = r.rule_text.lower()
+            for lim in r.limits:
+                if lim.over_cm is not None or lim.under_cm is not None:
+                    cm = lim.over_cm if lim.over_cm is not None else lim.under_cm
+                    assert re.search(rf"\b{cm}\s*cm", text), (
+                        f"{p.name}: {e.entry_id}::{r.rule_id} has a limit at {cm} cm and its "
+                        f"text never mentions it — {r.rule_text[:70]!r}")
+                if lim.take not in (None, 0) and not lim.unlimited:
+                    assert re.search(rf"\b{lim.take}\b", text), (
+                        f"{p.name}: {e.entry_id}::{r.rule_id} takes {lim.take} and its text "
+                        f"never says that number — {r.rule_text[:70]!r}")
+                if lim.per_daily is not None:
+                    assert re.search(rf"\b{lim.per_daily}\b", text), (
+                        f"{p.name}: {e.entry_id}::{r.rule_id} claims a possession multiple "
+                        f"its text does not state")
+
+
+@pytest.mark.skipif(not _files(), reason="no zone entries authored yet")
+def test_a_sub_limit_names_a_parent_that_exists():
+    for p, e in _entries():
+        for r in e.rules:
+            ids = {x.id for x in r.limits if x.id}
+            for lim in r.limits:
+                if lim.within:
+                    assert lim.within in ids, (
+                        f"{p.name}: {e.entry_id}::{r.rule_id} has a sub-limit inside "
+                        f"{lim.within!r}, which is not a limit on this rule")

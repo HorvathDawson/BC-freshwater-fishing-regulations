@@ -153,6 +153,7 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                     _specificity(r),
                     json.dumps(_windows(r), separators=(",", ":")),
                     json.dumps(r.get("species") or [], separators=(",", ":")),
+                    json.dumps(r.get("limits") or [], separators=(",", ":")),
                     # The precedence key, and the sentence. Not the same field — see the
                     # note on `rule.subject` in schema.sql.
                     ",".join(r.get("exempts_from") or []) or None,
@@ -168,7 +169,12 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     db.executemany("INSERT INTO entry (entry_id, item_id, name, full_name, verbatim, symbols,"
                    "                   mus, pages) VALUES (?,?,?,?,?,?,?,?)", entry_rows)
     cov.filled("entry", len(entry_rows))
-    db.executemany("INSERT INTO rule VALUES (?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
+    # COLUMNS NAMED, for the third time and the same reason. This was eleven positional
+    # placeholders, and adding `limits` to the schema made it eleven values for twelve
+    # columns — the fault that once shipped a 42 MB bundle with no entries in it.
+    db.executemany("INSERT INTO rule (entry_id, rule_id, kind, scope, windows, species,"
+                   "                  limits, subject, details, uncertain, text, location) "
+                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
 
     section_set, sets = intern_sets(_jsonl(sections_file))

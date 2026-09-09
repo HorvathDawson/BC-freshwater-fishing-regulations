@@ -170,6 +170,96 @@ class Extent(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class LimitKind(str, Enum):
+    """Over what period the count is counted."""
+
+    DAILY = "daily"
+    POSSESSION = "possession"        # how many you may have, usually a multiple of daily
+    ANNUAL = "annual"                # per licence year
+
+
+class Water(str, Enum):
+    """Which kind of water a limit applies in — a limit may differ between the two."""
+
+    STREAM = "stream"
+    LAKE = "lake"
+
+
+class Origin(str, Enum):
+    """Hatchery fish are marked; wild ones are not, and the regulations treat them apart."""
+
+    HATCHERY = "hatchery"
+    WILD = "wild"
+
+
+class Limit(BaseModel):
+    """HOW MANY MAY BE KEPT, as a number rather than a sentence.
+
+    Every quota in the synopsis lives only in prose today — "Trout and Char: 5 (all species
+    combined), including not more than 1 over 50 cm" — so `details` is the only place the 5
+    exists and nothing can compare it, override it, or lay it out as a table. Measured over
+    the 141 zone harvest rules, six fields express every one of them.
+
+    A SUB-LIMIT IS A LIMIT, which is the whole shape of the thing. The sentence above is one
+    limit of 5 with a child that narrows by size; "not more than 1 rainbow or cutthroat over
+    50 cm" narrows by species AND size. So limits nest, and `within` names the parent.
+
+    THE TWO SIZE BOUNDS ARE NOT ONE FIELD WITH A SIGN. "none under 60 cm" protects small fish
+    and "not more than 1 over 50 cm" caps large ones; storing a single number would make
+    those indistinguishable, and they are opposite instructions.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    kind: LimitKind = Field(default=LimitKind.DAILY)
+    take: Optional[int] = Field(
+        default=None,
+        description="how many may be kept. 0 = release all. None = no number is stated "
+        "(use `unlimited` for an explicit 'unlimited').",
+    )
+    unlimited: bool = Field(default=False, description="the synopsis says unlimited")
+    per_daily: Optional[int] = Field(
+        default=None,
+        description="possession only: this many daily quotas ('possession = 2 daily quotas'), "
+        "which is a MULTIPLE and not a count — the count depends on the daily limit in force",
+    )
+    species: List[str] = Field(
+        default_factory=list,
+        description="narrows the RULE's species for this limit only; empty = the rule's own. "
+        "A trout-and-char quota with a rainbow-only sub-limit needs both.",
+    )
+    combined: bool = Field(
+        default=False,
+        description="the count is shared across the species, not one each ('all species combined')",
+    )
+    over_cm: Optional[int] = Field(default=None, description="applies to fish LONGER than this")
+    under_cm: Optional[int] = Field(default=None, description="applies to fish SHORTER than this")
+    water: Optional[Water] = Field(default=None, description="only in this kind of water")
+    origin: Optional[Origin] = Field(default=None)
+    within: Optional[str] = Field(
+        default=None,
+        description="the `id` of the limit this one sits inside, for a sub-limit",
+    )
+    id: Optional[str] = Field(default=None, description="so a sub-limit can name its parent")
+
+    @model_validator(mode="after")
+    def _check(self) -> "Limit":
+        if self.unlimited and self.take is not None:
+            raise ValueError("a limit is `unlimited` or has a `take`, not both")
+        if self.per_daily is not None and self.kind is not LimitKind.POSSESSION:
+            raise ValueError("`per_daily` is only meaningful on a possession limit")
+        if self.over_cm is not None and self.under_cm is not None:
+            raise ValueError(
+                "over_cm and under_cm on one limit describe a band nothing in the synopsis "
+                "writes; use two limits")
+        if self.within and not self.within.strip():
+            raise ValueError("`within` names a parent limit id")
+        bad = [c for c in self.species if c not in KNOWN_SPECIES_CODES]
+        if bad:
+            raise ValueError(f"unknown species code(s) {sorted(bad)} on a limit")
+        return self
+
+
 class Rule(BaseModel):
     """A single parsed restriction, bound to its reach by `extents` (op + split ids)."""
 
@@ -184,6 +274,13 @@ class Rule(BaseModel):
         "a whole-reach rule must be explicit: extents=[{op:'whole'}].",
     )
     dates: List[str] = Field(default_factory=list, description="date strings exactly as in rule_text")
+    limits: List[Limit] = Field(
+        default_factory=list,
+        description="the quota as NUMBERS, for a harvest rule. Empty is not 'no limit' — it "
+        "means nobody has structured this rule yet, and `details` is still the only place "
+        "the count exists. A rule may carry several: a daily quota, its size sub-limit and "
+        "a possession multiple are three limits, and the sub-limit names its parent.",
+    )
     includes_tributaries: Optional[bool] = Field(
         default=None,
         description="per-rule tributary override (null=inherit entry, true/false=override for this rule)",
