@@ -13,7 +13,7 @@ import { OUTCOMES, statusWord, type Outcome, type PlainDate,
          type SpeciesGroup } from "@app/core";
 import type { ItemId, Parameter, RegsSource, SectionId } from "@app/data";
 import { HORIZONS, useBasinStandings, useDataFacts, useGaugeGeoJSON, usePanelStandings,
-         useStatuses, type GaugeQuantity, type Horizon } from "@app/ui";
+         useStatuses, useVintage, type GaugeQuantity, type Horizon } from "@app/ui";
 
 /** What the Conditions view is showing. `both` colours the water by either percentile. */
 /**
@@ -263,6 +263,21 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
   // A Layers choice is not always a colour mode. Resolve each one through its declaration
   // rather than passing the key straight to the map — "depth" is a layer, and handing it
   // over as a mode threw from inside a render effect and took the whole tree down.
+  /*
+   * TILES AND BUNDLE FROM ONE ATLAS, or nothing is coloured.
+   *
+   * A section is an integer handle into the atlas's table, and both artifacts carry it. A
+   * mixed pair does not fail to match — it matches the WRONG SECTION, so every colour on
+   * screen would be a real regulation about a different river. That is the one outcome this
+   * app may never produce, and it has happened once already: the tiles were rebuilt and
+   * `bundle.sqlite` was left behind, and the map went quietly grey.
+   *
+   * `ok === false` is the only refusal. `null` means the sidecar has not answered yet or the
+   * deployment has none, which is not evidence of a mismatch — see `useVintage`.
+   */
+  const vintage = useVintage(source, tiles?.atlas);
+  const mixedPair = vintage.ok === false;
+
   const streamChoice = streamChoices(palette).find((c) => c.k === layers.stream);
   const lakeChoice = lakeChoices(palette).find((c) => c.k === layers.lake);
   const modes = {
@@ -282,15 +297,17 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
      * reading for water nobody measured. The dots say what they know; the rivers say
      * nothing.
      */
-    stream: onConditions
-      ? (quantity === "temperature" ? "plain" : "standing")
-      : streamChoice?.mode ?? "plain",
+    stream: mixedPair ? "plain"
+      : onConditions
+        ? (quantity === "temperature" ? "plain" : "standing")
+        : streamChoice?.mode ?? "plain",
     // Lakes answer the same question as the rivers here, from `lake_gauge` — a station
     // sitting IN the lake. Under depth and temperature they go plain for the same reason
     // the rivers do: nothing can carry either to a water with no station of its own.
-    lake: onConditions
-      ? (flowParam === "temperature" ? "plain" : "standing")
-      : lakeChoice?.mode ?? "plain",
+    lake: mixedPair ? "plain"
+      : onConditions
+        ? (flowParam === "temperature" ? "plain" : "standing")
+        : lakeChoice?.mode ?? "plain",
     gauges: quantity === "temperature" ? "temperature" : "standing",
     /*
      * THE FIELD. It has to be in this list or it is never painted at all: the map sets a
@@ -303,7 +320,8 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
      * Under temperature the models publish no field to colour it from; on the Map tab it is
      * not the question being asked.
      */
-    basin: onConditions && quantity !== "temperature" ? "standing" : "plain",
+    basin: mixedPair ? "plain"
+      : onConditions && quantity !== "temperature" ? "standing" : "plain",
   };
   const activeGroups = { ...groups };
   for (const c of [streamChoice, lakeChoice])
@@ -526,6 +544,27 @@ export function Shell({ source, palette, theme, themeName, onTheme, on, onDateCh
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.card }}>
+      {/*
+        * SAY WHY THE MAP IS GREY.
+        *
+        * Refusing to colour a mixed pair is only half the fix — an uncoloured map and a map
+        * whose data is unusable look identical, and that ambiguity IS the bug this guards:
+        * when it happened, the Conditions map went quietly grey and read as a slow feed.
+        * So the refusal is stated, in the one place a reader is already looking for what
+        * the colours mean.
+        */}
+      {mixedPair && (
+        <View style={{ paddingVertical: 8, paddingHorizontal: 12,
+                       backgroundColor: palette.closed ?? "#7A1F2B" }}>
+          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>
+            Map data is out of step — the tiles and the regulations came from different
+            builds, so nothing is coloured. Rebuild or re-download both.
+          </Text>
+          <Text style={{ color: "#fff", fontSize: 11, opacity: 0.85, marginTop: 2 }}>
+            tiles {vintage.tiles ?? "unknown"} · regulations {vintage.bundle ?? "unknown"}
+          </Text>
+        </View>
+      )}
       <View style={{ flex: 1 }}>{body}</View>
       {showLegend && (
         <LegendStrip palette={palette} full={onConditions}>

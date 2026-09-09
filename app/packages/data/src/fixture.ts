@@ -125,7 +125,16 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
 
   return {
     async info(): Promise<BundleInfo> {
-      return { version: "54ea0bb4", validUntil: "2027-03-31" };
+      // A DIGEST OF ITS OWN, and deliberately not the province's.
+      //
+      // This fixture mints its own handle table from the handful of sections it names, so
+      // its section 1 and the province tile's section 1 are different rivers. Declaring a
+      // distinct digest is what lets the vintage check say so: the dev server pairs
+      // `/bundle.sqlite` (this) with `/atlas.pmtiles` (the province), and that pair is
+      // genuinely mismatched. It worked before only because section ids used to be strings
+      // that happened to be globally meaningful.
+      return { version: "54ea0bb4", validUntil: "2027-03-31",
+               sectionHandles: "fixture-local" };
     },
     // The fixture is one valley, and these are ITS counts — not the province's. That
     // distinction is the whole reason the app must read them rather than state them:

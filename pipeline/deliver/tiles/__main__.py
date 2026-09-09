@@ -88,6 +88,24 @@ def main() -> None:
     mb = out.stat().st_size / 1e6
     print(f"\n{out}  {mb:,.1f} MB   total {time.time() - t0:,.0f}s")
     _write_sidecar(build_dir, out_dir)
+    _check_vintage(out_dir)
+
+
+def _check_vintage(out_dir: Path) -> None:
+    """Does the bundle that SHIPS still match the tiles just built?
+
+    Not the bundle someone happens to be building — the one at the canonical path, because
+    that is the one an app opens. A tile rebuild is exactly when the pair diverges, and the
+    last time it did nobody found out until the map went grey.
+    """
+    from pipeline.common.vintage import report
+
+    ok, msg = report(out_dir, GENERATED.bundle / "bundle.sqlite")
+    print(msg)
+    if not ok:
+        print("      Rebuild the bundle against this atlas:\n"
+              "          PYTHONPATH=\"$PWD\" .venv/bin/python -m pipeline.deliver.bundle "
+              "--build <this build>")
 
 
 def _write_sidecar(build_dir: Path, out_dir: Path) -> None:

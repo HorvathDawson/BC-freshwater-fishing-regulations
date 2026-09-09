@@ -40,10 +40,20 @@ function writtenByPipeline(): string[] {
 
 /** Every key the dev fixture inserts. */
 function writtenByFixture(): string[] {
+  /*
+   * TO THE END OF THE ARRAY, not a fixed 900 bytes.
+   *
+   * The window used to be `i + 900`, which worked until a key arrived with a comment
+   * explaining it — `section_handles` landed past the cut and this test reported that the
+   * fixture "never writes" a key it demonstrably writes. A scraper with a byte budget
+   * punishes documentation, which is the opposite of what this file is for.
+   */
   const src = readFileSync(`${ROOT}app/tools/build-fixture.mjs`, "utf8");
   const i = src.indexOf("INSERT INTO meta VALUES");
   if (i < 0) return [];
-  return [...src.slice(i, i + 900).matchAll(/\["([a-z_]+)",/g)].map((m) => m[1]!);
+  const end = src.indexOf("]);", i);
+  return [...src.slice(i, end < 0 ? src.length : end).matchAll(/\["([a-z_]+)",/g)]
+    .map((m) => m[1]!);
 }
 
 describe("bundle meta keys", () => {

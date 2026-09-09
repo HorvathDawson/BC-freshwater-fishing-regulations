@@ -28,6 +28,7 @@
  * cuts the rest: the only use is tracing a tap down to its gauge, and every reach on that
  * path is by definition in the same shed. 2.02 M pointers become ~300 K, losing nothing.
  */
+import { createHash } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { readFileSync, writeFileSync, mkdirSync, rmSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -446,6 +447,21 @@ insert("INSERT INTO meta VALUES (?,?)", [
   ["valid_until", ""],
   ["shed_rule", JSON.stringify(src.shed_rule ?? {})],
   ["attribution", JSON.stringify(src.attr ?? {})],
+  /*
+   * THE HANDLE TABLE THIS FIXTURE MINTED, and deliberately not the province's.
+   *
+   * A section is an index into an atlas's section_handles.txt, and this file builds its own
+   * from the handful of sections it names — so its section 1 and a province tile's section 1
+   * are different rivers. The app compares this against the tile sidecar and refuses to
+   * colour a mismatched pair, which means the dev server's `/bundle.sqlite` + `/atlas.pmtiles`
+   * combination is correctly reported as mixed. It only ever worked because section ids used
+   * to be strings that happened to be globally meaningful.
+   *
+   * Derived from the ordered section list rather than hard-coded, so editing the design
+   * fixture moves it, exactly as rebuilding an atlas moves the real one.
+   */
+  ["section_handles", `fixture-${createHash("sha256")
+    .update(allSections.join("\n")).digest("hex").slice(0, 16)}`],
 ]);
 db.exec("VACUUM");
 db.close();

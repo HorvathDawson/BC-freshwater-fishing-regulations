@@ -139,7 +139,8 @@ export function makeBundleSource(db: Db, opts: BundleSourceOptions = {}): RegsSo
     async info(): Promise<BundleInfo> {
       await ready;
       return { version: meta.get("version") ?? "unknown",
-               validUntil: meta.get("valid_until") ?? null };
+               validUntil: meta.get("valid_until") ?? null,
+               sectionHandles: meta.get("section_handles") ?? null };
     },
 
     async counts(): Promise<BundleCounts> {

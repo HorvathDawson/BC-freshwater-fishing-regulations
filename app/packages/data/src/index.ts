@@ -41,6 +41,21 @@ export interface BundleInfo {
   version: string;
   /** Synopsis edition expiry. Past this the client degrades loudly, never silently. */
   validUntil: string | null;
+  /**
+   * The digest of the atlas's section handle table this bundle was built against.
+   *
+   * THE SENTENCE ABOVE USED TO BE AN ASPIRATION. "A mixed pair is refused" was written when
+   * nothing compared anything, and a mixed pair shipped: the tiles were rebuilt with new
+   * handles while `bundle.sqlite` was left behind, so every section the map reported was
+   * looked up in a table that had renumbered. Nothing errored — the Conditions map simply
+   * painted every river as unmeasured, which is a state the app draws on purpose.
+   *
+   * A section is an integer index into `section_handles.txt` (see SectionId), so a bundle
+   * and a tile set from different atlases do not MISS each other — they agree on a number
+   * that means two different rivers. `null` when the bundle predates this field, which is
+   * itself a mismatch worth refusing.
+   */
+  sectionHandles: string | null;
 }
 
 /**

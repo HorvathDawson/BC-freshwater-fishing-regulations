@@ -24,3 +24,17 @@ print(f"bundling {a.build} -> {a.out}")
 # No data_dir: it comes from config. Passing `ROOT / "data"` here is what made the
 # fetched-source move invisible — build() had the right default and this overrode it.
 build(a.build, a.out)
+
+# THE PAIR THAT SHIPS, checked here because this is where it changes. A bundle built to a
+# side path is a normal thing to do — but the app opens the canonical one, and building a
+# new bundle while leaving the old one in place is exactly how the tiles and the
+# regulations came apart last time.
+from pipeline.common.vintage import report                                  # noqa: E402
+
+_canonical = GENERATED.bundle / "bundle.sqlite"
+_ok, _msg = report(GENERATED.tiles, _canonical)
+print(_msg)
+if a.out.resolve() != _canonical.resolve():
+    print(f"  note: this build wrote {a.out}, which is NOT the bundle the app opens.\n"
+          f"        Promote it when you are satisfied:  cp {a.out} {_canonical}")
+

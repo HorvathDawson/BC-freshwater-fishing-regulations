@@ -458,3 +458,63 @@ export function useDataFacts(source: RegsSource, feed?: GaugeFeed): Async<{
     };
   }, `datafacts:${feed ? "feed" : "nofeed"}`, true);
 }
+
+/**
+ * Whether the tiles and the bundle came from the same atlas.
+ *
+ * WHY THIS EXISTS. A section is an integer handle — an index into the atlas's
+ * `section_handles.txt` — carried identically by the tile and by every section-keyed table
+ * in the bundle. Pair a bundle with tiles from a DIFFERENT atlas and the two do not miss
+ * each other: they agree on a number that means two different rivers. Every lookup
+ * succeeds, and the answers are about the wrong water.
+ *
+ * It has already happened. The tiles were rebuilt with new handles while `bundle.sqlite`
+ * was left behind, and the Conditions map painted every river as unmeasured — which is a
+ * state this app draws on purpose, so it looked like a quiet feed rather than a broken
+ * pair. Nothing errored anywhere.
+ *
+ * `ok` is deliberately three-valued. `null` means "not established yet" and must NOT be
+ * treated as agreement: the sidecar is one fetch and the answer arrives a moment after the
+ * map does, so colouring on an unproven pair is exactly the window this closes.
+ */
+export interface Vintage {
+  /** true = same atlas · false = a mixed pair · null = not established yet. */
+  ok: boolean | null;
+  /** What the bundle says, for a message a person can act on. */
+  bundle: string | null;
+  /** What the tiles say. */
+  tiles: string | null;
+}
+
+const UNKNOWN_VINTAGE: Vintage = { ok: null, bundle: null, tiles: null };
+
+/**
+ * Compare the bundle's `meta.section_handles` against the tile sidecar's.
+ *
+ * A SIDECAR AND NOT PMTILES METADATA, because both platforms have to read it: the web map
+ * goes through the `pmtiles` protocol and the device map through maplibre-react-native, and
+ * only one of those hands a page the archive header. A ~100-byte JSON file next to the
+ * archive is readable by both with no library at all.
+ *
+ * A sidecar that will not load leaves this `null` rather than false. That is not the same
+ * failure — an old deployment has no sidecar at all, and refusing to draw a map because a
+ * metadata file 404'd would be worse than the bug this guards.
+ */
+export function useVintage(source: RegsSource, atlasUrl: string | undefined): Vintage {
+  const got = useAsync(
+    async (): Promise<Vintage> => {
+      const info = await source.info();
+      const bundle = info.sectionHandles;
+      if (!atlasUrl) return { ok: null, bundle, tiles: null };
+      const url = atlasUrl.replace(/[^/]*$/, "atlas.meta.json");
+      const res = await fetch(url);
+      if (!res.ok) return { ok: null, bundle, tiles: null };
+      const meta = (await res.json()) as { section_handles?: string };
+      const tiles = meta.section_handles ?? null;
+      if (!bundle || !tiles) return { ok: null, bundle, tiles };
+      return { ok: bundle === tiles, bundle, tiles };
+    },
+    `vintage:${atlasUrl ?? ""}`,
+  );
+  return got.state === "ready" ? got.value : UNKNOWN_VINTAGE;
+}
