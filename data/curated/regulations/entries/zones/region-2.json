@@ -172,8 +172,13 @@
           "location_text": "",
           "display_location": "Anywhere in Region 2",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -208,8 +213,13 @@
           "location_text": "",
           "display_location": "Anywhere in Region 2",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "exception": "(2 hatchery steelhead over 50 cm allowed)",
           "extents": [
@@ -245,8 +255,13 @@
           "location_text": "from streams",
           "display_location": "Any stream in Region 2",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -322,8 +337,13 @@
           "location_text": "from streams",
           "display_location": "Any stream in Region 2",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -396,7 +416,12 @@
           "location_text": "in lakes",
           "display_location": "Any lake in Region 2",
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ],
           "extents": [
             {

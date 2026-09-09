@@ -63,8 +63,13 @@
           "location_text": "in streams",
           "display_location": "Streams in Region 4",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "dates": [
             "Nov 1–Mar 31"
@@ -140,8 +145,13 @@
           "location_text": "",
           "display_location": "Region 4",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -176,8 +186,13 @@
           "location_text": "from streams",
           "display_location": "Streams in Region 4",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {

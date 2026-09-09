@@ -75,8 +75,13 @@
             }
           ],
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ]
         }
       ]
@@ -114,8 +119,13 @@
             }
           ],
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ]
         }
       ]
@@ -194,8 +204,13 @@
             }
           ],
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ]
         }
       ]
@@ -236,8 +251,13 @@
             }
           ],
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ]
         }
       ]
@@ -523,9 +543,14 @@
             }
           ],
           "species": [
-            "TRT",
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
             "SLV",
-            "ST"
+            "ST",
+            "WCT"
           ]
         }
       ]
@@ -560,8 +585,13 @@
             }
           ],
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ]
         }
       ]
@@ -639,7 +669,12 @@
             "Jul 1–Oct 31"
           ],
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ]
         }
       ]
@@ -716,7 +751,12 @@
             }
           ],
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ]
         }
       ]
@@ -757,7 +797,12 @@
             "Nov 1–Jun 30"
           ],
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ]
         }
       ]

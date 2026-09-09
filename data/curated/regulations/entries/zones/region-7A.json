@@ -190,8 +190,13 @@
           "location_text": "",
           "display_location": "Region 7A",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -226,8 +231,13 @@
           "location_text": "",
           "display_location": "Region 7A",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -262,8 +272,13 @@
           "location_text": "from streams",
           "display_location": "Any stream in Region 7A",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {

@@ -70,7 +70,12 @@
           "location_text": "",
           "display_location": "Anywhere in Region 1",
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ],
           "extents": [
             {
@@ -105,7 +110,12 @@
           "location_text": "",
           "display_location": "Anywhere in Region 1",
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ],
           "exception": "(2 hatchery steelhead over 50 cm allowed)",
           "extents": [
@@ -141,7 +151,12 @@
           "location_text": "from streams",
           "display_location": "Any stream in Region 1",
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ],
           "extents": [
             {
@@ -483,7 +498,12 @@
           "location_text": "in streams",
           "display_location": "Any stream in Region 1",
           "species": [
-            "TRT"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "WCT"
           ],
           "extents": [
             {

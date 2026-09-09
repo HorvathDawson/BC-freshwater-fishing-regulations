@@ -98,8 +98,13 @@
           "location_text": "",
           "display_location": "Anywhere in Region 8",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -137,8 +142,13 @@
           "location_text": "",
           "display_location": "Anywhere in Region 8",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {
@@ -173,8 +183,13 @@
           "location_text": "from streams",
           "display_location": "Any stream in Region 8",
           "species": [
-            "TRT",
-            "SLV"
+            "CCT",
+            "CT",
+            "GB",
+            "GT",
+            "RB",
+            "SLV",
+            "WCT"
           ],
           "extents": [
             {

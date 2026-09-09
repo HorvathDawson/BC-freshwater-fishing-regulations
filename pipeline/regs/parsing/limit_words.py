@@ -28,10 +28,36 @@ _SAY = {
 }
 
 
+#: Collective words the regulations use, and the set each one IS. Checked longest-first, so
+#: "trout and char" wins over "trout" when both would match.
+def _collectives() -> list[tuple[str, frozenset[str]]]:
+    from pipeline.regs.parsing.species import expand_group
+
+    trout, char = expand_group("TRT"), expand_group("SLV")
+    return sorted(
+        [("Trout and Char", frozenset(trout | {"SLV"})),
+         ("Trout", frozenset(trout)),
+         ("Char", frozenset({"SLV"}) | char)],
+        key=lambda kv: -len(kv[1]))
+
+
 def species_words(codes: Sequence[str]) -> str:
-    """"Bull trout and lake trout" — the fish, as a reader would list them."""
+    """"Bull trout and lake trout" — the fish, as a reader would list them.
+
+    A COLLECTIVE SET IS SAID AS ITS WORD. The corpus stores the six trout species rather
+    than a `TRT` group code, because storing the word only on one side of the corpus made
+    the two incomparable — and comparing them is the whole of the override rule. But
+    "Rainbow Trout, Cutthroat Trout, Westslope (Yellowstone) Cutthroat Trout, Coastal
+    Cutthroat Trout, Brown Trout and Golden Trout" is not what the synopsis says or what
+    anybody calls it. Stored as the set, said as the word.
+    """
     if not codes:
         return ""
+    have = frozenset(codes)
+    for word, members in _collectives():
+        if members and members <= have:
+            rest = sorted(have - members)
+            return word if not rest else f"{word} and {species_words(rest)}"
     names = []
     for c in codes:
         n = _SAY.get(COMMON_NAME.get(c, c), COMMON_NAME.get(c, c))
