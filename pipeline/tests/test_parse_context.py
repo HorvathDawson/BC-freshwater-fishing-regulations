@@ -29,7 +29,12 @@ def test_context_exposes_boundary_menu_and_bindable_ids():
     assert ctx.bindable_ids == {"hunlen_falls", "goat_creek_into_atnarko_river"}
     msg = render_user_message(ctx)
     assert "hunlen_falls" in msg and "Goat Creek → Atnarko River" in msg
-    assert "RB\tRainbow Trout" in msg              # species menu embedded
+    # The species menu is the CATALOGUE vocabulary, not the raw CSV listing. It must offer the
+    # groups the synopsis prints (the old menu offered none of them, and offered seven codes
+    # validation refuses), and it must teach that empty is not "all".
+    assert "`TROUT_CHAR`" in msg and "`ALL_GAME_FISH`" in msg
+    assert "`RB` Rainbow trout" in msg
+    assert "Leaving `species` empty is NOT 'all species'" in msg
 
 
 def test_area_within_targets_not_in_parse_menu():

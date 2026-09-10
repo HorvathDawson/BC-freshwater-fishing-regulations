@@ -192,3 +192,59 @@ def test_a_slot_sub_limit_keeps_its_count():
     r = _r(type=RuleType.retention_limit, species=["BT"], take=1, under_cm=30, over_cm=50,
            within="parent")
     assert label(r) == "Bull trout (no more than 1, 30–50 cm only)"
+
+
+# --- the species menu is a PROMISE ------------------------------------------------------------
+# It was not one. The parser was handed `species.prompt_menu()` — the official CSV listing — while
+# validation checked `catalogue.KNOWN_SPECIES`. The two had drifted into different languages: the
+# menu offered CH/CO/SK/PK/CM/PW/RW, which validation refuses, and omitted every group the corpus
+# actually uses, including TROUT_CHAR, the commonest species value in 350 curated rules. A model
+# cannot be blamed for picking a code the prompt offered it, so the menu is generated from the
+# vocabulary and these tests keep it that way.
+
+def test_every_menu_code_is_accepted_by_validation():
+    import re
+    from pipeline.regs.parsing.catalogue import species_menu, KNOWN_SPECIES
+    offered = set(re.findall(r"`([A-Z_]{2,})`", species_menu()))
+    assert offered, "the menu offered no codes at all"
+    assert not (offered - KNOWN_SPECIES), \
+        f"menu offers codes validation refuses: {sorted(offered - KNOWN_SPECIES)}"
+
+
+def test_every_accepted_code_can_render_a_label():
+    from pipeline.regs.parsing.catalogue import KNOWN_SPECIES, _SPECIES_WORDS
+    assert not (KNOWN_SPECIES - set(_SPECIES_WORDS)), \
+        f"accepted but unlabelled: {sorted(KNOWN_SPECIES - set(_SPECIES_WORDS))}"
+
+
+def test_the_menu_offers_the_groups_the_synopsis_prints():
+    from pipeline.regs.parsing.catalogue import species_menu
+    m = species_menu()
+    for g in ("ALL_GAME_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH", "BASS"):
+        assert f"`{g}`" in m, f"the menu never offers {g}"
+
+
+def test_labels_match_the_official_table_not_a_strain_name():
+    """GB was labelled 'Gerrard rainbow trout' — a Kootenay Lake strain that appears nowhere in the
+    synopsis. The official table says Salmo trutta, Brown Trout."""
+    from pipeline.regs.parsing.species import SPECIES
+    from pipeline.regs.parsing.catalogue import _SPECIES_WORDS
+    assert _SPECIES_WORDS["GB"] == "Brown trout"
+    assert SPECIES["GB"].common_name == "Brown Trout"
+
+
+def test_all_game_fish_is_the_closed_list_and_excludes_salmon():
+    """definitions.md fixes this set. Salmon are federal and are NOT game fish, so a provincial
+    rule about 'all game fish' must not silently reach them."""
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    agf = set(SPECIES_GROUPS["ALL_GAME_FISH"])
+    assert not (agf & set(SPECIES_GROUPS["SALMON"]))
+    for c in ("RB", "BT", "KO", "WSG", "CRA", "LMB", "MW"):
+        assert c in agf, f"{c} is on the printed closed list but not in ALL_GAME_FISH"
+
+
+def test_group_expansion_is_recoverable():
+    from pipeline.regs.parsing.catalogue import expand_species
+    assert expand_species(["TROUT_CHAR"])[:3] == ["RB", "ST", "CT"]
+    assert expand_species(["BT"]) == ["BT"]                       # non-group passes through
+    assert expand_species(["TROUT", "RB"]).count("RB") == 1       # de-duplicated

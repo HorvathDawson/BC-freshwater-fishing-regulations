@@ -24,7 +24,7 @@ from pathlib import Path
 
 from pipeline.common.models import RegistryItem
 from pipeline.regs.parsing.rows import symbols_include_tributaries
-from pipeline.regs.parsing.species import prompt_menu
+from pipeline.regs.parsing.catalogue import species_menu
 
 #: The canonical spelling of every rule statement. Appended to BOTH the parse and review prompts —
 #: they each cite it by name, and a spec the agent cannot see is not a spec.
@@ -207,11 +207,12 @@ def render_user_message(ctx: ParseContext) -> str:
         lines.append("### ⚠ NO REGISTRY MATCH — content-only parse")
         lines.append(f"Reason: {ctx.registry_note or 'unmatched'}")
         lines.append("This row has NO registry item, so there are NO boundaries to bind. Still do the "
-                     "real work: split `regs_verbatim` into rules with restriction_type / details / "
-                     "dates / species / display_location. For EVERY rule set `extents: []`, "
-                     "`needs_review: true`, and a `review_reason` (e.g. \"no registry match — attach an "
-                     "item and bind extents\"). Do NOT invent split ids or op:whole. Leave "
-                     "`registry_status`/`registry_note` unset (ingest fills them).")
+                     "real work: split `regs_verbatim` into catalogue rules — `type`, its required "
+                     "conditions, `species`, `windows`, and a `verbatim` that is a substring of the "
+                     "regs below. For EVERY rule set `extents: []`, `needs_review: true`, and a "
+                     "`review_reason` (e.g. \"no registry match — attach an item and bind extents\"). "
+                     "Do NOT invent split ids or op:whole. Leave `registry_status`/`registry_note` "
+                     "unset (ingest fills them).")
         lines.append("")
     else:
         lines.append("### Bindable boundaries (the ONLY ids an extent.splits may use)")
@@ -220,8 +221,8 @@ def render_user_message(ctx: ParseContext) -> str:
             ctx.boundaries, ctx.boundaries_by_item if ctx.also_item_ids else None))
         lines.append("")
 
-    lines.append("### Species codes (leave rule.species empty = ALL species; else pick from these)")
-    lines.append(prompt_menu())
+    lines.append("### Species — the ONLY values `species` / `species_except` may take")
+    lines.append(species_menu())
     lines.append("")
 
     lines.append("### Regulations (regs_verbatim — copy exactly; every rule_text must be a substring)")
@@ -241,7 +242,8 @@ Return ONLY a JSON array — one object per ITEM above, in this exact shape:
 - Copy each item's `index` verbatim; it maps your result back to the row. Never renumber.
 - `entry` is the full Entry object (see the schema + examples above), bound to THAT item's boundaries.
 - Return one object for every item. Do not wrap in Markdown fences or add prose.
-- Pick `species` codes only from the menu shown with each item; leave it empty for ALL species.
+- Pick `species` from the menu shown with each item — the GROUP the regulation's own words use
+  (`TROUT_CHAR`, `ALL_GAME_FISH`) unless the sentence names one fish. Empty is not "all".
 - Bind `extents.splits` only to that item's listed boundary ids. If none fit, record the phrase in
   `unresolved_locators` and set `needs_review` — never invent an id.
 

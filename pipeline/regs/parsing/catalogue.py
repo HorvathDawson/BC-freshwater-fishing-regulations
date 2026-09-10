@@ -154,16 +154,55 @@ class AnglerClass(BaseModel):
                         self.companions is not None))
 
 
-#: Every code the label generator can render. A rule naming anything else prints the raw code at
-#: the reader — 348 bundle rules carry one of WCT/CCT/GB/GT alone.
-KNOWN_SPECIES = frozenset({
-    "ALL_GAME_FISH", "TROUT", "CHAR", "TROUT_CHAR", "WHITEFISH", "BASS",
-    "RB", "ST", "CT", "WCT", "CCT", "GB", "GT", "BN",
-    "DV", "BT", "LT", "EB", "AC", "ADV", "AEB", "SPK", "SLV",
-    "LW", "MW", "WF", "LMB", "SMB", "BCB", "BG", "PMB", "BS",
-    "KO", "GR", "BB", "WSG", "SG", "GSG", "NP", "YP", "WP", "P",
-    "GE", "IN", "CRA", "SA", "NDC", "SSU", "CCL",
-})
+#: THE GROUPS THE SYNOPSIS ACTUALLY PRINTS, and what each one covers.
+#:
+#: The source of these memberships is the closed game-fish list in `reference/definitions.md`
+#: ("Freshwater game fish — the closed list"), not a genus walk. That matters: *Oncorhynchus*
+#: covers salmon AND rainbow/cutthroat, so taxonomy cannot draw the line the regulations draw.
+#:
+#: WHY A GROUP AND NOT ITS MEMBERS. "Trout/char: 5" is ONE claim about trout and char. Stored as
+#: nine codes it becomes nine claims that merely coincide: a later correction has to find all
+#: nine, the reader cannot see which word the synopsis used, and the sentence is no longer
+#: recoverable from the rule. `expand_species` turns a group back into members where a caller
+#: needs the set — nothing is lost by storing the word the page printed.
+SPECIES_GROUPS: dict[str, tuple[str, ...]] = {
+    "TROUT":      ("RB", "ST", "CT", "WCT", "CCT", "GB", "GT"),
+    "CHAR":       ("DV", "BT", "LT", "EB", "AC", "ADV", "AEB", "SPK"),
+    "WHITEFISH":  ("LW", "MW"),
+    "BASS":       ("LMB", "SMB"),
+}
+#: "Trout rules apply to char unless char are excluded" (definitions.md). The synopsis prints one
+#: quota line for both, and it is the single commonest species value in the corpus.
+SPECIES_GROUPS["TROUT_CHAR"] = SPECIES_GROUPS["TROUT"] + SPECIES_GROUPS["CHAR"]
+#: The closed list. A rule that applies to "everything" applies to THIS set, never the empty set.
+SPECIES_GROUPS["ALL_GAME_FISH"] = SPECIES_GROUPS["TROUT_CHAR"] + SPECIES_GROUPS["WHITEFISH"] + \
+    SPECIES_GROUPS["BASS"] + ("KO", "GR", "BB", "WSG", "BCB", "NP", "YP", "WP", "GE", "IN", "CRA")
+
+#: Salmon are federal, not on the provincial game-fish list, and so are NOT in ALL_GAME_FISH.
+#: They are here because the synopsis names them anyway (bait bans "when fishing for salmon",
+#: Region 1/3 notices) and because the DFO corpus moves to this format next.
+SPECIES_GROUPS["SALMON"] = ("CH", "CO", "SK", "PK", "CM")
+
+#: Every code a rule may name: the groups above, their members, and the individuals that appear
+#: alone. A rule naming anything else is refused at validation rather than printing a raw code.
+KNOWN_SPECIES = frozenset(
+    set(SPECIES_GROUPS) | {c for members in SPECIES_GROUPS.values() for c in members} | {
+        "SA", "SLV", "WF", "BS", "SG", "P",          # the CSV's own "General" rows
+        "PW", "RW", "BG", "PMB", "GSG",              # named alone in the tables
+        "NDC", "SSU", "CCL",                         # protected, never retainable
+    }
+)
+
+
+def expand_species(codes: List[str]) -> List[str]:
+    """A species list with every group replaced by its members, de-duplicated, order preserved.
+    Anything that is not a group passes through untouched."""
+    out: List[str] = []
+    for c in codes:
+        for m in SPECIES_GROUPS.get(c, (c,)):
+            if m not in out:
+                out.append(m)
+    return out
 
 
 #: TIER ONE. Every type belongs to exactly one family; the reader sees these as sections.
@@ -462,21 +501,83 @@ _DOC_WORDS = {
 _HP = {7.5: 10, 15.0: 20}          # the synopsis PRINTS these. 7.5 kW computes to 10.06 hp.
 
 _SPECIES_WORDS = {
-    "ALL_GAME_FISH": "All game fish", "TROUT": "Trout", "CHAR": "Char", "BS": "Bass",
-    "P": "Perch", "SG": "Sturgeon", "WF": "Whitefish", "SA": "Salmon",
-    "TROUT_CHAR": "Trout and char", "WHITEFISH": "Whitefish", "BASS": "Bass",
-    "RB": "Rainbow trout", "ST": "Steelhead", "CT": "Cutthroat trout", "BN": "Brown trout",
-    "DV": "Dolly Varden", "BT": "Bull trout", "LT": "Lake trout", "EB": "Brook trout",
-    "KO": "Kokanee", "GR": "Arctic grayling", "BB": "Burbot", "WSG": "White sturgeon",
-    "BCB": "Black crappie", "NP": "Northern pike", "YP": "Yellow perch", "WP": "Walleye",
-    "GE": "Goldeye", "IN": "Inconnu", "CRA": "Crayfish", "SLV": "Char",
-    "LMB": "Largemouth bass", "SMB": "Smallmouth bass", "BN": "Brown trout",
+    # groups — the words the synopsis itself prints
+    "ALL_GAME_FISH": "All game fish", "TROUT_CHAR": "Trout and char", "TROUT": "Trout",
+    "CHAR": "Char", "WHITEFISH": "Whitefish", "BASS": "Bass", "SALMON": "Salmon",
+    # the CSV's own "General" rows, kept distinct from our groups above
+    "SLV": "Char", "WF": "Whitefish", "BS": "Bass", "SA": "Salmon", "SG": "Sturgeon",
+    "P": "Perch",
+    # trout. GB is Brown Trout (Salmo trutta) in the official table — it was labelled
+    # "Gerrard rainbow trout" here, a strain name that appears nowhere in the synopsis.
+    "RB": "Rainbow trout", "ST": "Steelhead", "CT": "Cutthroat trout",
     "WCT": "Westslope cutthroat trout", "CCT": "Coastal cutthroat trout",
-    "GB": "Gerrard rainbow trout", "GT": "Golden trout", "LW": "Lake whitefish",
-    "MW": "Mountain whitefish", "AC": "Arctic char", "SPK": "Splake", "BG": "Bluegill",
-    "PMB": "Pumpkinseed", "GSG": "Green sturgeon", "NDC": "Nooksack dace",
-    "SSU": "Salish sucker", "CCL": "Cultus Lake sculpin",
+    "GB": "Brown trout", "GT": "Golden trout",
+    # char
+    "DV": "Dolly Varden", "BT": "Bull trout", "LT": "Lake trout", "EB": "Brook trout",
+    "AC": "Arctic char", "ADV": "Dolly Varden (anadromous)", "AEB": "Brook trout (anadromous)",
+    "SPK": "Splake",
+    # whitefish
+    "LW": "Lake whitefish", "MW": "Mountain whitefish", "PW": "Pygmy whitefish",
+    "RW": "Round whitefish",
+    # bass and sunfish
+    "LMB": "Largemouth bass", "SMB": "Smallmouth bass", "BCB": "Black crappie",
+    "BG": "Bluegill", "PMB": "Pumpkinseed",
+    # salmon — federal, not game fish, but named in the synopsis and used by the DFO corpus
+    "CH": "Chinook salmon", "CO": "Coho salmon", "SK": "Sockeye salmon",
+    "PK": "Pink salmon", "CM": "Chum salmon",
+    # everything else on the closed list
+    "KO": "Kokanee", "GR": "Arctic grayling", "BB": "Burbot", "WSG": "White sturgeon",
+    "GSG": "Green sturgeon", "NP": "Northern pike", "YP": "Yellow perch", "WP": "Walleye",
+    "GE": "Goldeye", "IN": "Inconnu", "CRA": "Crayfish",
+    # protected — never retainable, but nameable
+    "NDC": "Nooksack dace", "SSU": "Salish sucker", "CCL": "Cultus Lake sculpin",
 }
+
+
+#: Individuals worth listing on their own line, by family, in the order a reader expects.
+_MENU_FAMILIES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Trout",            SPECIES_GROUPS["TROUT"]),
+    ("Char",             SPECIES_GROUPS["CHAR"]),
+    ("Whitefish",        SPECIES_GROUPS["WHITEFISH"] + ("PW", "RW")),
+    ("Bass and sunfish", SPECIES_GROUPS["BASS"] + ("BCB", "BG", "PMB")),
+    ("Salmon",           SPECIES_GROUPS["SALMON"]),
+    ("Other game fish",  ("KO", "GR", "BB", "WSG", "NP", "YP", "WP", "GE", "IN", "CRA")),
+    ("Protected — never retainable", ("NDC", "SSU", "CCL", "GSG")),
+)
+
+
+def species_menu() -> str:
+    """The species vocabulary as the parser sees it: the synopsis's own group words first, then
+    the individuals, and the rule for choosing between them.
+
+    This REPLACES `species.prompt_menu()`, which listed the official CSV codes. That menu and this
+    catalogue had drifted into two different languages: it offered seven codes validation refuses
+    and omitted every group the corpus actually uses, TROUT_CHAR among them — the single commonest
+    species value in 350 curated rules. A menu is a promise that what it lists will be accepted, so
+    it is generated from `KNOWN_SPECIES` and can no longer disagree with it."""
+    out = ["**Use the word the regulation itself uses.** If the line says \"Trout/char: 5\", the",
+           "species is `TROUT_CHAR` — one claim, not fifteen. Name an individual fish only when the",
+           "sentence names that fish (\"Bull trout: release\" -> `BT`). Never expand a group yourself.",
+           "",
+           "GROUPS — prefer these:"]
+    for code in ("ALL_GAME_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH", "BASS", "SALMON"):
+        members = SPECIES_GROUPS[code]
+        gloss = {"ALL_GAME_FISH": "everything on the provincial closed list; NOT salmon",
+                 "TROUT_CHAR": "the usual quota line — trout rules cover char unless char are excluded",
+                 "SALMON": "federal; not part of ALL_GAME_FISH"}.get(code, "")
+        names = ", ".join(_SPECIES_WORDS[m] for m in members[:4])
+        more = f", +{len(members) - 4} more" if len(members) > 4 else ""
+        out.append(f"  `{code}` — {_SPECIES_WORDS[code]} ({len(members)} spp: {names}{more})"
+                   + (f"  · {gloss}" if gloss else ""))
+    out.append("")
+    out.append("INDIVIDUALS — only when the sentence names one:")
+    for family, codes in _MENU_FAMILIES:
+        out.append(f"  {family}: " + " · ".join(f"`{c}` {_SPECIES_WORDS[c]}" for c in codes))
+    out += ["",
+            "Leaving `species` empty is NOT 'all species' — it is refused on a retention rule.",
+            "Use `ALL_GAME_FISH`. Bait and tackle rules take no `species` at all (use",
+            "`when_targeting` if the rule only applies when fishing FOR something)."]
+    return "\n".join(out)
 
 
 def species_words(codes: List[str], excepts: List[str] | None = None) -> str:
