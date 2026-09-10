@@ -184,7 +184,19 @@ def _mouths_at_lower_bound(graph: StreamGraph, reach: frozenset[str],
 
 def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
                reach: frozenset[str]) -> set[str]:
-    """Tributary mouths on the piece immediately BELOW `nid`, at route measure `m`."""
+    """Tributary mouths on the piece immediately BELOW `nid`, at route measure `m`.
+
+    THE STRAHLER GUARD APPLIES HERE TOO. Everything joining at the confluence is a sibling of
+    the reach, and one of those siblings is the river the reach FLOWS INTO — it arrives on its
+    own blue line, by a `confluence` edge, at exactly this measure, so every other test here
+    passes it. The walk below rejects that case with `_breaks_strahler` ("a bigger river cannot
+    be a tributary"); the seeding did not, and so a rule reaching the mouth of its own water
+    picked up the receiving river.
+
+    That is how "No Fishing downstream of the main logging road bridge, May 1-31" on the
+    CHEHALIS — a `downstream_of` whose window runs to measure 0, i.e. to the mouth — bound two
+    sections of the HARRISON, which is the river the Chehalis empties into.
+    """
     out: set[str] = set()
     for ei in graph.down_adj.get(nid, []):
         below = graph.edges[ei].to_node
@@ -192,7 +204,8 @@ def _mouths_at(graph: StreamGraph, nid: str, n, m: float,
             f = graph.edges[fi]
             src = graph.nodes.get(f.from_node)
             if (f.from_node not in reach and src is not None and src.blk != n.blk
-                    and f.kind == "confluence" and abs(f.at_measure - m) < 0.5):
+                    and f.kind == "confluence" and abs(f.at_measure - m) < 0.5
+                    and not _breaks_strahler(src, n)):
                 out.add(f.from_node)
     return out
 

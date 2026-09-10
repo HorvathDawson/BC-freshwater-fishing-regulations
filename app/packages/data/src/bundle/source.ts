@@ -72,6 +72,13 @@ function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
     dimension: r.dimension == null ? type : str(r.dimension),
     ...(r.take == null ? {} : { take: Number(r.take) }),
     ...(r.may_target == null ? {} : { mayTarget: Number(r.may_target) === 1 }),
+    /* `method` decides whether a zero limit shuts the water or one way of fishing it — see
+       `closesTheWater` in core. It lives in `conditions`, which is why it is dug out here. */
+    ...(() => {
+      const c = r.conditions == null
+        ? {} : json<Record<string, unknown>>(r.conditions, "rule conditions");
+      return typeof c.method === "string" ? { method: c.method } : {};
+    })(),
     /* The line a person reads, GENERATED from the rule's type and conditions — so the map,
        the sheet and the curation app cannot word the same rule differently. It replaced the
        curator's prose `details`, which drifted from the numbers beside it. */

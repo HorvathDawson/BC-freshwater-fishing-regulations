@@ -167,8 +167,18 @@ def _species_groups() -> list[dict]:
     words the page actually uses, and `ALL_GAME_FISH` is the closed list from definitions.md.
     """
     from pipeline.regs.parsing.catalogue import SPECIES_GROUPS, _SPECIES_WORDS
+
+    # A GROUP MUST CLAIM ITS SUB-GROUPS, not only its members. `TROUT` and `CHAR` are groups in
+    # their own right, and ten rules name one of them — "No fishing for trout, Sept 1-Nov 15" on
+    # the Fraser. Listing only TROUT_CHAR and the individual codes left those ten matching no
+    # chip on the page, so they rendered under nothing.
+    # `SA` is the CSV's generic "Salmon" row — an alias for the group, not a member of it. The
+    # spear rule names it on all twelve waters, so leaving it out left that rule ungrouped.
+    kin = {"TROUT_CHAR": ("TROUT", "CHAR"),
+           "SALMON": ("SA",),
+           "ALL_GAME_FISH": ("TROUT", "CHAR", "TROUT_CHAR", "WHITEFISH", "BASS")}
     return [{"id": code.lower(), "name": _SPECIES_WORDS[code],
-             "codes": [code, *SPECIES_GROUPS[code]]}
+             "codes": [code, *kin.get(code, ()), *SPECIES_GROUPS[code]]}
             for code in ("TROUT_CHAR", "SALMON", "WHITEFISH", "BASS", "ALL_GAME_FISH")]
 
 
@@ -209,6 +219,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     # the Elk River wholesale into the Fording (they share an inherited rule) and the Skeena
     # into the Babine — a 77 km river reported as 214 km, drawn as its receiving water.
     ords = {ord_}
+    kin = {item_id} | _co_items(item_id)
     for co in _co_items(item_id):
         for (o,) in db.execute("SELECT ord FROM item WHERE item_id = ? AND kind = 'stream'", (co,)):
             ords.add(o)
@@ -391,6 +402,54 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                                     "symbols": json.loads(e[3] or "[]"),
                                     "mus": json.loads(e[4] or "[]")}
 
+    # ---- rules this water HAS but the atlas could not place ----------------------
+    #
+    # 137 of the 202 rules that name a sub-extent bind to NO section anywhere. They are in the
+    # bundle and reachable from nothing, so the app renders the water as if they did not exist.
+    # Some are closures — "No fishing, Dec 1-May 31 — in any tributaries" on the Campbell.
+    #
+    # The atlas is RIGHT to refuse them: `classify` will not widen a location it could not
+    # resolve, because turning "500 m upstream of Causeway Road" into the whole lake applies a
+    # 500 m closure to kilometres of water. But dropping has the opposite failure and it is the
+    # worse one — silence reads as permission.
+    #
+    # So they are neither placed nor dropped: carried on the water, with the book's own words
+    # for where they apply, and rendered apart from the ladder because nothing here knows which
+    # part of the river they are. The reader is told a rule exists and told to go read the sign.
+    placed = {(eid, rid) for (eid, rid, _v) in everywhere}
+    unplaced: list[dict] = []
+    if kin:
+        for eid, in db.execute(
+                f"SELECT entry_id FROM entry WHERE item_id IN ({','.join('?' * len(kin))})",
+                tuple(sorted(kin))):
+            cur = db.execute("SELECT * FROM rule WHERE entry_id = ?", (eid,))
+            cols = [c[0] for c in cur.description]
+            for src in cur.fetchall():
+                d = dict(zip(cols, src))
+                if (eid, d["rule_id"]) in placed:
+                    continue
+                cond = json.loads(d["conditions"] or "{}")
+                unplaced.append({
+                    "entry": eid, "rule": d["rule_id"], "type": d["type"],
+                    "family": d["family"], "dimension": d["dimension"], "label": d["label"],
+                    "windows": json.loads(d["windows"] or "[]"),
+                    "species": json.loads(d["species"] or "[]"),
+                    "take": d["take"], "may_target": d["may_target"],
+                    "conditions": cond, "verbatim": d["verbatim"],
+                    # WHY it could not be placed, in the book's words. This is the whole point
+                    # of showing the row: "on parts", "within 60 m of shore", "Thelwood Creek".
+                    "extent_text": d["extent_text"],
+                    "scope": d["scope"], "uncertain": d["uncertain"], "spans": [], "km": 0.0,
+                })
+                if eid not in entries:
+                    e = db.execute("SELECT name, full_name, verbatim, symbols, mus FROM entry"
+                                   " WHERE entry_id = ?", (eid,)).fetchone()
+                    if e:
+                        entries[eid] = {"name": e[0], "full": e[1], "verbatim": e[2],
+                                        "symbols": json.loads(e[3] or "[]"),
+                                        "mus": json.loads(e[4] or "[]")}
+        unplaced.sort(key=lambda r: (r["entry"], r["rule"]))
+
     # `place_water.ckm` IS NOT CHAINAGE. It is centikm from the place TO the water, capped at
     # 25 km — how far off the river the town is, not how far along it. Reading it as a position
     # put Vedder Crossing at km 37 of an 83 km river and Keyhole Canyon past the head. The
@@ -417,7 +476,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     total = round((main[-1][1].up_m - base_m) / 1000.0, 1)
     primary = next(iter(entries.values()), None)
     return {"name": name, "item": item_id, "runs": runs, "rules": rules, "side": side,
-            "landmarks": landmarks, "splits": splits, "total": total,
+            "unplaced": unplaced, "landmarks": landmarks, "splits": splits, "total": total,
             "entry": primary, "entries": entries}
 
 

@@ -16,9 +16,10 @@ from pipeline.atlas.graph.blk_chains import FidRow, build_blk_chains
 from pipeline.atlas.graph.graph import build_stream_graph
 from pipeline.common.models import AnchorType, SplitPoint
 from pipeline.atlas.splits.sectionizer import split_graph_at
-from pipeline.atlas.graph.tributaries import (lake_inlets, lake_outlets, lake_tributaries,
-                                         piece_above, reach_except, sections_in_reach,
-                                         tributary_node_ids, with_tributaries)
+from pipeline.atlas.graph.tributaries import (expand, lake_inlets, lake_outlets,
+                                         lake_tributaries, piece_above, reach_except,
+                                         sections_in_reach, tributary_node_ids,
+                                         with_tributaries)
 
 
 def _fid(fid, blk, wsc, coords, down_m, up_m, wbk="", gnis_name=""):
@@ -141,3 +142,67 @@ def test_includes_tributaries_except_upstream_of_splits():
     # … but their DOWNSTREAM pieces, the un-split Ordinary creek, and both mainstems remain.
     assert {"X:0", "AT:0", "OK:0", "YO:0", "BB:0", "HU:0"} <= result
     assert result == base - {"HU:20", "BB:40", "YO:40"}
+
+
+# --------------------------------------------------------------------------------------- #
+# `_mouths_at` is exercised DIRECTLY here rather than through a built graph.
+#
+# Two attempts to reproduce the shape from FidRows both passed with the guard removed, which
+# means they never reached this code path at all — a test that cannot fail on the bug is
+# worse than none. The seeding turns on three facts about one edge (its blk, its kind, its
+# measure) and on the two stream orders, so those are what the stub supplies.
+# --------------------------------------------------------------------------------------- #
+
+class _Node:
+    def __init__(self, blk, order, wsc="", is_barrier=False):
+        self.blk, self.stream_order, self.wsc = blk, order, wsc
+        self.is_barrier = is_barrier
+        self.kind = None
+
+
+class _Edge:
+    def __init__(self, from_node, to_node, kind, at_measure):
+        self.from_node, self.to_node = from_node, to_node
+        self.kind, self.at_measure = kind, at_measure
+
+
+class _Stub:
+    """The three lookups `_mouths_at` uses, and nothing else."""
+    def __init__(self, nodes, edges, down_adj, up_adj):
+        self.nodes, self.edges = nodes, edges
+        self.down_adj, self.up_adj = down_adj, up_adj
+
+
+def _confluence_stub(sibling_order):
+    """A reach node whose piece below carries one sibling arriving at the same measure.
+
+    `sibling_order` is the whole experiment: 1 is a creek, 9 is the river the reach drains
+    into. Everything else about the two is identical.
+    """
+    nodes = {"reach": _Node("C", 3, "300"),
+             "below": _Node("H", 9, "200"),
+             "sibling": _Node("S", sibling_order, "200-1")}
+    edges = [_Edge("reach", "below", "confluence", 0.0),
+             _Edge("sibling", "below", "confluence", 0.0)]
+    return _Stub(nodes, edges, {"reach": [0], "sibling": [1]}, {"below": [0, 1]})
+
+
+def test_a_side_creek_at_the_mouth_is_seeded():
+    from pipeline.atlas.graph.tributaries import _mouths_at
+    g = _confluence_stub(sibling_order=1)
+    got = _mouths_at(g, "reach", g.nodes["reach"], 0.0, frozenset({"reach"}))
+    assert got == {"sibling"}, "a genuine side creek at the mouth was lost"
+
+
+def test_the_river_the_reach_drains_into_is_not_seeded():
+    """The receiving river passes every other test in `_mouths_at`.
+
+    It arrives on its own blue line, by a `confluence` edge, at exactly the reach's lower
+    measure — so only the Strahler guard tells it apart from the creek above. The walk has
+    always applied that guard; the seeding did not, and so "No Fishing downstream of the main
+    logging road bridge, May 1-31" on the CHEHALIS bound two sections of the HARRISON.
+    """
+    from pipeline.atlas.graph.tributaries import _mouths_at
+    g = _confluence_stub(sibling_order=9)
+    got = _mouths_at(g, "reach", g.nodes["reach"], 0.0, frozenset({"reach"}))
+    assert got == set(), "the river the reach drains into was seeded as its tributary"

@@ -181,6 +181,12 @@ export interface Rule {
   /** Whether you may fish for it at all. See `take`. */
   readonly mayTarget?: boolean;
   /**
+   * The method this rule is about, when it is about one. LOAD-BEARING FOR THE OUTCOME: "only
+   * non-game fish may be speared" is a retention limit of zero on every game fish, and without
+   * this field it is indistinguishable from "No fishing".
+   */
+  readonly method?: string;
+  /**
    * An absolute prohibition: an area closure, a no-access polygon, an in-season notice.
    * Never replaced by a more permissive rule, only ever the answer.
    */
@@ -208,11 +214,31 @@ export interface Status {
  */
 function severityOf(r: Rule): number {
   if (r.type === "retention_limit") {
-    if (r.take === 0) return r.mayTarget === false ? 3 : 2;
+    if (r.take === 0) return closesTheWater(r) ? 3 : 2;
     return 2;
   }
   // Information tells you something; it does not restrict you. Everything else does.
   return r.family === "information" ? 1 : 2;
+}
+
+/**
+ * Does a retention limit of zero shut the WATER, or only one way of fishing it?
+ *
+ * IT MATTERED ON EVERY RIVER IN THE PROVINCE. "Only non-game fish (such as carp) may be speared"
+ * is take=0 on every game fish — correctly, that is what it says — and it carries
+ * `method: "spear_fishing"`. It reaches 1,674 of the bundle's 1,693 rulesets, so a severity that
+ * reads `take === 0 && mayTarget === false` and stops there returns `closed` for essentially
+ * every section in British Columbia, every day of the year. You may still angle.
+ *
+ * `ALL_GAME_FISH` is the whole closed list and so is NOT a narrowing; a shorter species list is.
+ * The design prototype learned both of these first; core did not, and the two must agree or the
+ * map and the sheet contradict each other about the same water.
+ */
+function closesTheWater(r: Rule): boolean {
+  if (r.mayTarget !== false) return false;
+  if (r.method) return false;
+  const sp = r.species ?? [];
+  return sp.length === 0 || sp.includes("ALL_GAME_FISH");
 }
 
 const OUTCOME_OF: Record<number, Outcome> = { 3: "closed", 2: "restricted", 1: "open" };

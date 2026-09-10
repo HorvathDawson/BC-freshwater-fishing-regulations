@@ -162,3 +162,50 @@ describe("unknown is never rendered as open", () => {
     expect(s.outcome).toBe("closed");
   });
 });
+
+describe("a zero limit is not always a closed river", () => {
+  /*
+   * MEASURED, NOT HYPOTHETICAL. "Only non-game fish (such as carp) may be speared" is a
+   * retention limit of zero on every game fish — correctly, that is what it says — and it
+   * carries `method: "spear_fishing"`. It reaches 1,674 of the bundle's 1,693 rulesets, so a
+   * severity that reads `take === 0 && mayTarget === false` and stops there returns "closed"
+   * for essentially every section in British Columbia, every day of the year.
+   */
+  const spear = rule({
+    id: "zp:spear_fishing.r1", type: "retention_limit", take: 0, mayTarget: false,
+    method: "spear_fishing", species: ["ALL_GAME_FISH"], scope: "area", via: "reach",
+  });
+
+  it("a closure of one METHOD leaves the water open", () => {
+    const s = evaluate({ rules: [spear], on: on(9, 10), group: "provincial" });
+    expect(s.outcome).not.toBe("closed");
+  });
+
+  it("a closure of one SPECIES is not the whole water", () => {
+    const sturgeon = rule({ id: "z4.sturgeon", type: "retention_limit", take: 0,
+                            mayTarget: false, species: ["WSG"], scope: "area", via: "reach" });
+    expect(evaluate({ rules: [sturgeon], on: on(9, 10), group: "provincial" }).outcome)
+      .not.toBe("closed");
+  });
+
+  it("but a closure naming the whole closed list still shuts it", () => {
+    const shut = rule({ id: "r2.no_fishing", type: "retention_limit", take: 0,
+                        mayTarget: false, species: ["ALL_GAME_FISH"] });
+    expect(evaluate({ rules: [shut], on: on(9, 10), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+
+  it("and so does one that names no species at all", () => {
+    const shut = rule({ id: "r2.no_fishing", type: "retention_limit", take: 0,
+                        mayTarget: false });
+    expect(evaluate({ rules: [shut], on: on(9, 10), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+
+  it("the spear rule beside a real closure still reads closed", () => {
+    const shut = rule({ id: "r2.no_fishing", type: "retention_limit", take: 0,
+                        mayTarget: false, species: ["ALL_GAME_FISH"] });
+    expect(evaluate({ rules: [spear, shut], on: on(9, 10), group: "provincial" }).outcome)
+      .toBe("closed");
+  });
+});
