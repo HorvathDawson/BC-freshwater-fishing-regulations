@@ -1,6 +1,6 @@
 """Render an independent-review prompt for a parsed batch — the second-pass reviewer subagent.
 
-Reuses the canonical REVIEW_PROMPT.md checklist and gives the reviewer, per row: the item's bindable
+Reuses the canonical CATALOGUE_REVIEW_PROMPT.md checklist and gives the reviewer, per row: the item's bindable
 boundaries + regs (from the batch file) and the entry another agent produced (from the response). The
 reviewer reports `{verdict, issues}`; it does not rewrite. Self-contained (batch + response only)."""
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from pipeline.regs.parsing.parse_context import render_boundary_menu
 
-_REVIEW_PROMPT = Path(__file__).resolve().parent / "prompts" / "REVIEW_PROMPT.md"
+_REVIEW_PROMPT = Path(__file__).resolve().parent / "prompts" / "CATALOGUE_REVIEW_PROMPT.md"
 _STANDARDS = Path(__file__).resolve().parent / "prompts" / "RULE_STANDARDS.md"
 
 _ENVELOPE = """\

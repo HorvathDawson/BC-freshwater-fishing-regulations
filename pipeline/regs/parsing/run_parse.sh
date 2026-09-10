@@ -2,15 +2,17 @@
 # THE single entry point for the parse pipeline. Every workflow is a subcommand here — the Python
 # modules are building blocks it calls (see pipeline/regs/parsing/README.md for the dataflow).
 #
-# ⛔ HUMAN-ONLY (credits): `parse` dispatches batches to the `claude`
+# ⛔ HUMAN-ONLY (credits): `parse`, `review`, `repass` dispatch batches to the `claude`
 #    CLI and spend the user's credits. Claude/agents must NOT run those — only hand the user the command.
 #    `prune` and `status` are local (no credits) and safe for anyone to run.
 #
 #
 #   `parse`      parse the water-specific tables into the catalogue format (pipeline/docs/18).
 #   `parse-dry`  export batches only — NO dispatch, no credits. Read the prompt first.
+#   `review`     an agent second pass over what the parse produced (strict checklist).
+#   `repass`     re-parse ONLY the review-flagged entries, with the findings as hints.
 #
-#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-dry|prune|status>
+#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-dry|review|repass|prune|status>
 #
 # Env knobs: REGISTRY, BATCH_SIZE, MODEL (parse), REVIEW_MODEL, ESCALATE_MODEL, CONCURRENCY, CLAUDE_BIN.
 set -euo pipefail
@@ -92,6 +94,28 @@ case "$CMD" in
     "${EXPORT[@]}" --skip-existing
     echo "batches written. Read one before spending anything:"
     echo "  less \"$RESP\"/../batches/batch_000.prompt.txt"
+    ;;
+
+  review)  # an agent second pass over parsed entries, against CATALOGUE_REVIEW_PROMPT.md
+    echo "== review: preflight =="; _need_claude
+    echo "  reviewer=$REVIEW_MODEL   checklist=prompts/CATALOGUE_REVIEW_PROMPT.md"
+    echo "== review ($REVIEW_MODEL) =="
+    "${DISPATCH[@]}" --model "$MODEL" --review --review-model "$REVIEW_MODEL"
+    echo
+    echo "Findings are stamped on the entries. Re-parse the flagged ones with:"
+    echo "  bash pipeline/regs/parsing/run_parse.sh repass"
+    ;;
+
+  repass)  # re-parse ONLY the review-flagged entries, with the reviewer's findings as hints
+    echo "== repass: preflight =="; _need_claude; _need_registry
+    echo "  model=$ESCALATE_MODEL (flagged entries only)"
+    "${EXPORT[@]}" --only-flagged
+    "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-flagged --redo-invalid
+    echo "== validate + apply =="
+    $PY -m pipeline.regs.parsing.ingest_catalogue \
+        --batch "$RESP"/../batches/batch_*.json \
+        --response "$RESP"/batch_*.json \
+        --out data/curated/regulations/entries/catalogue
     ;;
 
   status)  # local snapshot: entry counts + review/flag state (no credits)

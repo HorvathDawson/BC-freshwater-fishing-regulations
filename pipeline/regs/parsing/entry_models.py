@@ -446,7 +446,7 @@ class Identity(BaseModel):
 
 
 class ReviewIssue(BaseModel):
-    """One finding from the agent reviewer's second pass (see review_exporter / REVIEW_PROMPT.md)."""
+    """One finding from the agent reviewer's second pass (see review_exporter / CATALOGUE_REVIEW_PROMPT.md)."""
 
     model_config = ConfigDict(frozen=True)
     severity: str = Field(..., description="high | medium | low")
