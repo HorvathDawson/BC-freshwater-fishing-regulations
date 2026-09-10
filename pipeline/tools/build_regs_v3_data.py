@@ -272,21 +272,57 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                            "lon": at[0] if at else None, "lat": at[1] if at else None})
     splits.sort(key=lambda x: x["km"])
 
+    # ONLY THE CUT-POINTS THAT CUT ANYTHING.
+    #
+    # A river carries every boundary the atlas knows — gauges, lake edges, MU lines, every
+    # curated split — and most of them separate water with IDENTICAL rules. Showing them all
+    # made the ladder a list of places rather than a list of answers, and the "also" line under
+    # a chosen stretch named every boundary on the river instead of the ones bounding it.
+    #
+    # A stretch is defined by its RULES, so the only cut-points worth drawing are the ones a
+    # run actually starts or ends at: given splits a, b, c, d where rules change only at b, the
+    # functional stretches are a-b and b-d, and c is not a boundary of anything.
+    edges = {r["from"] for r in runs} | {r["to"] for r in runs}
+    splits = [x for x in splits if any(abs(x["km"] - e) < 0.15 for e in edges)]
+
     side = [{"pts": _pts(geoms[nid], to_lonlat), "set": set_of.get(handle_of.get(nid))}
             for b, xs in by_blk.items() if b != main_blk
             for nid, n in xs if nid in geoms]
 
     # --- the rules those sets point at -------------------------------------------------
-    sets = sorted({r["set"] for r in runs if r["set"] is not None})
+    #
+    # FROM EVERY SECTION OF THE WATER, NOT JUST THE MAINSTEM.
+    #
+    # The rules list used to be built from the RUNS, which are the longest blue line only. Six
+    # of the Chilliwack's nine own rules bind on the Vedder — the same synopsis row covers both
+    # — so they were dropped, and a river with nine rules of its own showed three, the rest of
+    # the page being regional defaults. A rule that reaches this water belongs on the page even
+    # when the piece it reaches is not the one the ladder draws.
+    #
+    # It still gets its SPANS from the runs, because that is what the ladder can show. A rule
+    # that touches no run keeps `spans: []` rather than being given the whole river, which
+    # would be a claim about extent that nothing in the data supports.
+    span_of: dict[tuple[str, str, str], list] = defaultdict(list)
+    for r in runs:
+        if r["set"] is None:
+            continue
+        for (eid, rid, via) in db.execute(
+                "SELECT entry_id, rule_id, via FROM ruleset WHERE set_id = ?", (r["set"],)):
+            span_of[(eid, rid, via)].append([r["from"], r["to"]])
+    everywhere: set[tuple[str, str, str]] = set()
+    all_sets = sorted({v for v in set_of.values() if v is not None})
+    for chunk in range(0, len(all_sets), 400):
+        part = all_sets[chunk:chunk + 400]
+        for row in db.execute(
+                f"SELECT entry_id, rule_id, via FROM ruleset WHERE set_id IN"
+                f" ({','.join('?' * len(part))})", part):
+            everywhere.add(tuple(row))
+
     rules: list[dict] = []
     entries: dict[str, dict] = {}
-    if sets:
-        span_of: dict[tuple[str, str], list] = defaultdict(list)
-        for r in runs:
-            for (eid, rid, via) in db.execute(
-                    "SELECT entry_id, rule_id, via FROM ruleset WHERE set_id = ?", (r["set"],)):
-                span_of[(eid, rid, via)].append([r["from"], r["to"]])
-        for (eid, rid, via), spans in sorted(span_of.items()):
+    if everywhere:
+        for (eid, rid, via) in sorted(everywhere):
+            spans = span_of.get((eid, rid, via), [])
             cur = db.execute("SELECT * FROM rule WHERE entry_id=? AND rule_id=?", (eid, rid))
             src = cur.fetchone()
             if src is None:
@@ -307,7 +343,10 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                 # buried in `conditions` — a table that has to parse a JSON blob per cell is a
                 # table nobody will keep working. `conditions` still carries everything else.
                 **{k: cond[k] for k in ("unlimited", "over_cm", "under_cm", "period", "water",
-                                        "origin", "combined", "band", "within", "record_retention")
+                                        "origin", "combined", "band", "within", "record_retention",
+                                        # `method` decides whether a closure shuts the WATER or
+                                        # only one way of fishing it — see `narrows` in the page.
+                                        "method", "angler_class", "when_targeting", "permitted")
                    if k in cond},
                 "conditions": cond,
                 "uncertain": d["uncertain"], "scope": d["scope"], "via": via,
