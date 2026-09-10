@@ -248,3 +248,25 @@ def test_group_expansion_is_recoverable():
     assert expand_species(["TROUT_CHAR"])[:3] == ["RB", "ST", "CT"]
     assert expand_species(["BT"]) == ["BT"]                       # non-group passes through
     assert expand_species(["TROUT", "RB"]).count("RB") == 1       # de-duplicated
+
+
+def test_non_game_fish_is_nameable_and_not_expanded_away():
+    """"Only non-game fish (such as carp) may be speared, except burbot" is a rule ABOUT this set.
+    It is the COMPLEMENT of the game-fish list, so it has no fixed membership — and expanding it to
+    an empty list would erase the rule rather than state it."""
+    from pipeline.regs.parsing.catalogue import expand_species, KNOWN_SPECIES, species_menu
+    assert "NON_GAME_FISH" in KNOWN_SPECIES and "CP" in KNOWN_SPECIES
+    assert expand_species(["NON_GAME_FISH"]) == ["NON_GAME_FISH"]
+    assert "`NON_GAME_FISH`" in species_menu()
+
+
+def test_every_collective_word_the_source_uses_has_a_code():
+    """Audited against the reference corpus. "sport fish" is a verb ("licence to sport fish for any
+    species"), "shellfish" appears only inside the definition of "fish", and "all species combined"
+    is the `combined` quota field — none of the three is a species set."""
+    from pipeline.regs.parsing.catalogue import KNOWN_SPECIES
+    for word, code in (("game fish", "ALL_GAME_FISH"), ("non-game fish", "NON_GAME_FISH"),
+                       ("trout/char", "TROUT_CHAR"), ("whitefish", "WHITEFISH"),
+                       ("bass", "BASS"), ("salmon", "SALMON"), ("crayfish", "CRA"),
+                       ("sturgeon", "SG"), ("perch", "P")):
+        assert code in KNOWN_SPECIES, f"the source says {word!r} and there is no code for it"

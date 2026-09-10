@@ -178,6 +178,18 @@ SPECIES_GROUPS["TROUT_CHAR"] = SPECIES_GROUPS["TROUT"] + SPECIES_GROUPS["CHAR"]
 SPECIES_GROUPS["ALL_GAME_FISH"] = SPECIES_GROUPS["TROUT_CHAR"] + SPECIES_GROUPS["WHITEFISH"] + \
     SPECIES_GROUPS["BASS"] + ("KO", "GR", "BB", "WSG", "BCB", "NP", "YP", "WP", "GE", "IN", "CRA")
 
+#: NON-GAME FISH — a real rule subject, not a leftover. "Only non-game fish (such as carp) may be
+#: speared, except burbot" (provincial-regulations.md) is a rule ABOUT this set, and without a name
+#: for it the only way to write it is species_except with all 30 game codes, which states the rule
+#: as a coincidence of thirty exclusions rather than as the one thing it says.
+#:
+#: It is deliberately EMPTY rather than enumerated. It is the complement of the game-fish list —
+#: every carp, sucker, chub, sculpin and lamprey in the table and anything the province adds — so
+#: listing members would be a guess that goes stale. `expand_species` leaves it alone for exactly
+#: that reason: a caller that needs the set computes the complement, and one that does not is not
+#: silently handed an empty list. `CP` (Carp) is nameable on its own because the sentence names it.
+SPECIES_GROUPS["NON_GAME_FISH"] = ()
+
 #: Salmon are federal, not on the provincial game-fish list, and so are NOT in ALL_GAME_FISH.
 #: They are here because the synopsis names them anyway (bait bans "when fishing for salmon",
 #: Region 1/3 notices) and because the DFO corpus moves to this format next.
@@ -188,6 +200,7 @@ SPECIES_GROUPS["SALMON"] = ("CH", "CO", "SK", "PK", "CM")
 KNOWN_SPECIES = frozenset(
     set(SPECIES_GROUPS) | {c for members in SPECIES_GROUPS.values() for c in members} | {
         "SA", "SLV", "WF", "BS", "SG", "P",          # the CSV's own "General" rows
+        "CP",                                        # named by the spear rule: "such as carp"
         "PW", "RW", "BG", "PMB", "GSG",              # named alone in the tables
         "NDC", "SSU", "CCL",                         # protected, never retainable
     }
@@ -199,7 +212,9 @@ def expand_species(codes: List[str]) -> List[str]:
     Anything that is not a group passes through untouched."""
     out: List[str] = []
     for c in codes:
-        for m in SPECIES_GROUPS.get(c, (c,)):
+        # An empty group (NON_GAME_FISH) is a complement, not a membership: expanding it to []
+        # would erase the rule. Pass it through so a caller sees the claim it actually made.
+        for m in (SPECIES_GROUPS.get(c) or (c,)):
             if m not in out:
                 out.append(m)
     return out
@@ -504,6 +519,7 @@ _SPECIES_WORDS = {
     # groups — the words the synopsis itself prints
     "ALL_GAME_FISH": "All game fish", "TROUT_CHAR": "Trout and char", "TROUT": "Trout",
     "CHAR": "Char", "WHITEFISH": "Whitefish", "BASS": "Bass", "SALMON": "Salmon",
+    "NON_GAME_FISH": "Non-game fish",
     # the CSV's own "General" rows, kept distinct from our groups above
     "SLV": "Char", "WF": "Whitefish", "BS": "Bass", "SA": "Salmon", "SG": "Sturgeon",
     "P": "Perch",
@@ -528,7 +544,7 @@ _SPECIES_WORDS = {
     # everything else on the closed list
     "KO": "Kokanee", "GR": "Arctic grayling", "BB": "Burbot", "WSG": "White sturgeon",
     "GSG": "Green sturgeon", "NP": "Northern pike", "YP": "Yellow perch", "WP": "Walleye",
-    "GE": "Goldeye", "IN": "Inconnu", "CRA": "Crayfish",
+    "GE": "Goldeye", "IN": "Inconnu", "CRA": "Crayfish", "CP": "Carp",
     # protected — never retainable, but nameable
     "NDC": "Nooksack dace", "SSU": "Salish sucker", "CCL": "Cultus Lake sculpin",
 }
@@ -542,6 +558,7 @@ _MENU_FAMILIES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Bass and sunfish", SPECIES_GROUPS["BASS"] + ("BCB", "BG", "PMB")),
     ("Salmon",           SPECIES_GROUPS["SALMON"]),
     ("Other game fish",  ("KO", "GR", "BB", "WSG", "NP", "YP", "WP", "GE", "IN", "CRA")),
+    ("Non-game",         ("CP",)),
     ("Protected — never retainable", ("NDC", "SSU", "CCL", "GSG")),
 )
 
@@ -560,11 +577,16 @@ def species_menu() -> str:
            "sentence names that fish (\"Bull trout: release\" -> `BT`). Never expand a group yourself.",
            "",
            "GROUPS — prefer these:"]
-    for code in ("ALL_GAME_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH", "BASS", "SALMON"):
+    for code in ("ALL_GAME_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH", "BASS", "SALMON",
+                 "NON_GAME_FISH"):
         members = SPECIES_GROUPS[code]
         gloss = {"ALL_GAME_FISH": "everything on the provincial closed list; NOT salmon",
                  "TROUT_CHAR": "the usual quota line — trout rules cover char unless char are excluded",
-                 "SALMON": "federal; not part of ALL_GAME_FISH"}.get(code, "")
+                 "SALMON": "federal; not part of ALL_GAME_FISH",
+                 "NON_GAME_FISH": "carp, suckers, chub and the rest — the spear rule's subject"}.get(code, "")
+        if not members:
+            out.append(f"  `{code}` — {_SPECIES_WORDS[code]}" + (f"  · {gloss}" if gloss else ""))
+            continue
         names = ", ".join(_SPECIES_WORDS[m] for m in members[:4])
         more = f", +{len(members) - 4} more" if len(members) > 4 else ""
         out.append(f"  `{code}` — {_SPECIES_WORDS[code]} ({len(members)} spp: {names}{more})"
