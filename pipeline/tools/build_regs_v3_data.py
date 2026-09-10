@@ -53,6 +53,8 @@ WATERS: list[tuple[str, str]] = [
     ("Kootenay River",   "an alias-bound cut-point: the split the page names lost to a gauge"),
     ("Okanagan River",   "McIntyre Dam — the alias case again, and a chain of dams and lakes"),
     ("Babine River",     "counting-fence boundaries, and a lake run in the middle of the river"),
+    ("Yakoun River",     "Haida Gwaii: an island system on its own, with a seasonal steelhead "
+                         "stamp and none of the mainland's regional furniture"),
 ]
 
 
@@ -264,8 +266,9 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
         km1 = round((n.up_m - base_m) / 1000.0, 1)
         g = geoms.get(nid)
         pts = [_pts(g, to_lonlat)] if g is not None else []
-        if (runs and runs[-1]["set"] == set_id
-                and runs[-1]["oob"] == bool(getattr(n, "out_of_bc", False))):
+        oob = bool(getattr(n, "out_of_bc", False)) or (
+            (n.up_m - n.down_m) >= 250.0 and (g is None or g.length < 250.0))
+        if runs and runs[-1]["set"] == set_id and runs[-1]["oob"] == oob:
             runs[-1]["to"] = km1
             runs[-1]["pts"].extend(pts)
             runs[-1]["n"] += 1
@@ -289,7 +292,31 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                          # MARKED, NOT DROPPED. Dropping it at graph build would cut the river
                          # in two and restart the chainage, and the Kootenay above the border
                          # is genuinely the same river as the Kootenay below it.
-                         "oob": bool(getattr(n, "out_of_bc", False))})
+                         #
+                         # The same test `mark_out_of_bc` now makes, made here as well, because
+                         # the flag on a pickled graph is only as new as the last atlas build.
+                         # A piece claiming kilometres it cannot draw has a route running on
+                         # where the province has no line — the Chilliwack above the ecological
+                         # reserve reads down=60407 up=82832 with a zero-length geometry, and
+                         # that water is in Washington.
+                         "oob": oob})
+    # ---- water this book does not govern is not on the ladder ---------------------
+    #
+    # Two different things get called "out of B.C." and both come off.
+    #
+    # The CHILLIWACK's top piece reads down=60407 up=82832 — a claim on 22.4 km — against a
+    # geometry of zero length: FWA's route measure belongs to the whole blue line, and the river
+    # above the ecological reserve is in Washington. There was never anything there to draw. It
+    # was also making B.C.'s 60 km of Chilliwack read as an 83 km river.
+    #
+    # The KOOTENAY's is real water — it leaves the province below Creston and returns 263 km
+    # later, and we hold its line. Dropping it leaves a jump from km 169 to km 432, which was
+    # the argument for keeping it as a marked gap. Overruled, and rightly: a reader who sees the
+    # kilometres jump understands a river left the province, and a rung that answers "nothing
+    # here applies" is a tap that leads nowhere.
+    #
+    # So the ladder holds only water this synopsis governs.
+    runs = [r for r in runs if not r["oob"]]
     for r in runs:
         r["km"] = round(r["to"] - r["from"], 1)
 
@@ -491,7 +518,10 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                           "off": round((ckm or 0) / 100.0, 2), "pop": pop or 0})
     landmarks.sort(key=lambda x: x["km"])
 
-    total = round((main[-1][1].up_m - base_m) / 1000.0, 1)
+    # THE RIVER IS AS LONG AS THE STRETCHES THAT SURVIVED. Measuring to the last node's `up_m`
+    # measures the blue line, which on a border river runs on past the province — it made the
+    # Chilliwack an 83 km river when B.C. holds 60 km of it.
+    total = round(runs[-1]["to"], 1) if runs else round((main[-1][1].up_m - base_m) / 1000.0, 1)
     primary = next(iter(entries.values()), None)
     return {"name": name, "item": item_id, "runs": runs, "rules": rules, "side": side,
             "unplaced": unplaced, "landmarks": landmarks, "splits": splits, "total": total,

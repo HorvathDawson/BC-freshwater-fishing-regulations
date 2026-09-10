@@ -125,6 +125,45 @@ def mark_out_of_bc(graph: StreamGraph, geoms: dict, outline, blks=None) -> int:
     for nid in _pieces_in_polygon(graph, geoms, outline, blks, inside=False):
         graph.nodes[nid] = replace(graph.nodes[nid], out_of_bc=True)
         n += 1
+    n += _mark_measure_beyond_the_data(graph, geoms)
+    return n
+
+
+#: A piece has to claim this many metres of route before its missing geometry means anything —
+#: below it, a zero-length piece is a cut-point artifact, not a river leaving the province.
+_NO_GEOM_MIN_M = 250.0
+
+
+def _mark_measure_beyond_the_data(graph: StreamGraph, geoms: dict) -> int:
+    """Flag pieces whose ROUTE runs on after the province's geometry stops.
+
+    The midpoint test cannot see this case, and it is the one that matters most on a river
+    leaving the country. FWA's route measure is a property of the whole blue line, including the
+    part outside British Columbia; the geometry is only what B.C. holds. Where a river crosses
+    out, the last piece inherits a measure span that reaches the far end and a geometry clipped
+    to the border — and a zero-length line has its midpoint exactly ON the outline, which
+    `contains` answers False for, so it is marked neither inside nor out.
+
+    The CHILLIWACK is the case: its top piece reads ``down=60407 up=82832`` — a claim on 22.4 km
+    — with ``geomlen=0.0``, because the river above the reserve is in Washington. The ladder drew
+    those 22 km as B.C. water with no rules on it, which reads as "fish freely" on a river that
+    is not in the country.
+
+    A piece that claims kilometres and draws nothing is not a stretch. Whatever it measures is
+    somewhere the province has no line for, and that is the definition of out of B.C.
+    """
+    n = 0
+    for nid, node in list(graph.nodes.items()):
+        if node.out_of_bc:
+            continue
+        span = (node.up_m or 0.0) - (node.down_m or 0.0)
+        if span < _NO_GEOM_MIN_M:
+            continue
+        g = geoms.get(nid)
+        if g is not None and getattr(g, "length", 0.0) >= _NO_GEOM_MIN_M:
+            continue
+        graph.nodes[nid] = replace(node, out_of_bc=True)
+        n += 1
     return n
 
 

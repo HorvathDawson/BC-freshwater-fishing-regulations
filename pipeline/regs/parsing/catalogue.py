@@ -211,6 +211,22 @@ SPECIES_GROUPS["ALL_GAME_FISH"] = SPECIES_GROUPS["TROUT_CHAR"] + SPECIES_GROUPS[
 #: silently handed an empty list. `CP` (Carp) is nameable on its own because the sentence names it.
 SPECIES_GROUPS["NON_GAME_FISH"] = ()
 
+#: PROTECTED SPECIES — the twelve taxa it is illegal to fish for at all, listed by name in the
+#: provincial regulations. Unlike NON_GAME_FISH this one IS enumerated, because the book
+#: enumerates it: a closed list of named fish is exactly what can be written down.
+#:
+#: It exists because the alternative was catastrophic. The parser could not name these taxa —
+#: eight of them had no code — so it fell back to ALL_GAME_FISH, and "it is illegal to fish for
+#: the fish listed below" became a retention limit of zero on every game fish in British
+#: Columbia, with `may_target: false` and no method to narrow it. That is the exact shape of a
+#: total closure, written on a PROVINCIAL entry that binds every water in the province.
+#:
+#: Region 2 adds green sturgeon, so this is a floor and not the complete set — which is why
+#: a water may still carry its own protected-species rule on top.
+SPECIES_GROUPS["PROTECTED_SPECIES"] = (
+    "CCL", "ELS", "MLS", "NDC", "PLS", "RMS", "SHS", "SSU", "VCS", "VLA", "WBL", "WSG",
+)
+
 #: Salmon are federal, not on the provincial game-fish list, and so are NOT in ALL_GAME_FISH.
 #: They are here because the synopsis names them anyway (bait bans "when fishing for salmon",
 #: Region 1/3 notices) and because the DFO corpus moves to this format next.
@@ -587,6 +603,10 @@ _SPECIES_WORDS = {
     "GE": "Goldeye", "IN": "Inconnu", "CRA": "Crayfish", "CP": "Carp",
     # protected — never retainable, but nameable
     "NDC": "Nooksack dace", "SSU": "Salish sucker", "CCL": "Cultus Lake sculpin",
+    "ELS": "Enos Lake stickleback", "MLS": "Misty Lake stickleback",
+    "PLS": "Paxton Lake stickleback", "VCS": "Vananda Creek stickleback",
+    "RMS": "Rocky Mountain sculpin", "SHS": "Shorthead sculpin",
+    "VLA": "Vancouver lamprey", "WBL": "Western brook lamprey",
 }
 
 
@@ -599,7 +619,7 @@ _MENU_FAMILIES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Salmon",           SPECIES_GROUPS["SALMON"]),
     ("Other game fish",  ("KO", "GR", "BB", "WSG", "NP", "YP", "WP", "GE", "IN", "CRA")),
     ("Non-game",         ("CP",)),
-    ("Protected — never retainable", ("NDC", "SSU", "CCL", "GSG")),
+    ("Protected — never retainable", SPECIES_GROUPS["PROTECTED_SPECIES"] + ("GSG",)),
 )
 
 

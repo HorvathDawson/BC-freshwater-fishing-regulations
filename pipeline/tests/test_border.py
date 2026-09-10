@@ -156,3 +156,54 @@ def test_area_flags_a_minted_waterbody_from_its_own_polygon():
     assert graph.nodes["lake:777"].in_areas == ()            # invisible without its polygon
     mark_inside_areas(graph, geoms, {"Park": park}, extra={"lake:777": box(20, 20, 30, 30)})
     assert "Park" in graph.nodes["lake:777"].in_areas
+
+
+def test_a_route_that_runs_on_past_the_geometry_is_out_of_bc():
+    """The Chilliwack case: a piece that claims kilometres and draws nothing.
+
+    FWA's route measure belongs to the whole blue line, the part outside B.C. included; the
+    geometry is only what the province holds. So the last piece of a river that leaves the
+    country inherits a measure span reaching the far end and a geometry clipped at the border.
+    Its midpoint then sits exactly ON the outline, and `contains` says False for a boundary
+    point — so the midpoint test marks it neither inside nor out.
+
+    Live case: the Chilliwack above the ecological reserve reads down=60407 up=82832 with
+    geomlen=0.0, because that water is in Washington. Unflagged, the ladder drew 22.4 km of
+    another country as B.C. water carrying no rules, which reads as "fish freely".
+    """
+    a = _fid("A1", "A", "300", [(10, 10), (20, 10)], 0, 10)
+    fids = [a]
+    chains = build_blk_chains(fids, {})
+    graph = build_stream_graph(chains, fids, {}, {})
+    geoms = build_section_geometries(chains, fids, {})
+    outline = box(0, 0, 50, 50)
+
+    # the piece's route runs 22 km on from where its line stops
+    nid = next(iter(graph.nodes))
+    graph.nodes[nid] = replace(graph.nodes[nid], down_m=0.0, up_m=22_000.0)
+    geoms[nid] = LineString([(10, 10), (10, 10)])       # clipped to nothing at the border
+
+    assert mark_out_of_bc(graph, geoms, outline) == 1
+    assert graph.nodes[nid].out_of_bc is True
+
+
+def test_a_short_zero_length_piece_is_a_cut_artifact_not_another_country():
+    """The guard must not swallow the ordinary case it sits next to.
+
+    A cut landing on a vertex leaves a piece of no length and no consequence; there are many,
+    and calling each of them a foreign country would be worse than the bug being fixed. Only a
+    piece claiming real distance says its route has outrun the province's data.
+    """
+    a = _fid("A1", "A", "300", [(10, 10), (20, 10)], 0, 10)
+    fids = [a]
+    chains = build_blk_chains(fids, {})
+    graph = build_stream_graph(chains, fids, {}, {})
+    geoms = build_section_geometries(chains, fids, {})
+    outline = box(0, 0, 50, 50)
+
+    nid = next(iter(graph.nodes))
+    graph.nodes[nid] = replace(graph.nodes[nid], down_m=0.0, up_m=3.0)
+    geoms[nid] = LineString([(10, 10), (10, 10)])
+
+    assert mark_out_of_bc(graph, geoms, outline) == 0
+    assert graph.nodes[nid].out_of_bc is False
