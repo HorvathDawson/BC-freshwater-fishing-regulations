@@ -132,7 +132,7 @@ case "$CMD" in
         --out data/curated/regulations/entries/catalogue
     ;;
 
-  status)  # local snapshot: entry counts + review/flag state (no credits)
+  status)  # where you left off: entry counts, review state, and WHAT TO RUN NEXT (no credits)
     $PY - <<'PYEOF'
 from pipeline.regs.parsing import io
 regs = io.region_ids()
@@ -146,6 +146,32 @@ print(f"entries: {len(by)} across regions {regs}")
 print(f"  locked (curated): {locked}")
 print(f"  parse_review verdicts: {dict(verd)}")
 print(f"  flagged & unlocked (repass candidates): {flagged}")
+
+# WHERE YOU LEFT OFF. A parse stops on a credit limit and the scrollback is gone by the next
+# session, so the number that actually matters — how many synopsis rows still have no entry — is
+# printed here rather than remembered.
+try:
+    from pipeline.regs.parsing.rows import load_synopsis_rows
+    from pipeline.regs.parsing.batch_exporter import _row_entry_id
+
+    class _M:
+        def __init__(self, water):
+            self.water = water
+
+    rows = {_row_entry_id(r, _M(r["water"])) for r in load_synopsis_rows()}
+    parsed = {k for k in by if not str(k).startswith("z")}
+    left = len(rows - parsed)
+    print()
+    print(f"synopsis rows: {len(rows)}   parsed: {len(rows & parsed)}   REMAINING: {left}")
+    if left:
+        print(f"  ~{-(-left // 30)} batch(es) at BATCH_SIZE=30.  RESUME (spends credits):")
+        print("     bash pipeline/regs/parsing/run_parse.sh all      # parse, then review")
+        print("     bash pipeline/regs/parsing/run_parse.sh parse    # parse only, cheaper")
+        print("  Nothing already parsed is re-sent: the export skips every row in EntryFiles.")
+    else:
+        print("  every row has an entry. Next:  run_parse.sh review")
+except Exception as exc:  # noqa: BLE001
+    print(f"\n(could not compute remaining rows: {exc})")
 PYEOF
     ;;
 
