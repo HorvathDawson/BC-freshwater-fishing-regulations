@@ -33,3 +33,42 @@ def test_resolve_area_splits_cuts_all_intersecting_streams():
     assert sorted(by_blk["X"]) == [100, 200]     # enter + exit
     assert sorted(by_blk["Y"]) == [100, 200]
     assert "Z" not in by_blk                      # outside stream not cut
+
+
+def test_apply_remap_moves_units_between_dissolve_groups():
+    """Haida Gwaii is administered from Region 1 but the source layer still says 6.
+
+    The remap is keyed on the MU id and rewrites the region id, so the dissolve puts 6-12/6-13
+    into Region 1. Every other unit is untouched.
+    """
+    import pandas as pd
+    from pipeline.atlas.splits.area_splits import apply_remap
+
+    g = pd.DataFrame({
+        "WILDLIFE_MGMT_UNIT_ID": ["6-11", "6-12", "6-13", "1-1", "5-3"],
+        "REGION_RESPONSIBLE_ID": ["6", "6", "6", "1", "5"],
+    })
+    apply_remap(g, "REGION_RESPONSIBLE_ID",
+                {"field": "WILDLIFE_MGMT_UNIT_ID", "values": {"6-12": "1", "6-13": "1"}})
+
+    assert list(g.REGION_RESPONSIBLE_ID) == ["6", "1", "1", "1", "5"]
+
+
+def test_apply_remap_is_a_noop_without_a_remap():
+    import pandas as pd
+    from pipeline.atlas.splits.area_splits import apply_remap
+
+    g = pd.DataFrame({"MU": ["6-12"], "REG": ["6"]})
+    apply_remap(g, "REG", None)
+    assert list(g.REG) == ["6"]
+
+
+def test_apply_remap_refuses_an_unknown_field():
+    """A typo'd field must fail at build time, not silently leave the dissolve unchanged."""
+    import pandas as pd
+    import pytest
+    from pipeline.atlas.splits.area_splits import apply_remap
+
+    g = pd.DataFrame({"MU": ["6-12"], "REG": ["6"]})
+    with pytest.raises(KeyError):
+        apply_remap(g, "REG", {"field": "NOPE", "values": {"6-12": "1"}}, layer="wmu")

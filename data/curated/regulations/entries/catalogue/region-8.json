@@ -1,0 +1,842 @@
+{
+  "region": "8",
+  "entries": [
+    {
+      "entry_id": "z8:spring_stream_closure",
+      "name": "Spring stream closure",
+      "display_name": "Every stream in Region 8",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "No fishing: (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for exceptions). No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Jun 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:single_barbless_hook",
+      "name": "Single barbless hook",
+      "display_name": "Every stream in Region 8",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Single barbless hook: must be used in all streams of Region 8, all year.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Single barbless hook: must be used in all streams of Region 8, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:trout_char_quota",
+      "name": "Trout and char daily quota",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "Brook trout sit OUTSIDE the 4-from-streams limit: the chapter prints 'And you may retain' under a separate heading. EB is a strict subset of TROUT_CHAR with take 20 > 4, so it REPLACES for brook trout and the parent re-renders on its residual species. Species containment must be tested before sections — both rules cover identical section sets.",
+      "regs_verbatim": "Region 8 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 4 from streams (only 2 over 30 cm). And you may retain: 20 brook trout from streams. And you must release: Bull trout (Dolly Varden) from streams.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_char_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "4 from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 4,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "only 2 over 30 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r3",
+          "over_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "20 brook trout from streams",
+          "obligation": "must",
+          "species": [
+            "EB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "Bull trout (Dolly Varden) from streams",
+          "obligation": "must",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:species_quotas",
+      "name": "Other daily quotas",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "Crappie is BCB and sits under OTHER, NOT under BASS. If BS expanded to include BCB, z8 would close crappie and permit 20 of them in one chapter.",
+      "regs_verbatim": "Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions). Burbot: 2. Crappie: 20. Crayfish: 25. Kokanee: 5 (none from streams). Walleye: 8. Whitefish: 15 (all species combined). Yellow perch: 0 quota, CLOSED TO FISHING (see tables for exceptions).",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "species_quotas.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass: 0 quota, CLOSED TO FISHING",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r2",
+          "type": "retention_limit",
+          "verbatim": "Burbot: 2",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r3",
+          "type": "retention_limit",
+          "verbatim": "Crappie: 20",
+          "obligation": "must",
+          "species": [
+            "BCB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r4",
+          "type": "retention_limit",
+          "verbatim": "Crayfish: 25",
+          "obligation": "must",
+          "species": [
+            "CRA"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 25,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r5",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 5",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r6",
+          "type": "retention_limit",
+          "verbatim": "none from streams",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r7",
+          "type": "retention_limit",
+          "verbatim": "Walleye: 8",
+          "obligation": "must",
+          "species": [
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 8,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r8",
+          "type": "retention_limit",
+          "verbatim": "Whitefish: 15 (all species combined)",
+          "obligation": "must",
+          "species": [
+            "WHITEFISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r9",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch: 0 quota, CLOSED TO FISHING",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:garnet_lake",
+      "name": "Garnet Lake closure",
+      "display_name": "Garnet Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "GARNET LAKE ANGLING CLOSURE Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "garnet_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "illegal introduction of largemouth bass",
+          "extent_text": "Garnet Lake",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped. The closure exists at water level; what is RECOVERED here is the reason, which no rule carried.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:329459155"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:okanagan_dam_tagging",
+      "name": "Okanagan Lake Dam fish passage",
+      "display_name": "Okanagan Lake Dam",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200. OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "okanagan_dam_tagging.r1",
+          "type": "advisory",
+          "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Okanagan Lake Dam",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. RECOVERED — the fourth of 4 tagging programmes the archive dropped.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:329459116"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:syilx_territory",
+      "name": "Syilx Okanagan Nation",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Syilx OKANAGAN NATION. The Okanagan is the traditional territory of the Syilx people. The Syilx people of the Okanagan Nation are a trans-boundary tribe between Canada and the United States. The Okanagan Nation Alliance (ONA) is committed to the conservation, protection, restoration, and enhancement of indigenous fisheries and aquatic habitats within Syilx Territory.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "syilx_territory.r1",
+          "type": "advisory",
+          "verbatim": "Syilx OKANAGAN NATION. The Okanagan is the traditional territory of the Syilx people. The Syilx people of the Okanagan Nation are a trans-boundary tribe between Canada and the United States. The Okanagan Nation Alliance (ONA) is committed to the conservation, protection, restoration, and enhancement of indigenous fisheries and aquatic habitats within Syilx Territory.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:crayfish_traps_turtles",
+      "name": "Crayfish traps and turtles",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "obligation=should: the synopsis says anglers are ENCOURAGED. Rendering it as law is the mirror of rendering law as advice.",
+      "regs_verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "crayfish_traps_turtles.r1",
+          "type": "hazard",
+          "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "crayfish_traps_turtles.r2",
+          "type": "method_rule",
+          "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "crayfish_trapping",
+          "permitted": true,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "use traps with minimally-sized circular openings",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:possession_quota",
+      "name": "Possession quota",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Possession quotas = 2 daily quotas.",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Possession quotas = 2 daily quotas.",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "period": "possession",
+          "per_daily": 2,
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "may_target": null,
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    }
+  ]
+}

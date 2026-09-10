@@ -85,3 +85,69 @@ def test_the_resolver_still_narrows_by_kind():
         "the area resolver no longer reads feature_types — a streams-only rule will close "
         "every lake and wetland in the polygon")
     assert "_kind_of(g, s) in kinds" in src
+
+
+# --------------------------------------------------------------------------- #
+# `within_area` — limiting an extent to a polygon
+#
+# The one shape the vocabulary could not express. Every op ADDS water; "any stream in the Fraser
+# River Watershed OF REGION 5" is a watershed INTERSECTED with an administrative area.
+#
+# A bounded reach cannot substitute, measured on the live graph: walking the Fraser from its
+# region-5 sections leaks 2,074 sections outside the region and misses 23,052 inside it — waters
+# that lie in region 5 but drain into the Fraser somewhere else. Region 6 holds no Fraser mainstem
+# at all, so there is no reach to bound.
+# --------------------------------------------------------------------------- #
+
+class _Reg:
+    """Minimal registry item: the resolver only reads `.section_ids`."""
+    def __init__(self, sections):
+        self.section_ids = list(sections)
+
+
+class _EmptyGraph:
+    nodes: dict = {}
+
+
+def test_within_area_limits_a_whole_extent():
+    from pipeline.atlas.reach.extent import resolve_extent
+
+    reg = {"gnis:1": _Reg(["a", "b", "c"]), "area:region:5": _Reg(["b", "c", "d"])}
+    got = resolve_extent(reg, _EmptyGraph(), ["gnis:1"],
+                         {"op": "whole", "item_id": "gnis:1", "within_area": "area:region:5"})
+    assert got["sections"] == ["b", "c"]
+    assert got["within_area"] == ["b", "c", "d"]      # carried forward for the walk
+
+
+def test_within_area_refuses_an_area_that_does_not_exist():
+    """A typo here would silently bind the UNLIMITED set — the widening this guards against."""
+    from pipeline.atlas.reach.extent import resolve_extent
+
+    reasons: list = []
+    got = resolve_extent({"gnis:1": _Reg(["a"])}, _EmptyGraph(), ["gnis:1"],
+                         {"op": "whole", "item_id": "gnis:1", "within_area": "area:region:99"},
+                         reasons=reasons)
+    assert got is None
+    assert any(code == "within_area_not_in_registry" for code, _ in reasons)
+
+
+def test_the_limit_is_applied_AFTER_the_tributary_walk():
+    """Filtering the seed would do nothing: the seed is already inside the region, and it is the
+    TRIBUTARIES that wander out of it."""
+    from pipeline.atlas.reach.classify import classify
+
+    # what resolve_extent would have handed over: the reach, plus the polygon to limit it to
+    per_extent = [{"sections": ["main"], "unclassified": [], "ambiguous_cut": [], "window": None,
+                   "waters": (), "within_area": ["main", "in"]}]
+    expand = lambda reach, only=False: set(reach) | {"in", "out"}
+
+    binding, _ = classify(
+        "e1",
+        {"rule_id": "r1", "restriction_type": "closure",
+         "extents": [{"op": "whole", "item_id": "gnis:1", "within_area": "area:region:5"}]},
+        per_extent,
+        registry={}, covered_ids=["gnis:1"], scope_clipped=False, entry_has_registry=True,
+        tributaries=True, expand_tributaries=expand)
+
+    assert set(binding.sections) == {"main", "in"}, "the out-of-area tributary must be dropped"
+    assert "out" not in binding.sections

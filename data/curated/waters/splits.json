@@ -7308,6 +7308,21 @@
             -129.15347,
             56.03386
           ]
+        },
+        {
+          "id": "nass_river__kitsault_bridge",
+          "label": "Kitsault Bridge",
+          "kind": "point",
+          "anchor": {
+            "type": "point",
+            "coord": [
+              -128.924,
+              55.49826
+            ],
+            "is_lonlat": true
+          },
+          "note": "",
+          "_note": "Kitsault Bridge on the Nass — the bound for the Region 6 winter stream closure ('or Nass River upstream of Kitsault Bridge, Jan 1-June 15')."
         }
       ]
     },
@@ -7488,6 +7503,21 @@
           "applies_to": {
             "wsc": "400"
           }
+        },
+        {
+          "id": "skeena_river__cedarvale",
+          "label": "Cedarvale",
+          "kind": "point",
+          "anchor": {
+            "type": "point",
+            "coord": [
+              -128.33056,
+              55.01917
+            ],
+            "is_lonlat": true
+          },
+          "note": "",
+          "_note": "Cedarvale on the Skeena — the bound for the Region 6 winter stream closure ('any stream in the watershed of the Skeena River upstream of Cedarvale, Jan 1-June 15'). 55°01'09\"N 128°19'50\"W."
         }
       ]
     },

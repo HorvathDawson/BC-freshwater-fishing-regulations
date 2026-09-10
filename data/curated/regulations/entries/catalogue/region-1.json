@@ -1,0 +1,1031 @@
+{
+  "region": "1",
+  "entries": [
+    {
+      "entry_id": "z1:summer_stream_closure",
+      "name": "Summer stream closure",
+      "display_name": "Streams of MUs 1-1 to 1-6",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions).",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_1_1_to_1_6",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "summer_stream_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions).",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jul 15 - Aug 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:single_barbless_hook",
+      "name": "Single barbless hook",
+      "display_name": "Every stream in Region 1",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Single barbless hook: must be used in all streams of Region 1, all year.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:1",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Single barbless hook: must be used in all streams of Region 1, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:bait_ban_streams",
+      "name": "Bait ban",
+      "display_name": "Every stream in Region 1",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban: applies to all streams of Region 1, all year, with some important exceptions. Check the tables.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:1",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "bait_ban_streams.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban: applies to all streams of Region 1, all year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "bait": "any",
+          "allowed": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:hg_bait_ban_streams",
+      "name": "Bait ban — Haida Gwaii",
+      "display_name": "Streams of Haida Gwaii",
+      "region": "1",
+      "scope_note": "MU-group tier: REPLACES Region 1's all-year bait ban on Haida Gwaii, carrying its own dates.",
+      "regs_verbatim": "Bait ban: applies to all streams in Management Units 6-12 and 6-13, Nov 1-Apr 30.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_6_12_and_6_13",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "hg_bait_ban_streams.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban: applies to all streams in Management Units 6-12 and 6-13, Nov 1-Apr 30.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Nov 1 - Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "bait": "any",
+          "allowed": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:trout_quota",
+      "name": "Trout daily quota",
+      "display_name": "Region 1, excluding Haida Gwaii",
+      "region": "1",
+      "scope_note": "The chapter header reads '(excluding Haida Gwaii)'. No excludes operator: Haida Gwaii's own MU-group quotas sit at a finer tier and replace these, rendering them struck beside.",
+      "regs_verbatim": "Region 1 Daily Quotas (excluding Haida Gwaii). Trout: 4, but not more than 1 over 50 cm (2 hatchery steelhead over 50 cm allowed, see table for exceptions), 2 from streams (must be hatchery). And you must release: All wild steelhead, All wild trout from streams, All char (includes Dolly Varden). NOTE: There is no general minimum size limit for trout in lakes or hatchery origin trout in streams.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:1"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout: 4",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 4,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "2 hatchery steelhead over 50 cm allowed, see table for exceptions",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "hatchery",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "2 from streams (must be hatchery)",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "origin": "hatchery",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "All wild steelhead",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "wild",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "All wild trout from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "origin": "wild",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r7",
+          "type": "retention_limit",
+          "verbatim": "All char (includes Dolly Varden)",
+          "obligation": "must",
+          "species": [
+            "CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_quota.r8",
+          "type": "advisory",
+          "verbatim": "NOTE: There is no general minimum size limit for trout in lakes or hatchery origin trout in streams.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:species_quotas",
+      "name": "Other daily quotas",
+      "display_name": "Region 1, excluding Haida Gwaii",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Bass: unlimited (see water specific regulations table for exceptions and mercury advisory on this page). Crayfish: 25. Kokanee: 5 (none from streams). White Sturgeon: catch and release only. Yellow perch: unlimited.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:1"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "species_quotas.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass: unlimited",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r2",
+          "type": "retention_limit",
+          "verbatim": "Crayfish: 25",
+          "obligation": "must",
+          "species": [
+            "CRA"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 25,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r3",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 5",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r4",
+          "type": "retention_limit",
+          "verbatim": "none from streams",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r5",
+          "type": "retention_limit",
+          "verbatim": "White Sturgeon: catch and release only",
+          "obligation": "must",
+          "species": [
+            "WSG"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r6",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch: unlimited",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:hg_quota",
+      "name": "Haida Gwaii daily quotas",
+      "display_name": "Haida Gwaii (MUs 6-12, 6-13)",
+      "region": "1",
+      "scope_note": "Re-filed from z6:hg_* — the 2025-2027 synopsis administers Haida Gwaii from Region 1.",
+      "regs_verbatim": "Haida Gwaii Daily Quotas (See tables for exceptions): Trout/char: 5, but not more than 1 over 50 cm, 3 Dolly Varden, 2 from streams. And you must release: Trout/char under 30 cm from streams, All wild steelhead. Kokanee: 10 (none from streams).",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:mu_group:management_units_6_12_and_6_13"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "hg_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "hg_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "3 Dolly Varden",
+          "obligation": "must",
+          "species": [
+            "DV",
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "within": "hg_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "2 from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "hg_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "Trout/char under 30 cm from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "All wild steelhead",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "wild",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r7",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 10",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 10,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hg_quota.r8",
+          "type": "retention_limit",
+          "verbatim": "none from streams",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:mercury_advisory",
+      "name": "Mercury advisory",
+      "display_name": "Lakes of Vancouver Island and the Gulf Islands",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "MERCURY ADVISORY Mercury levels in larger Smallmouth Bass in lakes on Vancouver Island and the Gulf Islands may be above national guidelines. The general public, especially children and women of child bearing age, including pregnant and breastfeeding women, are recommended to limit their consumption of Smallmouth Bass.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:1",
+          "feature_types": [
+            "lake"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mercury_advisory.r1",
+          "type": "advisory",
+          "verbatim": "The general public, especially children and women of child bearing age, including pregnant and breastfeeding women, are recommended to limit their consumption of Smallmouth Bass.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z1:cutthroat_tagging",
+      "name": "Cutthroat Trout Reward Tagging Program",
+      "display_name": "Comox, Cowichan, Horne, Oyster River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Cutthroat Trout Reward Tagging Program. Comox Lake, Cowichan Lake, Horne Lake and Oyster River: $100 reward tags are being used to assess the cutthroat trout fishery.",
+      "source_pages": [
+        12
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "cutthroat_tagging.r1",
+          "type": "advisory",
+          "verbatim": "Comox Lake, Cowichan Lake, Horne Lake and Oyster River: $100 reward tags are being used to assess the cutthroat trout fishery.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Comox Lake, Cowichan Lake, Horne Lake and Oyster River",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped to four named waters; unbound until they are matched. Recovered from the chapter — the archive dropped 4 of 7 tagging programmes.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:329095500"
+            },
+            {
+              "op": "whole",
+              "item_id": "wbk:329101302"
+            },
+            {
+              "op": "whole",
+              "item_id": "wbk:329467587"
+            },
+            {
+              "op": "whole",
+              "item_id": "gnis:21875"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

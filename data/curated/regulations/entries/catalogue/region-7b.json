@@ -1,0 +1,1478 @@
+{
+  "region": "7b",
+  "entries": [
+    {
+      "entry_id": "z7b:single_barbless_hook",
+      "name": "Single barbless hook",
+      "display_name": "Every stream in Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "Single barbless hook: must be used in all streams of Zone B, all year.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook.r1",
+          "type": "tackle_restriction",
+          "verbatim": "all streams of Zone B, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:bait",
+      "name": "Bait",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban: applies to all streams of Zone B, all year. Fin fish may not be used as bait in any waters of Zone B.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "bait.r1",
+          "type": "bait_restriction",
+          "verbatim": "all streams of Zone B, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "bait": "any",
+          "allowed": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bait.r2",
+          "type": "bait_restriction",
+          "verbatim": "Fin fish may not be used as bait in any waters of Zone B.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "bait": "fin_fish",
+          "allowed": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:set_lining",
+      "name": "Set lining",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "Set lining: is not permitted in Zone B. year. Fin fish may not be used as bait in any waters of Zone B. Set lining: not permitted in Zone B.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "set_lining.r1",
+          "type": "method_rule",
+          "verbatim": "Set lining: not permitted in Zone B.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "set_lining",
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:trout_char_quota",
+      "name": "Trout and char daily quota",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "Zone B Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 2 lake trout, 1 bull trout. NOTE: Bull trout may only be retained from Oct 16-Aug 14. These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length. And you must release: Rainbow trout of any size from streams, May 1-June 15, Lake trout under 30 cm, Lake trout of any size, Sept 15-Oct 31, Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_char_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "2 from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "2 lake trout",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "NOTE: Bull trout may only be retained from Oct 16-Aug 14. These fish may only be from the Liard River watershed (or other specified waters) and only 30-50 cm in length.",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Oct 16 - Aug 14"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Liard River watershed, or other specified waters",
+          "needs_review": true,
+          "review_reason": "Bound to the Liard watershed, where the chapter says bull trout may be retained. The operative quota is stated water-specifically by `r7:liard_river_watershed…@7-53` ('daily and possession quotas = 1 (none under 30 cm or over 50 cm), Oct 16-Aug 14'), which outranks this. Kept because it is the REGION's statement that bull trout may be kept nowhere else in Zone B — '(or other specified waters)' is the carve-out and it is not enumerated.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:9891",
+              "includes_tributaries": true
+            }
+          ]
+        },
+        {
+          "rule_id": "trout_char_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout of any size from streams, May 1-June 15",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [
+            "May 1 - Jun 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r7",
+          "type": "retention_limit",
+          "verbatim": "Lake trout under 30 cm",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r8",
+          "type": "retention_limit",
+          "verbatim": "Lake trout of any size, Sept 15-Oct 31",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 15 - Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r9",
+          "type": "retention_limit",
+          "verbatim": "Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Peace River watershed",
+          "needs_review": true,
+          "review_reason": "The PEACE half of a sentence naming two watersheds with different windows. The verbatim keeps the whole sentence so the reader can see what it is a half OF; the extent and the absent window are what make this rule the Peace one. The Liard half is r9b.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:14619",
+              "includes_tributaries": true
+            }
+          ]
+        },
+        {
+          "rule_id": "trout_char_quota.r9b",
+          "type": "retention_limit",
+          "verbatim": "Bull trout from the Liard River watershed Aug 15-Oct 15, and from the Peace River watershed all year",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Aug 15 - Oct 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Liard River watershed",
+          "needs_review": true,
+          "review_reason": "The LIARD half, with its own window. `r7:liard_river_watershed…@7-53` states it water-specifically and outranks this, but the zone rule is what renders where the water rule does not reach.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:9891",
+              "includes_tributaries": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:arctic_grayling",
+      "name": "Arctic grayling",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "Arctic grayling: 2 (none under 30 cm and only 1 over 45 cm). And you must release: any size, May 1-June 15, all from Williston Lake and its tributaries.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "arctic_grayling.r1",
+          "type": "retention_limit",
+          "verbatim": "Arctic grayling: 2",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "arctic_grayling.r2",
+          "type": "retention_limit",
+          "verbatim": "none under 30 cm",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "arctic_grayling.r3",
+          "type": "retention_limit",
+          "verbatim": "only 1 over 45 cm",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "arctic_grayling.r1",
+          "over_cm": 45,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "arctic_grayling.r4",
+          "type": "retention_limit",
+          "verbatim": "any size, May 1-June 15",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [
+            "May 1 - Jun 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "arctic_grayling.r5",
+          "type": "retention_limit",
+          "verbatim": "all from Williston Lake and its tributaries",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Williston Lake and its tributaries",
+          "needs_review": true,
+          "review_reason": "BOUND — watershed: the named water plus its tributary walk. Water-scoped with includes_tributaries.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:328961697",
+              "includes_tributaries": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:species_quotas",
+      "name": "Other daily quotas",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "Burbot: 5. Goldeye: 10. Inconnu: 1. Kokanee: 10 (none from streams, except Peace River). Northern pike: 3 (only 1 over 90 cm). Walleye: 3 (only 1 over 70 cm). And you must release: all from streams, Apr 1-May 15. Whitefish: 15 (all species combined). Yellow perch: 5.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "species_quotas.r1",
+          "type": "retention_limit",
+          "verbatim": "Burbot: 5",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r2",
+          "type": "retention_limit",
+          "verbatim": "Goldeye: 10",
+          "obligation": "must",
+          "species": [
+            "GE"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 10,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r3",
+          "type": "retention_limit",
+          "verbatim": "Inconnu: 1",
+          "obligation": "must",
+          "species": [
+            "IN"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r4",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 10",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 10,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r5",
+          "type": "retention_limit",
+          "verbatim": "none from streams, except Peace River",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "except the Peace River",
+          "needs_review": true,
+          "review_reason": "A carve-out with NO replacement rule to win the contest — this is the case that genuinely needs a subtraction, unlike the nested-area ones."
+        },
+        {
+          "rule_id": "species_quotas.r6",
+          "type": "retention_limit",
+          "verbatim": "Northern pike: 3",
+          "obligation": "must",
+          "species": [
+            "NP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r7",
+          "type": "retention_limit",
+          "verbatim": "only 1 over 90 cm",
+          "obligation": "must",
+          "species": [
+            "NP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "species_quotas.r6",
+          "over_cm": 90,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r8",
+          "type": "retention_limit",
+          "verbatim": "Walleye: 3",
+          "obligation": "must",
+          "species": [
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r9",
+          "type": "retention_limit",
+          "verbatim": "only 1 over 70 cm",
+          "obligation": "must",
+          "species": [
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "species_quotas.r8",
+          "over_cm": 70,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r10",
+          "type": "retention_limit",
+          "verbatim": "all from streams, Apr 1-May 15",
+          "obligation": "must",
+          "species": [
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - May 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r11",
+          "type": "retention_limit",
+          "verbatim": "Whitefish: 15 (all species combined)",
+          "obligation": "must",
+          "species": [
+            "WHITEFISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r12",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch: 5",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:possession_exceptions",
+      "name": "Possession quota exceptions",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "possession_exceptions.r0",
+          "type": "retention_limit",
+          "verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "period": "possession",
+          "per_daily": 2,
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "may_target": null,
+          "review_reason": "",
+          "needs_review": false,
+          "extent_text": "most species — the three exceptions below are more specific and displace it"
+        },
+        {
+          "rule_id": "possession_exceptions.r1",
+          "type": "retention_limit",
+          "verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "possession",
+          "per_daily": 1,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "possession_exceptions.r2",
+          "type": "retention_limit",
+          "verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "possession",
+          "per_daily": 1,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "possession_exceptions.r3",
+          "type": "retention_limit",
+          "verbatim": "2 daily quotas for most species. Exception: 1 daily quota for Arctic grayling, bull trout and lake trout.",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "possession",
+          "per_daily": 1,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:peace_river_navigation",
+      "name": "Peace River navigation",
+      "display_name": "Peace River",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "peace_river_navigation.r1",
+          "type": "hazard",
+          "verbatim": "PEACE RIVER The Peace River is no longer navigable past the Site C construction site. Avoid boat travel between 2 km upstream of the dam site and the downstream construction bridge.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Peace River at the Site C site",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped safety notice. RECOVERED — absent from the corpus.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:14619"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:thin_ice",
+      "name": "Thin ice — Inga and Sundance",
+      "display_name": "Inga and Sundance lakes",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "THIN ICE AND OPEN WATER Due to aeration projects, dangerous thin ice and open water may exist on Inga and Sundance lakes. It is prohibited to enter within the fenced area surrounding the aerator.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:329657335"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "thin_ice.r1",
+          "type": "hazard",
+          "verbatim": "Due to aeration projects, dangerous thin ice and open water may exist on Inga and Sundance lakes.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Inga and Sundance lakes",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": null
+        },
+        {
+          "rule_id": "thin_ice.r2",
+          "type": "hazard",
+          "verbatim": "It is prohibited to enter within the fenced area surrounding the aerator.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the fenced area surrounding the aerator",
+          "needs_review": true,
+          "review_reason": "A PROHIBITION ON ENTERING a fenced area, not an angling closure — as access_permission it rendered 'Angling prohibited', which would tell a reader the lake is closed to fishing when it is not. Typed hazard until an access type exists that can say 'do not enter' without implying a fishing ban. Sundance Lake is not in the registry index."
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:ice_fishing_huts",
+      "name": "Ice fishing huts",
+      "display_name": "Lakes of Zone B",
+      "region": "7b",
+      "scope_note": "SPLIT: one sentence carried a 'should' and an offence. Rendering both as law is the mirror of rendering law as advice.",
+      "regs_verbatim": "ICE FISHING HUTS Ice fishing huts should have the owner's contact information displayed in a prominent location when left unoccupied. Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act. Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b",
+          "feature_types": [
+            "lake"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "ice_fishing_huts.r1",
+          "type": "advisory",
+          "verbatim": "Ice fishing huts should have the owner's contact information displayed in a prominent location when left unoccupied.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "ice_fishing_huts.r2",
+          "type": "method_rule",
+          "verbatim": "Failure to remove ice fishing huts before spring breakup is an offence under the Environmental Management Act.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "permitted": true,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "huts must be removed before spring breakup",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:bull_trout_dolly_varden",
+      "name": "Bull trout and Dolly Varden",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "NOTE: Bull trout and Dolly Varden are two distinct species. Since only bull trout are found in the Peace Region, we have removed references to Dolly Varden here.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "bull_trout_dolly_varden.r1",
+          "type": "advisory",
+          "verbatim": "NOTE: Bull trout and Dolly Varden are two distinct species. Since only bull trout are found in the Peace Region, we have removed references to Dolly Varden here.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z7b:site_c_tagging",
+      "name": "Site C telemetry",
+      "display_name": "Zone B",
+      "region": "7b",
+      "scope_note": "",
+      "regs_verbatim": "NOTICE TO ANGLERS BC Hydro is tracking the movement of fish throughout the Site C Reservoir, Peace River and its tributaries using acoustic and radio telemetry. BC Hydro telemetry in the Site C Reservoir, Peace River and tributaries.",
+      "source_pages": [
+        62
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:7b"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "site_c_tagging.r1",
+          "type": "advisory",
+          "verbatim": "BC Hydro telemetry in the Site C Reservoir, Peace River and tributaries.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    }
+  ]
+}

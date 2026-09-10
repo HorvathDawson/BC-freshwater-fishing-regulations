@@ -1,0 +1,1059 @@
+{
+  "region": "4",
+  "entries": [
+    {
+      "entry_id": "z4:spring_stream_closure",
+      "name": "Spring stream closure",
+      "display_name": "Every stream in Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "No Fishing: in any stream in Region 4 from Apr 1-June 14 (see tables for additional closed times or exceptions).",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing: in any stream in Region 4 from Apr 1-June 14 (see tables for additional closed times or exceptions).",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Jun 14"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:single_barbless_hook",
+      "name": "Single barbless hook",
+      "display_name": "Every stream in Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Single barbless hook: must be used in all streams of Region 4, all year.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Single barbless hook: must be used in all streams of Region 4, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:trout_char_winter_release",
+      "name": "Trout and char winter release",
+      "display_name": "Every stream in Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Trout/char release: in streams from Nov 1-Mar 31 (see tables for additional dates or exceptions).",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_char_winter_release.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char release: in streams from Nov 1-Mar 31 (see tables for additional dates or exceptions).",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [
+            "Nov 1 - Mar 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:classified_waters_licence",
+      "name": "Classified Waters Licence",
+      "display_name": "Classified waters in Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence. Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "classified_waters_licence.r1",
+          "type": "document_required",
+          "verbatim": "Classified Waters: many East Kootenay Rivers and their tributaries are Classified Waters and require a supplemental Classified Waters Licence, see page 7, map of waters on page 33, and the Water-Specific Regulations tables (pages 35-40).",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "includes_tributaries": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": true,
+          "review_reason": "BIND BY SYMBOL: Region 4 carries 27 'Classified' entries, more than any region. RECOVERED — region-4.json had no licensing rule at all."
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:trout_char_quota",
+      "name": "Trout and char daily quota",
+      "display_name": "Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Region 4 Daily Quotas. Trout/char: 5, but not more than 1 rainbow trout or cutthroat trout over 50 cm, 2 from streams, 1 bull trout (Dolly Varden) of any size.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_char_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 rainbow trout or cutthroat trout over 50 cm",
+          "obligation": "must",
+          "species": [
+            "RB",
+            "CT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "2 from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "1 bull trout (Dolly Varden) of any size",
+          "obligation": "must",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:species_quotas",
+      "name": "Other daily quotas",
+      "display_name": "Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Bass: 0 quota, CLOSED TO FISHING. Burbot: 2. Crayfish: 25. Kokanee: 15 (none from streams), no more than 5 over 30 cm. Northern pike: 0 quota, CLOSED TO FISHING. Walleye: 0 quota, CLOSED TO FISHING. White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions). Whitefish: 15 (all species combined). Yellow perch: 0 quota, CLOSED TO FISHING.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "species_quotas.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass: 0 quota, CLOSED TO FISHING",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r2",
+          "type": "retention_limit",
+          "verbatim": "Burbot: 2",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r3",
+          "type": "retention_limit",
+          "verbatim": "Crayfish: 25",
+          "obligation": "must",
+          "species": [
+            "CRA"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 25,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r4",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 15",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r5",
+          "type": "retention_limit",
+          "verbatim": "none from streams",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r6",
+          "type": "retention_limit",
+          "verbatim": "no more than 5 over 30 cm",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "within": "species_quotas.r4",
+          "over_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r7",
+          "type": "retention_limit",
+          "verbatim": "Northern pike: 0 quota, CLOSED TO FISHING",
+          "obligation": "must",
+          "species": [
+            "NP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r8",
+          "type": "retention_limit",
+          "verbatim": "Walleye: 0 quota, CLOSED TO FISHING",
+          "obligation": "must",
+          "species": [
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r9",
+          "type": "retention_limit",
+          "verbatim": "White Sturgeon: 0 quota, CLOSED TO FISHING (No exceptions)",
+          "obligation": "must",
+          "species": [
+            "WSG"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r10",
+          "type": "retention_limit",
+          "verbatim": "Whitefish: 15 (all species combined)",
+          "obligation": "must",
+          "species": [
+            "WHITEFISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r11",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch: 0 quota, CLOSED TO FISHING",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:kootenay_annual",
+      "name": "Kootenay Lake annual quota",
+      "display_name": "Main body of Kootenay Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Rainbow trout over 50 cm from the main body of Kootenay Lake: 20 per licence year.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "kootenay_annual.r1",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout over 50 cm from the main body of Kootenay Lake: 20 per licence year.",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "annual",
+          "under_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "main body of Kootenay Lake",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped to the main body of Kootenay Lake. RECOVERED — the corpus filed this inside a licensing rule, hiding the quota from anything reading harvest rules.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:328974235"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:tributaries_of_lakes",
+      "name": "Tributaries of lakes",
+      "display_name": "Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Tributaries of Lakes. When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake: Columbia, Connor, Duncan, Kinbasket, Kootenay, Lake Revelstoke, Little Slocan, Lower Arrow, Premier, Slocan, Trout, Upper Arrow, Waneta Reservoir, Whiteswan. When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as \"Columbia Lake's tributaries\"):",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tributaries_of_lakes.r1",
+          "type": "advisory",
+          "verbatim": "When fishing the tributaries of the following lakes, check for special regulations in the tables under both the name of the tributary and the name of the lake (such as \"Columbia Lake's tributaries\"):",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:report_lake_trout",
+      "name": "Report your lake trout catch",
+      "display_name": "Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Report your Lake Trout Catch. Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays. Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "report_lake_trout.r1",
+          "type": "advisory",
+          "verbatim": "Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:creston_valley_permit",
+      "name": "Creston Valley WMA permit",
+      "display_name": "Creston Valley WMA",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_kind": "wma"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "creston_valley_permit.r1",
+          "type": "access_permission",
+          "verbatim": "A permit is required for fishing on all waters within the Creston Valley Wildlife Management Area, including Six Mile, Leach, Kootenay River and Canal and Duck Lake.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "permitted": true,
+          "required": true,
+          "on_retention": false,
+          "grantor": "Creston Valley Wildlife Management Area",
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:invasive_species_notice",
+      "name": "Bass, perch, pike and walleye — Kootenay",
+      "display_name": "Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "NOTICE TO ANGLERS It is illegal to fish for bass, perch, pike or walleye in the Kootenay Region, with the exception of certain waters, as listed in the Water-Specific Tables.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:4"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "invasive_species_notice.r1",
+          "type": "retention_limit",
+          "verbatim": "NOTICE TO ANGLERS It is illegal to fish for bass, perch, pike or walleye in the Kootenay Region, with the exception of certain waters, as listed in the Water-Specific Tables.",
+          "obligation": "must",
+          "species": [
+            "BASS",
+            "YP",
+            "NP",
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the Kootenay Region, except waters listed in the tables",
+          "needs_review": true,
+          "review_reason": "NOT a duplicate of z4:species_quotas — those are four separate quota rows; this is one enforcement notice with an unexpressed carve-out. Merging them would delete the perch, pike and walleye closures."
+        }
+      ]
+    },
+    {
+      "entry_id": "z4:kootenay_lake_boundaries",
+      "name": "Kootenay Lake boundaries",
+      "display_name": "Kootenay Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Kootenay Lake Boundaries. Main Body — the area east of a line between boundary signs on opposite shores near Balfour Point and Procter Lighthouse. Upper West Arm — the area west of that line, to McDonalds Landing (Six Mile). Lower West Arm — the area between McDonalds Landing (Six Mile) and Corra Linn Dam. IMPORTANT Kootenay Lake recovery may require in-season regulation changes.",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "whole",
+          "item_id": "wbk:328974235"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kootenay_lake_boundaries.r1",
+          "type": "advisory",
+          "verbatim": "Main Body — the area east of a line between boundary signs on opposite shores near Balfour Point and Procter Lighthouse.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Main Body of Kootenay Lake",
+          "needs_review": true,
+          "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on.",
+          "extents": null
+        },
+        {
+          "rule_id": "kootenay_lake_boundaries.r3",
+          "type": "advisory",
+          "verbatim": "Upper West Arm — the area west of that line, to McDonalds Landing (Six Mile).",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Upper West Arm",
+          "needs_review": true,
+          "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on.",
+          "extents": null
+        },
+        {
+          "rule_id": "kootenay_lake_boundaries.r4",
+          "type": "advisory",
+          "verbatim": "Lower West Arm — the area between McDonalds Landing (Six Mile) and Corra Linn Dam.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Lower West Arm",
+          "needs_review": true,
+          "review_reason": "One of the three reaches Kootenay Lake's water entries reference by name. Until purpose-built polygons exist all its rules point at the whole lake, and this definition is what tells the reader which arm they are on.",
+          "extents": null
+        },
+        {
+          "rule_id": "kootenay_lake_boundaries.r2",
+          "type": "advisory",
+          "verbatim": "IMPORTANT Kootenay Lake recovery may require in-season regulation changes.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": true,
+          "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true.",
+          "extents": null
+        }
+      ]
+    }
+  ]
+}

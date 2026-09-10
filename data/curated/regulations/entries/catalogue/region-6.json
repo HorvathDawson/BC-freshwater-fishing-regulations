@@ -1,0 +1,1353 @@
+{
+  "region": "6",
+  "entries": [
+    {
+      "entry_id": "z6:skeena_nass_bait_ban",
+      "name": "Skeena and Nass bait ban",
+      "display_name": "Skeena and Nass watersheds",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban: In the Skeena River, including tributaries, and Nass River, including tributaries, year-round.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "skeena_nass_bait_ban.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban: In the Skeena River, including tributaries, and Nass River, including tributaries, year-round.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "bait": "any",
+          "allowed": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Skeena River and its tributaries",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:2936",
+              "includes_tributaries": true
+            }
+          ]
+        },
+        {
+          "rule_id": "skeena_nass_bait_ban.r2",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban: In the Skeena River, including tributaries, and Nass River, including tributaries, year-round.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "bait": "any",
+          "allowed": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Nass River and its tributaries",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:3206",
+              "includes_tributaries": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:steelhead_stream_closure",
+      "name": "Steelhead stream closure",
+      "display_name": "Every stream in Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "No fishing: in all rivers and streams for steelhead, May 15 – June 15. Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku Rivers, not currently closed under the existing winter/spring closure regulation.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "steelhead_stream_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "No fishing: in all rivers and streams for steelhead, May 15 – June 15. Exemptions include mainstem portions of the Skeena, Nass, Iskut, Stikine and Taku Rivers, not currently closed under the existing winter/spring closure regulation.",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [
+            "May 15 - Jun 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [
+            {
+              "default_id": "steelhead_stream_closure",
+              "note": "mainstem Skeena, Nass, Iskut, Stikine and Taku, where not already closed"
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": true,
+          "review_reason": "INVERSE EXEMPTION: the rule names its own exempt waters AND qualifies them by the evaluated state of other rules ('not currently closed under existing winter/spring closure'). Nothing here evaluates."
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:skeena_nass_winter_closure",
+      "name": "Skeena and Nass winter closures",
+      "display_name": "Skeena and Nass watersheds",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "skeena_nass_winter_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jan 1 - Jun 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "streams of the Skeena watershed above Cedarvale, excluding the mainstem",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "skeena_river__cedarvale"
+              ],
+              "includes_tributaries": true,
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ],
+          "tributaries_only": true
+        },
+        {
+          "rule_id": "skeena_nass_winter_closure.r2",
+          "type": "retention_limit",
+          "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jan 1 - Jun 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "streams of the Nass watershed above Kitsault Bridge, mainstem exempt",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "nass_river__kitsault_bridge"
+              ],
+              "includes_tributaries": true,
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ],
+          "tributaries_only": true
+        },
+        {
+          "rule_id": "skeena_nass_winter_closure.r3",
+          "type": "retention_limit",
+          "verbatim": "No fishing: in any stream in the watersheds of the Skeena River upstream of Cedarvale or Nass River upstream of Kitsault Bridge, Jan 1-June 15 (NOTE: Nass River mainstem is EXEMPT and Skeena River mainstem upstream of Cedarvale is only closed Jan 1-May 31).",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jan 1 - May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the Skeena River mainstem above Cedarvale",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "skeena_river__cedarvale"
+              ]
+            }
+          ],
+          "tributaries_only": false
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:iskut_fraser_closure",
+      "name": "Iskut and Fraser watershed closures",
+      "display_name": "Iskut and Fraser watersheds in Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "No fishing: in any stream in the Iskut River watershed (upstream of Forest Kerr Canyon), Apr 1-June 30; and in the Fraser River watershed in Region 6, Apr 1-June 30.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "iskut_fraser_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "No fishing: in any stream in the Iskut River watershed (upstream of Forest Kerr Canyon), Apr 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Jun 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Iskut watershed above Forest Kerr Canyon",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "iskut_river__downstream_end_of_forrest_kerr_canyon"
+              ],
+              "includes_tributaries": true,
+              "feature_types": [
+                "stream"
+              ]
+            }
+          ]
+        },
+        {
+          "rule_id": "iskut_fraser_closure.r2",
+          "type": "retention_limit",
+          "verbatim": "and in the Fraser River watershed in Region 6, Apr 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Jun 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Fraser watershed within Region 6",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:39325",
+              "includes_tributaries": true,
+              "feature_types": [
+                "stream"
+              ],
+              "within_area": "area:region:6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:single_barbless_hook",
+      "name": "Single barbless hook",
+      "display_name": "Every stream in Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Single barbless hook: must be used in all streams of Region 6, all year.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Single barbless hook: must be used in all streams of Region 6, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:trout_char_quota",
+      "name": "Trout and char daily quota",
+      "display_name": "Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Region 6 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm (quota includes hatchery steelhead), 3 Dolly Varden/bull trout and/or lake trout combined, 1 trout from streams July 1-Oct 31. And you must release: all Dolly Varden/bull trout from streams all year, Trout under 30 cm from any stream, Trout of any size from streams, Nov 1-June 30, Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30, all wild steelhead.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_char_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm (quota includes hatchery steelhead)",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "3 Dolly Varden/bull trout and/or lake trout combined",
+          "obligation": "must",
+          "species": [
+            "DV",
+            "BT",
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "1 trout from streams July 1-Oct 31",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jul 1 - Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "all Dolly Varden/bull trout from streams all year",
+          "obligation": "must",
+          "species": [
+            "DV",
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "Trout under 30 cm from any stream",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r7",
+          "type": "retention_limit",
+          "verbatim": "Trout of any size from streams, Nov 1-June 30",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Nov 1 - Jun 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r8",
+          "type": "retention_limit",
+          "verbatim": "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 15 - Nov 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "lakes of the Fraser watershed",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:39325",
+              "includes_tributaries": true,
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        },
+        {
+          "rule_id": "trout_char_quota.r10",
+          "type": "retention_limit",
+          "verbatim": "Lake trout from Fraser and Skeena Watersheds, Sept 15-Nov 30",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 15 - Nov 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "lakes of the Skeena watershed",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:2936",
+              "includes_tributaries": true,
+              "feature_types": [
+                "lake"
+              ]
+            }
+          ]
+        },
+        {
+          "rule_id": "trout_char_quota.r9",
+          "type": "retention_limit",
+          "verbatim": "all wild steelhead",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "wild",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r11",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm (quota includes hatchery steelhead)",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r2",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "hatchery steelhead count against the over-50 cm sub-limit",
+          "needs_review": false,
+          "review_reason": "",
+          "origin": "hatchery"
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:species_quotas",
+      "name": "Other daily quotas",
+      "display_name": "Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Arctic grayling: 3. Burbot: 5. Inconnu: 1. Kokanee: 10 (none from streams). Northern pike: 5. Whitefish: 15 (all species combined). White sturgeon: CLOSED TO ALL FISHING.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "species_quotas.r1",
+          "type": "retention_limit",
+          "verbatim": "Arctic grayling: 3",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r2",
+          "type": "retention_limit",
+          "verbatim": "Burbot: 5",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r3",
+          "type": "retention_limit",
+          "verbatim": "Inconnu: 1",
+          "obligation": "must",
+          "species": [
+            "IN"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r4",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 10",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 10,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r5",
+          "type": "retention_limit",
+          "verbatim": "none from streams",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r6",
+          "type": "retention_limit",
+          "verbatim": "Northern pike: 5",
+          "obligation": "must",
+          "species": [
+            "NP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r7",
+          "type": "retention_limit",
+          "verbatim": "Whitefish: 15 (all species combined)",
+          "obligation": "must",
+          "species": [
+            "WHITEFISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r8",
+          "type": "retention_limit",
+          "verbatim": "White sturgeon: CLOSED TO ALL FISHING",
+          "obligation": "must",
+          "species": [
+            "WSG"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:tagging_program",
+      "name": "High reward tagging programs",
+      "display_name": "Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tagging_program.r1",
+          "type": "advisory",
+          "verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tagging_program.r2",
+          "type": "advisory",
+          "verbatim": "HIGH REWARD ($100) TAGGING PROGRAMS. The Skeena Fisheries team has multiple ongoing $100 reward tagging programs. It is possible to catch a tagged fish of any species anywhere in the Skeena Region. Reward payments can be received by reporting capture information by call or text to: 250-643-7290. Note: Sockeye, Chinook, Pink, Chum, and Coho are not part of the provincial high reward tagging program and should be reported to the nearest Department of Fisheries and Oceans office.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "sockeye, chinook, pink, chum and coho go to DFO, not the provincial programme",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:skeena_quality_waters",
+      "name": "Skeena Quality Waters Strategy",
+      "display_name": "Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Skeena Quality Waters Strategy. For more information visit www.env.gov.bc.ca/skeena/qws/ Skeena Quality Waters Strategy · Skeena Fisheries Management · High reward ($100) tagging programs (any species anywhere in the Skeena Region; sockeye, chinook, pink, chum and coho are not part of the provincial programme and go to DFO) · First Nations notices under Angler Alerts.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "skeena_quality_waters.r1",
+          "type": "advisory",
+          "verbatim": "Skeena Quality Waters Strategy. For more information visit www.env.gov.bc.ca/skeena/qws/",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:first_nations_notice",
+      "name": "First Nations notices",
+      "display_name": "Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "NOTICE TO ANGLERS Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations. not part of the provincial programme and go to DFO) · First Nations notices under Angler Alerts.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "first_nations_notice.r1",
+          "type": "advisory",
+          "verbatim": "NOTICE TO ANGLERS Accurate and up-to-date information regarding First Nations notices can be found under Angler Alerts at www.gov.bc.ca/FishingRegulations.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:possession_quota",
+      "name": "Possession quota",
+      "display_name": "Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Possession quotas = 2 daily quotas. Annual quota for all B.C.: 10 hatchery steelhead per licence",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Possession quotas = 2 daily quotas. Annual quota for all B.C.: 10 hatchery steelhead per licence",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "period": "possession",
+          "per_daily": 2,
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "may_target": null,
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z6:set_lining",
+      "name": "Set lining",
+      "display_name": "Lakes of Region 6",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+      "source_pages": [
+        52
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:6",
+          "feature_types": [
+            "lake"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_id": "set_lining.r1",
+          "type": "method_rule",
+          "verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+          "method": "set_lining",
+          "permitted": true,
+          "water": "lake",
+          "max_lines": 1,
+          "hook_count": 1,
+          "min_gap_cm": 3,
+          "may_target": null
+        },
+        {
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_id": "set_lining.r2",
+          "type": "method_rule",
+          "verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+          "method": "set_lining",
+          "permitted": true,
+          "water": "lake",
+          "may_target": null,
+          "extent_text": "marked with the angler's name, address and telephone number"
+        },
+        {
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "needs_review": false,
+          "review_reason": "",
+          "rule_id": "set_lining.r3",
+          "type": "retention_limit",
+          "verbatim": "Set lining: only permitted in the lakes of Region 6. One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [
+            "BB"
+          ],
+          "take": 0,
+          "may_target": true,
+          "method": "set_lining",
+          "water": "lake"
+        }
+      ]
+    }
+  ]
+}

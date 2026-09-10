@@ -1,0 +1,1144 @@
+{
+  "region": "5",
+  "entries": [
+    {
+      "entry_id": "z5:spring_stream_closure",
+      "name": "Spring stream closure",
+      "display_name": "Fraser and Thompson watersheds in Region 5",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "spring_stream_closure.r1",
+          "type": "retention_limit",
+          "verbatim": "Spring closure: No fishing in any stream in Fraser River Watershed of Region 5 (including the Thompson River Watershed) from Apr 1-June 30, EXCEPT the mainstem of the Fraser River and other streams listed in the tables.",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Jun 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Fraser and Thompson watersheds in Region 5, except the Fraser mainstem",
+          "needs_review": false,
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:39325",
+              "includes_tributaries": true,
+              "feature_types": [
+                "stream"
+              ],
+              "within_area": "area:region:5"
+            }
+          ],
+          "tributaries_only": true
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:single_barbless_hook",
+      "name": "Single barbless hook",
+      "display_name": "Every stream in Region 5",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Single barbless hook: must be used in all streams of Region 5, all year.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "single_barbless_hook.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Single barbless hook: must be used in all streams of Region 5, all year.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:no_minimum_size_lakes",
+      "name": "No minimum size in lakes",
+      "display_name": "Lakes of Region 5",
+      "region": "5",
+      "scope_note": "RECOVERED — absent from the corpus.",
+      "regs_verbatim": "Size limit: There is no minimum size in lakes (see tables for exceptions).",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5",
+          "feature_types": [
+            "lake"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "no_minimum_size_lakes.r1",
+          "type": "advisory",
+          "verbatim": "Size limit: There is no minimum size in lakes (see tables for exceptions).",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "lake",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:trout_char_quota",
+      "name": "Trout and char daily quota",
+      "display_name": "Region 5",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Region 5 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 2 from streams, 1 Dolly Varden/bull trout, 2 lake trout. And you must release: ALL STEELHEAD, Lake trout, Oct 1-Nov 30, Bull trout (Dolly Varden) from streams, Aug 1-Oct 31.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_char_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "2 from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r4",
+          "type": "retention_limit",
+          "verbatim": "1 Dolly Varden/bull trout",
+          "obligation": "must",
+          "species": [
+            "DV",
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "2 lake trout",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "ALL STEELHEAD",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r7",
+          "type": "retention_limit",
+          "verbatim": "Lake trout, Oct 1-Nov 30",
+          "obligation": "must",
+          "species": [
+            "LT"
+          ],
+          "species_except": [],
+          "windows": [
+            "Oct 1 - Nov 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r8",
+          "type": "retention_limit",
+          "verbatim": "Bull trout (Dolly Varden) from streams, Aug 1-Oct 31",
+          "obligation": "must",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "species_except": [],
+          "windows": [
+            "Aug 1 - Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:species_quotas",
+      "name": "Other daily quotas",
+      "display_name": "Region 5",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Bass: 0 quota, CLOSED TO ALL FISHING. Burbot: 5. Kokanee: 5 (none from streams). Whitefish: 15 (all species combined).",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "species_quotas.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass: 0 quota, CLOSED TO ALL FISHING",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r2",
+          "type": "retention_limit",
+          "verbatim": "Burbot: 5",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r3",
+          "type": "retention_limit",
+          "verbatim": "Kokanee: 5",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r4",
+          "type": "retention_limit",
+          "verbatim": "none from streams",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "species_quotas.r5",
+          "type": "retention_limit",
+          "verbatim": "Whitefish: 15 (all species combined)",
+          "obligation": "must",
+          "species": [
+            "WHITEFISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:white_sturgeon",
+      "name": "White sturgeon",
+      "display_name": "Fraser watershed",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "White Sturgeon: CLOSED TO ALL FISHING in the Fraser River Watershed upstream of Williams Lake River. CATCH AND RELEASE in the Fraser River Watershed downstream of and including Williams Lake River. CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River Sept 15-July 15. • CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River, Sept 15-July 15.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "white_sturgeon.r1",
+          "type": "retention_limit",
+          "verbatim": "CLOSED TO ALL FISHING in the Fraser River Watershed upstream of Williams Lake River",
+          "obligation": "must",
+          "species": [
+            "WSG"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Fraser watershed upstream of Williams Lake River",
+          "needs_review": true,
+          "review_reason": "Bound upstream of the Williams Lake River confluence (the split exists). Note `r5:fraser_river@5-2` carries the same pair at water level, and its `gnis:39325.r5` has the reach and the permission CROSSED — it labels the upstream closure 'catch and release'. The water rule is the one to fix; this zone rule states the regional default.",
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "fraser_river__williams_lake_river_into_fraser_river"
+              ],
+              "includes_tributaries": true
+            }
+          ]
+        },
+        {
+          "rule_id": "white_sturgeon.r2",
+          "type": "retention_limit",
+          "verbatim": "CATCH AND RELEASE in the Fraser River Watershed downstream of and including Williams Lake River",
+          "obligation": "must",
+          "species": [
+            "WSG"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Fraser watershed downstream of and including Williams Lake River",
+          "needs_review": true,
+          "review_reason": "Bound downstream of and including the Williams Lake River confluence. `downstream_of` must INCLUDE the confluence section — the synopsis says 'downstream of AND INCLUDING Williams Lake River'.",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "fraser_river__williams_lake_river_into_fraser_river"
+              ],
+              "includes_tributaries": true
+            }
+          ]
+        },
+        {
+          "rule_id": "white_sturgeon.r3",
+          "type": "retention_limit",
+          "verbatim": "• CLOSED TO ALL FISHING in the Fraser River downstream of and including Williams Lake River, Sept 15-July 15.",
+          "obligation": "must",
+          "species": [
+            "WSG"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 15 - Jul 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Fraser River downstream of and including Williams Lake River",
+          "needs_review": true,
+          "review_reason": "Mainstem only, not the watershed, and seasonal — narrower than r2 and it closes what r2 opens for Sept 15 - Jul 15.",
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "fraser_river__williams_lake_river_into_fraser_river"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:steelhead_management",
+      "name": "Steelhead management changes",
+      "display_name": "Chilcotin River watershed",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Steelhead Management Changes. In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "steelhead_management.r1",
+          "type": "advisory",
+          "verbatim": "In response to declining abundance of Fraser Basin steelhead, steelhead fisheries within the Chilcotin River Watershed may be closed.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Chilcotin River watershed",
+          "needs_review": true,
+          "review_reason": "BOUND — watershed: the named water plus its tributary walk. Conditional ('may be closed') and watershed-scoped. RECOVERED — absent from the corpus.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:13744",
+              "includes_tributaries": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:dean_river_classified",
+      "name": "Dean River Classified Waters",
+      "display_name": "Dean River",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Dean River Classified Waters. All anglers are required to buy a Classified Waters Licence to fish the classified portions of the Dean River. There are no limits on the number of days which a Canadian resident may fish the classified sections of the Dean River. A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided. A non-guided Non-Resident Alien wishing to fish the Class I - Main Section of the Dean River, from Crag Creek to signs 500 m upstream the canyon, must enter an annual limited entry draw held each spring.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "dean_river_classified.r1",
+          "type": "document_required",
+          "verbatim": "All anglers are required to buy a Classified Waters Licence to fish the classified portions of the Dean River.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Dean River",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped to the Dean River.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:16075"
+            }
+          ]
+        },
+        {
+          "rule_id": "dean_river_classified.r2",
+          "type": "document_required",
+          "verbatim": "There are no limits on the number of days which a Canadian resident may fish the classified sections of the Dean River.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "resident"
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Dean River",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped to the Dean River, and angler-class scoped: Canadian residents have NO day limit, which is the counterpart to the non-resident-alien restriction in r3.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:16075"
+            }
+          ]
+        },
+        {
+          "rule_id": "dean_river_classified.r4",
+          "type": "document_required",
+          "verbatim": "A non-guided Non-Resident Alien wishing to fish the Class I - Main Section of the Dean River, from Crag Creek to signs 500 m upstream the canyon, must enter an annual limited entry draw held each spring.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "I",
+          "allocation": "limited_entry_draw",
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Dean River Class I Main Section, Crag Creek to signs 500 m above the canyon",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. A rationing mechanism, not a restriction on water: allocation=limited_entry_draw.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:16075"
+            }
+          ]
+        },
+        {
+          "rule_id": "dean_river_classified.r3",
+          "type": "document_required",
+          "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien"
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "allocation": "one_per_licence_year",
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Dean River — one Classified Waters Licence per licence year",
+          "needs_review": true,
+          "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:16075"
+            }
+          ]
+        },
+        {
+          "rule_id": "dean_river_classified.r3b",
+          "type": "document_required",
+          "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien"
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "allocation": "one_classified_section_only",
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Dean River — one classified section only",
+          "needs_review": true,
+          "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:16075"
+            }
+          ]
+        },
+        {
+          "rule_id": "dean_river_classified.r3c",
+          "type": "document_required",
+          "verbatim": "A Non-Resident Alien is allowed only one Classified Waters Licence for the Dean River, and may only fish one classified section of the Dean River for a maximum of 8 consecutive days per year regardless of whether guided or unguided.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien"
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "document": "classified_waters_licence",
+          "required": true,
+          "allocation": "max_8_consecutive_days_per_year",
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Dean River — 8 consecutive days per year, guided or not",
+          "needs_review": true,
+          "review_reason": "One of three independent limits the sentence places on a Non-Resident Alien; they were compressed into a single free-text allocation that nothing could compare or override. Water-scoped to the Dean River.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "gnis:16075"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:bass_illegal",
+      "name": "Bass — Cariboo Region",
+      "display_name": "Region 5",
+      "region": "5",
+      "scope_note": "The only region where the quota row and the enforcement notice DO share a species set.",
+      "regs_verbatim": "It is illegal to fish for bass in the Cariboo Region. This measure is part of B.C.'s management approach to illegal fish introductions.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "bass_illegal.r1",
+          "type": "retention_limit",
+          "verbatim": "It is illegal to fish for bass in the Cariboo Region.",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the Cariboo Region",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:ice_fishing_huts",
+      "name": "Ice fishing huts",
+      "display_name": "Lakes of Region 5",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "ICE FISHING HUTS: WARNING Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+      "source_pages": [
+        46
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5",
+          "feature_types": [
+            "lake"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "ice_fishing_huts.r1",
+          "type": "method_rule",
+          "verbatim": "ICE FISHING HUTS: WARNING Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "permitted": true,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "huts must be removed before spring breakup",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z5:possession_quota",
+      "name": "Possession quota",
+      "display_name": "Region 5",
+      "region": "5",
+      "scope_note": "",
+      "regs_verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:5"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Possession quotas = 2 daily quotas (see tables for exceptions)",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "period": "possession",
+          "per_daily": 2,
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "may_target": null,
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    }
+  ]
+}

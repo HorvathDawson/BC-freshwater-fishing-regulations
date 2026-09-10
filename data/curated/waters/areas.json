@@ -110,9 +110,16 @@
       "name_field": "REGION_RESPONSIBLE_ID",
       "which": "all",
       "cut": true,
-      "note": "The nine management regions the synopsis is written in, dissolved from the 225 wildlife management units by REGION_RESPONSIBLE_ID. CUT, because a regulation is written PER REGION and a water running through two of them needs a section boundary between the halves or a region's rules cannot be attached to its own half — the Fraser already carries three such boundaries, placed by hand at the Chilcotin, the Williams Lake River and the Cottonwood. Measured before adding: 62 of 11,957 streams cross a region boundary, 59 of them touching two regions, 2 touching three and 1 touching four. Dissolved on the ID and not the NAME, because 7A Omineca and 7B Omineca share a name and are two regions in the book with different rules; dissolving on the name would merge them and lose the boundary the synopsis prints.",
+      "note": "The nine management regions the synopsis is written in, dissolved from the 225 wildlife management units by REGION_RESPONSIBLE_ID. CUT, because a regulation is written PER REGION and a water running through two of them needs a section boundary between the halves or a region's rules cannot be attached to its own half — the Fraser already carries three such boundaries, placed by hand at the Chilcotin, the Williams Lake River and the Cottonwood. Measured before adding: 62 of 11,957 streams cross a region boundary, 59 of them touching two regions, 2 touching three and 1 touching four. Dissolved on the ID and not the NAME, because 7A Omineca and 7B Omineca share a name and are two regions in the book with different rules; dissolving on the name would merge them and lose the boundary the synopsis prints.  HAIDA GWAII: MUs 6-12 and 6-13 carry REGION_RESPONSIBLE_ID=6 in the source layer, but the 2025-2027 synopsis administers them from Region 1 — `remap` reassigns them before the dissolve.",
       "tile_layer": "region",
-      "label_term": "Region"
+      "label_term": "Region",
+      "remap": {
+        "field": "WILDLIFE_MGMT_UNIT_ID",
+        "values": {
+          "6-12": "1",
+          "6-13": "1"
+        }
+      }
     },
     {
       "id": "mu_group_south_island",

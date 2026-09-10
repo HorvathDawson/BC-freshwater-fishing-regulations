@@ -27,6 +27,28 @@ def load_area_split_defs(path: str | None = None) -> list[dict]:
     return json.loads(p.read_text()).get("areas", [])
 
 
+def apply_remap(g, name_field: str, remap: dict | None, layer: str = "") -> None:
+    """Reassign ``name_field`` values in place, before a dissolve, because ADMINISTRATION MOVES
+    AND GEOGRAPHY DOES NOT.
+
+    Haida Gwaii (MUs 6-12, 6-13) still carries ``REGION_RESPONSIBLE_ID = 6`` in the source layer,
+    but the 2025-2027 synopsis administers it from Region 1: *"Freshwater angling regulations and
+    fisheries management for Haida Gwaii ... are now within Region 1."* Dissolving on the raw
+    field hands Haida Gwaii all 26 of Region 6's zone rules and none of Region 1's.
+
+        {"field": "WILDLIFE_MGMT_UNIT_ID", "values": {"6-12": "1", "6-13": "1"}}
+
+    Keyed on a DIFFERENT column than the one being rewritten, so the rule reads as "this unit
+    now belongs to that region" rather than a blanket rename of one region to another.
+    """
+    if not remap:
+        return
+    field, values = remap["field"], remap["values"]
+    if field not in g.columns:
+        raise KeyError(f"remap field {field!r} not in layer {layer!r}")
+    g[name_field] = [values.get(str(k), v) for k, v in zip(g[field], g[name_field])]
+
+
 def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     """{key -> (Multi)Polygon} for one area def. `where` filters the layer (e.g. ecological reserves
     within parks_bc); absent `where` = the whole layer.
@@ -72,6 +94,13 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
             fid = str(row.get(idf) or i) if idf else str(i)
             out[f"{name} [{fid}]"] = geom     # id suffix keeps nameless parcels distinct
         return out
+
+    # REMAP before the dissolve, because administration moves and geography does not.
+    # Haida Gwaii (MUs 6-12, 6-13) still carries REGION_RESPONSIBLE_ID = 6 in the source
+    # layer, but the 2025-2027 synopsis administers it from Region 1: "Freshwater angling
+    # regulations ... for Haida Gwaii ... are now within Region 1." Dissolving on the raw
+    # field hands Haida Gwaii all 26 of Region 6's zone rules and none of Region 1's.
+    apply_remap(g, nf, area_def.get("remap"), area_def["layer"])
 
     for name, sub in g.groupby(nf):
         geom = sub.geometry.union_all()

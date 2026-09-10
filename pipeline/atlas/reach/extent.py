@@ -230,9 +230,39 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         # the area, not a water. Every other op selects FROM a water, so no water means no answer.
         _fail("no_sections_for_items", ",".join(scope))
         return None
+    # `within_area` LIMITS whatever this extent selects to a polygon. It is the one shape the
+    # vocabulary could not express: "any stream in the Fraser River Watershed OF REGION 5" is a
+    # watershed INTERSECTED with an administrative area, and every op here only ever ADDS water.
+    #
+    # A bounded reach cannot substitute, measured: walking the Fraser from its region-5 sections
+    # leaks 2,074 sections outside the region and misses 23,052 inside it (waters that drain into
+    # the Fraser somewhere else). And region 6 holds no Fraser mainstem at all, so there is no
+    # reach to bound.
+    #
+    # Resolved HERE and carried forward, because the intersection must be applied AFTER the
+    # tributary walk — the walk is what leaves the area, so filtering the seed would do nothing.
+    limit_sections: set[str] | None = None
+    limit_id = str(ex.get("within_area") or "")
+    if limit_id:
+        key = limit_id if limit_id.startswith("area:") else f"area:{limit_id}"
+        if key not in reg:
+            _fail("within_area_not_in_registry", limit_id)
+            return None
+        limit_sections = set(reg[key].section_ids)
+
+    def _limited(sec: set[str]) -> set[str]:
+        return sec if limit_sections is None else (sec & limit_sections)
+
+    def _out(sec: set[str], **extra) -> dict:
+        d = {"sections": sorted(_limited(sec)), "unclassified": [], "ambiguous_cut": [],
+             "window": None, "waters": _waters(g, _limited(sec))}
+        if limit_sections is not None:
+            d["within_area"] = sorted(limit_sections)
+        d.update(extra)
+        return d
+
     if op == "whole":
-        return {"sections": sorted(universe), "unclassified": [], "ambiguous_cut": [], "window": None,
-                "waters": _waters(g, universe)}
+        return _out(universe)
     if op == "within":
         # An `area:` registry item already carries every section its polygon covers (the build's
         # membership pass), so `within` needs no geometry here — it is a set operation.
@@ -295,8 +325,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             # means the rule paired a water with an area it never enters.
             _fail("area_does_not_meet_this_water", aid or kind_of_area)
             return None
-        return {"sections": sorted(sec), "unclassified": [], "ambiguous_cut": [],
-                "waters": _waters(g, sec), "window": None}
+        return _out(sec)
     # The measure window this extent resolved to, as (blk, lo, hi) — None when there isn't
     # one (a `whole` extent, or a `between` spanning two blue lines). Returned rather than
     # discarded because the tributary walk needs the reach's lower cut to decide which
@@ -378,5 +407,4 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     else:
         _fail("unsupported_op", str(op))
         return None
-    return {"sections": sorted(sec), "unclassified": sorted(braided), "ambiguous_cut": ambiguous,
-            "waters": _waters(g, sec), "window": window}
+    return _out(sec, unclassified=sorted(braided), ambiguous_cut=ambiguous, window=window)

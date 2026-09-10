@@ -154,6 +154,24 @@ def classify(
 
         direct = set(sections)
         sections = set(expand_tributaries(direct, only=tributaries_only))
+        # THE INTERSECTION IS APPLIED HERE, after the walk, because the walk is what leaves the
+        # area. "Any stream in the Fraser River Watershed OF REGION 5" is a watershed limited to an
+        # administrative polygon, and filtering the seed instead would do nothing at all — the seed
+        # is already inside the region; it is the tributaries that wander out of it.
+        limit: set[str] = set()
+        for got in per_extent:
+            if got and got.get("within_area"):
+                limit |= set(got["within_area"])
+        if limit:
+            before = len(sections)
+            sections &= limit
+            diags.append(Diagnostic(entry_id, rid, "within_area", {
+                "before": before, "after": len(sections), "removed": before - len(sections),
+            }))
+            if not sections:
+                return unresolved(Reason.no_sections,
+                                  "within_area removed every section the walk found — the "
+                                  "watershed and the area do not meet")
         # The provenance, taken HERE because this is the only line where the two sets are
         # still apart. `sections - direct` is right for both states: with `only`, the reach
         # is not in `sections` at all, so every section is a tributary one.
