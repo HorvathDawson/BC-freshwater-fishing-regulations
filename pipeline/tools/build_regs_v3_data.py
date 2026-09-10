@@ -317,6 +317,29 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     #
     # So the ladder holds only water this synopsis governs.
     runs = [r for r in runs if not r["oob"]]
+
+    # ---- WHICH CROSSING OF THE SAME BOUNDARY THIS IS -------------------------------
+    #
+    # An AREA is a polygon: it cuts the river where the river enters and again where it leaves,
+    # and both cuts carry its name. Two stretches then read identically — the Fraser printed
+    # "From Region 5 – Region 7A boundary / To Region 5 – Region 7A boundary", which looks like
+    # no distance at all rather than the 29 km it is.
+    #
+    # The SPLITS ARE ALREADY IN THE RIGHT PLACES. Downstream of the first cut the river is in
+    # one region; upstream of the last it is in the other; between them it is in both, and the
+    # MUs say so (5-13 and 7-8 on the same reach). What was missing is only which crossing each
+    # cut is, so the piece between them can be named as the piece between them. Where a boundary
+    # is crossed once, there is one cut and no middle — nothing here fires.
+    at = defaultdict(list)
+    for i, r in enumerate(runs):
+        if r.get("bkind") == "area" and r.get("label"):
+            at[r["label"]].append(i)
+    for lab, idx in at.items():
+        if len(idx) < 2:
+            continue
+        for n, i in enumerate(idx):
+            runs[i]["bside"] = "down" if n == 0 else ("up" if n == len(idx) - 1 else str(n + 1))
+
     for r in runs:
         r["km"] = round(r["to"] - r["from"], 1)
 
