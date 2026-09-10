@@ -671,7 +671,7 @@ def build(build_dir: Path, out: Path, *, data_dir: Path | None = None) -> Path:
             f"{GENERATED.reaches / build_dir.name}")
     else:
         print(f"     rules: reading {_reaches.relative_to(REPO_ROOT)}")
-        _rules.write(db, _reaches, CURATED.regulations.entries.synopsis.parent, cov,
+        _rules.write(db, _reaches, CURATED.regulations.entries.catalogue.parent, cov,
                      build_dir=build_dir)
 
     # Everything below needs a producer that does not exist yet, or exists but has not been

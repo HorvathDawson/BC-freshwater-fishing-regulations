@@ -26,10 +26,8 @@ from pipeline.common.models import RegistryItem
 from pipeline.regs.parsing.rows import symbols_include_tributaries
 from pipeline.regs.parsing.species import prompt_menu
 
-_PROMPT = Path(__file__).resolve().parent / "prompts" / "PARSE_PROMPT.md"
 #: The canonical spelling of every rule statement. Appended to BOTH the parse and review prompts —
 #: they each cite it by name, and a spec the agent cannot see is not a spec.
-_STANDARDS = Path(__file__).resolve().parent / "prompts" / "RULE_STANDARDS.md"
 #: The catalogue format: a rule is a TYPE plus named CONDITIONS, and the label is generated.
 _CATALOGUE_PROMPT = Path(__file__).resolve().parent / "prompts" / "CATALOGUE_PARSE_PROMPT.md"
 
@@ -149,18 +147,19 @@ def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, regist
     )
 
 
-def load_system_prompt(catalogue: bool = False) -> str:
-    """The stable parser instructions.
+def load_system_prompt(catalogue: bool = True) -> str:
+    """The parser instructions — CATALOGUE_PARSE_PROMPT.md, the only format there is.
 
-    `catalogue=True` selects CATALOGUE_PARSE_PROMPT.md — the format where a rule is a TYPE plus
-    named CONDITIONS and the label is generated. RULE_STANDARDS.md is deliberately NOT appended
-    there: it exists to standardise hand-typed labels (80 distinct quota grammars, three ways to
-    write one motor limit), and when nothing is typed by hand that variance cannot occur.
+    PARSE_PROMPT.md and RULE_STANDARDS.md are gone. They taught an agent how to PHRASE a label
+    (80 distinct quota grammars, three ways to write one motor limit, "single barbless hook"
+    written seven ways). Nothing is phrased by hand now — a rule is a TYPE plus named CONDITIONS
+    and the line the reader sees is generated — so that variance cannot occur and the instructions
+    that policed it have nothing to police.
+
+    The one part of RULE_STANDARDS worth keeping was §3, "type by what the rule DOES, not by the
+    words it uses", and it lives in the catalogue prompt with its table updated.
     """
-    if catalogue:
-        return _CATALOGUE_PROMPT.read_text(encoding="utf-8")
-    return (_PROMPT.read_text(encoding="utf-8") + "\n\n---\n\n"
-            + _STANDARDS.read_text(encoding="utf-8"))
+    return _CATALOGUE_PROMPT.read_text(encoding="utf-8")
 
 
 def render_boundary_menu(boundaries, owners=None) -> list[str]:
@@ -251,11 +250,11 @@ check) after you submit, and any batch that fails is re-run — so get each entr
 """
 
 
-def render_batch_prompt(contexts: list[ParseContext], catalogue: bool = False) -> str:
+def render_batch_prompt(contexts: list[ParseContext]) -> str:
     """A self-contained batch prompt: the stable rules/examples (PARSE_PROMPT.md), each item's
     constrained menu, then the `{index, entry}` output envelope. Single-shot — the agent emits JSON
     directly (no tools); validation happens downstream at ingest."""
-    parts = [load_system_prompt(catalogue),
+    parts = [load_system_prompt(),
              "\n\n---\n\n# BATCH — parse EACH item below into its own Entry\n"]
     for ctx in contexts:
         parts.append(f"\n---\n## ITEM index={ctx.row_index}\n\n{render_user_message(ctx)}\n")

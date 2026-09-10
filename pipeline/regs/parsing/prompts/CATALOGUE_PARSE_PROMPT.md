@@ -64,6 +64,26 @@ decides what competes. Never reach across a family.
 ban and a hook rule never compete — you obey both — so they are different types. A closure and a
 quota are one subject at two values, so they are the **same** type.
 
+### Type by what the rule DOES, not by the words it uses
+
+These were each filed two ways in the old corpus. The right column is the rule:
+
+| statement | type | why |
+|---|---|---|
+| *"No ice fishing"* | `method_rule(ice_fishing, permitted=false)` | it prohibits a METHOD. It says nothing about what you may keep and competes with no quota. |
+| *"No powered boats"* | `vessel_rule(aspect=propulsion)` | restricts the boat, not the tackle |
+| *"No angling from boats"* | `angling_from_vessel_prohibited` | restricts ANGLING, not boating — a water can allow motoring and forbid fishing from the boat |
+| *"Class I/II water"* | `document_required` | a licence classification; the water's `Classified` symbol carries the fact |
+| *"Youth/disabled accompanied water"* | `program_membership` | an ACCESS provision — who may be brought along, not what licence is held |
+| *"Angling prohibited for non-guided non-resident aliens on Saturdays"* | `access_permission` | it restricts **who** may fish, not what may be kept. Filed as a closure it collides with quotas and with its own sibling. |
+| *"Exempt from the spring closure"* | **not a type** — `exempts` on the rule it lifts | an exemption takes the type of whatever it removes |
+| *"Bass: 0 quota, closed to fishing"* | `retention_limit(take=0, may_target=false)` | a closure IS a limit. Filed apart from quotas the override never fires. |
+
+**Quick test:** `retention_limit` limits what you keep · `bait_restriction` what goes in the water ·
+`tackle_restriction` what is on the line · `method_rule` how you fish · `vessel_rule` the boat ·
+`document_required` what you must hold · `access_permission` who may fish · `handling_rule` the fish
+after capture · the note types impose nothing.
+
 ---
 
 ## The distinction that matters most

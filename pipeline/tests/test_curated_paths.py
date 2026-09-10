@@ -44,9 +44,9 @@ class TestItResolves:
 
     def test_both_entry_corpora_exist(self, tree):
         e = tree.regulations.entries
-        assert e.synopsis.is_dir() and e.dfo_salmon.is_dir()
+        assert e.catalogue.is_dir() and e.dfo_salmon.is_dir()
         # They are separate FILES with separate models; only the location is shared.
-        assert e.synopsis != e.dfo_salmon
+        assert e.catalogue != e.dfo_salmon
 
     def test_the_built_domain_exists_and_the_unbuilt_are_declared(self, tree):
         assert tree.gauges.matches is not None and tree.gauges.matches.is_file()
@@ -67,7 +67,7 @@ class TestItResolves:
         # only when run from the repo root. Same class of bug as a missing path, harder to
         # see.
         assert tree.waters.splits.is_absolute()
-        assert tree.regulations.entries.synopsis.is_absolute()
+        assert tree.regulations.entries.catalogue.is_absolute()
 
 
 class TestAWrongPathIsLoud:
@@ -89,7 +89,7 @@ class TestAWrongPathIsLoud:
 
     def test_a_missing_entries_directory_is_refused(self):
         blob = self._blob()
-        blob["regulations"]["entries"]["synopsis"] = "pipeline/nope"
+        blob["regulations"]["entries"]["catalogue"] = "pipeline/nope"
         with pytest.raises(ValidationError):
             C.Curated.model_validate(blob)
 

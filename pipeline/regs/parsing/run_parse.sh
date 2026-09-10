@@ -2,17 +2,15 @@
 # THE single entry point for the parse pipeline. Every workflow is a subcommand here — the Python
 # modules are building blocks it calls (see pipeline/regs/parsing/README.md for the dataflow).
 #
-# ⛔ HUMAN-ONLY (credits): `parse`, `parse-missing`, `catalogue`, `review`, `repass` dispatch batches to the `claude`
+# ⛔ HUMAN-ONLY (credits): `parse` dispatches batches to the `claude`
 #    CLI and spend the user's credits. Claude/agents must NOT run those — only hand the user the command.
 #    `prune` and `status` are local (no credits) and safe for anyone to run.
 #
-#   `parse`          full cascade: parse missing + escalate + review + review-escalate + ingest.
-#   `parse-missing`  parse ONLY missing rows + escalate invalid + ingest. NO review (saves credits).
 #
-#   `catalogue`      parse the water-specific tables into the CATALOGUE format (pipeline/docs/18).
-#   `catalogue-dry`  export catalogue batches only — NO dispatch, no credits. Read the prompt first.
+#   `parse`      parse the water-specific tables into the catalogue format (pipeline/docs/18).
+#   `parse-dry`  export batches only — NO dispatch, no credits. Read the prompt first.
 #
-#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-missing|catalogue|catalogue-dry|review|repass|prune|status> [rereview]
+#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-dry|prune|status>
 #
 # Env knobs: REGISTRY, BATCH_SIZE, MODEL (parse), REVIEW_MODEL, ESCALATE_MODEL, CONCURRENCY, CLAUDE_BIN.
 set -euo pipefail
@@ -68,75 +66,19 @@ _apply_ingest() {   # dry-run ingest, then confirm-apply. $@ = extra ingest flag
 
 case "$CMD" in
 
-  parse)   # export un-parsed rows, parse (tiered cascade), review-escalate, ingest
-    echo "== parse: preflight =="; _need_claude; _need_registry
-    echo "  parse=$MODEL review=$REVIEW_MODEL escalate=$ESCALATE_MODEL"
-    echo "== export (resume: only rows missing from EntryFiles) =="; "${EXPORT[@]}" --skip-existing
-    echo "== parse ($MODEL, single-shot) ==";                "${DISPATCH[@]}" --model "$MODEL"
-    echo "== escalate validation failures ($ESCALATE_MODEL) =="; "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-invalid
-    echo "== review ($REVIEW_MODEL) ==";                     "${DISPATCH[@]}" --model "$MODEL" --review --review-model "$REVIEW_MODEL"
-    echo "== escalate review-flagged + still-invalid ($ESCALATE_MODEL) =="; "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-flagged --redo-invalid
-    echo "== validate + apply =="; _apply_ingest
-    ;;
 
-  parse-missing)   # parse ONLY rows missing from EntryFiles, then ingest. NO review (saves credits).
-    echo "== parse-missing: preflight =="; _need_claude; _need_registry
-    echo "  parse=$MODEL escalate=$ESCALATE_MODEL (review SKIPPED — run 'review' later)"
-    echo "== export (resume: only rows missing from EntryFiles) =="; "${EXPORT[@]}" --skip-existing
-    echo "== parse ($MODEL, single-shot) ==";                "${DISPATCH[@]}" --model "$MODEL"
-    echo "== escalate validation failures ($ESCALATE_MODEL) =="; "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-invalid
-    echo "== validate + apply =="; _apply_ingest
-    echo "  ✓ parse-missing done (no review run). Review later: bash pipeline/regs/parsing/run_parse.sh review"
-    ;;
 
-  review)  # review current entries in place (locked + not); stamp parse_review. No re-parse.
-    #   review            every entry WITHOUT a verdict yet (resumes a partial run)
-    #   review hardest    the unreviewed half, worst-first by rule count (HARDEST=0.5 to change)
-    #   review clean      wipe every verdict and review everything again
-    #
-    # Resume is keyed on the ENTRY (`parse_review.verdict`), never on the batch file. Reviewing a
-    # SUBSET renumbers the batches, so a stale `reviews/batch_007.review.json` from a previous run
-    # would be read as this run's batch 7 — the same desync that cost a parse once. The review files
-    # are transient (the verdict is stamped onto the entry at the end), so they are cleared every
-    # run and the entry is the only thing that remembers.
-    echo "== review: preflight =="; _need_claude; _need_registry
-    SELECT=(--unreviewed)
-    if [ "${2:-}" = "clean" ]; then
-      echo "== clean: wiping ALL prior verdicts (entry parse_review) =="
-      $PY -m pipeline.regs.parsing.ingest --clear-reviews
-      SELECT=()
-    elif [ "${2:-}" = "hardest" ]; then
-      SELECT=(--unreviewed --hardest "${HARDEST:-0.5}")
-      echo "  (hardest: the unreviewed ${HARDEST:-0.5} by rule count — run 'review' again for the rest)"
-    fi
-    rm -f data/generated/regs/parse/reviews/*.review.json 2>/dev/null || true   # transient; verdicts live on entries
-    echo "== export (selected entries -> batches) =="; "${EXPORT[@]}" "${SELECT[@]+"${SELECT[@]}"}"
-    echo "== synth responses from current entries =="; $PY -m pipeline.regs.parsing.synth_responses
-    echo "== review ($REVIEW_MODEL) =="; "${DISPATCH[@]}" --review --review-model "$REVIEW_MODEL"
-    echo "== stamp parse_review onto entries (content-safe) =="; $PY -m pipeline.regs.parsing.ingest --apply-reviews
-    echo "  ✓ review done. Remaining unreviewed: run 'run_parse.sh review' again."
-    echo "    Flagged entries: run 'run_parse.sh repass' to re-parse them."
-    ;;
 
-  repass)  # re-parse ONLY the review-flagged entries (MODEL selectable), with reviewer hints
-    echo "== repass: preflight =="; _need_claude; _need_registry
-    echo "  re-parsing review-flagged entries on: $MODEL"
-    rm -rf data/generated/regs/parse                                    # fresh work dir (progress lives in EntryFiles)
-    echo "== export flagged =="; "${EXPORT[@]}" --flagged
-    echo "== parse ($MODEL, force) ==";                     "${DISPATCH[@]}" --model "$MODEL" --force
-    echo "== escalate validation failures ($ESCALATE_MODEL) =="; "${DISPATCH[@]}" --model "$ESCALATE_MODEL" --redo-invalid
-    echo "== validate + apply =="; _apply_ingest
-    ;;
 
   prune)   # drop stale bare-item_id entries superseded by per-row entries (local; no credits)
     $PY -m pipeline.regs.parsing.prune_superseded "${@:2}"
     ;;
 
-  catalogue)  # parse the water-specific tables into the CATALOGUE format (doc 18)
+  parse)   # parse the water-specific tables into the catalogue format (pipeline/docs/18)
     echo "== catalogue parse: preflight =="; _need_claude; _need_registry
     echo "  model=$MODEL   format=type+conditions, label generated"
     echo "== export (catalogue prompts) =="
-    "${EXPORT[@]}" --catalogue --skip-existing
+    "${EXPORT[@]}" --skip-existing
     echo "== parse ($MODEL) ==";  "${DISPATCH[@]}" --model "$MODEL"
     echo "== validate + apply (nothing partial is written) =="
     $PY -m pipeline.regs.parsing.ingest_catalogue \
@@ -145,9 +87,9 @@ case "$CMD" in
         --out data/curated/regulations/entries/catalogue
     ;;
 
-  catalogue-dry)  # the same, WITHOUT dispatching — no credits. Use it to read the prompt first.
+  parse-dry)  # export batches only — NO dispatch, no credits. Read the prompt first.
     echo "== catalogue export only (no credits spent) =="; _need_registry
-    "${EXPORT[@]}" --catalogue --skip-existing
+    "${EXPORT[@]}" --skip-existing
     echo "batches written. Read one before spending anything:"
     echo "  less \"$RESP\"/../batches/batch_000.prompt.txt"
     ;;

@@ -92,11 +92,16 @@ class Waters(BaseModel):
 
 
 class Entries(BaseModel):
-    """The two per-region regulation corpora. Same KIND of thing, separate models."""
+    """The per-region regulation corpora. Same KIND of thing, separate models.
+
+    `catalogue` is the format doc 18 describes — a rule is a TYPE plus named CONDITIONS and the
+    label is generated. `synopsis` held the prose format it replaces and is gone; the water-specific
+    tables are reparsed into `catalogue` (`run_parse.sh catalogue`).
+    """
 
     model_config = ConfigDict(frozen=True)
 
-    synopsis: DirectoryPath
+    catalogue: DirectoryPath
     dfo_salmon: DirectoryPath
 
     _abs = field_validator("*", mode="before")(_absolute)

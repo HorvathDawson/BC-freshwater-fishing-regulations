@@ -111,7 +111,7 @@ def _item_payload(index: int, ctx) -> dict:
 def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_ids, force: bool,
            skip_existing: bool = False, only_changed: bool = False,
            existing_regs: dict | None = None, only_ids: set[str] | None = None,
-           review_hints: dict[str, list] | None = None, catalogue: bool = False) -> dict:
+           review_hints: dict[str, list] | None = None) -> dict:
     """Export matchable rows into stable batches, ONE batch item per synopsis ROW (each row is its own
     entry). Rows that share a registry item get a reach-qualified `entry_id` (`item_id#<reach-slug>`) so
     they no longer collide and overwrite at ingest (the bug); single-row waterbodies keep
@@ -207,7 +207,7 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             json.dumps({"batch": bid, "rows_digest": digest, "items": items}, ensure_ascii=False, indent=2),
             encoding="utf-8")
         (batches_dir / f"batch_{bid:03d}.prompt.txt").write_text(
-            render_batch_prompt([ctx for (_, ctx) in chunk], catalogue=catalogue), encoding="utf-8")
+            render_batch_prompt([ctx for (_, ctx) in chunk]), encoding="utf-8")
         manifest_batches.append({"id": bid, "count": len(chunk), "indices": [i for (i, _) in chunk]})
 
     # Drop ORPHANED responses/reviews from a previous (larger) export: a batch id no longer produced
@@ -248,9 +248,6 @@ def main() -> None:
     ap.add_argument("--entries-dir", help="checked-in EntryFiles dir (resume skip).")
     ap.add_argument("--out-dir", help="working dir (default: <out>/parse).")
     ap.add_argument("--force", action="store_true", help="re-export rows already present in EntryFiles.")
-    ap.add_argument("--catalogue", action="store_true",
-                    help="emit CATALOGUE_PARSE_PROMPT batches — a rule is a TYPE plus named "
-                         "CONDITIONS and the label is generated. Ingest with ingest_catalogue.")
     ap.add_argument("--skip-existing", action="store_true",
                     help="drop rows already in EntryFiles (CHANGES the batch layout — breaks resume of a "
                     "run in flight; only for a deliberate fresh export after curation)")
@@ -309,7 +306,6 @@ def main() -> None:
               + (f", hardest {args.hardest}" if args.hardest else ""))
 
     manifest = export(rows, registry, out_dir, args.batch_size, overrides, existing, args.force,
-                      catalogue=args.catalogue,
                       skip_existing=args.skip_existing, only_changed=args.only_changed,
                       existing_regs=existing_regs, only_ids=only_ids, review_hints=review_hints)
     print(f"Exported {manifest['pending_count']} rows into {len(manifest['batches'])} batch(es) -> {out_dir/'batches'}")

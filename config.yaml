@@ -137,7 +137,7 @@ curated:
   regulations:
     overrides: "data/curated/regulations/overrides.json"
     entries:
-      synopsis: "data/curated/regulations/entries/synopsis"
+      catalogue: "data/curated/regulations/entries/catalogue"
       dfo_salmon: "data/curated/regulations/entries/dfo_salmon"
 
   # --- run timing: authored gaps and labels --------------------------------------

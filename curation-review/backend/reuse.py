@@ -36,7 +36,7 @@ from pipeline.common.utils.wsc import trim_wsc
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-ENTRIES_DIR = CURATED.regulations.entries.synopsis
+ENTRIES_DIR = CURATED.regulations.entries.catalogue
 # The build the app SERVES. `project_config.review_build_dir` is the one name for it, shared with
 # rebuild.py (which writes this same directory) — see config.yaml `generated.atlas.default_build`. Hard-coding
 # it here meant the app could serve a build months older than the pipeline and say nothing: every

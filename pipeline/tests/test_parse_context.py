@@ -46,20 +46,6 @@ def _examples_from_prompt():
     return [json.loads(m) for m in re.findall(r"```json\n(.*?)\n```", text, re.DOTALL)]
 
 
-def test_prompt_examples_are_valid_entries():
-    examples = _examples_from_prompt()
-    assert len(examples) >= 2
-    for data in examples:
-        entry = Entry(**data)                       # must satisfy every model validator
-        # every extent id used by the examples is one the example's own text lists as a boundary
-        allowed = {sid for r in entry.rules for ex in r.extents for sid in ex.splits}
-        assert validate_entry_splits(entry, allowed) == []
-
-
-# --------------------------------------------------------------------------- #
-# Combined-entry overrides: one synopsis row over several registry items
-# --------------------------------------------------------------------------- #
-
 def _ritem(iid, name, boundaries=(), mus=(), variants=()):
     from pipeline.common.models import RegistryBoundary, RegistryItem
     bs = tuple(RegistryBoundary(id=b, label=b.replace("_", " "), kind="split", ref=f"split:{b}")

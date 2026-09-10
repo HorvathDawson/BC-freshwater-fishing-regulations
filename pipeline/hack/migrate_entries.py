@@ -23,7 +23,7 @@ from pipeline.regs.parsing.entry_models import EntryFile
 from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-_ENTRIES_DIR = CURATED.regulations.entries.synopsis
+_ENTRIES_DIR = CURATED.regulations.entries.catalogue
 
 _EXTENT_RENAMES = {"item": "item_id", "area": "area_id", "kind": "area_kind"}
 

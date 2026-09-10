@@ -23,7 +23,7 @@ from pathlib import Path
 from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-_ENTRIES_DIR = CURATED.regulations.entries.synopsis
+_ENTRIES_DIR = CURATED.regulations.entries.catalogue
 
 
 def main() -> None:

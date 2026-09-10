@@ -26,7 +26,7 @@ from pipeline.regs.parsing.rows import load_synopsis_rows, symbols_include_tribu
 from pipeline.common.curated import CURATED, SOURCE
 
 _ROOT = Path(__file__).resolve().parents[2]
-_ENTRIES_DIR = CURATED.regulations.entries.synopsis
+_ENTRIES_DIR = CURATED.regulations.entries.catalogue
 
 
 def _symbol_index() -> dict[str, list[tuple[str, list[str]]]]:
