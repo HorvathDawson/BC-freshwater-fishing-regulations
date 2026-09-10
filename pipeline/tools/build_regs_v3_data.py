@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import pathlib
 import sqlite3
 import sys
 from collections import defaultdict
@@ -76,9 +77,69 @@ def _pts(geom, to_lonlat, ndigits: int = 4) -> list[list[float]]:
     return [[round(a, ndigits), round(b, ndigits)] for a, b in zip(lon, lat)]
 
 
+def _co_items(item_id: str) -> set[str]:
+    """The OTHER registry items a synopsis row covers alongside this one.
+
+    From the curated entries' `matched`, which is the only place that fact lives — the bundle's
+    `entry.item_id` keeps just the first match, by design (see the note in rules.py)."""
+    global _CO
+    if _CO is None:
+        import glob
+        _CO = {}
+        for f in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
+            for e in json.loads(pathlib.Path(f).read_text(encoding="utf-8")).get("entries", []):
+                m = [x for x in (e.get("matched") or []) if x]
+                for a in m:
+                    _CO.setdefault(a, set()).update(x for x in m if x != a)
+    return _CO.get(item_id, set())
+
+
+_CO = None
+
+
+def _bound_label(end) -> str:
+    """What a cut-point is CALLED. A stretch named "km 704" is a stretch nobody can find."""
+    if end is None:
+        return ""
+    lab = (getattr(end, "label", "") or "").strip()
+    return lab
+
+
+def _km_of(runs, lon, lat):
+    """The km along the drawn river nearest this point, or None if it is nowhere near it.
+
+    Coarse on purpose — the vertices are already rounded to ~11 m and the ladder places a tick,
+    not a survey mark. Anything more than ~0.25 deg away is not on this river and is dropped
+    rather than pinned to whichever end happened to be closest.
+    """
+    best = None
+    for r in runs:
+        span = (r["to"] - r["from"]) or 0.0
+        pts = [p for seg in r["pts"] for p in seg]
+        for i, p in enumerate(pts):
+            d = (p[0] - lon) ** 2 + (p[1] - lat) ** 2
+            if best is None or d < best[0]:
+                frac = i / max(len(pts) - 1, 1)
+                best = (d, round(r["from"] + span * frac, 1))
+    # ~0.05 deg is about 5 km. Anything further is not on this river; pinning it to whichever
+    # end happened to be closest is how a town two valleys over became a landmark at km 0.
+    if best is None or best[0] > 0.0025:
+        return None
+    return best[1]
+
+
 def _species_names() -> dict[str, str]:
+    """Code -> the words a reader sees.
+
+    THE CATALOGUE'S OWN WORDS WIN. The official table has no row for TROUT_CHAR, WHITEFISH or
+    ALL_GAME_FISH — they are the synopsis's groups, not taxa — so a map built from the table
+    alone printed the raw code in the quota table: "TROUT_CHAR | 4 | all species combined".
+    """
     from pipeline.regs.parsing.species import SPECIES
-    return {c: r.common_name for c, r in SPECIES.items()}
+    from pipeline.regs.parsing.catalogue import _SPECIES_WORDS
+    out = {c: r.common_name for c, r in SPECIES.items()}
+    out.update(_SPECIES_WORDS)
+    return out
 
 
 def _species_groups() -> list[dict]:
@@ -122,7 +183,20 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
         return None
     ord_, item_id = row
 
-    sids = [r[0] for r in db.execute("SELECT sid FROM item_section WHERE ord = ?", (ord_,))]
+    # EVERY ITEM THE SAME SYNOPSIS ROW COVERS, and no more. "CHILLIWACK / VEDDER RIVERS" is
+    # ONE row over two registry items, and taking only the item that carries the name dropped
+    # every rule bound on the Vedder.
+    #
+    # THE TEST IS `matched`, NOT "an entry that binds here". Following any binding entry pulled
+    # the Elk River wholesale into the Fording (they share an inherited rule) and the Skeena
+    # into the Babine — a 77 km river reported as 214 km, drawn as its receiving water.
+    ords = {ord_}
+    for co in _co_items(item_id):
+        for (o,) in db.execute("SELECT ord FROM item WHERE item_id = ? AND kind = 'stream'", (co,)):
+            ords.add(o)
+    qs = ",".join("?" * len(ords))
+    sids = [r[0] for r in db.execute(
+        f"SELECT sid FROM item_section WHERE ord IN ({qs})", tuple(ords))]
     if not sids:
         return None
 
@@ -168,9 +242,35 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
         else:
             runs.append({"set": set_id, "from": km0, "to": km1, "pts": pts, "n": 1,
                          "mus": sorted({m for m in (getattr(n, "mus", None) or ())}),
-                         "km": 0.0, "joins": [], "label": None})
+                         "km": 0.0, "joins": [], "label": _bound_label(n.lower_bound)})
     for r in runs:
         r["km"] = round(r["to"] - r["from"], 1)
+
+    # THE CUT-POINTS, with where they are. A stretch is bounded by named things — a dam, a
+    # confluence, a bridge, boundary signs — and "km 704" tells a reader nothing they can find
+    # on the ground. These were emitted as an empty list, so the ladder had only numbers.
+    splits: list[dict] = []
+    seen_ref: set[str] = set()
+    for nid, nd in main:
+        for end in (nd.lower_bound, nd.upper_bound):
+            lab = _bound_label(end)
+            ref = getattr(end, "boundary_id", None) if end is not None else None
+            if not lab or not ref or ref in seen_ref:
+                continue
+            seen_ref.add(ref)
+            m = getattr(end, "route_measure", None)
+            if m is None:
+                continue
+            km = round((m - base_m) / 1000.0, 1)
+            if km < -0.5 or km > (main[-1][1].up_m - base_m) / 1000.0 + 0.5:
+                continue
+            g = geoms.get(nid)
+            at = _pts(g, to_lonlat)[0] if g is not None else None
+            splits.append({"km": km, "label": lab,
+                           "kind": (getattr(end, "kind", None).value
+                                    if getattr(end, "kind", None) is not None else "point"),
+                           "lon": at[0] if at else None, "lat": at[1] if at else None})
+    splits.sort(key=lambda x: x["km"])
 
     side = [{"pts": _pts(geoms[nid], to_lonlat), "set": set_of.get(handle_of.get(nid))}
             for b, xs in by_blk.items() if b != main_blk
@@ -192,6 +292,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
             if src is None:
                 continue
             d = dict(zip([c[0] for c in cur.description], src))
+            cond = json.loads(d["conditions"] or "{}")
             rules.append({
                 "entry": eid, "rule": rid,
                 # THE CATALOGUE'S OWN WORDS. `kind`/`details` are gone: `type` is one of
@@ -202,7 +303,13 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                 "windows": json.loads(d["windows"] or "[]"),
                 "species": json.loads(d["species"] or "[]"),
                 "take": d["take"], "may_target": d["may_target"],
-                "conditions": json.loads(d["conditions"] or "{}"),
+                # The retention fields the QUOTA TABLE needs, at the top level rather than
+                # buried in `conditions` — a table that has to parse a JSON blob per cell is a
+                # table nobody will keep working. `conditions` still carries everything else.
+                **{k: cond[k] for k in ("unlimited", "over_cm", "under_cm", "period", "water",
+                                        "origin", "combined", "band", "within", "record_retention")
+                   if k in cond},
+                "conditions": cond,
                 "uncertain": d["uncertain"], "scope": d["scope"], "via": via,
                 "verbatim": d["verbatim"], "extent_text": d["extent_text"],
                 "spans": spans,
@@ -216,16 +323,33 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                                     "symbols": json.loads(e[3] or "[]"),
                                     "mus": json.loads(e[4] or "[]")}
 
-    landmarks = [{"name": nm, "km": round(ckm, 1), "lon": lon, "lat": lat, "pop": pop or 0}
-                 for nm, ckm, lon, lat, pop in db.execute(
-                     "SELECT p.name, pw.ckm, p.lon, p.lat, p.pop FROM place_water pw"
-                     " JOIN place p ON p.place_id = pw.place_id WHERE pw.ord = ?"
-                     " ORDER BY pw.ckm", (ord_,))]
+    # `place_water.ckm` IS NOT CHAINAGE. It is centikm from the place TO the water, capped at
+    # 25 km — how far off the river the town is, not how far along it. Reading it as a position
+    # put Vedder Crossing at km 37 of an 83 km river and Keyhole Canyon past the head. The
+    # position has to be measured, so it is: nearest point on the drawn line, and the km that
+    # point sits at.
+    landmarks = []
+    for nm, ckm, lon, lat, pop in db.execute(
+            "SELECT p.name, pw.ckm, p.lon, p.lat, p.pop FROM place_water pw"
+            " JOIN place p ON p.place_id = pw.place_id WHERE pw.ord = ?"
+            " ORDER BY pw.ckm", (ord_,)):
+        # A LANDMARK IS SOMETHING ON THE RIVER. `ckm` is how far the place sits OFF the water,
+        # so it is the right filter: without it, Harrison Mills and Sts'ailes — 16 and 22 km
+        # away, on the Fraser — were pinned to the Chilliwack's km 0, and 27 of the 45 places
+        # piled up at the mouth. Two kilometres is the width of a valley bottom.
+        if (ckm or 0) > 200:
+            continue
+        km = _km_of(runs, lon, lat)
+        if km is None:
+            continue
+        landmarks.append({"name": nm, "km": km, "lon": lon, "lat": lat,
+                          "off": round((ckm or 0) / 100.0, 2), "pop": pop or 0})
+    landmarks.sort(key=lambda x: x["km"])
 
     total = round((main[-1][1].up_m - base_m) / 1000.0, 1)
     primary = next(iter(entries.values()), None)
     return {"name": name, "item": item_id, "runs": runs, "rules": rules, "side": side,
-            "landmarks": landmarks, "splits": [], "total": total,
+            "landmarks": landmarks, "splits": splits, "total": total,
             "entry": primary, "entries": entries}
 
 
