@@ -243,3 +243,43 @@ def test_export_drops_a_response_older_than_its_batch(tmp_path):
     # the rule the exporter applies
     keep = stale.stat().st_mtime >= bf.stat().st_mtime
     assert not keep, "a response older than its batch cannot describe it"
+
+
+# --- entry_id is derived from the ROW, and nothing else -----------------------------------------
+# It is the join between a synopsis row and its stored entry, so it has to mean the same thing on
+# every export. It used to encode MATCH state (the registry item, plus a reach slug when rows
+# collided), which moved whenever matching moved and orphaned 42 entries holding real regulations.
+
+class _M:
+    def __init__(self, water): self.water = water
+
+
+def _row(water="SLOCAN LAKE", mu=("4-17",), region="REGION 4 - Kootenay"):
+    return {"water": water, "mu": list(mu), "region": region,
+            "raw_regs": "x", "symbols": [], "page": 41, "image": ""}
+
+
+def test_entry_id_is_a_pure_function_of_the_row():
+    from pipeline.regs.parsing.batch_exporter import _row_entry_id
+    r = _row()
+    assert _row_entry_id(r, _M("SLOCAN LAKE")) == _row_entry_id(dict(r), _M("SLOCAN LAKE"))
+    assert _row_entry_id(r, _M("SLOCAN LAKE")) == "r4:slocan_lake@4-17"
+
+
+def test_entry_id_carries_every_mu_the_row_names_sorted():
+    """A row printed under two MUs keeps both, sorted, so the id does not depend on their order in
+    the extraction. A row printed under ONE keeps one — the corpus grew a phantom
+    `r4:slocan_lake@4-16+4-17` when the synopsis prints exactly one Slocan Lake row, at 4-17."""
+    from pipeline.regs.parsing.batch_exporter import _row_entry_id
+    two = _row(mu=("4-17", "4-16"))
+    assert _row_entry_id(two, _M("SLOCAN LAKE")) == "r4:slocan_lake@4-16+4-17"
+    assert _row_entry_id(_row(mu=("4-17",)), _M("SLOCAN LAKE")) == "r4:slocan_lake@4-17"
+
+
+def test_entry_id_does_not_move_when_the_match_moves():
+    """The whole point: rebinding a row to a different registry item must not rename its entry."""
+    from pipeline.regs.parsing.batch_exporter import _row_entry_id
+    r = _row()
+    assert _row_entry_id(r, _M("SLOCAN LAKE")) == "r4:slocan_lake@4-17"
+    # same row, same printed name — nothing about the match appears in the id
+    assert "gnis" not in _row_entry_id(r, _M("SLOCAN LAKE"))
