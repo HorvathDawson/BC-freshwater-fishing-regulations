@@ -110,7 +110,12 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     already did — `section_ruleset` interns 1.9M (section, rule) pairs into ~5,200 sets — so
     "these sections have the same rules" is an integer comparison here, not a rule diff.
     """
-    ids, by_node = handles
+    # HANDLES ARE ONE-BASED and 0 means "no section" — see pipeline/common/section_handles.
+    # Indexing `ids` directly returns the NEXT section, which is the exact failure that module
+    # exists to prevent: a valid handle pointing at a different piece of river. Inverting the
+    # node->handle map cannot be off by one.
+    ids_by_handle, by_node = handles
+    ids = {h: n for n, h in by_node.items()}
     row = db.execute("SELECT ord, item_id FROM item WHERE name = ? AND kind = 'stream'"
                      " ORDER BY ord LIMIT 1", (name,)).fetchone()
     if row is None:
@@ -125,7 +130,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     # so they are what makes a stretch a stretch rather than a bag of pieces.
     nodes = []
     for sid in sids:
-        nid = ids[sid] if sid < len(ids) else None
+        nid = ids.get(sid)
         n = graph.nodes.get(nid) if nid else None
         if n is None or getattr(n, "blk", None) is None:
             continue
@@ -145,7 +150,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     set_of = dict(db.execute(
         f"SELECT sid, set_id FROM section_ruleset WHERE sid IN ({','.join('?' * len(sids))})",
         sids))
-    handle_of = {nid: sid for sid, nid in ((s, ids[s]) for s in sids if s < len(ids))}
+    handle_of = {ids[s]: s for s in sids if s in ids}
 
     base_m = main[0][1].down_m
     runs: list[dict] = []
