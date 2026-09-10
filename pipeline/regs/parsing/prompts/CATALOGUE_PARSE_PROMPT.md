@@ -127,6 +127,61 @@ exempts        what this rule LIFTS
 obligation     must (default) | should — "anglers are encouraged" is should, not law
 ```
 
+## Extents — WHERE the rule applies
+
+Every rule needs `extents`. The default is the whole water:
+
+```json
+"extents": [{"op": "whole"}]
+```
+
+A list of extents is a UNION ("this reach plus that one"). The ops:
+
+```
+whole            the entire water. NO split ids.
+upstream_of      exactly 1 split id
+downstream_of    exactly 1 split id
+between          exactly 2 split ids
+within           an area, not a reach — area_id or area_kind
+```
+
+**Split ids come ONLY from that item's "Bindable boundaries" menu.** Never invent one, never
+reuse an id you saw on another item. Ingest refuses an id the water cannot bind.
+
+**A cut-point can have two names.** The menu shows them as:
+
+```
+- `gauge__08NM247`  — 08NM247 · Okanagan River Below Mcintyre Dam  [split]
+     — also written `okanagan_river__mcintyre_dam`; BIND THE ID ABOVE
+```
+
+Those are ONE physical point. The page says *"below McIntyre Dam"*; the id that survived the build
+is a gauge number. **Bind the id on the first line** — the canonical one. Binding the alias is
+accepted and rewritten, but naming the canonical id directly is what you should do.
+
+### `within_area` — limiting a reach to a polygon
+
+`within_area` is a FIELD on an extent, not an op. It intersects whatever the extent already
+selected with an area, and it is applied **after** the tributary walk — so it limits the
+tributaries too.
+
+Use it when the page bounds a rule **by a region or park line rather than by a point on the
+water**. Those have no cut-point and cannot be expressed as a reach:
+
+```json
+"extents": [{"op": "whole", "within_area": "area:region:5"}]
+```
+
+*"That part of the Fraser River within Region 5"* is the whole Fraser intersected with Region 5 —
+not `between` two splits, because the region boundary is not a cut-point on the river. Region 6
+has **zero** Fraser mainstem sections, which is why a bounded reach could never have worked there.
+
+Combine it freely with an op: `{"op": "upstream_of", "splits": ["x"], "within_area": "area:region:5"}`.
+
+**When nothing fits.** Do not force a binding. Put the page's words in `extent_text`, record the
+phrase in `unresolved_locators`, set `needs_review` with a `review_reason`. A rule bound to the
+wrong point is far worse than one visibly sent to review.
+
 ### Size polarity — read the sentence, not the preposition
 
 ```

@@ -92,3 +92,96 @@ def test_dry_run_writes_nothing(tmp_path):
     out = tmp_path / "cat"; out.mkdir()
     write(accepted, out, dry_run=True)
     assert not list(out.glob("*.json"))
+
+
+# --- extents: aliases are canonicalised, invented ids are refused ------------------------------
+
+def _batch_item(**kw):
+    it = {
+        "entry_id": "e1", "item_id": "gnis:1", "name": "Okanagan River", "region": "8",
+        "raw_regs": "No fishing downstream of McIntyre Dam.",
+        "bindable_ids": ["gauge__08NM247", "okanagan_river__mcintyre_dam"],
+        "boundaries": [["gauge__08NM247", "Below Mcintyre Dam", "split",
+                        ["okanagan_river__mcintyre_dam"]]],
+    }
+    it.update(kw)
+    return it
+
+
+def _candidate(splits):
+    return {
+        "entry_id": "e1", "region": "8", "name": "Okanagan River",
+        "regs_verbatim": "No fishing downstream of McIntyre Dam.",
+        "rules": [{
+            "rule_id": "r1", "type": "retention_limit", "species": ["ALL_GAME_FISH"], "take": 0,
+            "may_target": False,
+            "verbatim": "No fishing downstream of McIntyre Dam.",
+            "extents": [{"op": "downstream_of", "splits": splits}],
+        }],
+    }
+
+
+def _splits_of(entry):
+    return entry.rules[0].extents[0]["splits"]
+
+
+def test_an_alias_is_rewritten_to_the_canonical_id():
+    """The page says "McIntyre Dam"; the surviving boundary id is a gauge number. Both bind, but
+    only one spelling is stored, or two rules about one point never compare equal."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    accepted, problems = ingest([_candidate(["okanagan_river__mcintyre_dam"])],
+                                {"e1": _batch_item()})
+    assert not [p for p in problems if not p.startswith("ADVISORY")], problems
+    assert _splits_of(accepted["e1"]) == ["gauge__08NM247"]
+
+
+def test_the_canonical_id_passes_through_unchanged():
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    accepted, _ = ingest([_candidate(["gauge__08NM247"])], {"e1": _batch_item()})
+    assert _splits_of(accepted["e1"]) == ["gauge__08NM247"]
+
+
+def test_an_invented_split_id_is_refused():
+    """The catalogue path had no split check at all — an invented cut-point reached the corpus and
+    surfaced much later as a rule that silently selected nothing."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    accepted, problems = ingest([_candidate(["okanagan_river__invented_dam"])],
+                                {"e1": _batch_item()})
+    assert "e1" not in accepted
+    assert any("invented" in p for p in problems), problems
+
+
+def test_a_no_registry_row_is_not_split_checked():
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    item = _batch_item(no_registry=True, bindable_ids=[], boundaries=[])
+    cand = _candidate([])
+    cand["rules"][0]["extents"] = []
+    cand["rules"][0]["needs_review"] = True
+    cand["rules"][0]["review_reason"] = "no registry match — attach an item and bind extents"
+    accepted, problems = ingest([cand], {"e1": item})
+    assert not [p for p in problems if not p.startswith("ADVISORY")], problems
+
+
+def test_within_area_survives_ingest():
+    """`within_area` limits an extent to a polygon and is applied after the tributary walk. It is
+    a plain dict field, and the one failure mode that matters is silent loss: an extent that loses
+    it resolves province-wide instead of bounded. entry_models.Extent DOES drop it — the catalogue
+    stores extents as dicts precisely so it cannot."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    cand = _candidate([])
+    cand["rules"][0]["extents"] = [{"op": "whole", "within_area": "area:region:5"}]
+    accepted, problems = ingest([cand], {"e1": _batch_item()})
+    assert not [p for p in problems if not p.startswith("ADVISORY")], problems
+    assert accepted["e1"].rules[0].extents[0]["within_area"] == "area:region:5"
+
+
+def test_within_area_survives_alongside_a_bound_reach():
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    cand = _candidate([])
+    cand["rules"][0]["extents"] = [{"op": "downstream_of",
+                                    "splits": ["okanagan_river__mcintyre_dam"],
+                                    "within_area": "area:region:8"}]
+    accepted, _ = ingest([cand], {"e1": _batch_item()})
+    ex = accepted["e1"].rules[0].extents[0]
+    assert ex["splits"] == ["gauge__08NM247"]        # alias canonicalised
+    assert ex["within_area"] == "area:region:8"      # and the limiter kept

@@ -166,3 +166,58 @@ def test_menu_names_the_owning_item_only_for_combined_entries():
 
     solo = render_user_message(build_parse_context(a, raw_regs="x"))
     assert "(on gnis:" not in solo
+
+
+# --- aliases are bindable, and the parser has to be able to SEE them ---------------------------
+# A cut-point often carries two authored names for one physical point: "McIntyre Dam" and the
+# gauge that resolved to the identical measure, or a confluence named from either bank. `_pickup`
+# keeps whichever split was applied last and demotes the other to an alias, so which id survives
+# is an accident of ordering — 20 curated splits the regulations name by word lost that toss and
+# were reachable only as `gauge__NNNNNNN`. extent.py always resolved either id; the parse menu
+# showed neither, so the parser could not bind the reach at all.
+
+def _item_with_alias():
+    from pipeline.regs.parsing.parse_context import RegistryItem
+    from pipeline.atlas.registry.io import RegistryBoundary
+    return RegistryItem(
+        id="gnis:1", name="Okanagan River", kind="stream", variants=(), mus=("8-9",),
+        section_ids=("s1",), ref_ids=(),
+        boundaries=(RegistryBoundary(id="gauge__08NM247", label="08NM247 · Below Mcintyre Dam",
+                                     kind="split", ref="split:gauge__08NM247", wbk="",
+                                     aliases=("split:okanagan_river__mcintyre_dam",)),))
+
+
+def test_an_alias_is_bindable():
+    from pipeline.regs.parsing.parse_context import build_parse_context
+    ctx = build_parse_context(_item_with_alias(), raw_regs="No fishing below McIntyre Dam.")
+    assert "okanagan_river__mcintyre_dam" in ctx.bindable_ids, \
+        "the regulation names the dam; binding it must be accepted"
+    assert "gauge__08NM247" in ctx.bindable_ids
+
+
+def test_the_alias_prefix_is_stripped_for_the_parser():
+    """The graph stores refs as `split:<id>`; the parser binds bare ids."""
+    from pipeline.regs.parsing.parse_context import build_parse_context
+    ctx = build_parse_context(_item_with_alias())
+    assert not any(a.startswith("split:") for _, _, _, al in ctx.boundaries for a in al)
+
+
+def test_the_menu_shows_the_alias():
+    from pipeline.regs.parsing.parse_context import build_parse_context, render_user_message
+    msg = render_user_message(build_parse_context(_item_with_alias(), raw_regs="x"))
+    assert "`okanagan_river__mcintyre_dam`" in msg, "the parser cannot bind a name it is never shown"
+    assert "BIND THE ID ABOVE" in msg, "the parser must be told which of the two ids to store"
+
+
+def test_item_scoping_accepts_an_alias():
+    """A combined entry checks each end against the item that owns it; an alias is owned too."""
+    from pipeline.regs.parsing.parse_context import build_parse_context
+    ctx = build_parse_context(_item_with_alias())
+    owned = dict(ctx.boundaries_by_item)["gnis:1"]
+    assert "okanagan_river__mcintyre_dam" in owned
+
+
+def test_render_boundary_menu_tolerates_a_three_element_row():
+    """Batch files written before aliases carry (id,label,kind) and must still render."""
+    from pipeline.regs.parsing.parse_context import render_boundary_menu
+    assert render_boundary_menu([["a", "A", "split"]]) == ["- `a`  — A  [split]"]

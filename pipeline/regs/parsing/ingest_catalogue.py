@@ -40,6 +40,61 @@ def load_batch(paths: list[str]) -> dict[str, dict]:
     return items
 
 
+def _boundary_ids(item: dict) -> tuple[set[str], dict[str, str]]:
+    """(every bindable id, {alias: canonical id}) for one batch item.
+
+    A cut-point can answer to several authored ids — "McIntyre Dam" and the gauge that resolved to
+    the identical measure are one point, and a confluence is named from either bank. Both are
+    bindable, because `extent.py` resolves either. Only one is STORED: an extent that names the
+    alias is rewritten to the canonical id here, so a cut-point has one spelling in the corpus and
+    two rules about the same point compare equal instead of looking unrelated."""
+    allowed: set[str] = set(item.get("bindable_ids") or ())
+    canon: dict[str, str] = {}
+    for b in (item.get("boundaries") or ()):
+        if not b:
+            continue
+        bid = b[0]
+        allowed.add(bid)
+        for a in (b[3] if len(b) > 3 else ()):
+            allowed.add(a)
+            canon[a] = bid
+    return allowed, canon
+
+
+def _bind_extents(data: dict, item: dict) -> list[str]:
+    """Rewrite alias split ids to their canonical id and refuse ids the item cannot bind.
+
+    The catalogue path had NO split check at all: an invented cut-point was written to the corpus
+    and only failed much later, at reach resolution, as a rule that silently selected nothing."""
+    allowed, canon = _boundary_ids(item)
+    errors: list[str] = []
+    if item.get("no_registry"):
+        return errors                       # nothing to bind; the parser is told to emit extents: []
+
+    def visit(extents, where: str) -> None:
+        for ex in extents or ():
+            if not isinstance(ex, dict):
+                continue
+            fixed = []
+            for sid in (ex.get("splits") or ()):
+                if sid in canon:
+                    fixed.append(canon[sid])          # an alias — store the canonical spelling
+                elif sid in allowed:
+                    fixed.append(sid)
+                else:
+                    errors.append(f"{where}: split id {sid!r} is not a cut-point on this water "
+                                  f"— it was invented or belongs to another item")
+                    fixed.append(sid)
+            if fixed:
+                ex["splits"] = fixed
+
+    visit(data.get("extents"), "entry scope")
+    for i, r in enumerate(data.get("rules") or ()):
+        if isinstance(r, dict):
+            visit(r.get("extents"), f"rule {i + 1}")
+    return errors
+
+
 def _source_of(item: dict) -> str:
     for k in ("raw_regs", "regs_verbatim", "text", "source_text"):
         if item.get(k):
@@ -59,8 +114,11 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
             continue
         source = _source_of(item)
         # The passage comes from the batch. Anything the model wrote here is discarded.
-        data = dict(data, regs_verbatim=source or data.get("regs_verbatim", ""))
+        data = json.loads(json.dumps(data))          # deep copy: _bind_extents rewrites in place
+        data["regs_verbatim"] = source or data.get("regs_verbatim", "")
+        bind_errors = _bind_extents(data, item)
         entry, errors = check_entry(data, source)
+        errors = bind_errors + errors
         fatal = [e for e in errors if not e.startswith("ADVISORY")]
         for e in errors:
             problems.append(f"{'ADVISORY ' if e.startswith('ADVISORY') else ''}{eid}: {e}")

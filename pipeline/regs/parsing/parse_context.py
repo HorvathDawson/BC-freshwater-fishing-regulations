@@ -51,7 +51,15 @@ class ParseContext:
     also_item_ids: tuple[str, ...] = ()               # a combined override's OTHER items (see below)
     item_kind: str = ""
     variants: tuple[str, ...] = ()
-    boundaries: tuple[tuple[str, str, str], ...] = ()    # (id, label, kind) — the bindable cut-points
+    #: (id, label, kind, aliases) — the bindable cut-points. `aliases` are the OTHER ids this same
+    #: physical point answers to, and they are bindable too. A cut-point often carries two authored
+    #: names: the curated split and a gauge that resolved to the identical measure ("McIntyre Dam"
+    #: and `gauge__08NM247` are one point), or a confluence named from either bank ("Thompson River
+    #: → Fraser River" appears on both rivers). `_pickup` keeps whichever was applied last and demotes
+    #: the other to an alias, so which id survives as `id` is an accident of ordering — and 20 curated
+    #: splits the regulations actually name lost that coin-toss. The reach resolver has always
+    #: accepted either id; only this menu didn't show them, so the parser could not name them.
+    boundaries: tuple[tuple[str, str, str, tuple[str, ...]], ...] = ()
     boundaries_by_item: tuple[tuple[str, tuple[str, ...]], ...] = ()   # item_id -> its own cut-point ids
     raw_regs: str = ""
     symbols: tuple[str, ...] = ()                        # synopsis row symbols (e.g. 'Incl. Tribs')
@@ -63,9 +71,14 @@ class ParseContext:
 
     @property
     def bindable_ids(self) -> set[str]:
-        """The closed set an Extent.splits may reference — exactly the item's boundary ids. Pass to
-        `validate_entry_splits(entry, ctx.bindable_ids)` at ingest."""
-        return {bid for bid, _, _ in self.boundaries}
+        """The closed set an Extent.splits may reference: each boundary id AND every alias of it.
+        Aliases belong here because `extent.py` resolves them (`b.id == bid or (aliases & want)`) —
+        excluding them would refuse a binding that works."""
+        out: set[str] = set()
+        for bid, _, _, aliases in self.boundaries:
+            out.add(bid)
+            out.update(aliases)
+        return out
 
 
 def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = "",
@@ -92,11 +105,18 @@ def build_parse_context(item: RegistryItem, raw_regs: str = "", entry_id: str = 
     without its channels. They are merged here: the entry stays keyed on the primary item, and every
     pinned item contributes its boundaries to the menu, its MUs, and its names."""
     items = (item, *also_items)
-    bmap: dict[str, tuple[str, str, str]] = {}
+    bmap: dict[str, tuple[str, str, str, tuple[str, ...]]] = {}
     for it in items:                                   # union, primary first (its ids win a collision)
         for b in it.boundaries:
-            bmap.setdefault(b.id, (b.id, b.label, b.kind))
-    by_item = tuple((it.id, tuple(b.id for b in it.boundaries)) for it in items)
+            # `split:` is the graph's ref prefix; the parser binds bare ids, so strip it here rather
+            # than asking the model to know about the prefix.
+            aliases = tuple(a[len("split:"):] if a.startswith("split:") else a
+                            for a in (b.aliases or ()))
+            bmap.setdefault(b.id, (b.id, b.label, b.kind, aliases))
+    by_item = tuple((it.id, tuple(x for b in it.boundaries
+                                  for x in (b.id, *(a[len("split:"):] if a.startswith("split:") else a
+                                                    for a in (b.aliases or ())))))
+                    for it in items)
     return ParseContext(
         entry_id=entry_id or item.id,
         row_index=row_index,
@@ -164,8 +184,14 @@ def load_system_prompt(catalogue: bool = True) -> str:
 
 def render_boundary_menu(boundaries, owners=None) -> list[str]:
     """The bindable-boundary menu lines shared by the PARSE and REVIEW prompts: `id — label [kind]`.
-    `boundaries` is an iterable of (id, label, kind) (tuples from ParseContext, or lists from a batch
-    item). Empty -> a single 'no cut-points' line.
+    `boundaries` is an iterable of (id, label, kind[, aliases]) (tuples from ParseContext, or lists
+    from a batch item). Empty -> a single 'no cut-points' line.
+
+    An alias is printed as "also written `other_id`", because it is the SAME physical cut-point
+    under another authored name. Without this line the parser was shown `gauge__08NM247` where the
+    regulation says "McIntyre Dam" and had no way to connect the two. The menu tells it to bind the
+    CANONICAL id (the one before the dash); an alias is accepted and rewritten at ingest, so the
+    stored extent names one id per cut-point no matter which name the page used.
 
     `owners` ((item_id, (split ids,)) pairs) annotates each line with the water it belongs to — only
     meaningful for a COMBINED entry, where an `item_id`-scoped extent must bind a cut-point on the
@@ -173,8 +199,18 @@ def render_boundary_menu(boundaries, owners=None) -> list[str]:
     if not boundaries:
         return ["- (none) — this item has no cut-points; only op:whole is bindable."]
     owner = {bid: iid for iid, ids in (owners or ()) for bid in ids}
-    return [f"- `{bid}`  — {label}  [{kind}]" + (f"  (on {owner[bid]})" if bid in owner else "")
-            for bid, label, kind in boundaries]
+    out = []
+    for b in boundaries:
+        bid, label, kind = b[0], b[1], b[2]
+        aliases = tuple(b[3]) if len(b) > 3 else ()
+        line = f"- `{bid}`  — {label}  [{kind}]"
+        if bid in owner:
+            line += f"  (on {owner[bid]})"
+        if aliases:
+            line += ("  — also written " + " / ".join(f"`{a}`" for a in aliases)
+                     + "; BIND THE ID ABOVE")
+        out.append(line)
+    return out
 
 
 def render_user_message(ctx: ParseContext) -> str:

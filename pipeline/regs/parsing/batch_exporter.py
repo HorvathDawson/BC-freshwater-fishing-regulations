@@ -98,7 +98,7 @@ def _item_payload(index: int, ctx) -> dict:
         "row_mus": list(ctx.row_mus),                     # the ROW's MUs — what identity.mus must be
         "raw_regs": ctx.raw_regs,
         "bindable_ids": sorted(ctx.bindable_ids),
-        "boundaries": [list(b) for b in ctx.boundaries],   # (id,label,kind) — the review prompt's menu
+        "boundaries": [list(b) for b in ctx.boundaries],   # (id,label,kind,aliases) — also the review menu
         "bindable_by_item": {i: list(ids) for i, ids in ctx.boundaries_by_item},  # for item_id scoping
         "no_registry": ctx.no_registry,
         "registry_note": ctx.registry_note,
