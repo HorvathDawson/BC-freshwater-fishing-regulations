@@ -2,7 +2,7 @@
   "region": "8",
   "entries": [
     {
-      "entry_id": "r8:hydraulic_lake",
+      "entry_id": "r8:hydraulic_lake@8-10",
       "name": "HYDRAULIC LAKE",
       "display_name": "Hydraulic Lake",
       "region": "8",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "entry_id": "r8:idleback_lake",
+      "entry_id": "r8:idleback_lake@8-12",
       "name": "IDLEBACK LAKE",
       "display_name": "Idleback Lake",
       "region": "8",
@@ -217,7 +217,7 @@
       ]
     },
     {
-      "entry_id": "r8:islaht_horseshoe_lake",
+      "entry_id": "r8:islaht_horseshoe_lake@8-11",
       "name": "ISLAHT (Horseshoe) LAKE",
       "display_name": "Islaht (Horseshoe) Lake",
       "region": "8",
@@ -266,7 +266,7 @@
       ]
     },
     {
-      "entry_id": "r8:jackpine_lake",
+      "entry_id": "r8:jackpine_lake@8-11",
       "name": "JACKPINE LAKE",
       "display_name": "Jackpine Lake",
       "region": "8",
@@ -315,7 +315,7 @@
       ]
     },
     {
-      "entry_id": "r8:jewel_creek",
+      "entry_id": "r8:jewel_creek@8-14",
       "name": "JEWEL CREEK",
       "display_name": "Jewel Creek",
       "region": "8",
@@ -375,7 +375,7 @@
       ]
     },
     {
-      "entry_id": "r8:jewel_lake",
+      "entry_id": "r8:jewel_lake@8-14",
       "name": "JEWEL LAKE",
       "display_name": "Jewel Lake",
       "region": "8",
@@ -484,7 +484,7 @@
       ]
     },
     {
-      "entry_id": "r8:johnny_lake",
+      "entry_id": "r8:johnny_lake@8-5",
       "name": "JOHNNY LAKE",
       "display_name": "Johnny Lake",
       "region": "8",
@@ -533,7 +533,7 @@
       ]
     },
     {
-      "entry_id": "r8:kalamalka_lake",
+      "entry_id": "r8:kalamalka_lake@8-22",
       "name": "KALAMALKA LAKE",
       "display_name": "Kalamalka Lake",
       "region": "8",
@@ -670,7 +670,7 @@
       ]
     },
     {
-      "entry_id": "r8:kentucky_lake",
+      "entry_id": "r8:kentucky_lake@8-6",
       "name": "KENTUCKY LAKE",
       "display_name": "Kentucky Lake",
       "region": "8",
@@ -720,7 +720,7 @@
       ]
     },
     {
-      "entry_id": "r8:kettle_river",
+      "entry_id": "r8:kettle_river@8-14+8-15",
       "name": "KETTLE RIVER",
       "display_name": "Kettle River",
       "region": "8",
@@ -868,119 +868,7 @@
       ]
     },
     {
-      "entry_id": "r8:kettle_rivers_tributaries",
-      "name": "KETTLE RIVER'S TRIBUTARIES",
-      "display_name": "Kettle River's Tributaries",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:11984"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kettle_rivers_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** Jul 25-Sept 15",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Jul 25-Sept 15"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kettle_rivers_tributaries.r2",
-          "type": "retention_limit",
-          "verbatim": "Rainbow trout catch and release",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kettle_rivers_tributaries.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r8:kidd_lake",
+      "entry_id": "r8:kidd_lake@8-6",
       "name": "KIDD LAKE",
       "display_name": "Kidd Lake",
       "region": "8",
@@ -1201,7 +1089,7 @@
       ]
     },
     {
-      "entry_id": "r8:kump_lost_lake",
+      "entry_id": "r8:kump_lost_lake@8-5",
       "name": "KUMP (Lost) LAKE",
       "display_name": "Kump (Lost) Lake",
       "region": "8",
@@ -1308,7 +1196,7 @@
       ]
     },
     {
-      "entry_id": "r8:lambly_bear_lake",
+      "entry_id": "r8:lambly_bear_lake@8-11",
       "name": "LAMBLY (Bear) LAKE",
       "display_name": "Lambly (Bear) Lake",
       "region": "8",
@@ -1387,201 +1275,7 @@
       ]
     },
     {
-      "entry_id": "r8:larry_lake",
-      "name": "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)",
-      "display_name": "Larry Lake",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329520255"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "larry_lake.r1",
-          "type": "method_rule",
-          "verbatim": "**No Ice Fishing**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "larry_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "larry_lake.r3",
-          "type": "tackle_restriction",
-          "verbatim": "Artificial fly only",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "lure": "artificial_fly",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "larry_lake.r4",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "larry_lake.r5",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "larry_lake.r6",
-          "type": "vessel_rule",
-          "verbatim": "Electric motor only - max 7.5 kW",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "aspect": "propulsion",
-          "level": "electric_only",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r8:link_lake",
+      "entry_id": "r8:link_lake@8-6",
       "name": "LINK LAKE",
       "display_name": "Link Lake",
       "region": "8",
@@ -1630,7 +1324,7 @@
       ]
     },
     {
-      "entry_id": "r8:little_pinaus_lake",
+      "entry_id": "r8:little_pinaus_lake@8-21",
       "name": "LITTLE PINAUS LAKE",
       "display_name": "Little Pinaus Lake",
       "region": "8",
@@ -1680,7 +1374,7 @@
       ]
     },
     {
-      "entry_id": "r8:loch_drinkie",
+      "entry_id": "r8:loch_drinkie@8-11",
       "name": "LOCH DRINKIE",
       "display_name": "Loch Drinkie",
       "region": "8",
@@ -1787,7 +1481,7 @@
       ]
     },
     {
-      "entry_id": "r8:loon_lake",
+      "entry_id": "r8:loon_lake@8-10",
       "name": "LOON LAKE",
       "display_name": "Loon Lake",
       "region": "8",
@@ -1952,7 +1646,7 @@
       ]
     },
     {
-      "entry_id": "r8:lost_lake",
+      "entry_id": "r8:lost_lake@8-10",
       "name": "LOST LAKE",
       "display_name": "Lost Lake",
       "region": "8",
@@ -2001,7 +1695,7 @@
       ]
     },
     {
-      "entry_id": "r8:mabel_lake",
+      "entry_id": "r8:mabel_lake@8-24",
       "name": "MABEL LAKE",
       "display_name": "Mabel Lake",
       "region": "8",
@@ -2114,7 +1808,7 @@
       ]
     },
     {
-      "entry_id": "r8:mara_lake",
+      "entry_id": "r8:mara_lake@8-26",
       "name": "MARA LAKE",
       "display_name": "Mara Lake",
       "region": "8",
@@ -2190,7 +1884,7 @@
       ]
     },
     {
-      "entry_id": "r8:martin_lake",
+      "entry_id": "r8:martin_lake@8-6",
       "name": "MARTIN LAKE",
       "display_name": "Martin Lake",
       "region": "8",
@@ -2267,7 +1961,7 @@
       ]
     },
     {
-      "entry_id": "r8:mcculloch_reservoir",
+      "entry_id": "r8:mcculloch_reservoir@8-10",
       "name": "MCCULLOCH RESERVOIR",
       "display_name": "McCulloch Reservoir",
       "region": "8",
@@ -2317,7 +2011,7 @@
       ]
     },
     {
-      "entry_id": "r8:mcrae_creek",
+      "entry_id": "r8:mcrae_creek@8-15",
       "name": "MCRAE CREEK",
       "display_name": "McRae Creek",
       "region": "8",
@@ -2376,7 +2070,7 @@
       ]
     },
     {
-      "entry_id": "r8:meadow_lake",
+      "entry_id": "r8:meadow_lake@8-10",
       "name": "MEADOW LAKE",
       "display_name": "Meadow Lake",
       "region": "8",
@@ -2483,7 +2177,7 @@
       ]
     },
     {
-      "entry_id": "r8:minnow_lake",
+      "entry_id": "r8:minnow_lake@8-10",
       "name": "MINNOW LAKE",
       "display_name": "Minnow Lake",
       "region": "8",
@@ -2533,7 +2227,7 @@
       ]
     },
     {
-      "entry_id": "r8:mission_creek",
+      "entry_id": "r8:mission_creek@8-10",
       "name": "MISSION CREEK",
       "display_name": "Mission Creek",
       "region": "8",
@@ -2592,7 +2286,7 @@
       ]
     },
     {
-      "entry_id": "r8:okanagan_lake",
+      "entry_id": "r8:okanagan_lake@8-10",
       "name": "OKANAGAN LAKE",
       "display_name": "Okanagan Lake",
       "region": "8",
@@ -2759,7 +2453,7 @@
       ]
     },
     {
-      "entry_id": "r8:okanagan_river",
+      "entry_id": "r8:okanagan_river@8-1",
       "name": "OKANAGAN RIVER",
       "display_name": "Okanagan River",
       "region": "8",
@@ -2981,7 +2675,7 @@
       ]
     },
     {
-      "entry_id": "r8:trepanier_river",
+      "entry_id": "r8:trepanier_river@8-8",
       "name": "TREPANIER RIVER",
       "display_name": "Trepanier River",
       "region": "8",
@@ -3040,7 +2734,7 @@
       ]
     },
     {
-      "entry_id": "r8:trout_creek",
+      "entry_id": "r8:trout_creek@8-8",
       "name": "TROUT CREEK",
       "display_name": "Trout Creek",
       "region": "8",
@@ -3141,7 +2835,7 @@
       ]
     },
     {
-      "entry_id": "r8:trout_lake",
+      "entry_id": "r8:trout_lake@8-8",
       "name": "TROUT LAKE",
       "display_name": "Trout Lake",
       "region": "8",
@@ -3250,7 +2944,7 @@
       ]
     },
     {
-      "entry_id": "r8:tuc_el_nuit_lake",
+      "entry_id": "r8:tuc_el_nuit_lake@8-1",
       "name": "TUC-EL-NUIT LAKE",
       "display_name": "Tuc-el-Nuit Lake",
       "region": "8",
@@ -3359,7 +3053,7 @@
       ]
     },
     {
-      "entry_id": "r8:tulameen_river",
+      "entry_id": "r8:tulameen_river@8-5",
       "name": "TULAMEEN RIVER",
       "display_name": "Tulameen River",
       "region": "8",
@@ -3476,7 +3170,7 @@
       ]
     },
     {
-      "entry_id": "r8:twin_lakes",
+      "entry_id": "r8:twin_lakes@8-1",
       "name": "TWIN LAKES",
       "display_name": "Twin Lakes",
       "region": "8",
@@ -3555,168 +3249,7 @@
       ]
     },
     {
-      "entry_id": "r8:unnamed_lakes_bluey",
-      "name": "UNNAMED LAKES (located immediately north and south of Bluey Lake)",
-      "display_name": "Unnamed Lakes (near Bluey Lake)",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329520774",
-        "wbk:329520563"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "unnamed_lakes_bluey.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing**",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r8:vaseux_lake",
-      "name": "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)",
-      "display_name": "Vaseux Lake",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329459123"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "vaseux_lake.r1",
-          "type": "vessel_rule",
-          "verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "aspect": "propulsion",
-          "level": "unpowered",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "vaseux_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "Bass daily quota = 8",
-          "obligation": "must",
-          "species": [
-            "BASS"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 8,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "vaseux_lake.r3",
-          "type": "retention_limit",
-          "verbatim": "yellow perch daily quota = 20",
-          "obligation": "must",
-          "species": [
-            "YP"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 20,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r8:wap_creek",
+      "entry_id": "r8:wap_creek@8-24",
       "name": "WAP CREEK",
       "display_name": "Wap Creek",
       "region": "8",
@@ -3819,7 +3352,7 @@
       ]
     },
     {
-      "entry_id": "r8:west_kettle_river",
+      "entry_id": "r8:west_kettle_river@8-12",
       "name": "WEST KETTLE RIVER",
       "display_name": "West Kettle River",
       "region": "8",
@@ -3968,120 +3501,7 @@
       ]
     },
     {
-      "entry_id": "r8:west_kettle_river_tributaries",
-      "name": "WEST KETTLE RIVER'S tributaries",
-      "display_name": "West Kettle River (tributaries)",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:6358"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "west_kettle_river_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing **Jul 25-Sept 15",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Jul 25 - Sept 15"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": true,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "west_kettle_river_tributaries.r2",
-          "type": "retention_limit",
-          "verbatim": "Rainbow trout catch and release",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": true,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "west_kettle_river_tributaries.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "bait": "any",
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": true,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r8:wood_lake",
+      "entry_id": "r8:wood_lake@8-22",
       "name": "WOOD LAKE",
       "display_name": "Wood Lake",
       "region": "8",
@@ -4254,7 +3674,7 @@
       ]
     },
     {
-      "entry_id": "r8:yellow_lake",
+      "entry_id": "r8:yellow_lake@8-2",
       "name": "YELLOW LAKE",
       "display_name": "Yellow Lake",
       "region": "8",

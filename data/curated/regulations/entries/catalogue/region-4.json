@@ -2,7 +2,7 @@
   "region": "4",
   "entries": [
     {
-      "entry_id": "r4:keen_creek",
+      "entry_id": "r4:keen_creek@4-18",
       "name": "KEEN CREEK",
       "display_name": "Keen Creek",
       "region": "4",
@@ -52,234 +52,7 @@
       ]
     },
     {
-      "entry_id": "r4:kikomun_creek_park_lakes",
-      "name": "KIKOMUN CREEK PARK (all lakes in the park)",
-      "display_name": "Kikomun Creek Park (all lakes in the park)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Bass daily quota = unlimited\nNo powered boats",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "kikomun_creek_park_lakes.r1",
-          "type": "retention_limit",
-          "verbatim": "Bass daily quota = unlimited",
-          "obligation": "must",
-          "species": [
-            "BASS"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        },
-        {
-          "rule_id": "kikomun_creek_park_lakes.r2",
-          "type": "vessel_rule",
-          "verbatim": "No powered boats",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "aspect": "propulsion",
-          "level": "unpowered",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kinbasket_lake",
-      "name": "KINBASKET (McNaughton) LAKE",
-      "display_name": "Kinbasket (McNaughton) Lake",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328961767"
-      ],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "kinbasket_lake.r1",
-          "type": "retention_limit",
-          "verbatim": "No Fishing within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "within 200 m of Bush-Sullivan Road Bridge in Bush Arm",
-          "needs_review": true,
-          "review_reason": "no bindable boundary for this localized closure at Bush-Sullivan Road Bridge; only op:whole is available for this lake"
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kinbasket_lake_tributaries",
-      "name": "KINBASKET (McNaughton) LAKE'S TRIBUTARIES",
-      "display_name": "Kinbasket (McNaughton) Lake's tributaries",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Bull trout catch and release\nDoes not include Columbia River upstream of Kinbasket Reservoir",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328961767"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kinbasket_lake_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "Does not include Columbia River upstream of Kinbasket Reservoir",
-          "needs_review": true,
-          "review_reason": "text excludes the Columbia River upstream of Kinbasket Reservoir from this tributary rule, but no bindable boundary exists to carve that out"
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kitchener_creek",
-      "name": "KITCHENER (Meadow) CREEK",
-      "display_name": "Kitchener (Meadow) Creek",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "EXEMPT from Apr 1-June 14 closure",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:30933"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kitchener_creek.r1",
-          "type": "retention_limit",
-          "verbatim": "EXEMPT from Apr 1-June 14 closure",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [
-            {
-              "default_id": "spring_closure",
-              "note": ""
-            }
-          ],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:koch_creek",
+      "entry_id": "r4:koch_creek@4-16",
       "name": "KOCH CREEK",
       "display_name": "Koch Creek",
       "region": "4",
@@ -326,7 +99,7 @@
       ]
     },
     {
-      "entry_id": "r4:koocanusa_reservoir",
+      "entry_id": "r4:koocanusa_reservoir@4-2+4-22+4-3",
       "name": "KOOCANUSA RESERVOIR",
       "display_name": "Koocanusa Reservoir",
       "region": "4",
@@ -497,1471 +270,7 @@
       ]
     },
     {
-      "entry_id": "r4:kootenay_lake_all_parts",
-      "name": "KOOTENAY LAKE, ALL PARTS (Main Body, Upper West Arm and Lower West Arm)",
-      "display_name": "Kootenay Lake, all parts",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Burbot catch and release\nBass daily quota = unlimited; yellow perch daily quota = unlimited",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328974235"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_lake_all_parts.r1",
-          "type": "retention_limit",
-          "verbatim": "Burbot catch and release",
-          "obligation": "must",
-          "species": [
-            "BB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_all_parts.r2",
-          "type": "retention_limit",
-          "verbatim": "Bass daily quota = unlimited",
-          "obligation": "must",
-          "species": [
-            "BASS"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_all_parts.r3",
-          "type": "retention_limit",
-          "verbatim": "yellow perch daily quota = unlimited",
-          "obligation": "must",
-          "species": [
-            "YP"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kootenay_lake_lower_west_arm",
-      "name": "KOOTENAY LAKE - LOWER WEST ARM (for location see map on page 34)",
-      "display_name": "Kootenay Lake - lower West Arm",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Trout/char daily quota = 2 (only 1 bull trout); kokanee daily quota = 5, **but only on Saturday and Sunday of each week.** Kokanee catch\nand release Monday through Friday of each week. NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to\nkokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328974235"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_lake_lower_west_arm.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout/char daily quota = 2 (only 1 bull trout)",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_lower_west_arm.r2",
-          "type": "retention_limit",
-          "verbatim": "(only 1 bull trout)",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "within": "kootenay_lake_lower_west_arm.r1",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_lower_west_arm.r3",
-          "type": "retention_limit",
-          "verbatim": "kokanee daily quota = 5, **but only on Saturday and Sunday of each week.**",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [
-            "Saturday",
-            "Sunday"
-          ],
-          "when_open": false,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_lower_west_arm.r4",
-          "type": "retention_limit",
-          "verbatim": "Kokanee catch\nand release Monday through Friday of each week.",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Thursday",
-            "Friday"
-          ],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_lower_west_arm.r5",
-          "type": "advisory",
-          "verbatim": "NOTE: the combined daily quota for kokanee from the Upper West Arm (when open to\nkokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kootenay_lake_main_body",
-      "name": "KOOTENAY LAKE - MAIN BODY (for location see map on page 34)",
-      "display_name": "Kootenay Lake - main body",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**A person in a boat may angle with an unlimited number of rods.**\nKokanee daily quota = 0\nBull trout daily quota = 1; rainbow trout daily quota = 10 (any size)\nConservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328974235"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_lake_main_body.r1",
-          "type": "tackle_restriction",
-          "verbatim": "A person in a boat may angle with an unlimited number of rods.",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "max_lines": 0,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_main_body.r2",
-          "type": "retention_limit",
-          "verbatim": "Kokanee daily quota = 0",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_main_body.r3",
-          "type": "retention_limit",
-          "verbatim": "Bull trout daily quota = 1",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_main_body.r4",
-          "type": "retention_limit",
-          "verbatim": "rainbow trout daily quota = 10 (any size)",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 10,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_main_body.r5",
-          "type": "document_required",
-          "verbatim": "Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "over_cm": 50,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "kootenay_rainbow_stamp",
-          "required": true,
-          "on_retention": true,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_main_body.r6",
-          "type": "retention_limit",
-          "verbatim": "Conservation Surcharge Stamp required to keep rainbow trout over 50 cm, annual quota = 20",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 20,
-          "unlimited": false,
-          "period": "annual",
-          "over_cm": 50,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kootenay_lake_tributaries",
-      "name": "KOOTENAY LAKE'S TRIBUTARIES",
-      "display_name": "Kootenay Lake's tributaries",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Bull trout catch and release\nDoes not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328974235"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_lake_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "Does not include the Kootenay River upstream from Kootenay Lake to the U.S. border near Creston",
-          "needs_review": true,
-          "review_reason": "text excludes a stretch of the Kootenay River from this tributary rule, but no bindable boundary exists to carve that out"
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kootenay_lake_upper_west_arm",
-      "name": "KOOTENAY LAKE - UPPER WEST ARM (for location see map on page 34)",
-      "display_name": "Kootenay Lake - upper West Arm",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Rainbow trout catch and release, Jan 1-May 31; trout/char daily quota = 2 (only 1 bull trout)\nKokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5; NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328974235"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_lake_upper_west_arm.r1",
-          "type": "retention_limit",
-          "verbatim": "Rainbow trout catch and release, Jan 1-May 31",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [
-            "Jan 1 - May 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_upper_west_arm.r2",
-          "type": "retention_limit",
-          "verbatim": "trout/char daily quota = 2 (only 1 bull trout)",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_upper_west_arm.r3",
-          "type": "retention_limit",
-          "verbatim": "(only 1 bull trout)",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "within": "kootenay_lake_upper_west_arm.r2",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_upper_west_arm.r4",
-          "type": "retention_limit",
-          "verbatim": "Kokanee catch and release, EXCEPT Apr 1-Apr 3 and July 1-July 2 only, when daily quota = 5",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [
-            "Apr 1 - Apr 3",
-            "Jul 1 - Jul 2"
-          ],
-          "windows_are": "excepts",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_upper_west_arm.r5",
-          "type": "retention_limit",
-          "verbatim": "when daily quota = 5",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [
-            "Apr 1 - Apr 3",
-            "Jul 1 - Jul 2"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_lake_upper_west_arm.r6",
-          "type": "advisory",
-          "verbatim": "NOTE: The combined daily quota for kokanee\nfrom the Upper West Arm (when open to kokanee harvest) and the Lower West Arm (when open to kokanee harvest) cannot exceed 5",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kootenay_river_downstream_idaho_border",
-      "name": "KOOTENAY RIVER (downstream of Idaho border)",
-      "display_name": "Kootenay River (downstream of Idaho border)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** from CPR Bridge near Creston downstream 2 km to navigation dolphin\nDownstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release\nBurbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part\nWalleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River\nFrom the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:14097",
-        "gnis:39068",
-        "gnis:2123"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_river_downstream_idaho_border.r1",
-          "type": "retention_limit",
-          "verbatim": "No Fishing from CPR Bridge near Creston downstream 2 km to navigation dolphin",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__cpr",
-                "kootenay_river__kootenay_lake"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_downstream_idaho_border.r2",
-          "type": "retention_limit",
-          "verbatim": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_idaho_border",
-                "kootenay_river__cpr"
-              ]
-            },
-            {
-              "op": "downstream_of",
-              "splits": [
-                "kootenay_river__corra_linn_dam"
-              ]
-            }
-          ],
-          "exempts": [
-            {
-              "default_id": "spring_closure",
-              "note": ""
-            }
-          ],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_downstream_idaho_border.r3",
-          "type": "retention_limit",
-          "verbatim": "Downstream from the Idaho border to CPR Bridge near Creston and from Corra Linn Dam to the Columbia River: EXEMPT from Apr 1-June 14 closure AND from Nov 1-Mar 31 trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_idaho_border",
-                "kootenay_river__cpr"
-              ]
-            },
-            {
-              "op": "downstream_of",
-              "splits": [
-                "kootenay_river__corra_linn_dam"
-              ]
-            }
-          ],
-          "exempts": [
-            {
-              "default_id": "trout_char_release",
-              "note": ""
-            }
-          ],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_downstream_idaho_border.r4",
-          "type": "retention_limit",
-          "verbatim": "Burbot catch and release from Idaho border near Creston to Kootenay Lake, including tributaries to that part",
-          "obligation": "must",
-          "species": [
-            "BB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "includes_tributaries": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_idaho_border",
-                "kootenay_river__kootenay_lake"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_downstream_idaho_border.r5",
-          "type": "retention_limit",
-          "verbatim": "Walleye daily quota = 16 from the Brilliant Dam to the confluence with the Columbia River",
-          "obligation": "must",
-          "species": [
-            "WP"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 16,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "downstream_of",
-              "splits": [
-                "kootenay_river__brilliant_dam"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_downstream_idaho_border.r6",
-          "type": "retention_limit",
-          "verbatim": "From the Brilliant Dam to the confluence with the Columbia River: northern pike and bass daily quota = unlimited",
-          "obligation": "must",
-          "species": [
-            "NP",
-            "BASS"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "downstream_of",
-              "splits": [
-                "kootenay_river__brilliant_dam"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kootenay_river_upstream_koocanusa",
-      "name": "KOOTENAY RIVER (upstream of Koocanusa Reservoir)",
-      "display_name": "Kootenay River (upstream of Koocanusa Reservoir)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Bait ban all year\nTrout/char catch and release, Nov 1-Mar 31\nBurbot catch and release upstream of the Montana border\nUpstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure; trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31\nUpstream of White River: trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31\n**Upstream of White River, including tributaries: Class II water when open**",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:14097"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r1",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban all year",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char catch and release, Nov 1-Mar 31",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "Nov 1 - Mar 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r3",
-          "type": "retention_limit",
-          "verbatim": "Burbot catch and release upstream of the Montana border",
-          "obligation": "must",
-          "species": [
-            "BB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "border:356570348:1"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r4",
-          "type": "retention_limit",
-          "verbatim": "Upstream of Koocanusa Reservoir to White River: EXEMPT from Apr 1-June 14 closure",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_koocanusa",
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [
-            {
-              "default_id": "spring_closure",
-              "note": ""
-            }
-          ],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r5",
-          "type": "retention_limit",
-          "verbatim": "trout/char daily quota = 1 (no trout under 30 cm and\nno bull trout under 75 cm), Apr 1-Oct 31",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "Apr 1 - Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_koocanusa",
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r6",
-          "type": "retention_limit",
-          "verbatim": "no trout under 30 cm",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "within": "kootenay_river_upstream_koocanusa.r5",
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_koocanusa",
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r7",
-          "type": "retention_limit",
-          "verbatim": "no bull trout under 75 cm",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "within": "kootenay_river_upstream_koocanusa.r5",
-          "under_cm": 75,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "between",
-              "splits": [
-                "kootenay_river__kootenay_koocanusa",
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r8",
-          "type": "retention_limit",
-          "verbatim": "trout/char daily quota = 1 (no trout under 30 cm and no bull trout under 75 cm), Jun 15-Oct 31",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "Jun 15 - Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r9",
-          "type": "retention_limit",
-          "verbatim": "no trout under 30 cm",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "within": "kootenay_river_upstream_koocanusa.r8",
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r10",
-          "type": "retention_limit",
-          "verbatim": "no bull trout under 75 cm",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "within": "kootenay_river_upstream_koocanusa.r8",
-          "under_cm": 75,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "kootenay_river_upstream_koocanusa.r11",
-          "type": "document_required",
-          "verbatim": "**Upstream of White River, including tributaries: Class II water when open**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "includes_tributaries": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "kootenay_river__white_river_into_kootenay_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:kuskanax_creek",
+      "entry_id": "r4:kuskanax_creek@4-31",
       "name": "KUSKANAX CREEK",
       "display_name": "Kuskanax Creek",
       "region": "4",
@@ -2016,7 +325,7 @@
       ]
     },
     {
-      "entry_id": "r4:lake_revelstoke",
+      "entry_id": "r4:lake_revelstoke@4-38+4-39",
       "name": "LAKE REVELSTOKE",
       "display_name": "Lake Revelstoke",
       "region": "4",
@@ -2064,58 +373,7 @@
       ]
     },
     {
-      "entry_id": "r4:lake_revelstoke_tributaries",
-      "name": "LAKE REVELSTOKE'S TRIBUTARIES",
-      "display_name": "Lake Revelstoke's tributaries",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Bull trout catch and release",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329484653"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "lake_revelstoke_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:larchwood_lake",
+      "entry_id": "r4:larchwood_lake@4-20",
       "name": "LARCHWOOD LAKE",
       "display_name": "Larchwood Lake",
       "region": "4",
@@ -2282,7 +540,7 @@
       ]
     },
     {
-      "entry_id": "r4:lardeau_river",
+      "entry_id": "r4:lardeau_river@4-29+4-30",
       "name": "LARDEAU RIVER",
       "display_name": "Lardeau River",
       "region": "4",
@@ -2471,7 +729,7 @@
       ]
     },
     {
-      "entry_id": "r4:larix_lake",
+      "entry_id": "r4:larix_lake@4-25",
       "name": "LARIX LAKE",
       "display_name": "Larix Lake",
       "region": "4",
@@ -2522,7 +780,7 @@
       ]
     },
     {
-      "entry_id": "r4:lavington_creek",
+      "entry_id": "r4:lavington_creek@4-26",
       "name": "LAVINGTON CREEK",
       "display_name": "Lavington Creek",
       "region": "4",
@@ -2635,7 +893,7 @@
       ]
     },
     {
-      "entry_id": "r4:lazy_lake",
+      "entry_id": "r4:lazy_lake@4-21",
       "name": "LAZY LAKE",
       "display_name": "Lazy Lake",
       "region": "4",
@@ -2684,7 +942,7 @@
       ]
     },
     {
-      "entry_id": "r4:leadqueen_lake",
+      "entry_id": "r4:leadqueen_lake@4-34",
       "name": "LEADQUEEN LAKE",
       "display_name": "Leadqueen Lake",
       "region": "4",
@@ -2733,7 +991,7 @@
       ]
     },
     {
-      "entry_id": "r4:lemon_creek",
+      "entry_id": "r4:lemon_creek@4-17",
       "name": "LEMON CREEK",
       "display_name": "Lemon Creek",
       "region": "4",
@@ -2784,7 +1042,7 @@
       ]
     },
     {
-      "entry_id": "r4:lewis_cameron_slough",
+      "entry_id": "r4:lewis_cameron_slough@4-21",
       "name": "LEWIS (\"Cameron\") SLOUGH",
       "display_name": "Lewis (\"Cameron\") Slough",
       "region": "4",
@@ -2891,7 +1149,7 @@
       ]
     },
     {
-      "entry_id": "r4:lillian_lake",
+      "entry_id": "r4:lillian_lake@4-26",
       "name": "LILLIAN LAKE",
       "display_name": "Lillian Lake",
       "region": "4",
@@ -2940,7 +1198,7 @@
       ]
     },
     {
-      "entry_id": "r4:line_creek",
+      "entry_id": "r4:line_creek@4-23",
       "name": "LINE CREEK",
       "display_name": "Line Creek",
       "region": "4",
@@ -2992,283 +1250,7 @@
       ]
     },
     {
-      "entry_id": "r4:little_mitten_lake",
-      "name": "\"LITTLE MITTEN\" LAKE (approx. 400 m west of Mitten Lake)",
-      "display_name": "Little Mitten Lake",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 1 (none under 50 cm); bait ban, single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329220512"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "little_mitten_lake.r1",
-          "type": "method_rule",
-          "verbatim": "No Ice Fishing",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "little_mitten_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char daily quota = 1 (none under 50 cm)",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "little_mitten_lake.r3",
-          "type": "retention_limit",
-          "verbatim": "(none under 50 cm)",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "within": "little_mitten_lake.r2",
-          "under_cm": 50,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "little_mitten_lake.r4",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "little_mitten_lake.r5",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:little_slocan_lake_tributaries",
-      "name": "LITTLE SLOCAN LAKE'S TRIBUTARIES",
-      "display_name": "Little Slocan Lake's tributaries",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "EXEMPT from Slocan River's[Includes Tributaries] closure and Slocan River's[Includes Tributaries] trout/char catch and release: bait ban, June 15-Oct 31",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329523072",
-        "wbk:329523070"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "little_slocan_lake_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "EXEMPT from Slocan River's[Includes Tributaries] closure",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "exempts from Slocan River's own closure rule (a named-water exemption), not a regional default; cannot bind to a specific rule_id without Slocan River's entry"
-        },
-        {
-          "rule_id": "little_slocan_lake_tributaries.r2",
-          "type": "retention_limit",
-          "verbatim": "Slocan River's[Includes Tributaries] trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "exempts from Slocan River's own trout/char catch-and-release rule (a named-water exemption); cannot bind to a specific rule_id without Slocan River's entry"
-        },
-        {
-          "rule_id": "little_slocan_lake_tributaries.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban, June 15-Oct 31",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [
-            "Jun 15 - Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:little_slocan_river",
+      "entry_id": "r4:little_slocan_river@4-16",
       "name": "LITTLE SLOCAN RIVER",
       "display_name": "Little Slocan River",
       "region": "4",
@@ -3315,303 +1297,7 @@
       ]
     },
     {
-      "entry_id": "r4:lodgepole_creek_above_falls",
-      "name": "LODGEPOLE CREEK (upstream of falls)",
-      "display_name": "Lodgepole Creek (upstream of falls)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Aug 31\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:17044"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "lodgepole_creek_above_falls.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** Sept 1-Oct 31",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Sept 1-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "lodgepole_creek_above_falls.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char daily quota = 1 (none under 30 cm)",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "June 15-Aug 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "lodgepole_creek_above_falls.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban, June 15-Aug 31",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [
-            "June 15-Aug 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "lodgepole_creek_above_falls.r4",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "angler_class": {
-            "residency": "non_resident"
-          },
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "licence_name": "Wigwam River",
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:lodgepole_creek_below_falls",
-      "name": "LODGEPOLE CREEK (downstream of falls near the km 26 post on Lodgepole Road)",
-      "display_name": "Lodgepole Creek (downstream of falls near the km 26 post on Lodgepole Road)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release, June 15-Aug 31\nBait ban\n**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:17044"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "lodgepole_creek_below_falls.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** Sept 1-Oct 31",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Sept 1-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "lodgepole_creek_below_falls.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char catch and release, June 15-Aug 31",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "June 15-Aug 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "lodgepole_creek_below_falls.r3",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "lodgepole_creek_below_falls.r4",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries - Wigwam River classified licence required for non-resident anglers**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "angler_class": {
-            "residency": "non_resident"
-          },
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "licence_name": "Wigwam River",
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:lomond_lake",
+      "entry_id": "r4:lomond_lake@4-8",
       "name": "LOMOND LAKE",
       "display_name": "Lomond Lake",
       "region": "4",
@@ -3660,7 +1346,7 @@
       ]
     },
     {
-      "entry_id": "r4:loon_lake",
+      "entry_id": "r4:loon_lake@4-2",
       "name": "LOON LAKE",
       "display_name": "Loon Lake",
       "region": "4",
@@ -3826,7 +1512,7 @@
       ]
     },
     {
-      "entry_id": "r4:lost_lake",
+      "entry_id": "r4:lost_lake@4-23",
       "name": "\"LOST\" LAKE",
       "display_name": "Lost Lake",
       "region": "4",
@@ -3875,58 +1561,7 @@
       ]
     },
     {
-      "entry_id": "r4:lower_arrow_lake_tributaries",
-      "name": "LOWER ARROW LAKE'S TRIBUTARIES",
-      "display_name": "Lower Arrow Lake's Tributaries",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Bull trout catch and release",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328961720"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "lower_arrow_lake_tributaries.r1",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:lower_elk_lake",
+      "entry_id": "r4:lower_elk_lake@4-23",
       "name": "LOWER ELK LAKE",
       "display_name": "Lower Elk Lake",
       "region": "4",
@@ -4091,7 +1726,7 @@
       ]
     },
     {
-      "entry_id": "r4:lower_halgrave_lake",
+      "entry_id": "r4:lower_halgrave_lake@4-34",
       "name": "LOWER HALGRAVE LAKE",
       "display_name": "Lower Halgrave Lake",
       "region": "4",
@@ -4140,7 +1775,7 @@
       ]
     },
     {
-      "entry_id": "r4:lund_lake",
+      "entry_id": "r4:lund_lake@4-3",
       "name": "LUND LAKE",
       "display_name": "Lund Lake",
       "region": "4",
@@ -4218,7 +1853,7 @@
       ]
     },
     {
-      "entry_id": "r4:lussier_river",
+      "entry_id": "r4:lussier_river@4-21",
       "name": "LUSSIER RIVER",
       "display_name": "Lussier River",
       "region": "4",
@@ -4359,7 +1994,7 @@
       ]
     },
     {
-      "entry_id": "r4:mackenzie_creek",
+      "entry_id": "r4:mackenzie_creek@4-21",
       "name": "MACKENZIE CREEK",
       "display_name": "",
       "region": "4",
@@ -4405,7 +2040,7 @@
       ]
     },
     {
-      "entry_id": "r4:mcclain_lake",
+      "entry_id": "r4:mcclain_lake@4-34",
       "name": "\"MCCLAIN\" LAKE",
       "display_name": "Mcclain Lake",
       "region": "4",
@@ -4542,7 +2177,7 @@
       ]
     },
     {
-      "entry_id": "r4:mcnaughton_lake",
+      "entry_id": "r4:mcnaughton_lake@4-36",
       "name": "MCNAUGHTON LAKE",
       "display_name": "Kinbasket Lake",
       "region": "4",
@@ -4589,232 +2224,7 @@
       ]
     },
     {
-      "entry_id": "r4:michel_creek_above_hwy3",
-      "name": "MICHEL CREEK (upstream of the easternmost Hwy 3 bridge)",
-      "display_name": "Michel Creek (upstream of the easternmost Hwy 3 bridge)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**Class II water when open, including tributaries**\nTrout/char catch and release, June 15-Mar 31 and bait ban, June 15-Oct 31.",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:28953"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "includes_tributaries": true,
-      "rules": [
-        {
-          "rule_id": "michel_creek_above_hwy3.r1",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "michel_creek_above_hwy3.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char catch and release, June 15-Mar 31",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "June 15-Mar 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "michel_creek_above_hwy3.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban, June 15-Oct 31",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [
-            "June 15-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:michel_creek_below_hwy3",
-      "name": "MICHEL CREEK (downstream of the easternmost Hwy 3 bridge)",
-      "display_name": "Michel Creek (downstream of the easternmost Hwy 3 bridge)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**Class II water when open, including tributaries**\nTrout/char daily quota = 1 (none under 30 cm) and bait ban, June 15-Oct 31.",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:28953"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "michel_creek_below_hwy3.r1",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "michel_creek_below_hwy3.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char daily quota = 1 (none under 30 cm)",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "June 15-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "michel_creek_below_hwy3.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban, June 15-Oct 31",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [
-            "June 15-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:midge_creek",
+      "entry_id": "r4:midge_creek@4-7",
       "name": "MIDGE CREEK",
       "display_name": "Midge Creek",
       "region": "4",
@@ -4866,7 +2276,7 @@
       ]
     },
     {
-      "entry_id": "r4:monroe_lake",
+      "entry_id": "r4:monroe_lake@4-5",
       "name": "MONROE LAKE",
       "display_name": "Monroe Lake",
       "region": "4",
@@ -4915,7 +2325,7 @@
       ]
     },
     {
-      "entry_id": "r4:moose_alces_lake",
+      "entry_id": "r4:moose_alces_lake@4-24",
       "name": "MOOSE (\"Alces\") LAKE",
       "display_name": "Moose Lake",
       "region": "4",
@@ -4994,7 +2404,7 @@
       ]
     },
     {
-      "entry_id": "r4:morrissey_creek",
+      "entry_id": "r4:morrissey_creek@4-2",
       "name": "MORRISSEY CREEK",
       "display_name": "Morrissey Creek",
       "region": "4",
@@ -5144,7 +2554,7 @@
       ]
     },
     {
-      "entry_id": "r4:moses_creek",
+      "entry_id": "r4:moses_creek@4-39",
       "name": "MOSES CREEK",
       "display_name": "Moses Creek",
       "region": "4",
@@ -5195,7 +2605,7 @@
       ]
     },
     {
-      "entry_id": "r4:moyie_lake",
+      "entry_id": "r4:moyie_lake@4-5",
       "name": "MOYIE LAKE",
       "display_name": "Moyie Lake",
       "region": "4",
@@ -5279,7 +2689,7 @@
       ]
     },
     {
-      "entry_id": "r4:moyie_river",
+      "entry_id": "r4:moyie_river@4-5",
       "name": "MOYIE RIVER",
       "display_name": "Moyie River",
       "region": "4",
@@ -5402,7 +2812,7 @@
       ]
     },
     {
-      "entry_id": "r4:murphy_creek",
+      "entry_id": "r4:murphy_creek@4-9",
       "name": "MURPHY CREEK",
       "display_name": "Murphy Creek",
       "region": "4",
@@ -5453,7 +2863,7 @@
       ]
     },
     {
-      "entry_id": "r4:nagle_creek",
+      "entry_id": "r4:nagle_creek@4-39",
       "name": "NAGLE CREEK",
       "display_name": "Nagle Creek",
       "region": "4",
@@ -5504,7 +2914,7 @@
       ]
     },
     {
-      "entry_id": "r4:nancy_greene_sheep_lake",
+      "entry_id": "r4:nancy_greene_sheep_lake@4-9",
       "name": "NANCY GREENE (Sheep) LAKE",
       "display_name": "Nancy Greene Lake",
       "region": "4",
@@ -5553,7 +2963,7 @@
       ]
     },
     {
-      "entry_id": "r4:new_lake",
+      "entry_id": "r4:new_lake@4-20",
       "name": "NEW LAKE",
       "display_name": "New Lake",
       "region": "4",
@@ -5605,7 +3015,7 @@
       ]
     },
     {
-      "entry_id": "r4:nine_bay_lake",
+      "entry_id": "r4:nine_bay_lake@4-34",
       "name": "NINE BAY LAKE",
       "display_name": "Nine Bay Lake",
       "region": "4",
@@ -5742,7 +3152,7 @@
       ]
     },
     {
-      "entry_id": "r4:norbury_garbutt_lake",
+      "entry_id": "r4:norbury_garbutt_lake@4-22",
       "name": "NORBURY (Garbutt) LAKE",
       "display_name": "Norbury Lakes",
       "region": "4",
@@ -5792,7 +3202,7 @@
       ]
     },
     {
-      "entry_id": "r4:norbury_little_bull_creek",
+      "entry_id": "r4:norbury_little_bull_creek@4-22",
       "name": "NORBURY (Little Bull) CREEK",
       "display_name": "Norbury Creek",
       "region": "4",
@@ -5839,7 +3249,7 @@
       ]
     },
     {
-      "entry_id": "r4:norns_pass_creek",
+      "entry_id": "r4:norns_pass_creek@4-15",
       "name": "NORNS (Pass) CREEK",
       "display_name": "Norns Creek",
       "region": "4",
@@ -8075,7 +5485,7 @@
       ]
     },
     {
-      "entry_id": "r4:whatshan_river",
+      "entry_id": "r4:whatshan_river@4-32",
       "name": "WHATSHAN RIVER",
       "display_name": "Whatshan River",
       "region": "4",
@@ -8137,215 +5547,7 @@
       ]
     },
     {
-      "entry_id": "r4:white_river",
-      "name": "WHITE RIVER",
-      "display_name": "White River",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Upstream of and including North White River; trout/char catch and release\nBull trout catch and release on all parts, Sept 1-Oct 31\nTrout/char daily quota = 1 (none under 30 cm) downstream of North White River, June 15-Oct 31\nBait ban on all parts, June 15-Oct 31\n**Class II water when open, including tributaries**",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:26897"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "white_river.r1",
-          "type": "retention_limit",
-          "verbatim": "Upstream of and including North White River; trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "upstream_of",
-              "splits": [
-                "white_river__north_white_river_into_white_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "white_river.r2",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release on all parts, Sept 1-Oct 31",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [
-            "Sept 1-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "white_river.r3",
-          "type": "retention_limit",
-          "verbatim": "Trout/char daily quota = 1 (none under 30 cm) downstream of North White River, June 15-Oct 31",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [
-            "June 15-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "downstream_of",
-              "splits": [
-                "white_river__north_white_river_into_white_river"
-              ]
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "white_river.r4",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban on all parts, June 15-Oct 31",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [
-            "June 15-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "white_river.r5",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "includes_tributaries": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:whiteswan_lake",
+      "entry_id": "r4:whiteswan_lake@4-24",
       "name": "WHITESWAN LAKE",
       "display_name": "Whiteswan Lake",
       "region": "4",
@@ -8431,152 +5633,7 @@
       ]
     },
     {
-      "entry_id": "r4:whiteswan_lake_inlet_outlet_streams",
-      "name": "WHITESWAN LAKE'S INLET & OUTLET STREAMS",
-      "display_name": "Whiteswan Lake's Inlet & Outlet Streams",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake, **No Fishing** Aug 1-Mar 31, rainbow\ntrout daily quota = 5 (catch and release all other species) when open",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "whiteswan_lake_inlet_outlet_streams.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** EXCEPT the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "whole water except the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        },
-        {
-          "rule_id": "whiteswan_lake_inlet_outlet_streams.r2",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** Aug 1-Mar 31",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Aug 1-Mar 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        },
-        {
-          "rule_id": "whiteswan_lake_inlet_outlet_streams.r3",
-          "type": "retention_limit",
-          "verbatim": "rainbow trout daily quota = 5 (catch and release all other species) when open",
-          "obligation": "must",
-          "species": [
-            "RB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        },
-        {
-          "rule_id": "whiteswan_lake_inlet_outlet_streams.r4",
-          "type": "retention_limit",
-          "verbatim": "catch and release all other species",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [
-            "RB"
-          ],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "the outlet stream downstream of the falls 2.4 km downstream of Whiteswan Lake",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:whitetail_lake",
+      "entry_id": "r4:whitetail_lake@4-26",
       "name": "WHITETAIL LAKE",
       "display_name": "Whitetail Lake",
       "region": "4",
@@ -8801,342 +5858,7 @@
       ]
     },
     {
-      "entry_id": "r4:whitetail_lake_inlet_outlet_streams",
-      "name": "WHITETAIL LAKE'S INLET & OUTLET STREAMS",
-      "display_name": "Whitetail Lake's Inlet & Outlet Streams",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing**",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "whitetail_lake_inlet_outlet_streams.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing**",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:wigwam_river_above_km42",
-      "name": "WIGWAM RIVER (upstream of the Forest Service recreation site adjacent to km 42 on the Bighorn (Ram) Forest Service Road)",
-      "display_name": "Wigwam River (above Km 42 Bighorn FSR recreation site)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** Sept 1-Oct 31\nTrout/char catch and release; bait ban\n**Class II water when open, including tributaries**",
-      "source_pages": [],
-      "symbols": [
-        "Includes Tributaries"
-      ],
-      "matched": [
-        "gnis:27703"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "includes_tributaries": true,
-      "rules": [
-        {
-          "rule_id": "wigwam_river_above_km42.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** Sept 1-Oct 31",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Sept 1-Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wigwam_river_above_km42.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wigwam_river_above_km42.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wigwam_river_above_km42.r4",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "includes_tributaries": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:wigwam_river_below_km42",
-      "name": "WIGWAM RIVER (downstream of the access road adjacent to km 42 on the Bighorn (Ram) Forest Service Road)",
-      "display_name": "Wigwam River (below Km 42 Bighorn FSR access road)",
-      "region": "4",
-      "scope_note": "",
-      "regs_verbatim": "Trout/char catch and release\nBait ban\n**Class II water when open, including tributaries**",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:27703"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "wigwam_river_below_km42.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wigwam_river_below_km42.r2",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wigwam_river_below_km42.r3",
-          "type": "document_required",
-          "verbatim": "**Class II water when open, including tributaries**",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "document": "classified_waters_licence",
-          "required": true,
-          "water_class": "II",
-          "includes_tributaries": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "whole"
-            }
-          ],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r4:wilkie_creek",
+      "entry_id": "r4:wilkie_creek@4-30",
       "name": "WILKIE CREEK",
       "display_name": "Wilkie Creek",
       "region": "4",
@@ -9192,7 +5914,7 @@
       ]
     },
     {
-      "entry_id": "r4:williamson_lake",
+      "entry_id": "r4:williamson_lake@4-33",
       "name": "WILLIAMSON LAKE",
       "display_name": "Williamson Lake",
       "region": "4",
@@ -9246,7 +5968,7 @@
       ]
     },
     {
-      "entry_id": "r4:wilson_creek",
+      "entry_id": "r4:wilson_creek@4-17",
       "name": "WILSON CREEK",
       "display_name": "Wilson Creek",
       "region": "4",
@@ -9305,7 +6027,7 @@
       ]
     },
     {
-      "entry_id": "r4:windermere_creek",
+      "entry_id": "r4:windermere_creek@4-25",
       "name": "WINDERMERE CREEK",
       "display_name": "Windermere Creek",
       "region": "4",
@@ -9361,7 +6083,7 @@
       ]
     },
     {
-      "entry_id": "r4:windermere_lake",
+      "entry_id": "r4:windermere_lake@4-25",
       "name": "WINDERMERE LAKE",
       "display_name": "Windermere Lake",
       "region": "4",
@@ -9451,7 +6173,7 @@
       ]
     },
     {
-      "entry_id": "r4:winlaw_creek",
+      "entry_id": "r4:winlaw_creek@4-17",
       "name": "WINLAW CREEK",
       "display_name": "Winlaw Creek",
       "region": "4",
@@ -9507,7 +6229,7 @@
       ]
     },
     {
-      "entry_id": "r4:wood_river",
+      "entry_id": "r4:wood_river@4-40",
       "name": "WOOD RIVER",
       "display_name": "Wood River",
       "region": "4",
@@ -9568,7 +6290,7 @@
       ]
     },
     {
-      "entry_id": "r4:woodbury_creek",
+      "entry_id": "r4:woodbury_creek@4-18",
       "name": "WOODBURY CREEK",
       "display_name": "Woodbury Creek",
       "region": "4",

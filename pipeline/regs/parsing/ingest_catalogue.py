@@ -81,8 +81,14 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
         eid = str(data.get("entry_id") or "<no entry_id>")
         idx = data.pop("_batch_index", None)
         item = batch.get(eid) or (batch.get(f"#{idx}") if idx is not None else None)
-        if item is not None and eid == "<no entry_id>":
-            eid = str(item.get("entry_id") or eid)
+        if item is not None and item.get("entry_id"):
+            # IDENTITY COMES FROM THE BATCH, exactly like regs_verbatim. The agent retypes
+            # entry_id and 375 of 1099 came back without their `@MU` suffix — close enough to
+            # look right, different enough that `--skip-existing` no longer recognises the row.
+            # 368 entries were stored under the truncated id, so a resume re-parsed waters that
+            # were already done and would have written each one twice under two ids.
+            eid = str(item["entry_id"])
+            data["entry_id"] = eid
         if item is None:
             problems.append(f"{eid}: not in the batch — an entry_id was invented or altered")
             continue

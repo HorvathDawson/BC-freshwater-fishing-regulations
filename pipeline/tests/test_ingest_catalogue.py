@@ -200,3 +200,18 @@ def test_a_prose_era_response_is_skipped_not_ingested():
     assert is_stale(prose)
     assert not is_stale(catalogue)
     assert not is_stale([])
+
+
+def test_entry_id_comes_from_the_batch_not_the_model():
+    """The agent retypes entry_id and drops the `@MU` suffix a third of the time. Stored under the
+    truncated id, `--skip-existing` stops recognising the row: a resume re-parses waters already
+    done and writes each one twice, under two ids that name one water."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    cand = _candidate([])
+    cand["entry_id"] = "e1"                       # model drops the qualifier
+    item = _batch_item(entry_id="e1@8-9", index=7)
+    cand["_batch_index"] = 7                      # what run() attaches when it unwraps the envelope
+    accepted, problems = ingest([cand], {"e1@8-9": item, "#7": item})
+    assert not [p for p in problems if not p.startswith("ADVISORY")], problems
+    assert "e1@8-9" in accepted, f"stored under {list(accepted)}"
+    assert accepted["e1@8-9"].entry_id == "e1@8-9"

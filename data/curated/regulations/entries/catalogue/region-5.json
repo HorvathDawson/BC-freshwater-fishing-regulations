@@ -2,7 +2,7 @@
   "region": "5",
   "entries": [
     {
-      "entry_id": "r5:abbott_lake",
+      "entry_id": "r5:abbott_lake@5-2",
       "name": "ABBOTT LAKE",
       "display_name": "Abbott Lake",
       "region": "5",
@@ -193,7 +193,7 @@
       ]
     },
     {
-      "entry_id": "r5:abuntlet_lake",
+      "entry_id": "r5:abuntlet_lake@5-12",
       "name": "ABUNTLET LAKE",
       "display_name": "Abuntlet Lake",
       "region": "5",
@@ -315,7 +315,7 @@
       ]
     },
     {
-      "entry_id": "r5:agnus_lake",
+      "entry_id": "r5:agnus_lake@5-6",
       "name": "\"AGNUS\" LAKE",
       "display_name": "Agnus Lake",
       "region": "5",
@@ -437,7 +437,7 @@
       ]
     },
     {
-      "entry_id": "r5:alexis_lake",
+      "entry_id": "r5:alexis_lake@5-13",
       "name": "ALEXIS LAKE",
       "display_name": "Alexis Lake",
       "region": "5",
@@ -491,7 +491,7 @@
       ]
     },
     {
-      "entry_id": "r5:avalanche_lake",
+      "entry_id": "r5:avalanche_lake@5-6",
       "name": "AVALANCHE LAKE",
       "display_name": "Avalanche Lake",
       "region": "5",
@@ -613,7 +613,7 @@
       ]
     },
     {
-      "entry_id": "r5:baby_charlotte_lake",
+      "entry_id": "r5:baby_charlotte_lake@5-6",
       "name": "BABY CHARLOTTE LAKE",
       "display_name": "Baby Charlotte Lake",
       "region": "5",
@@ -735,7 +735,7 @@
       ]
     },
     {
-      "entry_id": "r5:baker_creek",
+      "entry_id": "r5:baker_creek@5-13",
       "name": "BAKER CREEK",
       "display_name": "Baker Creek",
       "region": "5",
@@ -872,7 +872,7 @@
       ]
     },
     {
-      "entry_id": "r5:ballon_lake",
+      "entry_id": "r5:ballon_lake@5-2",
       "name": "BALLON LAKE",
       "display_name": "Ballon Lake",
       "region": "5",
@@ -1029,7 +1029,7 @@
       ]
     },
     {
-      "entry_id": "r5:banana_lake",
+      "entry_id": "r5:banana_lake@5-6",
       "name": "BANANA LAKE",
       "display_name": "Banana Lake",
       "region": "5",
@@ -1151,7 +1151,7 @@
       ]
     },
     {
-      "entry_id": "r5:basalt_lake",
+      "entry_id": "r5:basalt_lake@6-1",
       "name": "BASALT LAKE",
       "display_name": "Basalt Lake",
       "region": "5",
@@ -1286,7 +1286,7 @@
       ]
     },
     {
-      "entry_id": "r5:beaver_creek_chain_of_lakes",
+      "entry_id": "r5:beaver_creek_chain_of_lakes@5-2",
       "name": "BEAVER CREEK chain of lakes",
       "display_name": "Beaver Creek chain of lakes",
       "region": "5",
@@ -1345,7 +1345,7 @@
       ]
     },
     {
-      "entry_id": "r5:beaver_lake",
+      "entry_id": "r5:beaver_lake@5-2",
       "name": "BEAVER LAKE",
       "display_name": "Beaver Lake",
       "region": "5",
@@ -1401,7 +1401,7 @@
       ]
     },
     {
-      "entry_id": "r5:cohen_lake",
+      "entry_id": "r5:cohen_lake@5-6",
       "name": "COHEN LAKE",
       "display_name": "Cohen Lake",
       "region": "5",
@@ -1508,143 +1508,7 @@
       ]
     },
     {
-      "entry_id": "r5:cook_lake",
-      "name": "COOK LAKE (Solomon Lake area)",
-      "display_name": "Cook Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "**No Ice Fishing;** trout/char catch and release; artificial fly only, bait ban",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329480895"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "cook_lake.r1",
-          "type": "method_rule",
-          "verbatim": "No Ice Fishing",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "cook_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "cook_lake.r3",
-          "type": "tackle_restriction",
-          "verbatim": "artificial fly only",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "lure": "artificial_fly",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "cook_lake.r4",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:crag_creek",
+      "entry_id": "r5:crag_creek@5-9",
       "name": "CRAG CREEK",
       "display_name": "Crag Creek",
       "region": "5",
@@ -1695,114 +1559,7 @@
       ]
     },
     {
-      "entry_id": "r5:crazy_bear_lake",
-      "name": "CRAZY BEAR (Ginny) LAKE",
-      "display_name": "Crazy Bear (Ginny) Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329021788"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "crazy_bear_lake.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout daily quota = 2",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "crazy_bear_lake.r2",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "crazy_bear_lake.r3",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:cruise_lake",
+      "entry_id": "r5:cruise_lake@5-6",
       "name": "\"CRUISE\" LAKE",
       "display_name": "Cruise Lake",
       "region": "5",
@@ -1909,7 +1666,7 @@
       ]
     },
     {
-      "entry_id": "r5:cutthroat_lake",
+      "entry_id": "r5:cutthroat_lake@5-11",
       "name": "CUTTHROAT LAKE",
       "display_name": "Cutthroat Lake",
       "region": "5",
@@ -2016,7 +1773,7 @@
       ]
     },
     {
-      "entry_id": "r5:davidson_lake",
+      "entry_id": "r5:davidson_lake@5-6",
       "name": "DAVIDSON LAKE",
       "display_name": "Davidson Lake",
       "region": "5",
@@ -2123,7 +1880,7 @@
       ]
     },
     {
-      "entry_id": "r5:dean_river",
+      "entry_id": "r5:dean_river@5-9",
       "name": "DEAN RIVER",
       "display_name": "Dean River",
       "region": "5",
@@ -2767,7 +2524,7 @@
       ]
     },
     {
-      "entry_id": "r5:deception_lake",
+      "entry_id": "r5:deception_lake@5-15",
       "name": "DECEPTION LAKE",
       "display_name": "Deception Lake",
       "region": "5",
@@ -2874,7 +2631,7 @@
       ]
     },
     {
-      "entry_id": "r5:dewar_lake",
+      "entry_id": "r5:dewar_lake@5-2",
       "name": "DEWAR LAKE",
       "display_name": "Dewar Lake",
       "region": "5",
@@ -3038,7 +2795,7 @@
       ]
     },
     {
-      "entry_id": "r5:dog_lake",
+      "entry_id": "r5:dog_lake@5-2",
       "name": "\"DOG\" LAKE",
       "display_name": "Dog Lake",
       "region": "5",
@@ -3174,7 +2931,7 @@
       ]
     },
     {
-      "entry_id": "r5:donnely_lake",
+      "entry_id": "r5:donnely_lake@5-1",
       "name": "DONNELY LAKE",
       "display_name": "Donnely Lake",
       "region": "5",
@@ -3340,7 +3097,7 @@
       ]
     },
     {
-      "entry_id": "r5:dorsey_lake",
+      "entry_id": "r5:dorsey_lake@5-2",
       "name": "DORSEY LAKE",
       "display_name": "Dorsey Lake",
       "region": "5",
@@ -3449,7 +3206,7 @@
       ]
     },
     {
-      "entry_id": "r5:dragon_lake",
+      "entry_id": "r5:dragon_lake@5-2",
       "name": "DRAGON LAKE",
       "display_name": "Dragon Lake",
       "region": "5",
@@ -3533,7 +3290,7 @@
       ]
     },
     {
-      "entry_id": "r5:earle_lake",
+      "entry_id": "r5:earle_lake@5-1",
       "name": "EARLE LAKE",
       "display_name": "Earle Lake",
       "region": "5",
@@ -3669,7 +3426,7 @@
       ]
     },
     {
-      "entry_id": "r5:east_king_lake",
+      "entry_id": "r5:east_king_lake@5-1",
       "name": "EAST KING LAKE",
       "display_name": "East King Lake",
       "region": "5",
@@ -3806,7 +3563,7 @@
       ]
     },
     {
-      "entry_id": "r5:edmund_lake",
+      "entry_id": "r5:edmund_lake@5-2",
       "name": "EDMUND LAKE",
       "display_name": "Edmund Lake",
       "region": "5",
@@ -3856,7 +3613,7 @@
       ]
     },
     {
-      "entry_id": "r5:elk_lake",
+      "entry_id": "r5:elk_lake@5-2",
       "name": "ELK LAKE",
       "display_name": "Elk Lake",
       "region": "5",
@@ -3994,7 +3751,7 @@
       ]
     },
     {
-      "entry_id": "r5:faulkner_lake",
+      "entry_id": "r5:faulkner_lake@5-1",
       "name": "FAULKNER LAKE",
       "display_name": "Faulkner Lake",
       "region": "5",
@@ -4131,7 +3888,7 @@
       ]
     },
     {
-      "entry_id": "r5:fawn_lake",
+      "entry_id": "r5:fawn_lake@5-1",
       "name": "FAWN LAKE",
       "display_name": "Fawn Lake",
       "region": "5",
@@ -4210,164 +3967,7 @@
       ]
     },
     {
-      "entry_id": "r5:fish_lake_mcclinchy",
-      "name": "FISH LAKE (unnamed lake approx. 2 km northwest of McClinchy Lake)",
-      "display_name": "Fish Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329238149"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "fish_lake_mcclinchy.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout daily quota = 2",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "fish_lake_mcclinchy.r2",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "fish_lake_mcclinchy.r3",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:fish_lake_taseko",
-      "name": "FISH LAKE (Taseko Lake area)",
-      "display_name": "Fish Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "Trout daily quota = 8",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329554404"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "fish_lake_taseko.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout daily quota = 8",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 8,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:fly_lake",
+      "entry_id": "r5:fly_lake@5-2",
       "name": "FLY LAKE",
       "display_name": "Fly Lake",
       "region": "5",
@@ -4416,7 +4016,7 @@
       ]
     },
     {
-      "entry_id": "r5:forest_lake",
+      "entry_id": "r5:forest_lake@5-2",
       "name": "FOREST LAKE",
       "display_name": "Forest Lake",
       "region": "5",
@@ -4582,7 +4182,7 @@
       ]
     },
     {
-      "entry_id": "r5:fraser_river",
+      "entry_id": "r5:fraser_river@5-2",
       "name": "FRASER RIVER",
       "display_name": "Fraser River",
       "region": "5",
@@ -4820,7 +4420,7 @@
       ]
     },
     {
-      "entry_id": "r5:french_lake",
+      "entry_id": "r5:french_lake@5-1",
       "name": "FRENCH LAKE",
       "display_name": "French Lake",
       "region": "5",
@@ -4870,7 +4470,7 @@
       ]
     },
     {
-      "entry_id": "r5:frog_lake",
+      "entry_id": "r5:frog_lake@5-6",
       "name": "FROG LAKE",
       "display_name": "",
       "region": "5",
@@ -5004,7 +4604,7 @@
       ]
     },
     {
-      "entry_id": "r5:gatcho_lake",
+      "entry_id": "r5:gatcho_lake@6-1",
       "name": "GATCHO LAKE",
       "display_name": "",
       "region": "5",
@@ -5108,144 +4708,7 @@
       ]
     },
     {
-      "entry_id": "r5:geese_lake",
-      "name": "\"GEESE\" LAKE (2 km northeast of Eliguk Lake)",
-      "display_name": "Geese Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "**No Ice Fishing;** trout catch and release; bait ban, single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329126819"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "geese_lake.r1",
-          "type": "method_rule",
-          "verbatim": "No Ice Fishing",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "geese_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "trout catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "geese_lake.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "geese_lake.r4",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:gotchen_lake",
+      "entry_id": "r5:gotchen_lake@5-15",
       "name": "GOTCHEN LAKE",
       "display_name": "Gotchen Lake",
       "region": "5",
@@ -8622,7 +8085,7 @@
       ]
     },
     {
-      "entry_id": "r5:toms_lake",
+      "entry_id": "r5:toms_lake@6-1",
       "name": "TOMS LAKE",
       "display_name": "Toms Lake",
       "region": "5",
@@ -8729,7 +8192,7 @@
       ]
     },
     {
-      "entry_id": "r5:tsuniah_lake",
+      "entry_id": "r5:tsuniah_lake@5-4",
       "name": "TSUNIAH LAKE",
       "display_name": "Tsuniah Lake",
       "region": "5",
@@ -8806,7 +8269,7 @@
       ]
     },
     {
-      "entry_id": "r5:turner_lake",
+      "entry_id": "r5:turner_lake@5-11",
       "name": "TURNER LAKE",
       "display_name": "Turner Lake",
       "region": "5",
@@ -8913,7 +8376,7 @@
       ]
     },
     {
-      "entry_id": "r5:two_lake",
+      "entry_id": "r5:two_lake@5-13",
       "name": "TWO LAKE",
       "display_name": "Two Lake",
       "region": "5",
@@ -8962,7 +8425,7 @@
       ]
     },
     {
-      "entry_id": "r5:tyee_lake",
+      "entry_id": "r5:tyee_lake@5-2",
       "name": "TYEE LAKE",
       "display_name": "Tyee Lake",
       "region": "5",
@@ -9012,7 +8475,7 @@
       ]
     },
     {
-      "entry_id": "r5:valentine_lake",
+      "entry_id": "r5:valentine_lake@5-2",
       "name": "VALENTINE LAKE",
       "display_name": "Valentine Lake",
       "region": "5",
@@ -9176,7 +8639,7 @@
       ]
     },
     {
-      "entry_id": "r5:vista_lake",
+      "entry_id": "r5:vista_lake@5-11",
       "name": "VISTA LAKE",
       "display_name": "Vista Lake",
       "region": "5",
@@ -9283,7 +8746,7 @@
       ]
     },
     {
-      "entry_id": "r5:watch_creek",
+      "entry_id": "r5:watch_creek@5-1",
       "name": "WATCH CREEK",
       "display_name": "Watch Creek",
       "region": "5",
@@ -9336,7 +8799,7 @@
       ]
     },
     {
-      "entry_id": "r5:watch_lake",
+      "entry_id": "r5:watch_lake@5-1",
       "name": "WATCH LAKE",
       "display_name": "Watch Lake",
       "region": "5",
@@ -9385,7 +8848,7 @@
       ]
     },
     {
-      "entry_id": "r5:wentworth_lakes",
+      "entry_id": "r5:wentworth_lakes@5-13",
       "name": "WENTWORTH LAKES",
       "display_name": "Wentworth Lakes",
       "region": "5",
@@ -9435,7 +8898,7 @@
       ]
     },
     {
-      "entry_id": "r5:west_king_lake",
+      "entry_id": "r5:west_king_lake@5-1",
       "name": "WEST KING LAKE",
       "display_name": "West King Lake",
       "region": "5",
@@ -9572,7 +9035,7 @@
       ]
     },
     {
-      "entry_id": "r5:west_road_blackwater_river",
+      "entry_id": "r5:west_road_blackwater_river@5-12+5-13",
       "name": "WEST ROAD (\"Blackwater\") RIVER",
       "display_name": "West Road (Blackwater) River",
       "region": "5",
@@ -9774,281 +9237,7 @@
       ]
     },
     {
-      "entry_id": "r5:whale_lake_canim",
-      "name": "WHALE LAKE (Canim Lake area)",
-      "display_name": "Whale Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "Trout daily and possession quotas = 2\nBait ban, single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329354776"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "whale_lake_canim.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout daily and possession quotas = 2",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "whale_lake_canim.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout daily and possession quotas = 2",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "possession",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "whale_lake_canim.r3",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "whale_lake_canim.r4",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:whale_lake_gustafsen",
-      "name": "\"WHALE\" LAKE (Gustafsen Lake area)",
-      "display_name": "Whale Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1 (none less than 50 cm); bait ban, single barbless hook\nUnnamed lake approximately 4 km northeast of Gustafsen Lake",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329116791"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "whale_lake_gustafsen.r1",
-          "type": "method_rule",
-          "verbatim": "No Ice Fishing",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "whale_lake_gustafsen.r2",
-          "type": "retention_limit",
-          "verbatim": "Trout daily quota = 1 (none less than 50 cm)",
-          "obligation": "must",
-          "species": [
-            "TROUT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "under_cm": 50,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "whale_lake_gustafsen.r3",
-          "type": "bait_restriction",
-          "verbatim": "bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "whale_lake_gustafsen.r4",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:whitestone_lake",
+      "entry_id": "r5:whitestone_lake@5-2",
       "name": "WHITESTONE LAKE",
       "display_name": "Whitestone Lake",
       "region": "5",
@@ -10097,7 +9286,7 @@
       ]
     },
     {
-      "entry_id": "r5:widgeon_lake",
+      "entry_id": "r5:widgeon_lake@5-11",
       "name": "WIDGEON LAKE",
       "display_name": "Widgeon Lake",
       "region": "5",
@@ -10204,7 +9393,7 @@
       ]
     },
     {
-      "entry_id": "r5:williams_lake",
+      "entry_id": "r5:williams_lake@5-2",
       "name": "WILLIAMS LAKE",
       "display_name": "Williams Lake",
       "region": "5",
@@ -10253,7 +9442,7 @@
       ]
     },
     {
-      "entry_id": "r5:williams_lake_river",
+      "entry_id": "r5:williams_lake_river@5-2",
       "name": "WILLIAMS LAKE RIVER",
       "display_name": "Williams Lake River",
       "region": "5",
@@ -10290,258 +9479,6 @@
           "required": true,
           "on_retention": false,
           "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:wolf_lake",
-      "name": "WOLF LAKE (situated approx. 2.3 km northeast of Lorin Lake)",
-      "display_name": "Wolf Lake",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "**No Ice Fishing;** trout/char catch and release\nBait ban, single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329354830"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "wolf_lake.r1",
-          "type": "method_rule",
-          "verbatim": "No Ice Fishing",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wolf_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "trout/char catch and release",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wolf_lake.r3",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "wolf_lake.r4",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r5:young_creek",
-      "name": "YOUNG CREEK (upstream of Hwy 20)",
-      "display_name": "Young Creek",
-      "region": "5",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** for steelhead\nBait ban\nDownstream of Hwy 20: see Atnarko/Bella Coola Rivers[Includes Tributaries]",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "gnis:1914"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "includes_tributaries": true,
-      "rules": [
-        {
-          "rule_id": "young_creek.r1",
-          "type": "retention_limit",
-          "verbatim": "No Fishing for steelhead",
-          "obligation": "must",
-          "species": [
-            "ST"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "young_creek.r2",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "allowed": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "young_creek.r3",
-          "type": "advisory",
-          "verbatim": "Downstream of Hwy 20: see Atnarko/Bella Coola Rivers",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [
-            {
-              "op": "downstream_of",
-              "splits": [
-                "young_creek__young_hwy20"
-              ]
-            }
-          ],
           "exempts": [],
           "standing": false,
           "reason": "",

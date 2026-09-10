@@ -2,7 +2,7 @@
   "region": "7",
   "entries": [
     {
-      "entry_id": "r7:airline_lake",
+      "entry_id": "r7:airline_lake@7-28",
       "name": "AIRLINE LAKE",
       "display_name": "Airline Lake",
       "region": "7",
@@ -115,7 +115,7 @@
       ]
     },
     {
-      "entry_id": "r7:amanita_lake",
+      "entry_id": "r7:amanita_lake@7-17",
       "name": "AMANITA LAKE",
       "display_name": "Amanita Lake",
       "region": "7",
@@ -164,7 +164,7 @@
       ]
     },
     {
-      "entry_id": "r7:anzac_river",
+      "entry_id": "r7:anzac_river@7-23",
       "name": "ANZAC RIVER",
       "display_name": "Anzac River",
       "region": "7",
@@ -265,7 +265,7 @@
       ]
     },
     {
-      "entry_id": "r7:arctic_lake",
+      "entry_id": "r7:arctic_lake@7-23",
       "name": "ARCTIC LAKE",
       "display_name": "Arctic Lake",
       "region": "7",
@@ -378,7 +378,7 @@
       ]
     },
     {
-      "entry_id": "r7:attichika_creek",
+      "entry_id": "r7:attichika_creek@7-39",
       "name": "ATTICHIKA CREEK",
       "display_name": "Attichika Creek",
       "region": "7",
@@ -445,56 +445,7 @@
       ]
     },
     {
-      "entry_id": "r7:bear_lake_crooked_river",
-      "name": "BEAR LAKE (Crooked River Provincial Park)",
-      "display_name": "Bear Lake (Crooked River Provincial Park)",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "No powered boats",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329102601"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "bear_lake_crooked_river.r1",
-          "type": "vessel_rule",
-          "verbatim": "No powered boats",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "aspect": "propulsion",
-          "level": "unpowered",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:bednesti_lake",
+      "entry_id": "r7:bednesti_lake@7-12",
       "name": "BEDNESTI LAKE",
       "display_name": "Bednesti Lake",
       "region": "7",
@@ -607,7 +558,7 @@
       ]
     },
     {
-      "entry_id": "r7:blackwater_river",
+      "entry_id": "r7:blackwater_river@7-10",
       "name": "BLACKWATER RIVER",
       "display_name": "Blackwater River",
       "region": "7",
@@ -654,7 +605,7 @@
       ]
     },
     {
-      "entry_id": "r7:bobtail_naltesby_lake",
+      "entry_id": "r7:bobtail_naltesby_lake@7-12",
       "name": "BOBTAIL (Naltesby) LAKE",
       "display_name": "Bobtail (Naltesby) Lake",
       "region": "7",
@@ -704,7 +655,7 @@
       ]
     },
     {
-      "entry_id": "r7:boulder_lake",
+      "entry_id": "r7:boulder_lake@7-22",
       "name": "BOULDER LAKE",
       "display_name": "Boulder Lake",
       "region": "7",
@@ -753,7 +704,7 @@
       ]
     },
     {
-      "entry_id": "r7:bow_lake",
+      "entry_id": "r7:bow_lake@7-15",
       "name": "BOW LAKE",
       "display_name": "Bow Lake",
       "region": "7",
@@ -803,7 +754,7 @@
       ]
     },
     {
-      "entry_id": "r7:bowron_river",
+      "entry_id": "r7:bowron_river@7-7",
       "name": "BOWRON RIVER",
       "display_name": "Bowron River",
       "region": "7",
@@ -887,7 +838,7 @@
       ]
     },
     {
-      "entry_id": "r7:burnt_river",
+      "entry_id": "r7:burnt_river@7-22",
       "name": "BURNT RIVER",
       "display_name": "Burnt River",
       "region": "7",
@@ -966,7 +917,7 @@
       ]
     },
     {
-      "entry_id": "r7:butterfly_lake",
+      "entry_id": "r7:butterfly_lake@7-15",
       "name": "BUTTERFLY LAKE",
       "display_name": "Butterfly Lake",
       "region": "7",
@@ -1016,7 +967,7 @@
       ]
     },
     {
-      "entry_id": "r7:byers_lake",
+      "entry_id": "r7:byers_lake@7-15",
       "name": "BYERS LAKE",
       "display_name": "Byers Lake",
       "region": "7",
@@ -1066,7 +1017,7 @@
       ]
     },
     {
-      "entry_id": "r7:cameron_lakes",
+      "entry_id": "r7:cameron_lakes@7-31",
       "name": "CAMERON LAKES",
       "display_name": "Cameron Lakes",
       "region": "7",
@@ -1113,7 +1064,7 @@
       ]
     },
     {
-      "entry_id": "r7:camp_lake",
+      "entry_id": "r7:camp_lake@7-15",
       "name": "CAMP LAKE",
       "display_name": "Camp Lake",
       "region": "7",
@@ -1193,7 +1144,7 @@
       ]
     },
     {
-      "entry_id": "r7:canoe_river",
+      "entry_id": "r7:canoe_river@7-2",
       "name": "CANOE RIVER",
       "display_name": "Canoe River",
       "region": "7",
@@ -1280,7 +1231,7 @@
       ]
     },
     {
-      "entry_id": "r7:carbon_lake",
+      "entry_id": "r7:carbon_lake@7-31",
       "name": "CARBON LAKE",
       "display_name": "Carbon Lake",
       "region": "7",
@@ -1394,7 +1345,7 @@
       ]
     },
     {
-      "entry_id": "r7:carina_lake",
+      "entry_id": "r7:carina_lake@7-38",
       "name": "CARINA LAKE",
       "display_name": "Carina Lake",
       "region": "7",
@@ -1507,7 +1458,7 @@
       ]
     },
     {
-      "entry_id": "r7:cecil_lake",
+      "entry_id": "r7:cecil_lake@7-33",
       "name": "CECIL LAKE",
       "display_name": "Cecil Lake",
       "region": "7",
@@ -1556,7 +1507,7 @@
       ]
     },
     {
-      "entry_id": "r7:cecilia_creek",
+      "entry_id": "r7:cecilia_creek@7-19",
       "name": "CECILIA CREEK",
       "display_name": "Cecilia Creek",
       "region": "7",
@@ -1607,7 +1558,7 @@
       ]
     },
     {
-      "entry_id": "r7:cecilia_lake",
+      "entry_id": "r7:cecilia_lake@7-19",
       "name": "CECILIA LAKE",
       "display_name": "Cecilia Lake",
       "region": "7",
@@ -1748,7 +1699,7 @@
       ]
     },
     {
-      "entry_id": "r7:charlie_lake",
+      "entry_id": "r7:charlie_lake@7-33",
       "name": "CHARLIE LAKE",
       "display_name": "Charlie Lake",
       "region": "7",
@@ -1828,7 +1779,7 @@
       ]
     },
     {
-      "entry_id": "r7:chichouyenily_creek",
+      "entry_id": "r7:chichouyenily_creek@7-30",
       "name": "CHICHOUYENILY CREEK",
       "display_name": "Chichouyenily Creek",
       "region": "7",
@@ -1923,7 +1874,7 @@
       ]
     },
     {
-      "entry_id": "r7:chief_gray_lake",
+      "entry_id": "r7:chief_gray_lake@7-12",
       "name": "CHIEF GRAY LAKE",
       "display_name": "Chief Gray Lake",
       "region": "7",
@@ -2064,7 +2015,7 @@
       ]
     },
     {
-      "entry_id": "r7:chinaman_lake",
+      "entry_id": "r7:chinaman_lake@7-35",
       "name": "\"CHINAMAN\" LAKE",
       "display_name": "\"Chinaman\" Lake",
       "region": "7",
@@ -2111,7 +2062,7 @@
       ]
     },
     {
-      "entry_id": "r7:chowade_river",
+      "entry_id": "r7:chowade_river@7-43",
       "name": "CHOWADE RIVER",
       "display_name": "Chowade River",
       "region": "7",
@@ -2173,7 +2124,7 @@
       ]
     },
     {
-      "entry_id": "r7:chubb_lake",
+      "entry_id": "r7:chubb_lake@7-10",
       "name": "CHUBB LAKE",
       "display_name": "Chubb Lake",
       "region": "7",
@@ -2223,7 +2174,7 @@
       ]
     },
     {
-      "entry_id": "r7:chuchi_lake",
+      "entry_id": "r7:chuchi_lake@7-28",
       "name": "CHUCHI LAKE",
       "display_name": "Chuchi Lake",
       "region": "7",
@@ -2335,7 +2286,7 @@
       ]
     },
     {
-      "entry_id": "r7:chunamun_lake",
+      "entry_id": "r7:chunamun_lake@7-35",
       "name": "CHUNAMUN LAKE",
       "display_name": "Chunamun Lake",
       "region": "7",
@@ -2476,7 +2427,7 @@
       ]
     },
     {
-      "entry_id": "r7:clearwater_creek",
+      "entry_id": "r7:clearwater_creek@7-31",
       "name": "CLEARWATER CREEK",
       "display_name": "Clearwater Creek",
       "region": "7",
@@ -2527,7 +2478,7 @@
       ]
     },
     {
-      "entry_id": "r7:clearwater_lake",
+      "entry_id": "r7:clearwater_lake@7-31",
       "name": "CLEARWATER LAKE",
       "display_name": "Clearwater Lake",
       "region": "7",
@@ -2613,7 +2564,7 @@
       ]
     },
     {
-      "entry_id": "r7:cluculz_lake",
+      "entry_id": "r7:cluculz_lake@7-12",
       "name": "CLUCULZ LAKE",
       "display_name": "Cluculz Lake",
       "region": "7",
@@ -2693,7 +2644,7 @@
       ]
     },
     {
-      "entry_id": "r7:crooked_river",
+      "entry_id": "r7:crooked_river@7-24",
       "name": "CROOKED RIVER",
       "display_name": "Crooked River",
       "region": "7",
@@ -2837,7 +2788,7 @@
       ]
     },
     {
-      "entry_id": "r7:dahl_lake",
+      "entry_id": "r7:dahl_lake@7-12",
       "name": "DAHL LAKE",
       "display_name": "Dahl Lake",
       "region": "7",
@@ -2886,59 +2837,7 @@
       ]
     },
     {
-      "entry_id": "r7:davis_bay",
-      "name": "DAVIS BAY (in Finlay Reach of Williston Lake)",
-      "display_name": "Davis Bay",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge. See Davis River",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328961697"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "davis_bay.r1",
-          "type": "retention_limit",
-          "verbatim": "**No Fishing** within a 500 m radius of the Davis Forest Service Road Bridge.",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "within a 500 m radius of the Davis Forest Service Road Bridge",
-          "needs_review": true,
-          "review_reason": "no cut-point available for a 500 m radius around the Davis Forest Service Road Bridge — this item has no bindable boundaries (op:whole only), so the reach was left unbound rather than defaulted to the whole bay"
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:davis_river",
+      "entry_id": "r7:davis_river@7-37",
       "name": "DAVIS RIVER",
       "display_name": "Davis River",
       "region": "7",
@@ -2990,7 +2889,7 @@
       ]
     },
     {
-      "entry_id": "r7:dem_lake",
+      "entry_id": "r7:dem_lake@7-25",
       "name": "DEM LAKE",
       "display_name": "Dem Lake",
       "region": "7",
@@ -3103,7 +3002,7 @@
       ]
     },
     {
-      "entry_id": "r7:denetiah_creek",
+      "entry_id": "r7:denetiah_creek@7-52",
       "name": "DENETIAH CREEK",
       "display_name": "Denetiah Creek",
       "region": "7",
@@ -3156,7 +3055,7 @@
       ]
     },
     {
-      "entry_id": "r7:denetiah_lake",
+      "entry_id": "r7:denetiah_lake@7-52",
       "name": "DENETIAH LAKE",
       "display_name": "Denetiah Lake",
       "region": "7",
@@ -3204,7 +3103,7 @@
       ]
     },
     {
-      "entry_id": "r7:dimsdale_creek",
+      "entry_id": "r7:dimsdale_creek@7-19",
       "name": "DIMSDALE CREEK",
       "display_name": "Dimsdale Creek",
       "region": "7",
@@ -3255,7 +3154,7 @@
       ]
     },
     {
-      "entry_id": "r7:dimsdale_lake",
+      "entry_id": "r7:dimsdale_lake@7-19",
       "name": "DIMSDALE LAKE",
       "display_name": "Dimsdale Lake",
       "region": "7",
@@ -3363,7 +3262,7 @@
       ]
     },
     {
-      "entry_id": "r7:dina_creek",
+      "entry_id": "r7:dina_creek@7-30",
       "name": "DINA CREEK",
       "display_name": "Dina Creek",
       "region": "7",
@@ -3414,7 +3313,7 @@
       ]
     },
     {
-      "entry_id": "r7:dina_lake_1",
+      "entry_id": "r7:dina_lake_1@7-30",
       "name": "DINA LAKE #1",
       "display_name": "Dina Lake #1",
       "region": "7",
@@ -3464,7 +3363,7 @@
       ]
     },
     {
-      "entry_id": "r7:dina_lake_2",
+      "entry_id": "r7:dina_lake_2@7-30",
       "name": "DINA LAKE #2",
       "display_name": "Dina Lake #2",
       "region": "7",
@@ -3513,152 +3412,7 @@
       ]
     },
     {
-      "entry_id": "r7:dinosaur_lake",
-      "name": "DINOSAUR LAKE (Reservoir Downstream of W.A.C. Bennett Dam)",
-      "display_name": "Dinosaur Lake (Reservoir Downstream of W.A.C. Bennett Dam)",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam[Includes Tributaries]\nNo trout/char under 25 cm (bull trout catch and release); single barbless hook",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329657308"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "dinosaur_lake.r1",
-          "type": "retention_limit",
-          "verbatim": "No Fishing",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "includes_tributaries": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "from W.A.C. Bennett Dam to 100 m south of Gething Creek and between the anti-vortex dyke and Peace Canyon Dam",
-          "needs_review": true,
-          "review_reason": "no bindable split ids for this reach — the item lists only op:whole"
-        },
-        {
-          "rule_id": "dinosaur_lake.r2",
-          "type": "retention_limit",
-          "verbatim": "No trout/char under 25 cm",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [
-            "BT"
-          ],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "under_cm": 25,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "dinosaur_lake.r3",
-          "type": "retention_limit",
-          "verbatim": "bull trout catch and release",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "dinosaur_lake.r4",
-          "type": "tackle_restriction",
-          "verbatim": "single barbless hook",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:eaglet_lake",
+      "entry_id": "r7:eaglet_lake@7-7",
       "name": "EAGLET LAKE",
       "display_name": "Eaglet Lake",
       "region": "7",
@@ -3708,7 +3462,7 @@
       ]
     },
     {
-      "entry_id": "r7:east_hautete_lake",
+      "entry_id": "r7:east_hautete_lake@7-27",
       "name": "EAST HAUTETE LAKE",
       "display_name": "East Hautête Lake",
       "region": "7",
@@ -3821,7 +3575,7 @@
       ]
     },
     {
-      "entry_id": "r7:echo_lake",
+      "entry_id": "r7:echo_lake@7-13",
       "name": "ECHO LAKE",
       "display_name": "Echo Lake",
       "region": "7",
@@ -3900,7 +3654,7 @@
       ]
     },
     {
-      "entry_id": "r7:eena_lake",
+      "entry_id": "r7:eena_lake@7-15",
       "name": "EENA LAKE",
       "display_name": "Eena Lake",
       "region": "7",
@@ -3949,7 +3703,7 @@
       ]
     },
     {
-      "entry_id": "r7:emerald_lake",
+      "entry_id": "r7:emerald_lake@7-15",
       "name": "EMERALD LAKE",
       "display_name": "Emerald Lake",
       "region": "7",
@@ -3998,7 +3752,7 @@
       ]
     },
     {
-      "entry_id": "r7:endako_river",
+      "entry_id": "r7:endako_river@7-12",
       "name": "ENDAKO RIVER",
       "display_name": "Endako River",
       "region": "7",
@@ -4046,7 +3800,7 @@
       ]
     },
     {
-      "entry_id": "r7:eye_lake",
+      "entry_id": "r7:eye_lake@7-26",
       "name": "EYE LAKE",
       "display_name": "Eye Lake",
       "region": "7",
@@ -4130,7 +3884,7 @@
       ]
     },
     {
-      "entry_id": "r7:fern_lake",
+      "entry_id": "r7:fern_lake@7-42",
       "name": "FERN LAKE",
       "display_name": "Fern Lake",
       "region": "7",
@@ -4242,7 +3996,7 @@
       ]
     },
     {
-      "entry_id": "r7:gething_creek",
+      "entry_id": "r7:gething_creek@7-31",
       "name": "GETHING CREEK",
       "display_name": "Gething Creek",
       "region": "7",
@@ -4294,7 +4048,7 @@
       ]
     },
     {
-      "entry_id": "r7:gwillim_lake",
+      "entry_id": "r7:gwillim_lake@7-21",
       "name": "GWILLIM LAKE",
       "display_name": "Gwillim Lake",
       "region": "7",
@@ -4403,7 +4157,7 @@
       ]
     },
     {
-      "entry_id": "r7:halfway_river",
+      "entry_id": "r7:halfway_river@7-34",
       "name": "HALFWAY RIVER",
       "display_name": "Halfway River",
       "region": "7",
@@ -4519,7 +4273,7 @@
       ]
     },
     {
-      "entry_id": "r7:heart_lake",
+      "entry_id": "r7:heart_lake@7-22",
       "name": "HEART LAKE",
       "display_name": "Heart Lake",
       "region": "7",
@@ -4599,7 +4353,7 @@
       ]
     },
     {
-      "entry_id": "r7:inga_lake",
+      "entry_id": "r7:inga_lake@7-34",
       "name": "INGA LAKE",
       "display_name": "Inga Lake",
       "region": "7",
@@ -4676,7 +4430,7 @@
       ]
     },
     {
-      "entry_id": "r7:johnson_creek",
+      "entry_id": "r7:johnson_creek@7-31",
       "name": "JOHNSON CREEK",
       "display_name": "Johnson Creek",
       "region": "7",
@@ -4728,7 +4482,7 @@
       ]
     },
     {
-      "entry_id": "r7:kakwa_lake",
+      "entry_id": "r7:kakwa_lake@7-19",
       "name": "KAKWA LAKE",
       "display_name": "Kakwa Lake",
       "region": "7",
@@ -4812,7 +4566,7 @@
       ]
     },
     {
-      "entry_id": "r7:kakwa_river",
+      "entry_id": "r7:kakwa_river@7-19",
       "name": "KAKWA RIVER",
       "display_name": "Kakwa River",
       "region": "7",
@@ -4863,7 +4617,7 @@
       ]
     },
     {
-      "entry_id": "r7:letain_lake",
+      "entry_id": "r7:letain_lake@7-52",
       "name": "LETAIN LAKE",
       "display_name": "Letain Lake",
       "region": "7",
@@ -5004,90 +4758,7 @@
       ]
     },
     {
-      "entry_id": "r7:liard_river_watershed",
-      "name": "LIARD RIVER WATERSHED (see map on page 63)",
-      "display_name": "Liard River Watershed",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15\nBull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "liard_river_watershed.r1",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release from all lakes and streams, Aug 15-Oct 15",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [
-            "Aug 15-Oct 15"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        },
-        {
-          "rule_id": "liard_river_watershed.r2",
-          "type": "retention_limit",
-          "verbatim": "Bull trout daily and possession quotas = 1 (none under 30 cm or over 50 cm) from all lakes and streams, Oct 16-Aug 14",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [
-            "Oct 16-Aug 14"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "over_cm": 50,
-          "under_cm": 30,
-          "band": true,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "extents": [],
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": true,
-          "review_reason": "no registry match — attach an item and bind extents"
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:lower_blue_lake",
+      "entry_id": "r7:lower_blue_lake@7-21",
       "name": "LOWER BLUE LAKE",
       "display_name": "Lower Blue Lake",
       "region": "7",
@@ -5231,7 +4902,7 @@
       ]
     },
     {
-      "entry_id": "r7:mcleod_river",
+      "entry_id": "r7:mcleod_river@7-24",
       "name": "MCLEOD RIVER",
       "display_name": "McLeod River",
       "region": "7",
@@ -5295,7 +4966,7 @@
       ]
     },
     {
-      "entry_id": "r7:mcmillan_creek",
+      "entry_id": "r7:mcmillan_creek@7-15",
       "name": "MCMILLAN CREEK",
       "display_name": "McMillan Creek",
       "region": "7",
@@ -5410,7 +5081,7 @@
       ]
     },
     {
-      "entry_id": "r7:middle_river",
+      "entry_id": "r7:middle_river@7-26",
       "name": "MIDDLE RIVER",
       "display_name": "Middle River",
       "region": "7",
@@ -5464,7 +5135,7 @@
       ]
     },
     {
-      "entry_id": "r7:morfee_lake_south",
+      "entry_id": "r7:morfee_lake_south@7-30",
       "name": "MORFEE LAKE (south)",
       "display_name": "Morfee Lake (South)",
       "region": "7",
@@ -5513,7 +5184,7 @@
       ]
     },
     {
-      "entry_id": "r7:mt_milligan_lake",
+      "entry_id": "r7:mt_milligan_lake@7-28",
       "name": "\"MT. MILLIGAN\" LAKE",
       "display_name": "Mt. Milligan Lake",
       "region": "7",
@@ -5655,7 +5326,7 @@
       ]
     },
     {
-      "entry_id": "r7:mugaha_creek",
+      "entry_id": "r7:mugaha_creek@7-30",
       "name": "MUGAHA CREEK",
       "display_name": "Mugaha Creek",
       "region": "7",
@@ -5736,57 +5407,7 @@
       ]
     },
     {
-      "entry_id": "r7:naltesby_lake",
-      "name": "NALTESBY LAKE (Bobtail Lake)",
-      "display_name": "Naltesby Lake (Bobtail Lake)",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "Kokanee daily quota = 5",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329272362"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "naltesby_lake.r1",
-          "type": "retention_limit",
-          "verbatim": "Kokanee daily quota = 5",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:narrow_lake",
+      "entry_id": "r7:narrow_lake@7-7",
       "name": "NARROW LAKE",
       "display_name": "Narrow Lake",
       "region": "7",
@@ -5899,91 +5520,7 @@
       ]
     },
     {
-      "entry_id": "r7:nation_arm",
-      "name": "NATION ARM (Williston Lake)",
-      "display_name": "Nation Arm (Williston Lake)",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the\nFinlay Forest Service Road, Apr 1-June 30\nBull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River\nBridge on the Finlay Forest Service Road (when open)",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:328961697"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "nation_arm.r1",
-          "type": "retention_limit",
-          "verbatim": "No Fishing west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the Finlay Forest Service Road, Apr 1-June 30",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Apr 1 - Jun 30"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the Finlay Forest Service Road",
-          "needs_review": true,
-          "review_reason": "Nation Arm (Williston Lake) has no bindable cut-points, only op:whole; the sign-line boundary near the Nation River Bridge cannot be expressed as a split"
-        },
-        {
-          "rule_id": "nation_arm.r2",
-          "type": "retention_limit",
-          "verbatim": "Bull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River Bridge on the Finlay Forest Service Road (when open)",
-          "obligation": "must",
-          "species": [
-            "BT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": true,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River Bridge on the Finlay Forest Service Road",
-          "needs_review": true,
-          "review_reason": "Nation Arm (Williston Lake) has no bindable cut-points, only op:whole; the sign-line boundary near the Nation River Bridge cannot be expressed as a split"
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:nation_river",
+      "entry_id": "r7:nation_river@7-30",
       "name": "NATION RIVER",
       "display_name": "Nation River",
       "region": "7",
@@ -6030,7 +5567,7 @@
       ]
     },
     {
-      "entry_id": "r7:nautley_river",
+      "entry_id": "r7:nautley_river@7-13",
       "name": "NAUTLEY RIVER",
       "display_name": "Nautley River",
       "region": "7",
@@ -6084,7 +5621,7 @@
       ]
     },
     {
-      "entry_id": "r7:nechako_river",
+      "entry_id": "r7:nechako_river@7-12",
       "name": "NECHAKO RIVER",
       "display_name": "Nechako River",
       "region": "7",
@@ -6259,7 +5796,7 @@
       ]
     },
     {
-      "entry_id": "r7:nulki_lake",
+      "entry_id": "r7:nulki_lake@7-12",
       "name": "NULKI LAKE",
       "display_name": "Nulki Lake",
       "region": "7",
@@ -6312,7 +5849,7 @@
       ]
     },
     {
-      "entry_id": "r7:opatcho_lake",
+      "entry_id": "r7:opatcho_lake@7-9",
       "name": "OPATCHO LAKE",
       "display_name": "Opatcho Lake",
       "region": "7",
@@ -6454,7 +5991,7 @@
       ]
     },
     {
-      "entry_id": "r7:pacific_lake",
+      "entry_id": "r7:pacific_lake@7-16",
       "name": "PACIFIC LAKE",
       "display_name": "Pacific Lake",
       "region": "7",
@@ -6567,7 +6104,7 @@
       ]
     },
     {
-      "entry_id": "r7:parsnip_river",
+      "entry_id": "r7:parsnip_river@7-23",
       "name": "PARSNIP RIVER",
       "display_name": "Parsnip River",
       "region": "7",
@@ -6621,7 +6158,7 @@
       ]
     },
     {
-      "entry_id": "r7:pinchi_lake",
+      "entry_id": "r7:pinchi_lake@7-25",
       "name": "PINCHI LAKE",
       "display_name": "Pinchi Lake",
       "region": "7",
@@ -6670,7 +6207,7 @@
       ]
     },
     {
-      "entry_id": "r7:portage_lake",
+      "entry_id": "r7:portage_lake@7-16",
       "name": "PORTAGE LAKE",
       "display_name": "Portage Lake",
       "region": "7",
@@ -6783,7 +6320,7 @@
       ]
     },
     {
-      "entry_id": "r7:ptarmigan_creek",
+      "entry_id": "r7:ptarmigan_creek@7-5",
       "name": "PTARMIGAN CREEK",
       "display_name": "Ptarmigan Creek",
       "region": "7",
@@ -6843,7 +6380,7 @@
       ]
     },
     {
-      "entry_id": "r7:purvis_lake",
+      "entry_id": "r7:purvis_lake@7-28",
       "name": "PURVIS LAKE",
       "display_name": "Purvis Lake",
       "region": "7",
@@ -6956,7 +6493,7 @@
       ]
     },
     {
-      "entry_id": "r7:salmon_river",
+      "entry_id": "r7:salmon_river@7-15",
       "name": "SALMON RIVER",
       "display_name": "Salmon River",
       "region": "7",
@@ -7010,7 +6547,7 @@
       ]
     },
     {
-      "entry_id": "r7:shandy_lake",
+      "entry_id": "r7:shandy_lake@7-5",
       "name": "SHANDY LAKE",
       "display_name": "Shandy Lake",
       "region": "7",
@@ -7059,7 +6596,7 @@
       ]
     },
     {
-      "entry_id": "r7:shere_lake",
+      "entry_id": "r7:shere_lake@7-4",
       "name": "SHERE LAKE",
       "display_name": "Shere Lake",
       "region": "7",
@@ -7109,7 +6646,7 @@
       ]
     },
     {
-      "entry_id": "r7:slender_lake",
+      "entry_id": "r7:slender_lake@7-6",
       "name": "SLENDER LAKE",
       "display_name": "Slender Lake",
       "region": "7",
@@ -7158,7 +6695,7 @@
       ]
     },
     {
-      "entry_id": "r7:slim_lake",
+      "entry_id": "r7:slim_lake@7-5",
       "name": "SLIM LAKE",
       "display_name": "Slim Lake",
       "region": "7",
@@ -7207,56 +6744,7 @@
       ]
     },
     {
-      "entry_id": "r7:square_lake",
-      "name": "SQUARE LAKE (located in Crooked River Provincial Park)",
-      "display_name": "Square Lake (Located in Crooked River Provincial Park)",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "No powered boats",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329102648"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "square_lake.r1",
-          "type": "vessel_rule",
-          "verbatim": "No powered boats",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "when_targeting": [],
-          "aspect": "propulsion",
-          "level": "unpowered",
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:stalk_lakes",
+      "entry_id": "r7:stalk_lakes@7-39",
       "name": "STALK LAKES",
       "display_name": "Stalk Lakes",
       "region": "7",
@@ -7305,7 +6793,7 @@
       ]
     },
     {
-      "entry_id": "r7:stellako_river",
+      "entry_id": "r7:stellako_river@7-12",
       "name": "STELLAKO RIVER",
       "display_name": "Stellako River",
       "region": "7",
@@ -7547,55 +7035,6 @@
           "extent_text": "",
           "needs_review": true,
           "review_reason": "cross-reference; Region 6 governs François Lake's outlet area, not bound here"
-        }
-      ]
-    },
-    {
-      "entry_id": "r7:stony_lake",
-      "name": "STONY LAKE",
-      "display_name": "Stony Lake",
-      "region": "7",
-      "scope_note": "",
-      "regs_verbatim": "No set lines",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [
-        "wbk:329677088"
-      ],
-      "extents": [
-        {
-          "op": "whole"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "stony_lake.r1",
-          "type": "method_rule",
-          "verbatim": "No set lines",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "set_lining",
-          "when_targeting": [],
-          "permitted": false,
-          "required": true,
-          "on_retention": false,
-          "tributaries_only": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
         }
       ]
     }
