@@ -16,7 +16,14 @@ export type Status =
   | "needs_review"
   | "unused_splits"
   | "unreviewed"
+  /** A regional or provincial rule. It names no water BY DEFINITION, so it is a category,
+   *  not a problem — it used to show as `no_registry` and sit at the top of the queue. */
+  | "zone"
   | "confirmed";
+
+/** Which part of the book an entry came from. `zone` = a region chapter or the provincial
+ *  pages; `water` = a row of a water table. They need different questions asked of them. */
+export type EntryKind = "zone" | "water";
 
 export type RegistryStatus = "matched" | "no_registry";
 
@@ -172,6 +179,7 @@ export interface QueueRow {
   name: string;
   mus: string[];
   status: Status;
+  kind?: EntryKind;
   locked: boolean;
   revisit?: boolean;
   /** a "See X" pointer row — carries no regulations of its own */
@@ -259,6 +267,8 @@ export interface EntryDetail {
   match: MatchInfo;
   item: Item | null; // `boundaries` is the union over the item AND `also_items`
   also_items: AlsoItem[]; // a combined override's other items — the entry covers these too
+  /** Which part of the book this came from — see `EntryKind`. */
+  kind?: EntryKind;
   related_entries: RelatedEntry[]; // other synopsis rows over the same water
   unused_curated_splits: UnusedSplit[];
   source_image: string | null; // synopsis row-crop image filename, if found

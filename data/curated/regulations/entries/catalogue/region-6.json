@@ -11881,7 +11881,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         }
@@ -12024,7 +12025,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         }
@@ -12070,7 +12072,11 @@
           "may_target": null,
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6",
+              "feature_types": [
+                "lake"
+              ]
             }
           ]
         },
@@ -12110,7 +12116,11 @@
           "water": "lake",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6",
+              "feature_types": [
+                "lake"
+              ]
             }
           ]
         }
@@ -12167,7 +12177,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -12449,7 +12463,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         }
@@ -12503,7 +12518,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12536,7 +12552,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12569,7 +12586,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12602,7 +12620,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12637,7 +12656,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12670,7 +12690,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12703,7 +12724,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12737,7 +12759,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         }
@@ -12803,7 +12826,11 @@
           "review_reason": "INVERSE EXEMPTION: the rule names its own exempt waters AND qualifies them by the evaluated state of other rules ('not currently closed under existing winter/spring closure'). Nothing here evaluates.",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -12854,7 +12881,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12933,7 +12961,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -12968,7 +12997,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -13004,7 +13034,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -13041,7 +13072,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -13077,7 +13109,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -13113,7 +13146,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -13150,7 +13184,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },
@@ -13267,7 +13302,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:6"
             }
           ]
         },

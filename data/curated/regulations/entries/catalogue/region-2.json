@@ -13711,7 +13711,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -13793,7 +13797,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -13826,7 +13831,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -13859,7 +13865,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -13894,7 +13901,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -13927,7 +13935,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -13961,7 +13970,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         }
@@ -14062,7 +14072,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14097,7 +14108,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14133,7 +14145,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14169,7 +14182,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14205,7 +14219,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14241,7 +14256,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14277,7 +14293,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14312,7 +14329,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14349,7 +14367,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         },
@@ -14379,7 +14398,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:2"
             }
           ]
         }

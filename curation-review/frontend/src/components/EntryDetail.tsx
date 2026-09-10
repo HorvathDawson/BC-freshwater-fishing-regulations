@@ -288,6 +288,12 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
                 </button>
               )}
             </span>
+          ) : detail.kind === "zone" ? (
+            /* A regional rule names no water on purpose. Saying "unmatched" here reported
+               the entry as broken when it is exactly what it should be. */
+            <span className="chip-tag new" title="a regional or provincial rule — its reach is an area, carried on the entry, not a named water">
+              regional rule · applies by area
+            </span>
           ) : (
             <span className="dim">
               item: none {match.status ? `(${match.status})` : ""}
@@ -382,7 +388,7 @@ export function EntryDetail({ detail, curator, speciesOptions, onSaved, onConfir
       {(source_image || (entry.source_pages ?? entry.source?.pages ?? []).length > 0) && (
         <div className="section source-image">
           <div className="dim" style={{ marginBottom: 4 }}>
-            source row (synopsis)
+            {detail.kind === "zone" ? "regional / provincial chapter" : "source row (synopsis)"}
             {(entry.source_pages ?? entry.source?.pages ?? []).length > 0 && (
               <> · {(entry.source_pages ?? entry.source?.pages ?? []).length > 1 ? "pages" : "page"}{" "}
                 {(entry.source_pages ?? entry.source?.pages ?? []).map((n: number, i: number) => (

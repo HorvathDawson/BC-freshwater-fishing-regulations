@@ -9620,7 +9620,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_kind": "wma"
             }
           ]
         }
@@ -9853,7 +9854,8 @@
           "review_reason": "The chapter warns Kootenay Lake recovery may force IN-SEASON changes. Nothing in the corpus carries a validity window or an amendment channel, so a reader cannot tell whether what they are looking at is still true.",
           "extents": [
             {
-              "op": "whole"
+              "op": "whole",
+              "item_id": "wbk:328974235"
             }
           ]
         }
@@ -9904,7 +9906,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         }
@@ -9961,7 +9964,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -10016,7 +10023,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10049,7 +10057,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10082,7 +10091,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10115,7 +10125,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10150,7 +10161,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10185,7 +10197,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10219,7 +10232,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10253,7 +10267,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10287,7 +10302,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10320,7 +10336,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10354,7 +10371,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         }
@@ -10415,7 +10433,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -10466,7 +10488,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         }
@@ -10520,7 +10543,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10556,7 +10580,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10591,7 +10616,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         },
@@ -10626,7 +10652,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4"
             }
           ]
         }
@@ -10687,7 +10714,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:4",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }

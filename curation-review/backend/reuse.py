@@ -740,10 +740,31 @@ def related_entries(entry_id: str) -> list[dict]:
     return sorted(out, key=lambda r: r["name"])
 
 
+def entry_kind(e: dict) -> str:
+    """`zone` or `water` — WHICH PART OF THE BOOK this entry came from.
+
+    A `z`-prefixed entry is a REGIONAL or PROVINCIAL rule, transcribed from a region chapter
+    or the provincial pages: "single barbless hook in all streams of Region 1", the Cutthroat
+    Trout Reward Tagging Program on page 12. It names no water on purpose, and its reach is
+    an AREA carried on the entry (`within area:region:1`).
+
+    Everything else is a row of a water table and names one water.
+
+    They were shown as one list, so a regional notice appeared as a synopsis row that had
+    failed to match an item — correctness rendered as a defect, and the two kinds of
+    regulation mixed in a queue where they need different questions asked of them.
+    """
+    return "zone" if str(e.get("entry_id", "")).startswith("z") else "water"
+
+
 def entry_status(e: dict, item: dict | None) -> str:
     """One coarse status for the queue ordering/badge."""
     if e.get("locked"):
         return "confirmed"
+    # A zone entry has no water to match, so `no_registry` is not a finding about it — it is
+    # the definition of it. Saying otherwise put 117 correct entries at the top of the queue.
+    if entry_kind(e) == "zone":
+        return "needs_review" if _rule_needs_review(e) else "zone"
     if e.get("registry_status") == "no_registry":
         return "no_registry"
     if _rule_needs_review(e):
@@ -753,7 +774,8 @@ def entry_status(e: dict, item: dict | None) -> str:
     return "unreviewed"
 
 
-_STATUS_ORDER = {"no_registry": 0, "needs_review": 1, "unused_splits": 2, "unreviewed": 3, "confirmed": 4}
+_STATUS_ORDER = {"no_registry": 0, "needs_review": 1, "unused_splits": 2, "unreviewed": 3,
+                 "zone": 4, "confirmed": 5}
 
 
 def queue(region: str | None = None, status: str | None = None) -> list[dict]:
@@ -771,6 +793,7 @@ def queue(region: str | None = None, status: str | None = None) -> list[dict]:
             "name": _ident(e)["name"],
             "mus": _ident(e)["mus"],
             "status": st,
+            "kind": entry_kind(e),        # zone (regional/provincial) | water (a table row)
             "locked": bool(e.get("locked")),
             "revisit": bool(e.get("revisit")),
             "reference_only": bool(e.get("reference_only")),   # "See X" pointer row, no regs of its own
@@ -796,6 +819,7 @@ def entry_detail(entry_id: str) -> dict | None:
             e = dict(e, rules=[dict(r, label=_label(r)) for r in (e.get("rules") or [])])
             return {
                 "entry": e,
+                "kind": entry_kind(e),
                 "region": reg_id,
                 "match": {"item_id": mr.item_id, "status": mr.status, "reason": mr.reason,
                           "candidates": list(mr.candidates),

@@ -18536,7 +18536,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -18654,7 +18658,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -18708,7 +18716,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18743,7 +18752,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18778,7 +18788,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18813,7 +18824,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18849,7 +18861,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18884,7 +18897,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18917,7 +18931,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         },
@@ -18952,7 +18967,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_6_12_and_6_13"
             }
           ]
         }
@@ -19006,7 +19022,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "lake"
+              ]
             }
           ]
         }
@@ -19063,7 +19083,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -19116,7 +19140,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19149,7 +19174,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19182,7 +19208,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19217,7 +19244,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19251,7 +19279,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19283,7 +19312,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         }
@@ -19344,7 +19374,11 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:mu_group:management_units_1_1_to_1_6",
+              "feature_types": [
+                "stream"
+              ]
             }
           ]
         }
@@ -19398,7 +19432,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19433,7 +19468,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19469,7 +19505,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19505,7 +19542,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19540,7 +19578,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19576,7 +19615,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19610,7 +19650,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         },
@@ -19640,7 +19681,8 @@
           "review_reason": "",
           "extents": [
             {
-              "op": "whole"
+              "op": "within",
+              "area_id": "area:region:1"
             }
           ]
         }

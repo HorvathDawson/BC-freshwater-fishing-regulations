@@ -74,13 +74,25 @@ def default_extents(data: dict) -> int:
 
     Returns how many rules were given a default.
     """
+    # WHAT `whole` MEANS is "every section of every item this entry matched", so on an entry
+    # that matched NOTHING it means nothing at all. That is the shape of a regional rule:
+    # `z1:bait_ban_streams` names no water, and its reach lives on the ENTRY as
+    # `within area:region:1, feature_types: [stream]`. Giving its rule `whole` left 95 of the
+    # 117 zone entries — every regional bait ban, hook rule and quota in the province —
+    # binding to no section, which is the backbone of "what applies here" missing entirely.
+    #
+    # So the default is the ENTRY'S OWN REACH when there is no matched item to take one from.
+    fallback = [{"op": "whole"}]
+    if not (data.get("matched") or []) and (data.get("extents") or []):
+        fallback = [dict(x) for x in data["extents"] if isinstance(x, dict)]
+
     n = 0
     for r in (data.get("rules") or ()):
         if not isinstance(r, dict) or r.get("extents"):
             continue
         if (r.get("unresolved_locators") or []) or (r.get("extent_text") or "").strip():
             continue
-        r["extents"] = [{"op": "whole"}]
+        r["extents"] = [dict(x) for x in fallback]
         n += 1
     return n
 
