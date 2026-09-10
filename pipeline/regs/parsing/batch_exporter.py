@@ -210,17 +210,36 @@ def export(rows, registry, out_dir: Path, batch_size: int, overrides, existing_i
             render_batch_prompt([ctx for (_, ctx) in chunk]), encoding="utf-8")
         manifest_batches.append({"id": bid, "count": len(chunk), "indices": [i for (i, _) in chunk]})
 
-    # Drop ORPHANED responses/reviews from a previous (larger) export: a batch id no longer produced
-    # here would otherwise be glob-ingested against the new layout -> "unknown index" + duplicate noise.
+    # Drop responses/reviews that no longer describe the batch they are named after. TWO ways that
+    # happens, and only the first used to be handled:
+    #
+    #   ORPHANED  — a batch id beyond the new count (a previous, larger export).
+    #   RESTALED  — the id still exists but now holds DIFFERENT ROWS. Every resume does this: rows
+    #               already ingested are skipped, everything after them shifts down a batch, and
+    #               `batch_022.json` is now a different 30 waters. Dispatch skips a batch that has
+    #               a response, so those rows are never parsed and nothing says so. An export
+    #               rewrites every batch file it produces, so a response older than its own batch
+    #               file cannot describe it — which also catches a response left by an earlier
+    #               FORMAT era, the 22 prose-parser files that were silently ingested as catalogue.
     n = len(manifest_batches)
+    dropped_orphan = dropped_stale = 0
     for sub, pat in (("responses", "batch_*.json"), ("reviews", "batch_*")):
         d = out_dir / sub
         if not d.exists():
             continue
         for f in d.glob(pat):
             mm = re.search(r"batch_(\d+)", f.name)
-            if mm and int(mm.group(1)) >= n:
-                f.unlink()
+            if not mm:
+                continue
+            if int(mm.group(1)) >= n:
+                f.unlink(); dropped_orphan += 1
+                continue
+            bf = batches_dir / f"batch_{int(mm.group(1)):03d}.json"
+            if bf.exists() and f.stat().st_mtime < bf.stat().st_mtime:
+                f.unlink(); dropped_stale += 1
+    if dropped_orphan or dropped_stale:
+        print(f"  dropped {dropped_orphan} orphaned + {dropped_stale} restaled response/review file(s) "
+              f"— those batches will be re-parsed")
 
     manifest = {
         "created_at": datetime.now().isoformat(),

@@ -221,3 +221,25 @@ def test_render_boundary_menu_tolerates_a_three_element_row():
     """Batch files written before aliases carry (id,label,kind) and must still render."""
     from pipeline.regs.parsing.parse_context import render_boundary_menu
     assert render_boundary_menu([["a", "A", "split"]]) == ["- `a`  — A  [split]"]
+
+
+# --- a response must describe the batch it is named after ---------------------------------------
+
+def test_export_drops_a_response_older_than_its_batch(tmp_path):
+    """Every resume renumbers: ingested rows are skipped, everything after shifts down a batch, and
+    `batch_022.json` is now a different 30 waters. Dispatch skips a batch that already has a
+    response — so without this those rows are never parsed and nothing says so."""
+    import time
+    from pipeline.regs.parsing import batch_exporter          # noqa: F401  (import-time sanity)
+    batches = tmp_path / "batches"; resp = tmp_path / "responses"
+    batches.mkdir(); resp.mkdir()
+    stale = resp / "batch_000.json"
+    stale.write_text("[]")
+    time.sleep(0.01)
+    bf = batches / "batch_000.json"
+    bf.write_text("{}")                                        # batch rewritten AFTER the response
+    assert stale.stat().st_mtime < bf.stat().st_mtime, "fixture did not order the mtimes"
+
+    # the rule the exporter applies
+    keep = stale.stat().st_mtime >= bf.stat().st_mtime
+    assert not keep, "a response older than its batch cannot describe it"
