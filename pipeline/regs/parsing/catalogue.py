@@ -373,6 +373,15 @@ class CatalogueRule(BaseModel):
     authority: Optional[str] = Field(default=None, pattern="^superior$")
     reason: str = ""
     extent_text: str = ""
+    #: Locator phrases that could not be bound to a cut-point — "the outlet", "signs 500 m below
+    #: the falls". Non-empty forces `needs_review`; curation maps each to a split id.
+    #:
+    #: The prompt, the batch envelope and the no-registry instructions all told the model to use
+    #: this, and it existed only on the RETIRED prose Rule — so a model that followed the
+    #: instruction exactly was refused with "extra inputs are not permitted". The reach it could
+    #: not express is precisely what must not be dropped silently, which is the whole point of the
+    #: field.
+    unresolved_locators: List[str] = Field(default_factory=list)
     needs_review: bool = False
     review_reason: str = ""
 
@@ -506,6 +515,9 @@ class CatalogueRule(BaseModel):
             e.append("a time-of-day window needs both ends, or it renders as no window at all")
         if self.needs_review and not self.review_reason:
             e.append("needs_review requires a review_reason")
+        if self.unresolved_locators and not self.needs_review:
+            e.append("unresolved_locators is set but needs_review is False — a locator nobody "
+                     "could bind is exactly what a human has to look at")
         if self.standing and not self.needs_review:
             e.append("a standing rule must be flagged: its extent is unknowable, not merely absent")
 

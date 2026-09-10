@@ -225,22 +225,35 @@ def test_a_rule_quotes_its_OWN_region_not_another():
         f"{len(strays)} rule(s) quote another region's chapter:\n  " + "\n  ".join(strays[:12]))
 
 
-def test_no_two_entries_describe_the_same_water():
-    """One water, one entry. `entry_id` is `r<region>:<slug>@<mus>`, and the part before `@` names
-    the water — so two entries sharing a slug are the same water twice.
+def test_every_entry_names_a_row_the_synopsis_actually_prints():
+    """`entry_id` is the join between a synopsis row and its stored entry, so an id that is not a
+    row names a water the book never printed.
 
-    It happened. The agent returns `entry_id` altered (the `@MU` suffix dropped, sometimes the slug
-    rewritten), and a repair that matched the truncated id back by prefix invented 22 ids for rows
-    that do not exist: the synopsis prints ONE Slocan Lake row, at 4-17, and the corpus grew a
-    second at `4-16+4-17`. Both looked plausible; neither the schema nor chain of custody can see
-    it, because each entry is internally perfect."""
-    seen: dict[str, str] = {}
-    dupes: list[str] = []
-    for _, e in _entries():
-        if (e.entry_id or "").startswith("z"):
-            continue
-        base = e.entry_id.split("@")[0]
-        if base in seen:
-            dupes.append(f"{base}: {seen[base]} and {e.entry_id}")
-        seen[base] = e.entry_id
-    assert not dupes, "the same water has more than one entry:\n  " + "\n  ".join(dupes)
+    22 of those reached the corpus. The agent returns `entry_id` altered — the `@MU` suffix
+    dropped, the slug rewritten, or a plausible MU pairing invented: the synopsis prints ONE
+    Slocan Lake row, at 4-17, and the corpus grew a second at `4-16+4-17`. Neither the schema nor
+    the chain of custody can see it, because each such entry is internally perfect and quotes its
+    own passage correctly.
+
+    NOT "one entry per water" — that was the first version of this test and it is wrong. CRAWFORD
+    CREEK is printed twice on page 38, once for MU 4-6 (no fishing) and once for 4-33 (no fishing
+    Jun 15-Oct 31). Two rows, two sets of rules, two entries, all correct.
+    """
+    from pipeline.regs.parsing.rows import load_synopsis_rows
+    from pipeline.regs.parsing.batch_exporter import _row_entry_id
+
+    class _M:
+        def __init__(self, water): self.water = water
+
+    try:
+        rows = list(load_synopsis_rows())
+    except Exception:                                    # noqa: BLE001
+        pytest.skip("synopsis rows not available")
+    if not rows:
+        pytest.skip("no synopsis rows on disk")
+    real = {_row_entry_id(r, _M(r["water"])) for r in rows}
+
+    phantom = [e.entry_id for _, e in _entries()
+               if not (e.entry_id or "").startswith("z") and e.entry_id not in real]
+    assert not phantom, ("these entry_ids are not rows the synopsis prints:\n  "
+                         + "\n  ".join(sorted(phantom)))

@@ -270,3 +270,54 @@ def test_every_collective_word_the_source_uses_has_a_code():
                        ("bass", "BASS"), ("salmon", "SALMON"), ("crayfish", "CRA"),
                        ("sturgeon", "SG"), ("perch", "P")):
         assert code in KNOWN_SPECIES, f"the source says {word!r} and there is no code for it"
+
+
+def test_unresolved_locators_is_a_field_the_prompt_can_actually_ask_for():
+    """The parse prompt, the batch envelope and the no-registry instructions all tell the model to
+    record an unbindable phrase here. It existed only on the RETIRED prose Rule, so a model that
+    followed the instruction exactly was refused with "extra inputs are not permitted" — four
+    entries in one run. Instructing a field the model refuses is worse than not having it: the
+    reach that could not be expressed is exactly what must not be dropped silently."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    r = CatalogueRule(rule_id="r1", type="retention_limit", species=["ALL_GAME_FISH"], take=0,
+                      may_target=False, verbatim="No fishing above the falls",
+                      unresolved_locators=["above the falls"], needs_review=True,
+                      review_reason="locator has no cut-point")
+    assert r.unresolved_locators == ["above the falls"]
+
+
+def test_an_unbound_locator_forces_review():
+    import pytest
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    with pytest.raises(Exception, match="needs_review"):
+        CatalogueRule(rule_id="r1", type="retention_limit", species=["ALL_GAME_FISH"], take=0,
+                      may_target=False, verbatim="x", unresolved_locators=["the outlet"])
+
+
+def test_every_field_the_prompts_name_exists_on_the_model():
+    """The generalisation of the bug above: grep the prompts and the batch envelope for backticked
+    rule fields and check the model accepts each one."""
+    import re
+    from pathlib import Path
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+    fields = set(CatalogueRule.model_fields)
+    text = ""
+    for p in Path("pipeline/regs/parsing/prompts").glob("CATALOGUE_*.md"):
+        text += p.read_text(encoding="utf-8")
+    # only check names that look like rule fields and are named as code
+    named = {m for m in re.findall(r"`([a-z][a-z0-9_]{3,})`", text)}
+    known_non_fields = {
+        "regs_verbatim", "entry_id", "rule_id", "extents", "splits", "item_id", "item_ids",
+        "area_id", "area_kind", "feature_types", "within_area", "identity", "matched", "rules",
+        "tributaries", "included", "needs_review", "review_reason", "locked", "reviewed_by",
+        "true", "false", "null", "index", "entry", "whole", "between", "within", "applies",
+        "excepts", "should", "must", "daily", "possession", "annual", "monthly", "stream",
+        "lake", "hatchery", "wild", "angling", "set_lining", "spear_fishing", "ice_fishing",
+        "netting", "crayfish_trapping", "upstream_of", "downstream_of", "includes_tributaries",
+        "tributaries_only", "registry_status", "registry_note", "source_symbols",
+    }
+    suspect = {n for n in named if n not in fields and n not in known_non_fields
+               and not n.isupper()}
+    # anything left must not look like a rule field the model would be asked to emit
+    assert not (suspect & {"unresolved_locators", "details", "restriction_type", "rule_text"}), \
+        f"the prompts name rule fields the model refuses: {sorted(suspect)}"

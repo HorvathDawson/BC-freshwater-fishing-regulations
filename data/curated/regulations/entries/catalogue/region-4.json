@@ -2,6 +2,3196 @@
   "region": "4",
   "entries": [
     {
+      "entry_id": "r4:cedar_lake_near_golden@4-34",
+      "name": "CEDAR LAKE (near Golden)",
+      "display_name": "Cedar Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329220501"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "cedar_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:cerulean_lake@4-25",
+      "name": "CERULEAN LAKE",
+      "display_name": "Cerulean Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Trout/char catch and release; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329247800"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "cerulean_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "cerulean_lake.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:champion_lake_no_3@4-8",
+      "name": "CHAMPION LAKE NO. 3",
+      "display_name": "Champion Lake No. 3",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Open to fishing all year; no powered boats",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329262654"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "champion_lake_no_3.r1",
+          "type": "advisory",
+          "verbatim": "Open to fishing all year",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "champion_lake_no_3.r2",
+          "type": "vessel_rule",
+          "verbatim": "no powered boats",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:champion_lakes_no_1_2@4-8",
+      "name": "CHAMPION LAKES NO. 1 & 2",
+      "display_name": "Champion Lakes No. 1 & 2",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban, single barbless hook; no powered boats",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328974978",
+        "wbk:329262641"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "champion_lakes_no_1_2.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing;**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "champion_lakes_no_1_2.r2",
+          "type": "retention_limit",
+          "verbatim": "trout/char daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "champion_lakes_no_1_2.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "champion_lakes_no_1_2.r4",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "champion_lakes_no_1_2.r5",
+          "type": "vessel_rule",
+          "verbatim": "no powered boats",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:chatter_creek@4-36",
+      "name": "CHATTER CREEK",
+      "display_name": "Chatter Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:7718"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "chatter_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:cleland_lake@4-34",
+      "name": "CLELAND LAKE",
+      "display_name": "Cleland Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329093934"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "cleland_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:coal_creek_downstream_of_old_mf_m_railway_bridge_7_km_upstre@4-23",
+      "name": "COAL CREEK (downstream of Old MF&M Railway bridge 7 km upstream of Elk River)",
+      "display_name": "Coal Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)\n**Part described is NOT a Classified Water**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:17550"
+      ],
+      "extents": [
+        {
+          "op": "downstream_of",
+          "splits": [
+            "elk_river_s_tributaries__old_mf_m_railway_bridge_coal_ck"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "coal_creek.r1",
+          "type": "program_membership",
+          "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "coal_creek.r2",
+          "type": "document_required",
+          "verbatim": "**Part described is NOT a Classified Water**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": false,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:coffee_creek@4-18",
+      "name": "COFFEE CREEK",
+      "display_name": "Coffee Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:17589"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "coffee_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "coffee_creek__falls"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "downstream of fishing boundary signs at falls approximately 10 km from Kootenay Lake",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:columbia_lake@4-25",
+      "name": "COLUMBIA LAKE",
+      "display_name": "Columbia Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Burbot catch and release; bass daily quota = unlimited; speed restriction (10 km/h) near eastern shore and at south end, as buoyed and\nsigned",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329093897"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "columbia_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Burbot catch and release",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "bass daily quota = unlimited",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_lake.r3",
+          "type": "vessel_rule",
+          "verbatim": "speed restriction (10 km/h) near eastern shore and at south end, as buoyed and\nsigned",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "speed",
+          "max_kmh": 10.0,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "near eastern shore and at south end, as buoyed and signed",
+          "needs_review": true,
+          "review_reason": "no split or area id exists for 'near eastern shore' / 'south end' — this item's boundary menu offers only op:whole for this lake"
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:columbia_lake_s_tributaries@4-25",
+      "name": "COLUMBIA LAKE'S TRIBUTARIES",
+      "display_name": "Columbia Lake's Tributaries",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** (except Dutch Creek)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329093897"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "columbia_lake_s_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** (except Dutch Creek)",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": true,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "(except Dutch Creek)",
+          "needs_review": true,
+          "review_reason": "'except Dutch Creek' is a named-water carve-out from this tributary closure; catalogue schema has no per-rule exclusion op to bind it — Dutch Creek carries its own reciprocal exemption rule"
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:columbia_river@4-15+4-26+4-34+4-38+4-8",
+      "name": "COLUMBIA RIVER",
+      "display_name": "Columbia River",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke\n**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30\nWhere angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release and the regional Apr 1-June 14 closure\nBass daily quota = unlimited\nKokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank\nWalleye daily quota = 16 from Keenleyside Dam to the Washington state border\nFrom Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River\nconfluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam): Northern pike daily quota =\nunlimited and bass daily quota = unlimited\nBurbot catch and release\nSpeed restriction (10 km/h) from Mud Lake to Columbia Lake, no power boats in wetlands, no towing and engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald\nSee Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:37414",
+        "gnis:17696",
+        "gnis:7958",
+        "gnis:8203"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "columbia_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from Revelstoke Dam downstream to Hwy 1 bridge in Revelstoke",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__revelstoke_dam",
+                "columbia_river__hwy_1_bridge_in_revelstoke"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r2",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from a line between the old Robson Ferry landing and a sign on the south river bank, downstream approximately 950 m to the\nCPR Bridge, Mar 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Mar 1-June 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__old_robson_ferry_landing_south_bank_sign",
+                "columbia_river__cpr_bridge_robson"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r3",
+          "type": "retention_limit",
+          "verbatim": "Where angling is permitted: EXEMPT from the regional Nov 1-Mar 31 trout/char catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "trout_char_release",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r4",
+          "type": "retention_limit",
+          "verbatim": "the regional Apr 1-June 14 closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "spring_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r5",
+          "type": "retention_limit",
+          "verbatim": "Bass daily quota = unlimited",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r6",
+          "type": "retention_limit",
+          "verbatim": "Kokanee daily quota = 15 from Keenleyside Dam to a line between the old Robson Ferry landing and a sign on the south river bank",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 15,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__keenleyside_dam",
+                "columbia_river__old_robson_ferry_landing_south_bank_sign"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r7",
+          "type": "retention_limit",
+          "verbatim": "Walleye daily quota = 16 from Keenleyside Dam to the Washington state border",
+          "obligation": "must",
+          "species": [
+            "WP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 16,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__keenleyside_dam",
+                "columbia_river__washington_state_border"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r8",
+          "type": "retention_limit",
+          "verbatim": "Northern pike daily quota =\nunlimited",
+          "obligation": "must",
+          "species": [
+            "NP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__keenleyside_dam",
+                "columbia_river__washington_state_border"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+          "needs_review": true,
+          "review_reason": "the connected reaches on the Kootenay River and Pend d'Oreille River are named but neither water is among this entry's matched registry items — only the Columbia River segment (Keenleyside Dam to Washington border) could be bound"
+        },
+        {
+          "rule_id": "columbia_river.r9",
+          "type": "retention_limit",
+          "verbatim": "bass daily quota = unlimited",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__keenleyside_dam",
+                "columbia_river__washington_state_border"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "From Keenleyside Dam downstream to the Washington state border and connected reaches: the Kootenay River (Columbia River confluence to Brilliant Dam) and the Pend d'Oreille River (Columbia River confluence to Waneta Dam)",
+          "needs_review": true,
+          "review_reason": "the connected reaches on the Kootenay River and Pend d'Oreille River are named but neither water is among this entry's matched registry items — only the Columbia River segment (Keenleyside Dam to Washington border) could be bound"
+        },
+        {
+          "rule_id": "columbia_river.r10",
+          "type": "retention_limit",
+          "verbatim": "Burbot catch and release",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r11",
+          "type": "vessel_rule",
+          "verbatim": "Speed restriction (10 km/h) from Mud Lake to Columbia Lake",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "speed",
+          "max_kmh": 10.0,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "from Mud Lake to Columbia Lake",
+          "needs_review": true,
+          "review_reason": "'Mud Lake' has no bindable boundary id in this item's boundary menu"
+        },
+        {
+          "rule_id": "columbia_river.r12",
+          "type": "vessel_rule",
+          "verbatim": "no power boats in wetlands",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "in wetlands",
+          "needs_review": true,
+          "review_reason": "'wetlands' is not a bindable area id in this item's boundary menu"
+        },
+        {
+          "rule_id": "columbia_river.r13",
+          "type": "vessel_rule",
+          "verbatim": "no towing",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "towing",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__fairmont",
+                "gauge__08NB005"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r14",
+          "type": "vessel_rule",
+          "verbatim": "engine power restriction -\n15 kW (20 hp), in main channel from Fairmont to Donald",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 15.0,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "columbia_river__fairmont",
+                "gauge__08NB005"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "columbia_river.r15",
+          "type": "advisory",
+          "verbatim": "See Upper Arrow Lake for the portion of the Columbia River which may be found downstream of the Hwy 1 bridge in Revelstoke\n(depending on reservoir level)",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:connor_lake@4-23",
+      "name": "CONNOR LAKE",
+      "display_name": "Connor Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** May 1-June 30",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329123411"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "connor_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** May 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "May 1-June 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:connor_lake_s_tributaries@4-23",
+      "name": "CONNOR LAKE'S TRIBUTARIES",
+      "display_name": "Connor Lake's Tributaries",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Apr 1-June 30",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329123411"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "connor_lake_s_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** Apr 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1-June 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": true,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:cottonwood_lake@4-8",
+      "name": "COTTONWOOD LAKE",
+      "display_name": "Cottonwood Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329246387"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "cottonwood_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:crawford_creek@4-33",
+      "name": "CRAWFORD CREEK",
+      "display_name": "Crawford Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** June 15-Oct 31",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:7716"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "crawford_creek_4_33.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** June 15-Oct 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:crawford_creek@4-6",
+      "name": "CRAWFORD CREEK",
+      "display_name": "Crawford Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:12852"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "crawford_creek_4_6.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:creston_valley_wildlife_management_area_cvwma_waters@4-6",
+      "name": "CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS",
+      "display_name": "Region 4",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Bass daily quota = unlimited; yellow perch daily quota = unlimited - applies to all waters within the CVWMA, including Six Mile Lake, Leach\nLake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)\nPermit required see note on page 34",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "creston_valley_wma_waters.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass daily quota = unlimited",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)",
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents"
+        },
+        {
+          "rule_id": "creston_valley_wma_waters.r2",
+          "type": "retention_limit",
+          "verbatim": "yellow perch daily quota = unlimited",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "applies to all waters within the CVWMA, including Six Mile Lake, Leach Lake, Kootenay River and Canal, EXCEPT Duck Lake (see separate entry)",
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents"
+        },
+        {
+          "rule_id": "creston_valley_wma_waters.r3",
+          "type": "access_permission",
+          "verbatim": "Permit required see note on page 34",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": true,
+          "required": true,
+          "on_retention": false,
+          "grantor": "Creston Valley Wildlife Management Area",
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents"
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:cub_lake@4-34",
+      "name": "CUB LAKE",
+      "display_name": "Cub Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329094337"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "cub_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:cultus_creek@4-7",
+      "name": "CULTUS CREEK",
+      "display_name": "Cultus Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** downstream of Laib Creek",
+      "source_pages": [],
+      "symbols": [
+        "Incl. Tribs"
+      ],
+      "matched": [
+        "gnis:14287"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "cultus_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** downstream of Laib Creek",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "cultus_creek__laib_creek_into_cultus_creek"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:deer_creek@4-15",
+      "name": "DEER CREEK",
+      "display_name": "Deer Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:20600"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "deer_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:dorothy_lake@4-26",
+      "name": "DOROTHY LAKE",
+      "display_name": "Dorothy Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329094281"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "dorothy_lake.r1",
+          "type": "program_membership",
+          "verbatim": "Youth/Disabled Accompanied Water year round (see page 4)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:duck_lake_permit_required_see_note_on_page_34@4-6",
+      "name": "DUCK LAKE",
+      "display_name": "Duck Lake",
+      "region": "4",
+      "scope_note": "Permit required — see note on page 34",
+      "regs_verbatim": "Bass daily quota = 3 (only 1 over 40 cm), June 16-May 14; bass catch and release, May 15-June 15\nYellow perch daily quota = 20\nNo powered boats",
+      "source_pages": [],
+      "symbols": [
+        "Incl. Tribs"
+      ],
+      "matched": [
+        "wbk:329246292"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "duck_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass daily quota = 3 (only 1 over 40 cm), June 16-May 14",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 16-May 14"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duck_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "only 1 over 40 cm",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 16-May 14"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "duck_lake.r1",
+          "over_cm": 40,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duck_lake.r3",
+          "type": "retention_limit",
+          "verbatim": "bass catch and release, May 15-June 15",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [
+            "May 15-June 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duck_lake.r4",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duck_lake.r5",
+          "type": "vessel_rule",
+          "verbatim": "No powered boats",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:duncan_lake_s_tributaries@4-27",
+      "name": "DUNCAN LAKE'S TRIBUTARIES",
+      "display_name": "Duncan Lake's Tributaries",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329120714"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "duncan_lake_s_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "Bull trout catch and release (includes Upper Duncan River and tributaries)",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": true,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "(includes Upper Duncan River and tributaries)",
+          "needs_review": true,
+          "review_reason": "'Upper Duncan River and tributaries' is a separate registry item not matched to this entry — the extension of this rule onto it cannot be bound here"
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:duncan_river@4-19",
+      "name": "DUNCAN RIVER",
+      "display_name": "Duncan River",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**Exempt from spring closure, exempt from regional Nov 1-Mar 31 bull trout catch and release, bait ban\nRainbow trout daily quota = 5 (any size), bull trout daily quota = 2 (any size)\nNo Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River**",
+      "source_pages": [],
+      "symbols": [
+        "Incl. Tribs"
+      ],
+      "matched": [
+        "gnis:22255"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "duncan_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**Exempt from spring closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "spring_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duncan_river.r2",
+          "type": "retention_limit",
+          "verbatim": "exempt from regional Nov 1-Mar 31 bull trout catch and release",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "bull_trout_release",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duncan_river.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duncan_river.r4",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily quota = 5 (any size)",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duncan_river.r5",
+          "type": "retention_limit",
+          "verbatim": "bull trout daily quota = 2 (any size)",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "duncan_river.r6",
+          "type": "retention_limit",
+          "verbatim": "No Fishing downstream of Duncan Dam to the confluence of the Duncan River and the Lardeau River",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "duncan_river__duncan_lake",
+                "duncan_river__lardeau_river_into_duncan_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:dutch_creek@4-26",
+      "name": "DUTCH CREEK",
+      "display_name": "Dutch Creek",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Trout/char catch and release from Ben Able Creek to Columbia Lake and/or River\nBait ban, June 15-Oct 31\nBurbot catch and release\nEXEMPT from Columbia Lake's tributaries closure",
+      "source_pages": [],
+      "symbols": [
+        "Incl. Tribs"
+      ],
+      "matched": [
+        "gnis:8242"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "dutch_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char catch and release from Ben Able Creek to Columbia Lake and/or River",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "dutch_creek__ben_abel_creek_into_dutch_creek"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "dutch_creek.r2",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban, June 15-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "dutch_creek.r3",
+          "type": "retention_limit",
+          "verbatim": "Burbot catch and release",
+          "obligation": "must",
+          "species": [
+            "BB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "dutch_creek.r4",
+          "type": "retention_limit",
+          "verbatim": "EXEMPT from Columbia Lake's tributaries closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "target": "Columbia Lake's tributaries closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:east_fork_white_river@4-24",
+      "name": "EAST (Fork) WHITE RIVER",
+      "display_name": "East White River",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:10163"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "east_white_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:echoes_lake_near_kimberley@4-20",
+      "name": "ECHOES LAKE (near Kimberley)",
+      "display_name": "Echoes Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 1 in the aggregate from both lakes (none under 50 cm); bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329524034"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "echoes_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing;**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "echoes_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "trout/char daily quota = 1 in the aggregate from both lakes (none under 50 cm)",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "under_cm": 50,
+          "band": false,
+          "combined": false,
+          "aggregation_domain": "both lakes",
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "echoes_lake.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "echoes_lake.r4",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:edwards_lake@4-2",
+      "name": "EDWARDS LAKE",
+      "display_name": "Edwards Lake",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329069252"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "edwards_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:elk_river_downstream_of_elko_dam@4-2",
+      "name": "ELK RIVER (downstream of Elko Dam)",
+      "display_name": "Elk River",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm) and bait ban, June 15-Oct 31\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
+      "source_pages": [],
+      "symbols": [
+        "Incl. Tribs"
+      ],
+      "matched": [
+        "gnis:16880"
+      ],
+      "extents": [
+        {
+          "op": "downstream_of",
+          "splits": [
+            "gauge__08NK031"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "elk_river_downstream_of_elko_dam.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm)",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_downstream_of_elko_dam.r2",
+          "type": "retention_limit",
+          "verbatim": "no cutthroat under 30 cm",
+          "obligation": "must",
+          "species": [
+            "CT"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "within": "elk_river_downstream_of_elko_dam.r1",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_downstream_of_elko_dam.r3",
+          "type": "retention_limit",
+          "verbatim": "no bull trout under 75 cm",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "within": "elk_river_downstream_of_elko_dam.r1",
+          "under_cm": 75,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_downstream_of_elko_dam.r4",
+          "type": "bait_restriction",
+          "verbatim": "bait ban, June 15-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_downstream_of_elko_dam.r5",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_downstream_of_elko_dam.r6",
+          "type": "document_required",
+          "verbatim": "**Class II water when open, including tributaries**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": true,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "includes_tributaries": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r4:elk_river_upstream_of_elko_dam@4-2+4-23",
+      "name": "ELK RIVER (upstream of Elko Dam)",
+      "display_name": "Elk River",
+      "region": "4",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban, June 15-Oct 31\nTrout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam\nAll other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31\nBull trout catch and release\nElectric motor only - max 7.5 kW\n**Class II water when open, including tributaries**",
+      "source_pages": [],
+      "symbols": [
+        "Incl. Tribs"
+      ],
+      "matched": [
+        "gnis:16880"
+      ],
+      "extents": [
+        {
+          "op": "upstream_of",
+          "splits": [
+            "gauge__08NK031"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "elk_river_upstream_of_elko_dam.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban, June 15-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_upstream_of_elko_dam.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout/char catch and release June 15-Oct 31: from Lower Elk Lake to Forsyth Cr, from Line Creek Bridge to CPR Bridge at Sparwood, from\nHwy 3 bridge at Hosmer to the northern Hwy 3 bridge at Fernie, and from the bridge at Morrissey to Elko Dam",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "elk_river__lower_elk_lake",
+                "elk_river__forsyth_creek_into_elk_river"
+              ]
+            },
+            {
+              "op": "between",
+              "splits": [
+                "elk_river__line_creek_bridge",
+                "elk_river__cpr_bridge_at_sparwood"
+              ]
+            },
+            {
+              "op": "between",
+              "splits": [
+                "elk_river__hwy_3_bridge_at_hosmer",
+                "elk_river__northern_hwy_3_bridge_at_fernie"
+              ]
+            },
+            {
+              "op": "between",
+              "splits": [
+                "elk_river__bridge_at_morrissey",
+                "gauge__08NK031"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_upstream_of_elko_dam.r3",
+          "type": "retention_limit",
+          "verbatim": "All other parts: trout/char daily quota = 1 (none under 30 cm), June 15-Oct 31",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "All other parts",
+          "needs_review": true,
+          "review_reason": "'All other parts' is the complement of the four catch-and-release reaches named above; no negation op exists to express a complement, so this falls back to the entry's whole upstream-of-Elko-Dam scope"
+        },
+        {
+          "rule_id": "elk_river_upstream_of_elko_dam.r4",
+          "type": "retention_limit",
+          "verbatim": "Bull trout catch and release",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_upstream_of_elko_dam.r5",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "elk_river_upstream_of_elko_dam.r6",
+          "type": "document_required",
+          "verbatim": "**Class II water when open, including tributaries**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": true,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "includes_tributaries": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r4:keen_creek@4-18",
       "name": "KEEN CREEK",
       "display_name": "Keen Creek",
