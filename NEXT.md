@@ -30,13 +30,16 @@ bash pipeline/regs/parsing/run_parse.sh repass
 
 ## Manual curation review
 
+One command runs both (backend :8787 + frontend :5173). Ctrl-C stops both:
+
 ```bash
-bash curation-review/backend/run.sh                 # :8787
-cd curation-review/frontend && npx vite             # :5173, proxies /api to :8787
+bash curation-review/run.sh
 ```
 
-If it says `Address already in use`, a backend is already running — reuse it, or stop it with
-`pkill -f "uvicorn app:app"`.
+Then open **http://localhost:5173** — `localhost`, not `127.0.0.1`: Vite binds ::1, so the IPv4
+literal refuses the connection while the app is running fine.
+
+`Address already in use` means a backend is already up. Reuse it, or `pkill -f "uvicorn app:app"`.
 
 ## Still open
 
