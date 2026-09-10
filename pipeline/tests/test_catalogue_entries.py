@@ -257,3 +257,46 @@ def test_every_entry_names_a_row_the_synopsis_actually_prints():
                if not (e.entry_id or "").startswith("z") and e.entry_id not in real]
     assert not phantom, ("these entry_ids are not rows the synopsis prints:\n  "
                          + "\n  ".join(sorted(phantom)))
+
+
+def test_a_quoted_prohibition_reads_as_one():
+    """A QUOTE CAN BE TRUE AND INVERTED.
+
+    `zp:conduct.r1` quotes "Waste the fish you catch." — faithfully, because the synopsis
+    prints it as a bullet under the heading "It Is Unlawful To…". Every gate passed it: the
+    words are in the passage, the passage is the batch's own text, no number is misplaced.
+    And because a handling_rule has nothing to generate a label from, that quote WAS the
+    label, so the app told anglers to waste their catch. Eleven rules read that way.
+
+    Chain of custody checks that the words came from the source. It cannot check that the
+    MEANING did — the heading is what made it a prohibition and the heading is not in the
+    quote. So the prohibition has to be in the data (`required: false`) and be rendered.
+
+    The check: where the run-up IMMEDIATELY before a quote is what forbids it, the rule must
+    say so. Deliberately narrow — a negation elsewhere in the sentence usually belongs to a
+    neighbouring clause ("no angling from boats, bait ban"), and widening it produced seven
+    false positives against five real ones.
+    """
+    import re as _re
+    from pipeline.regs.parsing.catalogue import squash, label
+    governing = _re.compile(
+        r"(?:it is )?(?:unlawful|illegal|an offence|prohibited)\s+(?:to|for)\s*$"
+        r"|(?:must|may|do|does|shall|can)\s+not\s*$"
+        r"|no person (?:may|shall)\s*$", _re.I)
+    bad: list[str] = []
+    for _, e in _entries():
+        hay = squash(e.regs_verbatim)
+        for r in e.rules:
+            needle = squash(r.verbatim)
+            if not needle or needle not in hay:
+                continue
+            run_up = hay[:hay.index(needle)].rsplit(".", 1)[-1]
+            if not governing.search(run_up):
+                continue
+            if r.required is False:
+                continue                      # says so in the data; the label renders it
+            bad.append(f"{e.entry_id}::{r.rule_id} [{r.type.value}]"
+                       f"\n      forbidden by: …{run_up.strip()[-28:]!r}"
+                       f"\n      but renders : {label(r)[:64]!r}")
+    assert not bad, ("a quote is doing duty as a label without the clause that forbids it — "
+                     "set `required: false`:\n  " + "\n  ".join(bad))

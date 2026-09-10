@@ -241,6 +241,13 @@ def expand_species(codes: List[str]) -> List[str]:
     return out
 
 
+#: Types whose label is otherwise the bare quote, and which a `required: false` turns into a
+#: prohibition. The other types build their own words and say it themselves ("Netting is
+#: prohibited", "A basic angling licence is not required").
+_PROHIBITABLE = frozenset({RuleType.handling_rule, RuleType.navigation_duty,
+                           RuleType.method_rule, RuleType.tackle_restriction})
+
+
 #: TIER ONE. Every type belongs to exactly one family; the reader sees these as sections.
 _FAMILY = {
     RuleType.retention_limit: "retention",
@@ -827,7 +834,9 @@ def label(r: CatalogueRule) -> str:
 
     if t is RuleType.method_rule:
         if r.extent_text and not any((r.max_lines, r.hook_count, r.min_gap_cm)):
-            return r.verbatim          # a procedural duty; no template renders a duty
+            # a procedural duty; no template renders a duty — but a FORBIDDEN one still has
+            # to read as forbidden, or the quote is the label and the label is inverted.
+            return _quoted_prohibition(r) if r.required is False else r.verbatim
         m = r.method.value.replace("_", " ")
         head = f"{m.capitalize()} is permitted" if r.permitted else f"{m.capitalize()} is prohibited"
         rig = []
@@ -891,8 +900,27 @@ def label(r: CatalogueRule) -> str:
             else f"{subject.capitalize()} may fish here"
         return head + _scope(r) + _dates(r) + _where(r)
 
-    # navigation_duty, handling_rule, hazard, advisory, program_membership, facility
+    if r.required is False and t in _PROHIBITABLE:
+        return _quoted_prohibition(r)
+
+    # navigation_duty, handling_rule (required), hazard, advisory, program_membership, facility
     return r.verbatim
+
+
+def _quoted_prohibition(r: "CatalogueRule") -> str:
+    """"Do not …" around a quote whose own sentence carried the prohibition.
+
+        THE PROHIBITION IS IN THE HEADING, NOT THE BULLET. The synopsis prints these under
+    The synopsis prints these under "It Is Unlawful To…" and each bullet is a fragment —
+    "Waste the fish you catch." Quoting the bullet is FAITHFUL, and every gate passes it: the
+    words are in the passage, the passage is the batch's own text. But these types have
+    nothing to generate a label from, so the quote BECAME the label, and the app told anglers
+    to waste their catch. Eleven rules read that way.
+
+    So the prohibition lives in the DATA — `required: false` — and is rendered here.
+    """
+    body = r.verbatim.strip().rstrip(".")
+    return "Do not " + body[0].lower() + body[1:] + _dates(r) + _where(r)
 
 
 # --------------------------------------------------------------------------------------- #
