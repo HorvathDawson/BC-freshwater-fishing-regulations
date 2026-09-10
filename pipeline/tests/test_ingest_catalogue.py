@@ -185,3 +185,18 @@ def test_within_area_survives_alongside_a_bound_reach():
     ex = accepted["e1"].rules[0].extents[0]
     assert ex["splits"] == ["gauge__08NM247"]        # alias canonicalised
     assert ex["within_area"] == "area:region:8"      # and the limiter kept
+
+
+def test_a_prose_era_response_is_skipped_not_ingested():
+    """The work dir survives between runs and dispatch skips a batch that already has a response —
+    which is what makes a run resumable, and also what let 22 files from the retired prose parser
+    be ingested as catalogue output. 669 rules then failed as "extra inputs are not permitted",
+    with nothing in the output naming the real cause."""
+    from pipeline.regs.parsing.ingest_catalogue import is_stale
+    prose = [{"index": 1, "entry": {"entry_id": "e1", "rules": [
+        {"rule_id": "r1", "restriction_type": "closure", "details": "No fishing"}]}}]
+    catalogue = [{"index": 1, "entry": {"entry_id": "e1", "rules": [
+        {"rule_id": "r1", "type": "retention_limit", "verbatim": "No fishing"}]}}]
+    assert is_stale(prose)
+    assert not is_stale(catalogue)
+    assert not is_stale([])

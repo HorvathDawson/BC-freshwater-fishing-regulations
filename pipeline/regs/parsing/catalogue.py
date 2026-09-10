@@ -15,6 +15,8 @@ filing them apart is why the override never fired.
 
 from __future__ import annotations
 
+import re
+
 from enum import Enum
 from typing import List, Optional
 
@@ -127,6 +129,25 @@ class Obligation(str, Enum):
     mirror of rendering law as advice, and both are in this corpus."""
     must = "must"
     should = "should"
+
+
+#: Dash variants the extraction emits interchangeably; all mean "-" for comparison.
+_DASH = dict.fromkeys(map(ord, "‐‑‒–—―−"), "-")
+
+
+def squash(text: str) -> str:
+    """Normalise away what carries no meaning when comparing a quote to its source: EMPHASIS,
+    bullets, blockquote markers, dash variants, whitespace, case.
+
+    Markdown is OUR annotation, added by extraction — 629 of 1393 batch rows carry `**`. The
+    printed regulation has no asterisks in it, so a model quoting the sentence it can see writes
+    it without them, and a raw substring check then calls a perfect quote a fabrication. It called
+    700 of them that. What is STORED is still the batch's own text, byte for byte; only the
+    comparison is normalised."""
+    t = (text or "").translate(_DASH).replace("*", "")
+    t = re.sub(r"(?m)^\s*[>|]\s?", " ", t)
+    t = re.sub(r"(?m)^\s*[-•]\s+", " ", t)
+    return re.sub(r"\s+", " ", t).strip().lower()
 
 
 class WindowsAre(str, Enum):
@@ -893,12 +914,12 @@ class CatalogueEntry(BaseModel):
     def _chain_of_custody(self) -> "CatalogueEntry":
         e: List[str] = []
         seen: set[str] = set()
-        haystack = " ".join(self.regs_verbatim.split()).lower()
+        haystack = squash(self.regs_verbatim)
         for r in self.rules:
             if r.rule_id in seen:
                 e.append(f"duplicate rule_id {r.rule_id!r}")
             seen.add(r.rule_id)
-            needle = " ".join(r.verbatim.split()).lower()
+            needle = squash(r.verbatim)
             if needle not in haystack:
                 e.append(f"{r.rule_id}: verbatim is not a contiguous substring of regs_verbatim")
         if not self.rules:

@@ -29,15 +29,41 @@ from pipeline.regs.parsing.validate_catalogue import check_entry, squash
 
 
 def load_batch(paths: list[str]) -> dict[str, dict]:
-    """{entry_id: batch item}. The item carries `raw_regs` — the printed row we handed over."""
+    """{key: batch item} keyed by BOTH `entry_id` and `index`.
+
+    The agent is told to copy each item's `index` back verbatim, and that is the reliable join:
+    `entry_id` is a value the model retypes, so keying on it alone makes a typo look like an
+    invented entry."""
     items: dict[str, dict] = {}
     for p in paths:
         data = json.loads(Path(p).read_text(encoding="utf-8"))
         for it in (data.get("items", data) if isinstance(data, dict) else data):
-            key = it.get("entry_id") or it.get("id") or it.get("item_id")
-            if key:
-                items[str(key)] = it
+            for key in (it.get("entry_id"), it.get("id"), it.get("item_id")):
+                if key:
+                    items.setdefault(str(key), it)
+            if it.get("index") is not None:
+                items[f"#{it['index']}"] = it
     return items
+
+
+_RETIRED_FIELDS = ("restriction_type", "details", "rule_text", "exempts_from", "display_location")
+
+
+def is_stale(rows: list) -> bool:
+    """True if this response was written by the RETIRED prose parser.
+
+    Responses live in a work dir that survives between runs, and dispatch skips a batch that
+    already has one — which is what makes a run resumable. It also means a response from a
+    previous FORMAT era is silently reused: 22 files from the prose parser sat in the work dir and
+    were ingested as if they were catalogue output, and 669 rules failed as "extra inputs are not
+    permitted" with nothing pointing at the real cause. Cheap to detect, so detect it."""
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        for r in ((row.get("entry", row) or {}).get("rules") or []):
+            if isinstance(r, dict) and any(k in r for k in _RETIRED_FIELDS):
+                return True
+    return False
 
 
 def _source_of(item: dict) -> str:
@@ -53,7 +79,10 @@ def ingest(candidates: list[dict], batch: dict[str, dict]) -> tuple[dict[str, Ca
     problems: list[str] = []
     for data in candidates:
         eid = str(data.get("entry_id") or "<no entry_id>")
-        item = batch.get(eid)
+        idx = data.pop("_batch_index", None)
+        item = batch.get(eid) or (batch.get(f"#{idx}") if idx is not None else None)
+        if item is not None and eid == "<no entry_id>":
+            eid = str(item.get("entry_id") or eid)
         if item is None:
             problems.append(f"{eid}: not in the batch — an entry_id was invented or altered")
             continue
@@ -103,10 +132,28 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
         dry_run: bool = False) -> int:
     batch = load_batch(batch_paths)
     candidates: list[dict] = []
+    stale: list[str] = []
     for p in response_paths:
         data = json.loads(Path(p).read_text(encoding="utf-8"))
-        candidates += (data.get("entries", data) if isinstance(data, dict) else data)
+        rows = data.get("entries", data) if isinstance(data, dict) else data
+        if is_stale(rows):
+            stale.append(Path(p).name)
+            continue
+        for row in rows:
+            # The dispatcher writes the batch ENVELOPE: [{"index": N, "entry": {...}}]. Ingest used
+            # to expect a bare entry, so every row read as "<no entry_id>" and a fully paid parse
+            # ingested nothing. Accept both shapes; carry the index along as the join key.
+            if isinstance(row, dict) and "entry" in row and isinstance(row["entry"], dict):
+                entry = dict(row["entry"])
+                if row.get("index") is not None:
+                    entry.setdefault("_batch_index", row["index"])
+                candidates.append(entry)
+            else:
+                candidates.append(row)
 
+    if stale:
+        print(f"SKIPPED {len(stale)} response file(s) written by the RETIRED prose parser — delete "
+              f"them and re-parse those batches:\n  {', '.join(stale)}\n")
     accepted, problems = ingest(candidates, batch)
     for p in problems:
         print(("WARN " if p.startswith("ADVISORY") else "FAIL ") + p)
@@ -122,8 +169,14 @@ def run(batch_paths: list[str], response_paths: list[str], out_dir: str,
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--batch", action="append", required=True, help="batch file(s) from the exporter")
-    ap.add_argument("--response", action="append", required=True, help="candidate JSON from the agent")
+    # `action="append"` alone takes ONE value per flag, and run_parse.sh passes a shell GLOB — so
+    # `--batch batches/batch_*.json` handed argparse 46 paths, it consumed one, and the run died on
+    # "unrecognized arguments" AFTER the whole parse had been paid for. `extend` + `nargs="+"`
+    # accepts both a glob and a repeated flag.
+    ap.add_argument("--batch", action="extend", nargs="+", required=True,
+                    help="batch file(s) from the exporter; a glob is fine")
+    ap.add_argument("--response", action="extend", nargs="+", required=True,
+                    help="candidate JSON from the agent; a glob is fine")
     ap.add_argument("--out", default="data/curated/regulations/entries/catalogue")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()

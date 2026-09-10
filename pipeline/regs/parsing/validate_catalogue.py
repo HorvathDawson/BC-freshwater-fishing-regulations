@@ -33,20 +33,10 @@ from typing import Iterable
 
 from pydantic import ValidationError
 
-from pipeline.regs.parsing.catalogue import CatalogueEntry, RuleType, label
+from pipeline.regs.parsing.catalogue import CatalogueEntry, squash, RuleType, label
 
-_DASH = dict.fromkeys(map(ord, "‐‑‒–—―−"), "-")
-
-
-def squash(text: str) -> str:
-    """Normalise away what carries no meaning: emphasis, bullets, blockquotes, dash variants."""
-    t = text.translate(_DASH).replace("*", "")
-    t = re.sub(r"(?m)^\s*[>|]\s?", " ", t)
-    t = re.sub(r"(?m)^\s*[-•]\s+", " ", t)
-    t = re.sub(r"\s+", " ", t).strip().lower()
-    return re.sub(r"\s*-\s*", "-", t)
-
-
+# `squash` is the ONE normaliser and lives in catalogue.py, beside the model validator that
+# also needs it — two copies drifted once and cost a whole parse.
 def boundary_ids(item: dict) -> tuple[set[str], dict[str, str]]:
     """(every bindable id, {alias: canonical id}) for one batch item.
 

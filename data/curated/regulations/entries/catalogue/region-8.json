@@ -2,38 +2,786 @@
   "region": "8",
   "entries": [
     {
-      "entry_id": "z8:spring_stream_closure",
-      "name": "Spring stream closure",
-      "display_name": "Every stream in Region 8",
+      "entry_id": "r8:hydraulic_lake",
+      "name": "HYDRAULIC LAKE",
+      "display_name": "Hydraulic Lake",
       "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "No fishing: (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for exceptions). No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
-      "source_pages": [
-        68
-      ],
+      "scope_note": "This lake is part of McCulloch Reservoir.",
+      "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+      "source_pages": [],
       "symbols": [],
-      "matched": [],
+      "matched": [
+        "wbk:329459122"
+      ],
       "extents": [
         {
-          "op": "within",
-          "area_id": "area:region:8",
-          "feature_types": [
-            "stream"
-          ]
+          "op": "whole"
         }
       ],
       "rules": [
         {
-          "rule_id": "spring_stream_closure.r1",
+          "rule_id": "hydraulic_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:idleback_lake",
+      "name": "IDLEBACK LAKE",
+      "display_name": "Idleback Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 1; bait ban, single barbless hook; electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329216655"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "idleback_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "idleback_lake.r2",
           "type": "retention_limit",
-          "verbatim": "No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
+          "verbatim": "Trout daily quota = 1",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "idleback_lake.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "idleback_lake.r4",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "idleback_lake.r5",
+          "type": "vessel_rule",
+          "verbatim": "electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:islaht_horseshoe_lake",
+      "name": "ISLAHT (Horseshoe) LAKE",
+      "display_name": "Islaht (Horseshoe) Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459158"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "islaht_horseshoe_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:jackpine_lake",
+      "name": "JACKPINE LAKE",
+      "display_name": "Jackpine Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459145"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "jackpine_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:jewel_creek",
+      "name": "JEWEL CREEK",
+      "display_name": "Jewel Creek",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:17440"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "jewel_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from Jewel Lake downstream approximately 1.5 km to fishing boundary signs",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "jewel_creek__jewel_lake",
+                "jewel_creek__jewel_lake_1500_m_downstream"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:jewel_lake",
+      "name": "JEWEL LAKE",
+      "display_name": "Jewel Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Brook trout daily quota = 20\nEngine power restriction - 7.5 kW (10 hp) and speed restriction (8 km/h)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329216614"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "jewel_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Brook trout daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "EB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "jewel_lake.r2",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "jewel_lake.r3",
+          "type": "vessel_rule",
+          "verbatim": "speed restriction (8 km/h)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "speed",
+          "max_kmh": 8.0,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:johnny_lake",
+      "name": "JOHNNY LAKE",
+      "display_name": "Johnny Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520169"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "johnny_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:kalamalka_lake",
+      "name": "KALAMALKA LAKE",
+      "display_name": "Kalamalka Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Kokanee daily quota = 5, Yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459117"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kalamalka_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Kokanee daily quota = 5",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kalamalka_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kalamalka_lake.r3",
+          "type": "vessel_rule",
+          "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "speed",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "various locations (as buoyed and signed)",
+          "needs_review": true,
+          "review_reason": "synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone"
+        },
+        {
+          "rule_id": "kalamalka_lake.r4",
+          "type": "vessel_rule",
+          "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "none",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "various locations (as buoyed and signed)",
+          "needs_review": true,
+          "review_reason": "synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone"
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:kentucky_lake",
+      "name": "KENTUCKY LAKE",
+      "display_name": "Kentucky Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329451906"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kentucky_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:kettle_river",
+      "name": "KETTLE RIVER",
+      "display_name": "Kettle River",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Exempt from spring closure\n**No Fishing** July 25-Sept 15; bait ban Apr 1-Oct 31\nRainbow trout catch and release",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:11984"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kettle_river.r1",
+          "type": "retention_limit",
+          "verbatim": "Exempt from spring closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kettle_river.r2",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** July 25-Sept 15",
           "obligation": "must",
           "species": [
             "ALL_GAME_FISH"
           ],
           "species_except": [],
           "windows": [
-            "Apr 1 - Jun 30"
+            "July 25-Sept 15"
           ],
           "windows_are": "applies",
           "weekdays": [],
@@ -45,13 +793,3774 @@
           "band": false,
           "combined": false,
           "record_retention": false,
-          "water": "stream",
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kettle_river.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban Apr 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kettle_river.r4",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:kettle_rivers_tributaries",
+      "name": "KETTLE RIVER'S TRIBUTARIES",
+      "display_name": "Kettle River's Tributaries",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:11984"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kettle_rivers_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** Jul 25-Sept 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jul 25-Sept 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kettle_rivers_tributaries.r2",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kettle_rivers_tributaries.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:kidd_lake",
+      "name": "KIDD LAKE",
+      "display_name": "Kidd Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520029"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kidd_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kidd_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout/char catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kidd_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "artificial fly only",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "artificial_fly",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kidd_lake.r4",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kidd_lake.r5",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kidd_lake.r6",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kidd_lake.r7",
+          "type": "hazard",
+          "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:kump_lost_lake",
+      "name": "KUMP (Lost) LAKE",
+      "display_name": "Kump (Lost) Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing**\nTrout/char daily quota = 2; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328988962"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "kump_lost_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kump_lost_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout/char daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kump_lost_lake.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:lambly_bear_lake",
+      "name": "LAMBLY (Bear) LAKE",
+      "display_name": "Lambly (Bear) Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459132"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "lambly_bear_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "lambly_bear_lake.r2",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:larry_lake",
+      "name": "LARRY LAKE (unnamed lake located about 400 m west of Thalia Lake)",
+      "display_name": "Larry Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release\nArtificial fly only, bait ban, single barbless hook\nElectric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520255"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "larry_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "larry_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout/char catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "larry_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "Artificial fly only",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "artificial_fly",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "larry_lake.r4",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "larry_lake.r5",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "larry_lake.r6",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:link_lake",
+      "name": "LINK LAKE",
+      "display_name": "Link Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520037"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "link_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:little_pinaus_lake",
+      "name": "LITTLE PINAUS LAKE",
+      "display_name": "Little Pinaus Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Yellow perch daily quota = 20",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459266"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "little_pinaus_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:loch_drinkie",
+      "name": "LOCH DRINKIE",
+      "display_name": "Loch Drinkie",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing**\nTrout daily quota = 2; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459189"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "loch_drinkie.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "loch_drinkie.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "loch_drinkie.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:loon_lake",
+      "name": "LOON LAKE",
+      "display_name": "Loon Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing**\nTrout/char catch and release; artificial fly only, bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329664027"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "loon_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "loon_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout/char catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "loon_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "artificial fly only",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "artificial_fly",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "loon_lake.r4",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "loon_lake.r5",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:lost_lake",
+      "name": "LOST LAKE",
+      "display_name": "Lost Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459181"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "lost_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:mabel_lake",
+      "name": "MABEL LAKE",
+      "display_name": "Mabel Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31\nBull trout (Dolly Varden) daily quota = 1 (none under 50 cm)\nSingle barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329663955"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mabel_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet, Jan 1-May 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jan 1-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet",
+          "needs_review": true,
+          "review_reason": "this lake has no bindable cut-points in the registry, so 'south of a line ... approximately 800 m north of Shuswap River inlet' cannot be bound to a reach"
+        },
+        {
+          "rule_id": "mabel_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Bull trout (Dolly Varden) daily quota = 1 (none under 50 cm)",
+          "obligation": "must",
+          "species": [
+            "BT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "under_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "mabel_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "Single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:mara_lake",
+      "name": "MARA LAKE",
+      "display_name": "Mara Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "See Shuswap Lake in Region 3\nNo powered boats south of the CPR bridge",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329518146"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mara_lake.r1",
+          "type": "advisory",
+          "verbatim": "See Shuswap Lake in Region 3",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "mara_lake.r2",
+          "type": "vessel_rule",
+          "verbatim": "No powered boats south of the CPR bridge",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "south of the CPR bridge",
+          "needs_review": true,
+          "review_reason": "this lake has no bindable cut-points in the registry, so 'south of the CPR bridge' cannot be bound to a reach"
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:martin_lake",
+      "name": "MARTIN LAKE",
+      "display_name": "Martin Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2\n**WARNING! Dangerous thin ice due to aeration!**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520322"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "martin_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "martin_lake.r2",
+          "type": "hazard",
+          "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:mcculloch_reservoir",
+      "name": "MCCULLOCH RESERVOIR",
+      "display_name": "McCulloch Reservoir",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328985739"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mcculloch_reservoir.r1",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:mcrae_creek",
+      "name": "MCRAE CREEK",
+      "display_name": "McRae Creek",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:27258"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mcrae_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** downstream of falls situated approximately 4 km upstream of Christina Lake",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "mcrae_creek__falls_potholes"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:meadow_lake",
+      "name": "MEADOW LAKE",
+      "display_name": "Meadow Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing;** trout/char daily quota = 2; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459325"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "meadow_lake.r1",
+          "type": "method_rule",
+          "verbatim": "No Ice Fishing",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "meadow_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "trout/char daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "meadow_lake.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:minnow_lake",
+      "name": "MINNOW LAKE",
+      "display_name": "Minnow Lake",
+      "region": "8",
+      "scope_note": "This lake is part of McCulloch Reservoir.",
+      "regs_verbatim": "Engine power restriction - 7.5 kW (10 hp); this lake is part of McCulloch Reservoir",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328985739"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "minnow_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:mission_creek",
+      "name": "MISSION CREEK",
+      "display_name": "Mission Creek",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:29608"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "mission_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from falls at Gallagher Canyon to Okanagan Lake",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "mission_creek__falls_at_gallagher_canyon"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:okanagan_lake",
+      "name": "OKANAGAN LAKE",
+      "display_name": "Okanagan Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Rainbow trout daily quota = 2 (only one over 50 cm), bass daily quota = 8, yellow perch daily quota = 20\nSpeed restrictions or no vessels (as buoyed and signed), various locations",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459116"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "okanagan_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily quota = 2 (only one over 50 cm)",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": true,
+          "review_reason": "the sub-cap 'only one over 50 cm' spells the count as a word, not a digit; digit-literal validation cannot accept a spelled number, so only the base quota of 2 is captured structurally — see verbatim for the full restriction"
+        },
+        {
+          "rule_id": "okanagan_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "bass daily quota = 8",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 8,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_lake.r3",
+          "type": "retention_limit",
+          "verbatim": "yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_lake.r4",
+          "type": "vessel_rule",
+          "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "speed",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "various locations (as buoyed and signed)",
+          "needs_review": true,
+          "review_reason": "synopsis names buoyed/signed zones at 'various locations' with no stated speed value and no bindable boundary; site signage governs each zone"
+        },
+        {
+          "rule_id": "okanagan_lake.r5",
+          "type": "vessel_rule",
+          "verbatim": "Speed restrictions or no vessels (as buoyed and signed), various locations",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "none",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "various locations (as buoyed and signed)",
+          "needs_review": true,
+          "review_reason": "synopsis names buoyed/signed 'no vessels' zones at 'various locations' with no bindable boundary; site signage governs each zone"
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:okanagan_river",
+      "name": "OKANAGAN RIVER",
+      "display_name": "Okanagan River",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Oct 1-Nov 15; bass daily quota = 8, yellow perch daily quota = 20\nExempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located\nabout 1 km upstream of Osoyoos Lake)\nRainbow trout catch and release; no powered boats",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:32069"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "okanagan_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** Oct 1-Nov 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Oct 1-Nov 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_river.r2",
+          "type": "retention_limit",
+          "verbatim": "bass daily quota = 8",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 8,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_river.r3",
+          "type": "retention_limit",
+          "verbatim": "yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_river.r4",
+          "type": "retention_limit",
+          "verbatim": "Exempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No. 1 (located about 1 km upstream of Osoyoos Lake)",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "okanagan_river__okanagan_lake",
+                "gauge__08NM247"
+              ]
+            },
+            {
+              "op": "downstream_of",
+              "splits": [
+                "okanagan_river__drop_structure_no_1"
+              ]
+            }
+          ],
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_river.r5",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "okanagan_river.r6",
+          "type": "vessel_rule",
+          "verbatim": "no powered boats",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:trepanier_river",
+      "name": "TREPANIER RIVER",
+      "display_name": "Trepanier River",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:27648"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trepanier_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from Hwy 97C to Okanagan Lake",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "trepanier_river__hwy_97c_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:trout_creek",
+      "name": "TROUT CREEK",
+      "display_name": "Trout Creek",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake\nUpstream of the trestle exempt from spring closure",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:28474"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from the trestle in Trout Creek Canyon to Okanagan Lake",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "trout_creek__rail_trestle_trout_creek_canyon"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_creek.r2",
+          "type": "retention_limit",
+          "verbatim": "Upstream of the trestle exempt from spring closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "trout_creek__rail_trestle_trout_creek_canyon"
+              ]
+            }
+          ],
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:trout_lake",
+      "name": "TROUT LAKE",
+      "display_name": "Trout Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459300"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "trout_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass daily quota = 8",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 8,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_lake.r3",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:tuc_el_nuit_lake",
+      "name": "TUC-EL-NUIT LAKE",
+      "display_name": "Tuc-el-Nuit Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Bass daily quota = 8, yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459143"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tuc_el_nuit_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Bass daily quota = 8",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 8,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tuc_el_nuit_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tuc_el_nuit_lake.r3",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:tulameen_river",
+      "name": "TULAMEEN RIVER",
+      "display_name": "Tulameen River",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Rainbow and cutthroat trout catch and release\nBait ban Apr 1-Oct 31\nExempt from spring closure",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:29844"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tulameen_river.r1",
+          "type": "retention_limit",
+          "verbatim": "Rainbow and cutthroat trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB",
+            "CT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tulameen_river.r2",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban Apr 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "bait": "any",
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tulameen_river.r3",
+          "type": "retention_limit",
+          "verbatim": "Exempt from spring closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:twin_lakes",
+      "name": "TWIN LAKES",
+      "display_name": "Twin Lakes",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Yellow perch daily quota = 20\nElectric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459160"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "twin_lakes.r1",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "twin_lakes.r2",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:unnamed_lakes_bluey",
+      "name": "UNNAMED LAKES (located immediately north and south of Bluey Lake)",
+      "display_name": "Unnamed Lakes (near Bluey Lake)",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**\nKnown by Ministry of Forests designations as lakes 711, 712, 713, 364 and 309 on Map 92H-088",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520774",
+        "wbk:329520563"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lakes_bluey.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:vaseux_lake",
+      "name": "VASEUX LAKE (including two lagoons on the west side of Okanagan River upstream of McIntyre Dam)",
+      "display_name": "Vaseux Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)\nBass daily quota = 8, yellow perch daily quota = 20",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459123"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "vaseux_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "No powered boats (Migratory Bird Sanctuary Regulations)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "vaseux_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Bass daily quota = 8",
+          "obligation": "must",
+          "species": [
+            "BASS"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 8,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "vaseux_lake.r3",
+          "type": "retention_limit",
+          "verbatim": "yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:wap_creek",
+      "name": "WAP CREEK",
+      "display_name": "Wap Creek",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30\nExempt from spring closure upstream of Frog Falls",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:1806"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "wap_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** downstream of Frog Falls (excluding Wap Lake) Sept 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 1 - Jun 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "wap_creek__frog_falls"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "wap_creek.r2",
+          "type": "retention_limit",
+          "verbatim": "Exempt from spring closure upstream of Frog Falls",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "wap_creek__frog_falls"
+              ]
+            }
+          ],
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:west_kettle_river",
+      "name": "WEST KETTLE RIVER",
+      "display_name": "West Kettle River",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** July 25-Sept 15\nRainbow trout catch and release; bait ban Apr 1-Oct 31\nExempt from spring closure",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:6358"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "west_kettle_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** July 25-Sept 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jul 25 - Sept 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_kettle_river.r2",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_kettle_river.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban Apr 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "bait": "any",
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_kettle_river.r4",
+          "type": "retention_limit",
+          "verbatim": "Exempt from spring closure",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [
+            {
+              "default_id": "spring_stream_closure",
+              "note": ""
+            }
+          ],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:west_kettle_river_tributaries",
+      "name": "WEST KETTLE RIVER'S tributaries",
+      "display_name": "West Kettle River (tributaries)",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing **Jul 25-Sept 15\nRainbow trout catch and release; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:6358"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "west_kettle_river_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing **Jul 25-Sept 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jul 25 - Sept 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": true,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_kettle_river_tributaries.r2",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": true,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_kettle_river_tributaries.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "bait": "any",
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": true,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:wood_lake",
+      "name": "WOOD LAKE",
+      "display_name": "Wood Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing\nNo Fishing** for kokanee Sept 1-Mar 31\nKokanee daily quota = 3, Apr 1-Aug 31\nYellow perch daily quota = 20\nSpeed restriction (10 km/h) on parts",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329459119"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "wood_lake.r1",
+          "type": "method_rule",
+          "verbatim": "No Ice Fishing",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "wood_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "No Fishing** for kokanee Sept 1-Mar 31",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 1 - Mar 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "wood_lake.r3",
+          "type": "retention_limit",
+          "verbatim": "Kokanee daily quota = 3, Apr 1-Aug 31",
+          "obligation": "must",
+          "species": [
+            "KO"
+          ],
+          "species_except": [],
+          "windows": [
+            "Apr 1 - Aug 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "wood_lake.r4",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "wood_lake.r5",
+          "type": "vessel_rule",
+          "verbatim": "Speed restriction (10 km/h) on parts",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "speed",
+          "max_kmh": 10.0,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "on parts",
+          "needs_review": true,
+          "review_reason": "Speed restriction applies only to 'parts' of the lake per the synopsis; no cut-point is available to bind the specific reach"
+        }
+      ]
+    },
+    {
+      "entry_id": "r8:yellow_lake",
+      "name": "YELLOW LAKE",
+      "display_name": "Yellow Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Yellow perch daily quota = 20\nEngine power restriction - 7.5 kW (10 hp)\n**WARNING! Dangerous thin ice due to aeration**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329520002"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "yellow_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Yellow perch daily quota = 20",
+          "obligation": "must",
+          "species": [
+            "YP"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "yellow_lake.r2",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "yellow_lake.r3",
+          "type": "hazard",
+          "verbatim": "**WARNING! Dangerous thin ice due to aeration**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:crayfish_traps_turtles",
+      "name": "Crayfish traps and turtles",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "obligation=should: the synopsis says anglers are ENCOURAGED. Rendering it as law is the mirror of rendering law as advice.",
+      "regs_verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "crayfish_traps_turtles.r1",
+          "type": "hazard",
+          "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
           "required": true,
           "on_retention": false,
           "exempts": [],
           "standing": false,
           "reason": "",
           "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "crayfish_traps_turtles.r2",
+          "type": "method_rule",
+          "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "crayfish_trapping",
+          "permitted": true,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "use traps with minimally-sized circular openings",
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:garnet_lake",
+      "name": "Garnet Lake closure",
+      "display_name": "Garnet Lake",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "GARNET LAKE ANGLING CLOSURE Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "garnet_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "illegal introduction of largemouth bass",
+          "extent_text": "Garnet Lake",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. Water-scoped. The closure exists at water level; what is RECOVERED here is the reason, which no rule carried.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:329459155"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:okanagan_dam_tagging",
+      "name": "Okanagan Lake Dam fish passage",
+      "display_name": "Okanagan Lake Dam",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200. OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
+      "source_pages": [
+        68
+      ],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "okanagan_dam_tagging.r1",
+          "type": "advisory",
+          "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
+          "obligation": "should",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Okanagan Lake Dam",
+          "needs_review": true,
+          "review_reason": "BOUND — named water. RECOVERED — the fourth of 4 tagging programmes the archive dropped.",
+          "extents": [
+            {
+              "op": "whole",
+              "item_id": "wbk:329459116"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "entry_id": "z8:possession_quota",
+      "name": "Possession quota",
+      "display_name": "Region 8",
+      "region": "8",
+      "scope_note": "",
+      "regs_verbatim": "Possession quotas = 2 daily quotas.",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "possession_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Possession quotas = 2 daily quotas.",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "period": "possession",
+          "per_daily": 2,
+          "obligation": "must",
+          "windows_are": "applies",
+          "required": true,
+          "may_target": null,
           "needs_review": false,
           "review_reason": ""
         }
@@ -98,206 +4607,6 @@
           "water": "stream",
           "barbless": true,
           "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "z8:trout_char_quota",
-      "name": "Trout and char daily quota",
-      "display_name": "Region 8",
-      "region": "8",
-      "scope_note": "Brook trout sit OUTSIDE the 4-from-streams limit: the chapter prints 'And you may retain' under a separate heading. EB is a strict subset of TROUT_CHAR with take 20 > 4, so it REPLACES for brook trout and the parent re-renders on its residual species. Species containment must be tested before sections — both rules cover identical section sets.",
-      "regs_verbatim": "Region 8 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 4 from streams (only 2 over 30 cm). And you may retain: 20 brook trout from streams. And you must release: Bull trout (Dolly Varden) from streams.",
-      "source_pages": [
-        68
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:8"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "trout_char_quota.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout/char: 5",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": true,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "trout_char_quota.r2",
-          "type": "retention_limit",
-          "verbatim": "1 over 50 cm",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r1",
-          "over_cm": 50,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "trout_char_quota.r3",
-          "type": "retention_limit",
-          "verbatim": "4 from streams",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 4,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r1",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "trout_char_quota.r4",
-          "type": "retention_limit",
-          "verbatim": "only 2 over 30 cm",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r3",
-          "over_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "trout_char_quota.r5",
-          "type": "retention_limit",
-          "verbatim": "20 brook trout from streams",
-          "obligation": "must",
-          "species": [
-            "EB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 20,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": ""
-        },
-        {
-          "rule_id": "trout_char_quota.r6",
-          "type": "retention_limit",
-          "verbatim": "Bull trout (Dolly Varden) from streams",
-          "obligation": "must",
-          "species": [
-            "BT",
-            "DV"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
           "required": true,
           "on_retention": false,
           "exempts": [],
@@ -587,29 +4896,39 @@
       ]
     },
     {
-      "entry_id": "z8:garnet_lake",
-      "name": "Garnet Lake closure",
-      "display_name": "Garnet Lake",
+      "entry_id": "z8:spring_stream_closure",
+      "name": "Spring stream closure",
+      "display_name": "Every stream in Region 8",
       "region": "8",
       "scope_note": "",
-      "regs_verbatim": "GARNET LAKE ANGLING CLOSURE Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+      "regs_verbatim": "No fishing: (spring closure) in any stream in Region 8 from Apr 1-June 30 (see tables for exceptions). No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
       "source_pages": [
         68
       ],
       "symbols": [],
       "matched": [],
-      "extents": [],
+      "extents": [
+        {
+          "op": "within",
+          "area_id": "area:region:8",
+          "feature_types": [
+            "stream"
+          ]
+        }
+      ],
       "rules": [
         {
-          "rule_id": "garnet_lake.r1",
+          "rule_id": "spring_stream_closure.r1",
           "type": "retention_limit",
-          "verbatim": "Due to the illegal introduction of largemouth bass, Garnet Lake has been closed to all angling.",
+          "verbatim": "No fishing (spring closure): in any stream in Region 8 from Apr 1 – June 30. Single barbless hook: must be used in all streams of Region 8, all year.",
           "obligation": "must",
           "species": [
             "ALL_GAME_FISH"
           ],
           "species_except": [],
-          "windows": [],
+          "windows": [
+            "Apr 1 - Jun 30"
+          ],
           "windows_are": "applies",
           "weekdays": [],
           "when_open": false,
@@ -620,67 +4939,15 @@
           "band": false,
           "combined": false,
           "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "illegal introduction of largemouth bass",
-          "extent_text": "Garnet Lake",
-          "needs_review": true,
-          "review_reason": "BOUND — named water. Water-scoped. The closure exists at water level; what is RECOVERED here is the reason, which no rule carried.",
-          "extents": [
-            {
-              "op": "whole",
-              "item_id": "wbk:329459155"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z8:okanagan_dam_tagging",
-      "name": "Okanagan Lake Dam fish passage",
-      "display_name": "Okanagan Lake Dam",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE Controlled testing is underway to investigate fish passage options at Okanagan Lake Dam. If you catch a tagged fish, please report it to the Okanagan Fish & Wildlife office in Penticton at 250-490-8200. OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
-      "source_pages": [
-        68
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "okanagan_dam_tagging.r1",
-          "type": "advisory",
-          "verbatim": "OKANAGAN LAKE DAM FISH PASSAGE INITIATIVE — controlled testing of fish passage options; report tagged fish to Penticton 250-490-8200.",
-          "obligation": "should",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
+          "water": "stream",
           "required": true,
           "on_retention": false,
           "exempts": [],
           "standing": false,
           "reason": "",
-          "extent_text": "Okanagan Lake Dam",
-          "needs_review": true,
-          "review_reason": "BOUND — named water. RECOVERED — the fourth of 4 tagging programmes the archive dropped.",
-          "extents": [
-            {
-              "op": "whole",
-              "item_id": "wbk:329459116"
-            }
-          ]
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -731,12 +4998,12 @@
       ]
     },
     {
-      "entry_id": "z8:crayfish_traps_turtles",
-      "name": "Crayfish traps and turtles",
+      "entry_id": "z8:trout_char_quota",
+      "name": "Trout and char daily quota",
       "display_name": "Region 8",
       "region": "8",
-      "scope_note": "obligation=should: the synopsis says anglers are ENCOURAGED. Rendering it as law is the mirror of rendering law as advice.",
-      "regs_verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
+      "scope_note": "Brook trout sit OUTSIDE the 4-from-streams limit: the chapter prints 'And you may retain' under a separate heading. EB is a strict subset of TROUT_CHAR with take 20 > 4, so it REPLACES for brook trout and the parent re-renders on its residual species. Species containment must be tested before sections — both rules cover identical section sets.",
+      "regs_verbatim": "Region 8 Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm, 4 from streams (only 2 over 30 cm). And you may retain: 20 brook trout from streams. And you must release: Bull trout (Dolly Varden) from streams.",
       "source_pages": [
         68
       ],
@@ -750,18 +5017,51 @@
       ],
       "rules": [
         {
-          "rule_id": "crayfish_traps_turtles.r1",
-          "type": "hazard",
-          "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
-          "obligation": "should",
-          "species": [],
+          "rule_id": "trout_char_quota.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout/char: 5",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
           "species_except": [],
           "windows": [],
           "windows_are": "applies",
           "weekdays": [],
           "when_open": false,
+          "take": 5,
           "unlimited": false,
           "period": "daily",
+          "band": false,
+          "combined": true,
+          "record_retention": false,
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r2",
+          "type": "retention_limit",
+          "verbatim": "1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r1",
+          "over_cm": 50,
           "band": false,
           "combined": false,
           "record_retention": false,
@@ -775,64 +5075,123 @@
           "review_reason": ""
         },
         {
-          "rule_id": "crayfish_traps_turtles.r2",
-          "type": "method_rule",
-          "verbatim": "Crayfish trapping. Many Okanagan anglers enjoy trapping and eating crayfish. Unfortunately, some styles and sizes of legal traps are very effective at catching and drowning turtles. This is particularly concerning for the Western Painted Turtle, a native species whose population health is vulnerable to human activities. Anglers are encouraged to use traps with minimally-sized circular openings, to reduce the chance of capturing turtles.",
-          "obligation": "should",
-          "species": [],
+          "rule_id": "trout_char_quota.r3",
+          "type": "retention_limit",
+          "verbatim": "4 from streams",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
           "species_except": [],
           "windows": [],
           "windows_are": "applies",
           "weekdays": [],
           "when_open": false,
+          "take": 4,
           "unlimited": false,
           "period": "daily",
+          "within": "trout_char_quota.r1",
           "band": false,
           "combined": false,
           "record_retention": false,
-          "method": "crayfish_trapping",
-          "permitted": true,
+          "water": "stream",
           "required": true,
           "on_retention": false,
           "exempts": [],
           "standing": false,
           "reason": "",
-          "extent_text": "use traps with minimally-sized circular openings",
+          "extent_text": "",
           "needs_review": false,
           "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "z8:possession_quota",
-      "name": "Possession quota",
-      "display_name": "Region 8",
-      "region": "8",
-      "scope_note": "",
-      "regs_verbatim": "Possession quotas = 2 daily quotas.",
-      "source_pages": [],
-      "symbols": [],
-      "matched": [],
-      "extents": [
+        },
         {
-          "op": "within",
-          "area_id": "area:region:8"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "possession_quota.r1",
+          "rule_id": "trout_char_quota.r4",
           "type": "retention_limit",
-          "verbatim": "Possession quotas = 2 daily quotas.",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "period": "possession",
-          "per_daily": 2,
+          "verbatim": "only 2 over 30 cm",
           "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
           "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "within": "trout_char_quota.r3",
+          "over_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
           "required": true,
-          "may_target": null,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r5",
+          "type": "retention_limit",
+          "verbatim": "20 brook trout from streams",
+          "obligation": "must",
+          "species": [
+            "EB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 20,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "trout_char_quota.r6",
+          "type": "retention_limit",
+          "verbatim": "Bull trout (Dolly Varden) from streams",
+          "obligation": "must",
+          "species": [
+            "BT",
+            "DV"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "water": "stream",
+          "required": true,
+          "on_retention": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
           "needs_review": false,
           "review_reason": ""
         }

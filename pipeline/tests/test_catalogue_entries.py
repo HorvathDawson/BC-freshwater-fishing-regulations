@@ -27,6 +27,22 @@ def _entries():
             yield p, e
 
 
+def _authored_entries():
+    """The HAND-AUTHORED zone/provincial entries only (`z…`), which is what the reference
+    transcriptions cover.
+
+    The same region files also hold the PARSED water rows (`r4:keen_creek@4-3`), and those quote
+    the synopsis's per-water tables — text that is not in `reference/*.md` and never will be; the
+    transcriptions are of the region and provincial CHAPTERS. Their chain of custody terminates
+    somewhere stronger: ingest replaces `regs_verbatim` with the batch's own `raw_regs` and refuses
+    anything that is not a contiguous quote of it, so a parsed rule cannot quote text the extractor
+    did not hand it. Running the chapter guard over them asserted a claim nobody ever made and
+    failed on 598 perfectly good rules."""
+    for p, e in _entries():
+        if (e.entry_id or "").startswith("z"):
+            yield p, e
+
+
 @pytest.mark.skipif(not _files(), reason="no catalogue entries authored yet")
 def test_every_file_validates():
     """Including chain of custody: each rule's verbatim inside its entry's regs_verbatim."""
@@ -156,7 +172,7 @@ def test_every_verbatim_appears_in_the_reference_transcriptions():
     if not corpus:
         pytest.skip("no reference transcriptions on disk")
     missing: list[str] = []
-    for p, e in _entries():
+    for p, e in _authored_entries():
         for r in e.rules:
             needle = _norm(r.verbatim)
             if len(needle) < 25:
@@ -195,7 +211,7 @@ def test_a_rule_quotes_its_OWN_region_not_another():
 
     shared = ("provincial-regulations", "licensing", "definitions", "water-specific-tables")
     strays: list[str] = []
-    for p, e in _entries():
+    for p, e in _authored_entries():
         region = p.stem.replace("region-", "")
         allowed = blob(f"region-{region}", *shared)
         if not allowed:
