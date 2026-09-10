@@ -248,6 +248,20 @@ def atomic_write(path: Path, text: str) -> None:
             os.unlink(tmp)
 
 
+def write_catalogue_entryfile(path: Path, region: str, entries: Iterable) -> None:
+    """Atomically write one region file of CATALOGUE entries, through `CatalogueFile`.
+
+    `write_entryfile` coerces through the retired prose `Entry`, which requires `rule_text` and
+    `restriction_type` — so writing a catalogue entry through it fails with four missing fields.
+    The DFO corpus still uses the prose model, so both writers exist until that moves.
+    """
+    from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueFile
+    coerced = [e if isinstance(e, CatalogueEntry) else CatalogueEntry.model_validate(e)
+               for e in entries]
+    cf = CatalogueFile(region=region, entries=sorted(coerced, key=lambda e: e.entry_id))
+    atomic_write(Path(path), cf.model_dump_json(indent=2, exclude_none=True))
+
+
 def write_entryfile(path: Path, region: str, entries: Iterable) -> None:
     """Atomically write one region EntryFile through the `EntryFile` model (canonical serialization,
     sorted by entry_id). `entries` may be `Entry` objects or plain dicts. Routing every write through

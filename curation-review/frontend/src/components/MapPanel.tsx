@@ -28,7 +28,7 @@ interface Props {
   /** per-rule resolved reaches for this entry (GET /api/entries/{id}/reaches) */
   reaches?: EntryReaches | null;
   /** the entry's rules, so the map can offer one reach at a time */
-  rules?: { rule_id: string; restriction_type: string; details: string }[];
+  rules?: { rule_id: string; type: string; label?: string }[];
   /** rule_id -> the shared reach label the rules list shows, so both call a reach the same thing */
   reachOf?: Record<string, ReachIdentity>;
   /** the entry being reviewed — needed to ask for a RULE's tributary expansion */
@@ -153,7 +153,7 @@ export function MapPanel({
   // otherwise it overlaps part of it.
   const appliesHere = useMemo(() => {
     if (!shownReach || reachSet.size === 0) return [];
-    const out: { rule_id: string; restriction_type: string; details: string; all: boolean }[] = [];
+    const out: { rule_id: string; type: string; label?: string; all: boolean }[] = [];
     for (const r of rules) {
       if (r.rule_id === shownReach) continue;
       const secs = (reaches?.rules?.[r.rule_id] ?? []).flatMap((x) => x?.sections ?? []);
@@ -463,7 +463,7 @@ export function MapPanel({
               const rid = r.rule_id.split(".").pop() ?? r.rule_id;
               return (
                 <option key={r.rule_id} value={r.rule_id}>
-                  {`${reachOf[r.rule_id]?.key ?? "?"} · ${rid} · ${r.restriction_type} · ${n} section${n === 1 ? "" : "s"}`}
+                  {`${reachOf[r.rule_id]?.key ?? "?"} · ${rid} · ${r.type} · ${n} section${n === 1 ? "" : "s"}`}
                 </option>
               );
             })}
@@ -555,9 +555,9 @@ export function MapPanel({
               <span
                 key={r.rule_id}
                 className={`badge${r.all ? " all" : ""}`}
-                title={`${r.restriction_type}: ${r.details}${r.all ? "" : " (covers part of this reach)"}`}
+                title={`${r.type}: ${r.label ?? ""}${r.all ? "" : " (covers part of this reach)"}`}
               >
-                {r.rule_id.split(".").pop()} · {r.details || r.restriction_type}
+                {r.rule_id.split(".").pop()} · {r.label || r.type}
                 {r.all ? "" : " (part)"}
               </span>
             ))

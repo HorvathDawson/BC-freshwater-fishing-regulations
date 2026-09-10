@@ -48,6 +48,15 @@ def get_entry(entry_id: str):
     return d
 
 
+@app.get("/api/rule-types")
+def get_rule_types():
+    """The 15 catalogue types with their family. Served rather than hardcoded in the UI: the picker
+    used to list the 6 retired coarse kinds (closure/harvest/gear_restriction/...), and a curator
+    choosing one of those would write a type the model refuses."""
+    from pipeline.regs.parsing.catalogue import RuleType, _FAMILY
+    return [{"type": t.value, "family": _FAMILY[t]} for t in RuleType]
+
+
 @app.get("/api/items/search")
 def search(q: str):
     return reuse.search_items(q)

@@ -2,7 +2,7 @@
 
 - Matching an entry -> registry item is done by `pipeline.regs.matching.matcher` (the exact matcher the
   pipeline uses), so the review tool resolves geometry/boundaries the same way the build does.
-- Validation on save is `pipeline.regs.parsing.entry_models.Entry` + `validate_entry_splits`.
+- Validation on save is `pipeline.regs.parsing.catalogue.CatalogueEntry` + a split-id check.
 - "Unused curated splits" reuses `entry_models.unused_splits`, restricted to curated (`ref="split:*"`)
   boundaries so lake/outlet/headwaters auto-boundaries don't count.
 
@@ -26,7 +26,7 @@ from pipeline.regs.matching.matcher import (
     MatchResult, build_id_index, build_name_index, build_override_index, load_overrides, match_row,
 )
 from pipeline.regs.parsing import io
-from pipeline.regs.parsing.entry_models import Entry, unused_splits, validate_entry_splits
+from pipeline.regs.parsing.catalogue import CatalogueEntry, CatalogueRule, label as rule_label
 from pipeline.regs.parsing.rows import load_synopsis_rows
 from pipeline.atlas.registry import load_registry
 from pipeline.atlas.reach.build import build_reach as _build_reach, resolve_carve_outs
@@ -128,6 +128,22 @@ def invalidate_caches() -> None:
         fn.cache_clear()
 
 
+def _ident(e: dict) -> dict:
+    """{name, region, mus} for an entry, from EITHER shape.
+
+    A catalogue entry is flat — `name` and `region` at the top, and the MUs the synopsis row was
+    printed under encoded in `entry_id` after the `@` (that is what makes the id stable when
+    matching moves). The retired prose entry nested all three under `identity`. The DFO corpus is
+    still on the old shape, so both are read here rather than in nine call sites."""
+    ident = e.get("identity")
+    if isinstance(ident, dict) and ident.get("name"):
+        return {"name": ident.get("name", ""), "region": ident.get("region", ""),
+                "mus": list(ident.get("mus", []))}
+    eid = str(e.get("entry_id", ""))
+    mus = eid.split("@", 1)[1].split("+") if "@" in eid else []
+    return {"name": e.get("name", ""), "region": str(e.get("region", "")), "mus": mus}
+
+
 def match_identity(name: str, region: str, mus: list[str]) -> MatchResult:
     """Resolve an entry's identity to a registry item **via the pipeline matcher** (same logic, same
     overrides as the build). `region`/`mus` are adapted to the row shape the matcher expects."""
@@ -195,7 +211,7 @@ def entry_source_image(e: dict) -> str | None:
         return None
     if len(cands) == 1:
         return cands[0][1]
-    name = str(e.get("identity", {}).get("name", "")).lower()
+    name = str(_ident(e)["name"]).lower()
     for w, img in cands:
         if w == name:
             return img
@@ -220,8 +236,8 @@ def _match_and_item(e: dict):
     but the entry already records WHICH one it is. Reading the item off the live match instead left
     20 such entries with no item at all: a blank name in the queue and an empty boundary picker, even
     though the lake was known all along."""
-    ident = e.get("identity", {})
-    mr = match_identity(ident.get("name", ""), ident.get("region", ""), ident.get("mus", []))
+    ident = _ident(e)
+    mr = match_identity(ident["name"], ident["region"], ident["mus"])
     reg = _registry()
     for iid in (*(e.get("matched") or []), mr.item_id):
         if iid and iid in reg:
@@ -283,17 +299,21 @@ def _curated_split_ids(item) -> set[str]:
 
 def unused_curated_splits(e: dict, item: dict | None) -> list[dict]:
     """Curated splits on this item that NO rule's extents reference — surfaced so the curator can see a
-    hand-authored cut that the parse never used (a likely missed reach). Reuses entry_models.unused_splits."""
+    hand-authored cut that the parse never used (a likely missed reach).
+
+    `entry_models.unused_splits` walked the retired Entry's `.scope`; a CatalogueEntry has plain
+    `extents` on the entry and on each rule, so the walk is local now."""
     curated = _curated_split_ids(item)
     if not curated:
         return []
-    try:
-        entry = _to_entry(e)
-    except Exception:
-        return []
+    used: set[str] = set()
+    for extents in [e.get("extents")] + [r.get("extents") for r in (e.get("rules") or [])]:
+        for ex in (extents or ()):
+            if isinstance(ex, dict):
+                used.update(ex.get("splits") or ())
     meta = _splits_meta()
     out = []
-    for sid in unused_splits(entry, curated):
+    for sid in sorted(curated - used):
         m = meta.get(sid, {})
         out.append({"id": sid, "label": m.get("label", sid), "anchor_type": m.get("anchor_type", "")})
     return out
@@ -709,8 +729,8 @@ def related_entries(entry_id: str) -> list[dict]:
             continue
         out.append({
             "entry_id": e["entry_id"],
-            "region": reg_id if isinstance(reg_id, str) else e.get("identity", {}).get("region", ""),
-            "name": e.get("identity", {}).get("name", ""),
+            "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
+            "name": _ident(e)["name"],
             "locked": bool(e.get("locked")),
             "n_rules": len(e.get("rules", [])),
             # a pointer row ("See Chilliwack River") is the common case worth calling out
@@ -747,9 +767,9 @@ def queue(region: str | None = None, status: str | None = None) -> list[dict]:
             continue
         rows.append({
             "entry_id": e["entry_id"],
-            "region": reg_id if isinstance(reg_id, str) else e.get("identity", {}).get("region", ""),
-            "name": e.get("identity", {}).get("name", ""),
-            "mus": e.get("identity", {}).get("mus", []),
+            "region": reg_id if isinstance(reg_id, str) else _ident(e)["region"],
+            "name": _ident(e)["name"],
+            "mus": _ident(e)["mus"],
             "status": st,
             "locked": bool(e.get("locked")),
             "revisit": bool(e.get("revisit")),
@@ -770,6 +790,10 @@ def entry_detail(entry_id: str) -> dict | None:
     for reg_id, e in _all_entries():
         if e["entry_id"] == entry_id:
             mr, item = _match_and_item(e)
+            # Stamp the GENERATED label on every rule. The frontend has no `details` to show any
+            # more, and generating it here keeps one implementation: the same `label()` the bundle
+            # and the app use, so the curator reads exactly what the reader will.
+            e = dict(e, rules=[dict(r, label=_label(r)) for r in (e.get("rules") or [])])
             return {
                 "entry": e,
                 "region": reg_id,
@@ -1188,7 +1212,7 @@ def split_refs(split_id: str) -> list[dict]:
             for r in e.get("rules", []):
                 if any(split_id in (ex.get("splits") or []) for ex in r.get("extents", [])):
                     out.append({"entry_id": eid, "region": region, "rule_id": r["rule_id"],
-                                "details": r.get("details", ""), "entry_name": e.get("identity", {}).get("name", "")})
+                                "details": _label(r), "entry_name": e.get("name", "")})
     return out
 
 
@@ -1230,8 +1254,47 @@ def rename_split(old_id: str, new_id: str) -> dict:
     return {"ok": True, "errors": [], "new_id": new_id, "updated_rules": updated, "failed_rules": failed}
 
 
-def _to_entry(e: dict) -> Entry:
-    return Entry(**e)
+def _label(rule: dict) -> str:
+    """The line a curator reads for a rule.
+
+    A catalogue rule has no `details` — the prose field was removed precisely because a label typed
+    beside a number drifts from it. The label is GENERATED from type + conditions, so it cannot.
+    Falls back to the rule's own verbatim if the rule is too malformed to render, because a curator
+    looking at a broken rule needs to see something rather than an empty row."""
+    try:
+        return rule_label(CatalogueRule.model_validate(rule)) or (rule.get("verbatim") or "")
+    except Exception:                                    # noqa: BLE001
+        return (rule.get("verbatim") or "")
+
+
+def _to_entry(e: dict) -> CatalogueEntry:
+    """The catalogue model. `entry_models.Entry` is the retired prose model — it wants
+    `restriction_type` and `details`, which no longer exist, so every catalogue entry failed
+    validation with four missing fields and the app could not save at all."""
+    return CatalogueEntry.model_validate(e)
+
+
+def _check_splits(entry_dict: dict, allowed: set[str]) -> list[str]:
+    """Every split id an extent binds must be a cut-point the curator can actually bind.
+
+    `validate_entry_splits` took the retired Entry. This walks the catalogue's plain-dict extents
+    and applies the same rule, plus the alias rule the parser uses: a cut-point answers to its own
+    id AND to any alias of it, because extent.py resolves either."""
+    errs: list[str] = []
+
+    def visit(extents, where: str) -> None:
+        for ex in extents or ():
+            if not isinstance(ex, dict):
+                continue
+            for sid in (ex.get("splits") or ()):
+                if sid not in allowed:
+                    errs.append(f"{where}: unknown split id {sid!r}")
+
+    visit(entry_dict.get("extents"), "entry scope")
+    for r in (entry_dict.get("rules") or ()):
+        if isinstance(r, dict):
+            visit(r.get("extents"), f"rule {r.get('rule_id') or '?'}")
+    return errs
 
 
 _atomic_write = io.atomic_write                          # shared helper (io is the single home)
@@ -1257,12 +1320,12 @@ def save_entry(region: str, entry_dict: dict, *, lock: bool = False, reviewed_by
         it2 = _registry().get(iid)
         if it2:
             allowed |= _bindable_ids(it2)
-    errs = validate_entry_splits(entry, allowed)
+    errs = _check_splits(data, allowed)
     if errs:
         return {"ok": False, "errors": errs}
 
     path = ENTRIES_DIR / f"region-{region}.json"
     existing = io.read_entryfile(path)
     existing[entry.entry_id] = json.loads(entry.model_dump_json())
-    io.write_entryfile(path, region, existing.values())   # atomic, via the model (single home)
+    io.write_catalogue_entryfile(path, region, existing.values())   # atomic, via the model
     return {"ok": True, "errors": []}
