@@ -223,3 +223,24 @@ def test_a_rule_quotes_its_OWN_region_not_another():
             strays.append(f"{p.name}: {e.entry_id}::{r.rule_id}\n      {r.verbatim[:100]}")
     assert not strays, (
         f"{len(strays)} rule(s) quote another region's chapter:\n  " + "\n  ".join(strays[:12]))
+
+
+def test_no_two_entries_describe_the_same_water():
+    """One water, one entry. `entry_id` is `r<region>:<slug>@<mus>`, and the part before `@` names
+    the water — so two entries sharing a slug are the same water twice.
+
+    It happened. The agent returns `entry_id` altered (the `@MU` suffix dropped, sometimes the slug
+    rewritten), and a repair that matched the truncated id back by prefix invented 22 ids for rows
+    that do not exist: the synopsis prints ONE Slocan Lake row, at 4-17, and the corpus grew a
+    second at `4-16+4-17`. Both looked plausible; neither the schema nor chain of custody can see
+    it, because each entry is internally perfect."""
+    seen: dict[str, str] = {}
+    dupes: list[str] = []
+    for _, e in _entries():
+        if (e.entry_id or "").startswith("z"):
+            continue
+        base = e.entry_id.split("@")[0]
+        if base in seen:
+            dupes.append(f"{base}: {seen[base]} and {e.entry_id}")
+        seen[base] = e.entry_id
+    assert not dupes, "the same water has more than one entry:\n  " + "\n  ".join(dupes)
