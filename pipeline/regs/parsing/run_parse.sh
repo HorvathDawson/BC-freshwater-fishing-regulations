@@ -7,6 +7,7 @@
 #    `prune` and `status` are local (no credits) and safe for anyone to run.
 #
 #
+#   `all`        parse then review, back to back — the usual full run.
 #   `parse`      parse the water-specific tables into the catalogue format (pipeline/docs/18).
 #   `parse-dry`  export batches only — NO dispatch, no credits. Read the prompt first.
 #   `review`     an agent second pass over what the parse produced (strict checklist).
@@ -96,6 +97,19 @@ case "$CMD" in
     echo "  less \"$RESP\"/../batches/batch_000.prompt.txt"
     ;;
 
+  all)  # parse, then review, in one go. The two most-used steps; repass stays separate because
+        # it escalates to a pricier model and you want to see the findings before spending that.
+    echo "== parse + review =="
+    "$0" parse
+    "$0" review
+    echo
+    echo "== both done =="
+    "$0" status
+    echo
+    echo "Re-parse whatever the reviewer flagged (escalates to $ESCALATE_MODEL):"
+    echo "  bash pipeline/regs/parsing/run_parse.sh repass"
+    ;;
+
   review)  # an agent second pass over parsed entries, against CATALOGUE_REVIEW_PROMPT.md
     echo "== review: preflight =="; _need_claude
     echo "  reviewer=$REVIEW_MODEL   checklist=prompts/CATALOGUE_REVIEW_PROMPT.md"
@@ -137,7 +151,8 @@ PYEOF
 
   ""|-h|--help|help|*)
     [ -n "$CMD" ] && echo "  ✗ unknown subcommand: $CMD"
-    echo "usage: bash pipeline/regs/parsing/run_parse.sh <parse|parse-missing|review|repass|prune|status>"
+    echo "usage: bash pipeline/regs/parsing/run_parse.sh <all|parse|parse-missing|review|repass|prune|status>"
+    echo "  all                       parse, then review — the usual full run"
     echo "  parse-missing             parse ONLY missing rows + ingest, NO review (saves credits)"
     echo "  review [hardest|clean]    (no arg) = every entry with no verdict yet (resumes);"
     echo "                            hardest  = the unreviewed half, worst-first by rule count"
