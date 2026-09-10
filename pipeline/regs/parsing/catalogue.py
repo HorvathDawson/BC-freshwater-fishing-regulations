@@ -601,6 +601,8 @@ _SPECIES_WORDS = {
     "KO": "Kokanee", "GR": "Arctic grayling", "BB": "Burbot", "WSG": "White sturgeon",
     "GSG": "Green sturgeon", "NP": "Northern pike", "YP": "Yellow perch", "WP": "Walleye",
     "GE": "Goldeye", "IN": "Inconnu", "CRA": "Crayfish", "CP": "Carp",
+    # The group word, so a rule naming the whole protected list can render one.
+    "PROTECTED_SPECIES": "Protected species",
     # protected — never retainable, but nameable
     "NDC": "Nooksack dace", "SSU": "Salish sucker", "CCL": "Cultus Lake sculpin",
     "ELS": "Enos Lake stickleback", "MLS": "Misty Lake stickleback",
