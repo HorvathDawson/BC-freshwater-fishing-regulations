@@ -264,14 +264,32 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
         km1 = round((n.up_m - base_m) / 1000.0, 1)
         g = geoms.get(nid)
         pts = [_pts(g, to_lonlat)] if g is not None else []
-        if runs and runs[-1]["set"] == set_id:
+        if (runs and runs[-1]["set"] == set_id
+                and runs[-1]["oob"] == bool(getattr(n, "out_of_bc", False))):
             runs[-1]["to"] = km1
             runs[-1]["pts"].extend(pts)
             runs[-1]["n"] += 1
         else:
             runs.append({"set": set_id, "from": km0, "to": km1, "pts": pts, "n": 1,
                          "mus": sorted({m for m in (getattr(n, "mus", None) or ())}),
-                         "km": 0.0, "joins": [], "label": _bound_label(n.lower_bound)})
+                         "km": 0.0, "joins": [], "label": _bound_label(n.lower_bound),
+                         # WHAT KIND OF THING BOUNDS IT. An AREA names both of its edges — the
+                         # Chilliwack Ecological Reserve labels the stretch entering it AND the
+                         # stretch leaving it — so the page needs the kind to say which end
+                         # this is. A 1.8 km reserve reading as the foot of a 22 km stretch is
+                         # what happens without it.
+                         "bkind": (getattr(getattr(n, "lower_bound", None), "kind", None).value
+                                   if getattr(getattr(n, "lower_bound", None), "kind", None)
+                                   is not None else "point"),
+                         # OUTSIDE BRITISH COLUMBIA. The Kootenay leaves the province below
+                         # Creston and comes back; the graph has always known (`out_of_bc`,
+                         # set by `mark_out_of_bc`) but the bundle carries no such column, so
+                         # the ladder drew 160 km of Idaho as though B.C. rules ran there.
+                         #
+                         # MARKED, NOT DROPPED. Dropping it at graph build would cut the river
+                         # in two and restart the chainage, and the Kootenay above the border
+                         # is genuinely the same river as the Kootenay below it.
+                         "oob": bool(getattr(n, "out_of_bc", False))})
     for r in runs:
         r["km"] = round(r["to"] - r["from"], 1)
 
