@@ -934,7 +934,19 @@ function condWords(l){
  */
 function retentionTable(items, title){
   var all=items.filter(function(x){ return x.type==="retention_limit"; });
-  if(!all.length) return "";
+  /*
+   * A DUTY THAT NAMES A FISH BELONGS TO THAT FISH'S ROW.
+   *
+   * "When you have caught and retained your daily quota of hatchery steelhead from any water,
+   * you must stop fishing for steelhead for the rest of the day" is typed
+   * `stop_fishing_after_quota`, which is neither a retention limit nor gear nor a licence — so
+   * no table claimed it and it printed on no screen. It is the sentence that tells a reader
+   * what happens when they reach the number in the row above it, and it is useless anywhere
+   * else on the page.
+   */
+  var duties=items.filter(function(x){
+    return x.type==="stop_fishing_after_quota" && (x.species||[]).length && live(x.windows); });
+  if(!all.length && !duties.length) return "";
   var live_=all.filter(function(x){ return live(x.windows); });
 
   /*
@@ -1073,6 +1085,14 @@ function retentionTable(items, title){
   h.push('<div class="qtitle">'+esc(title||"Quotas here")+'</div><div class="tw"><table class="qt">'
     +'<tr><th>Fish</th><th>Keep</th><th>Conditions</th><th>Set by</th></tr>'
     +out.join("")+'</table></div>');
+  if(duties.length){
+    var seenD={};
+    var dl=duties.filter(function(x){
+      var k=x.label; if(seenD[k]) return false; seenD[k]=1; return true; });
+    h.push('<div class="qfoot">'+dl.map(function(x){
+      return '<b>'+esc(speciesWords(speciesOf(x)))+'</b> — '+esc(x.label);
+    }).join(" · ")+'</div>');
+  }
   if(records.length)
     h.push('<div class="qfoot">'+records.map(function(x){
       // `condWords` returns an ARRAY; letting it stringify itself gave "hatchery only,record
@@ -1169,8 +1189,14 @@ var ACTIVITY={
   angling:"angling", unspecified:"angling", other:"angling",
   ice_fishing:"ice_fishing", spear_fishing:"spear_fishing",
   crayfish_trapping:"crayfish_trapping", netting:"netting", set_lining:"set_lining",
-  snagging:"snagging"
+  snagging:"snagging",
+  // …and the ENTRY names, so an advisory filed under one of these joins it (see below).
+  crayfish_trapping_entry:"crayfish_trapping", prohibited_methods:"angling",
+  allowable_methods:"angling", barbless_single_hook_streams:"angling",
+  terminal_tackle:"angling", bait:"angling", spear_fishing_entry:"spear_fishing"
 };
+ACTIVITY["crayfish_trapping"]="crayfish_trapping";
+ACTIVITY["spear_fishing"]="spear_fishing";
 var ACT_WORD={
   angling:"Angling", ice_fishing:"Fishing through ice", spear_fishing:"Spear fishing",
   crayfish_trapping:"Trapping crayfish", netting:"Nets", set_lining:"Set lines",
@@ -1214,7 +1240,7 @@ function vesselTable(items, title){
     +rows.join("")+'</table></div>';
 }
 
-function gearTable(items, title, waterKind){
+function gearTable(items, title, waterKind, extras){
   var gear=items.filter(function(x){
     return x.family==="gear_and_method" || (x.method && x.type==="retention_limit"); });
   /*
@@ -1310,6 +1336,22 @@ function gearTable(items, title, waterKind){
       var k=[x.dimension,x.water||"",x.permitted,x.origin||"",winWord(x.windows)].join(" ");
       if(seen[k]) return false; seen[k]=1; return true; });
 
+    /*
+     * AN ADVISORY BELONGS TO THE ACTIVITY ITS ENTRY IS ABOUT.
+     *
+     * `actOf` reads the dimension, and an advisory's dimension is "advisory" — so every one of
+     * them fell through to Angling, and "release any crayfish under 9 cm" appeared as an angling
+     * rule. The ENTRY is what knows: `zp:crayfish_trapping` is about trapping crayfish whatever
+     * type its sentences carry.
+     */
+    (extras||[]).forEach(function(e){
+      if(/all other methods/i.test(String(e.label||""))) return;
+      // and the water filter applies to these too — the lake barbs note is a lake rule
+      if(waterKind && e.water && e.water!==waterKind) return;
+      var ent=String(e.entry||"").replace(/^z[^:]*:/,"");
+      var act=ACTIVITY[ent] || actOf(e);
+      if(act===a) show.push(e);
+    });
     show.forEach(function(x){
       var muted=banOn && /^bait:/.test(String(x.dimension)) && x.dimension!=="bait:any";
       rows.push('<tr class="sub'+(muted?" muted":"")+'">'
@@ -1321,10 +1363,21 @@ function gearTable(items, title, waterKind){
     });
   });
   if(!rows.length) return "";
+  /*
+   * "ALL OTHER METHODS OF TAKING FIN FISH AND CRAYFISH ARE ILLEGAL."
+   *
+   * This is the sentence that closes the list — it says the list above is exhaustive, which is
+   * the single most useful thing a reader can know about it, and it was printed in a bundle of
+   * unrelated notices where it read as one more thing to remember. Under the table it is what
+   * it is in the book: the last line.
+   */
+  var close=(extras||[]).filter(function(x){
+    return /all other methods/i.test(String(x.label||"")); });
   return '<div class="qtitle">'+esc(title||"How you may fish")+'</div><div class="tw">'
     +'<table class="qt gt">'
     +'<tr><th>Way of fishing</th><th>Rule</th><th>Set by</th></tr>'+rows.join("")
-    +'</table></div>';
+    +'</table></div>'
+    +(close.length?'<div class="qfoot shut">'+esc(close[0].label)+'</div>':'');
 }
 
 /* ------------------------------------------------------------------------------------- *
@@ -1405,7 +1458,17 @@ function licenceRowOf(x){
 }
 function licenceTable(items, title){
   var lic=items.filter(function(x){ return x.type==="document_required"; });
-  if(!lic.length) return "";
+  /*
+   * PERMISSION IS A THING YOU NEED BEFORE YOU FISH, EVEN THOUGH YOU CANNOT BUY IT.
+   *
+   * `access_permission` rules — "permission of the landowner is required", "permission of the
+   * Creston Valley Wildlife Management Area is required" — are typed differently from a licence
+   * because they are not documents, and so this table skipped them and every other renderer
+   * excluded them as licensing. They vanished. But the reader's question here is "what do I need
+   * before I fish", and a landowner's yes belongs in that answer next to the licence.
+   */
+  var perms=items.filter(function(x){ return x.type==="access_permission" && live(x.windows); });
+  if(!lic.length && !perms.length) return "";
   var by=new Map(), notes=[];
   lic.forEach(function(x){
     var doc=licenceRowOf(x);
@@ -1476,8 +1539,22 @@ function licenceTable(items, title){
       +'<td class="cond">'+esc(exc.length?("not needed for "+exc.join("; ")):"\u2014")+'</td></tr>');
   });
   var h=['<div class="qtitle">'+esc(title||"Before you fish here")+'</div>'
-    +'<div class="tw"><table class="qt lt"><tr><th>What you buy</th><th>Needed here?</th>'
-    +'<th>Exceptions</th></tr>'+rows.join("")+'</table></div>'];
+    +'<div class="tw"><table class="qt lt"><tr><th>What you need</th><th>Needed here?</th>'
+    +'<th>Exceptions</th></tr>'+rows.join("")
+    +(function(){
+        var seen={};
+        return perms.filter(function(x){
+          var k=x.label; if(seen[k]) return false; seen[k]=1; return true;
+        }).map(function(x){
+          // "Permission of the landowner is required" -> the thing, then the answer.
+          var m=String(x.label).match(/^Permission of (?:the )?(.+?) is required/i);
+          return '<tr><td class="fish">'+esc(m ? m[1][0].toUpperCase()+m[1].slice(1)
+                                                   +"\u2019s permission" : x.label)+'</td>'
+            +'<td class="cond">Before you cross or fish their land</td>'
+            +'<td class="who">'+esc(whereFrom(x))+'</td></tr>';
+        }).join("");
+      })()
+    +'</table></div>'];
   if(notes.length)
     h.push('<div class="qfoot">'+esc(notes.map(function(x){ return x.label; })
       .filter(function(v,i,a){ return a.indexOf(v)===i; }).join(" \u00b7 "))+'</div>');
@@ -2646,6 +2723,31 @@ function build(name, mount){
     if(nowZone.length){
       var muHere=(runs[st.i]||{}).mus||[];
       /*
+       * SORT THE ZONE ROWS BEFORE ANY TABLE IS BUILT.
+       *
+       * The buckets used to be computed after the tables, which was fine while every bucket
+       * ended up as a footnote. Now that the activity table takes its own — "release any
+       * crayfish under 9 cm" belongs under Trapping crayfish, not in a list of notices — the
+       * sorting has to happen first or the table is handed `undefined`.
+       */
+      var eaten=function(x){
+        if(x.type==="retention_limit") return true;
+        if(x.type==="document_required") return true;
+        // taken by the quota table as a note on the fish it names, and by the licence table
+        if(x.type==="stop_fishing_after_quota" && (x.species||[]).length) return true;
+        if(x.type==="access_permission") return true;
+        // The activity table takes every gear/method rule, `unspecified` dimension included —
+        // "angle with a downrigger, provided the line is attached by a quick-release" is a real
+        // angling rule whose only fault was having no facet to key on, and excluding it printed
+        // it nowhere. The boat table takes the vessel family whole.
+        if(x.family==="gear_and_method" || x.family==="vessel") return true;
+        if(x.method && x.type==="retention_limit") return true;
+        return false;
+      };
+      var leftover=nowZone.filter(function(x){ return !eaten(x) && !isFragment(x); });
+      var bucket={quota:[], gear:[], conduct:[], notice:[], drop:[]};
+      leftover.forEach(function(x){ bucket[noticeKind(x)].push(x); });
+      /*
        * THE TABLES REPLACE THE ROWS THEY COVER.
        *
        * A region's quotas, its gear rules and its licences are REFERENCE — a reader looks one
@@ -2668,38 +2770,10 @@ function build(name, mount){
        * table line is how a reader ends up counting the same restriction twice.
        */
       // These twelve are all streams; a lake screen would pass "lake" and get its own rules.
-      h.push(gearTable(nowOwn.concat(nowInh, nowZone), "How you may fish here", "stream"));
+      h.push(gearTable(nowOwn.concat(nowInh, nowZone), "How you may fish here", "stream",
+                       bucket.gear));
       h.push(vesselTable(nowOwn.concat(nowInh, nowZone), "From a boat"));
       h.push(licenceTable(nowOwn.concat(nowInh, nowZone), "Licences & permission here"));
-      /*
-       * WHAT THE TABLES ACTUALLY ATE — not what their FAMILY suggests they ate.
-       *
-       * This dropped rules on the floor for as long as it keyed on family. The tables select by
-       * TYPE and by DIMENSION: the quota table takes `retention_limit`, so `stop_fishing_after
-       * _quota` was excluded as retention and shown by nobody; the licence table takes
-       * `document_required`, so all twelve `access_permission` rules — "a park use permit is
-       * required" — were excluded as licensing and shown by nobody; and the gear table drops
-       * `dimension: "unspecified"` on purpose, which silently dropped those too.
-       *
-       * So the leftover test mirrors the three filters exactly instead of approximating them.
-       * A rule no table consumed is prose, and prose is better than absence.
-       */
-      var eaten=function(x){
-        if(x.type==="retention_limit") return true;
-        if(x.type==="document_required") return true;
-        // The activity table takes every gear/method rule, `unspecified` dimension included —
-        // "angle with a downrigger, provided the line is attached by a quick-release" is a real
-        // angling rule whose only fault was having no facet to key on, and excluding it printed
-        // it nowhere. The boat table takes the vessel family whole.
-        if(x.family==="gear_and_method" || x.family==="vessel") return true;
-        if(x.method && x.type==="retention_limit") return true;
-        return false;
-      };
-      var leftover=nowZone.filter(function(x){ return !eaten(x) && !isFragment(x); });
-
-      // Each bucket goes where it belongs — see `noticeKind`.
-      var bucket={quota:[], gear:[], conduct:[], notice:[], drop:[]};
-      leftover.forEach(function(x){ bucket[noticeKind(x)].push(x); });
 
       /*
        * A FOOTNOTE IS A LIST, AND THE PROVINCE REPEATS ITSELF.
@@ -2714,6 +2788,22 @@ function build(name, mount){
        * separates them.
        */
       function foots(list){
+        /*
+         * A LAKE FACT ON A RIVER IS NOISE — the same rule the activity table follows.
+         *
+         * Most of these carry `water`, and that is the test. Two do not: "there is no general
+         * minimum size limit for trout IN LAKES" and its provincial twin are advisories the
+         * parser gave no water to, and they sat under a river's quota table telling the reader
+         * about lakes. The text test is deliberately narrow — the exact phrase "in lakes", on an
+         * ADVISORY only, so it can never hide a restriction — and it must not catch "at or near
+         * any lake or stream", which is about both.
+         */
+        list=list.filter(function(x){
+          if(x.water && x.water!=="stream") return false;
+          if(x.type!=="advisory") return true;
+          var t=String(x.label||"");
+          return !(/\bin lakes\b/i.test(t) && !/lake or stream/i.test(t));
+        });
         if(!list.length) return "";
         var norm=function(t){
           return String(t||"").toLowerCase().replace(/^\s*note:\s*/,"")
@@ -2732,7 +2822,6 @@ function build(name, mount){
         }).join("")+'</ul>';
       }
       h.push(foots(bucket.quota));
-      h.push(foots(bucket.gear));
 
       /*
        * THE NINE DUTIES THAT ARE TRUE EVERYWHERE, FOLDED.
