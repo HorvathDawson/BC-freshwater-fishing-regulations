@@ -15,9 +15,25 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
         <div className="empty-state">No entries for this filter.</div>
       </div>
     );
+  /* The two jobs, kept apart. A regional rule is checked against a REGION CHAPTER and binds
+     to every stream in its region; a water row is checked against a table row and binds to one
+     water. Interleaved by name they read as one undifferentiated list, and the 117 regional
+     entries — the ones the parser has never seen — disappear into 1,032 rows. */
+  let lastKind: string | undefined;
   return (
     <div className="queue">
-      {rows.map((r) => (
+      {rows.map((r) => {
+        const first = r.kind !== lastKind;
+        lastKind = r.kind;
+        return (
+      <div key={`g-${r.entry_id}`}>
+      {first && r.kind && (
+        <div className="queue-group">
+          {r.kind === "zone"
+            ? "Regional & provincial — from the region chapters, never parsed"
+            : "Water tables — one row, one water"}
+        </div>
+      )}
         <div
           key={r.entry_id}
           className={`queue-row${selected === r.entry_id ? " selected" : ""}` +
@@ -50,7 +66,9 @@ export function QueueList({ rows, selected, loading, onSelect }: Props) {
             )}
           </div>
         </div>
-      ))}
+      </div>
+        );
+      })}
     </div>
   );
 }

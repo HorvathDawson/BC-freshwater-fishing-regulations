@@ -36,8 +36,10 @@ def get_regions():
 
 
 @app.get("/api/entries")
-def get_entries(region: str | None = None, status: str | None = None):
-    return reuse.queue(region=region, status=status)
+def get_entries(region: str | None = None, status: str | None = None,
+                kind: str | None = None):
+    """`kind` is zone | water — the region chapters or the water tables. They are two jobs."""
+    return reuse.queue(region=region, status=status, kind=kind)
 
 
 @app.get("/api/entries/{entry_id}")

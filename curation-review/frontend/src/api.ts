@@ -2,6 +2,7 @@
 // All calls are relative to /api (Vite proxies to http://127.0.0.1:8787).
 
 import type {
+  EntryKind,
   Boundary,
   EntryDetail,
   EntryReaches,
@@ -62,10 +63,11 @@ async function writeEntry(
 export const api = {
   regions: () => getJSON<RegionSummary[]>("/api/regions"),
 
-  entries: (region?: string, status?: Status | "") => {
+  entries: (region?: string, status?: Status | "", kind?: EntryKind | "") => {
     const p = new URLSearchParams();
     if (region) p.set("region", region);
     if (status) p.set("status", status);
+    if (kind) p.set("kind", kind);
     const qs = p.toString();
     return getJSON<QueueRow[]>(`/api/entries${qs ? `?${qs}` : ""}`);
   },

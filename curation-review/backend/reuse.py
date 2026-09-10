@@ -778,14 +778,30 @@ _STATUS_ORDER = {"no_registry": 0, "needs_review": 1, "unused_splits": 2, "unrev
                  "zone": 4, "confirmed": 5}
 
 
-def queue(region: str | None = None, status: str | None = None) -> list[dict]:
-    """Review queue rows, sorted so items needing attention float to the top."""
+#: Zone first. A regional rule binds to EVERY stream in its region — one of them is 160,000
+#: section-bindings where a water row is a few dozen — and none of the 117 has ever been
+#: through the parser or the agent review pass: they were transcribed by hand from the region
+#: chapters. Highest leverage, least verified, so they lead. `kind=water` filters them out
+#: when the job is the water tables.
+_KIND_ORDER = {"zone": 0, "water": 1}
+
+
+def queue(region: str | None = None, status: str | None = None,
+          kind: str | None = None) -> list[dict]:
+    """Review queue rows, sorted so items needing attention float to the top.
+
+    Regional/provincial entries form their own block ahead of the water rows — they answer a
+    different question and are checked against a different source (the region chapter, not a
+    table row), so interleaving them by name made the queue two jobs shuffled together.
+    """
     rows = []
     src = [(region, e) for eid, e in load_region(region).items()] if region else _all_entries()
     for reg_id, e in src:
         mr, item = _match_and_item(e)
         st = entry_status(e, item)
         if status and st != status:
+            continue
+        if kind and entry_kind(e) != kind:
             continue
         rows.append({
             "entry_id": e["entry_id"],
@@ -804,7 +820,8 @@ def queue(region: str | None = None, status: str | None = None) -> list[dict]:
             "also_item_ids": [a["id"] for a in _also_items(e, mr)],      # combined-override items
             "unused_curated_splits": len(unused_curated_splits(e, item)),
         })
-    rows.sort(key=lambda r: (_STATUS_ORDER.get(r["status"], 9), r["name"]))
+    rows.sort(key=lambda r: (_KIND_ORDER.get(r["kind"], 9),
+                             _STATUS_ORDER.get(r["status"], 9), r["name"]))
     return rows
 
 
