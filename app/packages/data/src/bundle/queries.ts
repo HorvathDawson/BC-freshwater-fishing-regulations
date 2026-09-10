@@ -42,8 +42,8 @@ export const ENTRY_FOR_ITEM =
   "SELECT entry_id, name, full_name, verbatim, symbols, mus FROM entry WHERE item_id = ?";
 
 export const RULES_FOR_ENTRY =
-  "SELECT entry_id, rule_id, kind, scope, windows, species, subject, details, " +
-  "       uncertain, text, location " +
+  "SELECT entry_id, rule_id, type, family, dimension, label, scope, windows, species, " +
+  "       take, may_target, uncertain, verbatim, extent_text " +
   "FROM rule WHERE entry_id = ? ORDER BY rule_id";
 
 /**
@@ -67,9 +67,9 @@ export const RULES_FOR_ENTRY =
  */
 export const rulesForSections = (n: number) =>
   "SELECT sr.sid, sr.set_id, rs.via, " +
-  "       r.entry_id, r.rule_id, r.kind, r.scope, r.windows, r.species, r.subject, " +
-  "       r.details, " +
-  "       r.uncertain, r.text, r.location " +
+  "       r.entry_id, r.rule_id, r.type, r.family, r.dimension, r.label, " +
+  "       r.scope, r.windows, r.species, r.take, r.may_target, " +
+  "       r.uncertain, r.verbatim, r.extent_text " +
   "FROM section_ruleset sr " +
   "JOIN ruleset rs ON rs.set_id = sr.set_id " +
   "JOIN rule r ON r.entry_id = rs.entry_id AND r.rule_id = rs.rule_id " +

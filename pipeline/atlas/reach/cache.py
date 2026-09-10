@@ -50,12 +50,16 @@ def _resolution_inputs(entry: dict) -> dict:
     return {
         "entry_id": entry.get("entry_id"),
         "matched": list(entry.get("matched") or ()),
-        "scope": entry.get("scope") or [],
+        # `extents` is the catalogue's name for the entry-level clip, `scope` the prose one.
+        # Both are in the digest: a cache that cannot see the clip would serve a reach from
+        # before it was applied.
+        "scope": entry.get("extents") or entry.get("scope") or [],
         "tributaries": entry.get("tributaries") or {},
+        "includes_tributaries": entry.get("includes_tributaries"),
         "rules": [
             {
                 "rule_id": r.get("rule_id"),
-                "restriction_type": r.get("restriction_type"),
+                "restriction_type": r.get("type") or r.get("restriction_type"),
                 "extents": r.get("extents") or [],
                 "includes_tributaries": r.get("includes_tributaries"),
                 "tributaries_only": r.get("tributaries_only"),

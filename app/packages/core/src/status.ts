@@ -62,17 +62,76 @@ export type ScopeKind = "section" | "mu" | "area";
  */
 export type RuleVia = "reach" | "trib";
 
-export type RuleKind =
-  | "closure"
-  | "gear_restriction"
-  | "harvest"
-  | "vessel_restriction"
-  | "licensing"
-  | "note";
+/**
+ * THE FIFTEEN TYPES, and the six families they group into.
+ *
+ * This replaced `RuleKind`, whose six coarse values (closure / harvest / gear_restriction /
+ * vessel_restriction / licensing / note) said the SHAPE of a rule and never its content.
+ *
+ * NOTE WHAT IS NOT HERE: `closure`. A closure is not a kind of rule — it is a retention
+ * limit of zero that you may not fish for, and catch-and-release is a retention limit of
+ * zero that you may. Those two differ only in `mayTarget`, which is why it is on the rule
+ * and why `severityOf` reads it. Treating take=0 as "closed" on its own once turned 605
+ * closures into permissions.
+ */
+export type RuleType =
+  | "retention_limit" | "stop_fishing_after_quota"
+  | "bait_restriction" | "tackle_restriction" | "method_rule"
+  | "vessel_rule" | "angling_from_vessel_prohibited" | "navigation_duty"
+  | "document_required" | "access_permission"
+  | "handling_rule"
+  | "hazard" | "advisory" | "program_membership" | "facility";
+
+/** The reader sees these as sections, worst news first within each. */
+export type RuleFamily =
+  | "retention" | "gear_and_method" | "vessel" | "licensing" | "conduct" | "information";
+
+export const RULE_TYPES: readonly RuleType[] = [
+  "retention_limit", "stop_fishing_after_quota",
+  "bait_restriction", "tackle_restriction", "method_rule",
+  "vessel_rule", "angling_from_vessel_prohibited", "navigation_duty",
+  "document_required", "access_permission",
+  "handling_rule",
+  "hazard", "advisory", "program_membership", "facility",
+] as const;
+
+/** The order a screen shows families in. Derived from the union, so a new family is a
+ *  type error here rather than a section that silently never renders. */
+/**
+ * Which family a type belongs to.
+ *
+ * THE BUNDLE SHIPS `family` ON EVERY RULE, so nothing at runtime needs this — it is here for
+ * constructing a rule (tests, fixtures) and for a surface that has a type and no row. The
+ * authority is `pipeline/regs/parsing/catalogue.py::_FAMILY`, and a python test asserts this
+ * table matches it, because two copies of a mapping are two answers waiting to disagree.
+ */
+export const FAMILY_OF: Record<RuleType, RuleFamily> = {
+  retention_limit: "retention",
+  stop_fishing_after_quota: "retention",
+  bait_restriction: "gear_and_method",
+  tackle_restriction: "gear_and_method",
+  method_rule: "gear_and_method",
+  vessel_rule: "vessel",
+  angling_from_vessel_prohibited: "vessel",
+  navigation_duty: "vessel",
+  document_required: "licensing",
+  access_permission: "licensing",
+  handling_rule: "conduct",
+  hazard: "information",
+  advisory: "information",
+  program_membership: "information",
+  facility: "information",
+};
+
+export const RULE_FAMILIES: readonly RuleFamily[] =
+  ["retention", "gear_and_method", "vessel", "licensing", "conduct", "information"] as const;
 
 export interface Rule {
   readonly id: string;
-  readonly kind: RuleKind;
+  readonly type: RuleType;
+  /** Which section the reader sees this under. Shipped, not derived, so the client does
+   *  not carry its own copy of the type-to-family mapping. */
+  readonly family: RuleFamily;
   readonly scope: ScopeKind;
   /** How this rule reaches the section being asked about. See `RuleVia`. */
   readonly via: RuleVia;
@@ -90,15 +149,15 @@ export interface Rule {
    * "closure · gear restriction · vessel restriction" — which says the shape of a rule and
    * never its content.
    */
-  readonly details?: string;
+  readonly label: string;
   /**
    * The rule as written, verbatim. An exact substring of the entry's paragraph in 99.7% of
    * cases, which is what lets the panel highlight the sentence a rule was read from without
    * the bundle carrying clause offsets.
    */
-  readonly text?: string;
-  /** Where it says it applies — "Downstream of Vedder Crossing Bridge". 737 rules. */
-  readonly location?: string;
+  readonly verbatim?: string;
+  /** The reach in the page's own words, when no cut-point could express it. */
+  readonly extentText?: string;
   /**
    * The species it names. 823 rules; the other 2,227 name NONE, and that must not be
    * rendered as "all species" — the parser established no such thing.
@@ -112,7 +171,15 @@ export interface Rule {
    * water REPLACES a zone default about the same subject — that is how a lake gets a
    * quota of 6 where its management unit says 2, deliberately and more permissively.
    */
-  readonly subject?: string;
+  readonly dimension: string;
+  /**
+   * How many you may keep. `0` with `mayTarget: false` is a closure; `0` with
+   * `mayTarget: true` is catch-and-release. Undefined on every non-retention rule, and on a
+   * size limit whose count comes from the region.
+   */
+  readonly take?: number;
+  /** Whether you may fish for it at all. See `take`. */
+  readonly mayTarget?: boolean;
   /**
    * An absolute prohibition: an area closure, a no-access polygon, an in-season notice.
    * Never replaced by a more permissive rule, only ever the answer.
@@ -131,14 +198,22 @@ export interface Status {
   readonly from: readonly Rule[];
 }
 
-const SEVERITY: Record<RuleKind, number> = {
-  closure: 3,
-  gear_restriction: 2,
-  harvest: 2,
-  vessel_restriction: 2,
-  licensing: 2,
-  note: 1,
-};
+/**
+ * How bad the news is: 3 closed, 2 restricted, 1 open.
+ *
+ * A FUNCTION, not a table, because the worst outcome in the corpus is not a type. "No
+ * fishing for bull trout" and "bull trout catch and release" are both `retention_limit`
+ * with `take: 0`, and they differ only in `mayTarget` — so a lookup keyed on the type alone
+ * cannot tell a closure from a release rule, and would have to call one of them wrong.
+ */
+function severityOf(r: Rule): number {
+  if (r.type === "retention_limit") {
+    if (r.take === 0) return r.mayTarget === false ? 3 : 2;
+    return 2;
+  }
+  // Information tells you something; it does not restrict you. Everything else does.
+  return r.family === "information" ? 1 : 2;
+}
 
 const OUTCOME_OF: Record<number, Outcome> = { 3: "closed", 2: "restricted", 1: "open" };
 
@@ -174,15 +249,14 @@ export function evaluate({ rules, on, group, feedUnreachable }: EvaluateInput): 
      unplaceable closure reads exactly like a placed one. It only ever raises `unknown`. */
   const live = mine.filter((r) => !r.uncertain && inForce(r.windows, on));
 
-  // 2 — a rule written for this water displaces the zone default it contradicts
-  const replaced = new Set(
-    live
-      .filter((r) => r.scope === "section" && r.subject !== undefined)
-      .map((r) => r.subject!),
-  );
-  const effective = live.filter(
-    (r) => !(r.scope === "mu" && r.subject !== undefined && replaced.has(r.subject)),
-  );
+  /* 2 — a rule written for this water displaces the zone default it contradicts.
+     THE KEY IS (type, dimension), both halves. Type alone collides — a water's daily quota
+     and its possession quota are both `retention_limit` — and dimension alone crosses types
+     that never compete. It used to key on `subject`, which the bundle populated on 2 rules
+     out of 3,273, so this branch existed for two years and never once fired. */
+  const key = (r: Rule) => `${r.type}\u0000${r.dimension}`;
+  const replaced = new Set(live.filter((r) => r.scope === "section").map(key));
+  const effective = live.filter((r) => !(r.scope === "mu" && replaced.has(key(r))));
 
   const provenance: Provenance = mine.some((r) => r.scope === "section")
     ? "specific"
@@ -193,17 +267,17 @@ export function evaluate({ rules, on, group, feedUnreachable }: EvaluateInput): 
   }
   /* A closure we DID place is a real answer and outranks a doubt. Anything short of a
      closure does not: "restricted, plus something here we could not place" is unknown. */
-  const placedClosure = effective.some((r) => r.kind === "closure");
+  const placedClosure = effective.some((r) => severityOf(r) === 3);
   if (mine.some((r) => r.uncertain) && !placedClosure) {
     return { outcome: "unknown", provenance, because: "unplaceable", from: effective };
   }
 
-  const ordered = [...effective].sort((a, b) => SEVERITY[b.kind] - SEVERITY[a.kind]);
+  const ordered = [...effective].sort((a, b) => severityOf(b) - severityOf(a));
   const absolute = ordered.filter((r) => r.absolute);
   const deciding = absolute.length > 0 ? absolute : ordered;
 
   let outcome: Outcome = "open";
-  for (const r of deciding) outcome = moreRestrictive(outcome, OUTCOME_OF[SEVERITY[r.kind]]!);
+  for (const r of deciding) outcome = moreRestrictive(outcome, OUTCOME_OF[severityOf(r)]!);
 
   return { outcome, provenance, from: ordered };
 }

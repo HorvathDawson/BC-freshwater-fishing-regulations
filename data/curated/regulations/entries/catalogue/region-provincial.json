@@ -45,7 +45,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "terminal_tackle.r2",
@@ -99,7 +104,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "terminal_tackle.r4",
@@ -126,7 +136,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "terminal_tackle.r5",
@@ -179,7 +194,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -228,7 +248,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "barbless_single_hook_streams.r3",
@@ -256,7 +281,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "barbless_single_hook_streams.r2",
@@ -283,7 +313,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -343,7 +378,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "set_lining.r2",
@@ -374,7 +414,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "set_lining.r3",
@@ -407,7 +452,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "set_lining.r4",
@@ -487,7 +537,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "spear_fishing.r2",
@@ -606,7 +661,12 @@
           "windows_are": "applies",
           "required": true,
           "needs_review": true,
-          "review_reason": "RECOVERED: salmon are NOT on the game-fish list in definitions.md, so 'only non-game fish may be speared' left spearing Pacific salmon permitted in the data and prohibited in print."
+          "review_reason": "RECOVERED: salmon are NOT on the game-fish list in definitions.md, so 'only non-game fish may be speared' left spearing Pacific salmon permitted in the data and prohibited in print.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -655,7 +715,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "crayfish_trapping.r2",
@@ -688,7 +753,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "'fin fish' is DEFINED as all fish other than crustaceans, so crayfish are excluded — without species_except this orders you to release the crayfish you just trapped. The model has no fin-fish concept, and the source also covers non-game fin fish (carp, suckers), which ALL_GAME_FISH does not."
+          "review_reason": "'fin fish' is DEFINED as all fish other than crustaceans, so crayfish are excluded — without species_except this orders you to release the crayfish you just trapped. The model has no fin-fish concept, and the source also covers non-game fin fish (carp, suckers), which ALL_GAME_FISH does not.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "crayfish_trapping.r3",
@@ -714,7 +784,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -763,7 +838,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "prohibited_methods.r2",
@@ -791,7 +871,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "prohibited_methods.r3",
@@ -822,7 +907,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "prohibited_methods.r4",
@@ -876,7 +966,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -925,7 +1020,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "bait.r2",
@@ -1046,7 +1146,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "bait.r5",
@@ -1075,7 +1180,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "bait.r6",
@@ -1103,7 +1213,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1154,7 +1269,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "quota_defaults.r2",
@@ -1180,7 +1300,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "quota_defaults.r3",
@@ -1206,7 +1331,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1284,7 +1414,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "protected_species.r3",
@@ -1294,7 +1429,12 @@
           "period": "daily",
           "windows_are": "applies",
           "required": true,
-          "may_target": null
+          "may_target": null,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1401,7 +1541,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1453,7 +1598,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "steelhead.r2",
@@ -1484,7 +1634,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "steelhead.r3",
@@ -1511,7 +1666,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "steelhead.r4",
@@ -1540,7 +1700,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "steelhead.r5",
@@ -1569,7 +1734,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1617,7 +1787,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1897,7 +2072,11 @@
           "extent_text": "",
           "needs_review": true,
           "review_reason": "A COMPLETENESS CLAIM, not a rule about a water: 'this is the only white sturgeon fishery in the province's non-tidal waters' asserts that every other sturgeon water in B.C. is closed. Nothing in the catalogue states things about the rest of the corpus, so it shows province-wide as an advisory and is the one sentence that would let a reader notice a missing closure.",
-          "extents": null
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1941,7 +2120,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required."
+          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "classified_waters_licence.r2",
@@ -1968,7 +2152,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required."
+          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "classified_waters_licence.r3",
@@ -1998,7 +2187,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required."
+          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "classified_waters_licence.r4",
@@ -2029,7 +2223,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required."
+          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "classified_waters_licence.r5",
@@ -2134,7 +2333,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required."
+          "review_reason": "BIND BY SYMBOL, NOT POLYGON: applies to entries carrying source.symbols 'Classified' (72 entries). An extent cannot express it; a region-wide binding would tell anglers they need a licence where none is required.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2185,7 +2389,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "basic_licence.r2",
@@ -2243,7 +2452,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "basic_licence.r4",
@@ -2273,7 +2487,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "REFUSED, not approximated: the child's catch counts against the ACCOMPANYING angler's quota. Quotas aggregate over water, water-group, region and province; there is no per-angler axis. Passed through as prose a parent would read it as two full quotas."
+          "review_reason": "REFUSED, not approximated: the child's catch counts against the ACCOMPANYING angler's quota. Quotas aggregate over water, water-group, region and province; there is no per-angler axis. Passed through as prose a parent would read it as two full quotas.",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "basic_licence.r5",
@@ -2303,7 +2522,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "basic_licence.r6",
@@ -2333,7 +2557,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2381,7 +2610,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "conduct.r2",
@@ -2407,7 +2641,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "conduct.r3",
@@ -2433,7 +2672,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "conduct.r4",
@@ -2459,7 +2703,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "conduct.r5",
@@ -2485,7 +2734,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "conduct.r6",
@@ -2513,7 +2767,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "conduct.r7",
@@ -2540,7 +2799,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2597,7 +2861,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "superior_closures.r2",
@@ -2624,7 +2893,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "superior_closures.r3",
@@ -2655,7 +2929,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2702,7 +2981,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "allowable_methods.r2",
@@ -2731,7 +3015,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "allowable_methods.r3",
@@ -2787,7 +3076,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2862,7 +3156,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "further_prohibitions.r3",
@@ -2888,7 +3187,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2935,7 +3239,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "measuring_and_possession.r2",
@@ -2961,7 +3270,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3008,7 +3322,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3086,7 +3405,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3133,7 +3457,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "preparing_catch.r2",
@@ -3159,7 +3488,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3207,7 +3541,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "licence_administration.r2",
@@ -3234,7 +3573,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "licence_administration.r3",
@@ -3262,7 +3606,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "licence_administration.r4",
@@ -3293,7 +3642,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     }

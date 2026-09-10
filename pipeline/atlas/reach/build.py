@@ -144,6 +144,11 @@ def resolve_carve_outs(entry: dict, rule: dict, registry, graph,
     """
     blocked: set[str] = set()
     detail: list[dict] = []
+    # BOTH OF THESE ARE PROSE-ERA FIELDS and a catalogue entry has neither, so this is empty
+    # for the current corpus. That is the design, not an oversight: an "EXCEPT the Quinsam
+    # River" is now an EXTENT on the rule that says it, resolved by the same machinery as any
+    # other reach, instead of a second hand-curated subtraction list with its own resolver.
+    # They are still read so the retired shape keeps working if it is ever replayed.
     carve_outs = list((entry.get("tributaries") or {}).get("excludes") or [])
     carve_outs += list(rule.get("tributary_excludes") or [])
     for ex in carve_outs:
@@ -194,7 +199,11 @@ def _scope_sections(e: dict, covered: list[str], registry, graph):
     """
     out: set[str] = set()
     failed = False
-    for sc in e.get("scope") or []:
+    # The catalogue calls this `extents`; the retired prose entry called it `scope`. Reading
+    # only the old name meant the clip silently did nothing — and this function exists
+    # precisely because not clipping widens "FRASER RIVER (upstream of the CPR Bridge at
+    # Mission)" to the entire river.
+    for sc in e.get("extents") or e.get("scope") or []:
         got = _resolve.resolve_extent(registry, graph, covered, sc)
         if got is None:
             failed = True

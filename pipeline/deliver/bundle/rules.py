@@ -44,9 +44,23 @@ def _windows(rule: dict) -> list[dict]:
     """
     from pipeline.regs.parsing.dates import parse_date_windows
 
+    # The catalogue calls this `windows`; the retired prose rule called it `dates`. Same
+    # strings, same guarantee — exact substrings of the sentence.
+    raw = rule.get("windows")
+    if raw is None:
+        raw = rule.get("dates")
     return [{"from": {"month": w.start_month, "day": w.start_day},
              "to": {"month": w.end_month, "day": w.end_day}}
-            for w in parse_date_windows(list(rule.get("dates") or []))]
+            for w in parse_date_windows(list(raw or []))]
+
+
+def _mus_of(entry_id: str) -> list[str]:
+    """The MUs a catalogue entry covers, from its own id.
+
+    `entry_id` is `r{region}:{slug}@{mus}` and the suffix is the MUs the synopsis ROW was
+    printed under — which is exactly what the prose entry carried as `identity.mus`. Reading
+    it here rather than storing it twice is what keeps the two from disagreeing."""
+    return entry_id.split("@", 1)[1].split("+") if "@" in entry_id else []
 
 
 def _specificity(rule: dict) -> str:
@@ -68,6 +82,50 @@ def _specificity(rule: dict) -> str:
         if ex.get("area_id") or ex.get("area_kind"):
             return "area"
     return "section"
+
+
+#: Already a column, or meaningless to a client. Everything else the rule actually set goes
+#: into `conditions` as JSON, so adding a condition to the catalogue needs no schema change.
+_NOT_CONDITIONS = frozenset({
+    "rule_id", "type", "verbatim", "species", "species_except", "windows", "take",
+    "may_target", "extents", "extent_text", "needs_review", "review_reason",
+    "unresolved_locators",
+})
+
+
+def _rule_row(entry_id: str, raw: dict, uncertain: bool):
+    """One `rule` row from one catalogue rule.
+
+    Validated through `CatalogueRule` rather than read off the dict, because `family`,
+    `dimension` and `label` are all DERIVED — and deriving them here from raw fields would put
+    a second implementation of each in the codebase. `label` in particular has one home for
+    the same reason the gauge trust wording does: a rule worded two ways is two rules to a
+    reader.
+    """
+    from pipeline.regs.parsing.catalogue import CatalogueRule, label as rule_label
+
+    if "type" not in raw:
+        # The prose model is gone. Writing NULLs here would give the bundle rule rows that
+        # exist and say nothing, which is indistinguishable from a water with no rules.
+        raise ValueError(
+            f"{entry_id}/{raw.get('rule_id')}: rule has no `type` — this is a retired prose "
+            f"rule and the bundle no longer has columns for it")
+    r = CatalogueRule.model_validate(raw)
+    dumped = r.model_dump(exclude_none=True, mode="json")
+    conditions = {k: v for k, v in dumped.items()
+                  if k not in _NOT_CONDITIONS and v not in ((), [], {}, "", False)}
+    return (
+        entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r),
+        _specificity(raw),
+        json.dumps(_windows(raw), separators=(",", ":")),
+        json.dumps(list(r.species), separators=(",", ":")),
+        json.dumps(list(r.species_except), separators=(",", ":")),
+        r.take,
+        None if r.may_target is None else int(r.may_target),
+        json.dumps(conditions, separators=(",", ":"), sort_keys=True) or None,
+        1 if uncertain else 0,
+        r.verbatim, r.extent_text or None,
+    )
 
 
 def _jsonl(path: Path):
@@ -127,6 +185,9 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     for path in sorted(entries_dir.rglob("*.json")):
         doc = json.loads(path.read_text(encoding="utf-8"))
         for e in doc.get("entries", []):
+            # A catalogue entry is FLAT: name/region at the top, the MUs the synopsis row was
+            # printed under encoded in entry_id after the `@`, provenance in `source_pages` /
+            # `symbols`. The retired prose entry nested all of it under `identity`/`source`.
             ident = e.get("identity") or {}
             matched = e.get("matched") or []
             entry_rows.append((
@@ -135,32 +196,22 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
                 # rules and its text and carries a null item — the app shows "we have a rule
                 # for a water we cannot place" rather than dropping it (77 of these).
                 matched[0] if matched else None,
-                ident.get("display_name") or ident.get("name"),
-                # What the curator wrote, kept whole — see the note in schema.sql.
-                ident.get("name"),
+                ident.get("display_name") or e.get("display_name")
+                or ident.get("name") or e.get("name"),
+                # What the page printed, kept whole — see the note in schema.sql.
+                ident.get("name") or e.get("name"),
                 e.get("regs_verbatim"),
                 # Provenance is nested under `source` now; it was a flat `source_symbols`
                 # until the page number joined it and made it obvious they were one fact.
-                json.dumps((e.get("source") or {}).get("symbols") or [],
+                json.dumps(e.get("symbols") or (e.get("source") or {}).get("symbols") or [],
                            separators=(",", ":")),
-                json.dumps(ident.get("mus") or [], separators=(",", ":")),
-                json.dumps((e.get("source") or {}).get("pages") or [],
+                json.dumps(ident.get("mus") or _mus_of(e["entry_id"]), separators=(",", ":")),
+                json.dumps(e.get("source_pages") or (e.get("source") or {}).get("pages") or [],
                            separators=(",", ":")),
             ))
             for r in e.get("rules") or []:
-                rule_rows.append((
-                    e["entry_id"], r["rule_id"], r.get("restriction_type"),
-                    _specificity(r),
-                    json.dumps(_windows(r), separators=(",", ":")),
-                    json.dumps(r.get("species") or [], separators=(",", ":")),
-                    json.dumps(r.get("limits") or [], separators=(",", ":")),
-                    # The precedence key, and the sentence. Not the same field — see the
-                    # note on `rule.subject` in schema.sql.
-                    ",".join(r.get("exempts_from") or []) or None,
-                    r.get("details"),
-                    1 if (e["entry_id"], r["rule_id"]) in unresolved else 0,
-                    r.get("rule_text"), r.get("display_location"),
-                ))
+                rule_rows.append(_rule_row(
+                    e["entry_id"], r, (e["entry_id"], r.get("rule_id")) in unresolved))
 
     # NAMED, not positional. A `pages` column was added to the schema while this line kept
     # seven placeholders, and nothing caught it until 90 seconds into a province-wide rebuild
@@ -172,9 +223,10 @@ def write(db: sqlite3.Connection, reaches: Path, entries_dir: Path, cov,
     # COLUMNS NAMED, for the third time and the same reason. This was eleven positional
     # placeholders, and adding `limits` to the schema made it eleven values for twelve
     # columns — the fault that once shipped a 42 MB bundle with no entries in it.
-    db.executemany("INSERT INTO rule (entry_id, rule_id, kind, scope, windows, species,"
-                   "                  limits, subject, details, uncertain, text, location) "
-                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
+    db.executemany("INSERT INTO rule (entry_id, rule_id, type, family, dimension, label,"
+                   "                  scope, windows, species, species_except, take,"
+                   "                  may_target, conditions, uncertain, verbatim, extent_text) "
+                   "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", rule_rows)
     cov.filled("rule", len(rule_rows))
 
     section_set, sets = intern_sets(_jsonl(sections_file))

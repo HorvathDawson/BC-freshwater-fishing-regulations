@@ -15,23 +15,30 @@ import type {
 
 const id = <T extends string>(s: string): T => s as T;
 
+/* A closure is a retention limit of zero you may NOT fish for. `mayTarget` is what
+   separates it from catch-and-release, which is the same type with the same take. */
 const JUNE_CLOSURE: Rule = {
-  id: "chilliwack_vedder_rivers.r5", kind: "closure", scope: "section", via: "reach",
+  id: "chilliwack_vedder_rivers.r5", type: "retention_limit", family: "retention",
+  dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
+  scope: "section", via: "reach",
   group: "provincial", windows: [{ from: { month: 6, day: 1 }, to: { month: 6, day: 30 } }],
 };
 const FLY_ONLY: Rule = {
-  id: "chilliwack_vedder_rivers.r4a", kind: "gear_restriction", scope: "section", via: "reach",
-  group: "provincial", subject: "gear",
+  id: "chilliwack_vedder_rivers.r4a", type: "tackle_restriction", family: "gear_and_method",
+  dimension: "lure", label: "Fly fishing only", scope: "section", via: "reach",
+  group: "provincial",
   windows: [{ from: { month: 5, day: 1 }, to: { month: 5, day: 31 } }],
 };
 const UPSTREAM_CLOSURE: Rule = {
-  id: "chilliwack_vedder_rivers.r1", kind: "closure", scope: "section", via: "reach",
-  group: "provincial", windows: [],
+  id: "chilliwack_vedder_rivers.r1", type: "retention_limit", family: "retention",
+  dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
+  scope: "section", via: "reach", group: "provincial", windows: [],
 };
 /** Real: the Fraser side-channel closure for which no extent was ever authored. */
 const UNPLACEABLE: Rule = {
-  id: "fraser_river_region2.r4", kind: "closure", scope: "section", via: "reach",
-  group: "provincial", uncertain: true,
+  id: "fraser_river_region2.r4", type: "retention_limit", family: "retention",
+  dimension: "daily", label: "No fishing", take: 0, mayTarget: false,
+  scope: "section", via: "reach", group: "provincial", uncertain: true,
   windows: [{ from: { month: 5, day: 15 }, to: { month: 7, day: 31 } }],
 };
 
@@ -164,8 +171,9 @@ export function makeFixtureSource(now = Date.parse("2026-08-30T12:00:00Z")): Reg
         })),
         rules: [UPSTREAM_CLOSURE, JUNE_CLOSURE, FLY_ONLY],
         area: [{
-          rule: { id: "mu.2-2.bait", kind: "gear_restriction", scope: "mu", via: "reach",
-                  group: "provincial", subject: "bait", windows: [] },
+          rule: { id: "mu.2-2.bait", type: "bait_restriction", family: "gear_and_method",
+                  dimension: "bait:any", label: "Bait ban", scope: "mu", via: "reach",
+                  group: "provincial", windows: [] },
           scopeLabel: "Everywhere in MU 2-2",
         }],
         verbatim: {

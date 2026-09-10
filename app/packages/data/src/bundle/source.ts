@@ -11,7 +11,8 @@
  * rules that function needs and gets out of the way (AGENTS rule 23).
  */
 import { bandAt, evaluate, regimesOf, type Band, type PlainDate, type Rule,
-         type RuleKind, type SpeciesGroup, type Status, type Window } from "@app/core";
+         RULE_FAMILIES, RULE_TYPES, type RuleFamily, type RuleType,
+         type SpeciesGroup, type Status, type Window } from "@app/core";
 import { forecastFor, type Observations } from "../feed/http";
 import type { BasinMember,
   Aged, BundleCounts, BundleInfo, GaugeLink, ItemId, ItemRegs, LakeInfo, NameHit, NearHit, Parameter,
@@ -38,9 +39,9 @@ const sid = (v: Cell): SectionId => {
   return n as SectionId;
 };
 
-/** Rule kinds core knows. Anything else is a build that added one without telling us. */
-const KINDS = new Set<RuleKind>(["closure", "gear_restriction", "harvest",
-                                 "vessel_restriction", "licensing", "note"]);
+/** Rule types core knows. Anything else is a build that added one without telling us. */
+const TYPES = new Set<RuleType>(RULE_TYPES);
+const FAMILIES = new Set<RuleFamily>(RULE_FAMILIES);
 
 /**
  * Both facts, from the row that carries both.
@@ -51,24 +52,32 @@ const KINDS = new Set<RuleKind>(["closure", "gear_restriction", "harvest",
  * earlier schema had one column trying to answer both.
  */
 function toRule(r: Row, via: Rule["via"], group: SpeciesGroup): Rule {
-  const kind = str(r.kind) as RuleKind;
+  const type = str(r.type) as RuleType;
+  const family = str(r.family) as RuleFamily;
   return {
     // Unique only within an entry (AGENTS rule 8) — 49 rule_ids collide corpus-wide, so
     // the id carried around is always the pair.
     id: `${str(r.entry_id)}.${str(r.rule_id)}`,
-    kind: KINDS.has(kind) ? kind : "note",
+    /* An unknown type falls back to `advisory`, the one type that restricts nobody — a
+       build that ships a type this client does not know must not be read as a closure. */
+    type: TYPES.has(type) ? type : "advisory",
+    family: FAMILIES.has(family) ? family : "information",
     scope: (r.scope == null ? "section" : str(r.scope)) as Rule["scope"],
     via,
     group,
     windows: json<Window[]>(r.windows, `rule ${str(r.rule_id)} windows`),
-    ...(r.subject == null ? {} : { subject: str(r.subject) }),
-    // Carried, not dropped. These three were in the `rule` table and never reached the
-    // client, so the screen had nothing to say about a rule except its kind — and printed
-    // the enum name. `location` is what names a stretch; `text` is what lets the verbatim
-    // paragraph highlight the sentence a rule came from.
-    ...(r.details == null ? {} : { details: str(r.details) }),
-    ...(r.text == null ? {} : { text: str(r.text) }),
-    ...(r.location == null ? {} : { location: str(r.location) }),
+    /* Both halves of the precedence key. `dimension` is NOT optional: a rule missing one
+       would silently never displace anything, which is the failure `subject` had — it was
+       populated on 2 rules out of 3,273. */
+    dimension: r.dimension == null ? type : str(r.dimension),
+    ...(r.take == null ? {} : { take: Number(r.take) }),
+    ...(r.may_target == null ? {} : { mayTarget: Number(r.may_target) === 1 }),
+    /* The line a person reads, GENERATED from the rule's type and conditions — so the map,
+       the sheet and the curation app cannot word the same rule differently. It replaced the
+       curator's prose `details`, which drifted from the numbers beside it. */
+    label: r.label == null ? "" : str(r.label),
+    ...(r.verbatim == null ? {} : { verbatim: str(r.verbatim) }),
+    ...(r.extent_text == null ? {} : { extentText: str(r.extent_text) }),
     ...(r.species == null ? {} : { species: json<string[]>(r.species, "rule species") }),
     // A rule nobody could place applies to NOTHING. It may only ever raise "unknown";
     // core enforces that, and this is where the flag crosses over from the build.

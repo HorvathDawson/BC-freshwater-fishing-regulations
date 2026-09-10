@@ -215,3 +215,29 @@ def test_entry_id_comes_from_the_batch_not_the_model():
     assert not [p for p in problems if not p.startswith("ADVISORY")], problems
     assert "e1@8-9" in accepted, f"stored under {list(accepted)}"
     assert accepted["e1@8-9"].entry_id == "e1@8-9"
+
+
+def test_a_rule_that_says_nothing_about_location_gets_the_whole_water():
+    """The prompt states this default and the model mostly did not write it: 1,957 of 2,397
+    rules in the first full parse carried no extents, and a rule with no extents binds to no
+    water at all. Written at ingest so the corpus states its own reach, rather than defaulted
+    at resolution time where it would be a second answer to the same question."""
+    from pipeline.regs.parsing.ingest_catalogue import ingest
+    cand = _candidate([])
+    del cand["rules"][0]["extents"]
+    accepted, problems = ingest([cand], {"e1": _batch_item()})
+    assert not [p for p in problems if not p.startswith("ADVISORY")], problems
+    assert accepted["e1"].rules[0].extents == [{"op": "whole"}]
+
+
+def test_a_rule_that_states_a_place_it_could_not_bind_is_left_alone():
+    """"500 m upstream and downstream of Causeway Road" with no boundary to bind to is a real,
+    specific location. Widening it to the whole water applies a 500 m closure to kilometres."""
+    from pipeline.regs.parsing.validate_catalogue import default_extents
+    d = {"rules": [{"rule_id": "r1", "extent_text": "500 m upstream of Causeway Road"},
+                   {"rule_id": "r2", "unresolved_locators": ["the outlet"]},
+                   {"rule_id": "r3"}]}
+    assert default_extents(d) == 1
+    assert d["rules"][0].get("extents") is None
+    assert d["rules"][1].get("extents") is None
+    assert d["rules"][2]["extents"] == [{"op": "whole"}]

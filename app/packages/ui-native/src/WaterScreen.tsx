@@ -144,7 +144,11 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
             </View>
             {r.status.from.length > 0 && (
               <Text style={{ ...TYPE.small, color: palette.sub }}>
-                {r.status.from.map((rule) => rule.kind.replace(/_/g, " ")).join(" · ")}
+                {/* The GENERATED label, which is what it is for. This printed `kind` with
+                    its underscores swapped for spaces — "gear restriction · closure" — which
+                    says the shape of a rule and never its content. */}
+                {r.status.from.map((rule) => rule.label || rule.type.replace(/_/g, " "))
+                  .join(" · ")}
               </Text>
             )}
           </View>

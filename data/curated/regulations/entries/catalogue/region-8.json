@@ -47,7 +47,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -96,7 +101,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "idleback_lake.r2",
@@ -126,7 +136,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "idleback_lake.r3",
@@ -154,7 +169,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "idleback_lake.r4",
@@ -183,7 +203,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "idleback_lake.r5",
@@ -212,7 +237,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -261,7 +291,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -310,7 +345,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -420,7 +460,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "jewel_lake.r2",
@@ -450,7 +495,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "jewel_lake.r3",
@@ -479,7 +529,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -528,7 +583,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -578,7 +638,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kalamalka_lake.r2",
@@ -608,7 +673,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kalamalka_lake.r3",
@@ -715,7 +785,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -769,7 +844,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kettle_river.r2",
@@ -802,7 +882,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kettle_river.r3",
@@ -832,7 +917,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kettle_river.r4",
@@ -863,7 +953,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -912,7 +1007,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kidd_lake.r2",
@@ -943,7 +1043,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kidd_lake.r3",
@@ -971,7 +1076,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kidd_lake.r4",
@@ -999,7 +1109,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kidd_lake.r5",
@@ -1028,7 +1143,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kidd_lake.r6",
@@ -1057,7 +1177,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kidd_lake.r7",
@@ -1084,7 +1209,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1133,7 +1263,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kump_lost_lake.r2",
@@ -1163,7 +1298,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "kump_lost_lake.r3",
@@ -1191,7 +1331,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1241,7 +1386,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "lambly_bear_lake.r2",
@@ -1270,7 +1420,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1319,7 +1474,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1369,7 +1529,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1418,7 +1583,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "loch_drinkie.r2",
@@ -1448,7 +1618,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "loch_drinkie.r3",
@@ -1476,7 +1651,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1525,7 +1705,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "loon_lake.r2",
@@ -1556,7 +1741,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "loon_lake.r3",
@@ -1584,7 +1774,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "loon_lake.r4",
@@ -1612,7 +1807,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "loon_lake.r5",
@@ -1641,7 +1841,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1690,7 +1895,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1774,7 +1984,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "mabel_lake.r3",
@@ -1803,7 +2018,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -1850,7 +2070,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "mara_lake.r2",
@@ -1929,7 +2154,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "martin_lake.r2",
@@ -1956,7 +2186,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2006,7 +2241,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2114,7 +2354,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "meadow_lake.r2",
@@ -2144,7 +2389,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "meadow_lake.r3",
@@ -2172,7 +2422,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2222,7 +2477,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2331,7 +2591,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": true,
-          "review_reason": "the sub-cap 'only one over 50 cm' spells the count as a word, not a digit; digit-literal validation cannot accept a spelled number, so only the base quota of 2 is captured structurally — see verbatim for the full restriction"
+          "review_reason": "the sub-cap 'only one over 50 cm' spells the count as a word, not a digit; digit-literal validation cannot accept a spelled number, so only the base quota of 2 is captured structurally — see verbatim for the full restriction",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_lake.r2",
@@ -2361,7 +2626,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_lake.r3",
@@ -2391,7 +2661,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_lake.r4",
@@ -2501,7 +2776,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_river.r2",
@@ -2531,7 +2811,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_river.r3",
@@ -2561,7 +2846,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_river.r4",
@@ -2641,7 +2931,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "okanagan_river.r6",
@@ -2670,7 +2965,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2880,7 +3180,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_lake.r2",
@@ -2910,7 +3215,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_lake.r3",
@@ -2939,7 +3249,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -2989,7 +3304,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "tuc_el_nuit_lake.r2",
@@ -3019,7 +3339,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "tuc_el_nuit_lake.r3",
@@ -3048,7 +3373,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3100,7 +3430,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "tulameen_river.r2",
@@ -3131,7 +3466,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "tulameen_river.r3",
@@ -3165,7 +3505,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3215,7 +3560,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "twin_lakes.r2",
@@ -3244,7 +3594,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3400,7 +3755,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "west_kettle_river.r2",
@@ -3431,7 +3791,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "west_kettle_river.r3",
@@ -3462,7 +3827,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "west_kettle_river.r4",
@@ -3496,7 +3866,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3545,7 +3920,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "wood_lake.r2",
@@ -3578,7 +3958,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "wood_lake.r3",
@@ -3610,7 +3995,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "wood_lake.r4",
@@ -3640,7 +4030,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "wood_lake.r5",
@@ -3719,7 +4114,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "yellow_lake.r2",
@@ -3749,7 +4149,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "yellow_lake.r3",
@@ -3776,7 +4181,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -3822,7 +4232,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "crayfish_traps_turtles.r2",
@@ -3982,7 +4397,12 @@
           "required": true,
           "may_target": null,
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -4034,7 +4454,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -4084,7 +4509,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r2",
@@ -4112,7 +4542,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r3",
@@ -4140,7 +4575,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r4",
@@ -4168,7 +4608,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r5",
@@ -4196,7 +4641,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r6",
@@ -4226,7 +4676,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r7",
@@ -4254,7 +4709,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r8",
@@ -4282,7 +4742,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "species_quotas.r9",
@@ -4311,7 +4776,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -4367,7 +4837,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -4413,7 +4888,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     },
@@ -4462,7 +4942,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_char_quota.r2",
@@ -4492,7 +4977,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_char_quota.r3",
@@ -4522,7 +5012,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_char_quota.r4",
@@ -4553,7 +5048,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_char_quota.r5",
@@ -4582,7 +5082,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         },
         {
           "rule_id": "trout_char_quota.r6",
@@ -4613,7 +5118,12 @@
           "reason": "",
           "extent_text": "",
           "needs_review": false,
-          "review_reason": ""
+          "review_reason": "",
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ]
         }
       ]
     }

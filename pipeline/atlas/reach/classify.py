@@ -53,7 +53,13 @@ def wants_tributaries(rule: dict, entry: dict) -> bool:
     """
     own = rule.get("includes_tributaries")
     if own is None:
-        own = ((entry.get("tributaries") or {}).get("included"))
+        # The catalogue keeps ONE flag, flat on the entry: "only" moved onto the rule, and a
+        # per-rule include/exclude is gone, because two rules on one water disagreeing about
+        # what the water IS was never something the book could say. The prose entry nested
+        # the same fact under `tributaries.included`.
+        own = entry.get("includes_tributaries")
+    if own is None:
+        own = (entry.get("tributaries") or {}).get("included")
     return bool(own) or bool(rule.get("tributaries_only"))
 
 
@@ -87,12 +93,28 @@ def classify(
 
     # --- nothing was authored -------------------------------------------------
     if not extents:
-        # ⚠️ Do NOT default this to `whole`. All 12 matched rules in this state carry
-        # needs_review, and 11 carry unresolved_locators: they are real, specific
-        # locations ("500 m upstream and downstream of Causeway Road") with no boundary
-        # to bind to. Defaulting would apply a 500 m closure to an entire lake arm.
         if not entry_has_registry:
             return unresolved(Reason.no_registry, "entry has no matched registry item")
+
+        # ⚠️ Do NOT default to `whole` when the rule DESCRIBES A PLACE it could not bind.
+        # "500 m upstream and downstream of Causeway Road" with no boundary to bind to is a
+        # real, specific location, and widening it to the whole lake arm applies a 500 m
+        # closure to kilometres of water.
+        #
+        # The signal is a LOCATION the rule states and could not resolve — `extent_text` or
+        # `unresolved_locators` — and NOT merely the absence of extents. That distinction is
+        # new because the corpus is: the prose parser emitted an extent on every rule, so
+        # all 12 rules that reached here were the dangerous kind. The catalogue parser puts
+        # the reach on the ENTRY and leaves a rule bare when it covers the whole of it, and
+        # 1,752 of 1,957 bare rules say nothing about location at all — "Lake trout daily
+        # quota = 3" on Atlin Lake. Refusing those binds 73% of the corpus to nothing.
+        #
+        # The parse prompt states the same default in the other direction: "Every rule needs
+        # `extents`. The default is the whole water."
+        # NOT defaulted here. `ingest_catalogue` writes `[{"op": "whole"}]` onto a rule that
+        # says nothing about location, so the corpus states its own reach and this resolver
+        # has one less way to disagree with it. A rule that reaches here now is one that
+        # DESCRIBED a place and could not bind it, which is exactly the dangerous kind.
         locs = rule.get("unresolved_locators") or []
         return unresolved(
             Reason.no_extents,
@@ -110,7 +132,8 @@ def classify(
 
         straddling = got.get("unclassified") or []
         if straddling:
-            include = (rule.get("restriction_type") or "") in STRADDLERS_INCLUDED_FOR
+            include = (rule.get("type") or rule.get("restriction_type") or "") \
+                in STRADDLERS_INCLUDED_FOR
             if include:
                 sections |= set(straddling)
             diags.append(Diagnostic(entry_id, rid, "unclassified", {

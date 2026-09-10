@@ -55,6 +55,36 @@ def boundary_ids(item: dict) -> tuple[set[str], dict[str, str]]:
     return allowed, canon
 
 
+def default_extents(data: dict) -> int:
+    """Give every rule that says nothing about location the whole water, IN PLACE.
+
+    The parse prompt states this default — "Every rule needs `extents`. The default is the
+    whole water" — and the model mostly did not write it: it put the reach on the ENTRY and
+    left the rules bare. 1,957 of 2,397 rules arrived with no extents, and a rule with no
+    extents binds to NOTHING, so 73% of the corpus resolved to no water at all.
+
+    Written here rather than defaulted at resolution time so the corpus states its own reach
+    and the resolver has one less way to disagree with it.
+
+    NOT applied to a rule that DESCRIBES a place it could not bind — `extent_text` or
+    `unresolved_locators`. "500 m upstream and downstream of Causeway Road" with no boundary
+    to bind to is a real, specific location, and widening it to the whole water applies a
+    500 m closure to kilometres of it. Measured on the first full parse: of 1,957 bare rules,
+    1,752 say nothing about location and 205 do.
+
+    Returns how many rules were given a default.
+    """
+    n = 0
+    for r in (data.get("rules") or ()):
+        if not isinstance(r, dict) or r.get("extents"):
+            continue
+        if (r.get("unresolved_locators") or []) or (r.get("extent_text") or "").strip():
+            continue
+        r["extents"] = [{"op": "whole"}]
+        n += 1
+    return n
+
+
 def canonicalise_splits(data: dict, item: dict) -> list[str]:
     """Rewrite alias split ids to their canonical id, IN PLACE, and report ids this water cannot
     bind. Returns error strings (empty = clean).
@@ -100,6 +130,7 @@ def check_entry(entry_data: dict, source_text: str,
     `item` is that row's batch item. Given one, extents are checked against its boundary menu and
     alias ids are rewritten to canonical — so pass it whenever it is available."""
     errors: list[str] = []
+    default_extents(entry_data)
     if item is not None:
         # Before model validation: this rewrites aliases, and the rewritten value is what the
         # returned entry must carry.

@@ -74,27 +74,43 @@ CREATE TABLE entry (entry_id TEXT PRIMARY KEY, item_id TEXT, name TEXT, full_nam
 -- lay quotas out as a table and show which of two rules overrides the other, neither of
 -- which is possible against a sentence. See pipeline/regs/parsing/entry_models::Limit, and
 -- limit_words for the ONE place those numbers are turned back into English.
-CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL, kind TEXT,
+-- THE RULE, AS A TYPE AND ITS CONDITIONS. `kind`/`details` are gone with the prose model.
+--
+-- `type` is one of fifteen and `family` one of six; both ship because the reader is shown
+-- families as sections and a client should not carry its own copy of the mapping.
+--
+-- `dimension` is the OTHER HALF OF THE PRECEDENCE KEY, and it is why this replaced `subject`.
+-- Two rules compete when they share (type, dimension): a water's daily quota displaces its
+-- region's daily quota, and a fly-only rule does NOT displace a barbless rule because a fly
+-- must also be barbless — so tackle's dimension is the facet each constrains, not the type.
+-- `subject` came from `exempts_from` and was populated on 2 rules out of 3,273, so the
+-- displacement machinery existed for two years and never had data to fire on.
+--
+-- `label` is GENERATED from type + conditions. It is not the curator's prose: that field was
+-- removed because a label typed beside a number drifts from it, and this corpus proved it
+-- twice. Every surface reads this one string, so the map, the sheet and the curation app
+-- cannot word the same rule differently.
+--
+-- `take` and `may_target` ARE COLUMNS, not just conditions, because they are what separates a
+-- closure from catch-and-release and the client decides an outcome from them. "No fishing for
+-- bull trout" is take=0 with may_target=0; "bull trout catch and release" is take=0 with
+-- may_target=1. Reading take=0 alone as "closed" turned 605 closures into permissions once,
+-- in the label generator, and the same misreading is available to anything that only sees a
+-- quota of zero.
+CREATE TABLE rule (entry_id TEXT NOT NULL, rule_id TEXT NOT NULL,
+                   type TEXT NOT NULL,        -- one of 15 (catalogue.RuleType)
+                   family TEXT NOT NULL,      -- one of 6  (retention, gear_and_method, ...)
+                   dimension TEXT NOT NULL,   -- precedence key, second half
+                   label TEXT NOT NULL,       -- generated; never authored
                    scope TEXT NOT NULL DEFAULT 'section',   -- section | mu | area
-                   windows TEXT, species TEXT, limits TEXT,
-                   -- TWO DIFFERENT THINGS, and they were one column for a while.
-                   --
-                   -- `subject` is the PRECEDENCE KEY: a rule written for this water replaces
-                   -- a zone default about the same subject, which is how a lake gets a quota
-                   -- of 6 where its management unit says 2. It comes from `exempts_from`,
-                   -- and only 2 rules in the corpus carry one.
-                   --
-                   -- `details` is WHAT THE RULE SAYS, in the curator's own words — "Bait
-                   -- ban", "Single barbless hook", "No fishing, one hour after sunset to one
-                   -- hour before sunrise". Present on all 3,050, averaging 24 characters,
-                   -- and the best copy in the corpus. Writing it into `subject` made every
-                   -- rule look like it governed a unique subject, so the displacement rule
-                   -- could never fire.
-                   subject TEXT, details TEXT,
+                   windows TEXT, species TEXT, species_except TEXT,
+                   take INTEGER, may_target INTEGER,        -- see above; both may be NULL
+                   conditions TEXT,           -- the rest of the rule's set fields, as JSON
                    -- a rule nobody could place must never vote on an outcome; it can only
                    -- ever raise "unknown" (core/status.ts)
                    uncertain INTEGER NOT NULL DEFAULT 0,
-                   text TEXT, location TEXT,
+                   verbatim TEXT,             -- the sentence, quoted from regs_verbatim
+                   extent_text TEXT,          -- the reach in the page's words, when unbound
                    PRIMARY KEY (entry_id, rule_id)) WITHOUT ROWID;
 
 -- SAY IT ONCE AND POINT AT IT. The rules covering a section, as a SET the section names.

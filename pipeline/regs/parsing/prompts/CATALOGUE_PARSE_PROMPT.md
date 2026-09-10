@@ -129,11 +129,21 @@ obligation     must (default) | should — "anglers are encouraged" is should, n
 
 ## Extents — WHERE the rule applies
 
-Every rule needs `extents`. The default is the whole water:
+**EVERY RULE CARRIES ITS OWN `extents`. On the rule, never only on the entry.**
+
+This is the single most-missed instruction in the format. On the first full parse 1,957 of
+2,397 rules came back with none — the reach went on the entry and the rules were left bare —
+and a rule with no extents binds to NO WATER AT ALL. 73% of the corpus resolved to nothing.
+
+An entry-level extent narrows the ROW ("FRASER RIVER (upstream of the CPR Bridge at Mission)").
+It does not give a rule its reach. If a rule covers the whole of the water the row names, say
+so explicitly:
 
 ```json
 "extents": [{"op": "whole"}]
 ```
+
+Most rules are exactly that. Write it out every time.
 
 A list of extents is a UNION ("this reach plus that one"). The ops:
 
