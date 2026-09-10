@@ -30,6 +30,8 @@ _PROMPT = Path(__file__).resolve().parent / "prompts" / "PARSE_PROMPT.md"
 #: The canonical spelling of every rule statement. Appended to BOTH the parse and review prompts —
 #: they each cite it by name, and a spec the agent cannot see is not a spec.
 _STANDARDS = Path(__file__).resolve().parent / "prompts" / "RULE_STANDARDS.md"
+#: The catalogue format: a rule is a TYPE plus named CONDITIONS, and the label is generated.
+_CATALOGUE_PROMPT = Path(__file__).resolve().parent / "prompts" / "CATALOGUE_PARSE_PROMPT.md"
 
 
 @dataclass(frozen=True)
@@ -147,8 +149,16 @@ def build_no_registry_context(*, entry_id: str, name: str, raw_regs: str, regist
     )
 
 
-def load_system_prompt() -> str:
-    """The stable parser instructions + worked examples (PARSE_PROMPT.md) + RULE_STANDARDS.md."""
+def load_system_prompt(catalogue: bool = False) -> str:
+    """The stable parser instructions.
+
+    `catalogue=True` selects CATALOGUE_PARSE_PROMPT.md — the format where a rule is a TYPE plus
+    named CONDITIONS and the label is generated. RULE_STANDARDS.md is deliberately NOT appended
+    there: it exists to standardise hand-typed labels (80 distinct quota grammars, three ways to
+    write one motor limit), and when nothing is typed by hand that variance cannot occur.
+    """
+    if catalogue:
+        return _CATALOGUE_PROMPT.read_text(encoding="utf-8")
     return (_PROMPT.read_text(encoding="utf-8") + "\n\n---\n\n"
             + _STANDARDS.read_text(encoding="utf-8"))
 
@@ -241,11 +251,12 @@ check) after you submit, and any batch that fails is re-run — so get each entr
 """
 
 
-def render_batch_prompt(contexts: list[ParseContext]) -> str:
+def render_batch_prompt(contexts: list[ParseContext], catalogue: bool = False) -> str:
     """A self-contained batch prompt: the stable rules/examples (PARSE_PROMPT.md), each item's
     constrained menu, then the `{index, entry}` output envelope. Single-shot — the agent emits JSON
     directly (no tools); validation happens downstream at ingest."""
-    parts = [load_system_prompt(), "\n\n---\n\n# BATCH — parse EACH item below into its own Entry\n"]
+    parts = [load_system_prompt(catalogue),
+             "\n\n---\n\n# BATCH — parse EACH item below into its own Entry\n"]
     for ctx in contexts:
         parts.append(f"\n---\n## ITEM index={ctx.row_index}\n\n{render_user_message(ctx)}\n")
     parts.append(_BATCH_ENVELOPE)

@@ -2,14 +2,17 @@
 # THE single entry point for the parse pipeline. Every workflow is a subcommand here — the Python
 # modules are building blocks it calls (see pipeline/regs/parsing/README.md for the dataflow).
 #
-# ⛔ HUMAN-ONLY (credits): `parse`, `parse-missing`, `review`, `repass` dispatch batches to the `claude`
+# ⛔ HUMAN-ONLY (credits): `parse`, `parse-missing`, `catalogue`, `review`, `repass` dispatch batches to the `claude`
 #    CLI and spend the user's credits. Claude/agents must NOT run those — only hand the user the command.
 #    `prune` and `status` are local (no credits) and safe for anyone to run.
 #
 #   `parse`          full cascade: parse missing + escalate + review + review-escalate + ingest.
 #   `parse-missing`  parse ONLY missing rows + escalate invalid + ingest. NO review (saves credits).
 #
-#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-missing|review|repass|prune|status> [rereview]
+#   `catalogue`      parse the water-specific tables into the CATALOGUE format (pipeline/docs/18).
+#   `catalogue-dry`  export catalogue batches only — NO dispatch, no credits. Read the prompt first.
+#
+#   bash pipeline/regs/parsing/run_parse.sh <parse|parse-missing|catalogue|catalogue-dry|review|repass|prune|status> [rereview]
 #
 # Env knobs: REGISTRY, BATCH_SIZE, MODEL (parse), REVIEW_MODEL, ESCALATE_MODEL, CONCURRENCY, CLAUDE_BIN.
 set -euo pipefail
@@ -127,6 +130,26 @@ case "$CMD" in
 
   prune)   # drop stale bare-item_id entries superseded by per-row entries (local; no credits)
     $PY -m pipeline.regs.parsing.prune_superseded "${@:2}"
+    ;;
+
+  catalogue)  # parse the water-specific tables into the CATALOGUE format (doc 18)
+    echo "== catalogue parse: preflight =="; _need_claude; _need_registry
+    echo "  model=$MODEL   format=type+conditions, label generated"
+    echo "== export (catalogue prompts) =="
+    "${EXPORT[@]}" --catalogue --skip-existing
+    echo "== parse ($MODEL) ==";  "${DISPATCH[@]}" --model "$MODEL"
+    echo "== validate + apply (nothing partial is written) =="
+    $PY -m pipeline.regs.parsing.ingest_catalogue \
+        --batch "$RESP"/../batches/batch_*.json \
+        --response "$RESP"/batch_*.json \
+        --out data/curated/regulations/entries/catalogue
+    ;;
+
+  catalogue-dry)  # the same, WITHOUT dispatching — no credits. Use it to read the prompt first.
+    echo "== catalogue export only (no credits spent) =="; _need_registry
+    "${EXPORT[@]}" --catalogue --skip-existing
+    echo "batches written. Read one before spending anything:"
+    echo "  less \"$RESP\"/../batches/batch_000.prompt.txt"
     ;;
 
   status)  # local snapshot: entry counts + review/flag state (no credits)
