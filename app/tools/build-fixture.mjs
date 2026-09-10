@@ -168,27 +168,60 @@ function windowsOf(dates) {
                                  { encoding: "utf8" }));
 }
 
-// The build's field names, not invented ones: `restriction_type` is the kind, `dates` are
-// the windows, and `needs_review` + `unresolved_locators` are what make a rule UNCERTAIN —
-// a rule nobody could place must never vote on an outcome (core/status.ts).
-counts.rule = insert("INSERT OR REPLACE INTO rule VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-  entries.flatMap(([id, e]) => (e.rules ?? []).map((r) => [
-    id, r.rule_id, r.restriction_type ?? "other",
-    // Specificity, which drives precedence. Every rule in the real corpus is
-    // `section`; `mu` arrives with zone regulations.
-    (r.extents ?? []).some((x) => x.area_id) ? "area" : "section",
-    JSON.stringify(windowsOf(r.dates ?? [])),
-    r.species?.length ? JSON.stringify(r.species) : null,
-    // `exempts_from` is a list; a subject is one thing, so join or drop it.
-    // The precedence key…
-    Array.isArray(r.exempts_from) ? (r.exempts_from.join(",") || null)
-                                  : r.exempts_from ?? null,
-    // …and the sentence. Two curated fields, two columns — see schema.sql.
-    r.details ?? null,
-    r.needs_review || (r.unresolved_locators ?? []).length ? 1 : 0,
-    r.rule_text ?? r.details ?? null,
-    r.display_location ?? r.location_text ?? null,
-  ])));
+/*
+ * THE ONE PLACE A PROSE RULE IS TRANSLATED, and it is here because of what this file reads.
+ *
+ * The fixture is built from `design/riffle.html`, which is the frozen design target — saved
+ * out of the published artifact and deliberately not regenerated, so its embedded rules are
+ * still `restriction_type` / `details`, the vocabulary the pipeline retired. The bundler
+ * refuses a prose rule outright (a NULL `type` would give the bundle rows that exist and say
+ * nothing); a FIXTURE cannot refuse, because then there is no fixture.
+ *
+ * So the six coarse kinds are mapped to the catalogue types they became. The mapping is
+ * approximate ON PURPOSE and lives nowhere else: it exists to keep a frozen artifact
+ * readable, not to describe the corpus. Nothing outside this file may use it.
+ *
+ * `closure` is the interesting one. A closure is not a type any more — it is a retention
+ * limit of zero you may NOT fish for, and catch-and-release is the same type with the same
+ * take and `may_target` true. `severityOf` reads both, so the fixture has to set both.
+ */
+const CATALOGUE_OF = {
+  closure:            ["retention_limit", "retention", "daily", 0, 0],
+  harvest:            ["retention_limit", "retention", "daily", null, null],
+  gear_restriction:   ["tackle_restriction", "gear_and_method", "barbless", null, null],
+  vessel_restriction: ["vessel_rule", "vessel", "propulsion", null, null],
+  licensing:          ["document_required", "licensing", "basic_licence", null, null],
+  note:               ["advisory", "information", "advisory", null, null],
+};
+
+counts.rule = insert(
+  "INSERT OR REPLACE INTO rule (entry_id, rule_id, type, family, dimension, label, scope," +
+  "  windows, species, species_except, take, may_target, conditions, uncertain, verbatim," +
+  "  extent_text) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+  entries.flatMap(([id, e]) => (e.rules ?? []).map((r) => {
+    const [type, family, dimension, take, mayTarget] =
+      CATALOGUE_OF[r.restriction_type] ?? CATALOGUE_OF.note;
+    return [
+      id, r.rule_id, type, family, dimension,
+      // The generated label's stand-in. In the real bundle this comes from `label()`; here
+      // the curator's prose IS what riffle drew, so keeping it is what makes the fixture
+      // still look like the design.
+      r.details ?? "",
+      // Specificity, which drives precedence. Every rule in the real corpus is
+      // `section`; `mu` arrives with zone regulations.
+      (r.extents ?? []).some((x) => x.area_id) ? "area" : "section",
+      JSON.stringify(windowsOf(r.dates ?? [])),
+      r.species?.length ? JSON.stringify(r.species) : null,
+      null,
+      take, mayTarget,
+      null,
+      // `needs_review` + `unresolved_locators` are what make a rule UNCERTAIN — a rule
+      // nobody could place must never vote on an outcome (core/status.ts).
+      r.needs_review || (r.unresolved_locators ?? []).length ? 1 : 0,
+      r.rule_text ?? r.details ?? null,
+      r.display_location ?? r.location_text ?? null,
+    ];
+  })));
 /*
  * THE INTERNED RULE SETS, built the way the pipeline builds them.
  *
