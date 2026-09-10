@@ -88,12 +88,21 @@ once dropped — nothing downstream can tell it was ever there.
     *"exempt from X"* is a **field**, not a type.
 11. **An extent wider than the rule.** A water-specific rule bound region-wide, or a rule that says
     *"in any stream"* with no `feature_types` — that once closed 4,151 lakes and 2,712 wetlands.
-12. **A qualifier lost from the label.** *"no vessels **on parts**"* rendered as *"No vessels"*
+12. **A reach bound to the wrong point, or a limiter dropped.** Three ways this goes wrong:
+    * A split id **not on that item's menu** — invented, or borrowed from another water. Ingest
+      refuses it, but say so, because the reach it was meant to express is then missing entirely.
+    * An **alias bound instead of the canonical id.** One physical cut-point can answer to two
+      authored names (*"McIntyre Dam"* and `gauge__08NM247` are the same point). Either resolves,
+      and ingest rewrites the alias — so this is a nit, not a defect. **Do not report it as one.**
+    * **`within_area` dropped.** *"That part of the Fraser within Region 5"* is `op: whole` plus
+      `within_area: area:region:5`. Without the limiter the rule resolves to the whole river,
+      which is the widest possible error and looks completely normal on the page.
+13. **A qualifier lost from the label.** *"no vessels **on parts**"* rendered as *"No vessels"*
     tells an angler a restriction is broader than the law. If no split can express the reach, it
     must survive in `extent_text`.
-13. **`windows` merged from two clauses**, or a window that means its own inverse — *"Open June
+14. **`windows` merged from two clauses**, or a window that means its own inverse — *"Open June
     16-Apr 30"* is when the rule does **not** apply, which is `windows_are: excepts`.
-14. **`obligation`**: *"anglers are encouraged"* is `should`, not law. Rendering advice as law is
+15. **`obligation`**: *"anglers are encouraged"* is `should`, not law. Rendering advice as law is
     the mirror of rendering law as advice, and both have happened.
 
 ---
