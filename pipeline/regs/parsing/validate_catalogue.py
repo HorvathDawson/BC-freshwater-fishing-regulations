@@ -14,6 +14,10 @@ Three layers, and the third is the one that matters:
   2. the ENTRY — each rule's verbatim inside its own regs_verbatim  (CatalogueEntry)
   3. THE SOURCE — regs_verbatim against the text the agent was GIVEN
 
+and, where the batch item is available, the REACH: every split id must be a cut-point on that
+water (an invented one otherwise reaches the corpus and only surfaces later as a rule that
+silently selects nothing), with alias ids rewritten to the canonical spelling.
+
 Layer 2 alone is not chain of custody: the author writes both sides, so an invented sentence passes.
 Two did, in the first authored pass. Layer 3 is what closes it.
 """
@@ -43,9 +47,73 @@ def squash(text: str) -> str:
     return re.sub(r"\s*-\s*", "-", t)
 
 
-def check_entry(entry_data: dict, source_text: str) -> tuple[CatalogueEntry | None, list[str]]:
-    """Returns (entry, errors). `source_text` is the printed row the agent was given."""
+def boundary_ids(item: dict) -> tuple[set[str], dict[str, str]]:
+    """(every bindable id, {alias: canonical id}) for one batch item.
+
+    A cut-point can answer to several authored ids — "McIntyre Dam" and the gauge that resolved to
+    the identical measure are one point, and a confluence is named from either bank. Both BIND,
+    because `extent.py` resolves either. Only one is STORED."""
+    allowed: set[str] = set(item.get("bindable_ids") or ())
+    canon: dict[str, str] = {}
+    for b in (item.get("boundaries") or ()):
+        if not b:
+            continue
+        allowed.add(b[0])
+        for a in (b[3] if len(b) > 3 else ()):
+            allowed.add(a)
+            canon[a] = b[0]
+    return allowed, canon
+
+
+def canonicalise_splits(data: dict, item: dict) -> list[str]:
+    """Rewrite alias split ids to their canonical id, IN PLACE, and report ids this water cannot
+    bind. Returns error strings (empty = clean).
+
+    This lives in the validator, not only in ingest, because the agent is told to run the validator
+    on itself until clean — a check it cannot run is a defect it cannot fix, and an invented
+    cut-point is otherwise invisible until it silently selects no sections at reach resolution."""
+    if item.get("no_registry"):
+        return []                    # nothing to bind; the parser is told to emit extents: []
+    allowed, canon = boundary_ids(item)
+    if not allowed:
+        return []                    # a batch written before boundaries were exported
     errors: list[str] = []
+
+    def visit(extents, where: str) -> None:
+        for ex in extents or ():
+            if not isinstance(ex, dict):
+                continue
+            fixed = []
+            for sid in (ex.get("splits") or ()):
+                if sid in canon:
+                    fixed.append(canon[sid])        # an alias — store the canonical spelling
+                elif sid in allowed:
+                    fixed.append(sid)
+                else:
+                    errors.append(f"{where}: split id {sid!r} is not a cut-point on this water "
+                                  f"— it was invented or belongs to another item")
+                    fixed.append(sid)
+            if fixed:
+                ex["splits"] = fixed
+
+    visit(data.get("extents"), "entry scope")
+    for i, r in enumerate(data.get("rules") or ()):
+        if isinstance(r, dict):
+            visit(r.get("extents"), f"rule {i + 1}")
+    return errors
+
+
+def check_entry(entry_data: dict, source_text: str,
+                item: dict | None = None) -> tuple[CatalogueEntry | None, list[str]]:
+    """Returns (entry, errors). `source_text` is the printed row the agent was given.
+
+    `item` is that row's batch item. Given one, extents are checked against its boundary menu and
+    alias ids are rewritten to canonical — so pass it whenever it is available."""
+    errors: list[str] = []
+    if item is not None:
+        # Before model validation: this rewrites aliases, and the rewritten value is what the
+        # returned entry must carry.
+        errors += canonicalise_splits(entry_data, item)
     try:
         entry = CatalogueEntry.model_validate(entry_data)
     except ValidationError as exc:
@@ -125,7 +193,7 @@ def run(batch_path: str, candidate_path: str) -> int:
             print(f"FAIL {eid}: not in the batch — an entry_id was invented or altered")
             failed += 1
             continue
-        _, errors = check_entry(data, source)
+        _, errors = check_entry(data, source, by_id.get(eid))
         fatal = [e for e in errors if not e.startswith("ADVISORY")]
         for e in errors:
             print(f"{'WARN' if e.startswith('ADVISORY') else 'FAIL'} {eid}: {e}")

@@ -83,3 +83,64 @@ def test_a_long_row_producing_one_rule_is_flagged_but_not_fatal():
 
 def test_squash_ignores_emphasis_bullets_and_dash_variants():
     assert squash("**Bait ban** - all year") == squash("  • Bait ban – all year  ")
+
+
+# --- the reach is part of the gate, not only of ingest -----------------------------------------
+# The agent is told to run this validator on itself until clean. A check that lives only in ingest
+# is a defect it cannot see and cannot fix: an invented cut-point passes every self-check, reaches
+# the corpus, and surfaces much later as a rule that silently selects no sections.
+
+def _reach_item():
+    return {
+        "entry_id": "e1", "region": "8",
+        "raw_regs": "No fishing downstream of McIntyre Dam.",
+        "bindable_ids": ["gauge__08NM247", "okanagan_river__mcintyre_dam"],
+        "boundaries": [["gauge__08NM247", "Below Mcintyre Dam", "split",
+                        ["okanagan_river__mcintyre_dam"]]],
+    }
+
+
+def _reach_entry(splits):
+    return {
+        "entry_id": "e1", "region": "8", "name": "Okanagan River",
+        "regs_verbatim": "No fishing downstream of McIntyre Dam.",
+        "rules": [{
+            "rule_id": "r1", "type": "retention_limit", "species": ["ALL_GAME_FISH"],
+            "take": 0, "may_target": False,
+            "verbatim": "No fishing downstream of McIntyre Dam.",
+            "extents": [{"op": "downstream_of", "splits": splits}],
+        }],
+    }
+
+
+def test_validator_refuses_an_invented_split_id():
+    from pipeline.regs.parsing.validate_catalogue import check_entry
+    _, errors = check_entry(_reach_entry(["okanagan_river__invented_dam"]),
+                            "No fishing downstream of McIntyre Dam.", _reach_item())
+    assert any("invented" in e for e in errors), errors
+
+
+def test_validator_rewrites_an_alias_to_the_canonical_id():
+    from pipeline.regs.parsing.validate_catalogue import check_entry
+    entry, errors = check_entry(_reach_entry(["okanagan_river__mcintyre_dam"]),
+                                "No fishing downstream of McIntyre Dam.", _reach_item())
+    assert not [e for e in errors if not e.startswith("ADVISORY")], errors
+    assert entry.rules[0].extents[0]["splits"] == ["gauge__08NM247"]
+
+
+def test_validator_without_an_item_still_validates_the_rest():
+    """`item` is optional — a caller that has no batch still gets layers 1 and 2."""
+    from pipeline.regs.parsing.validate_catalogue import check_entry
+    entry, errors = check_entry(_reach_entry(["anything_at_all"]),
+                                "No fishing downstream of McIntyre Dam.")
+    assert entry is not None
+    assert not any("not a cut-point" in e for e in errors)
+
+
+def test_ingest_and_the_validator_share_one_implementation():
+    """Two copies of this check would drift, and the ingest copy is the one nobody runs by hand."""
+    import inspect
+    from pipeline.regs.parsing import ingest_catalogue
+    src = inspect.getsource(ingest_catalogue)
+    assert "def _bind_extents" not in src and "def _boundary_ids" not in src, \
+        "ingest re-implemented the split check instead of calling the validator's"
