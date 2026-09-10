@@ -128,6 +128,24 @@ def _km_of(runs, lon, lat):
     return best[1]
 
 
+def _at_km(runs, km):
+    """The [lon, lat] at this chainage along the drawn river, or None if it is off the ends.
+
+    Walks to the run containing the km and takes the vertex at the matching fraction of it —
+    the same approximation `_km_of` uses in reverse, and on the same vertices the map draws, so
+    a tick can never land off the line."""
+    for r in runs:
+        if not (r["from"] - 0.2 <= km <= r["to"] + 0.2):
+            continue
+        pts = [p for seg in r["pts"] for p in seg]
+        if not pts:
+            continue
+        span = (r["to"] - r["from"]) or 1.0
+        frac = min(max((km - r["from"]) / span, 0.0), 1.0)
+        return pts[min(int(round(frac * (len(pts) - 1))), len(pts) - 1)]
+    return None
+
+
 def _species_names() -> dict[str, str]:
     """Code -> the words a reader sees.
 
@@ -264,12 +282,10 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
             km = round((m - base_m) / 1000.0, 1)
             if km < -0.5 or km > (main[-1][1].up_m - base_m) / 1000.0 + 0.5:
                 continue
-            g = geoms.get(nid)
-            at = _pts(g, to_lonlat)[0] if g is not None else None
             splits.append({"km": km, "label": lab,
                            "kind": (getattr(end, "kind", None).value
                                     if getattr(end, "kind", None) is not None else "point"),
-                           "lon": at[0] if at else None, "lat": at[1] if at else None})
+                           "lon": None, "lat": None})
     splits.sort(key=lambda x: x["km"])
 
     # ONLY THE CUT-POINTS THAT CUT ANYTHING.
@@ -284,6 +300,16 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     # functional stretches are a-b and b-d, and c is not a boundary of anything.
     edges = {r["from"] for r in runs} | {r["to"] for r in runs}
     splits = [x for x in splits if any(abs(x["km"] - e) < 0.15 for e in edges)]
+
+    # PUT THE MARKER WHERE THE CUT-POINT IS. It took the FIRST VERTEX of whichever section the
+    # boundary was found on, which is the start of that piece and not the boundary at all — the
+    # ticks landed off the drawn river, one of them in the next valley. The boundary knows its
+    # chainage, and the runs carry the line the map draws, so the honest position is the point
+    # at that chainage ON that line.
+    for x in splits:
+        at = _at_km(runs, x["km"])
+        if at:
+            x["lon"], x["lat"] = at
 
     side = [{"pts": _pts(geoms[nid], to_lonlat), "set": set_of.get(handle_of.get(nid))}
             for b, xs in by_blk.items() if b != main_blk
