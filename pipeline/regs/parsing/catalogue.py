@@ -870,7 +870,10 @@ def label(r: CatalogueRule) -> str:
     if t is RuleType.document_required:
         doc = (r.licence_name + " classified licence") if r.licence_name else \
             _DOC_WORDS.get(r.document.value, r.document.value.replace("_", " "))
-        head = (f"A {doc} is required" if r.required else f"A {doc} is not required")
+        # "A angling guide licence". A fixed article is wrong for the one document in
+        # `_DOC_WORDS` that starts with a vowel, and for any classified water whose name does.
+        art = "An" if doc[:1].lower() in "aeiou" else "A"
+        head = (f"{art} {doc} is required" if r.required else f"{art} {doc} is not required")
         if r.water_class:
             head = f"Class {r.water_class} water — " + head[0].lower() + head[1:]
         if r.on_retention:
@@ -879,26 +882,24 @@ def label(r: CatalogueRule) -> str:
             head += f"; a {r.issuing_jurisdiction} licence is also valid"
         if r.allocation:
             head += " (" + r.allocation.replace("_", " ") + ")"
-        return head + _who(r) + _scope(r) + _dates(r) + _where(r)
+        # `taking=False`: you do not need a licence FROM a stream, you need one IN one. Its own
+        # docstring says the wrong preposition reads as nonsense, and it did — "A Classified
+        # Waters Licence is required, from streams".
+        return head + _who(r) + _scope(r, taking=False) + _dates(r) + _where(r)
 
     if t is RuleType.access_permission:
-        who = []
-        ac = r.angler_class
-        if ac and not ac.is_empty():
-            if ac.guided is False:
-                who.append("non-guided")
-            if ac.residency:
-                who.append(ac.residency.value.replace("_", "-") + "s")
-            if ac.age:
-                who.append("anglers " + ac.age.replace("_", " "))
-            if ac.status:
-                who.append(ac.status.replace("_", " "))
-        subject = " ".join(who) if who else "anglers"
+        # ONE WHO-BUILDER. This branch had its own, and the two disagreed: it spelled
+        # `non_resident_alien` as "non-resident-aliens" where `_who` spells it "non-resident
+        # aliens", and seven live rules printed the hyphenated form. Worse, it tested
+        # `guided is False` only, so a rule scoped to GUIDED anglers rendered no marker at all
+        # and read as applying to everyone — and a guided non-resident alien and a non-guided
+        # one buy different licences, which is the whole reason the axis exists.
+        subject = (_who(r)[len(" — for "):] if _who(r) else "anglers")
         if r.grantor:
             return f"Permission of the {r.grantor} is required" + _dates(r)
         head = f"Angling prohibited for {subject}" if r.permitted is False \
-            else f"{subject.capitalize()} may fish here"
-        return head + _scope(r) + _dates(r) + _where(r)
+            else f"{subject[:1].upper() + subject[1:]} may fish here"
+        return head + _scope(r, taking=False) + _dates(r) + _where(r)
 
     if r.required is False and t in _PROHIBITABLE:
         return _quoted_prohibition(r)

@@ -112,8 +112,23 @@ def _rule_row(entry_id: str, raw: dict, uncertain: bool):
             f"rule and the bundle no longer has columns for it")
     r = CatalogueRule.model_validate(raw)
     dumped = r.model_dump(exclude_none=True, mode="json")
+    # `False` IS A VALUE, and dropping it lost the only field that separates a permission from
+    # a prohibition. `permitted: false` on "No spear fishing of any kind is permitted in Region
+    # 1, 2 and 4" was stripped, so the client could not tell it from "Spear fishing is
+    # permitted" except by reading the English — the two rendered as a bare contradiction.
+    # Same for `required: false`, which is what makes an exemption an exemption.
+    #
+    # `v not in (...)` also matched by EQUALITY, so `0` matched `False` and `take: 0` would
+    # have gone the same way if take were not already a column of its own.
+    # Absent means false for most flags, so carrying them doubles the column for nothing. For
+    # these four it does NOT: `permitted: false` is the whole content of "no spear fishing is
+    # permitted", and `required: false` is what makes an exemption an exemption.
+    _FALSE_MEANS_SOMETHING = ("permitted", "required", "on_retention", "when_open")
+    _EMPTY = ((), [], {}, "")
     conditions = {k: v for k, v in dumped.items()
-                  if k not in _NOT_CONDITIONS and v not in ((), [], {}, "", False)}
+                  if k not in _NOT_CONDITIONS
+                  and not any(v is e or v == e for e in _EMPTY)
+                  and (v is not False or k in _FALSE_MEANS_SOMETHING)}
     return (
         entry_id, r.rule_id, r.type.value, r.family, r.dimension, rule_label(r),
         _specificity(raw),

@@ -2944,10 +2944,6 @@
             {
               "op": "within",
               "area_kind": "national_parks"
-            },
-            {
-              "op": "within",
-              "area_kind": "ecological_reserves"
             }
           ]
         },
@@ -2981,10 +2977,6 @@
             {
               "op": "within",
               "area_kind": "national_parks"
-            },
-            {
-              "op": "within",
-              "area_kind": "ecological_reserves"
             }
           ]
         },
@@ -3019,10 +3011,6 @@
           "needs_review": false,
           "review_reason": "",
           "extents": [
-            {
-              "op": "within",
-              "area_kind": "national_parks"
-            },
             {
               "op": "within",
               "area_kind": "ecological_reserves"
