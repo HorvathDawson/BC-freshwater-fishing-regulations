@@ -66,12 +66,26 @@ CUT_SEEDS = {
          "label": "McDonalds Landing (Six Mile)",
          "note": "Upper West Arm is east of this line; Lower West Arm is west of it, "
                  "down to Corra Linn Dam.",
-         # Six Mile is ~6 miles along the arm from Nelson (-117.2900, 49.4949); that lands
-         # near -117.225, where the arm's water runs 49.5638-49.5738, so this spans it with a
-         # margin on both shores. The POSITION is a reading of the name; the crossing is real.
-         "from": [-117.2250, 49.5580], "to": [-117.2250, 49.5800],
+         # McDonald's Landing Regional Park (RDCK), 49.57957 / -117.21792 — the landing is on
+         # the NORTH shore, and the arm at that longitude runs 49.5650 to 49.5776, so the line
+         # drops south from the park across the water. Not from the place table: the only
+         # "McDonalds Landing" on file is in Region 6, 700 km north.
+         "from": [-117.21792, 49.56500], "to": [-117.21792, 49.57957],
+         "approx": False,
+         "source": "McDonald's Landing Regional Park (RDCK)",
+         "from_name": "south shore", "to_name": "McDonalds Landing"},
+    ],
+    # Shannon Lake is 520 m across. The book gives no landmarks — "the netted off portion on
+    # the south end of the lake" — so this is a line across the south end at the latitude where
+    # the water runs -119.61602 to -119.60982, for the curator to drag onto the actual fence.
+    # Its worklist wants ONE part, so the piece north of this line keeps the lake's identity.
+    "wbk:329459193": [
+        {"id": "shannon_netting",
+         "label": "Netting across the south end",
+         "note": "The netted-off portion is south of this line; the rest stays Shannon Lake.",
+         "from": [-119.61650, 49.85588], "to": [-119.60930, 49.85588],
          "approx": True,
-         "from_name": "south shore", "to_name": "north shore"},
+         "from_name": "west shore", "to_name": "east shore"},
     ],
 }
 
@@ -139,11 +153,15 @@ def main() -> int:
               f"{len(rows)} row(s), {len(out['lakes'][-1]['mus'])} MU polygon(s), "
               f"{len(L.get('parts', []))} part(s) wanted")
 
-    # ids already taken, so a redraw cannot collide with a polygon already curated
+    # THE WHOLE EXISTING FILE, so the page can hand back a complete added_lakes.geojson rather
+    # than a fragment to merge by hand. Merging is where a curated polygon gets lost.
     if ADDED.exists():
-        used = [f["properties"].get("id") for f in
-                json.loads(ADDED.read_text(encoding="utf-8")).get("features", [])]
-        out["used_ids"] = sorted(i for i in used if isinstance(i, int))
+        existing = json.loads(ADDED.read_text(encoding="utf-8")).get("features", [])
+        out["existing"] = existing
+        out["used_ids"] = sorted(f["properties"].get("id") for f in existing
+                                 if isinstance(f.get("properties", {}).get("id"), int))
+        print(f"  carrying {len(existing)} existing added-lake feature(s); "
+              f"ids in use: {out['used_ids']}")
 
     blob = json.dumps(out, ensure_ascii=False, separators=(",", ":"))
     html = PAGE.read_text(encoding="utf-8")
