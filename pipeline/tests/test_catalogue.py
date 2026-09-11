@@ -321,3 +321,60 @@ def test_every_field_the_prompts_name_exists_on_the_model():
     # anything left must not look like a rule field the model would be asked to emit
     assert not (suspect & {"unresolved_locators", "details", "restriction_type", "rule_text"}), \
         f"the prompts name rule fields the model refuses: {sorted(suspect)}"
+
+
+# --------------------------------------------------------------------------------------- #
+# SHAPE COERCION — a value written the wrong way is not a wrong value.
+#
+# All five shapes below came out of ONE 34-entry parse run. Three carry their meaning intact
+# and are rewritten; two do not, and must keep failing, because deriving them means reading
+# the sentence.
+# --------------------------------------------------------------------------------------- #
+
+def test_windows_written_as_objects_become_the_strings_the_schema_takes():
+    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
+    d = {"rules": [{"rule_id": "r1", "windows": [{"start": "Oct 1", "end": "June 30"}]}]}
+    assert coerce_shapes(d) == 1
+    assert d["rules"][0]["windows"] == ["Oct 1-June 30"]
+
+
+def test_windows_already_strings_are_left_alone():
+    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
+    d = {"rules": [{"rule_id": "r1", "windows": ["Oct 1-June 30"]}]}
+    assert coerce_shapes(d) == 0
+    assert d["rules"][0]["windows"] == ["Oct 1-June 30"]
+
+
+def test_a_bare_exemption_name_becomes_a_list():
+    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
+    d = {"rules": [{"rule_id": "r1", "exempts": "spring closure"}]}
+    assert coerce_shapes(d) == 1
+    assert d["rules"][0]["exempts"] == [{"default_id": "spring closure", "note": ""}]
+
+
+def test_electric_only_is_a_propulsion_level_not_a_field():
+    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
+    d = {"rules": [{"rule_id": "r1", "type": "vessel_rule", "electric_only": True}]}
+    assert coerce_shapes(d) == 1
+    r = d["rules"][0]
+    assert "electric_only" not in r
+    assert r["aspect"] == "propulsion" and r["level"] == "electric"
+
+
+def test_a_bait_rule_with_no_allowed_is_NOT_guessed():
+    """"Bait ban" and "bait may be used" are both `bait_restriction`, and the difference is the
+    whole rule. Inferring it from the word "ban" is reading the sentence; the entry fails."""
+    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
+    d = {"rules": [{"rule_id": "r1", "type": "bait_restriction", "verbatim": "bait ban"}]}
+    assert coerce_shapes(d) == 0
+    assert "allowed" not in d["rules"][0]
+
+
+def test_a_propulsion_rule_with_no_level_is_NOT_guessed():
+    """"No powered boats" is `unpowered` and "No vessels" is `none` — both are a refusal, and
+    they are different rules. The model wrote `permitted: false` for both."""
+    from pipeline.regs.parsing.validate_catalogue import coerce_shapes
+    d = {"rules": [{"rule_id": "r1", "type": "vessel_rule", "aspect": "propulsion",
+                    "permitted": False, "verbatim": "No powered boats"}]}
+    assert coerce_shapes(d) == 0
+    assert "level" not in d["rules"][0]

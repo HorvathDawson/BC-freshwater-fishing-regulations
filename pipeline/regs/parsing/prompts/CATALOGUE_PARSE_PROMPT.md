@@ -118,8 +118,25 @@ over_cm        a CAP on big fish        under_cm  a FLOOR under which fish go ba
 band           true only for "none BETWEEN x and y"
 combined       "all species combined"
 water          stream | lake            origin  hatchery | wild
+
+REQUIRED ON THREE TYPES, and the commonest reason an entry is rejected. Each says WHICH WAY
+the rule runs, and none of them can be inferred from the words afterwards:
+
+allowed        bait_restriction and tackle_restriction. true or false, ALWAYS.
+               "bait ban" is allowed=false. "roe may be used" is allowed=true. A permission
+               is a rule too, so the field is never optional and never `permitted`.
+aspect+level   vessel_rule. aspect is propulsion | speed | towing.
+               For propulsion, `level` is required and is an ORDERED scale, strictest first:
+                 none        no vessels at all          ("No vessels")
+                 unpowered   no motor                   ("No powered boats")
+                 electric    electric motors only       ("Electric motor only")
+                 power_capped  a kW limit, with max_power_kw ("7.5 kW / 10 hp")
+               `permitted: false` is NOT a substitute — "No vessels" and "No powered boats"
+               are both a refusal and they are different rules.
+method+permitted  method_rule. Both, always.
 method         angling | set_lining | spear_fishing | crayfish_trapping | ice_fishing | netting
-windows        [] means ALL YEAR. Dates are INCLUSIVE. Copy them as printed.
+windows        A LIST OF STRINGS, copied as printed: ["Oct 1-June 30"]. NOT objects —
+               {"start": ..., "end": ...} is rejected. [] means ALL YEAR. Dates INCLUSIVE.
 windows_are    excepts  ONLY when the dates say when the rule does NOT apply
 weekdays · from_time/to_time · angler_class · when_open
 extent_text    the reach in the page's own words, when no split can express it

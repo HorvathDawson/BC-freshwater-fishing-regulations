@@ -135,6 +135,73 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
     return errors
 
 
+
+def coerce_shapes(data: dict) -> int:
+    """Rewrite the shapes a model reaches for when the schema spells a field differently.
+
+    These are NOT guesses about meaning. Each one is a value the model already carried, written
+    in a form the schema does not accept, and the rewrite is mechanical and reversible. Anything
+    where the meaning would have to be INFERRED is left to fail — a rejected entry is cheap, and
+    a silently wrong one is not.
+
+    Three shapes, all seen in one 34-entry run:
+
+    `windows` as objects. The schema takes plain strings — "Oct 1-June 30" — because that is how
+    the synopsis prints them and copying is checkable. The model reaches for
+    ``{"start": "Oct 1", "end": "June 30"}``, which carries exactly the same two dates. Nine
+    rules in one run.
+
+    `exempts` as a bare string. The schema takes a list of exemptions, each naming what it lifts;
+    the model writes the name on its own — ``"spring closure"``. Same value, no list around it.
+
+    `electric_only: true`, which is not a field at all. It is `aspect: propulsion` with
+    `level: electric`, and the model invents it because that is what the book calls the rule.
+
+    NOT coerced, deliberately: a `bait_restriction` with no `allowed`, and a propulsion rule with
+    no `level`. "No powered boats" and "No vessels" are both a refusal, and they are different
+    rules — deriving one from the other means reading the sentence, which is the one thing this
+    file exists to avoid. Those entries fail, and the prompt now documents the fields.
+
+    Returns the number of rules changed.
+    """
+    n = 0
+    for rule in data.get("rules") or []:
+        if not isinstance(rule, dict):
+            continue
+
+        wins = rule.get("windows")
+        if isinstance(wins, list) and any(isinstance(w, dict) for w in wins):
+            out = []
+            for w in wins:
+                if isinstance(w, dict):
+                    a = w.get("start") or w.get("from") or ""
+                    b = w.get("end") or w.get("to") or ""
+                    joined = f"{a}-{b}".strip("-") if (a or b) else ""
+                    out.append(joined or str(w))
+                else:
+                    out.append(w)
+            rule["windows"] = [w for w in out if w]
+            n += 1
+
+        ex = rule.get("exempts")
+        if ex is not None and not isinstance(ex, list):
+            if isinstance(ex, str) and ex.strip():
+                rule["exempts"] = [{"default_id": ex.strip(), "note": ""}]
+            elif isinstance(ex, dict):
+                rule["exempts"] = [ex]
+            else:
+                rule["exempts"] = []
+            n += 1
+
+        if "electric_only" in rule:
+            on = bool(rule.pop("electric_only"))
+            if on:
+                rule.setdefault("aspect", "propulsion")
+                rule.setdefault("level", "electric")
+            n += 1
+    return n
+
+
 def check_entry(entry_data: dict, source_text: str,
                 item: dict | None = None) -> tuple[CatalogueEntry | None, list[str]]:
     """Returns (entry, errors). `source_text` is the printed row the agent was given.
@@ -142,6 +209,9 @@ def check_entry(entry_data: dict, source_text: str,
     `item` is that row's batch item. Given one, extents are checked against its boundary menu and
     alias ids are rewritten to canonical — so pass it whenever it is available."""
     errors: list[str] = []
+    # Before anything else: a field written in the wrong SHAPE carries the right value, and
+    # rejecting it costs a re-parse of the whole entry. See `coerce_shapes`.
+    coerce_shapes(entry_data)
     default_extents(entry_data)
     if item is not None:
         # Before model validation: this rewrites aliases, and the rewritten value is what the
