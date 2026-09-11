@@ -9316,7 +9316,9 @@
       "source_pages": [],
       "symbols": [],
       "matched": [
-        "wbk:328974235"
+        "wbk:-20",
+        "wbk:-21",
+        "wbk:-22"
       ],
       "extents": [
         {
@@ -9443,7 +9445,7 @@
       "source_pages": [],
       "symbols": [],
       "matched": [
-        "wbk:328974235"
+        "wbk:-22"
       ],
       "extents": [
         {
@@ -9655,7 +9657,7 @@
       "source_pages": [],
       "symbols": [],
       "matched": [
-        "wbk:328974235"
+        "wbk:-20"
       ],
       "extents": [
         {
@@ -9889,7 +9891,9 @@
       "source_pages": [],
       "symbols": [],
       "matched": [
-        "wbk:328974235"
+        "wbk:-20",
+        "wbk:-21",
+        "wbk:-22"
       ],
       "extents": [
         {
@@ -9977,7 +9981,7 @@
       "source_pages": [],
       "symbols": [],
       "matched": [
-        "wbk:328974235"
+        "wbk:-21"
       ],
       "extents": [
         {
@@ -10224,7 +10228,7 @@
               "op": "between",
               "splits": [
                 "kootenay_river__cpr",
-                "kootenay_river__kootenay_lake"
+                "kootenay_river__kootenay_lake_main_body"
               ],
               "item_id": "gnis:14097"
             }
@@ -10371,7 +10375,7 @@
               "op": "between",
               "splits": [
                 "kootenay_river__kootenay_idaho_border",
-                "kootenay_river__kootenay_lake"
+                "kootenay_river__kootenay_lake_main_body"
               ],
               "item_id": "gnis:14097"
             }
