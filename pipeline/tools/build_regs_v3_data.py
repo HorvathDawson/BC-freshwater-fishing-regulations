@@ -660,9 +660,26 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                     cset = got2[0]
                     break
             ring2 = _added_lake_ring(child_id, to_lonlat)
+            # A PART HAS AN AREA, NOT A LENGTH. `from`/`to` are ordinals that put the rungs in
+            # order, so their difference is 1 and the rung would read "1 KM" — meaningless for
+            # still water, and wrong about a 389 km² lake body.
+            area2 = None
+            if ring2:
+                try:
+                    from shapely.geometry import Polygon as _Poly
+                    from shapely.ops import transform as _tf
+                    from pyproj import Transformer as _Tr
+                    _to = _Tr.from_crs(4326, 3005, always_xy=True).transform
+                    # km², kept to 6 dp: a netted-off corner is 0.0019 km² and
+                    # rounding it to 2 gives 0.0, which the page then cannot tell
+                    # from 'no area at all'.
+                    area2 = round(_tf(_to, _Poly(ring2)).area / 1e6, 6)
+                except Exception:
+                    area2 = None
             lake_runs.append({**base, "set": cset, "from": float(i), "to": float(i + 1),
                               "pts": [ring2] if ring2 else [], "ring": bool(ring2),
-                              "label": child_name, "n": 1, "joins": [], "bkind": "part"})
+                              "label": child_name, "n": 1, "joins": [], "bkind": "part",
+                              "area": area2})
             i += 1
         if len(lake_runs) > 1:
             runs = lake_runs
