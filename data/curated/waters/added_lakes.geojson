@@ -1,6 +1,5 @@
 {
  "type": "FeatureCollection",
- "_about": "Hand-drawn lake polygons ABSENT from the FWA waterbody layer, ingested as real lake nodes. See pipeline/hack/added_lakes/README.md for the wbk minting scheme and the one thing that makes a lake a lake: the fids inside the polygon are re-stamped with its wbk, which is what breaks the stream run and mints the lake:{wbk} boundary.",
  "features": [
   {
    "type": "Feature",
@@ -2794,6 +2793,75 @@
       [
        -119.8812391,
        50.9323207
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": 15,
+    "name": "Shannon Lake — netted-off portion",
+    "kind": "lake",
+    "source": "manual",
+    "note": "Part of Shannon Lake (wbk:329459193), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 15 -> wbk -15, gnis -9000015."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -119.61453,
+       49.85489
+      ],
+      [
+       -119.61452,
+       49.8547
+      ],
+      [
+       -119.61442,
+       49.85462
+      ],
+      [
+       -119.61432,
+       49.85462
+      ],
+      [
+       -119.6142,
+       49.85469
+      ],
+      [
+       -119.61409,
+       49.8548
+      ],
+      [
+       -119.61407,
+       49.85486
+      ],
+      [
+       -119.61398,
+       49.85504
+      ],
+      [
+       -119.61388822154629,
+       49.855150134144445
+      ],
+      [
+       -119.61451426919864,
+       49.855161345993196
+      ],
+      [
+       -119.61451,
+       49.85514
+      ],
+      [
+       -119.61452,
+       49.85495
+      ],
+      [
+       -119.61453,
+       49.85489
       ]
      ]
     ]

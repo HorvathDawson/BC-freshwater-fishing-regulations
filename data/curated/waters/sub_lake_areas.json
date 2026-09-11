@@ -102,16 +102,17 @@
    "note": "The smallest case of the three: one lake, one netted-off corner with its own row.",
    "parts": [
     {
-     "reserved_added_lake_id": 14,
+     "reserved_added_lake_id": 15,
      "name": "Shannon Lake — netted-off portion",
      "book": "netted off portion on the south end of the lake",
      "of": "wbk:329459193",
      "serves": "r8:shannon_lake_netted_off_portion_…@8-11",
-     "polygon": null
+     "polygon": "added_lakes.geojson#15",
+     "note": "Cut in the lake splitter 2026-09-11: 0.19 ha, 99.7% inside the FWA polygon, leaving 14.56 ha as Shannon Lake proper. The lake itself keeps wbk:329459193 — ingest carves this piece out of it, so only the corner needed drawing."
     }
    ]
   }
  ],
- "_next_id": 15,
+ "_next_id": 16,
  "_sweep": "Re-run after every parse. The test is: two or more rows whose `matched` includes the same item, where at least one row's NAME qualifies the lake with a part word (arm, bay, reach, main body, zone, netted off). Twenty-three lakes carry more than one row on one item; the other twenty are a lake plus its tributaries, one row written in two regions, an alias pair (\"JONES\" LAKE / WAHLEACH LAKE), or — worth a look — two genuinely different lakes matched to one polygon, which is a curation bug rather than a polygon job: BIG LAKE (west of 100 Mile House) and BIG LAKE (west of Likely) both resolve to wbk:329480768, and the two BLUE LAKEs to wbk:329413147."
 }
