@@ -847,9 +847,9 @@ function recompute(){
                                                      p.renamed = true; } });
 
   ops.forEach(function(op){
-    if (op.kind === "region") {
+    if (op.kind === "region" || op.kind === "mu") {
       var row = (cur.rows || []).find(function(r){ return r.entry_id === op.row; });
-      if (row) placeRegion(row);
+      if (row) (op.kind === "region" ? placeRegion : placeMu)(row);
     } else {
       var c = cuts.find(function(x){ return x.id === op.cutId; });
       if (c) placeLine(c);
@@ -956,17 +956,21 @@ function renderAuto(){
   }
   box.innerHTML = rows.map(function(r, i){
     var ok = regionDefined(r, rows);
+    var mine = (r.mus || []).filter(function(m){ return (cur.mus || {})[m]; });
     return '<div class="part"><span class="nm"><b>'+esc(shortName(r.entry_id))+'</b>'
-      + '<span>Region '+esc(r.region)
-      + (ok ? " · every unit of it" : " · inside another row's zone — draw a line for it")
+      + '<span>'
+      + (ok ? "Region " + esc(r.region) + " · every unit of it"
+            : "MU " + esc(mine.join(", ") || r.mus.join(", ")) + " · inside Region "
+              + esc(r.region))
       + '</span></span>'
-      + (ok ? '<button data-auto="'+i+'">Cut</button>'
-            : '<button data-draw="'+i+'">Draw</button>')
+      + (ok  ? '<button data-auto="'+i+'">Cut region</button>'
+       : mine.length ? '<button data-mu="'+i+'">Cut unit</button>'
+                     : '<button data-draw="'+i+'">Draw</button>')
       + '</div>';
   }).join("")
-  + '<div class="note">A zone IS a region. Williston\'s Zone A is the part of the lake in '
-  + 'Region 7A and Zone B the part in 7B, and between them they are the whole lake — so the '
-  + 'cut takes every unit of that region, not only the ones the row happens to name.</div>';
+  + '<div class="note">A zone is its whole region &mdash; Williston\'s Zone A is every unit of '
+  + '7A. A row <em>inside</em> a zone is its own unit: Nation Arm is 7-30, Davis Bay is 7-37. '
+  + 'Both are one click; drawing is only for a part no boundary describes.</div>';
 
   box.querySelectorAll("[data-auto]").forEach(function(b){
     b.onclick = function(){ autoCut(rows[+b.dataset.auto]); };
@@ -974,6 +978,73 @@ function renderAuto(){
   box.querySelectorAll("[data-draw]").forEach(function(b){
     b.onclick = function(){ newCutFor(rows[+b.dataset.draw]); };
   });
+  box.querySelectorAll("[data-mu]").forEach(function(b){
+    b.onclick = function(){ muCut(rows[+b.dataset.mu]); };
+  });
+}
+
+/* --------------------------------------------------------------------------------------- *
+ * A ROW INSIDE A ZONE IS ITS OWN UNIT, AND THAT IS ALSO ONE CLICK.
+ *
+ * Switching the zones to cut by region was right — Zone A is every unit of 7A, and cutting it
+ * from the three units its row happens to name missed a quarter of the lake. But it left the
+ * rows INSIDE a zone with nothing but "draw this one", which meant dragging a 56 km line onto
+ * an arm by eye, twice, for waters the book has already located precisely:
+ *
+ *     NATION ARM (Williston Lake)              7-30    279 km², one piece
+ *     DAVIS BAY (in Finlay Reach)              7-37    433 km², one piece
+ *
+ * Those single units are what the book says the arm and the bay are. Cut the unit.
+ * --------------------------------------------------------------------------------------- */
+function muCut(row){
+  if (!ops.some(function(o){ return o.kind === "mu" && o.row === row.entry_id; }))
+    ops.push({kind: "mu", row: row.entry_id});
+  recompute();
+  var made = parts.find(function(p){ return p.madeBy === "mu:" + row.entry_id; });
+  if (!made || !made.feature) {
+    status("MU " + (row.mus||[]).join(", ") + " does not carve anything from this lake");
+    return;
+  }
+  status('"' + made.name + '" — ' + areaWord(made.feature)
+         + ", from MU " + (row.mus||[]).join(", ") + " · click it on the map to rename");
+}
+
+/* The lake inside one row's own units, taken out of whatever piece already holds it. */
+function placeMu(row){
+  var union = null;
+  (row.mus || []).forEach(function(m){
+    var rings = (cur.mus || {})[m];
+    if (!rings) return;
+    rings.forEach(function(r){
+      var poly = turf.polygon([r]);
+      union = union ? turf.union(union, poly) : poly;
+    });
+  });
+  if (!union) return null;
+  var piece = clipToLake(union);
+  if (!piece) return null;
+
+  // Take it out of the part that currently contains it — Nation Arm comes out of Zone A — so
+  // the pieces stay a partition rather than overlapping.
+  var host = null, hostArea = 0;
+  parts.forEach(function(p, i){
+    if (!p.feature || p.keep) return;
+    try {
+      var ov = turf.intersect(p.feature, piece);
+      var a = ov ? turf.area(ov) : 0;
+      if (a > hostArea) { hostArea = a; host = i; }
+    } catch(e){}
+  });
+  if (host != null) {
+    try { var rest = turf.difference(parts[host].feature, piece);
+          if (rest) parts[host].feature = rest; } catch(e){}
+  }
+  var slot = slotFor(row.entry_id) ||
+             parts.find(function(p){ return !p.feature && !p.keep; });
+  if (slot) { slot.feature = piece; slot.madeBy = "mu:" + row.entry_id; }
+  else parts.push({name: shortName(row.entry_id), feature: piece, id: null,
+                   madeBy: "mu:" + row.entry_id});
+  return slot;
 }
 
 /* --------------------------------------------------------------------------------------- *
