@@ -443,6 +443,22 @@ dl.qnote dt{font:700 9.5px/1.5 var(--fig);letter-spacing:.09em;text-transform:up
 dl.qnote dd{margin:0;font:400 11.5px/1.5 var(--ui);color:var(--sub)}
 dl.qnote dd s{opacity:.6}
 .qfoot{font:400 11.5px/1.5 var(--ui);color:var(--sub);margin:-4px 0 12px}
+.clrs{margin:0 0 16px}
+.clr{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--line)}
+.clr:last-child{border-bottom:0}
+.clw{font:700 9.5px/1.6 var(--fig);letter-spacing:.07em;text-transform:uppercase;
+  white-space:nowrap}
+.clb{font:500 13px/1.45 var(--ui)}
+.clb em{font-style:normal;font-weight:400;opacity:.75;font-size:11.5px}
+.clx{font:400 10px/1.6 var(--fig);color:var(--quiet);white-space:nowrap}
+.clr.on .clw{color:var(--closed)}
+.clr.on .clb{font-weight:700}
+.clr.off .clw{color:var(--restricted)}
+.clr.off .clb{opacity:.8}
+.clr.lift .clw{color:var(--open)}
+.clr.lift .clb s{opacity:.55}
+.clr.lift .clb em{opacity:.95;font-weight:500}
 .qtitle{font:700 10px var(--fig);letter-spacing:.11em;text-transform:uppercase;
   color:var(--faint);margin:14px 0 2px}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);
@@ -938,6 +954,88 @@ function condWords(l){
  * table that simply showed zero would say the water has no quotas at all. So the number stays,
  * struck through, with the closure's zero in front of it: `0 (normally 4)`.
  */
+
+/* ------------------------------------------------------------------------------------- *
+ * WHAT IS SHUT, AND WHAT IS ABOUT TO BE.
+ *
+ * A seasonal closure is the single most consequential thing on the page and it was scattered
+ * across it: the spring closure appeared as one row among sixty, its dates in the same grey as
+ * a hook rule, and whether it was in force TODAY had to be worked out from a date range. A
+ * reader planning a trip for next month got nothing at all.
+ *
+ * Closures are gathered here instead, in the three states a date can put them in — running now,
+ * starting later, or lifted on this water — with the day each one changes. Nothing is decided
+ * by new logic: `shutsTheWater` already says which rules shut a water, `live` already says
+ * whether a window is open today, and the exemption machinery already says which are lifted.
+ * This only puts them in one place and sorts them by when they matter.
+ * ------------------------------------------------------------------------------------- */
+function closureCal(items){
+  var lifts=liftsIn(items);
+  var shut=items.filter(function(x){
+    if(!(x.type==="retention_limit" && x.take===0 && !x.may_target && !x.method)) return false;
+    /*
+     * A CALENDAR, NOT A LIST OF EVERY FISH WITH A QUOTA OF ZERO.
+     *
+     * "No fishing for bass", "no fishing for kokanee in streams", "no fishing for yellow
+     * perch" are true all year and are already rows in the quota table reading 0. Six of them
+     * above it pushed the one thing this block exists for — the spring closure, the steelhead
+     * closure — off the bottom, which is the opposite of surfacing it.
+     *
+     * What belongs here is a closure that shuts the WATER, or one that has DATES: either you
+     * cannot fish, or the answer changes on a day the reader can plan around. A permanent
+     * species closure is neither, and the table says it anyway.
+     */
+    return shutsTheWater(x) || (x.windows||[]).length>0;
+  });
+  var now=[], soon=[], lifted=[], seen={};
+  shut.forEach(function(x){
+    var k=x.label+"|"+winWord(x.windows);
+    if(seen[k]) return; seen[k]=1;
+    if(liftedBy(x, lifts)) lifted.push(x);
+    else if(live(x.windows)) now.push(x);
+    else if((x.windows||[]).length) soon.push(x);
+  });
+  /* Soonest first: the closure that starts next week matters more than the one in eight
+     months, and a reader scanning for "when can I fish" reads down. */
+  soon.sort(function(a,b){
+    var na=nextChange([a]), nb=nextChange([b]);
+    return (na?na.delta:9999)-(nb?nb.delta:9999);
+  });
+  return {now:now, soon:soon, lifted:lifted, lifts:lifts};
+}
+function whenWords(x){
+  var n=nextChange([x]);
+  if(!n) return "";
+  var d=MON[n.d.month]+" "+n.d.day;
+  // The boundary we found is either this window's start or its end.
+  var starts=(x.windows||[]).some(function(w){
+    return w.from.month===n.d.month && w.from.day===n.d.day; });
+  return (starts?"from ":"until ")+d;
+}
+function closureBlock(items){
+  var c=closureCal(items);
+  if(!c.now.length && !c.soon.length && !c.lifted.length) return "";
+  var row=function(x, kind, extra){
+    /* The strike goes on the LABEL, not on the line. `text-decoration` propagates to
+       descendants and a descendant cannot take it off again, so striking the whole cell struck
+       the sentence explaining WHY it was lifted — the one part a reader needs to be able to
+       read. */
+    var lab=esc(x.label);
+    return '<div class="clr '+kind+'"><span class="clw">'+esc(winWord(x.windows))+'</span>'
+      +'<span class="clb">'+(kind==="lift"?'<s>'+lab+'</s>':lab)
+      +(extra?' <em>'+extra+'</em>':'')+'</span>'
+      +'<span class="clx">'+esc(whereFrom(x)+viaWords(x))+'</span></div>';
+  };
+  var h=['<div class="qtitle">Closures on this stretch</div><div class="clrs">'];
+  c.now.forEach(function(x){ h.push(row(x,"on","in force now &middot; "+esc(whenWords(x)))); });
+  c.soon.forEach(function(x){ h.push(row(x,"off",esc(whenWords(x)))); });
+  c.lifted.forEach(function(x){
+    var by=liftedBy(x, c.lifts);
+    h.push(row(x,"lift","lifted here &middot; "+esc(by?by.label:"exempt")));
+  });
+  return h.join("")+'</div>';
+}
+
 function retentionTable(items, title, notes, waterKind){
   var lifts=liftsIn(items);
   if(notes){
@@ -3073,8 +3171,26 @@ function build(name, mount){
         ?"for what you are fishing for, today"
         :verdict==="restricted"?"open, with rules in force today"
         :"nothing in force here today")+'</span></div>');
-    h.push('<div class="sect"><span>In force today</span><em>'
-      +(nowOwn.length+nowInh.length+nowZone.length)+' of '+here.length+'</em></div>');
+    /*
+     * "77 OF 78" COUNTED THE WRONG THING AND FRIGHTENED THE READER.
+     *
+     * On the Chilliwack, 77 of those 78 are the province's and the region's — the same
+     * boilerplate that reaches every water in British Columbia, and every one of them is already
+     * in the tables below. Printed as a fraction it reads as a filter: seventy-seven things you
+     * are not being shown. Nothing is being withheld.
+     *
+     * What a reader actually wants to know here is how much of this is about THIS RIVER, and
+     * whether any of the river's own rules are out of season today — which is the only case
+     * where a number smaller than another number means something.
+     */
+    var ownAll=own.concat(inh);
+    var ownNow=nowOwn.length+nowInh.length;
+    h.push('<div class="sect"><span>Written for this river</span><em>'
+      +(ownAll.length
+         ? (ownNow===ownAll.length
+             ? ownAll.length+(ownAll.length===1?' rule':' rules')
+             : ownNow+' of '+ownAll.length+' in force today')
+         : 'none yet')+'</em></div>');
     h.push(groupBar());
     h.push(rows(nowOwn,'n',num));
     if(nowInh.length){
@@ -3158,6 +3274,7 @@ function build(name, mount){
         +'<b>this water</b> is one we matched to a regional default and replaced; where we '
         +'could not match them, <b>both are shown and neither is struck</b> — so read this '
         +'river\u2019s own rows above before relying on a regional number.</div>');
+      h.push(closureBlock(own.concat(inh, zone)));
       h.push(retentionTable(nowOwn.concat(nowInh, nowZone), "Quotas & closures here",
                             bucket, "stream"));
       /*
