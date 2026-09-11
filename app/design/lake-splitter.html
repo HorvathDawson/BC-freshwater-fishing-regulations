@@ -436,8 +436,14 @@ function renderParts(){
   box.querySelectorAll("[data-drop]").forEach(function(b){
     b.onclick = function(){
       var p = parts[+b.dataset.drop];
-      p.feature = null; p.id = null; p.keep = false;
-      reassignIds(); drawParts(); saveWork();
+      // Forget the operation too: replaying it would rebuild the piece that was just discarded.
+      if (p.madeBy) {
+        var kind = p.madeBy.split(":")[0], key = p.madeBy.slice(kind.length + 1);
+        ops = ops.filter(function(o){
+          return !(o.kind === kind && (o.row === key || o.cutId === key)); });
+      }
+      p.feature = null; p.id = null; p.keep = false; p.madeBy = null;
+      recompute();
     };
   });
 }
@@ -476,8 +482,27 @@ var cuts = [];
 /* WHAT WAS DONE, not just what it produced. The polygons are a pure function of the cuts and
    the lake, so the save records which operations were run and they are replayed on load —
    safer than caching shapes against an outline that may have been rebuilt underneath them. */
-var cutApplied = false;
-var autoCuts = [];          // entry_ids of the region cuts that were taken
+/* --------------------------------------------------------------------------------------- *
+ * THE PARTS ARE A FUNCTION OF THE OPERATIONS, AND ARE RECOMPUTED FROM SCRATCH.
+ *
+ * Cutting used to mutate the parts in place, which is wrong twice over on the only workflow
+ * that matters — drag the line, cut, look, drag again, cut again:
+ *
+ *   the second cut carved from the ALREADY-CARVED piece. Zone A shrank a little further every
+ *   time, so the arm was measured off water that had already been taken away, and the answer
+ *   drifted with every attempt. "Close but wrong", and wronger each press.
+ *
+ *   and it made a SECOND part. `slotFor` skips slots that are filled, so re-cutting a line
+ *   whose part already existed fell through to "the next empty slot" and there were suddenly
+ *   two Nation Arms.
+ *
+ * So operations are recorded in order — a region taken, a line cut — and every change replays
+ * them from the untouched lake. Cutting twice is the same as cutting once, dragging a handle
+ * re-derives everything downstream of it, and a part cannot be created twice because it is
+ * identified by the operation that made it.
+ * --------------------------------------------------------------------------------------- */
+var ops = [];               // [{kind:"region", row}, {kind:"line", cutId}], in the order taken
+var cutApplied = false;     // the whole-lake "Cut all", which is its own thing
 
 /* --------------------------------------------------------------------------------------- *
  * THE WORK SURVIVES A RELOAD.
@@ -500,7 +525,7 @@ function saveWork(){
     localStorage.setItem(SAVEKEY + cur.item_id, JSON.stringify({
       at: Date.now(),
       cutApplied: !!cutApplied,
-      autoCuts: autoCuts.slice(),
+      ops: ops.slice(),
       cuts: cuts.map(function(c){
         return {id:c.id, label:c.label, note:c.note, approx:c.approx, source:c.source,
                 forRow: c.forRow,
@@ -626,8 +651,13 @@ function drawCutLines(){
           status(c.label + " · point " + (qi+1) + " of " + pts.length + " · "
                  + e.latlng.lat.toFixed(4) + ", " + e.latlng.lng.toFixed(4));
         }
-        function up(){ map.off("mousemove", move); map.off("mouseup", up);
-                       map.dragging.enable(); }
+        function up(){
+          map.off("mousemove", move); map.off("mouseup", up);
+          map.dragging.enable();
+          // The line moved, so anything cut from it is stale. Replay rather than leave the
+          // old polygon sitting under a line that no longer produces it.
+          if (ops.some(function(o){ return o.kind === "line" && o.cutId === c.id; })) recompute();
+        }
         map.on("mousemove", move); map.on("mouseup", up);
       });
 
@@ -801,33 +831,84 @@ function targetFor(c){
   return best;
 }
 
-function applyCut(c){
+/* Replay every operation from the untouched lake. Names and keep flags the curator has set
+   are carried across, because they are decisions and not derived values. */
+function recompute(){
+  var typed = {}, kept = null;
+  parts.forEach(function(p){
+    if (p.renamed && p.name) typed[p.slotKey || p.name] = p.name;
+    if (p.keep) kept = p.slotKey || p.name;
+  });
+
+  parts = (cur.parts || []).map(function(x){
+    return {name: x.name || "Part", slotKey: x.name || "Part",
+            id: null, feature: null, renamed: false}; });
+  parts.forEach(function(p){ if (typed[p.slotKey]) { p.name = typed[p.slotKey];
+                                                     p.renamed = true; } });
+
+  ops.forEach(function(op){
+    if (op.kind === "region") {
+      var row = (cur.rows || []).find(function(r){ return r.entry_id === op.row; });
+      if (row) placeRegion(row);
+    } else {
+      var c = cuts.find(function(x){ return x.id === op.cutId; });
+      if (c) placeLine(c);
+    }
+  });
+
+  if (kept) { var k = parts.find(function(p){ return (p.slotKey || p.name) === kept; });
+              if (k) k.keep = true; }
+  reassignIds(); drawParts(); saveWork();
+}
+
+/* One region taken out of the lake. */
+function placeRegion(row){
+  var rings = (cur.regions || {})[row.region];
+  if (!rings || !rings.length) return null;
+  var union = null;
+  rings.forEach(function(r){
+    var poly = turf.polygon([r]);
+    union = union ? turf.union(union, poly) : poly;
+  });
+  var cut = clipToLake(union);
+  if (!cut) return null;
+  var slot = slotFor(row.entry_id) ||
+             parts.find(function(p){ return !p.feature && !p.keep; });
+  if (slot) { slot.feature = cut; slot.madeBy = "region:" + row.entry_id; }
+  else parts.push({name: shortName(row.entry_id), feature: cut, id: null,
+                   madeBy: "region:" + row.entry_id});
+  return slot;
+}
+
+/* One line carving one part off whichever piece it crosses. */
+function placeLine(c){
   var idx = targetFor(c);
   var target = idx == null ? unclaimed() : parts[idx].feature;
+  if (!target) return null;
   var res = cutBy(target, c);
-  if (res.length < 2) {
-    status(idx == null
-      ? "that line does not divide any unassigned water — drag it across the channel"
-      : 'that line does not divide "' + parts[idx].name + '"');
-    return;
-  }
+  if (res.length < 2) return null;
   res.sort(function(a, b){ return a.area - b.area; });
   var small = res[0], big = res[res.length - 1];
-
-  // The piece it was cut from keeps the larger side; the arm becomes its own part.
   if (idx != null) parts[idx].feature = big.feature;
+  var slot = (c.forRow ? slotFor(c.forRow) : null)
+          || parts.find(function(p){ return !p.feature && !p.keep; });
+  if (slot) { slot.feature = small.feature; slot.hand = true; slot.madeBy = "line:" + c.id; }
+  else parts.push({name: c.label || ("Piece " + (parts.length + 1)), feature: small.feature,
+                   id: null, hand: true, madeBy: "line:" + c.id});
+  return {slot: slot, small: small, from: idx == null ? null : parts[idx].name};
+}
 
-  // A line drawn FOR a row belongs to that row's part, not merely to the next empty slot.
-  var slot = c.forRow ? slotFor(c.forRow) : null;
-  if (!slot) slot = parts.find(function(p){ return !p.feature && !p.keep; });
-  if (slot) { slot.feature = small.feature; slot.hand = true; }
-  else parts.push({name: c.label || ("Piece " + (parts.length + 1)),
-                   feature: small.feature, id: null, hand: true});
-  reassignIds(); drawParts(); saveWork();
-  var named = slot ? slot.name : parts[parts.length-1].name;
-  status('"' + named + '" — ' + areaWord(small.feature)
-         + (idx == null ? "" : ', cut from "' + parts[idx].name + '"')
-         + " · click it on the map to rename");
+function applyCut(c){
+  if (!ops.some(function(o){ return o.kind === "line" && o.cutId === c.id; }))
+    ops.push({kind: "line", cutId: c.id});
+  recompute();
+  var made = parts.find(function(p){ return p.madeBy === "line:" + c.id; });
+  if (!made || !made.feature) {
+    status('that line does not divide the water it crosses — drag it across the channel');
+    return;
+  }
+  status('"' + made.name + '" — ' + areaWord(made.feature)
+         + " · click it on the map to rename, or drag the line and press Cut again");
 }
 
 /* A ROW IS ITS MANAGEMENT UNITS ONLY IF NO OTHER ROW CONTAINS IT.
@@ -1000,20 +1081,13 @@ function slotFor(rowText){
 }
 
 function autoCut(row){
-  var rings = (cur.regions || {})[row.region];
-  if (!rings || !rings.length) { status("no polygon for region " + row.region); return; }
-  var union = null;
-  rings.forEach(function(r){
-    var poly = turf.polygon([r]);
-    union = union ? turf.union(union, poly) : poly;
-  });
-  var cut = clipToLake(union);
-  if (!cut) { status("region " + row.region + " does not overlap this lake"); return; }
-  var slot = slotFor(row.entry_id);
-  if (autoCuts.indexOf(row.entry_id) < 0) autoCuts.push(row.entry_id);
-  addPart(shortName(row.entry_id), cut, row.entry_id);
-  status(slot ? ('cut "' + slot.name + '" from Region ' + row.region + ' — ' + areaWord(cut))
-              : ("cut Region " + row.region + " — " + areaWord(cut)));
+  if (!ops.some(function(o){ return o.kind === "region" && o.row === row.entry_id; }))
+    ops.push({kind: "region", row: row.entry_id});
+  recompute();
+  var made = parts.find(function(p){ return p.madeBy === "region:" + row.entry_id; });
+  if (!made || !made.feature) { status("region " + row.region + " does not divide this lake");
+                                return; }
+  status('"' + made.name + '" — ' + areaWord(made.feature) + ", from Region " + row.region);
 }
 
 function addPart(name, feature, rowText){
@@ -1219,7 +1293,7 @@ sel.onchange = function(){
   parts = (cur.parts||[]).map(function(p){
     return {name: p.name || "Part", id: null, feature: null}; });
   drawing = null; setDrawing(false); drawLayer.clearLayers();
-  cutApplied = false; autoCuts = [];
+  cutApplied = false; ops = [];
   cuts = JSON.parse(JSON.stringify(cur.cuts || []));
   var saved = loadWork();
   if (saved && saved.cuts && saved.cuts.length) {
@@ -1236,11 +1310,10 @@ sel.onchange = function(){
      pressing Cut again would restore it. The operations are replayed instead, so the lake comes
      back exactly as it was left. */
   if (saved) {
-    if (saved.autoCuts && saved.autoCuts.length) {
-      saved.autoCuts.forEach(function(eid){
-        var row = (cur.rows||[]).find(function(r){ return r.entry_id === eid; });
-        if (row) autoCut(row);
-      });
+    if (saved.ops && saved.ops.length) { ops = saved.ops.slice(); recompute(); }
+    else if (saved.autoCuts && saved.autoCuts.length) {      // files written before ops existed
+      ops = saved.autoCuts.map(function(eid){ return {kind:"region", row:eid}; });
+      recompute();
     }
     if (saved.cutApplied) cutAll();
     var mins = Math.round((Date.now() - saved.at) / 60000);
