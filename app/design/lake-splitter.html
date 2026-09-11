@@ -60,6 +60,7 @@ code{font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg
   font:11px/1.3 ui-sans-serif,system-ui,sans-serif;font-weight:600;white-space:nowrap;
   box-shadow:none}
 .lbl:before{display:none}
+.lbl.meas{background:rgba(74,111,165,.92);font-weight:600}
 </style>
 
 <div id="side">
@@ -74,6 +75,15 @@ code{font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg
 
   <h2>Cut lines</h2>
   <div id="cuts"></div>
+
+  <h2>Measure</h2>
+  <div class="row">
+    <button id="meas">Measure</button>
+    <button id="measclr" disabled>Clear</button>
+  </div>
+  <div id="measout" class="note">Click along the map to measure. The book works in both units
+  &mdash; &ldquo;Six Mile&rdquo;, &ldquo;approx. 10 km west of Likely&rdquo; &mdash; so both are
+  shown.</div>
 
   <h2>Draw</h2>
   <div class="row">
@@ -458,10 +468,14 @@ function renderCuts(){
     return;
   }
   box.innerHTML = cuts.map(function(c, i){
+    var pts = cutPts(c), run = 0;
+    for (var k = 1; k < pts.length; k++)
+      run += dist([pts[k-1][1], pts[k-1][0]], [pts[k][1], pts[k][0]]);
     return '<div class="part"><span class="nm"><b>' + esc(c.label) + '</b><span>'
       + (c.approx ? "seed is approximate — drag it onto the real boundary"
                   : (c.source || "endpoints from the place table"))
-      + '</span></span><button data-cut="' + i + '">Cut</button></div>';
+      + ' · ' + lenWords(run) + '</span></span>'
+      + '<button data-cut="' + i + '">Cut</button></div>';
   }).join("")
   + '<div class="note">' + esc(cuts[0].note || "") + '</div>'
   + '<div class="note">Drag a handle to move a point. <b>Click the line</b> to add one — a bay '
@@ -812,6 +826,74 @@ function addPart(name, feature, rowText){
   reassignIds(); drawParts(); saveWork();
 }
 
+
+/* --------------------------------------------------------------------------------------- *
+ * A RULER, because the book places boundaries by distance and the map cannot answer it.
+ *
+ * "McDonalds Landing (Six Mile)" is six miles along the arm from Nelson. "BIG LAKE (approx. 10
+ * km west of 100 Mile House)". Placing either means knowing how far something is, and until now
+ * the only way to check was to leave and measure somewhere else. The synopsis mixes units in
+ * the same sentence, so both are shown rather than one being picked for it.
+ *
+ * Segment lengths as well as the total: a cut across a channel is one segment, and its length
+ * IS the width of the water it crosses, which is the number that says whether the line is in
+ * the right place.
+ * --------------------------------------------------------------------------------------- */
+var measuring = null;
+var measLayer = L.layerGroup().addTo(map);
+
+function dist(a, b){        // metres between two [lat,lng]
+  try { return turf.distance(turf.point([a[1],a[0]]), turf.point([b[1],b[0]]),
+                             {units:"meters"}); } catch(e){ return 0; }
+}
+function lenWords(m){
+  var km = m/1000, mi = m/1609.344;
+  if (m < 1000) return Math.round(m) + " m  ·  " + mi.toFixed(2) + " mi";
+  return km.toFixed(km < 10 ? 2 : 1) + " km  ·  " + mi.toFixed(mi < 10 ? 2 : 1) + " mi";
+}
+
+function redrawMeasure(){
+  measLayer.clearLayers();
+  var box = document.getElementById("measout");
+  if (!measuring || !measuring.length) {
+    if (box) box.innerHTML = "Click along the map to measure. Right-click or press Esc to stop.";
+    return;
+  }
+  L.polyline(measuring, {color: css("--p2"), weight: 2, dashArray: "4,4"}).addTo(measLayer);
+  var total = 0, rows = [];
+  for (var i = 0; i < measuring.length; i++) {
+    L.circleMarker(measuring[i], {radius: 3.5, color: css("--p2"), fillOpacity: 1})
+      .addTo(measLayer);
+    if (i) {
+      var d = dist(measuring[i-1], measuring[i]);
+      total += d;
+      rows.push("<div>leg " + i + " &middot; " + lenWords(d) + "</div>");
+      // the running total sits at the point it is a total TO
+      L.marker(measuring[i], {interactive:false, icon: L.divIcon({className:"",
+        html:'<div class="lbl meas">'+lenWords(total)+'</div>', iconSize:null})})
+        .addTo(measLayer);
+    }
+  }
+  if (box) box.innerHTML = (rows.length
+      ? rows.join("") + '<div style="margin-top:4px"><b>total &middot; ' + lenWords(total)
+        + '</b></div>'
+      : "one point — click another");
+  var clr = document.getElementById("measclr");
+  if (clr) clr.disabled = false;
+}
+
+function setMeasuring(on){
+  measuring = on ? [] : null;
+  var b = document.getElementById("meas");
+  if (b) b.setAttribute("aria-pressed", String(!!on));
+  map.getContainer().style.cursor = on ? "crosshair" : "";
+  if (!on) { measLayer.clearLayers();
+             var box = document.getElementById("measout");
+             if (box) box.innerHTML = "Click along the map to measure.";
+             var c = document.getElementById("measclr"); if (c) c.disabled = true; }
+  else redrawMeasure();
+}
+
 /* ---- freehand tracing ---- */
 function setDrawing(on){
   ["undo","finish","cancel"].forEach(function(id){
@@ -827,11 +909,31 @@ function redrawTrace(){
     L.circleMarker(pt, {radius:3, color:css("--warn"), fillOpacity:1}).addTo(drawLayer); });
 }
 map.on("click", function(e){
+  if (measuring) {
+    measuring.push([e.latlng.lat, e.latlng.lng]);
+    redrawMeasure();
+    return;
+  }
   if (!drawing) return;
   drawing.push([e.latlng.lat, e.latlng.lng]);
   redrawTrace();
   document.getElementById("finish").disabled = drawing.length < 3;
 });
+map.on("contextmenu", function(){ if (measuring) setMeasuring(false); });
+document.addEventListener("keydown", function(e){
+  if (e.key === "Escape") { if (measuring) setMeasuring(false);
+                            else if (drawing) { drawing = null; setDrawing(false);
+                                                drawLayer.clearLayers(); } }
+});
+document.getElementById("meas").onclick = function(){
+  if (measuring) { setMeasuring(false); return; }
+  if (drawing) { drawing = null; setDrawing(false); drawLayer.clearLayers(); }
+  setMeasuring(true);
+  status("click along the map — right-click or Esc to stop");
+};
+document.getElementById("measclr").onclick = function(){
+  if (measuring) { measuring = []; redrawMeasure(); }
+};
 document.getElementById("draw").onclick = function(){
   if (!cur) { status("pick a lake first"); return; }
   drawing = []; setDrawing(true); redrawTrace();
