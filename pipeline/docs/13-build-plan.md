@@ -535,8 +535,8 @@ the area catalog `area_catalog.gpkg` (**code**).
 ### 6.1 — Contract
 
 ```
-python -m pipeline.atlas.reach.build --build data/generated/atlas/full --out data/generated/reaches/full
-python -m pipeline.atlas.reach.build --build data/generated/atlas/full_new --against data/generated/reaches/full
+python -m pipeline.atlas.reach.cli --build data/generated/atlas/full --out data/generated/reaches/full
+python -m pipeline.atlas.reach.cli --build data/generated/atlas/full_new --against data/generated/reaches/full
 ```
 
 ```

@@ -25,7 +25,7 @@ pipeline/atlas/reach/
   cache.py       sha256(entry ‖ build_id) -> cached result                (incremental)
   diff.py        two runs -> what changed, ranked by blast radius
   io.py          read entries · write tables · write report.json
-  cli.py         python -m pipeline.atlas.reach.build
+  cli.py         python -m pipeline.atlas.reach.cli
 ```
 
 Six small modules, one job each. `build.py` orchestrates and holds no rules; `classify.py` holds every
@@ -97,10 +97,15 @@ graph load. There is no performance problem to solve.
 ## Diff mode — the reason it is next
 
 ```bash
-python -m pipeline.atlas.reach.build --build data/generated/atlas/full     --out data/generated/reaches/full
-python -m pipeline.atlas.reach.build --build data/generated/atlas/full_new --out data/generated/reaches/full_new \
+python -m pipeline.atlas.reach.cli --build data/generated/atlas/full     --out data/generated/reaches/full
+python -m pipeline.atlas.reach.cli --build data/generated/atlas/full_new --out data/generated/reaches/full_new \
                                --against data/generated/reaches/full
 ```
+
+> **It is `cli`, not `build`.** This page said `-m pipeline.atlas.reach.build` for a long time.
+> `build.py` is the library — it holds `build_reaches` and no `__main__` — so running it does not
+> error. It prints nothing and **exits 0**, which reads exactly like a build that had nothing to do,
+> while the stale tables underneath it stay the ones every later step consumes.
 
 Reports, per rule, the sections added and removed, grouped by entry, ranked by blast radius, with each
 entry's `confirmed` flag shown.
