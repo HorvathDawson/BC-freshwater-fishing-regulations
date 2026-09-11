@@ -1,0 +1,1208 @@
+{
+ "_": "Sub-lake areas a regulation names and the atlas cannot draw. Each `area` is the book's OWN words for a part of a lake — an arm, a bay, the water inside a line between boundary signs — and each needs a polygon before the rule it serves can bind to anything. Until one exists the rule is carried on the whole lake, unplaced and marked, never widened to it. `polygon: null` is the worklist; fill it with a ring in EPSG:4326 and the rule binds. Generated from the shipped bundle as a ROSTER; the polygons themselves are hand work. Kootenay Lake is listed first: its areas come from a zone entry with no item of its own, which the roster's own query could not see, so that shape is a known gap in the sweep rather than an absence of cases.",
+ "lakes": [
+  {
+   "lake": "Adams Lake",
+   "item_id": "wbk:329014384",
+   "mus": [
+    "3-37"
+   ],
+   "areas": [
+    {
+     "area": "north of a line drawn due west from mouth of Momich River",
+     "serves": {
+      "entry_id": "r3:adams_lake@3-37",
+      "rule_id": "adams_lake.r1",
+      "rule": "No fishing, Mar 15-June 30 — north of a line drawn due west from mouth of Momich River"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Alouette Lake",
+   "item_id": "wbk:329291807",
+   "mus": [
+    "2-8"
+   ],
+   "areas": [
+    {
+     "area": "in swimming areas, as buoyed and signed",
+     "serves": {
+      "entry_id": "r2:alouette_lake@2-8",
+      "rule_id": "alouette_lake.r2",
+      "rule": "No vessels — in swimming areas, as buoyed and signed"
+     },
+     "polygon": null
+    },
+    {
+     "area": "at south end of lake, south of a line drawn from the BC Parks boat ramp to signs on the east side of the lake",
+     "serves": {
+      "entry_id": "r2:alouette_lake@2-8",
+      "rule_id": "alouette_lake.r3",
+      "rule": "Speed restriction (8 km/h) — at south end of lake, south of a line drawn from the BC Parks boat ramp to signs on the east side of the lake"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Babine Lake",
+   "item_id": "wbk:329026676",
+   "mus": [
+    "6-6"
+   ],
+   "areas": [
+    {
+     "area": "east of a line from Gullwing Creek to the south shore of Babine Lake",
+     "serves": {
+      "entry_id": "r6:babine_lake@6-6",
+      "rule_id": "babine_lake.r1",
+      "rule": "No fishing — east of a line from Gullwing Creek to the south shore of Babine Lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within a 400 m radius of the mouth of Pinkut Creek",
+     "serves": {
+      "entry_id": "r6:babine_lake@6-6",
+      "rule_id": "babine_lake.r2",
+      "rule": "No fishing, Aug 15-Sept 15 — within a 400 m radius of the mouth of Pinkut Creek"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Beaver Lake",
+   "item_id": "wbk:329676320",
+   "mus": [
+    "1-1"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:beaver_lake@1-1",
+      "rule_id": "beaver_lake.r3",
+      "rule": "No towing — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Brannen Lake",
+   "item_id": "wbk:329467589",
+   "mus": [
+    "1-5"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:brannen_lake@1-5",
+      "rule_id": "brannen_lake.r1",
+      "rule": "Speed restriction (60 km/h) — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Buckinghorse Lake",
+   "item_id": "wbk:329529450",
+   "mus": [
+    "6-20"
+   ],
+   "areas": [
+    {
+     "area": "within 100 m of outlet",
+     "serves": {
+      "entry_id": "r6:buckinghorse_lake@6-20",
+      "rule_id": "buckinghorse_lake.r1",
+      "rule": "No fishing, May 15-July 31 — within 100 m of outlet"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Buttle Lake",
+   "item_id": "wbk:329069966",
+   "mus": [
+    "1-9"
+   ],
+   "areas": [
+    {
+     "area": "Thelwood Creek",
+     "serves": {
+      "entry_id": "r1:buttle_lake_s_tributaries@1-9",
+      "rule_id": "buttle_lake_s_tributaries.r2",
+      "rule": "No fishing — Thelwood Creek"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Campbell Lake",
+   "item_id": "wbk:329069968",
+   "mus": [
+    "1-6"
+   ],
+   "areas": [
+    {
+     "area": "including Campbell River between Strathcona Dam and (Lower) Campbell Lake",
+     "serves": {
+      "entry_id": "r1:lower_campbell_lake_s_tributaries@1-6",
+      "rule_id": "campbell_lake_s_tributaries.r1",
+      "rule": "No fishing, Feb 1-July 15 — including Campbell River between Strathcona Dam and (Lower) Campbell Lake"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Columbia Lake",
+   "item_id": "wbk:329093897",
+   "mus": [
+    "4-25"
+   ],
+   "areas": [
+    {
+     "area": "near eastern shore and at south end, as buoyed and signed",
+     "serves": {
+      "entry_id": "r4:columbia_lake@4-25",
+      "rule_id": "columbia_lake.r3",
+      "rule": "Speed restriction (10 km/h) — near eastern shore and at south end, as buoyed and signed"
+     },
+     "polygon": null
+    },
+    {
+     "area": "(except Dutch Creek)",
+     "serves": {
+      "entry_id": "r4:columbia_lake_s_tributaries@4-25",
+      "rule_id": "columbia_lake_s_tributaries.r1",
+      "rule": "No fishing — (except Dutch Creek)"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Cowichan Lake",
+   "item_id": "wbk:329101302",
+   "mus": [
+    "1-4"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:cowichan_lake_including_bear_lake@1-4",
+      "rule_id": "cowichan_lake.r4",
+      "rule": "Speed restriction (8 km/h) — on parts"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 60 m of shore",
+     "serves": {
+      "entry_id": "r1:cowichan_lake_including_bear_lake@1-4",
+      "rule_id": "cowichan_lake.r5",
+      "rule": "Speed restriction (10 km/h) — within 60 m of shore"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Cultus Lake",
+   "item_id": "wbk:329083342",
+   "mus": [
+    "2-3"
+   ],
+   "areas": [
+    {
+     "area": "on parts of the lake",
+     "serves": {
+      "entry_id": "r2:cultus_lake@2-3",
+      "rule_id": "cultus_lake.r3",
+      "rule": "No vessels — on parts of the lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "at the north end, as buoyed and signed",
+     "serves": {
+      "entry_id": "r2:cultus_lake@2-3",
+      "rule_id": "cultus_lake.r4",
+      "rule": "Speed restriction (5 km/h) — at the north end, as buoyed and signed"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Dragon Lake",
+   "item_id": "wbk:329480769",
+   "mus": [
+    "5-2"
+   ],
+   "areas": [
+    {
+     "area": "southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek",
+     "serves": {
+      "entry_id": "r5:dragon_lake@5-2",
+      "rule_id": "dragon_lake.r1",
+      "rule": "No fishing, Apr 1-May 31 — southeast of a line between fishing boundary signs on opposite shores of the bay at the mouth of Hallis Creek"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Duncan Lake",
+   "item_id": "wbk:329120714",
+   "mus": [
+    "4-27"
+   ],
+   "areas": [
+    {
+     "area": "(includes Upper Duncan River and tributaries)",
+     "serves": {
+      "entry_id": "r4:duncan_lake_s_tributaries@4-27",
+      "rule_id": "duncan_lake_s_tributaries.r1",
+      "rule": "Bull trout — release all — (includes Upper Duncan River and tributaries)"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Elk Lake",
+   "item_id": "wbk:329676313",
+   "mus": [
+    "1-1"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:elk_lake@1-1",
+      "rule_id": "elk_lake.r2",
+      "rule": "Engine power restriction 7.5 kW (10 hp) — on parts"
+     },
+     "polygon": null
+    },
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:elk_lake@1-1",
+      "rule_id": "elk_lake.r3",
+      "rule": "No vessels — on parts"
+     },
+     "polygon": null
+    },
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:elk_lake@1-1",
+      "rule_id": "elk_lake.r4",
+      "rule": "No powered boats — on parts"
+     },
+     "polygon": null
+    },
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:elk_lake@1-1",
+      "rule_id": "elk_lake.r5",
+      "rule": "No towing — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Great Central Lake",
+   "item_id": "wbk:329016195",
+   "mus": [
+    "1-7"
+   ],
+   "areas": [
+    {
+     "area": "from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge",
+     "serves": {
+      "entry_id": "r1:great_central_lake@1-7",
+      "rule_id": "great_central_lake.r1",
+      "rule": "No fishing, Jan 1-Apr 30 — from the dam to fishing boundary signs approximately 50 m upstream (southwest) of the Ash Main Bridge"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Green Lake",
+   "item_id": "wbk:329303448",
+   "mus": [
+    "2-9"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r2:green_lake@2-9",
+      "rule_id": "green_lake.r5",
+      "rule": "Speed restriction (10 km/h) — on parts"
+     },
+     "polygon": null
+    },
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r2:green_lake@2-9",
+      "rule_id": "green_lake.r6",
+      "rule": "No towing — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Harrison Lake",
+   "item_id": "wbk:329177884",
+   "mus": [
+    "2-18"
+   ],
+   "areas": [
+    {
+     "area": "at south end, as buoyed and signed",
+     "serves": {
+      "entry_id": "r2:harrison_lake@2-18",
+      "rule_id": "harrison_lake.r3",
+      "rule": "Speed restriction (10 km/h) — at south end, as buoyed and signed"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Hatzic Lake",
+   "item_id": "wbk:329291809",
+   "mus": [
+    "2-8"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r2:hatzic_lake_and_slough@2-8",
+      "rule_id": "hatzic_lake_and_slough.r2",
+      "rule": "Speed restriction (8 km/h) — on parts"
+     },
+     "polygon": null
+    },
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r2:hatzic_lake_and_slough@2-8",
+      "rule_id": "hatzic_lake_and_slough.r3",
+      "rule": "Speed restriction (50 km/h) — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Helene Lake",
+   "item_id": "wbk:329026689",
+   "mus": [
+    "6-6"
+   ],
+   "areas": [
+    {
+     "area": "northwest of a line between fishing boundary signs on opposite shores of the outlet bay",
+     "serves": {
+      "entry_id": "r6:helene_lake@6-6",
+      "rule_id": "helene_lake.r1",
+      "rule": "No fishing, Apr 1 - June 30 — northwest of a line between fishing boundary signs on opposite shores of the outlet bay"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "John Hart Lake",
+   "item_id": "wbk:329069971",
+   "mus": [
+    "1-10"
+   ],
+   "areas": [
+    {
+     "area": "includes channel downstream of Ladore Dam",
+     "serves": {
+      "entry_id": "r1:john_hart_lake_s_tributaries@1-10",
+      "rule_id": "john_hart_lake_s_tributaries.r1",
+      "rule": "No fishing, Apr 15-July 15 — includes channel downstream of Ladore Dam"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Kalamalka Lake",
+   "item_id": "wbk:329459117",
+   "mus": [
+    "8-22"
+   ],
+   "areas": [
+    {
+     "area": "various locations (as buoyed and signed)",
+     "serves": {
+      "entry_id": "r8:kalamalka_lake@8-22",
+      "rule_id": "kalamalka_lake.r3",
+      "rule": "Speed restriction — various locations (as buoyed and signed)"
+     },
+     "polygon": null
+    },
+    {
+     "area": "various locations (as buoyed and signed)",
+     "serves": {
+      "entry_id": "r8:kalamalka_lake@8-22",
+      "rule_id": "kalamalka_lake.r4",
+      "rule": "No vessels — various locations (as buoyed and signed)"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Klahowya Lake",
+   "item_id": "wbk:329529467",
+   "mus": [
+    "6-20"
+   ],
+   "areas": [
+    {
+     "area": "within 100 m of outlet",
+     "serves": {
+      "entry_id": "r6:klahowya_lake@6-20",
+      "rule_id": "klahowya_lake.r1",
+      "rule": "No fishing, May 15 - July 31 — within 100 m of outlet"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Kootenay Lake",
+   "item_id": "wbk:328974235",
+   "mus": [
+    "4-4",
+    "4-6"
+   ],
+   "note": "THE HARD CASE. The book divides this lake into three named areas — Main Body, Upper West Arm, Lower West Arm — in a zone entry that belongs to no registry item, because a definition is not a rule. Two real rules then name one of those areas: the annual rainbow quota and the Kootenay rainbow stamp, both Main Body only. Until the three polygons exist, neither can bind to a part of the lake, and both are carried on the whole of it, unplaced.",
+   "areas": [
+    {
+     "area": "Main Body of Kootenay Lake",
+     "serves": {
+      "entry_id": "z4:kootenay_lake_boundaries",
+      "rule_id": "kootenay_lake_boundaries.r1",
+      "rule": "Main Body — the area east of a line between boundary signs on opposite shores near Balfour Point and Procter Lighthouse."
+     },
+     "polygon": null
+    },
+    {
+     "area": "Upper West Arm",
+     "serves": {
+      "entry_id": "z4:kootenay_lake_boundaries",
+      "rule_id": "kootenay_lake_boundaries.r3",
+      "rule": "Upper West Arm — the area west of that line, to McDonalds Landing (Six Mile)."
+     },
+     "polygon": null
+    },
+    {
+     "area": "Lower West Arm",
+     "serves": {
+      "entry_id": "z4:kootenay_lake_boundaries",
+      "rule_id": "kootenay_lake_boundaries.r4",
+      "rule": "Lower West Arm — the area between McDonalds Landing (Six Mile) and Corra Linn Dam."
+     },
+     "polygon": null
+    },
+    {
+     "area": "main body of Kootenay Lake",
+     "serves": {
+      "entry_id": "z4:kootenay_annual",
+      "rule_id": "kootenay_annual.r1",
+      "rule": "Rainbow trout — 20 per licence year over 50 cm — main body of Kootenay Lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "Main Body of Kootenay Lake",
+     "serves": {
+      "entry_id": "z4:kootenay_lake_boundaries",
+      "rule_id": "kootenay_lake_boundaries.r1",
+      "rule": "Main Body — the area east of a line between boundary signs on opposite shores near Balfour Point and Procter Lighthouse."
+     },
+     "polygon": null
+    },
+    {
+     "area": "Main body of Kootenay Lake, rainbow trout over 50 cm only",
+     "serves": {
+      "entry_id": "zp:kootenay_rainbow_stamp",
+      "rule_id": "kootenay_rainbow_stamp.r1",
+      "rule": "A Conservation Surcharge Stamp for Kootenay Lake rainbow trout is required, only if you keep the fish — Main body of Kootenay Lake, rainbow trout over 50 cm only"
+     },
+     "polygon": null
+    },
+    {
+     "area": "Lower West Arm of Kootenay Lake",
+     "serves": {
+      "entry_id": "r4:kootenay_lake_lower_west_arm_for_location_see_map_on_page_34@4-7",
+      "rule_id": "kootenay_lake_lower_west_arm.r1",
+      "rule": "Trout/char daily quota = 2 (only 1 bull trout)"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "Upper West Arm of Kootenay Lake",
+     "serves": {
+      "entry_id": "r4:kootenay_lake_upper_west_arm_for_location_see_map_on_page_34@4-7",
+      "rule_id": "kootenay_lake_upper_west_arm.r1",
+      "rule": "Rainbow trout catch and release, Jan 1-May 31"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Leighton Lake",
+   "item_id": "wbk:329563844",
+   "mus": [
+    "3-18"
+   ],
+   "areas": [
+    {
+     "area": "within 100 m of the mouth of the inlet stream",
+     "serves": {
+      "entry_id": "r3:leighton_lake@3-18",
+      "rule_id": "leighton_lake.r1",
+      "rule": "No fishing, May 1-Nov 30 — within 100 m of the mouth of the inlet stream"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 100 m of the Tunkwa Creek outlet",
+     "serves": {
+      "entry_id": "r3:leighton_lake@3-18",
+      "rule_id": "leighton_lake.r2",
+      "rule": "No fishing, May 1-Nov 30 — within 100 m of the Tunkwa Creek outlet"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Letain Lake",
+   "item_id": "wbk:329576622",
+   "mus": [
+    "7-52"
+   ],
+   "areas": [
+    {
+     "area": "within 100 m of fishing boundary sign at outlet",
+     "serves": {
+      "entry_id": "r7:letain_lake@7-52",
+      "rule_id": "letain_lake.r1",
+      "rule": "No fishing, May 15-July 31 — within 100 m of fishing boundary sign at outlet"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Long Lake",
+   "item_id": "wbk:329467594",
+   "mus": [
+    "1-5"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r1:long_lake_nanaimo@1-5",
+      "rule_id": "long_lake.r1",
+      "rule": "Speed restriction (60 km/h) — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Loon Lake",
+   "item_id": "wbk:329054724",
+   "mus": [
+    "3-30"
+   ],
+   "areas": [
+    {
+     "area": "northeast of fishing boundary signs near the mouth of Thunder Creek and the public access site",
+     "serves": {
+      "entry_id": "r3:loon_lake@3-30",
+      "rule_id": "loon_lake.r1",
+      "rule": "No fishing — northeast of fishing boundary signs near the mouth of Thunder Creek and the public access site"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs",
+     "serves": {
+      "entry_id": "r3:loon_lake@3-30",
+      "rule_id": "loon_lake.r2",
+      "rule": "**No Ice Fishing** within 500 m of outlet stream at southwest end of lake as marked by fishing boundary signs"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Mabel Lake",
+   "item_id": "wbk:329663955",
+   "mus": [
+    "8-24"
+   ],
+   "areas": [
+    {
+     "area": "south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet",
+     "serves": {
+      "entry_id": "r8:mabel_lake@8-24",
+      "rule_id": "mabel_lake.r1",
+      "rule": "No fishing, Jan 1-May 31 — south of a line between fishing boundary signs on the lakeshore approximately 800 m north of Shuswap River inlet"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Mahood Lake",
+   "item_id": "wbk:329354708",
+   "mus": [
+    "3-46"
+   ],
+   "areas": [
+    {
+     "area": "within the fishing boundary signs at the western tip of the lake near the mouth of Canim River",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r1",
+      "rule": "No fishing, Jan 1-June 30 — within the fishing boundary signs at the western tip of the lake near the mouth of Canim River"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within fishing boundary signs at the western tip of the lake",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r2",
+      "rule": "Trout and char — release all, July 1-Dec 31 — within fishing boundary signs at the western tip of the lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within fishing boundary signs at the western tip of the lake",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r3",
+      "rule": "Bait ban, July 1-Dec 31 — within fishing boundary signs at the western tip of the lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within fishing boundary signs at the western tip of the lake",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r4",
+      "rule": "Single barbless hook, July 1-Dec 31 — within fishing boundary signs at the western tip of the lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 200 m of the Mahood River outlet",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r5",
+      "rule": "No fishing, Jan 1-June 30 — within 200 m of the Mahood River outlet"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 200 m of the mouth of the Mahood River outlet",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r6",
+      "rule": "Trout and char — release all, July 1-Dec 31 — within 200 m of the mouth of the Mahood River outlet"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 200 m of the mouth of the Mahood River outlet",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r7",
+      "rule": "Bait ban, July 1-Dec 31 — within 200 m of the mouth of the Mahood River outlet"
+     },
+     "polygon": null
+    },
+    {
+     "area": "within 200 m of the mouth of the Mahood River outlet",
+     "serves": {
+      "entry_id": "r3:mahood_lake_see_map_on_page_28_for_area_closure@3-46",
+      "rule_id": "mahood_lake.r8",
+      "rule": "Single barbless hook, July 1-Dec 31 — within 200 m of the mouth of the Mahood River outlet"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Mara Lake",
+   "item_id": "wbk:329518146",
+   "mus": [
+    "8-26"
+   ],
+   "areas": [
+    {
+     "area": "south of the CPR bridge",
+     "serves": {
+      "entry_id": "r8:mara_lake@8-26",
+      "rule_id": "mara_lake.r2",
+      "rule": "No powered boats — south of the CPR bridge"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Nilkitkwa Lake",
+   "item_id": "wbk:329026685",
+   "mus": [
+    "6-8"
+   ],
+   "areas": [
+    {
+     "area": "that section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\"",
+     "serves": {
+      "entry_id": "r6:nilkitkwa_lake@6-8",
+      "rule_id": "nilkitkwa_lake.r4",
+      "rule": "That section of flowing water between Babine and Nilkitkwa Lakes known as \"Rainbow Alley\" is open for fishing all year"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Nulki Lake",
+   "item_id": "wbk:329445090",
+   "mus": [
+    "7-12"
+   ],
+   "areas": [
+    {
+     "area": "west of a line between fishing boundary signs on lakeshore near mouth of Corkscrew Creek",
+     "serves": {
+      "entry_id": "r7:nulki_lake@7-12",
+      "rule_id": "nulki_lake.r1",
+      "rule": "No fishing, Apr 1 - May 31 — west of a line between fishing boundary signs on lakeshore near mouth of Corkscrew Creek"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Okanagan Lake",
+   "item_id": "wbk:329459116",
+   "mus": [
+    "8-10"
+   ],
+   "areas": [
+    {
+     "area": "various locations (as buoyed and signed)",
+     "serves": {
+      "entry_id": "r8:okanagan_lake@8-10",
+      "rule_id": "okanagan_lake.r4",
+      "rule": "Speed restriction — various locations (as buoyed and signed)"
+     },
+     "polygon": null
+    },
+    {
+     "area": "various locations (as buoyed and signed)",
+     "serves": {
+      "entry_id": "r8:okanagan_lake@8-10",
+      "rule_id": "okanagan_lake.r5",
+      "rule": "No vessels — various locations (as buoyed and signed)"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Osoyoos Lake",
+   "item_id": "wbk:328961724",
+   "mus": [],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r8:osoyoos_lake@8-1",
+      "rule_id": "osoyoos_lake.r6",
+      "rule": "Speed restriction on parts"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "in 5 signed swimming areas",
+     "serves": {
+      "entry_id": "r8:osoyoos_lake@8-1",
+      "rule_id": "osoyoos_lake.r7",
+      "rule": "no vessels (see definition on page 4) in 5 signed swimming areas"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Pitt Lake",
+   "item_id": "wbk:329291806",
+   "mus": [
+    "2-8"
+   ],
+   "areas": [
+    {
+     "area": "north of fishing boundary signs (east and west shores) near the head of the lake",
+     "serves": {
+      "entry_id": "r2:pitt_lake@2-8",
+      "rule_id": "pitt_lake.r3",
+      "rule": "Trout and char — release all, wild only — north of fishing boundary signs (east and west shores) near the head of the lake"
+     },
+     "polygon": null
+    },
+    {
+     "area": "north of fishing boundary signs (east and west shores) near the head of the lake",
+     "serves": {
+      "entry_id": "r2:pitt_lake@2-8",
+      "rule_id": "pitt_lake.r4",
+      "rule": "Single barbless hook — north of fishing boundary signs (east and west shores) near the head of the lake"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Powell Lake",
+   "item_id": "wbk:329566910",
+   "mus": [
+    "2-12"
+   ],
+   "areas": [
+    {
+     "area": "in One Mile Bay",
+     "serves": {
+      "entry_id": "r2:powell_lake@2-12",
+      "rule_id": "powell_lake.r2",
+      "rule": "No powered boats — in One Mile Bay"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Revelstoke Lake",
+   "item_id": "wbk:329484653",
+   "mus": [
+    "4-38",
+    "4-39"
+   ],
+   "areas": [
+    {
+     "area": "from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek",
+     "serves": {
+      "entry_id": "r4:lake_revelstoke@4-38+4-39",
+      "rule_id": "lake_revelstoke.r1",
+      "rule": "No fishing — from Mica Dam to fishing boundary signs at the narrows immediately downstream of the mouth of Bigmouth Creek"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Rosemond Lake",
+   "item_id": "wbk:329518151",
+   "mus": [],
+   "areas": [
+    {
+     "area": "south of the CPR Bridge",
+     "serves": {
+      "entry_id": "r8:rosemond_lake@8-26",
+      "rule_id": "rosemond_lake.r1",
+      "rule": "No powered boats south of the CPR Bridge"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Ruby Lake",
+   "item_id": "wbk:329197064",
+   "mus": [
+    "2-5"
+   ],
+   "areas": [
+    {
+     "area": "in the outlet bay within 100 m of the head of Ruby Creek",
+     "serves": {
+      "entry_id": "r2:ruby_lake@2-5",
+      "rule_id": "ruby_lake.r1",
+      "rule": "No fishing — in the outlet bay within 100 m of the head of Ruby Creek"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Sakinaw Lake",
+   "item_id": "wbk:329197062",
+   "mus": [
+    "2-5"
+   ],
+   "areas": [
+    {
+     "area": "easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49o 41.50'N and 123o 58.45'W",
+     "serves": {
+      "entry_id": "r2:sakinaw_lake@2-5",
+      "rule_id": "sakinaw_lake.r1",
+      "rule": "No fishing, Nov 1-Dec 31 — easterly of a line drawn from a boundary sign located at the north side of the Sakinaw Lake boat launch southwesterly to a boundary sign located at 49o 41.50'N and 123o 58.45'W"
+     },
+     "polygon": null
+    },
+    {
+     "area": "in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary sign on the opposite shore",
+     "serves": {
+      "entry_id": "r2:sakinaw_lake@2-5",
+      "rule_id": "sakinaw_lake.r2",
+      "rule": "No fishing, Nov 1-Dec 31 — in \"Bear Bay\", easterly of a line drawn from a boundary sign located at 49o 40.05'N and 124o 02.13'W due south to a boundary sign on the opposite shore"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Shannon Lake",
+   "item_id": "wbk:329459193",
+   "mus": [],
+   "areas": [
+    {
+     "area": "netted off portion on the south end of the lake",
+     "serves": {
+      "entry_id": "r8:shannon_lake_netted_off_portion_on_the_south_end_of_the_lake@8-11",
+      "rule_id": "shannon_lake_netted_portion.r1",
+      "rule": "Trout daily quota = 1"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "netted off portion on the south end of the lake",
+     "serves": {
+      "entry_id": "r8:shannon_lake_netted_off_portion_on_the_south_end_of_the_lake@8-11",
+      "rule_id": "shannon_lake_netted_portion.r2",
+      "rule": "Youth/Disabled Accompanied Water May 1-Jun 15 (see page 4)"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Shumway Lake",
+   "item_id": "wbk:329534144",
+   "mus": [
+    "3-20"
+   ],
+   "areas": [
+    {
+     "area": "north of fishing boundary signs located at south end of lake",
+     "serves": {
+      "entry_id": "r3:shumway_lake@3-20",
+      "rule_id": "shumway_lake.r1",
+      "rule": "No fishing, Apr 1-Oct 31 — north of fishing boundary signs located at south end of lake"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Shuswap Lake",
+   "item_id": "wbk:329518145",
+   "mus": [],
+   "areas": [
+    {
+     "area": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)",
+     "serves": {
+      "entry_id": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+      "rule_id": "shuswap_lake.r1",
+      "rule": "No Fishing** Mar 15-May 14"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "waters lying west of a line between signs at Henstridge Road and Wharf Road to a line between signs on the south and north shores of Little Shuswap Lake (map A)",
+     "serves": {
+      "entry_id": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+      "rule_id": "shuswap_lake.r2",
+      "rule": "rainbow trout and char catch and release**, May 15-Mar 14"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "entire area north of Albas (map B)",
+     "serves": {
+      "entry_id": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+      "rule_id": "shuswap_lake.r3",
+      "rule": "No Fishing** in the entire area north of Albas, Mar 15-May 14"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge (map C)",
+     "serves": {
+      "entry_id": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+      "rule_id": "shuswap_lake.r4",
+      "rule": "No Fishing** east of a line between fishing boundary signs on Murdock and Semaphore points, to Hwy 1 bridge, M"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point",
+     "serves": {
+      "entry_id": "r3:shuswap_lake_see_maps_on_page_28_includes_little_shuswap_lak@3-26",
+      "rule_id": "shuswap_lake.r5",
+      "rule": "No fishing** in Salmon Arm Bay, west of line between Engineer's Point and Sunnybrae Point (see map on page 28)"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Skaha Lake",
+   "item_id": "wbk:329459118",
+   "mus": [],
+   "areas": [
+    {
+     "area": "various locations (as buoyed and signed)",
+     "serves": {
+      "entry_id": "r8:skaha_lake@8-9",
+      "rule_id": "skaha_lake.r5",
+      "rule": "Speed restrictions or no vessels (as buoyed and signed), various locations"
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Takysie Lake",
+   "item_id": "wbk:329148317",
+   "mus": [
+    "6-4"
+   ],
+   "areas": [
+    {
+     "area": "northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement",
+     "serves": {
+      "entry_id": "r6:takysie_lake@6-4",
+      "rule_id": "takysie_lake.r1",
+      "rule": "No fishing, Mar 1-May 31 — northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Williams Lake",
+   "item_id": "wbk:329494714",
+   "mus": [
+    "5-2"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r5:williams_lake@5-2",
+      "rule_id": "williams_lake.r1",
+      "rule": "Speed restriction (8 km/h) — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  },
+  {
+   "lake": "Williston Lake",
+   "item_id": "wbk:328961697",
+   "mus": [],
+   "areas": [
+    {
+     "area": "west of a line between two fishing boundary signs approximately 500 m downstream (east) of the Nation River Bridge on the Finlay Forest Service Road",
+     "serves": {
+      "entry_id": "r7:nation_arm_williston_lake@7-30",
+      "rule_id": "nation_arm.r1",
+      "rule": "**No Fishing** west of a line between two fishing boundary signs approximately 500 m downstream (east) of the "
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    },
+    {
+     "area": "west of a line between two fishing boundary signs approximately 500 m downstream of the Nation River Bridge on the Finlay Forest Service Road",
+     "serves": {
+      "entry_id": "r7:nation_arm_williston_lake@7-30",
+      "rule_id": "nation_arm.r2",
+      "rule": "Bull trout catch and release west of a line between two fishing boundary signs approximately 500 m downstream "
+     },
+     "polygon": null,
+     "state": "widened — binds the whole lake today"
+    }
+   ]
+  },
+  {
+   "lake": "Wood Lake",
+   "item_id": "wbk:329459119",
+   "mus": [
+    "8-22"
+   ],
+   "areas": [
+    {
+     "area": "on parts",
+     "serves": {
+      "entry_id": "r8:wood_lake@8-22",
+      "rule_id": "wood_lake.r5",
+      "rule": "Speed restriction (10 km/h) — on parts"
+     },
+     "polygon": null
+    }
+   ]
+  }
+ ]
+}

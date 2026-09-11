@@ -39,7 +39,7 @@ from pipeline.common.curated import GENERATED, REPO_ROOT
 
 #: (display name, why it is here). The `why` is not decoration — it is the test for whether a
 #: water still belongs, and the reason the list is not just "big rivers".
-WATERS: list[tuple[str, str]] = [
+WATERS: list[tuple[str, str, str]] = [
     ("Fraser River",     "the long one: many stretches, several entries, and the reach that "
                          "no cut-point can express because Region 6 holds no Fraser mainstem"),
     ("Chilliwack River", "one row covering several registry items, and a name change mid-river"),
@@ -55,6 +55,30 @@ WATERS: list[tuple[str, str]] = [
     ("Babine River",     "counting-fence boundaries, and a lake run in the middle of the river"),
     ("Yakoun River",     "Haida Gwaii: an island system on its own, with a seasonal steelhead "
                          "stamp and none of the mainland's regional furniture"),
+
+    # ---- lakes -------------------------------------------------------------------
+    # Every screen above is a river, and a lake exercises branches none of them reach: set
+    # lining, which is permitted ONLY on lakes and so appears on no river in the document;
+    # barbed hooks, which lakes allow and streams do not; and the whole stream-only half of
+    # the regional quota tables, which has to be filtered OUT rather than shown.
+    ("Shuswap Lake",     "two stamps that exist for this lake alone, plus closures cut by "
+                         "boundary signs rather than by chainage", "lake"),
+    ("Atlin Lake",       "a pure quota lake — four northern species, each with its own size "
+                         "sub-limit, and an aggregation note across the whole lake", "lake"),
+    ("Okanagan Lake",    "the river's own lake: bass and perch quotas, and vessel rules given "
+                         "as buoyed and signed rather than as a reach", "lake"),
+    # THE HARD CASE, included BECAUSE it does not work yet. The book divides Kootenay Lake into
+    # Main Body, Upper West Arm and Lower West Arm — in a zone entry that belongs to no registry
+    # item, because a definition is not a rule — and two real rules then name one of those areas.
+    # Until the three polygons exist, both are carried on the whole lake, unplaced and marked.
+    # `data/curated/waters/sub_lake_areas.json` is the worklist.
+    ("Kootenay Lake",    "a lake the book cuts into three named arms that the atlas cannot draw "
+                         "— the rules that need them are shown unplaced, not widened",
+                         "lake", "wbk:328974235"),
+    # Named by item id: three lakes are called Elk Lake and two of them have their own row.
+    ("Elk Lake",         "a small Region 1 lake whose rules are almost all about boats, and a "
+                         "`facility` — the one rule type no river in this document carries",
+                         "lake", "wbk:329676313"),
 ]
 
 
@@ -74,9 +98,100 @@ def _pts(geom, to_lonlat, ndigits: int = 4) -> list[list[float]]:
     Four decimals is ~11 m, which is finer than the line is drawn at any zoom this document
     uses, and it is the difference between a 368 KB file and a 3 MB one.
     """
+    # A LAKE'S GEOMETRY IS MULTI-PART. A river section is one LineString; a lake is a
+    # MultiLineString — its shoreline, or several through-lines — and `coords` raises on those
+    # rather than flattening them. The longest part is the one worth drawing: a lake's outline,
+    # not the stub where a creek meets it.
+    if geom.geom_type.startswith("Multi") or geom.geom_type == "GeometryCollection":
+        parts = [g for g in geom.geoms if not g.is_empty and hasattr(g, "coords")]
+        if not parts:
+            return []
+        geom = max(parts, key=lambda g: g.length)
     xs, ys = zip(*list(geom.coords))
     lon, lat = to_lonlat(list(xs), list(ys))
     return [[round(a, ndigits), round(b, ndigits)] for a, b in zip(lon, lat)]
+
+
+
+def _lake_outline(item_id: str, to_lonlat, ndigits: int = 4):
+    """A lake's own shoreline, from FWA, as [[lon, lat], ...] — or None.
+
+    THE LINE UNDER A LAKE IS NOT THE LAKE. The stream graph carries a lake as a node on the
+    blue line that runs THROUGH it, so its geometry is that through-line: a stroke across the
+    middle of the water, which drawn on a map looks like a river with a name a reader does not
+    recognise. Shuswap Lake is not a 60 km line.
+
+    The polygons are in the fisheries geopackage, one row per waterbody, keyed on the same
+    WATERBODY_KEY the registry uses for `wbk:` ids — so this is a lookup, not a guess. Returns
+    None when the lake has no polygon, and the caller falls back to the through-line rather than
+    drawing nothing.
+    """
+    import sqlite3
+    if not str(item_id).startswith("wbk:"):
+        return None
+    src = REPO_ROOT / "data" / "source" / "bc_fisheries_data.gpkg"
+    if not src.exists():
+        return None
+    try:
+        from shapely import wkb as _wkb
+        db = sqlite3.connect(f"file:{src}?mode=ro", uri=True)
+        row = db.execute("SELECT geom FROM lakes WHERE WATERBODY_KEY = ?"
+                         " ORDER BY AREA_HA DESC LIMIT 1", (int(item_id[4:]),)).fetchone()
+        db.close()
+        if not row or not row[0]:
+            return None
+        blob = row[0]
+        # GeoPackage binary: "GP", version, flags, then srs_id and an envelope whose size the
+        # flags encode, then the WKB proper.
+        flags = blob[3]
+        env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}.get((flags >> 1) & 0x07, 0)
+        geom = _wkb.loads(bytes(blob[8 + env:]))
+        if geom.is_empty:
+            return None
+        if geom.geom_type.startswith("Multi"):
+            geom = max(geom.geoms, key=lambda g: g.area)
+        ring = geom.exterior
+        # A shoreline can carry tens of thousands of vertices; the ladder draws it a few hundred
+        # pixels wide. Simplifying to ~50 m keeps every bay a reader could name.
+        ring = ring.simplify(50.0, preserve_topology=False)
+        xs, ys = zip(*list(ring.coords))
+        lon, lat = to_lonlat(list(xs), list(ys))
+        pts = [[round(a, ndigits), round(b, ndigits)] for a, b in zip(lon, lat)]
+        return pts, round(geom.area / 1e6, 1)      # km², from the projected polygon
+    except Exception:
+        return None
+
+
+
+_WIDE = None
+
+
+def _widened() -> set:
+    """Rules the book restricts to PART of a water and the atlas could only give the whole of.
+
+    The signal is exact and structural: the rule resolved to `op: "whole"` — the entire water —
+    while still carrying an `extent_text`, which is the parser's record of a place it was told
+    about and could not express. "Rainbow trout — 20 per licence year over 50 cm" is written for
+    the MAIN BODY of Kootenay Lake, and binds to all 423 km² of it including both West Arms.
+
+    Sixty-seven rules in the corpus are in this state. It is the over-application direction —
+    the app claims a rule covers more water than it does — and unlike the unplaced rules, which
+    bind nothing and are obvious, these bind everything and look completely ordinary. So they
+    are marked, and the row says the book names a part.
+    """
+    global _WIDE
+    if _WIDE is None:
+        import glob
+        _WIDE = set()
+        for f in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
+            for e in json.loads(pathlib.Path(f).read_text(encoding="utf-8")).get("entries", []):
+                for r in e.get("rules", []):
+                    if not (r.get("extent_text") or "").strip():
+                        continue
+                    ops = {x.get("op") for x in (r.get("extents") or []) if isinstance(x, dict)}
+                    if ops and ops <= {"whole"}:
+                        _WIDE.add((e["entry_id"], r["rule_id"]))
+    return _WIDE
 
 
 def _co_items(item_id: str) -> set[str]:
@@ -193,7 +308,8 @@ def _rules_by_id(db: sqlite3.Connection) -> dict[tuple[str, str], dict]:
     return out
 
 
-def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
+def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "stream",
+               want_item: str = ""):
     """One water's stretches, rules, cut-points and landmarks.
 
     THE FIRST STAGE OF THE DOCUMENT, computed the way the app computes it: collapse adjacent
@@ -207,11 +323,33 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     # node->handle map cannot be off by one.
     ids_by_handle, by_node = handles
     ids = {h: n for n, h in by_node.items()}
-    row = db.execute("SELECT ord, item_id FROM item WHERE name = ? AND kind = 'stream'"
-                     " ORDER BY ord LIMIT 1", (name,)).fetchone()
+    # A LAKE IS A WATER TOO, and every screen in this document was a river.
+    #
+    # The two differ in exactly one structural way: a river is a chain of pieces along a blue
+    # line with chainage, and a lake is ONE piece with none — `down_m` and `up_m` are both 0, and
+    # `blk` is empty. Everything downstream of that (one run, no ladder, no ruler) is the shape
+    # the app already uses for the 93.59% of waters that have a single stretch, so the lake case
+    # is the simple case rather than a new one.
+    #
+    # A name may belong to both kinds (Elk River and Elk Lake), so the caller says which.
+    # A NAME IS NOT AN IDENTIFIER. Three lakes in the province are called Elk Lake, two of them
+    # with synopsis rows of their own — one in Region 1 and one in Region 5 — and taking the
+    # first by `ord` drew a Victoria lake with the Skeena's tagging notices on it.
+    #
+    # So the caller may name the registry item outright, and where it does not, an item the
+    # synopsis actually writes about beats one it does not.
+    if want_item:
+        row = db.execute("SELECT ord, item_id, kind FROM item WHERE item_id = ?",
+                         (want_item,)).fetchone()
+    else:
+        row = db.execute(
+            "SELECT i.ord, i.item_id, i.kind FROM item i"
+            "  LEFT JOIN entry e ON e.item_id = i.item_id"
+            " WHERE i.name = ? AND i.kind = ?"
+            " ORDER BY (e.entry_id IS NULL), i.ord LIMIT 1", (name, kind)).fetchone()
     if row is None:
         return None
-    ord_, item_id = row
+    ord_, item_id, water_kind = row
 
     # EVERY ITEM THE SAME SYNOPSIS ROW COVERS, and no more. "CHILLIWACK / VEDDER RIVERS" is
     # ONE row over two registry items, and taking only the item that carries the name dropped
@@ -223,7 +361,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     ords = {ord_}
     kin = {item_id} | _co_items(item_id)
     for co in _co_items(item_id):
-        for (o,) in db.execute("SELECT ord FROM item WHERE item_id = ? AND kind = 'stream'", (co,)):
+        for (o,) in db.execute("SELECT ord FROM item WHERE item_id = ? AND kind = ?",
+                               (co, kind)):
             ords.add(o)
     qs = ",".join("?" * len(ords))
     sids = [r[0] for r in db.execute(
@@ -237,7 +376,9 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     for sid in sids:
         nid = ids.get(sid)
         n = graph.nodes.get(nid) if nid else None
-        if n is None or getattr(n, "blk", None) is None:
+        # `blk` is the blue line a piece sits on. A lake has none — it is not on a line — so
+        # only a MISSING node disqualifies here, never a missing blk.
+        if n is None:
             continue
         nodes.append((nid, n))
     if not nodes:
@@ -339,6 +480,15 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
             continue
         for n, i in enumerate(idx):
             runs[i]["bside"] = "down" if n == 0 else ("up" if n == len(idx) - 1 else str(n + 1))
+
+    # A LAKE IS DRAWN AS ITS SHORELINE, not as the river running under it.
+    area_km2 = None
+    if water_kind == "lake" and len(runs) == 1:
+        got = _lake_outline(item_id, to_lonlat)
+        if got:
+            ring, area_km2 = got
+            runs[0]["pts"] = [ring]
+            runs[0]["ring"] = True
 
     for r in runs:
         r["km"] = round(r["to"] - r["from"], 1)
@@ -464,6 +614,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
                 "conditions": cond,
                 "uncertain": d["uncertain"], "scope": d["scope"], "via": via,
                 "verbatim": d["verbatim"], "extent_text": d["extent_text"],
+                # The book names a part of this water; this rule covers all of it. See `_widened`.
+                **({"widened": True} if (eid, rid) in _widened() else {}),
                 "spans": spans,
                 "km": round(sum(b - a for a, b in spans), 1),
             })
@@ -551,7 +703,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     # Chilliwack an 83 km river when B.C. holds 60 km of it.
     total = round(runs[-1]["to"], 1) if runs else round((main[-1][1].up_m - base_m) / 1000.0, 1)
     primary = next(iter(entries.values()), None)
-    return {"name": name, "item": item_id, "runs": runs, "rules": rules, "side": side,
+    return {"name": name, "item": item_id, "kind": water_kind, "area": area_km2,
+            "runs": runs, "rules": rules, "side": side,
             "unplaced": unplaced, "landmarks": landmarks, "splits": splits, "total": total,
             "entry": primary, "entries": entries}
 
@@ -581,8 +734,11 @@ def main() -> int:
     to_lonlat = _albers_to_lonlat()
 
     out: dict[str, object] = {}
-    for name, why in WATERS:
-        got = _one_water(db, graph, geoms, handles, to_lonlat, name)
+    for entry in WATERS:
+        name, why = entry[0], entry[1]
+        kind = entry[2] if len(entry) > 2 else "stream"
+        want = entry[3] if len(entry) > 3 else ""
+        got = _one_water(db, graph, geoms, handles, to_lonlat, name, kind, want)
         if got is None:
             log(f"  ✗ {name}: no stream item of that name — SKIPPED")
             continue
