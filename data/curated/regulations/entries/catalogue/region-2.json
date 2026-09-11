@@ -14404,7 +14404,8 @@
        "op": "within",
        "area_id": "area:region:2"
       }
-     ]
+     ],
+     "water": "lake"
     }
    ]
   }

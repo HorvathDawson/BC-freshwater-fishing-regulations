@@ -1319,6 +1319,14 @@ var GEAR_RANK={"bait:any":0, "bait:fin_fish":1, "bait:dead_fin_fish":1,
   barbless:2, hook_count:2, hook_points:2, max_gap_mm:2,
   lure:3, max_flies:3, max_lines:4, max_weight_kg:4, angling:5, other:6, unspecified:6};
 
+/* "All other methods of taking fin fish and crayfish are illegal" closes the list — it is the
+   last line of `zp:prohibited_methods` and says the lines above it are the whole of it. Picked
+   by its identity rather than by its words: the sentence can be reworded, the rule cannot be
+   renamed without someone noticing. */
+function isClosingLine(x){
+  return x.entry==="zp:prohibited_methods" && x.type==="advisory";
+}
+
 function actOf(x){
   var d=(x.method && x.type==="retention_limit") ? x.method : (x.dimension||"");
   return ACTIVITY[d] || ACTIVITY[x.dimension] || "angling";
@@ -1487,7 +1495,7 @@ function gearTable(items, title, waterKind, extras){
      * type its sentences carry.
      */
     (extras||[]).forEach(function(e){
-      if(/all other methods/i.test(String(e.label||""))) return;
+      if(isClosingLine(e)) return;
       // and the water filter applies to these too — the lake barbs note is a lake rule
       if(waterKind && e.water && e.water!==waterKind) return;
       var ent=String(e.entry||"").replace(/^z[^:]*:/,"");
@@ -1513,8 +1521,7 @@ function gearTable(items, title, waterKind, extras){
    * unrelated notices where it read as one more thing to remember. Under the table it is what
    * it is in the book: the last line.
    */
-  var close=(extras||[]).filter(function(x){
-    return /all other methods/i.test(String(x.label||"")); });
+  var close=(extras||[]).filter(isClosingLine);
   return '<div class="qtitle">'+esc(title||"How you may fish")+'</div><div class="tw">'
     +'<table class="qt gt">'
     +'<tr><th>Way of fishing</th><th>Rule</th><th>Set by</th></tr>'+rows.join("")
@@ -1582,11 +1589,11 @@ var FOOTS={
 /*
  * A LAKE FACT ON A RIVER IS NOISE, wherever the sentence ends up printed.
  *
- * Most of these carry `water` and that is the test. Two do not — "there is no general minimum
- * size limit for trout IN LAKES" and its provincial twin are advisories the parser gave no
- * water to. The text test is deliberately narrow: that exact phrase, on an ADVISORY only, so it
- * can hide a fact but never a restriction, and it must not catch "at or near any lake or
- * stream", which is about both.
+ * This briefly matched the phrase "in lakes" in the label, because the one rule that needed it
+ * — "there is no general minimum size limit for trout in lakes" — had no `water` on it. That
+ * was a gap in the DATA being patched in the VIEW, and it is the kind of patch that quietly
+ * stops working when someone rewords a sentence. The rule carries `water: "lake"` now, so this
+ * is one field test like every other route on this page.
  */
 
 /* ------------------------------------------------------------------------------------- *
@@ -1665,24 +1672,19 @@ function narrowedBy(x, lifts){
 }
 
 function forThisWater(x, kind){
-  if(!kind) return true;
-  if(x.water && x.water!==kind) return false;
-  if(x.type!=="advisory") return true;
-  var t=String(x.label||"");
-  if(kind==="stream") return !(/\bin lakes\b/i.test(t) && !/lake or stream/i.test(t));
-  return !(/\bin streams\b/i.test(t) && !/lake or stream/i.test(t));
+  return !kind || !x.water || x.water===kind;
 }
 
 function noticeKind(x){
   /*
    * ONE ENTRY, TWO SUBJECTS. `zp:measuring_and_possession` is named for both and holds one
-   * sentence of each — how to measure a fish, and how many you may have on you. They belong in
-   * different places, so this is the one route that has to read the sentence. The test is the
-   * word "possession", which is the subject itself, not a turn of phrase.
+   * sentence of each — how to measure a fish, and how many you may have on you.
+   *
+   * This used to be settled by reading the sentence for the word "possession". It is settled by
+   * the rule now: both possession sentences were given `period: "possession"` in curation,
+   * which is what they are, so the split is a field like every other route on this page.
    */
-  if(/possession|not cumulative/i.test(String(x.label||""))
-     && (x.entry==="zp:measuring_and_possession" || x.entry==="zp:quota_defaults"))
-    return "possession";
+  if(x.period==="possession" && x.family==="information") return "possession";
   // The entry map wins over the type: a duty that qualifies ONE rule is that rule's footnote,
   // not a province-wide constant, however it is typed.
   var f0=FOOTS[x.entry];
@@ -1879,13 +1881,10 @@ function licenceTable(items, title){
         return perms.filter(function(x){
           var k=x.label; if(seen[k]) return false; seen[k]=1; return true;
         }).map(function(x){
-          /* `grantor` names who has to say yes, where the parser captured it — the Creston
-             Valley WMA, a landowner. Falling back to the sentence only when it did not. */
-          var who=(x.conditions||{}).grantor;
-          if(!who){
-            var m=String(x.label).match(/^Permission of (?:the )?(.+?) is required/i);
-            who=m ? m[1] : "";
-          }
+          /* `grantor` names who has to say yes — the Creston Valley WMA, the landowner. This
+             used to read the sentence back when the field was empty; the two rules that were
+             empty now carry it. */
+          var who=(x.conditions||{}).grantor||"";
           return '<tr><td class="fish">'+esc(who
                    ? who[0].toUpperCase()+who.slice(1)+"\u2019s permission" : x.label)+'</td>'
             +'<td class="keep cond">Before you fish</td>'
