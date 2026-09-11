@@ -67,6 +67,16 @@ WATERS: list[tuple[str, str, str]] = [
                          "sub-limit, and an aggregation note across the whole lake", "lake"),
     ("Okanagan Lake",    "the river's own lake: bass and perch quotas, and vessel rules given "
                          "as buoyed and signed rather than as a reach", "lake"),
+    # THE FIRST LAKE THE BOOK SPLITS THAT THE ATLAS CAN NOW DRAW. Shannon Lake has one row for
+    # the lake and another for "the netted off portion on the south end"; the corner was cut in
+    # the lake splitter and is `wbk:-15`, 0.19 ha, leaving 14.56 ha as Shannon Lake proper. It is
+    # here to exercise the case a lake with parts renders as a LADDER, the way a river does —
+    # one screen, a rung per water — rather than as two unrelated screens.
+    # No item id here even though BC has three Shannon Lakes: a lake that has been CUT is named
+    # by the worklist that its polygons were cut from, and `_lake_parts` supplies the id. Naming
+    # it twice is how the page and the curation come to disagree about which lake this is.
+    ("Shannon Lake",     "a lake with curated parts: one row for the lake, one for the netted-"
+                         "off corner, drawn as two rungs of one ladder", "lake"),
     # THE HARD CASE, included BECAUSE it does not work yet. The book divides Kootenay Lake into
     # Main Body, Upper West Arm and Lower West Arm — in a zone entry that belongs to no registry
     # item, because a definition is not a rule — and two real rules then name one of those areas.
@@ -192,6 +202,97 @@ def _widened() -> set:
                     if ops and ops <= {"whole"}:
                         _WIDE.add((e["entry_id"], r["rule_id"]))
     return _WIDE
+
+
+
+_PARTS = None
+_PARENT_BY_NAME: dict | None = None
+
+
+def name_of_item(db, item_id: str):
+    row = db.execute("SELECT name FROM item WHERE item_id = ?", (item_id,)).fetchone()
+    return row[0] if row else None
+
+
+def _parent_of(name: str):
+    """The item id `sub_lake_areas.json` gives for a lake of this name, or None.
+
+    A CUT LAKE IS NAMED BY THE WORKLIST ITS POLYGONS CAME FROM. Three lakes in BC are called
+    Shannon Lake, and resolving the page's name against `item` alone picked wbk:329244252 —
+    which has no parts, so the page drew one rung and looked exactly as though the split had
+    failed. The worklist says which one the book's two rows are about, because that is the file
+    the polygons were cut against; asking it is how the page and the curation stay the same
+    answer instead of two.
+    """
+    _lake_parts("")                                   # prime the cache
+    for lake, parent in (_PARENT_BY_NAME or {}).items():
+        if lake.lower() == (name or "").lower():
+            return parent
+    return None
+
+
+def _lake_parts(item_id: str):
+    """`[(child_item_id, name)]` — the pieces curated OUT of this lake, from the worklist.
+
+    Read from `part_of` on each polygon in `added_lakes.geojson`.
+
+    A LAKE THE BOOK WRITES AS SEVERAL WATERS IS STILL ONE LAKE ON THE MAP. Shannon Lake has a
+    netted-off corner with its own row; Kootenay Lake is a Main Body and two West Arms. Each
+    piece becomes its own registry item — `added_lakes` ingest re-stamps the fids inside the
+    polygon, so the corner is `wbk:-15` and the remainder keeps `wbk:329459193` — and as
+    separate items they would open as separate, unrelated screens, with no way to see that one
+    is part of the other or to compare their rules.
+
+    A river with different rules along it is not shown that way: it is one screen with a ladder
+    of stretches. A lake with different rules across it is the same question, and gets the same
+    answer. `sub_lake_areas.json` is what says which piece belongs to which lake — it is the
+    worklist the polygons were drawn from, so the page and the curation cannot drift apart.
+    """
+    global _PARTS, _PARENT_BY_NAME
+    if _PARTS is None:
+        _PARTS = defaultdict(list)
+        _PARENT_BY_NAME = {}
+        # THE POLYGON SAYS WHAT IT IS PART OF. `part_of: {"wbk": ...}` is on the feature itself,
+        # the way an added stream carries `connect_to` — so the relationship travels with the
+        # geometry and anything reading the file knows it, rather than it living only in a
+        # worklist and a sentence of prose.
+        af = REPO_ROOT / "data" / "curated" / "waters" / "added_lakes.geojson"
+        if af.exists():
+            for feat in json.loads(af.read_text(encoding="utf-8")).get("features", []):
+                pr = feat.get("properties") or {}
+                par = (pr.get("part_of") or {}).get("wbk")
+                if par and pr.get("id"):
+                    _PARTS[f"wbk:{par}"].append((f"wbk:-{int(pr['id'])}",
+                                                 pr.get("name") or "Part"))
+        # The worklist still says which NAME a lake goes by on the page, and is the record of
+        # what is still to be drawn.
+        wl = REPO_ROOT / "data" / "curated" / "waters" / "sub_lake_areas.json"
+        if wl.exists():
+            for lake in json.loads(wl.read_text(encoding="utf-8")).get("lakes", []):
+                parent = lake.get("item_id") or ""
+                if lake.get("lake") and parent:
+                    _PARENT_BY_NAME[lake["lake"]] = parent
+    return _PARTS.get(item_id, [])
+
+
+def _added_lake_ring(child_item_id: str, to_lonlat, ndigits: int = 5):
+    """The curated polygon for `wbk:-N`, straight from added_lakes.geojson.
+
+    FWA has no polygon for it — that is the whole reason it was drawn — so the shoreline lookup
+    used for a real lake finds nothing and the piece would draw as a blank stretch.
+    """
+    f = REPO_ROOT / "data" / "curated" / "waters" / "added_lakes.geojson"
+    if not f.exists() or not child_item_id.startswith("wbk:-"):
+        return None
+    want = abs(int(child_item_id.split(":", 1)[1]))
+    for feat in json.loads(f.read_text(encoding="utf-8")).get("features", []):
+        if feat.get("properties", {}).get("id") != want:
+            continue
+        g = feat.get("geometry") or {}
+        coords = g.get("coordinates") or []
+        ring = coords[0] if g.get("type") == "Polygon" else (coords[0][0] if coords else [])
+        return [[round(x, ndigits), round(y, ndigits)] for x, y in ring] or None
+    return None
 
 
 def _co_items(item_id: str) -> set[str]:
@@ -338,6 +439,10 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
     #
     # So the caller may name the registry item outright, and where it does not, an item the
     # synopsis actually writes about beats one it does not.
+    # A CUT LAKE IS NAMED BY THE WORKLIST ITS POLYGONS CAME FROM, before any name lookup. Three
+    # lakes are called Shannon Lake and the plain lookup picked wbk:329244252 — which has no
+    # parts, so the page drew one rung and looked exactly as though the split had failed.
+    want_item = want_item or (_parent_of(name) if kind == "lake" else "") or ""
     if want_item:
         row = db.execute("SELECT ord, item_id, kind FROM item WHERE item_id = ?",
                          (want_item,)).fetchone()
@@ -504,6 +609,64 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
             ring, area_km2 = got
             runs[0]["pts"] = [ring]
             runs[0]["ring"] = True
+
+    # ...AND A LAKE THE BOOK WRITES AS SEVERAL WATERS IS A LADDER OF THEM, like a river.
+    #
+    # Each piece is its own registry item, so left alone they open as separate screens with
+    # nothing to say one is part of the other. A river with different rules along it gets one
+    # screen and a ladder of stretches; this is the same question and gets the same answer.
+    #
+    # A part becomes a RUN carrying its own `set`, which is all the machinery below needs: the
+    # rules are collected from every set on the screen and their spans come from which runs
+    # carry which set, so a rule that binds only the netted-off corner spans only that rung.
+    parts = _lake_parts(item_id) if water_kind == "lake" else []
+    if parts and runs:
+        base = runs[0]
+        lake_runs = []
+        i = 0
+        # IS THE PARENT STILL A WATER? Ask whether any synopsis row is about it.
+        #
+        # Shannon Lake, Kootenay Lake and Williston Lake all have `entries = 0` now: every row
+        # that once named them was repointed to a part, because the parts ARE the lake — the
+        # polygons partition it and the ingest carved every fid out. Drawing the parent as a
+        # rung put a water on the ladder that the book has nothing to say about, and made
+        # Shannon three rungs where the book has two.
+        #
+        # They still carry rules — 77, 80 and 116 of them — but those are the regional and
+        # provincial defaults that reach any water sitting in that region, not rules written
+        # about this one. An entry of its own is what makes a rung worth showing.
+        #
+        # A lake split only PART of the way keeps its parent rung, because a row still names
+        # it. The test is the same either way.
+        own_entries = db.execute("SELECT COUNT(*) FROM entry WHERE item_id = ?",
+                                 (item_id,)).fetchone()[0]
+        if own_entries:
+            lake_runs.append(dict(base, label=name_of_item(db, item_id) or name,
+                                  **{"from": 0.0, "to": 1.0}))
+            i = 1
+        for child_id, child_name in parts:
+            row = db.execute("SELECT ord FROM item WHERE item_id = ?", (child_id,)).fetchone()
+            if row is None:
+                print(f"    !! {child_name}: {child_id} is not in this build — "
+                      f"the atlas has not been rebuilt since the polygon was drawn")
+                continue
+            csids = [r[0] for r in db.execute(
+                "SELECT sid FROM item_section WHERE ord = ?", (row[0],))]
+            cset = None
+            for csid in csids:
+                got2 = db.execute("SELECT set_id FROM section_ruleset WHERE sid = ?",
+                                  (csid,)).fetchone()
+                if got2:
+                    cset = got2[0]
+                    break
+            ring2 = _added_lake_ring(child_id, to_lonlat)
+            lake_runs.append({**base, "set": cset, "from": float(i), "to": float(i + 1),
+                              "pts": [ring2] if ring2 else [], "ring": bool(ring2),
+                              "label": child_name, "n": 1, "joins": [], "bkind": "part"})
+            i += 1
+        if len(lake_runs) > 1:
+            runs = lake_runs
+            print(f"    {len(runs)} parts: " + " · ".join(str(r["label"]) for r in runs))
 
     for r in runs:
         r["km"] = round(r["to"] - r["from"], 1)

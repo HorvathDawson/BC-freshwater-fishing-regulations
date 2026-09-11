@@ -2803,6 +2803,9 @@
    "properties": {
     "id": 15,
     "name": "Shannon Lake — netted-off portion",
+    "part_of": {
+     "wbk": "329459193"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Shannon Lake (wbk:329459193), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 15 -> wbk -15, gnis -9000015."
@@ -2872,6 +2875,9 @@
    "properties": {
     "id": 16,
     "name": "Williston Lake — Nation Arm",
+    "part_of": {
+     "wbk": "328961697"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Williston Lake (wbk:328961697), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 16 -> wbk -16, gnis -9000016."
@@ -6381,6 +6387,9 @@
    "properties": {
     "id": 17,
     "name": "Williston Lake — Davis Bay",
+    "part_of": {
+     "wbk": "328961697"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Williston Lake (wbk:328961697), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 17 -> wbk -17, gnis -9000017."
@@ -7326,6 +7335,9 @@
    "properties": {
     "id": 18,
     "name": "Williston Lake — Zone A",
+    "part_of": {
+     "wbk": "328961697"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Williston Lake (wbk:328961697), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 18 -> wbk -18, gnis -9000018."
@@ -249607,6 +249619,9 @@
    "properties": {
     "id": 19,
     "name": "Williston Lake — Zone B",
+    "part_of": {
+     "wbk": "328961697"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Williston Lake (wbk:328961697), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 19 -> wbk -19, gnis -9000019."
@@ -360436,6 +360451,9 @@
    "properties": {
     "id": 20,
     "name": "Kootenay Lake — Main Body",
+    "part_of": {
+     "wbk": "328974235"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Kootenay Lake (wbk:328974235), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 20 -> wbk -20, gnis -9000020."
@@ -425033,6 +425051,9 @@
    "properties": {
     "id": 21,
     "name": "Kootenay Lake — Upper West Arm",
+    "part_of": {
+     "wbk": "328974235"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Kootenay Lake (wbk:328974235), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 21 -> wbk -21, gnis -9000021."
@@ -436162,6 +436183,9 @@
    "properties": {
     "id": 22,
     "name": "Kootenay Lake — Lower West Arm",
+    "part_of": {
+     "wbk": "328974235"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Kootenay Lake (wbk:328974235), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 22 -> wbk -22, gnis -9000022."
@@ -449319,6 +449343,9 @@
    "properties": {
     "id": 23,
     "name": "Shannon Lake — proper",
+    "part_of": {
+     "wbk": "329459193"
+    },
     "kind": "lake",
     "source": "manual",
     "note": "Part of Shannon Lake (wbk:329459193), cut in the lake splitter. The book writes this lake as several waters and FWA carries one polygon; this is the piece the rows naming it should bind to. Derived ids: id 23 -> wbk -23, gnis -9000023."
