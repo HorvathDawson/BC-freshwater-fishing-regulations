@@ -372,6 +372,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
 
     # sid -> node -> the graph's own chainage. `down_m`/`up_m` are metres along the blue line,
     # so they are what makes a stretch a stretch rather than a bag of pieces.
+    handle_of_sid: dict[str, int] = {}
     nodes = []
     for sid in sids:
         nid = ids.get(sid)
@@ -380,6 +381,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
         # only a MISSING node disqualifies here, never a missing blk.
         if n is None:
             continue
+        handle_of_sid[nid] = sid
         nodes.append((nid, n))
     if not nodes:
         return None
@@ -390,7 +392,20 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
     by_blk: dict[str, list] = defaultdict(list)
     for nid, n in nodes:
         by_blk[str(n.blk)].append((nid, n))
-    main_blk = max(by_blk, key=lambda b: sum(x[1].up_m - x[1].down_m for x in by_blk[b]))
+
+    # THE MAINSTEM COMES FROM THE ITEM THE SCREEN IS NAMED FOR, not from whichever co-item is
+    # longest. "ATNARKO/BELLA COOLA RIVERS" is one synopsis row over two rivers, and the Atnarko
+    # is the longer of them — so choosing the longest blue line across both drew the ATNARKO on
+    # the screen titled Bella Coola River, at the Atnarko's length, with the Atnarko's stretches.
+    # Two screens, two names, one river.
+    #
+    # The co-items still contribute their SECTIONS, which is what the expansion is for: it is how
+    # the Vedder's rules reach the Chilliwack's screen. They just cannot take the line.
+    own_sids = {r[0] for r in db.execute(
+        "SELECT sid FROM item_section WHERE ord = ?", (ord_,))}
+    own_blks = {str(n.blk) for nid, n in nodes if handle_of_sid.get(nid) in own_sids and n.blk}
+    pick = {b: v for b, v in by_blk.items() if b in own_blks} or by_blk
+    main_blk = max(pick, key=lambda b: sum(x[1].up_m - x[1].down_m for x in pick[b]))
     main = sorted(by_blk[main_blk], key=lambda x: x[1].down_m)
 
     set_of = dict(db.execute(
