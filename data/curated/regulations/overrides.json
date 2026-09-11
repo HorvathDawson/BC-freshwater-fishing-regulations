@@ -1744,9 +1744,11 @@
     "4-19"
    ]
   },
-  "note": "Kootenay Lake - Main Body, Upper West Arm and Lower West Arm. GNIS 14091 - Kootenay Lake. Regulation MU 4-19.",
-  "gnis_ids": [
-   "14091"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-20",
+   "-21",
+   "-22"
   ]
  },
  {
@@ -1758,9 +1760,9 @@
     "4-19"
    ]
   },
-  "note": "TODO: Currently links to full Kootenay Lake (GNIS 14091). Needs custom polygon subdivision to isolate Main Body (excluding West Arm zones). MU 4-4. See regulation map page 34.",
-  "gnis_ids": [
-   "14091"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-20"
   ]
  },
  {
@@ -1772,9 +1774,9 @@
     "4-7"
    ]
   },
-  "note": "TODO: Currently links to full Kootenay Lake (GNIS 14091). Needs custom polygon subdivision to isolate Upper West Arm. MU 4-4. See regulation map page 34.",
-  "gnis_ids": [
-   "14091"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-21"
   ]
  },
  {
@@ -1786,9 +1788,9 @@
     "4-7"
    ]
   },
-  "note": "TODO: Currently links to full Kootenay Lake (GNIS 14091). Needs custom polygon subdivision to isolate Lower West Arm. MU 4-4. See regulation map page 34.",
-  "gnis_ids": [
-   "14091"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-22"
   ]
  },
  {
@@ -1801,11 +1803,13 @@
     "4-19"
    ]
   },
-  "note": "Tributaries of Kootenay Lake - links to parent waterbody (GNIS 14091 - Kootenay Lake). Regulation MUs 4-7, 4-19.",
-  "gnis_ids": [
-   "14091"
-  ],
-  "canonical_name": "Kootenay Lake"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "canonical_name": "Kootenay Lake",
+  "waterbody_keys": [
+   "-20",
+   "-21",
+   "-22"
+  ]
  },
  {
   "type": "override",
@@ -3937,9 +3941,9 @@
     "7-38"
    ]
   },
-  "note": "Williston Lake Zone A. GNIS 28522 (Williston Lake/Reservoir). Zone A includes waters 500m east/upstream of the Causeway Road. TODO: Needs custom polygon subdivision to separate Zone A from Zone B. Currently links to full lake. MU 7-58.",
-  "gnis_ids": [
-   "28522"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-18"
   ]
  },
  {
@@ -3951,14 +3955,14 @@
     "7-30"
    ]
   },
-  "note": "Nation Arm of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at arm location. Nation River (GNIS 16593) flows into this arm. MU 7-58. TODO: Needs custom polygon subdivision.",
-  "gnis_ids": [
-   "28522"
-  ],
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
   "ungazetted_waterbody_id": "UNGAZ_NATION_ARM_WILLISTON_R7",
   "ungazetted_location": [
    -123.44116,
    55.51205
+  ],
+  "waterbody_keys": [
+   "-16"
   ]
  },
  {
@@ -3970,14 +3974,14 @@
     "7-37"
    ]
   },
-  "note": "Davis Bay in Finlay Reach of Williston Lake. Links to full Williston Lake (GNIS 28522) plus ungazetted point at bay location. Finlay Reach is the northern arm where Finlay River (GNIS 12355) enters. MU 7-58. TODO: Needs custom polygon subdivision.",
-  "gnis_ids": [
-   "28522"
-  ],
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
   "ungazetted_waterbody_id": "UNGAZ_DAVIS_BAY_WILLISTON_R7",
   "ungazetted_location": [
    -124.47333,
    56.54858
+  ],
+  "waterbody_keys": [
+   "-17"
   ]
  },
  {
@@ -4088,9 +4092,9 @@
     "7-36"
    ]
   },
-  "note": "Williston Lake Zone B. GNIS 28522 (Williston Lake/Reservoir). Zone B is the remainder of Williston Lake excluding Zone A (500m east/upstream of Causeway Road). TODO: Needs custom polygon subdivision. MU 7-58.",
-  "gnis_ids": [
-   "28522"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-19"
   ]
  },
  {
@@ -6947,11 +6951,12 @@
    "region": "REGION 8 - Okanagan",
    "mus": [
     "8-11"
-   ]
+   ],
+   "qualifier": "netted off"
   },
-  "note": "Matched via base name: SHANNON LAKE",
-  "gnis_ids": [
-   "22043"
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed.",
+  "waterbody_keys": [
+   "-15"
   ]
  },
  {
@@ -7090,6 +7095,20 @@
   "note": "DFO salmon: the row is named for the HATCHERY but the regulated water is the CHEHALIS RIVER (gnis:13015) — 'from the hatchery outlet downstream to the confluence with the Chehalis/Harrison Rivers'. Deliberately NOT a name_variants entry: 'Chehalis River Hatchery' is a facility, not a name for the river, and making it a searchable name of the water would be wrong. The upstream bound is the curated split chehalis_river__hatchery_outlet; the downstream bound is the river's natural mouth into the Harrison.",
   "gnis_ids": [
    "13015"
+  ]
+ },
+ {
+  "type": "override",
+  "criteria": {
+   "name_verbatim": "SHANNON LAKE",
+   "region": "REGION 8 - Okanagan",
+   "mus": [
+    "8-11"
+   ]
+  },
+  "note": "Bound to the curated polygon(s) cut in the lake splitter, 2026-09-11. FWA carries one polygon for this lake and the book writes it as several waters; `added_lakes` re-stamps the fids inside each piece so each becomes its own item. This override pointed at the whole lake's GNIS until those polygons existed. The netted-off row is told apart by its `qualifier`.",
+  "waterbody_keys": [
+   "-23"
   ]
  }
 ]
