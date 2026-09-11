@@ -70,6 +70,20 @@ code{font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--bg
   box-shadow:none}
 .lbl:before{display:none}
 .lbl.meas{background:rgba(74,111,165,.92);font-weight:600}
+.lbl.kept{background:rgba(107,115,110,.85);font-weight:500;font-style:italic}
+.namer{min-width:214px}
+.namer label{display:block;font:600 10px/1.4 inherit;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--quiet);margin-bottom:4px}
+.namer input{width:100%;border:1px solid var(--line);border-radius:6px;padding:6px 7px;
+  font:600 13px/1.3 inherit;background:var(--panel);color:var(--ink)}
+.namer input:focus{border-color:var(--accent);outline:none}
+.namerfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px}
+.namerfoot span{font-size:11px;color:var(--quiet)}
+.namerfoot button{font:600 10.5px/1 inherit;padding:5px 8px;border:1px solid var(--line);
+  border-radius:6px;background:var(--bg);color:inherit;cursor:pointer}
+.namerfoot button[aria-pressed="true"]{background:var(--accent);color:#fff;
+  border-color:var(--accent)}
+.leaflet-popup-content{margin:10px 12px}
 </style>
 
 <div id="side">
@@ -277,19 +291,74 @@ function drawParts(){
   partLayer.clearLayers();
   parts.forEach(function(p, i){
     if (!p.feature) return;
-    var c = css(COL[i % COL.length]);
-    var g = L.geoJSON(p.feature, {style:{color:c, weight:2, fillColor:c, fillOpacity:.42}})
+    var c = p.keep ? css("--quiet") : css(COL[i % COL.length]);
+    var g = L.geoJSON(p.feature, {style:{color:c, weight:2, fillColor:c,
+                                         fillOpacity: p.keep ? .18 : .42,
+                                         dashArray: p.keep ? "5,4" : null}})
              .addTo(partLayer);
+
+    /* --------------------------------------------------------------------------------- *
+     * NAME IT WHERE YOU CAN SEE IT.
+     *
+     * The name was only editable in the sidebar list, which means finding the right row for
+     * the shape you are looking at — and the list is ordered by position along the water,
+     * not by anything visible on the map. Clicking the water itself is the question being
+     * asked: "this one, what is it called?"
+     * --------------------------------------------------------------------------------- */
+    g.on("click", function(ev){
+      L.DomEvent.stop(ev.originalEvent);
+      if (measuring || drawing) return;          // a tool is mid-use; do not steal the click
+      openNamer(i, ev.latlng);
+    });
+    g.bindTooltip(esc(p.name) + " · click to rename", {sticky: true, opacity: .92});
+
     /* WHICH PIECE IS WHICH, on the map and not only in the list — a split is only checkable
        if the name is sitting on the water it names. */
     try {
       var c2 = turf.pointOnFeature(p.feature).geometry.coordinates;
       L.marker([c2[1], c2[0]], {interactive:false, icon: L.divIcon({
-        className:"", html:'<div class="lbl">'+esc(p.name)+'</div>', iconSize:null})})
-        .addTo(partLayer);
+        className:"", html:'<div class="lbl'+(p.keep?" kept":"")+'">'+esc(p.name)+'</div>',
+        iconSize:null})}).addTo(partLayer);
     } catch(e){}
   });
   renderParts();
+}
+
+/* A field on the water, committed with Enter and abandoned with Escape. `keep` is offered here
+   too, because "this piece is just the lake" is a thing you decide while looking at it. */
+function openNamer(i, latlng){
+  var p = parts[i];
+  if (!p) return;
+  var html = '<div class="namer">'
+    + '<label>Name this piece</label>'
+    + '<input id="namerin" value="' + esc(p.name) + '">'
+    + '<div class="namerfoot"><span>' + areaWord(p.feature) + '</span>'
+    + '<button id="namerkeep"' + (p.keep ? ' aria-pressed="true"' : '') + '>'
+    + (p.keep ? 'stays as the lake' : 'make it the lake') + '</button></div></div>';
+  var pop = L.popup({closeButton: true, autoClose: true, className: "namerpop"})
+    .setLatLng(latlng).setContent(html).openOn(map);
+  setTimeout(function(){
+    var inp = document.getElementById("namerin");
+    if (!inp) return;
+    inp.focus(); inp.select();
+    inp.onkeydown = function(e){
+      if (e.key === "Enter") {
+        p.name = inp.value; p.renamed = true;
+        map.closePopup(pop); drawParts(); saveWork();
+        status('renamed to "' + p.name + '"');
+      } else if (e.key === "Escape") { map.closePopup(pop); }
+    };
+    var kb = document.getElementById("namerkeep");
+    if (kb) kb.onclick = function(){
+      var on = !p.keep;
+      parts.forEach(function(q){ q.keep = false; });
+      p.keep = on;
+      p.name = inp.value || p.name;
+      map.closePopup(pop); reassignIds(); drawParts(); saveWork();
+      status(on ? '"' + p.name + '" keeps the lake\'s identity and is not exported'
+                : "every piece is exported again");
+    };
+  }, 0);
 }
 
 function esc(s){ return String(s==null?"":s).replace(/[&<>]/g, function(c){
@@ -490,6 +559,9 @@ function renderCuts(){
       + '<button data-cut="' + i + '">Cut</button></div>';
   }).join("")
   + '<div class="note">' + esc(cuts[0].note || "") + '</div>'
+  + '<div class="note"><b>Cut</b> carves the smaller side off as a part, leaving the rest for '
+  + 'the next line. <b>Cut all</b> instead divides the whole lake by every line at once, which '
+  + 'is what Kootenay needs and what Williston does not.</div>'
   + '<div class="note">Drag a handle to move a point. <b>Click the line</b> to add one — a bay '
   + 'mouth is rarely straight. <b>Right-click</b> an inner point to drop it; the two ends stay, '
   + 'because they are what carry the cut onto land.</div>'
@@ -672,12 +744,87 @@ function cutAll(){
         : " · all new, nothing left over"));
 }
 
+/* --------------------------------------------------------------------------------------- *
+ * ONE LINE CARVES ONE PART OFF. IT DOES NOT REBUILD THE LAKE.
+ *
+ * This button used to be a preview: it reported the two areas and said to press "Cut all". So
+ * drawing a line across Nation Arm produced no polygon, nothing appeared in the list, and there
+ * was nothing to name — the button said Cut and did not cut.
+ *
+ * "Cut all" is not the answer either, and on Williston it is destructive: it re-cuts the WHOLE
+ * lake by every line and replaces the parts list, which throws away Zone A and Zone B after
+ * they have been taken from their regions.
+ *
+ * A single line across an arm means "close this off". So it cuts the water NOT ALREADY CLAIMED
+ * by a part, keeps the smaller piece — an arm or a bay is the smaller piece, which is why it is
+ * being named separately — and leaves the rest for the next line. Parts accumulate one cut at a
+ * time, and region cuts and line cuts can be mixed on the same lake, which Williston needs.
+ * --------------------------------------------------------------------------------------- */
+function unclaimed(){
+  var left = lakePoly();
+  parts.forEach(function(p){
+    if (!p.feature || p.keep) return;
+    try { var r = turf.difference(left, p.feature); if (r) left = r; } catch(e){}
+  });
+  return left;
+}
+
+/* WHICH WATER DOES THIS LINE DIVIDE? The one it is drawn across.
+ *
+ * Cutting "whatever is left over" is right on a lake with nothing on it yet, and wrong the
+ * moment a lake is fully assigned. Williston's Zone A and Zone B are taken from their regions
+ * and between them they ARE the lake, so nothing is left over — and a line drawn across Nation
+ * Arm reported that it divided nothing, which is true of the leftovers and useless to the
+ * curator, who can plainly see it crossing water.
+ *
+ * Nation Arm is not leftover water; it is part of Zone A, and that is what the line divides.
+ * So the target is the part the line actually crosses — the one it overlaps most — and only
+ * when it crosses none of them does it fall back to unassigned water.
+ */
+function targetFor(c){
+  var pts = cutPts(c);
+  if (pts.length < 2) return null;
+  var line;
+  try { line = turf.lineString(extended(pts, 2000)); } catch(e){ return null; }
+  var best = null, bestLen = 0;
+  parts.forEach(function(p, i){
+    if (!p.feature || p.keep) return;
+    var inside = 0;
+    try {
+      var split = turf.lineSplit(line, p.feature);
+      // crude but sufficient: a line that crosses a piece is split by its boundary
+      inside = (split && split.features) ? split.features.length : 0;
+    } catch(e){}
+    if (inside > 1 && inside > bestLen) { best = i; bestLen = inside; }
+  });
+  return best;
+}
+
 function applyCut(c){
-  var res = cutBy(lakePoly(), c);
-  if (res.length < 2) { status("that line does not divide the lake — drag it across the channel"); return; }
-  status(res.map(function(r){
-    return r.side + " " + areaWord(r.feature); }).join("  ·  ")
-    + "  — use \u201cCut all\u201d to keep them");
+  var idx = targetFor(c);
+  var target = idx == null ? unclaimed() : parts[idx].feature;
+  var res = cutBy(target, c);
+  if (res.length < 2) {
+    status(idx == null
+      ? "that line does not divide any unassigned water — drag it across the channel"
+      : 'that line does not divide "' + parts[idx].name + '"');
+    return;
+  }
+  res.sort(function(a, b){ return a.area - b.area; });
+  var small = res[0], big = res[res.length - 1];
+
+  // The piece it was cut from keeps the larger side; the arm becomes its own part.
+  if (idx != null) parts[idx].feature = big.feature;
+
+  var slot = parts.find(function(p){ return !p.feature && !p.keep; });
+  if (slot) { slot.feature = small.feature; slot.hand = true; }
+  else parts.push({name: c.label || ("Piece " + (parts.length + 1)),
+                   feature: small.feature, id: null, hand: true});
+  reassignIds(); drawParts(); saveWork();
+  var named = slot ? slot.name : parts[parts.length-1].name;
+  status('"' + named + '" — ' + areaWord(small.feature)
+         + (idx == null ? "" : ', cut from "' + parts[idx].name + '"')
+         + " · click it on the map to rename");
 }
 
 /* A ROW IS ITS MANAGEMENT UNITS ONLY IF NO OTHER ROW CONTAINS IT.
