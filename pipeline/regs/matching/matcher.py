@@ -75,6 +75,19 @@ def _norm(s: str) -> str:
     return " ".join(s.split())
 
 
+def _norm_keep(s: str) -> str:
+    """`_norm`, except the "(...)" span STAYS. Only the qualifier discriminator uses this.
+
+    `_norm` drops parentheticals on purpose: most are a mid-name aside ("(Nanaimo)") that the
+    registry's own spelling does not carry, and keeping them would miss every ordinary match. But
+    a few parentheticals are not an aside — they are the ONLY thing telling two waters apart, and
+    for those the stripped name is not a key at all. See `_pick_override`.
+    """
+    s = _fold(s).lower().replace("'", "").replace("\u2019", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s)
+    return " ".join(s.split())
+
+
 def parse_reg_mus(row: dict) -> set[str]:
     """The MUs a synopsis row applies to, from its `mu` field (a string or list, e.g. '1-5' / ['1-5','1-6'])."""
     mu = row.get("mu")
@@ -171,20 +184,44 @@ def build_override_index(overrides: list[dict]) -> dict[str, list[dict]]:
     return idx
 
 
-def _pick_override(entries: list[dict], rn: str, row_mus: set[str]) -> dict | None:
-    """The override entry best matching this row's region/MUs. MU overlap > region match > catch-all.
+def _pick_override(entries: list[dict], rn: str, row_mus: set[str], water: str = "") -> dict | None:
+    """The override entry best matching this row. qualifier > MU overlap > region match > catch-all.
 
-    An override only applies when it POSITIVELY matches the row: MU overlap (3), region match (2), or an
-    intentional catch-all with no region/MU scope (1). A scoped override whose region AND MUs both
-    conflict with the row (0) is a DIFFERENT water — never apply it (that bound Region-1 'White River'
-    to the Region-4 'White River (see also …)' override before this guard)."""
+    An override only applies when it POSITIVELY matches the row: a `qualifier` hit (4), MU overlap (3),
+    region match (2), or an intentional catch-all with no region/MU scope (1). A scoped override whose
+    region AND MUs both conflict with the row (0) is a DIFFERENT water — never apply it (that bound
+    Region-1 'White River' to the Region-4 'White River (see also …)' override before this guard).
+
+    `criteria.qualifier` IS THE TIEBREAKER OF LAST RESORT, and exists because region and MU are not
+    always enough. Region 5 prints two lakes named BIG LAKE and two named BLUE LAKE, and in each pair
+    BOTH sit in MU 5-2 — so the MU gate narrows correctly, to two, and every rung below it is blind.
+    The book does separate them, in the only place it can: a parenthetical naming where the lake is.
+
+        BIG LAKE (approx. 10 km west of 100 Mile House)
+        BIG LAKE (approx. 30 km west of Likely)
+
+    `_norm` strips that span, so it cannot reach the index — which is why the name key stays stripped
+    (every ordinary match depends on it) and the qualifier is checked against the UNSTRIPPED name here
+    instead. A qualifier is a substring test, so an override carries the distinguishing words and not
+    the book's full wording, which drifts between editions.
+
+    An override that DECLARES a qualifier and does not match scores 0. That is the whole point: without
+    it, the 100 Mile House override would still win the Likely row on MU overlap, which is the failure
+    this is here to stop.
+    """
+    hay = _norm_keep(water)
     best, best_score = None, 0
     for e in entries:
         c = e.get("criteria") or {}
+        want = _norm_keep(str(c.get("qualifier", "")))
+        if want and want not in hay:
+            continue                                   # declared a qualifier and missed it: not this water
         emus = set(c.get("mus", []))
         ereg = re.search(r"\d+", str(c.get("region", "")))
         ereg = ereg.group(0) if ereg else ""
-        if emus and emus & row_mus:
+        if want:
+            score = 4
+        elif emus and emus & row_mus:
             score = 3
         elif ereg and ereg == rn:
             score = 2
@@ -257,7 +294,7 @@ def match_row(index: int, row: dict, registry: dict[str, RegistryItem], name_ind
     key = _norm(water)
     rn, row_mus = region_num(row), parse_reg_mus(row)
 
-    e = _pick_override(override_index.get(key, []), rn, row_mus)
+    e = _pick_override(override_index.get(key, []), rn, row_mus, water)
     if e is not None:
         note = e.get("note", "") or e.get("skip_reason", "")
         if e.get("not_found"):

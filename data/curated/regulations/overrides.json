@@ -2549,9 +2549,10 @@
    "region": "REGION 5 - Cariboo",
    "mus": [
     "5-2"
-   ]
+   ],
+   "qualifier": "Likely"
   },
-  "note": "Disambiguate using GNIS ID",
+  "note": "Disambiguate using GNIS ID. Two lakes of this name sit in MU 5-2, so region and MU cannot separate them; `qualifier` keys on the book's own parenthetical, which `_norm` strips before it can reach the index. Confirmed independently: centroid 32.8 km from Likely; the book says approx. 30 km.",
   "gnis_ids": [
    "13037"
   ]
@@ -2563,9 +2564,10 @@
    "region": "REGION 5 - Cariboo",
    "mus": [
     "5-2"
-   ]
+   ],
+   "qualifier": "100 Mile House"
   },
-  "note": "Disambiguate using GNIS ID",
+  "note": "Disambiguate using GNIS ID. Two lakes of this name sit in MU 5-2, so region and MU cannot separate them; `qualifier` keys on the book's own parenthetical, which `_norm` strips before it can reach the index. Confirmed independently: centroid 11.3 km from 100 Mile House; the book says approx. 10 km.",
   "gnis_ids": [
    "33210"
   ]
@@ -2577,9 +2579,10 @@
    "region": "REGION 5 - Cariboo",
    "mus": [
     "5-2"
-   ]
+   ],
+   "qualifier": "Alexandria"
   },
-  "note": "Disambiguate using GNIS ID",
+  "note": "Disambiguate using GNIS ID. Two lakes of this name sit in MU 5-2, so region and MU cannot separate them; `qualifier` keys on the book's own parenthetical, which `_norm` strips before it can reach the index. Confirmed independently: centroid 6.4 km from Alexandria.",
   "gnis_ids": [
    "14474"
   ]
@@ -2591,9 +2594,10 @@
    "region": "REGION 5 - Cariboo",
    "mus": [
     "5-2"
-   ]
+   ],
+   "qualifier": "Soda Creek"
   },
-  "note": "Disambiguate using GNIS ID",
+  "note": "Disambiguate using GNIS ID. Two lakes of this name sit in MU 5-2, so region and MU cannot separate them; `qualifier` keys on the book's own parenthetical, which `_norm` strips before it can reach the index. Confirmed independently: centroid 3.2 km from Soda Creek.",
   "gnis_ids": [
    "38199"
   ]

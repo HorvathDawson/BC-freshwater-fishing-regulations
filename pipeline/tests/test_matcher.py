@@ -173,3 +173,77 @@ def test_id_index_self_identity_beats_an_inherited_ref():
     idx = build_id_index(reg)
     assert idx["gnis:39325"] == "gnis:39325"
     assert idx["gnis:10494"] == "gnis:10494"
+
+
+# --------------------------------------------------------------------------------------------
+# criteria.qualifier — the tiebreaker for two same-named waters inside ONE management unit.
+#
+# Region 5 prints two BIG LAKEs and two BLUE LAKEs, and in each pair both sit in MU 5-2. The MU
+# gate narrows correctly and still leaves two, so every rung below it is blind and the matcher
+# picks the same item for both rows. The book's only discriminator is a parenthetical naming
+# where the lake is, and `_norm` strips that span before it can reach the index.
+
+def _big(mus=("5-2",)):
+    return {"wbk:1": _it("wbk:1", "Big Lake", mus=mus, kind="lake"),
+            "wbk:2": _it("wbk:2", "Big Lake", mus=mus, kind="lake")}
+
+
+def _ov(qualifier, wbk):
+    return {"criteria": {"name_verbatim": "BIG LAKE", "region": "5", "mus": ["5-2"],
+                         "qualifier": qualifier},
+            "waterbody_keys": [wbk]}
+
+
+def _row(water):
+    return {"water": water, "region": "REGION 5 - Cariboo", "mu": "5-2"}
+
+
+def test_two_same_named_lakes_in_one_mu_are_ambiguous_without_a_qualifier():
+    """The failure the qualifier exists to fix: MU is not enough, so neither row can be resolved."""
+    res = match_rows([_row("BIG LAKE (approx. 10 km west of 100 Mile House)"),
+                      _row("BIG LAKE (approx. 30 km west of Likely)")], _big(), [])
+    assert [r.status for r in res] == ["ambiguous", "ambiguous"]
+
+
+def test_qualifier_separates_two_lakes_sharing_a_name_and_an_mu():
+    res = match_rows([_row("BIG LAKE (approx. 10 km west of 100 Mile House)"),
+                      _row("BIG LAKE (approx. 30 km west of Likely)")],
+                     _big(), [_ov("100 Mile House", 1), _ov("Likely", 2)])
+    assert [r.item_id for r in res] == ["wbk:1", "wbk:2"]
+    assert all(r.status == "override" for r in res)
+
+
+def test_a_declared_qualifier_that_misses_never_applies():
+    """Without this the 100 Mile House override still wins the Likely row on MU overlap (score 3),
+    which is the exact mis-match this mechanism is here to stop."""
+    res = match_rows([_row("BIG LAKE (approx. 30 km west of Likely)")],
+                     _big(), [_ov("100 Mile House", 1)])
+    assert res[0].item_id != "wbk:1"
+    assert res[0].status == "ambiguous"
+
+
+def test_qualifier_outranks_mu_overlap():
+    """Both overrides match the row's MU; only one matches its parenthetical."""
+    res = match_rows([_row("BIG LAKE (approx. 30 km west of Likely)")],
+                     _big(), [{"criteria": {"name_verbatim": "BIG LAKE", "mus": ["5-2"]},
+                               "waterbody_keys": [1]},
+                              _ov("Likely", 2)])
+    assert res[0].item_id == "wbk:2"
+
+
+def test_qualifier_is_folded_and_punctuation_insensitive():
+    """Paired against a competing override so the FOLD has to do the work — with a lone override,
+    MU overlap would pick it whether or not the punctuation was folded, and the test would pass
+    on a matcher that ignores qualifiers entirely."""
+    res = match_rows([_row("BIG LAKE (approx. 10 km west of 100 Mile House)")],
+                     _big(), [_ov("Likely", 2), _ov("100-mile  house", 1)])
+    assert res[0].item_id == "wbk:1"
+
+
+def test_overrides_without_a_qualifier_are_untouched():
+    """482 of the 486 live overrides carry no qualifier; their behaviour must not move."""
+    reg = {"wbk:9": _it("wbk:9", "Big Lake", mus=("5-2",), kind="lake")}
+    res = match_rows([_row("BIG LAKE")], reg,
+                     [{"criteria": {"name_verbatim": "BIG LAKE", "mus": ["5-2"]},
+                       "waterbody_keys": [9]}])
+    assert res[0].item_id == "wbk:9" and res[0].status == "override"
