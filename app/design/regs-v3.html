@@ -70,6 +70,15 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 .eyebrow{font:700 9.5px/12px var(--ui);letter-spacing:1.1px;color:var(--sub);
   text-transform:uppercase}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.asof{display:flex;align-items:stretch;border:1.5px solid var(--ink);margin-right:10px}
+.asofl{display:flex;align-items:center;padding:0 9px;font:700 9.5px/12px var(--ui);
+  letter-spacing:1.1px;text-transform:uppercase;color:var(--card);background:var(--ink)}
+.asof input{border:0;border-left:1.5px solid var(--ink);background:var(--card);color:var(--ink);
+  font:700 10px/12px var(--ui);padding:6px 7px;min-width:126px}
+.asof button{padding:6px 9px;font:700 9.5px/12px var(--ui);letter-spacing:1.1px;
+  text-transform:uppercase;color:var(--sub);border-left:1.5px solid var(--ink)}
+.asof button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.bar{flex-wrap:wrap;gap:8px}
 .themes{display:flex;border:1.5px solid var(--ink)}
 .themes button{padding:6px 12px;font:700 9.5px/12px var(--ui);letter-spacing:1.1px;
   text-transform:uppercase;color:var(--sub)}
@@ -472,6 +481,14 @@ dl.qnote dd s{opacity:.6}
 <div class="wrap">
 <div class="bar">
   <div class="eyebrow">Prototype · two stages · built from the shipped bundle</div>
+  <div class="asof" role="group" aria-label="Date">
+    <span class="asofl">As of</span>
+    <input type="date" id="asof" aria-label="Date to show rules for">
+    <button data-day="2-1" title="winter release, spring closure">1 Feb</button>
+    <button data-day="5-1" title="spring stream closure">1 May</button>
+    <button data-day="9-7" title="the date this page ships pinned to" aria-pressed="true">7 Sep</button>
+    <button data-day="11-15" title="trout/char winter release">15 Nov</button>
+  </div>
   <div class="themes" role="group" aria-label="Theme">
     <button data-theme-set="light" aria-pressed="false">Light</button>
     <button data-theme-set="dark" aria-pressed="false">Dark</button>
@@ -640,7 +657,22 @@ function appliesTo(rule, groups){
 function speciesWords(codes){
   return (codes||[]).map(function(c){ return SPECIES[c]||c; }).join(", ");
 }
+/*
+ * TODAY, AND WHY IT IS A CONTROL.
+ *
+ * Half of what this page decides is a date question. A closure with a window is drawn only
+ * while it is in force; an exemption lifts only while IT is in force; the verdict on a stretch
+ * is "what applies HERE, NOW". All of that was pinned to one hardcoded day, which made the
+ * page stable to review and made six months of its behaviour unreachable — the spring stream
+ * closure runs Jan 1 - Jun 30, so on 7 September every closure it drives, and every exemption
+ * from it, rendered as nothing at all. A defect that only exists in May is not visible from
+ * September, and one was: 41 exemptions naming an entry id that did not resolve.
+ *
+ * So the date moves. `live()` reads these two fields on every call, so setting them and
+ * repainting is the whole mechanism — no reload, and each water keeps the stretch you were on.
+ */
 var TODAY={month:9,day:7};
+var REPAINT=[];                       // one render() per water, registered by build()
 /*
  * NO PICTOGRAMS. A row used to open with one of ✕ ⚖ ⚒ ⛵ ▣ ⓘ — six Unicode symbols from six
  * unrelated typefaces, which is exactly the "generic icon set" this app's own icons.tsx
@@ -3758,6 +3790,7 @@ function build(name, mount){
     }
   }
   render();
+  REPAINT.push(render);
 }
 
 /* WHY EACH WATER IS HERE, from the generator — `pipeline/tools/build_regs_v3_data.py` keeps
@@ -3771,6 +3804,43 @@ var NOTE=function(n){ return (D[n]&&D[n].why)||""; };
  * `system` removes the stamp rather than guessing, which is the third state the artifact
  * contract actually has.
  */
+/*
+ * THE DATE CONTROL. `live()` reads TODAY on every call, so setting the two fields and calling
+ * each water's own render() is the whole of it — no reload, and every water keeps the stretch
+ * the reader was on, which is the point: you change the date to watch ONE stretch change.
+ *
+ * The presets are not arbitrary. They are the four corners of the corpus's calendar: the
+ * spring stream closure (Jan 1 - Jun 30), the trout/char winter release (Nov 1 - Mar 31),
+ * the overlap of the two in February, and the September day the page ships pinned to.
+ */
+var MON_LEN=[31,29,31,30,31,30,31,31,30,31,30,31];
+function setToday(m, d){
+  m = Math.min(12, Math.max(1, m|0));
+  TODAY.month = m;
+  TODAY.day   = Math.min(MON_LEN[m-1], Math.max(1, d|0));
+  var iso = "2026-" + String(TODAY.month).padStart(2,"0") + "-"
+                    + String(TODAY.day).padStart(2,"0");
+  var inp = document.getElementById("asof");
+  if (inp && inp.value !== iso) inp.value = iso;
+  document.querySelectorAll("[data-day]").forEach(function(b){
+    var p = b.getAttribute("data-day").split("-");
+    b.setAttribute("aria-pressed", String(+p[0]===TODAY.month && +p[1]===TODAY.day));
+  });
+  REPAINT.forEach(function(f){ f(); });
+}
+document.querySelectorAll("[data-day]").forEach(function(b){
+  b.onclick=function(){ var p=b.getAttribute("data-day").split("-"); setToday(+p[0], +p[1]); };
+});
+(function(){
+  var inp=document.getElementById("asof");
+  if(!inp) return;
+  // The year is fixed: a regulation window is a month and a day, and nothing here reads a year.
+  inp.oninput=function(){
+    var m=/^\d{4}-(\d{2})-(\d{2})$/.exec(inp.value);
+    if(m) setToday(+m[1], +m[2]);
+  };
+  setToday(TODAY.month, TODAY.day);
+})();
 document.querySelectorAll("[data-theme-set]").forEach(function(b){
   b.onclick=function(){
     var v=b.getAttribute("data-theme-set");
