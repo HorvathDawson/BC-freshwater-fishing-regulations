@@ -36,6 +36,45 @@ WORKLIST = REPO_ROOT / "data" / "curated" / "waters" / "sub_lake_areas.json"
 ADDED = REPO_ROOT / "data" / "curated" / "waters" / "added_lakes.geojson"
 
 
+
+#: CUT LINES SEEDED FROM THE BOOK'S OWN BOUNDARY TEXT.
+#:
+#: Kootenay Lake prints its boundaries in prose, in `z4:kootenay_lake_boundaries`:
+#:
+#:   The Main Body is the area EAST of a line between boundary signs on opposite shores near
+#:   Balfour Point and Procter Lighthouse.
+#:   The Upper West Arm is the area WEST of that line to McDonalds Landing (Six Mile).
+#:   The Lower West Arm is the area between McDonalds Landing (Six Mile) and Corra Linn Dam.
+#:
+#: Three of the four landmarks are places the bundle already knows, so those endpoints are
+#: data rather than a guess. McDonalds Landing is not: the only "McDonalds Landing" in the
+#: place table is in Region 6, 700 km away, and neither it nor "Six Mile" appears anywhere in
+#: the West Arm corridor. Its seed is a reading of the text — six miles along the arm from
+#: Nelson, between Nelson and Willow Point — and it is marked `approx` so the page says so and
+#: the curator drags it onto the narrows.
+#:
+#: Every endpoint is draggable regardless. A seed is a starting point, not an answer.
+CUT_SEEDS = {
+    "wbk:328974235": [
+        {"id": "balfour_procter",
+         "label": "Balfour Point → Procter Lighthouse",
+         "note": "Main Body is east of this line; Upper West Arm is west of it.",
+         "from": [-116.961725, 49.624937], "to": [-116.961382, 49.617047],
+         "approx": False,
+         "from_name": "Balfour", "to_name": "Procter"},
+        {"id": "mcdonalds_landing",
+         "label": "McDonalds Landing (Six Mile)",
+         "note": "Upper West Arm is east of this line; Lower West Arm is west of it, "
+                 "down to Corra Linn Dam.",
+         # Six Mile is ~6 miles along the arm from Nelson (-117.2900, 49.4949); that lands
+         # near -117.225, where the arm's water runs 49.5638-49.5738, so this spans it with a
+         # margin on both shores. The POSITION is a reading of the name; the crossing is real.
+         "from": [-117.2250, 49.5580], "to": [-117.2250, 49.5800],
+         "approx": True,
+         "from_name": "south shore", "to_name": "north shore"},
+    ],
+}
+
 def _to_lonlat():
     from pyproj import Transformer
     return Transformer.from_crs(3005, 4326, always_xy=True).transform
@@ -94,6 +133,7 @@ def main() -> int:
             "rows": rows,
             "parts": [{"name": p.get("name"), "id": p.get("id")} for p in L.get("parts", [])],
             "mus": {m: _ring(mu_polys[m], tf) for m in touched if m in mu_polys},
+            "cuts": CUT_SEEDS.get(L["item_id"], []),
         })
         print(f"  {L['lake']}: {len(out['lakes'][-1]['outline'])} ring(s), "
               f"{len(rows)} row(s), {len(out['lakes'][-1]['mus'])} MU polygon(s), "
