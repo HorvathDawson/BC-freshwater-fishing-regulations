@@ -847,9 +847,9 @@ function recompute(){
                                                      p.renamed = true; } });
 
   ops.forEach(function(op){
-    if (op.kind === "region" || op.kind === "mu") {
+    if (op.kind === "region") {
       var row = (cur.rows || []).find(function(r){ return r.entry_id === op.row; });
-      if (row) (op.kind === "region" ? placeRegion : placeMu)(row);
+      if (row) placeRegion(row);
     } else {
       var c = cuts.find(function(x){ return x.id === op.cutId; });
       if (c) placeLine(c);
@@ -956,21 +956,18 @@ function renderAuto(){
   }
   box.innerHTML = rows.map(function(r, i){
     var ok = regionDefined(r, rows);
-    var mine = (r.mus || []).filter(function(m){ return (cur.mus || {})[m]; });
     return '<div class="part"><span class="nm"><b>'+esc(shortName(r.entry_id))+'</b>'
       + '<span>'
       + (ok ? "Region " + esc(r.region) + " · every unit of it"
-            : "MU " + esc(mine.join(", ") || r.mus.join(", ")) + " · inside Region "
-              + esc(r.region))
+            : "inside Region " + esc(r.region) + " · a line marks it, not a boundary")
       + '</span></span>'
-      + (ok  ? '<button data-auto="'+i+'">Cut region</button>'
-       : mine.length ? '<button data-mu="'+i+'">Cut unit</button>'
-                     : '<button data-draw="'+i+'">Draw</button>')
+      + (ok ? '<button data-auto="'+i+'">Cut region</button>'
+            : '<button data-draw="'+i+'">Draw a line</button>')
       + '</div>';
   }).join("")
   + '<div class="note">A zone is its whole region &mdash; Williston\'s Zone A is every unit of '
-  + '7A. A row <em>inside</em> a zone is its own unit: Nation Arm is 7-30, Davis Bay is 7-37. '
-  + 'Both are one click; drawing is only for a part no boundary describes.</div>';
+  + '7A. Everything else is a line: an arm, a bay or a netted-off corner is a shape the '
+  + 'boundaries in the data do not describe, however tempting the unit it sits in looks.</div>';
 
   box.querySelectorAll("[data-auto]").forEach(function(b){
     b.onclick = function(){ autoCut(rows[+b.dataset.auto]); };
@@ -978,92 +975,22 @@ function renderAuto(){
   box.querySelectorAll("[data-draw]").forEach(function(b){
     b.onclick = function(){ newCutFor(rows[+b.dataset.draw]); };
   });
-  box.querySelectorAll("[data-mu]").forEach(function(b){
-    b.onclick = function(){ muCut(rows[+b.dataset.mu]); };
-  });
 }
+
 
 /* --------------------------------------------------------------------------------------- *
- * A ROW INSIDE A ZONE IS ITS OWN UNIT, AND THAT IS ALSO ONE CLICK.
+ * A LINE STARTED FOR ONE ROW, ALREADY BELONGING TO IT.
  *
- * Switching the zones to cut by region was right — Zone A is every unit of 7A, and cutting it
- * from the three units its row happens to name missed a quarter of the lake. But it left the
- * rows INSIDE a zone with nothing but "draw this one", which meant dragging a 56 km line onto
- * an arm by eye, twice, for waters the book has already located precisely:
+ * Nation Arm and Davis Bay sit inside Zone A, so no boundary in the data separates them and
+ * they have to be marked by a line across the mouth. The button makes that line FOR the row:
+ * labelled with it and carrying its entry id, so cutting puts the piece in that row's own
+ * worklist slot, already named.
  *
- *     NATION ARM (Williston Lake)              7-30    279 km², one piece
- *     DAVIS BAY (in Finlay Reach)              7-37    433 km², one piece
- *
- * Those single units are what the book says the arm and the bay are. Cut the unit.
- * --------------------------------------------------------------------------------------- */
-function muCut(row){
-  if (!ops.some(function(o){ return o.kind === "mu" && o.row === row.entry_id; }))
-    ops.push({kind: "mu", row: row.entry_id});
-  recompute();
-  var made = parts.find(function(p){ return p.madeBy === "mu:" + row.entry_id; });
-  if (!made || !made.feature) {
-    status("MU " + (row.mus||[]).join(", ") + " does not carve anything from this lake");
-    return;
-  }
-  status('"' + made.name + '" — ' + areaWord(made.feature)
-         + ", from MU " + (row.mus||[]).join(", ") + " · click it on the map to rename");
-}
-
-/* The lake inside one row's own units, taken out of whatever piece already holds it. */
-function placeMu(row){
-  var union = null;
-  (row.mus || []).forEach(function(m){
-    var rings = (cur.mus || {})[m];
-    if (!rings) return;
-    rings.forEach(function(r){
-      var poly = turf.polygon([r]);
-      union = union ? turf.union(union, poly) : poly;
-    });
-  });
-  if (!union) return null;
-  var piece = clipToLake(union);
-  if (!piece) return null;
-
-  // Take it out of the part that currently contains it — Nation Arm comes out of Zone A — so
-  // the pieces stay a partition rather than overlapping.
-  var host = null, hostArea = 0;
-  parts.forEach(function(p, i){
-    if (!p.feature || p.keep) return;
-    try {
-      var ov = turf.intersect(p.feature, piece);
-      var a = ov ? turf.area(ov) : 0;
-      if (a > hostArea) { hostArea = a; host = i; }
-    } catch(e){}
-  });
-  if (host != null) {
-    try { var rest = turf.difference(parts[host].feature, piece);
-          if (rest) parts[host].feature = rest; } catch(e){}
-  }
-  var slot = slotFor(row.entry_id) ||
-             parts.find(function(p){ return !p.feature && !p.keep; });
-  if (slot) { slot.feature = piece; slot.madeBy = "mu:" + row.entry_id; }
-  else parts.push({name: shortName(row.entry_id), feature: piece, id: null,
-                   madeBy: "mu:" + row.entry_id});
-  return slot;
-}
-
-/* --------------------------------------------------------------------------------------- *
- * A ROW THAT CANNOT BE CUT FROM ITS REGION STILL HAS TO BE CUT FROM SOMETHING.
- *
- * Nation Arm and Davis Bay sit inside Zone A, so the region boundary cannot separate them and
- * the panel said "draw this one" — while offering nothing to draw with. The curator had to go
- * to Cut lines, start an unnamed line, cut, and then work out which of four worklist parts the
- * result was.
- *
- * The button makes the line FOR the row: labelled with it, and carrying its entry id, so when
- * the line is cut the piece lands in that row's own worklist slot already named. Drag the two
- * ends onto the mouth of the arm and press Cut; nothing else to decide.
+ * It also goes where the row is. The row names the units it falls in — Nation Arm's is 7-30 —
+ * so the lake's water inside that unit is where its mouth must be, and the map fits to it
+ * before the line is seeded. From the whole-lake view the seed was a 110 km line to drag.
  * --------------------------------------------------------------------------------------- */
 function newCutFor(row){
-  /* GO WHERE THE ROW IS. The row names the units it falls in, and Nation Arm's is 7-30 — so
-     the lake's water inside 7-30 is where its mouth has to be. Seeding the line across the
-     middle of the whole lake made a 110 km line to drag; seeding it in the row's own unit puts
-     it within sight of the boundary it is for. */
   var focus = null;
   (row.mus || []).forEach(function(m){
     var rings = (cur.mus || {})[m];
@@ -1077,28 +1004,41 @@ function newCutFor(row){
   });
   if (focus) {
     try {
-      var bb = turf.bbox(focus);                      // [minX,minY,maxX,maxY]
-      // `animate:false` matters: the seed is read from map.getBounds() on the very next line,
-      // and an animated fit is still on the old view when that happens — which is how the
-      // "go to the unit" seed came out as a 110 km line across the whole lake.
+      var bb = turf.bbox(focus);
+      // `animate:false` is load-bearing: the seed is read from map.getBounds() on the next
+      // line, and an animated fit is still on the old view when that happens.
       map.fitBounds([[bb[1], bb[0]], [bb[3], bb[2]]], {padding: [30, 30], animate: false});
     } catch(e){}
   }
-
   var b = map.getBounds(), c = b.getCenter();
   var dy = (b.getNorth() - b.getSouth()) * 0.18;
   var label = shortName(row.entry_id);
   cuts.push({id: "cut_" + row.entry_id, label: label, forRow: row.entry_id,
-             note: "Drawn for " + label + ", which sits inside another row's zone.",
+             note: "Drawn for " + label + ", which no boundary in the data describes.",
              approx: true,
              pts: [[c.lng, c.lat - dy], [c.lng, c.lat + dy]]});
   renderCuts();
   var slot = slotFor(row.entry_id);
   status('line started for "' + (slot ? slot.name : label) + '"'
          + (focus ? " — the map is on its management unit" : "")
-         + " · drag its ends onto the mouth of the arm, then press Cut");
+         + " · drag its ends across the mouth, then press Cut");
 }
 
+/* --------------------------------------------------------------------------------------- *
+ * WHICH ROW *IS* A BOUNDARY, AND WHICH ONLY SITS INSIDE ONE.
+ *
+ * A zone is its region: Williston's Zone A is every unit of 7A, and cutting it from the three
+ * units its own row names missed 425 km² held by units no row mentions.
+ *
+ * Nothing else is. Nation Arm's row carries 7-30 and Davis Bay's carries 7-37, and it is very
+ * tempting to cut those — they are single, contiguous, one click. They are also 279 km² and
+ * 432 km², which is the unit the water sits in and not the arm or the bay. A bay is a shape,
+ * and no boundary in this data describes it; it takes a line across its mouth.
+ *
+ * The units still say WHICH rows those are. A row whose unit set is contained in another's is
+ * the smaller water; equal sets disqualify both, which is why all four Kootenay rows draw —
+ * ALL PARTS and MAIN BODY are both 4-19, and both West Arms are 4-7.
+ */
 function regionDefined(row, rows){
   var mine = (row.mus||[]);
   if (!mine.length) return false;
@@ -1381,7 +1321,11 @@ sel.onchange = function(){
      pressing Cut again would restore it. The operations are replayed instead, so the lake comes
      back exactly as it was left. */
   if (saved) {
-    if (saved.ops && saved.ops.length) { ops = saved.ops.slice(); recompute(); }
+    if (saved.ops && saved.ops.length) {
+      // "mu" ops were a wrong idea briefly shipped; drop them rather than replay them.
+      ops = saved.ops.filter(function(o){ return o.kind !== "mu"; });
+      recompute();
+    }
     else if (saved.autoCuts && saved.autoCuts.length) {      // files written before ops existed
       ops = saved.autoCuts.map(function(eid){ return {kind:"region", row:eid}; });
       recompute();
