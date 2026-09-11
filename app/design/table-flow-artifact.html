@@ -164,36 +164,83 @@ the last column says. It never decides which table.</figcaption>
 </figure>
 
 <h2>Where every kind of rule goes</h2>
-<p class="sub">Fifteen kinds of statement, <b>2,396 rules</b> in the shipped corpus. The counts
-are of rules, not of appearances &mdash; a provincial rule reaches thousands of waters and is
-counted once. <b>The column sums to 2,396</b>: every rule in the corpus is accounted for, and
-nothing falls through.</p>
+<p class="sub"><b>3,422 rules</b> across <b>1,480 entries</b> in the shipped corpus. Every rule
+carries a <code>family</code>, written by the parser and stored in the bundle &mdash; it is a
+field, not a reading, and it is what decides which table a rule appears in. The counts are of
+rules, not of appearances: a provincial rule reaches thousands of waters and is counted once.
+<b>The column sums to 3,422</b>, so every rule is accounted for and nothing falls through.</p>
 
 <div class="tw">
 <table>
-<tr><th>A rule that&hellip;</th><th>Appears as</th><th class="n">rules</th></tr>
-<tr><td>limits what you keep</td><td><b>A row in the quota table</b> &mdash; fish, number, conditions, and who set it</td><td class="n">740</td></tr>
-<tr><td>limits what you keep, <em>and shuts the water or carries dates</em></td><td>that row <b>and</b> an entry in the closure calendar</td><td class="n">433</td></tr>
-<tr><td>restricts tackle, bait or a method</td><td><b>How you may fish</b>, under the activity it belongs to</td><td class="n">640</td></tr>
-<tr><td>restricts a boat</td><td><b>From a boat</b></td><td class="n">288</td></tr>
-<tr><td>requires a document, or someone&rsquo;s permission</td><td><b>Before you fish</b> &mdash; one row per document</td><td class="n">100</td></tr>
-<tr><td>lifts or narrows another rule</td><td>an edit to <b>that</b> rule &mdash; never a row of its own</td><td class="n">49</td></tr>
-<tr><td>is a notice, a hazard, a facility, a tagging programme</td><td>the notices list</td><td class="n">115</td></tr>
-<tr><td>is a duty about handling your catch</td><td>the folded <b>&ldquo;duties that apply everywhere in B.C.&rdquo;</b></td><td class="n">10</td></tr>
-<tr><td>explains a size limit</td><td>a footnote under the quota table &mdash; only where a size appears</td><td class="n">7</td></tr>
-<tr><td>bars a class of angler</td><td>its own line &mdash; it is about <em>who</em>, not a document</td><td class="n">7</td></tr>
-<tr><td>explains what a closure means</td><td>under the closure banner &mdash; only where a closure is in force</td><td class="n">2</td></tr>
-<tr><td>says to stop after your quota</td><td>a note under the quota table, on the fish it names</td><td class="n">1</td></tr>
-<tr><td>is about one fish and nothing else</td><td>a note on that fish&rsquo;s row</td><td class="n">1</td></tr>
-<tr><td>records your retention on your licence</td><td>a note under the quota table</td><td class="n">1</td></tr>
-<tr><td style="opacity:.7">tells you to do by hand what the app has done</td><td style="opacity:.7">nothing &mdash; deliberately not shown</td><td class="n">2</td></tr>
+<tr><th>family</th><th>Appears as</th><th class="n">rules</th></tr>
+<tr><td><code>retention</code></td><td><b>A row in the quota table</b> &mdash; fish, number, conditions, and who set it. Where it also shuts the water or carries dates, <b>an entry in the closure calendar as well</b></td><td class="n">1,771</td></tr>
+<tr><td><code>gear_and_method</code></td><td><b>How you may fish</b>, under the activity it belongs to</td><td class="n">888</td></tr>
+<tr><td><code>vessel</code></td><td><b>From a boat</b></td><td class="n">400</td></tr>
+<tr><td><code>information</code></td><td>the notices list &mdash; a tagging programme, a landslide, a mercury advisory</td><td class="n">184</td></tr>
+<tr><td><code>licensing</code></td><td><b>Before you fish</b> &mdash; one row per document or permission</td><td class="n">169</td></tr>
+<tr><td><code>conduct</code></td><td>the folded <b>&ldquo;duties that apply everywhere in B.C.&rdquo;</b></td><td class="n">10</td></tr>
 </table>
 </div>
-<div class="note"><b>Two rules are deliberately not shown</b>, and both are named in the code so the
-choice is arguable: &ldquo;check the tributaries of the following lakes for special
-regulations&rdquo;, which instructs the reader to do by hand what the app has already done, and
-&ldquo;this is the only white sturgeon fishery in the province&rsquo;s non-tidal waters&rdquo;,
-which carries nothing to act on.</div>
+
+<p class="sub">Within <code>retention</code>, one distinction does more work than any other:
+<b><code>take=0</code> with <code>may_target=false</code> is a closure</b> &mdash; you may not
+fish &mdash; while <b><code>take=0</code> with <code>may_target=true</code> is catch-and-release</b>.
+Two fields apart, opposite meanings. The corpus holds <b>648</b> of the first and <b>339</b> of
+the second.</p>
+
+<h2>What does not get a row of its own</h2>
+<p class="sub">Three kinds of statement are routed rather than listed, and each is keyed on an
+id in the data, never on matching words.</p>
+
+<div class="tw">
+<table>
+<tr><th>rule</th><th>Where it goes instead</th></tr>
+<tr><td>An <b>exemption</b> (<code>exempts</code>)</td><td>an edit to the rule it names &mdash; struck and marked <em>lifted here</em>, or kept with the hole marked. Never a row of its own. <b>87 rules</b> carry one</td></tr>
+<tr><td>A <b>table qualifier</b> &mdash; &ldquo;quotas are not cumulative&rdquo;, &ldquo;measure to the fork of the tail&rdquo;</td><td>a footnote under the table it qualifies, and only where that table exists</td></tr>
+<tr><td>A rule that <b>tells you to do by hand what the page has done</b></td><td>nothing &mdash; deliberately not shown, and named in the code so the choice is arguable</td></tr>
+</table>
+</div>
+<div class="note"><b>Two rules are deliberately not shown</b>: &ldquo;check the tributaries of the
+following lakes for special regulations&rdquo;, which instructs the reader to do by hand what the
+app has already done, and &ldquo;this is the only white sturgeon fishery in the province&rsquo;s
+non-tidal waters&rdquo;, which carries nothing to act on.</div>
+
+<h2>The check that found the last defect</h2>
+<p class="sub">An exemption points at the thing it lifts by <b>id</b>. Nothing checked that the
+id resolved &mdash; the lookup simply failed, lifted nothing, and left the rule on screen still
+reading <em>exempt</em> while the closure went on closing the water.</p>
+
+<div class="tw">
+<table>
+<tr><th>the rule said</th><th>the entry is called</th><th class="n">rules</th></tr>
+<tr><td><code>spring_closure</code></td><td><code>spring_stream_closure</code></td><td class="n">32</td></tr>
+<tr><td><code>trout_char_release</code></td><td><code>trout_char_winter_release</code></td><td class="n">4</td></tr>
+<tr><td><code>summer_closure</code></td><td><code>summer_stream_closure</code></td><td class="n">2</td></tr>
+<tr><td><code>bull_trout_release</code></td><td><code>trout_char_winter_release</code></td><td class="n">1</td></tr>
+<tr><td><code>bait_ban</code></td><td><code>bait_ban_streams</code></td><td class="n">1</td></tr>
+<tr><td><code>kokanee_stream_quota</code></td><td><code>species_quotas.r5</code> &mdash; one <em>rule</em>, not the entry</td><td class="n">1</td></tr>
+</table>
+</div>
+
+<p class="sub">It was invisible because of the calendar. The spring closure runs Jan&nbsp;1 &ndash;
+Jun&nbsp;30 and this page is pinned to 7&nbsp;September, so every one of them was dormant on
+screen. Pinned to 1&nbsp;May instead:</p>
+
+<div class="tw">
+<table>
+<tr><th>water</th><th class="n">closure reaches</th><th class="n">lifted</th><th class="n">still shut</th></tr>
+<tr><td>Fraser River</td><td class="n">16 stretches</td><td class="n">16</td><td class="n">0</td></tr>
+<tr><td>Kootenay River</td><td class="n">11 stretches</td><td class="n">8</td><td class="n">3 &middot; 97 km</td></tr>
+<tr><td>Okanagan River</td><td class="n">3 stretches</td><td class="n">3</td><td class="n">0</td></tr>
+</table>
+</div>
+<div class="note">Before the fix every one of those was shut. The Fraser row reads
+<b>&ldquo;Mainstem open all year&rdquo;</b>, and the page put <b>No Fishing over 1,250 km</b> of
+it for six months of the year. Kootenay keeps three stretches shut, correctly &mdash; the book
+exempts named reaches there, not the whole river.<br><br>
+The ids are resolved at the <b>validation gate</b>, so a re-parse cannot reintroduce them, and
+only known aliases are rewritten: an id with no alias is left alone and stays visible, because a
+silent rename is how this started.</div>
 
 <div class="note" style="border-left-color:var(--verify);
   background:color-mix(in srgb,var(--verify) 7%,transparent)"><b>How to check this.</b> The nine
@@ -297,8 +344,8 @@ every field is the value in the shipped bundle, and every output is what the pag
   has to be got right. <code>when_targeting: [WSG]</code> means the hole is only for sturgeon, so
   the ban <em>stands</em> and the exemption keeps its own line beneath it. Striking the parent
   would tell an angler the fin-fish bait ban is gone, when it is gone for one quarry on three
-  named rivers. Sixty rules in the corpus carry an exemption &mdash; <b>53 lift the rule they
-  name outright, 7 only cut a hole in it</b>. Note the last column: the exemption reaches the
+  named rivers. Eighty-seven rules in the corpus carry an exemption &mdash; <b>76 lift the rule they
+  name outright, 11 only cut a hole in it</b>. Note the last column: the exemption reaches the
   Fraser by naming it, so it reads <em>this water</em>, while the ban it qualifies is
   provincial.</div>
   <div class="chain">
