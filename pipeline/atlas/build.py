@@ -850,6 +850,9 @@ def main() -> None:
     # (matcher / batch_exporter / ingest) never need to rebuild the graph from the ~10GB FWA data.
     from pipeline.atlas.registry import add_curated_wbk_items, add_mu_sets, add_waterbody_items, build_registry
     from pipeline.atlas.registry import write_registry
+    # `build_registry` reads overrides.json itself for the waterbody keys a curator pinned by
+    # hand, so an FWA-unnamed water a regulation names still becomes an item. See
+    # `pipeline.atlas.registry.build.pinned_by_override`.
     registry = build_registry(graph)
     print(f"  registry: {len(registry)} named items")
     # Named waterbodies the graph alone misses: isolated named lakes/reservoirs with no through-stream

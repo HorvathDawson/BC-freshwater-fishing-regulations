@@ -292,3 +292,53 @@ def test_an_alias_on_either_edge_of_a_lake_reaches_the_registry():
         item = next(it for it in reg.values() if it.kind == "stream")
         lake = next(b for b in item.boundaries if b.ref == "lake:99")
         assert lake.aliases == ("split:duncan_river__duncan_dam",), f"lost when alias was on {which}"
+
+
+# --------------------------------------------------------------------------------------------
+# A WATERBODY AN OVERRIDE NAMES BY KEY IS NOT NAMELESS.
+#
+# The registry keeps named waters only — right, or the 1.7M nameless stream pieces bloat it to
+# ~458MB. But "nameless" was decided from FWA and the curated name file alone, and a curator
+# writing waterbody keys into overrides.json is a third naming authority the check never asked.
+#
+# The Bluey Lake potholes: the book closes nine, FWA names none, two carry stocking names and so
+# became items. The override listed all nine and could bind the two that existed, so a **No
+# Fishing** closure covered two ninths of its water — and looked resolved, because two bound.
+
+def _pothole_graph():
+    g = StreamGraph()
+    for i, w in enumerate(("W7", "W8", "W9")):
+        g.nodes[f"p{i}"] = _node(f"p{i}", name="", kind=NodeKind.lake, wbk=w, tuples=())
+    return g
+
+
+def test_nameless_waterbody_is_dropped_without_a_pin():
+    """The existing policy, unchanged: nothing names these, so they are not registry items."""
+    reg = build_registry(_pothole_graph(), pinned={})
+    assert [k for k in reg if k.startswith("wbk:")] == []
+
+
+def test_an_override_pin_keeps_a_nameless_waterbody_and_names_it():
+    reg = build_registry(_pothole_graph(),
+                         pinned={"wbk:W7": "UNNAMED LAKES (north and south of Bluey Lake)",
+                                 "wbk:W9": "UNNAMED LAKES (north and south of Bluey Lake)"})
+    assert set(k for k in reg if k.startswith("wbk:")) == {"wbk:W7", "wbk:W9"}
+    assert reg["wbk:W7"].name == "UNNAMED LAKES (north and south of Bluey Lake)"
+    # W8 is not pinned and stays dropped — the pin is a whitelist, not a blanket "keep unnamed".
+    assert "wbk:W8" not in reg
+
+
+def test_several_polygons_under_one_heading_share_the_name():
+    """They are ONE regulated water with several polygons, which is how the override describes
+    them — so they take one name and the entry binds every piece."""
+    nm = "UNNAMED LAKES (north and south of Bluey Lake)"
+    reg = build_registry(_pothole_graph(), pinned={"wbk:W7": nm, "wbk:W8": nm, "wbk:W9": nm})
+    assert {reg[k].name for k in ("wbk:W7", "wbk:W8", "wbk:W9")} == {nm}
+
+
+def test_a_pin_never_overrides_a_real_name():
+    g = StreamGraph()
+    g.nodes["L"] = _node("L", name="Bar Lake", kind=NodeKind.lake, wbk="W1",
+                         tuples=(NameTuple("Bar Lake", NameSource.gazette),))
+    reg = build_registry(g, pinned={"wbk:W1": "SOMETHING ELSE"})
+    assert reg["wbk:W1"].name == "Bar Lake"

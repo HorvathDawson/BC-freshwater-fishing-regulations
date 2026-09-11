@@ -161,7 +161,50 @@ def _boundary(b) -> RegistryBoundary | None:
                             aliases=tuple(b.aliases or ()))
 
 
-def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
+
+def pinned_by_override(overrides_path=None) -> dict[str, str]:
+    """`{item_id: name}` for waterbodies an OVERRIDE names by key, and FWA does not name at all.
+
+    THE REGISTRY KEEPS NAMED WATERS ONLY, and that is right: the 1.7M nameless stream pieces are
+    bloat, and a regulation can only match something it can name. But "nameless" is decided from
+    FWA and the curated name file, and there is a third naming authority the check never consulted
+    — a curator writing the waterbody keys down in `overrides.json`.
+
+    The Bluey Lake potholes are the case. The book closes nine of them:
+
+        UNNAMED LAKES (located immediately north and south of Bluey Lake)
+        **No Fishing** — known by Ministry of Forests designations as lakes
+        711, 712, 713, 364 and 309 on Map 92H-088
+
+    FWA names none of the nine. Two carry stocking names ("BLUEY 1", "BLUEY 2") through
+    `name_variants.json`, so those two became items; the other seven were dropped as nameless, and
+    the override that lists all nine could only bind the two that existed. A **No Fishing** closure
+    silently covered two ninths of the water it names — the dangerous direction, and invisible,
+    because the two that did bind made the entry look resolved.
+
+    An override naming a key IS a name for this purpose. The item takes the override's own
+    `name_verbatim`, which is what the book calls the water, so several potholes under one heading
+    share a name — they are one regulated water with several polygons, and that is exactly how the
+    override already describes them.
+    """
+    from pipeline.regs.matching.matcher import load_overrides, override_typed_ids
+    if overrides_path is None:
+        # The same default `reach.covered.make_matcher` resolves; "__default__" is that function's
+        # sentinel, not a path, and `load_overrides` would read it as a missing file and return [].
+        from pipeline.atlas.reach.covered import DEFAULT_OVERRIDES
+        overrides_path = DEFAULT_OVERRIDES if DEFAULT_OVERRIDES.exists() else None
+    out: dict[str, str] = {}
+    for e in load_overrides(overrides_path):
+        nm = ((e.get("criteria") or {}).get("name_verbatim") or "").strip()
+        if not nm:
+            continue
+        for tid in override_typed_ids(e):
+            if tid.startswith("wbk:"):
+                out.setdefault(tid, nm)
+    return out
+
+
+def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None = None) -> dict[str, RegistryItem]:
     """Group section-nodes into RegistryItems (one coded stream / lake = one item) with their
     bindable boundaries. gnis-first grouping, braid-unified via the WSC->gnis map.
 
@@ -170,6 +213,7 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
     import time
     from pipeline.common.utils.profiling import Profiler
     prof = prof or Profiler()
+    pinned = pinned if pinned is not None else pinned_by_override()
 
     with prof.phase("wsc_gnis map (scan all nodes)"):
         wsc_gnis = _wsc_gnis_map(graph)
@@ -242,7 +286,10 @@ def build_registry(graph: StreamGraph, prof=None) -> dict[str, RegistryItem]:
         # stream pieces are pure bloat (they blow registry.json to ~458MB). Keep anything with a display
         # name OR a name variant; drop the truly-nameless. Area items are added separately below.
         if not name and not variants:
-            continue
+            # …unless a curator named this exact key in `overrides.json`. See `pinned_by_override`.
+            if iid not in pinned:
+                continue
+            name = pinned[iid]
         item_slug = _slug(name) or iid.replace(":", "_")
         bmap: dict[str, RegistryBoundary] = {}                # keyed by readable id; disambiguate collisions
         seen_refs: dict[str, str] = {}                        # ref -> the rid already minted for it
