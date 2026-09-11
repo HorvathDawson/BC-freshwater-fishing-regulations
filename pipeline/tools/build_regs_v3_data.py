@@ -748,7 +748,15 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 "SELECT entry_id, rule_id, via FROM ruleset WHERE set_id = ?", (r["set"],)):
             span_of[(eid, rid, via)].append([r["from"], r["to"]])
     everywhere: set[tuple[str, str, str]] = set()
-    all_sets = sorted({v for v in set_of.values() if v is not None})
+    # EVERY SET ON THE SCREEN, not only the ones the parent item's sections carry.
+    #
+    # `set_of` is built from this water's own sids, which for a cut lake is the parent — and the
+    # parent is exactly the piece that no longer holds anything. So the arms' rulesets were never
+    # collected: the rungs had the right `set` for their spans, and the rules those spans pointed
+    # at were absent. Kootenay Lake showed three rungs, 77 regional rules, and not one of the
+    # kokanee closures or arm quotas the whole split exists to separate.
+    all_sets = sorted({v for v in set_of.values() if v is not None}
+                      | {r["set"] for r in runs if r.get("set") is not None})
     for chunk in range(0, len(all_sets), 400):
         part = all_sets[chunk:chunk + 400]
         for row in db.execute(
