@@ -45,8 +45,9 @@ _BUILD = GENERATED.build()
 REGISTRY_PATH = _BUILD / "registry.json"
 OVERRIDES_PATH = CURATED.regulations.overrides
 SPLITS_RESOLVED_PATH = _BUILD / "splits.resolved.json"
-GRAPH_GPKG_PATH = _BUILD / "graph.gpkg"
 GRAPH_PKL_PATH = _BUILD / "graph.pkl"
+GEOMS_PKL_PATH = _BUILD / "geometries.pkl"
+WBK_POLYS_PKL_PATH = _BUILD / "waterbody_polys.pkl"
 BASEMAP_PMTILES = SOURCE / "bc.pmtiles"                  # the webapp's basemap (web-mercator)
 SPLITS_JSON_PATH = CURATED.waters.splits                 # THE hand-curated split source (editable here)
 ROW_IMAGES_DIR = GENERATED.regs.extraction / "row_images"  # source synopsis row crops
@@ -89,20 +90,16 @@ def _clean_val(v):
 
 @lru_cache(maxsize=1)
 def _split_points_attrs() -> dict[str, dict]:
-    """split_id -> the split_points layer's attributes (concern, offset_m, picked_up, anchor_type,
-    route_measure, ...) read ONCE without geometry. Extra provenance for the curator beyond
-    splits.resolved.json — this is where a mis-anchored split (wrong falls vs bridge) shows up."""
-    try:
-        import pyogrio
-        df = pyogrio.read_dataframe(GRAPH_GPKG_PATH, layer="split_points", read_geometry=False)
-    except Exception:  # noqa: BLE001 — no pyogrio / no layer: fall back to splits.resolved only
-        return {}
-    out: dict[str, dict] = {}
-    for rec in df.to_dict("records"):
-        sid = str(rec.get("split_id") or "")
-        if sid:
-            out[sid] = {k: _clean_val(v) for k, v in rec.items()}
-    return out
+    """split_id -> the extra provenance beyond the anchor itself (concern, picked_up, offset_m) —
+    this is where a mis-anchored split (wrong falls vs bridge) shows up.
+
+    Read from `splits.resolved.json`, which carries all three: 42 splits with `concern`, 40 with
+    `picked_up`, 11 with `offset_m`. It used to come from the `split_points` layer of graph.gpkg,
+    which the build wrote FROM this same file — a 4.7 GB round trip for fields already on disk,
+    and one that returned {} silently once the gpkg stopped being written.
+    """
+    return {sid: {k: _clean_val(v) for k, v in row.items()}
+            for sid, row in _splits_meta().items()}
 
 
 def split_meta(split_id: str) -> dict:
@@ -427,24 +424,21 @@ _TRIB_EDGE_KINDS = {"confluence", "lake_in"}
 @lru_cache(maxsize=1)
 def _tributary_items() -> dict[str, set[str]]:
     """graph node ``to_node`` -> {owning item ids of the streams whose mouth flows into it}. Built ONCE
-    from graph.gpkg's flow edges (the ``confluences`` layer) — this IS "each node's tributaries" the
-    graph records. Everything downstream (stream OR lake tributaries) reads from here; no WSC guessing."""
+    from the graph's own flow edges — this IS "each node's tributaries" the graph records. Everything
+    downstream (stream OR lake tributaries) reads from here; no WSC guessing.
+
+    These edges were read out of graph.gpkg's `confluences` layer, which was a projection of
+    `graph.edges` — the same tuples, one artifact later. Read from the graph directly, so the
+    tributary picker no longer goes empty when the gpkg is not written.
+    """
     from collections import defaultdict
     out: dict[str, set[str]] = defaultdict(set)
-    if not GRAPH_GPKG_PATH.exists():
-        return out
-    try:
-        import pyogrio
-        df = pyogrio.read_dataframe(GRAPH_GPKG_PATH, layer="confluences", read_geometry=False,
-                                    columns=["from_node", "to_node", "kind"])
-    except Exception:  # noqa: BLE001 — no pyogrio / no layer
-        return out
     blk2item = _blk_to_item()
-    for fn, tn, kind in zip(df["from_node"], df["to_node"], df["kind"]):
-        if kind in _TRIB_EDGE_KINDS:
-            iid = blk2item.get(str(fn).split(":", 1)[0])
+    for e in _graph().edges:
+        if e.kind in _TRIB_EDGE_KINDS:
+            iid = blk2item.get(str(e.from_node).split(":", 1)[0])
             if iid:
-                out[str(tn)].add(iid)
+                out[str(e.to_node)].add(iid)
     return out
 
 
@@ -565,7 +559,7 @@ def item_tributary_geojson(item_id: str, limit: int = 6000) -> dict:
         drawn += 1
     feats = []
     for i in range(0, len(sections), 400):
-        feats += _read_gpkg_features("streams", _sql_in("node_id", sections[i:i + 400]),
+        feats += _features("streams", sections[i:i + 400],
                                      ["node_id", "display_name"], "tributary")
     return {"type": "FeatureCollection", "features": feats, "n_tributaries": len(trib_ids),
             "n_drawn": drawn, "truncated": drawn < len(trib_ids)}
@@ -889,11 +883,6 @@ def search_items(q: str, limit: int = 20) -> list[dict]:
 # Save (validated) to the reviewed overlay
 # --------------------------------------------------------------------------- #
 
-def _sql_in(col: str, vals) -> str:
-    quoted = ",".join("'" + str(v).replace("'", "''") + "'" for v in vals)
-    return f"{col} IN ({quoted})"
-
-
 def _rep_point(geom: dict | None) -> list[float] | None:
     """A representative lon/lat point for a GeoJSON geometry (its first coordinate) — used to drop a
     clickable marker at a lake boundary's location."""
@@ -1022,13 +1011,10 @@ def _sections_geojson(section_ids: list[str], kind: str) -> list[dict]:
     feats: list[dict] = []
     streams = [n for n in section_ids if not str(n).startswith("lake:")]
     for i in range(0, len(streams), 400):                       # chunk long IN lists
-        feats += _read_gpkg_features(
-            "streams", _sql_in("node_id", streams[i:i + 400]),
-            ["node_id", "display_name"], kind)
+        feats += _features("streams", streams[i:i + 400], kind)
     wbks = [str(n).split(":", 1)[1] for n in section_ids if str(n).startswith("lake:")]
     for i in range(0, len(wbks), 400):
-        for lf in _read_gpkg_features("lakes", _sql_in("wbk", wbks[i:i + 400]),
-                                      ["wbk", "display_name"], kind):
+        for lf in _features("lakes", wbks[i:i + 400], kind):
             wbk = str(lf["properties"].get("wbk") or "")
             if wbk:
                 lf["properties"]["node_id"] = f"lake:{wbk}"     # highlight matches on node_id
@@ -1036,28 +1022,185 @@ def _sections_geojson(section_ids: list[str], kind: str) -> list[dict]:
     return feats
 
 
-def _read_gpkg_features(layer: str, where: str, keep: list[str], kind: str) -> list[dict]:
-    """Read a graph.gpkg layer with a driver-level WHERE (only matching features are scanned) and return
-    GeoJSON features **reprojected to EPSG:4326 (lon/lat)** so they overlay the web-mercator PMTiles
-    basemap in MapLibre. Chunked so a long IN clause stays safe."""
-    import geopandas as gpd  # local import: heavy, only needed for the map endpoint
 
-    feats: list[dict] = []
-    if not GRAPH_GPKG_PATH.exists():
-        return feats
+# --------------------------------------------------------------------------- #
+# MAP GEOMETRY, from the build's own artifacts.
+#
+# This read `graph.gpkg` until that artifact was turned off. It was 742 of the build's 1,810
+# seconds — 41%, more than the splits and the graph construction together — and the commit that
+# made it `--write-gpkg` (off by default) recorded that "nothing downstream read it". The DFO
+# dossier, its other consumer, had already moved to `item_points.json`. This file had not, so the
+# map went blank for every item: streams, lakes, splits, the lot. Nothing raised, because
+# `_read_gpkg_features` returned [] for a missing file rather than 500 — the endpoints kept
+# answering 200 with an empty FeatureCollection, which on a map is indistinguishable from a water
+# that has no geometry.
+#
+# The geometry was never actually gone. `geometries.pkl` holds all 2,056,634 sections, streams and
+# `lake:{wbk}` nodes alike, and `waterbody_polys.pkl` holds the polygon for an isolated waterbody
+# no stream runs through — which is exactly the pair `export_graph_gpkg` itself consumed to write
+# the gpkg in the first place. So this reads the source the gpkg was derived FROM, one step earlier
+# in the same chain, and the 4.7 GB intermediate stays off.
+#
+# Loaded once per process and then dict lookups, so it is faster than the driver-level WHERE it
+# replaces; the cost is ~2.9 GB resident, which is the right trade for a local single-curator tool.
+# --------------------------------------------------------------------------- #
+
+@lru_cache(maxsize=1)
+def _geoms() -> dict:
+    """node_id -> geometry (EPSG:3005), for `{blk}:{measure}` sections AND `lake:{wbk}` nodes."""
+    if not GEOMS_PKL_PATH.exists():
+        return {}
+    from pipeline.common.io.serialize import read_artifact
+    return read_artifact(str(GEOMS_PKL_PATH))
+
+
+@lru_cache(maxsize=1)
+def _wbk_polys() -> dict:
+    """wbk -> its own FWA polygon (EPSG:3005). The fallback for a MINTED waterbody: a lake no
+    stream passes through has no section geometry, so its own polygon stands in — the same
+    substitution `export_graph_gpkg` made."""
+    if not WBK_POLYS_PKL_PATH.exists():
+        return {}
+    from pipeline.common.io.serialize import read_artifact
+    return read_artifact(str(WBK_POLYS_PKL_PATH))
+
+
+@lru_cache(maxsize=1)
+def _to_lonlat():
+    """BC Albers -> lon/lat, so features overlay the web-mercator PMTiles basemap in MapLibre."""
+    from pyproj import Transformer
+    return Transformer.from_crs(3005, 4326, always_xy=True).transform
+
+
+@lru_cache(maxsize=1)
+def _blk_index() -> dict:
+    """blk -> [(down_m, up_m, node_id)], sorted. Used to place a split, which `splits.resolved.json`
+    records as a blue-line key and a route measure and NOT as a coordinate — the gpkg carried the
+    interpolated point, so it has to be recomputed here."""
+    idx: dict[str, list] = {}
+    for n in _graph().nodes.values():
+        if getattr(n, "blk", None) is None:
+            continue
+        idx.setdefault(str(n.blk), []).append(
+            (getattr(n, "down_m", 0.0) or 0.0, getattr(n, "up_m", 0.0) or 0.0, n.node_id))
+    for v in idx.values():
+        v.sort()
+    return idx
+
+
+
+@lru_cache(maxsize=4096)
+def _fwa_lake_poly(wbk: str):
+    """A lake's REAL outline (EPSG:3005) from the FWA source, by WATERBODY_KEY.
+
+    THE LINE UNDER A LAKE IS NOT THE LAKE. A lake is a graph node because stream fids run THROUGH
+    it, so its `geometries.pkl` entry is that through-line — Kootenay Lake came back as a
+    MultiLineString, which on a map is a river with a name the curator does not recognise, drawn
+    across water whose shape they are trying to verify. The gpkg had the same defect, because
+    `export_graph_gpkg` read the same sidecar.
+
+    And some waterbodies have no sidecar geometry at all: BLUEY 1 is a registry item, is named, is
+    inside a **No Fishing** closure, and drew NOTHING — the layer it needed was never written for
+    it. Its polygon is in the source data the whole time, one lookup away on the key the item is
+    already named by.
+
+    Read straight from the fisheries geopackage on the same WATERBODY_KEY the `wbk:` item id
+    carries, so this is a lookup rather than a guess; cached per key. Returns None when the key is
+    not a lake, and the caller falls back to the through-line.
+    """
+    import sqlite3
+    src = SOURCE / "bc_fisheries_data.gpkg"
+    if not src.exists():
+        return None
     try:
-        gdf = gpd.read_file(GRAPH_GPKG_PATH, layer=layer, where=where)
-    except Exception:  # noqa: BLE001 — driver/where issue: return what we have (empty), don't 500
-        return feats
-    if gdf.empty:
-        return feats
-    gdf = gdf.to_crs(4326)                                # 3005 (BC Albers) -> lon/lat for MapLibre
-    cols = [c for c in keep if c in gdf.columns]
-    fc = json.loads(gdf[cols + ["geometry"]].to_json())
-    for f in fc.get("features", []):
-        props = f.get("properties", {})
-        props["kind"] = kind
-        feats.append({"type": "Feature", "geometry": f.get("geometry"), "properties": props})
+        from shapely import wkb as _wkb
+        from shapely.ops import unary_union
+        db = sqlite3.connect(f"file:{src}?mode=ro", uri=True)
+        rows = db.execute("SELECT geom FROM lakes WHERE WATERBODY_KEY = ?", (int(wbk),)).fetchall()
+        db.close()
+        parts = []
+        for (blob,) in rows:
+            if not blob:
+                continue
+            # GeoPackage binary: "GP", version, flags, srs_id, an envelope whose size the flags
+            # encode, then the WKB proper.
+            env = {0: 0, 1: 32, 2: 48, 3: 48, 4: 64}.get((blob[3] >> 1) & 0x07, 0)
+            g = _wkb.loads(bytes(blob[8 + env:]))
+            if g is not None and not g.is_empty:
+                parts.append(g)
+        if not parts:
+            return None
+        return parts[0] if len(parts) == 1 else unary_union(parts)
+    except Exception:  # noqa: BLE001 — a missing layer/key must not 500 the map
+        return None
+
+
+def _geo(geom, kind: str, props: dict) -> dict | None:
+    """One reprojected GeoJSON feature, or None when the geometry is missing/empty."""
+    if geom is None or getattr(geom, "is_empty", True):
+        return None
+    from shapely.geometry import mapping
+    from shapely.ops import transform
+    props = {k: _clean_val(v) for k, v in props.items()}
+    props["kind"] = kind
+    return {"type": "Feature", "geometry": mapping(transform(_to_lonlat(), geom)),
+            "properties": props}
+
+
+def _split_point(split_id: str):
+    """A split's coordinate, interpolated along the section that contains its route measure."""
+    from shapely.geometry import Point
+    meta = _splits_meta().get(split_id)
+    if not meta or not meta.get("blk"):
+        return None
+    m = float(meta.get("route_measure") or 0.0)
+    for down, up, nid in _blk_index().get(str(meta["blk"]), []):
+        if down <= m <= up:
+            g = _geoms().get(nid)
+            if g is None or g.is_empty:
+                return None
+            # `route_measure` is chainage along the blue line; the section starts at `down`.
+            d = min(max(m - down, 0.0), g.length)
+            return Point(g.interpolate(d))
+    return None
+
+
+def _features(layer: str, ids, kind: str) -> list[dict]:
+    """The `graph.gpkg` layers, served from the artifacts they were built from.
+
+    Same three layer names and the same feature shape the client already styles on, so this is a
+    swap of the source, not of the contract."""
+    feats: list[dict] = []
+    nodes = _graph().nodes
+    if layer == "streams":
+        for nid in ids:
+            n = nodes.get(nid)
+            f = _geo(_geoms().get(nid), kind,
+                     {"node_id": nid,
+                      "display_name": getattr(n, "display_name", None) if n else None,
+                      "location_identifier": getattr(n, "location_identifier", None) if n else None})
+            if f: feats.append(f)
+    elif layer == "lakes":
+        for wbk in ids:
+            wbk = str(wbk)
+            nid = f"lake:{wbk}"
+            # The real outline first — a lake drawn as the river through it is not a lake.
+            g = _fwa_lake_poly(wbk)
+            if g is None or getattr(g, "is_empty", True):
+                g = _geoms().get(nid)             # fall back to the through-line
+            if g is None or getattr(g, "is_empty", True):
+                g = _wbk_polys().get(wbk)         # minted/isolated: its own polygon stands in
+            n = nodes.get(nid)
+            f = _geo(g, kind, {"wbk": wbk,
+                               "display_name": getattr(n, "display_name", None) if n else None})
+            if f: feats.append(f)
+    elif layer == "split_points":
+        for sid in ids:
+            meta = _splits_meta().get(sid) or {}
+            f = _geo(_split_point(sid), kind,
+                     {"split_id": sid, "label": meta.get("label"),
+                      "anchor_type": meta.get("anchor_type"), "picked_up": meta.get("picked_up")})
+            if f: feats.append(f)
     return feats
 
 
@@ -1124,9 +1267,7 @@ def item_geojson(item_id: str) -> dict:
     section_ids = [n for n in item.section_ids if not str(n).startswith("lake:")]
     for i in range(0, len(section_ids), 400):                      # chunk long IN lists
         chunk = section_ids[i:i + 400]
-        feats += _read_gpkg_features(
-            "streams", _sql_in("node_id", chunk),
-            ["node_id", "display_name", "location_identifier"], "stream")
+        feats += _features("streams", chunk, "stream")
 
     # Named side channels draw WITH the river. They are separate items so their names and their rules
     # stay their own, but on the map a river missing its named channels while showing every anonymous
@@ -1135,9 +1276,7 @@ def item_geojson(item_id: str) -> dict:
     side_ids = [n for sid in item_side_channels(item_id)
                 for n in reg[sid].section_ids if not str(n).startswith("lake:")]
     for i in range(0, len(side_ids), 400):
-        feats += _read_gpkg_features(
-            "streams", _sql_in("node_id", side_ids[i:i + 400]),
-            ["node_id", "display_name", "location_identifier"], "side_channel")
+        feats += _features("streams", side_ids[i:i + 400], "side_channel")
 
     # A LAKE/wetland item's sections are `lake:{wbk}` nodes, which live in the `lakes` layer, not
     # `streams` — without this a lake item draws nothing at all (the Vedder Canal on the combined
@@ -1147,8 +1286,7 @@ def item_geojson(item_id: str) -> dict:
     if item.id.startswith("wbk:"):
         lake_wbks.add(item.id.split(":", 1)[1])
     if lake_wbks:
-        lake_feats = _read_gpkg_features(
-            "lakes", _sql_in("wbk", sorted(lake_wbks)), ["wbk", "display_name"], "waterbody")
+        lake_feats = _features("lakes", sorted(lake_wbks), "waterbody")
         # Stamp the graph node id the same way a stream feature carries it. The reach highlight matches
         # features on `node_id`, so without this a lake or canal in a rule's reach draws nothing — the
         # Vedder Canal is `lake:329707189` and is the WHOLE extent of three Chilliwack/Vedder rules.
@@ -1160,17 +1298,14 @@ def item_geojson(item_id: str) -> dict:
 
     split_ids = list(_curated_split_ids(item))
     if split_ids:
-        feats += _read_gpkg_features(
-            "split_points", _sql_in("split_id", split_ids),
-            ["split_id", "label", "anchor_type", "picked_up"], "split")
+        feats += _features("split_points", split_ids, "split")
 
     # Auto (non-curated) LAKE boundaries have no split_point; surface each as a clickable point at the
     # lake's location so a curator can "see where it is" — same select/fly machinery as curated splits.
     lake_by_wbk = {b.wbk: b for b in _boundaries(item)
                    if b.wbk and not str(b.ref or "").startswith("split:")}
     if lake_by_wbk:
-        for lf in _read_gpkg_features("lakes", _sql_in("wbk", list(lake_by_wbk)),
-                                      ["wbk", "display_name"], "split"):
+        for lf in _features("lakes", list(lake_by_wbk), "split"):
             b = lake_by_wbk.get(str(lf["properties"].get("wbk")))
             pt = _rep_point(lf.get("geometry"))
             if b and pt:
