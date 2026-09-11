@@ -18,204 +18,305 @@
   --verify:#3fbfa0; --warn:#d99341; --rail:#0e1918; --stop:#e0705e;
 }
 *{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font:400 16px/1.6 var(--body);margin:0}
-.wrap{max-width:960px;margin:0 auto;padding:0 24px 96px}
+body{background:var(--paper);color:var(--ink);font:400 16px/1.62 var(--body);margin:0}
+.wrap{max-width:940px;margin:0 auto;padding:0 24px 96px}
 h1{font:700 clamp(32px,5vw,54px)/1.05 var(--disp);letter-spacing:-.02em;margin:0;
    text-wrap:balance}
-h2{font:600 25px/1.2 var(--disp);margin:44px 0 6px;letter-spacing:-.01em}
-h3{font:600 12px/1.3 var(--body);letter-spacing:.09em;text-transform:uppercase;
-   color:var(--mute);margin:0 0 10px}
+h2{font:600 26px/1.2 var(--disp);margin:52px 0 4px;letter-spacing:-.01em;text-wrap:balance}
+.sub{font:400 15px/1.5 var(--body);color:var(--mute);margin:0 0 20px;max-width:66ch}
 p{margin:0 0 14px;max-width:68ch}
 a{color:var(--verify)}
-code{font-family:var(--mono);font-size:.87em;background:var(--rail);padding:1px 4px;
+code{font-family:var(--mono);font-size:.86em;background:var(--rail);padding:1px 5px;
   border-radius:3px}
-header{border-bottom:1px solid var(--line);padding:60px 0 32px}
+header{border-bottom:1px solid var(--line);padding:58px 0 30px}
 .eyebrow{font:600 12px/1 var(--body);letter-spacing:.18em;text-transform:uppercase;
   color:var(--verify);margin-bottom:16px}
-.lede{font:400 19px/1.55 var(--body);color:var(--mute);max-width:64ch;margin-top:16px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;
-  margin:30px 0 0}
-.stat{background:var(--card);padding:15px 17px}
-.stat b{display:block;font:600 29px/1 var(--disp);font-variant-numeric:tabular-nums}
-.stat span{display:block;font:400 12px/1.35 var(--body);color:var(--mute);margin-top:6px}
-figure{margin:26px 0 34px}
-figcaption{font:400 13px/1.5 var(--body);color:var(--mute);margin-top:10px;text-align:center}
+.lede{font:400 19px/1.55 var(--body);color:var(--mute);max-width:63ch;margin-top:16px}
+figure{margin:24px 0 30px}
+figcaption{font:400 13px/1.5 var(--body);color:var(--mute);margin-top:10px;text-align:center;
+  max-width:62ch;margin-left:auto;margin-right:auto}
 svg.dia{display:block;max-width:100%;height:auto;margin:0 auto;color:var(--ink)}
-.step{border:1px solid var(--line);border-radius:13px;background:var(--card);
-  margin:0 0 16px;overflow:hidden}
-.sh{display:flex;gap:12px;align-items:baseline;padding:15px 18px 0}
-.sn{font:600 12px/1.5 var(--mono);color:var(--verify);font-variant-numeric:tabular-nums}
-.st{font:600 17px/1.3 var(--body)}
-.sb{padding:4px 18px 16px 42px;font:400 14.5px/1.6 var(--body);color:var(--mute);max-width:74ch}
-.sb em{color:var(--ink);font-style:normal;font-weight:600}
-.sb code{font-size:.85em}
-table{width:100%;border-collapse:collapse;margin:0 0 26px;font:400 14px/1.5 var(--body)}
+table{width:100%;border-collapse:collapse;margin:0 0 8px;font:400 14.5px/1.5 var(--body)}
 th{font:600 10.5px/1.4 var(--mono);letter-spacing:.08em;text-transform:uppercase;
-  color:var(--mute);text-align:left;padding:7px 12px 7px 0;border-bottom:1.5px solid var(--ink)}
-td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
-td code{white-space:nowrap}
-.tw{overflow-x:auto}
-.tag{font:600 10px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;
-  padding:4px 7px;border-radius:20px;border:1px solid currentColor;white-space:nowrap}
-.t-gen{color:var(--verify)} .t-look{color:var(--warn)} .t-judge{color:var(--stop)}
+  color:var(--mute);text-align:left;padding:8px 14px 8px 0;border-bottom:1.5px solid var(--ink)}
+td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.tw{overflow-x:auto;margin-bottom:26px}
+.n{font-variant-numeric:tabular-nums;color:var(--mute);text-align:right;white-space:nowrap}
+.chain{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);
+  border-top:1px solid var(--line);margin-top:12px}
+@media(max-width:820px){.chain{grid-template-columns:1fr}}
+.cc{background:var(--card);padding:13px 15px 15px;min-width:0}
+.cch{font:600 9.5px/1.4 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--mute);margin-bottom:8px}
+.cc.b .cch{color:var(--warn)} .cc.p .cch{color:var(--verify)} .cc.o .cch{color:var(--ink)}
+.book{font:400 12.5px/1.55 var(--body);color:var(--ink);opacity:.9}
+.book b{font-weight:700}
+.fields{font:400 11.5px/1.62 var(--mono);color:var(--mute);margin:0;
+  overflow-wrap:anywhere}
+.fields b{color:var(--ink);font-weight:600}
+.fields .k{color:var(--verify)}
+.out{font-family:var(--mono);font-size:11.5px;line-height:1.5}
+.out .r{display:flex;gap:8px;justify-content:space-between;padding:4px 0;
+  border-bottom:1px solid var(--line);align-items:baseline}
+.out .r:last-child{border-bottom:0}
+.out .r b{font-weight:700}
+.out .w{color:var(--mute);font-size:10px;white-space:nowrap}
+.out .z{font-weight:700;font-variant-numeric:tabular-nums}
+.out s{opacity:.45}
+.out .was{opacity:.45;text-decoration:line-through;font-weight:400;margin-left:4px}
+.out .no{color:var(--stop);font-weight:700}
+.out .ok{color:var(--verify);font-weight:700}
+.case{border:1px solid var(--line);border-radius:13px;background:var(--card);margin:0 0 14px;
+  overflow:hidden}
+.ch{display:flex;gap:11px;align-items:baseline;padding:15px 18px 0;flex-wrap:wrap}
+.cn{font:600 11px/1.6 var(--mono);color:var(--verify);border:1px solid currentColor;
+  border-radius:20px;padding:2px 8px;white-space:nowrap}
+.ct{font:600 17px/1.3 var(--body)}
+.cb{padding:8px 18px 6px;font:400 14.5px/1.62 var(--body);color:var(--mute);max-width:74ch}
+.cb em{color:var(--ink);font-style:normal;font-weight:600}
+.sheet{margin:4px 18px 18px;border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  font-family:var(--mono);font-size:12px;background:var(--rail)}
+.sr{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:7px 12px;
+  border-bottom:1px solid var(--line);align-items:baseline}
+.sr:last-child{border-bottom:0}
+.sr b{font-weight:600}
+.sr .who{color:var(--mute);font-size:10.5px;white-space:nowrap}
+.sr .keep{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sr.hd{background:var(--card);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mute)}
+.sr.win .who{color:var(--verify);font-weight:600}
+.sr s{opacity:.5}
+.sr .was{opacity:.5;text-decoration:line-through;font-weight:400;margin-left:5px}
 .note{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 8%,transparent);
   padding:13px 16px;border-radius:0 9px 9px 0;margin:0 0 22px;font:400 14.5px/1.6 var(--body)}
 .note b{color:var(--ink)}
 ul{margin:0 0 16px;padding-left:20px;color:var(--mute);max-width:70ch}
-li{margin:0 0 7px}
-li b,li em{color:var(--ink);font-style:normal}
+li{margin:0 0 8px}
+li b{color:var(--ink)}
+.tag{font:600 10px/1 var(--body);letter-spacing:.05em;text-transform:uppercase;
+  padding:4px 7px;border-radius:20px;border:1px solid currentColor;white-space:nowrap}
+.t-gen{color:var(--verify)} .t-look{color:var(--warn)} .t-judge{color:var(--stop)}
 </style>
 
 <div class="wrap">
 <header>
-  <div class="eyebrow">regs-v3 &middot; how the sheet is generated</div>
+  <div class="eyebrow">regs-v3 &middot; how a water&rsquo;s screen is generated</div>
   <h1>How a sheet is built</h1>
-  <p class="lede">Every table on a water&rsquo;s screen is produced by the same short pipeline,
-  and every decision in it keys on a rule&rsquo;s <em>type</em> or one of its <em>fields</em>.
-  Nothing keys on what a sentence happens to say. This is the whole flow, with the places where
-  a judgement was made rather than a fact read &mdash; so those can be argued with.</p>
-  <div class="stats">
-    <div class="stat"><b>44</b><span>decisions keyed on a type or field</span></div>
-    <div class="stat"><b>11</b><span>keyed on an entry&rsquo;s identity</span></div>
-    <div class="stat"><b>0</b><span>keyed on a sentence&rsquo;s wording</span></div>
-    <div class="stat"><b>4</b><span>tables, one question each</span></div>
-  </div>
+  <p class="lede">Three levels of rule reach every water in British Columbia: the province&rsquo;s,
+  the region&rsquo;s, and the river&rsquo;s own. This is how they are sorted, how they are shown
+  together, and how a reader can tell which one is actually governing them &mdash; from the
+  simplest case to the hardest one in the corpus.</p>
 </header>
 
-<h2>The flow</h2>
-<p style="color:var(--mute)">One list of rules comes in. It is split by what each rule
-<em>is</em>, never by where it came from &mdash; so a river&rsquo;s own rule and a provincial
-default land in the same table and can be compared there.</p>
+<h2>The one idea</h2>
+<p class="sub">Rules are sorted by <b>what they are</b>, never by who wrote them.</p>
+<p>A provincial hook rule and a river&rsquo;s own hook rule are the same kind of statement, so
+they land in the same table, next to each other. That is the whole mechanism: you can only see
+that a river has narrowed a regional default if both are in front of you.</p>
 
 <figure>
-<svg class="dia" viewBox="0 0 900 330" role="img" aria-label="Rules reaching a stretch are split by type into four tables, with leftovers routed to notes, footnotes or a folded conduct block.">
+<svg class="dia" viewBox="0 0 880 268" role="img" aria-label="Provincial, regional and river rules merge into one list, are sorted by type into four tables, and each row names the level that set it.">
   <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
     orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
 
-  <rect x="6" y="130" width="150" height="62" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
-  <text x="81" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">rules reaching</text>
-  <text x="81" y="171" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">this stretch</text>
+  <text x="8" y="18" font-size="9.5" font-weight="700" letter-spacing="1.2" fill="currentColor" opacity=".6">WHAT REACHES THIS WATER</text>
+  <rect x="8" y="30" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".75"/>
+  <text x="83" y="51" text-anchor="middle" font-size="12" fill="currentColor">Provincial</text>
+  <rect x="8" y="74" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".75"/>
+  <text x="83" y="95" text-anchor="middle" font-size="12" fill="currentColor">The region</text>
+  <rect x="8" y="118" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="83" y="139" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">This river</text>
 
-  <line x1="158" y1="161" x2="212" y2="161" stroke="currentColor" stroke-width="1.5" marker-end="url(#a)"/>
-  <rect x="214" y="126" width="132" height="70" rx="8" fill="none" stroke="currentColor" stroke-width="1.6"/>
-  <text x="280" y="150" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">split by TYPE</text>
-  <text x="280" y="167" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">never by authority</text>
-  <text x="280" y="182" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">never by wording</text>
+  <line x1="162" y1="47" x2="210" y2="86" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
+  <line x1="162" y1="91" x2="210" y2="91" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
+  <line x1="162" y1="135" x2="210" y2="96" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
 
-  <line x1="348" y1="146" x2="404" y2="44"  stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
-  <line x1="348" y1="154" x2="404" y2="112" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
-  <line x1="348" y1="168" x2="404" y2="180" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
-  <line x1="348" y1="176" x2="404" y2="248" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
-  <line x1="348" y1="188" x2="404" y2="308" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
+  <rect x="212" y="66" width="124" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <text x="274" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">sorted by</text>
+  <text x="274" y="104" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">WHAT IT IS</text>
 
-  <rect x="406" y="22"  width="196" height="44" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <text x="418" y="41" font-size="12" font-weight="600" fill="currentColor">Quotas &amp; closures</text>
-  <text x="418" y="57" font-size="10" font-family="monospace" fill="currentColor" opacity=".65">retention_limit</text>
+  <line x1="338" y1="80" x2="392" y2="36"  stroke="currentColor" stroke-width="1.3" marker-end="url(#a)"/>
+  <line x1="338" y1="88" x2="392" y2="92"  stroke="currentColor" stroke-width="1.3" marker-end="url(#a)"/>
+  <line x1="338" y1="98" x2="392" y2="148" stroke="currentColor" stroke-width="1.3" marker-end="url(#a)"/>
+  <line x1="338" y1="106" x2="392" y2="204" stroke="currentColor" stroke-width="1.3" marker-end="url(#a)"/>
 
-  <rect x="406" y="90"  width="196" height="44" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <text x="418" y="109" font-size="12" font-weight="600" fill="currentColor">How you may fish</text>
-  <text x="418" y="125" font-size="10" font-family="monospace" fill="currentColor" opacity=".65">gear_and_method + method</text>
+  <rect x="394" y="16"  width="188" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <text x="406" y="40" font-size="12.5" font-weight="600" fill="currentColor">What you may keep</text>
+  <rect x="394" y="72"  width="188" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <text x="406" y="96" font-size="12.5" font-weight="600" fill="currentColor">How you may fish</text>
+  <rect x="394" y="128" width="188" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <text x="406" y="152" font-size="12.5" font-weight="600" fill="currentColor">From a boat</text>
+  <rect x="394" y="184" width="188" height="38" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"/>
+  <text x="406" y="208" font-size="12.5" font-weight="600" fill="currentColor">Before you fish</text>
 
-  <rect x="406" y="158" width="196" height="44" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <text x="418" y="177" font-size="12" font-weight="600" fill="currentColor">From a boat</text>
-  <text x="418" y="193" font-size="10" font-family="monospace" fill="currentColor" opacity=".65">vessel</text>
-
-  <rect x="406" y="226" width="196" height="44" rx="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <text x="418" y="245" font-size="12" font-weight="600" fill="currentColor">Before you fish</text>
-  <text x="418" y="261" font-size="10" font-family="monospace" fill="currentColor" opacity=".65">document_required</text>
-
-  <rect x="406" y="286" width="196" height="40" rx="7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3"/>
-  <text x="418" y="304" font-size="12" font-weight="600" fill="currentColor">everything else</text>
-  <text x="418" y="319" font-size="10" fill="currentColor" opacity=".65">routed by entry, below</text>
-
-  <line x1="604" y1="306" x2="656" y2="306" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
-  <text x="668" y="288" font-size="11" fill="currentColor" opacity=".8">&rarr; a footnote on the table it qualifies</text>
-  <text x="668" y="306" font-size="11" fill="currentColor" opacity=".8">&rarr; a note on the row it is about</text>
-  <text x="668" y="324" font-size="11" fill="currentColor" opacity=".8">&rarr; the folded B.C.-wide duties</text>
+  <line x1="584" y1="120" x2="636" y2="120" stroke="currentColor" stroke-width="1.4" marker-end="url(#a)"/>
+  <rect x="638" y="86" width="234" height="68" rx="7" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <text x="755" y="110" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">every row names the level</text>
+  <text x="755" y="128" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">that set it</text>
+  <text x="755" y="145" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">&ldquo;this water&rdquo; &middot; &ldquo;Region 8&rdquo; &middot; &ldquo;Provincial&rdquo;</text>
 </svg>
-<figcaption>A rule&rsquo;s <code>type</code> decides its table. Its authority decides only where
-it sits <em>inside</em> one.</figcaption>
+<figcaption>The level a rule came from decides only <em>where it sits inside a table</em> and what
+the last column says. It never decides which table.</figcaption>
 </figure>
 
-<h2>What decides what</h2>
-<p style="color:var(--mute)">Three kinds of decision, and they are worth telling apart. A
-<b>rule</b> reads a field and holds for any input. A <b>lookup</b> names specific entries. A
-<b>judgement</b> is something the corpus does not say and someone chose.</p>
+<h2>Where every kind of rule goes</h2>
+<p class="sub">Fifteen kinds of statement in the corpus. Every one has a home, and nothing lands
+in more than one place by accident.</p>
 
 <div class="tw">
 <table>
-<tr><th>Decision</th><th>Keyed on</th><th>Kind</th></tr>
-<tr><td>Which table a rule goes to</td><td><code>type</code>, <code>family</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Whether a zero limit shuts the water or one method</td><td><code>method</code>, <code>species</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Whether a prohibition contradicts or merely qualifies</td><td><code>permitted</code>, <code>may_target</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Which rule wins when two say the same thing</td><td><code>scope</code> (section &lt; area &lt; provincial)</td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Whether an exemption lifts a rule or narrows it</td><td><code>exempts</code>, <code>when_targeting</code>, <code>species</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Whether a rule applies to this water at all</td><td><code>water</code>, <code>windows</code>, <code>spans</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>How a rule reached this water</td><td><code>via</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Which document a licence row is</td><td><code>conditions.document</code></td><td><span class="tag t-gen">rule</span></td></tr>
-<tr><td>Which activity a tackle rule belongs to</td><td><code>dimension</code> &rarr; activity</td><td><span class="tag t-look">lookup</span></td></tr>
-<tr><td>Where a leftover sentence is filed</td><td>11 entry ids</td><td><span class="tag t-look">lookup</span></td></tr>
-<tr><td>The order activities are listed in</td><td>a written order</td><td><span class="tag t-judge">judgement</span></td></tr>
-<tr><td>Bait before hooks before line</td><td>a written order</td><td><span class="tag t-judge">judgement</span></td></tr>
-<tr><td>Ice fishing does not apply on rivers</td><td>nothing in the corpus</td><td><span class="tag t-judge">judgement</span></td></tr>
+<tr><th>A rule that&hellip;</th><th>Appears as</th><th class="n">count</th></tr>
+<tr><td>limits what you keep</td><td><b>A row in the quota table</b> &mdash; fish, number, conditions, who set it</td><td class="n">322</td></tr>
+<tr><td>limits what you keep, <em>and has dates or shuts the water</em></td><td>a quota row <b>and</b> an entry in the closure calendar</td><td class="n">35</td></tr>
+<tr><td>limits what you keep <em>by one method</em></td><td>under that method in <b>How you may fish</b> &mdash; not as a quota</td><td class="n">52</td></tr>
+<tr><td>lifts or narrows another rule</td><td>an edit to <b>that</b> rule &mdash; never a row of its own</td><td class="n">11</td></tr>
+<tr><td>says to stop after your quota</td><td>a note under the quota table, on the fish it names</td><td class="n">13</td></tr>
+<tr><td>restricts tackle or bait</td><td><b>How you may fish</b>, under Angling</td><td class="n">185</td></tr>
+<tr><td>restricts a method</td><td><b>How you may fish</b>, as that method&rsquo;s own line</td><td class="n">73</td></tr>
+<tr><td>restricts a boat</td><td><b>From a boat</b></td><td class="n">6</td></tr>
+<tr><td>requires a document</td><td><b>Before you fish</b> &mdash; one row per document</td><td class="n">163</td></tr>
+<tr><td>requires someone&rsquo;s permission</td><td><b>Before you fish</b>, named for whoever must say yes</td><td class="n">14</td></tr>
+<tr><td>bars a class of angler</td><td>its own line &mdash; it is about <em>who</em>, not about a document</td><td class="n">1</td></tr>
+<tr><td>is a duty about handling your catch</td><td>the folded <b>&ldquo;duties that apply everywhere in B.C.&rdquo;</b></td><td class="n">130</td></tr>
+<tr><td>explains a size limit</td><td>a footnote under the quota table &mdash; only where there is a size</td><td class="n">57</td></tr>
+<tr><td>explains what a closure means</td><td>under the closure banner &mdash; only where there is a closure</td><td class="n">26</td></tr>
+<tr><td>explains a method</td><td>under that method in <b>How you may fish</b></td><td class="n">39</td></tr>
+<tr><td>is a notice, a hazard, a tagging programme</td><td>the notices list</td><td class="n">13</td></tr>
+<tr><td>is about one fish and nothing else</td><td>a note on that fish&rsquo;s row</td><td class="n">3</td></tr>
 </table>
 </div>
+<div class="note"><b>Sixteen sentences are deliberately not shown.</b> They are notices that
+instruct the reader to do by hand what the app has already done &mdash; &ldquo;check the
+tributaries of the following lakes for special regulations&rdquo; &mdash; or that carry nothing
+to act on, like &ldquo;this is the only white sturgeon fishery in the province&rsquo;s non-tidal
+waters&rdquo;. Each is listed by name in the code, so the set can be argued with.</div>
 
-<div class="note"><b>The three judgements are the ones to argue with.</b> Two are ordering, and
-ordering cannot make a sheet wrong &mdash; every rule is still on it. The third hides something:
-<em>&ldquo;fishing through ice is permitted&rdquo;</em> carries no water type, so the corpus does
-not say it is a lake rule; moving water not carrying safe ice is domain knowledge, written in the
-page rather than pretended into the data. It is guarded so it can only ever hide a
-<b>permission</b> &mdash; a prohibition is never hidden by it.</div>
+<h2>Building it up, one case at a time</h2>
+<p class="sub">Nine cases, simplest first. Each shows the whole chain: the sentence in the synopsis, the fields the parser recorded from it, and what the sheet does with them. Every line is real &mdash; these are rules from the shipped corpus, not illustrations.</p>
 
-<h2>How a conflict is resolved</h2>
-<p style="color:var(--mute)">Six shapes, all decided from fields. Nothing here ranks one office
-above another; the rules do that themselves by being more local or more restrictive.</p>
-
-<div class="tw">
-<table>
-<tr><th>When</th><th>Then</th><th>Decided by</th></tr>
-<tr><td>Two rules, same fish, same kind, one more local</td><td>the local one leads, the general one stays visible beneath it</td><td><code>scope</code></td></tr>
-<tr><td>One says permitted, one says not</td><td>the prohibition wins; the permission is struck through</td><td><code>permitted</code></td></tr>
-<tr><td>A prohibition, plus a rule that is not a permission</td><td>both stand &mdash; the second is a duty, not a contradiction</td><td><code>may_target</code></td></tr>
-<tr><td>A closure over a quota</td><td>the quota shows <b>0</b> with its ordinary number struck beside it</td><td><code>take</code>, <code>windows</code></td></tr>
-<tr><td>An exemption with no narrowing of its own</td><td>the rule it names is struck and stops counting as a closure</td><td><code>exempts</code></td></tr>
-<tr><td>An exemption that narrows by fish, quarry or method</td><td>the rule stands; the exemption keeps its own row</td><td><code>when_targeting</code>, <code>species</code></td></tr>
-<tr><td>Two authorities reach the same water and neither is narrower</td><td>both are shown, neither is struck, and the page says so</td><td><code>mus</code></td></tr>
-</table>
+<div class="case">
+  <div class="ch"><span class="cn">case 1</span><span class="ct">One rule, one row</span></div>
+  <div class="cb">Nothing else touches burbot in Region 4, so the sentence becomes a row and the row names the level that wrote it. Every case below is this one plus a complication.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book">Burbot: <b>2</b></div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">type</span> retention_limit<br><span class="k">species</span> [BB]<br><span class="k">take</span> <b>2</b><br><span class="k">period</span> daily<br><span class="k">scope</span> area</p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Burbot</b></span><span class="z">2</span><span class="w">Region 4</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 2</span><span class="ct">The river overrules its region</span></div>
+  <div class="cb">Region 4 allows five trout a day; the Elk River&rsquo;s own row says one. The river&rsquo;s rule leads and is marked <em>this water</em>; the region&rsquo;s stays beneath it, because a reader who cannot see the default cannot tell anything has been narrowed. <b>Nothing is struck</b> &mdash; one rule is simply more local than the other, which the parser knows from <code>scope</code>.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>Elk River (downstream of Elko Dam):</b> Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm)<br><br><b>Region 4 quotas:</b> Trout/char: 5</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">take</span> <b>1</b> &middot; <span class="k">scope</span> <b>section</b><br><span class="k">windows</span> Jun 15 &ndash; Oct 31<br><span class="k">species</span> [TROUT_CHAR]<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">take</span> 5 &middot; <span class="k">scope</span> <b>area</b><br><span class="k">combined</span> true</p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Trout and char</b></span><span class="z">1</span><span class="w" style="color:var(--verify)">this water</span></div><div class="r"><span>&#8627; all species combined</span><span class="z">5</span><span class="w">Region 4</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 3</span><span class="ct">A closure suspends the numbers</span></div>
+  <div class="cb">A closure does not delete a quota &mdash; the quota is what applies the moment the closure lifts, which is usually a date rather than a decision. So the number stays, <em>struck</em>, with the closure&rsquo;s zero in front of it. The parser distinguishes this from a quota of zero by <code>may_target</code>: false means you may not fish for them at all.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>No Fishing</b> downstream of Tamihi Rapids Bridge to Vedder Crossing Bridge, May 1&ndash;June 30<br><br><b>Region 2 quotas:</b> Trout/char: 4</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">take</span> <b>0</b> &middot; <span class="k">may_target</span> <b>false</b><br><span class="k">species</span> [ALL_GAME_FISH]<br><span class="k">windows</span> May 1 &ndash; Jun 30<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">take</span> 4 &middot; <span class="k">may_target</span> &mdash;</p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Trout and char</b></span><span class="z">0<span class="was">4</span></span><span class="w">Region 2</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 4</span><span class="ct">A closure with a calendar</span></div>
+  <div class="cb">Three closures reach the Coquihalla, with different dates. Gathered above the tables they answer &ldquo;can I fish, and when does that change&rdquo; in one look &mdash; running now with the day it ends, or starting later with the day it starts, soonest first. The dates are <code>windows</code>; nothing is read from the sentence.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>No Fishing</b> downstream of the southern entrance to the lower most railway tunnel, Apr 1&ndash;Oct 31<br><br><b>No Fishing</b> upstream of the northern entrance to the upper most railway tunnel, Nov 1&ndash;June 30</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br><span class="k">windows</span> <b>Apr 1 &ndash; Oct 31</b><br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br><span class="k">windows</span> <b>Nov 1 &ndash; Jun 30</b></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>No fishing, Apr 1-Oct 31</b><br><span style="opacity:.7">until Oct 31</span></span><span class="no">NOW</span><span class="w">this water</span></div><div class="r"><span>No fishing, Nov 1-June 30<br><span style="opacity:.7">from Nov 1</span></span><span style="color:var(--warn);font-weight:700">SOON</span><span class="w">this water</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 5</span><span class="ct">A river written out of its region&rsquo;s closure</span></div>
+  <div class="cb">Region 8 shuts every stream from April to June; the Okanagan is exempt on two of its three stretches. The exemption names its target in <code>exempts.default_id</code>, so the closure is struck <em>and stops counting toward the verdict</em> &mdash; before this was read, the page drew &ldquo;No fishing&rdquo; over water the book leaves open, and the exemption itself rendered as a blank row.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>No fishing (spring closure):</b> in any stream in Region 8 from Apr 1&ndash;June 30<br><br><b>Okanagan River:</b> Exempt from spring closure from Okanagan Lake Dam downstream to McIntyre Dam and downstream of Drop Structure No.&nbsp;1</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br><span class="k">windows</span> Apr 1 &ndash; Jun 30<br><span class="k">scope</span> area<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">exempts</span> [{<br>&nbsp;&nbsp;default_id: <b>"spring_stream_closure"</b><br>}]<br><span class="k">species</span> [ALL_GAME_FISH]<br><span style="opacity:.7">&mdash; no narrowing &rarr; <b>full lift</b></span></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><s>No fishing in streams, Apr 1 - Jun 30</s><br><span style="opacity:.85">lifted here &middot; Exempt from spring closure from Okanagan Lake Dam downstream&hellip;</span></span><span class="ok">LIFTED</span><span class="w">Region 8</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 6</span><span class="ct">An exemption that narrows but does not lift</span></div>
+  <div class="cb">The same field, the opposite outcome &mdash; and this is the one that has to be got right. <code>when_targeting: [WSG]</code> means the hole is only for sturgeon, so the ban stands and the exemption keeps its own line. Striking the parent would tell an angler the fin-fish bait ban is gone, when it is gone for one quarry on three named rivers. Three of the six exemptions in the corpus are full lifts; three are narrowings.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book">The use of fin fish (dead or alive) or parts of fin fish other than roe is prohibited throughout the province<br><br><b>(a)</b> when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River&hellip;, Lower Harrison River&hellip;</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">dimension</span> bait:fin_fish<br><span class="k">permitted</span> false<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">exempts</span> [{ target: <b>"bait.r1"</b> }]<br><span class="k">when_targeting</span> <b>[WSG]</b><br><span style="opacity:.7">&mdash; narrows by quarry &rarr; <b>not a lift</b></span></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Angling</b></span><span></span><span></span></div><div class="r"><span>&#8627; Fin fish may not be used as bait</span><span></span><span class="w">Provincial</span></div><div class="r"><span>&#8627; Dead fin fish may be used when fishing for white sturgeon &mdash; Fraser, Lower Pitt and Lower Harrison</span><span></span><span class="w">Provincial</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 7</span><span class="ct">A ban and a duty that do not conflict</span></div>
+  <div class="cb">Both are provincial and both are true: snagging is banned, and anything you foul-hook must still go back. Compare spear fishing, where &ldquo;permitted&rdquo; and &ldquo;not permitted in Regions 1, 2 and 4&rdquo; cannot both hold. <code>may_target</code> separates them &mdash; <b>true</b> means you can catch one by accident, so the duty is real; <b>false</b> would make it the ban restated. Calling this an override told a reader to ignore a release duty.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book">Snag (foul hook) fish. <span style='opacity:.6'>[under &ldquo;It is unlawful to&hellip;&rdquo;]</span><br><br>any fish willfully or accidentally snagged must be released immediately</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">type</span> method_rule<br><span class="k">permitted</span> <b>false</b><br><span class="k">method</span> snagging<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">type</span> retention_limit<br><span class="k">take</span> 0 &middot; <span class="k">may_target</span> <b>true</b><br><span class="k">method</span> snagging</p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Snagging</b></span><span class="no">Not permitted here</span><span class="w">Provincial</span></div><div class="r"><span>&#8627; All game fish &mdash; release all <em style="opacity:.7">&mdash; if it happens anyway</em></span><span></span><span class="w">Provincial</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 8</span><span class="ct">A permission contradicted by a ban</span></div>
+  <div class="cb">The other half of case 7. Here one rule really does have to lose, and it is the permission &mdash; a statement of <code>permitted: true</code> is the only kind of rule a ban can contradict. It is struck rather than dropped, so a reader who has heard that spearing is allowed in B.C. sees why it is not allowed here.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book">Spear fishing is permitted<br><br>No spear fishing of any kind is permitted in Region 1, 2, and 4.</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">permitted</span> <b>true</b><br><span class="k">dimension</span> spear_fishing<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">permitted</span> <b>false</b><br><span class="k">extents</span> within region 1, 2, 4<br><span style="opacity:.7">&mdash; so it binds on the Chilliwack, and not on the Atnarko</span></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Spear fishing</b></span><span class="no">Not permitted here</span><span class="w">Provincial</span></div><div class="r"><span><s>Spear fishing is permitted</s></span><span></span><span class="w">Provincial</span></div></div></div>
+  </div>
+</div><div class="case">
+  <div class="ch"><span class="cn">case 9</span><span class="ct">Two regions, and neither one wins</span></div>
+  <div class="cb">For 29&nbsp;km the Fraser <em>is</em> the boundary between Region 5 and Region 7A, one region on each bank, and the reach carries management units from both. Region 7A imposes a bait ban and a spring closure there that Region 5 does not. There is no narrower rule to choose, so both sets are shown, neither is struck, and the page says the stricter reading is the safe one. Splitting the reach in half lengthwise would have been tidier and would have told an angler on one bank that a bait ban they are standing under does not exist.</div>
+  <div class="chain">
+    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>Region 5</b> &mdash; quotas, barbless hook, possession<br><br><b>Region 7A</b> &mdash; quotas, barbless hook, possession, <b>bait ban</b>, <b>spring stream closure</b></div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">mus</span> <b>["5-13", "7-8"]</b><br><span style="opacity:.7">&mdash; two region prefixes on one reach</span><br><br><span style="opacity:.7">no rule here has <span class="k">scope</span> section, so nothing is narrower than anything else</span></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Within</b> Region 5 &ndash; Region 7A boundary<br><span style="opacity:.8">The boundary runs along the river here, with one region on each bank &mdash; both sets of rules are in force. Where they differ, the stricter one is the safe reading.</span></span></div></div></div>
+  </div>
 </div>
 
-<h2>Why the sentence is never read</h2>
-<p>A rule&rsquo;s <code>label</code> is <em>generated</em> from its fields. Matching text against
-it is a round trip through prose and through every wording choice the generator makes &mdash;
-which is a test that keeps passing until someone rewords a sentence, and then fails silently.</p>
-<p>It had already happened. <code>licenceRowOf</code> looked for
-<em>&ldquo;A&nbsp;&hellip;&nbsp;is required&rdquo;</em> at the start of the label, and the
-Fording River&rsquo;s only licence begins <em>&ldquo;Class II water &mdash;&nbsp;&hellip;&rdquo;</em>.
-It matched nothing, so the row printed nowhere at all, on a water where a Classified Waters
-Licence is required.</p>
-<p>Four such tests existed. Each is now a field, and in three cases that meant fixing the
-<em>data</em> rather than teaching the view to guess:</p>
+<h2>How you can tell</h2>
+<p class="sub">Three marks, and they are the whole answer.</p>
 <ul>
-<li><em>&ldquo;no general minimum size limit for trout in lakes&rdquo;</em> was hidden on rivers by
-matching the phrase &ldquo;in lakes&rdquo;. It carries <code>water: "lake"</code>.</li>
-<li><em>&ldquo;never have in your possession more than the quota&rdquo;</em> was separated from its
-entry-mate by matching the word &ldquo;possession&rdquo;. It carries
-<code>period: "possession"</code>.</li>
-<li><em>&ldquo;Permission of the landowner is required&rdquo;</em> was re-read to find out whose
-permission. It carries <code>grantor: "landowner"</code>.</li>
-<li>and the sentence that closes the method list is picked out by its rule&rsquo;s identity
-&mdash; a sentence can be reworded; a rule cannot be renamed without someone noticing.</li>
+<li><b>The last column names the level.</b> &ldquo;this water&rdquo; means the synopsis wrote it
+for this river. &ldquo;Region 8&rdquo; and &ldquo;Provincial&rdquo; mean it reaches you by
+containing you.</li>
+<li><b>Indentation means narrowing.</b> A row set in from the one above is a condition on it,
+not a separate limit.</li>
+<li><b>A struck number or sentence has been overruled</b> &mdash; and whatever overruled it is on
+the same line, so you never have to go looking for the reason.</li>
 </ul>
+<div class="note"><b>And the limit, stated plainly on the sheet itself.</b> A river&rsquo;s rule
+replaces a regional default only where the two can be matched on what they control. Where they
+cannot, <b>both rows are shown and neither is struck</b> &mdash; so read the river&rsquo;s own
+rows before relying on a regional number. The page never drops a rule to make two of them agree.</div>
 
-<h2>What this does not promise</h2>
-<div class="note">A water&rsquo;s rule replaces a regional default only where the two can be
-matched on what they control. Where they cannot, <b>both rows are shown and neither is struck</b>
-&mdash; the sheet says so above the tables, and that is the honest state, not a hedge. The page
-never silently drops a rule to make two of them agree.</div>
-<p style="color:var(--mute)">The other standing limit is upstream of all of this: a rule only
-reaches a stretch if the atlas could place it. Rules naming a spot the map cannot draw are carried
-on the water in the book&rsquo;s own words, with no stretch attached, rather than dropped &mdash;
-because on a closure, silence reads as permission.</p>
+<h2>What decides all of this</h2>
+<p class="sub">Every routing decision above reads a field on the rule. None reads the words of a
+sentence.</p>
+<div class="tw">
+<table>
+<tr><th>Decision</th><th>Read from</th><th>Kind</th></tr>
+<tr><td>which table</td><td><code>type</code>, <code>family</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>shuts the water, or one method</td><td><code>method</code>, <code>species</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>contradiction, or qualifier</td><td><code>permitted</code>, <code>may_target</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>which of two wins</td><td><code>scope</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>lift, or narrowing</td><td><code>exempts</code>, <code>when_targeting</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>in force today, next change</td><td><code>windows</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>which document</td><td><code>conditions.document</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>reached here as a tributary</td><td><code>via</code></td><td><span class="tag t-gen">a rule</span></td></tr>
+<tr><td>which activity a tackle rule is under</td><td><code>dimension</code> &rarr; activity</td><td><span class="tag t-look">a lookup</span></td></tr>
+<tr><td>where a loose sentence is filed</td><td>11 named entries</td><td><span class="tag t-look">a lookup</span></td></tr>
+<tr><td>the order activities are listed in</td><td>a written order</td><td><span class="tag t-judge">a judgement</span></td></tr>
+<tr><td>bait before hooks before line</td><td>a written order</td><td><span class="tag t-judge">a judgement</span></td></tr>
+<tr><td>ice fishing does not apply on rivers</td><td>nothing in the corpus</td><td><span class="tag t-judge">a judgement</span></td></tr>
+</table>
+</div>
+<p>A rule&rsquo;s wording is <em>generated</em> from its fields, so matching text against it is a
+round trip through every phrasing decision the generator makes &mdash; a test that keeps passing
+until someone rewords a sentence, then fails silently. It had already happened once: the
+Fording River&rsquo;s only licence printed on no row at all, because the check looked for
+&ldquo;A&nbsp;&hellip;&nbsp;is required&rdquo; at the start of a label that begins &ldquo;Class II
+water &mdash;&nbsp;&hellip;&rdquo;. Four such tests existed; all four are now fields, and in three
+cases that meant correcting the <em>data</em> rather than teaching the page to guess.</p>
+<div class="note"><b>The three judgements are the ones worth arguing with.</b> Two are ordering,
+and ordering cannot make a sheet wrong &mdash; every rule is still on it. The third hides
+something: &ldquo;fishing through ice is permitted&rdquo; carries no water type, so the corpus
+does not say it is a lake rule. That is domain knowledge written into the page rather than
+pretended into the data, and it is guarded so it can only ever hide a <b>permission</b> &mdash;
+never a prohibition.</div>
 </div>
