@@ -89,6 +89,65 @@ CUT_SEEDS = {
     ],
 }
 
+
+def _mu_regions(mu_polys: dict) -> dict:
+    """`{mu: region}` — from the book's own rows, with adjacency filling the gaps.
+
+    A ZONE IS A REGION, NOT A LIST OF UNITS. Williston Lake's rows name the units they fall in:
+    Zone A carries 7-30, 7-37, 7-38 and Zone B carries 7-31, 7-36. Cutting by the union of
+    those names looks right and covers 1,302 of the lake's 1,727 km² — because four more units
+    hold water the rows never mention:
+
+        7-29  350 km²      7-24    6 km²
+        7-38  ...          7-35   40 km²
+        7-40   29 km²
+
+    A quarter of the lake, in no zone at all. But the zones are not lists of units; Zone A is
+    the part of the lake in Region 7A and Zone B the part in 7B, and between them they are the
+    whole lake. So the cut is by REGION, and a region is every unit that belongs to it.
+
+    The mapping comes from the synopsis rows, which state a region and its units on every line.
+    One unit on Williston — 7-29 — appears on no row in the book at all, so it is placed by the
+    region of the unit it shares its longest border with (7-28, 171 km, Omineca). Geometry, not
+    a guess about numbering.
+    """
+    import collections
+    from pipeline.regs.parsing.rows import load_synopsis_rows
+
+    votes: dict = collections.defaultdict(collections.Counter)
+    for row in load_synopsis_rows():
+        reg = str(row.get("region") or "")
+        mu = row.get("mu")
+        for m in (mu if isinstance(mu, list) else ([mu] if mu else [])):
+            if reg:
+                votes[str(m)][reg] += 1
+    known = {m: c.most_common(1)[0][0] for m, c in votes.items() if c}
+
+    missing = [m for m in mu_polys if m not in known]
+    for m in missing:
+        g = mu_polys[m]
+        best, best_len = None, 0.0
+        for o, og in mu_polys.items():
+            if o == m or o not in known:
+                continue
+            try:
+                shared = g.boundary.intersection(og.boundary).length
+            except Exception:
+                continue
+            if shared > best_len:
+                best, best_len = o, shared
+        if best:
+            known[m] = known[best]
+    return known
+
+
+def _short_region(name: str) -> str:
+    """'REGION 7A - Omineca' -> '7A'."""
+    import re as _re
+    m = _re.search(r"REGION\s+([0-9]+[A-Z]?)", str(name or ""), _re.I)
+    return m.group(1) if m else str(name or "")
+
+
 def _to_lonlat():
     from pyproj import Transformer
     return Transformer.from_crs(3005, 4326, always_xy=True).transform
@@ -125,6 +184,8 @@ def main() -> int:
     wbks = {L["item_id"].split(":", 1)[1] for L in lakes if L["item_id"].startswith("wbk:")}
     polys = get_waterbody_polys(fwa, wbks)
     mu_polys = get_mu_polys(fwa)
+    mu_region = _mu_regions(mu_polys)
+    from shapely.ops import unary_union
 
     out = {"next_id": next_id, "lakes": []}
     for L in lakes:
@@ -141,17 +202,39 @@ def main() -> int:
             mus = re.findall(r"\d+-\d+", rid.split("@")[-1]) if "@" in rid else []
             rows.append({"entry_id": rid, "mus": mus})
         touched = sorted({m for r in rows for m in r["mus"]})
+        # every unit whose water is actually in this lake, not only the ones a row names
+        here = {m: g2 for m, g2 in mu_polys.items()
+                if g2.intersects(g) and g2.intersection(g).area > 5e5}
+        by_region: dict = {}
+        for m, g2 in here.items():
+            rname = _short_region(mu_region.get(m, ""))
+            if not rname:
+                continue
+            by_region.setdefault(rname, []).append(g2)
+        region_rings = {}
+        for rname, gs in by_region.items():
+            merged = gs[0] if len(gs) == 1 else unary_union(gs)
+            clipped = merged.intersection(g)
+            if not clipped.is_empty:
+                region_rings[rname] = _ring(clipped, tf)
+        # which region does each row speak for?
+        for r in rows:
+            regs = sorted({_short_region(mu_region.get(m, "")) for m in r["mus"]} - {""})
+            r["region"] = regs[0] if len(regs) == 1 else ""
+            r["mu_region_split"] = len(regs) > 1
         out["lakes"].append({
             "name": L["lake"], "item_id": L["item_id"], "wbk": wbk,
             "outline": _ring(g, tf),
             "rows": rows,
             "parts": [{"name": p.get("name"), "id": p.get("id")} for p in L.get("parts", [])],
             "mus": {m: _ring(mu_polys[m], tf) for m in touched if m in mu_polys},
+            "regions": region_rings,
             "cuts": CUT_SEEDS.get(L["item_id"], []),
         })
-        print(f"  {L['lake']}: {len(out['lakes'][-1]['outline'])} ring(s), "
-              f"{len(rows)} row(s), {len(out['lakes'][-1]['mus'])} MU polygon(s), "
-              f"{len(L.get('parts', []))} part(s) wanted")
+        cov = sum(mu_polys[m].intersection(g).area for m in here) / g.area if here else 0
+        print(f"  {L['lake']}: {len(rows)} row(s), regions "
+              f"{sorted(region_rings) or '-'}, {len(here)} unit(s) on the water "
+              f"({cov*100:.0f}% covered), {len(L.get('parts', []))} part(s) wanted")
 
     # THE WHOLE EXISTING FILE, so the page can hand back a complete added_lakes.geojson rather
     # than a fragment to merge by hand. Merging is where a curated polygon gets lost.
