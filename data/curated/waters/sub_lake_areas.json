@@ -16,28 +16,28 @@
    "note": "Four rows on one lake: one for ALL PARTS and one for each of the three. The zone entry `z4:kootenay_lake_boundaries` states where the lines fall, and the synopsis prints the map on page 34. Today every one of them covers all 423 km².",
    "parts": [
     {
-     "reserved_added_lake_id": 7,
+     "reserved_added_lake_id": 20,
      "name": "Kootenay Lake — Main Body",
      "book": "the area east of a line between boundary signs on opposite shores near Balfour Point",
      "of": "wbk:328974235",
      "serves": "r4:kootenay_lake_main_body_…@4-19",
-     "polygon": null
+     "polygon": "added_lakes.geojson#20"
     },
     {
-     "reserved_added_lake_id": 8,
+     "reserved_added_lake_id": 21,
      "name": "Kootenay Lake — Upper West Arm",
      "book": "the area west of that line, to McDonalds Landing (Six Mile)",
      "of": "wbk:328974235",
      "serves": "r4:kootenay_lake_upper_west_arm_…@4-7",
-     "polygon": null
+     "polygon": "added_lakes.geojson#21"
     },
     {
-     "reserved_added_lake_id": 9,
+     "reserved_added_lake_id": 22,
      "name": "Kootenay Lake — Lower West Arm",
      "book": "the area between McDonalds Landing (Six Mile) and Corra Linn Dam",
      "of": "wbk:328974235",
      "serves": "r4:kootenay_lake_lower_west_arm_…@4-7",
-     "polygon": null
+     "polygon": "added_lakes.geojson#22"
     }
    ]
   },
@@ -56,36 +56,36 @@
    "note": "Split by ZONE as well as by arm, which is why its rows carry several MUs each. Zone A and Zone B are the halves; Nation Arm and Davis Bay sit inside them.",
    "parts": [
     {
-     "reserved_added_lake_id": 10,
+     "reserved_added_lake_id": 16,
      "name": "Williston Lake — Nation Arm",
      "book": "NATION ARM",
      "of": "wbk:328961697",
      "serves": "r7:nation_arm_williston_lake@7-30",
-     "polygon": null
+     "polygon": "added_lakes.geojson#16"
     },
     {
-     "reserved_added_lake_id": 11,
+     "reserved_added_lake_id": 17,
      "name": "Williston Lake — Davis Bay",
      "book": "Davis Bay, in Finlay Reach",
      "of": "wbk:328961697",
      "serves": "r7:davis_bay_in_finlay_reach_of_williston_lake@7-37",
-     "polygon": null
+     "polygon": "added_lakes.geojson#17"
     },
     {
-     "reserved_added_lake_id": 12,
+     "reserved_added_lake_id": 18,
      "name": "Williston Lake — Zone A",
      "book": "in Zone A (includes waters 500 m east/upstream…)",
      "of": "wbk:328961697",
      "serves": "r7:williston_lake_in_zone_a_…@7-30+7-37+7-38",
-     "polygon": null
+     "polygon": "added_lakes.geojson#18"
     },
     {
-     "reserved_added_lake_id": 13,
+     "reserved_added_lake_id": 19,
      "name": "Williston Lake — Zone B",
      "book": "in Zone B — CONFIRM after the rebuild",
      "of": "wbk:328961697",
      "serves": "r7:williston_lake_in_zone_b@7-31+7-36",
-     "polygon": null
+     "polygon": "added_lakes.geojson#19"
     }
    ]
   },
@@ -102,6 +102,15 @@
    "note": "The smallest case of the three: one lake, one netted-off corner with its own row.",
    "parts": [
     {
+     "reserved_added_lake_id": 23,
+     "name": "Shannon Lake — proper",
+     "book": "the lake, outside the netted-off portion",
+     "of": "wbk:329459193",
+     "serves": "r8:shannon_lake@8-11",
+     "polygon": "added_lakes.geojson#23",
+     "note": "Computed as the FWA polygon minus the netted-off corner, so all three lakes are partitioned the same way: every part explicit, nothing relying on the original item keeping the remainder."
+    },
+    {
      "reserved_added_lake_id": 15,
      "name": "Shannon Lake — netted-off portion",
      "book": "netted off portion on the south end of the lake",
@@ -113,6 +122,6 @@
    ]
   }
  ],
- "_next_id": 16,
+ "_next_id": 24,
  "_sweep": "Re-run after every parse. The test is: two or more rows whose `matched` includes the same item, where at least one row's NAME qualifies the lake with a part word (arm, bay, reach, main body, zone, netted off). Twenty-three lakes carry more than one row on one item; the other twenty are a lake plus its tributaries, one row written in two regions, an alias pair (\"JONES\" LAKE / WAHLEACH LAKE), or — worth a look — two genuinely different lakes matched to one polygon, which is a curation bug rather than a polygon job: BIG LAKE (west of 100 Mile House) and BIG LAKE (west of Likely) both resolve to wbk:329480768, and the two BLUE LAKEs to wbk:329413147."
 }
