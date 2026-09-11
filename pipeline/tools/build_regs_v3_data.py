@@ -347,17 +347,22 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str):
     # confluence, a bridge, boundary signs — and "km 704" tells a reader nothing they can find
     # on the ground. These were emitted as an empty list, so the ladder had only numbers.
     splits: list[dict] = []
-    seen_ref: set[str] = set()
+    seen_ref: set[tuple] = set()
     for nid, nd in main:
         for end in (nd.lower_bound, nd.upper_bound):
             lab = _bound_label(end)
             ref = getattr(end, "boundary_id", None) if end is not None else None
-            if not lab or not ref or ref in seen_ref:
-                continue
-            seen_ref.add(ref)
             m = getattr(end, "route_measure", None)
-            if m is None:
+            if not lab or not ref or m is None:
                 continue
+            # KEYED ON THE BOUNDARY *AND* THE PLACE. An area cuts the river where it enters and
+            # again where it leaves, and both cuts carry the same boundary id — so keying on the
+            # id alone kept only the first, and the stretch between the two crossings had no tick
+            # at its upper end and nothing to number it with.
+            key = (ref, round(m, 1))
+            if key in seen_ref:
+                continue
+            seen_ref.add(key)
             km = round((m - base_m) / 1000.0, 1)
             if km < -0.5 or km > (main[-1][1].up_m - base_m) / 1000.0 + 0.5:
                 continue

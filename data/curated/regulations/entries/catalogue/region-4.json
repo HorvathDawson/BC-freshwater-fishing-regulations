@@ -9885,7 +9885,9 @@
      "type": "advisory",
      "verbatim": "Please report any lake trout you catch in the Kootenay Region to a Ministry office. Lake trout are not a native fish species in the Kootenays and could impact other native fish populations if they colonize.",
      "obligation": "should",
-     "species": [],
+     "species": [
+      "LT"
+     ],
      "species_except": [],
      "windows": [],
      "windows_are": "applies",
