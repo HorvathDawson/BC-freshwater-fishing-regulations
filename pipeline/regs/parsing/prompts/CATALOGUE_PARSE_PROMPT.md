@@ -129,7 +129,7 @@ aspect+level   vessel_rule. aspect is propulsion | speed | towing.
                For propulsion, `level` is required and is an ORDERED scale, strictest first:
                  none        no vessels at all          ("No vessels")
                  unpowered   no motor                   ("No powered boats")
-                 electric    electric motors only       ("Electric motor only")
+                 electric_only  electric motors only     ("Electric motor only")
                  power_capped  a kW limit, with max_power_kw ("7.5 kW / 10 hp")
                `permitted: false` is NOT a substitute — "No vessels" and "No powered boats"
                are both a refusal and they are different rules.

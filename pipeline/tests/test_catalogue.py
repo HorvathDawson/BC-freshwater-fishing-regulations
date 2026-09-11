@@ -358,7 +358,7 @@ def test_electric_only_is_a_propulsion_level_not_a_field():
     assert coerce_shapes(d) == 1
     r = d["rules"][0]
     assert "electric_only" not in r
-    assert r["aspect"] == "propulsion" and r["level"] == "electric"
+    assert r["aspect"] == "propulsion" and r["level"] == "electric_only"
 
 
 def test_a_bait_rule_with_no_allowed_is_NOT_guessed():

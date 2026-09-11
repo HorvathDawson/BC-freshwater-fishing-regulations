@@ -155,7 +155,7 @@ def coerce_shapes(data: dict) -> int:
     the model writes the name on its own — ``"spring closure"``. Same value, no list around it.
 
     `electric_only: true`, which is not a field at all. It is `aspect: propulsion` with
-    `level: electric`, and the model invents it because that is what the book calls the rule.
+    `level: electric_only`, and the model invents it because that is what the book calls the rule.
 
     NOT coerced, deliberately: a `bait_restriction` with no `allowed`, and a propulsion rule with
     no `level`. "No powered boats" and "No vessels" are both a refusal, and they are different
@@ -197,7 +197,7 @@ def coerce_shapes(data: dict) -> int:
             on = bool(rule.pop("electric_only"))
             if on:
                 rule.setdefault("aspect", "propulsion")
-                rule.setdefault("level", "electric")
+                rule.setdefault("level", "electric_only")
             n += 1
     return n
 
