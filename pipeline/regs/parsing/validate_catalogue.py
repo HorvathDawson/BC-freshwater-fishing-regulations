@@ -136,6 +136,74 @@ def canonicalise_splits(data: dict, item: dict) -> list[str]:
 
 
 
+
+#: An exemption names the zone entry it lifts. The parser writes the name the BOOK uses —
+#: "exempt from spring closure" — and the entry is called `spring_stream_closure`. The two
+#: never had to agree, because nothing checked: `liftsIn` looks the id up, finds nothing, and
+#: lifts nothing. The rule still renders, still says "exempt", and the closure it exempts you
+#: from goes on closing the water.
+#:
+#: 37 rules were in this state across four regions, including "Mainstem open all year" on the
+#: Fraser — 1,250 km shown shut for the six months the spring closure runs. Every one of the
+#: three spellings is an unambiguous alias of a real entry, confirmed by the rule's own verbatim
+#: and by the target existing in that rule's region:
+#:
+#:   spring_closure       -> spring_stream_closure       "Exempt from spring closure",
+#:                                                       "EXEMPT from Apr 1-June 14 closure"
+#:   trout_char_release   -> trout_char_winter_release   "EXEMPT from the regional Nov 1-Mar 31
+#:                                                        trout/char catch and release"
+#:   bait_ban             -> bait_ban_streams            "also EXEMPT from bait ban upstream of
+#:                                                        Cottonwood River"
+#:
+#: Aliases only. An id that is NOT in this map and matches no zone entry is left alone and
+#: reported by `unresolved_exempt_ids` — a silent rename is how this got here.
+EXEMPT_ALIASES = {
+    "spring_closure": "spring_stream_closure",
+    "trout_char_release": "trout_char_winter_release",
+    "bait_ban": "bait_ban_streams",
+    "summer_closure": "summer_stream_closure",
+    # "exempt from regional Nov 1-Mar 31 BULL TROUT catch and release". The regional entry is
+    # `trout_char_winter_release`, one rule, TROUT_CHAR, Nov 1-Mar 31 — the same rule, named by
+    # the fish it is being lifted for. Safe because the exempting rule carries `species: [BT]`,
+    # so `fullLift` is false and it NARROWS rather than striking the whole regional release.
+    "bull_trout_release": "trout_char_winter_release",
+}
+
+#: Some exemptions name a single RULE inside a zone entry, not the entry. Lifting the entry
+#: would reach every rule in it, which is the over-application direction.
+#:
+#: "EXEMPT from the regional kokanee 'none from streams' daily quota" is one line of Region 4's
+#: `species_quotas`, which carries eleven — bass, burbot, crayfish, pike, sturgeon, walleye and
+#: the rest. Pointed at the entry it would touch all of them; pointed at `species_quotas.r5`,
+#: which IS "none from streams" for kokanee, it touches exactly the line the book names.
+EXEMPT_RULE_TARGETS = {
+    "kokanee_stream_quota": "species_quotas.r5",
+}
+
+
+def resolve_exempt_ids(data: dict) -> int:
+    """Rewrite a known alias in `exempts.default_id` to the entry id it means. Returns the count."""
+    n = 0
+    for rule in data.get("rules") or []:
+        if not isinstance(rule, dict):
+            continue
+        for ex in rule.get("exempts") or []:
+            if not isinstance(ex, dict):
+                continue
+            key = str(ex.get("default_id") or "")
+            want = EXEMPT_ALIASES.get(key)
+            if want:
+                ex["default_id"] = want
+                n += 1
+                continue
+            rule_target = EXEMPT_RULE_TARGETS.get(key)
+            if rule_target:
+                ex.pop("default_id", None)
+                ex["target"] = rule_target
+                n += 1
+    return n
+
+
 def coerce_shapes(data: dict) -> int:
     """Rewrite the shapes a model reaches for when the schema spells a field differently.
 
@@ -212,6 +280,8 @@ def check_entry(entry_data: dict, source_text: str,
     # Before anything else: a field written in the wrong SHAPE carries the right value, and
     # rejecting it costs a re-parse of the whole entry. See `coerce_shapes`.
     coerce_shapes(entry_data)
+    # An exemption that names a zone entry by the BOOK's wording lifts nothing.
+    resolve_exempt_ids(entry_data)
     default_extents(entry_data)
     if item is not None:
         # Before model validation: this rewrites aliases, and the rewritten value is what the

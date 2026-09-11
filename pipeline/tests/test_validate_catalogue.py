@@ -144,3 +144,56 @@ def test_ingest_and_the_validator_share_one_implementation():
     src = inspect.getsource(ingest_catalogue)
     assert "def _bind_extents" not in src and "def _boundary_ids" not in src, \
         "ingest re-implemented the split check instead of calling the validator's"
+
+
+# --------------------------------------------------------------------------------------------
+# AN EXEMPTION THAT NAMES A ZONE ENTRY BY THE BOOK'S WORDING LIFTS NOTHING.
+#
+# The parser writes what the book says — "exempt from spring closure" — and the entry is called
+# `spring_stream_closure`. Nothing ever checked the two agreed: the renderer looks the id up,
+# finds nothing, and lifts nothing. The rule still renders and still says "exempt", while the
+# closure it exempts you from goes on closing the water. 41 rules were in that state, including
+# "Mainstem open all year" on 1,250 km of the Fraser.
+
+from pipeline.regs.parsing.validate_catalogue import resolve_exempt_ids
+
+
+def _ex_entry(default_id=None, target=None, species=None):
+    ex = {}
+    if default_id: ex["default_id"] = default_id
+    if target: ex["target"] = target
+    return {"rules": [{"rule_id": "x.r1", "exempts": [ex], "species": species or []}]}
+
+
+def test_book_wording_resolves_to_the_entry_id():
+    for written, real in [("spring_closure", "spring_stream_closure"),
+                          ("summer_closure", "summer_stream_closure"),
+                          ("trout_char_release", "trout_char_winter_release"),
+                          ("bait_ban", "bait_ban_streams")]:
+        e = _ex_entry(default_id=written)
+        assert resolve_exempt_ids(e) == 1
+        assert e["rules"][0]["exempts"][0]["default_id"] == real
+
+
+def test_an_id_that_is_already_right_is_left_alone():
+    e = _ex_entry(default_id="spring_stream_closure")
+    assert resolve_exempt_ids(e) == 0
+    assert e["rules"][0]["exempts"][0]["default_id"] == "spring_stream_closure"
+
+
+def test_an_unknown_id_is_never_guessed():
+    """A silent rename is how this got here; an id with no alias stays put and stays visible."""
+    e = _ex_entry(default_id="something_nobody_has_seen")
+    assert resolve_exempt_ids(e) == 0
+    assert e["rules"][0]["exempts"][0]["default_id"] == "something_nobody_has_seen"
+
+
+def test_a_single_line_exemption_targets_the_RULE_not_the_entry():
+    """"EXEMPT from the regional kokanee 'none from streams' quota" is ONE line of Region 4's
+    `species_quotas`, which carries eleven. Pointed at the entry it would reach bass, burbot,
+    pike, sturgeon and the rest — the over-application direction."""
+    e = _ex_entry(default_id="kokanee_stream_quota")
+    assert resolve_exempt_ids(e) == 1
+    ex = e["rules"][0]["exempts"][0]
+    assert ex.get("target") == "species_quotas.r5"
+    assert "default_id" not in ex

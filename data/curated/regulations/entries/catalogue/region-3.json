@@ -1175,7 +1175,7 @@
           ],
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -2227,7 +2227,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -2409,7 +2409,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -2599,7 +2599,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -2833,7 +2833,7 @@
           ],
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -3110,7 +3110,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -3720,7 +3720,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -4676,7 +4676,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -4735,7 +4735,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -5003,7 +5003,7 @@
           ],
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -6113,7 +6113,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -6482,7 +6482,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -10053,7 +10053,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -10112,7 +10112,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -10327,7 +10327,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -10395,6 +10395,139 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r3:nahatlatch_river@3-15",
+      "name": "NAHATLATCH RIVER",
+      "display_name": "Nahatlatch River",
+      "region": "3",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge\nDownstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; **No Fishing**\nJan 1-May 31\n**No Fishing** downstream of Nahatlatch Lake, Jan 1-May 31\nTrout daily quota = 2 (none under 30 cm)",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [
+        "gnis:16471"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "nahatlatch_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from Frances Lake downstream approximately 400 m to fishing boundary signs at the logging bridge",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "nahatlatch_river__frances_lake",
+                "nahatlatch_river__signs_at_logging_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "nahatlatch_river.r2",
+          "type": "retention_limit",
+          "verbatim": "Downstream of Nahatlatch Lake (including Hannah and Frances lakes; except as noted upstream of ), open until Dec 31; **No Fishing**\nJan 1-May 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jan 1-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "downstream of Nahatlatch Lake (including Hannah and Frances lakes)",
+          "unresolved_locators": [
+            "downstream of Nahatlatch Lake"
+          ],
+          "needs_review": true,
+          "review_reason": "Two cut-points share the name 'Nahatlatch Lake' (nahatlatch_river__nahatlatch_lake and _2, likely the lake's inlet and outlet) — cannot tell which end 'downstream of' resolves to without curation"
+        },
+        {
+          "rule_id": "nahatlatch_river.r3",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2 (none under 30 cm)",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -10823,7 +10956,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -11218,7 +11351,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -11264,6 +11397,59 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r3:pennask_creek@3-12",
+      "name": "PENNASK CREEK",
+      "display_name": "Pennask Creek",
+      "region": "3",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** upstream of Pennask Lake",
+      "source_pages": [
+        33
+      ],
+      "symbols": [],
+      "matched": [
+        "gnis:14707"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "pennask_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** upstream of Pennask Lake",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "upstream of Pennask Lake",
+          "unresolved_locators": [
+            "upstream of Pennask Lake"
+          ],
+          "needs_review": true,
+          "review_reason": "No cut-point for 'Pennask Lake' in this item's boundary menu (only a gauge and the Region 3/8 area are bindable)"
         }
       ]
     },
@@ -11891,7 +12077,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "spring_closure",
+              "default_id": "spring_stream_closure",
               "note": ""
             }
           ],
@@ -12244,6 +12430,164 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r3:roche_lake@3-20",
+      "name": "ROCHE LAKE",
+      "display_name": "Roche Lake",
+      "region": "3",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing;** rainbow trout daily quota = 2; single hook\nElectric motor only - max 7.5 kW, south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of\nRoche Lake to the westerly shoreline and conversely 64° to the easterly shoreline",
+      "source_pages": [
+        34
+      ],
+      "symbols": [
+        "Stocked"
+      ],
+      "matched": [
+        "wbk:329534139"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "roche_lake.r1",
+          "type": "method_rule",
+          "verbatim": "**No Ice Fishing;**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "roche_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "rainbow trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "roche_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "roche_lake.r4",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW, south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of\nRoche Lake to the westerly shoreline and conversely 64° to the easterly shoreline",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "south of a line bearing true 244° from a point on the southern tip of the largest island in the south arm of Roche Lake to the westerly shoreline and conversely 64° to the easterly shoreline",
+          "unresolved_locators": [
+            "south of a line bearing true 244°/64° across Roche Lake's south arm"
+          ],
+          "needs_review": true,
+          "review_reason": "The boundary is a compass-bearing line across the lake; this item has no cut-points, only op:whole is bindable"
         }
       ]
     },
@@ -15817,6 +16161,240 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r3:walloper_lake@3-19",
+      "name": "WALLOPER LAKE",
+      "display_name": "Walloper Lake",
+      "region": "3",
+      "scope_note": "",
+      "regs_verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+      "source_pages": [
+        34
+      ],
+      "symbols": [],
+      "matched": [
+        "wbk:329176284"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "walloper_lake.r1",
+          "type": "hazard",
+          "verbatim": "**WARNING! Dangerous thin ice due to aeration!**",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r3:warren_lake@3-27",
+      "name": "WARREN LAKE",
+      "display_name": "Warren Lake",
+      "region": "3",
+      "scope_note": "",
+      "regs_verbatim": "Rainbow trout daily quota = 2; single hook",
+      "source_pages": [
+        34
+      ],
+      "symbols": [
+        "Stocked"
+      ],
+      "matched": [
+        "wbk:329320964"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "warren_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "warren_lake.r2",
+          "type": "tackle_restriction",
+          "verbatim": "single hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r3:white_lake@3-26",
+      "name": "WHITE LAKE",
+      "display_name": "White Lake",
+      "region": "3",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** within 400 m of the mouth of Cedar Creek as designated by signs, Dec 1-June 30\nRainbow trout daily quota = 2",
+      "source_pages": [
+        34
+      ],
+      "symbols": [
+        "Stocked"
+      ],
+      "matched": [
+        "wbk:329518147"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "white_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** within 400 m of the mouth of Cedar Creek as designated by signs, Dec 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Dec 1-June 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "within 400 m of the mouth of Cedar Creek as designated by signs",
+          "unresolved_locators": [
+            "within 400 m of the mouth of Cedar Creek as designated by signs"
+          ],
+          "needs_review": true,
+          "review_reason": "This item has no cut-points (only op:whole is bindable); a 400 m radius around Cedar Creek's mouth cannot be expressed"
+        },
+        {
+          "rule_id": "white_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Rainbow trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },

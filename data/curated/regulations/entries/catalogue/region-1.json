@@ -13216,6 +13216,255 @@
       ]
     },
     {
+      "entry_id": "r1:nanaimo_river@1-5",
+      "name": "NANAIMO RIVER",
+      "display_name": "Nanaimo River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** July 15-Aug 31\n**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek\n**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15\n**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31\nArtificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries\nEngine power restriction on parts - 7.5 kW (10 hp)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:16505"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "nanaimo_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** July 15-Aug 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "July 15-Aug 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "nanaimo_river.r2",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from power line crossing at \"Bore Hole\" upstream to fishing boundary signs at the mouth of Boulder Creek",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "nanaimo_river__power_line_at_bore_hole",
+                "nanaimo_river__boulder_creek_into_nanaimo_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "nanaimo_river.r3",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** from the Cedar Road Bridge upstream to the Hwy 19 bridge, Sept 1-Oct 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Sept 1-Oct 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "nanaimo_river__cedar_road_bridge",
+                "nanaimo_river__hwy_19_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "nanaimo_river.r4",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** upstream of the Hwy 1 bridge[Includes Tributaries], Dec 1-May 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Dec 1-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "includes_tributaries": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "nanaimo_river__hwy_1_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "nanaimo_river.r5",
+          "type": "tackle_restriction",
+          "verbatim": "Artificial fly only upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake, including tributaries",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "artificial_fly",
+          "required": true,
+          "includes_tributaries": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake",
+          "unresolved_locators": [
+            "upstream of the westernmost of the two Nanaimo Lakes, known locally as \"Second\" Lake"
+          ],
+          "needs_review": true,
+          "review_reason": "two identically named 'Nanaimo Lakes' split points are listed in the boundary menu; cannot determine which is the westernmost lake known locally as 'Second' Lake without additional geographic data"
+        },
+        {
+          "rule_id": "nanaimo_river.r6",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction on parts - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "on parts",
+          "unresolved_locators": [],
+          "needs_review": true,
+          "review_reason": "'on parts' does not name which reach; no boundary in the menu matches the specific part described"
+        }
+      ]
+    },
+    {
       "entry_id": "r1:nimpkish_river@1-11",
       "name": "NIMPKISH RIVER",
       "display_name": "Nimpkish River",
@@ -13376,7 +13625,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "summer_closure",
+              "default_id": "summer_stream_closure",
               "note": ""
             }
           ],
@@ -13738,7 +13987,7 @@
           "tributaries_only": false,
           "exempts": [
             {
-              "default_id": "summer_closure",
+              "default_id": "summer_stream_closure",
               "note": ""
             }
           ],
@@ -17935,6 +18184,3032 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:taylor_river@1-7",
+      "name": "TAYLOR RIVER",
+      "display_name": "Taylor River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Fly fishing only",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:24672"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "taylor_river.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Fly fishing only",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "fly_fishing",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:thelwood_creek@1-9",
+      "name": "THELWOOD CREEK",
+      "display_name": "Thelwood Creek",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:21681"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "thelwood_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:thetis_lake@1-1",
+      "name": "THETIS LAKE",
+      "display_name": "Thetis Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328996531"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "thetis_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tlell_river@6-13",
+      "name": "TLELL RIVER",
+      "display_name": "Tlell River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban Nov 1-Apr 30; Cutthroat trout catch and release\n**Class II water Sept 1-Apr 30; Steelhead Stamp mandatory Dec 1-Apr 30**\nTidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries",
+        "Classified"
+      ],
+      "matched": [
+        "gnis:35583"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "tlell_river.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban Nov 1-Apr 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Nov 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tlell_river.r2",
+          "type": "retention_limit",
+          "verbatim": "Cutthroat trout catch and release",
+          "obligation": "must",
+          "species": [
+            "CT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tlell_river.r3",
+          "type": "document_required",
+          "verbatim": "Class II water Sept 1-Apr 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Sept 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tlell_river.r4",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Dec 1-Apr 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Dec 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tlell_river.r5",
+          "type": "advisory",
+          "verbatim": "Tidal waters regulations apply to waters downstream of tidal boundary sign located 1.5 km upstream of Hwy 16 Bridge",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "tlell_river__tidal_boundary_sign_1500_m_upstream"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tlools_lake@1-9",
+      "name": "TLOOLS LAKE",
+      "display_name": "Tlools Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329070031"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tlools_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tlowils_lake@1-10",
+      "name": "TLOWILS LAKE",
+      "display_name": "Tlowils Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500356"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tlowils_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:toquart_lake@1-8",
+      "name": "TOQUART LAKE",
+      "display_name": "Toquart Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "No trout over 50 cm; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329016206"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "toquart_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "No trout over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "toquart_lake.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "toquart_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:toquart_river@1-8",
+      "name": "TOQUART RIVER",
+      "display_name": "Toquart River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Fly fishing only upstream of the Toquart mainline logging bridge when open; **No Fishing** upstream of the boundary sign located near the\nfalls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31. Note: this includes the\nriver upstream of the lake",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:2915"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "toquart_river.r1",
+          "type": "tackle_restriction",
+          "verbatim": "Fly fishing only upstream of the Toquart mainline logging bridge when open",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "fly_fishing",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "toquart_river__toquart_mainline"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "toquart_river.r2",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** upstream of the boundary sign located near the falls approximately 800 m downstream of Toquart Lake (including the Upper Toquart River) between Nov 1-May 31.",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Nov 1-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "toquart_river__boundary_sign_near_falls"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:toy_lake@1-7",
+      "name": "TOY LAKE",
+      "display_name": "Toy Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329016279"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "toy_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "toy_lake.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "toy_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:trent_river@1-6",
+      "name": "TRENT RIVER",
+      "display_name": "Trent River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:27647"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "trent_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Dec 1-May 31",
+            "July 15-Aug 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tsable_lake@1-6",
+      "name": "TSABLE LAKE",
+      "display_name": "Tsable Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout catch and release; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329467591"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tsable_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tsable_lake.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tsable_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tsable_river@1-6",
+      "name": "TSABLE RIVER",
+      "display_name": "Tsable River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:28508"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "tsable_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** Dec 1-May 31 and July 15-Aug 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Dec 1-May 31",
+            "July 15-Aug 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tsitika_river@1-10",
+      "name": "TSITIKA RIVER",
+      "display_name": "Tsitika River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing **upstream of Catherine Creek, Nov 1-Apr 30, fly fishing only downstream of Catherine Creek.",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:5379"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "tsitika_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing **upstream of Catherine Creek, Nov 1-Apr 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Nov 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "tsitika_river__catherine_creek_into_tsitika_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "tsitika_river.r2",
+          "type": "tackle_restriction",
+          "verbatim": "fly fishing only downstream of Catherine Creek.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "fly_fishing",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "tsitika_river__catherine_creek_into_tsitika_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:tsolum_river@1-6",
+      "name": "TSOLUM RIVER",
+      "display_name": "Tsolum River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:29265"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "tsolum_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing**",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_a_map_a_below@1-10",
+      "name": "UNNAMED LAKE \"A\" - MAP A (below)",
+      "display_name": "Unnamed Lake A - Map A",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout catch and release; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500453"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_a_map_a.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_a_map_a.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_a_map_a.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_b_map_a_below@1-10",
+      "name": "UNNAMED LAKE \"B\" - MAP A (below)",
+      "display_name": "Unnamed Lake B - Map A",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout catch and release; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500505"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_b_map_a.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_b_map_a.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_b_map_a.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_c_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"C\" - MAP B (below)",
+      "display_name": "Unnamed Lake C - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500435"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_c_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_c_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_c_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_d_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"D\" - MAP B (below)",
+      "display_name": "Unnamed Lake D - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500416"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_d_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_d_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_d_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_e_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"E\" - MAP B (below)",
+      "display_name": "Unnamed Lake E - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout catch and release; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500498"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_e_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_e_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_e_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_f_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"F\" - MAP B (below)",
+      "display_name": "Unnamed Lake F - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500447"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_f_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_f_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_f_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_g_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"G\" - MAP B (below)",
+      "display_name": "Unnamed Lake G - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500561"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_g_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_g_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_g_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_h_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"H\" - MAP B (below)",
+      "display_name": "Unnamed Lake H - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout catch and release; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328988117"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_h_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_h_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_h_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:unnamed_lake_i_map_b_below@1-10",
+      "name": "UNNAMED LAKE \"I\" - MAP B (below)",
+      "display_name": "Unnamed Lake I - Map B",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 2; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329500475"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_i_map_b.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_i_map_b.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_i_map_b.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:village_bay_lake@1-15",
+      "name": "VILLAGE BAY LAKE",
+      "display_name": "Village Bay Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30\nEngine power restriction - 7.5 kW (10 hp)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329095506"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "village_bay_lake.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Nov 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "village_bay_lake.r2",
+          "type": "tackle_restriction",
+          "verbatim": "Bait ban and single barbless hook, Nov 1-Apr 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Nov 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "village_bay_lake.r3",
+          "type": "vessel_rule",
+          "verbatim": "Engine power restriction - 7.5 kW (10 hp)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "power_capped",
+          "max_power_kw": 7.5,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:wahpeeto_creek@1-14",
+      "name": "WAHPEETO CREEK",
+      "display_name": "Wahpeeto Creek",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "No Fishing within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:31813"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "wahpeeto_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River",
+          "unresolved_locators": [
+            "within 100 m downstream of the falls situated approximately 4.5 km upstream of Wakeman River"
+          ],
+          "needs_review": true,
+          "review_reason": "the closure is bounded above by 'the falls', which has no bindable split id in the menu; only the point 100 m downstream of the falls ('wahpeeto_creek__within_100_m_downstream') is listed, and a single point cannot express the bounded reach between the falls and that point"
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:wakeman_river@1-14",
+      "name": "WAKEMAN RIVER",
+      "display_name": "Wakeman River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**Class II water Apr 1-Oct 31; Steelhead Stamp mandatory Apr 1-June 30**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries",
+        "Classified"
+      ],
+      "matched": [
+        "gnis:31815"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "wakeman_river.r1",
+          "type": "document_required",
+          "verbatim": "Class II water Apr 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "wakeman_river.r2",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Apr 1-June 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1-June 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:weston_lake@1-1",
+      "name": "\"WESTON LAKE\"",
+      "display_name": "Lake Weston",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "See Lake Weston",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:328996530"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "weston_lake.r1",
+          "type": "advisory",
+          "verbatim": "See Lake Weston",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:westwood_lake@1-5",
+      "name": "WESTWOOD LAKE",
+      "display_name": "Westwood Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "Smallmouth bass daily quota = 4\nwheelchair accessible fishing platform is located in Westwood Lake Park",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329467592"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "westwood_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "Smallmouth bass daily quota = 4",
+          "obligation": "must",
+          "species": [
+            "SMB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 4,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "westwood_lake.r2",
+          "type": "facility",
+          "verbatim": "wheelchair accessible fishing platform is located in Westwood Lake Park",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:white_river@1-10",
+      "name": "WHITE RIVER",
+      "display_name": "White River",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** between fishing boundary signs at the salmon viewing pool\n**No Fishing** upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:2923"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "white_river.r1",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** between fishing boundary signs at the salmon viewing pool",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "between fishing boundary signs at the salmon viewing pool",
+          "unresolved_locators": [
+            "between fishing boundary signs at the salmon viewing pool"
+          ],
+          "needs_review": true,
+          "review_reason": "'the salmon viewing pool' boundary signs are not in the bindable-boundaries menu; no split id names this location"
+        },
+        {
+          "rule_id": "white_river.r2",
+          "type": "retention_limit",
+          "verbatim": "**No Fishing** upstream of the Sayward Road Bridge crossing, Nov 1-Apr 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Nov 1-Apr 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "white_river__sayward_road_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r1:willemar_lake@1-6",
+      "name": "WILLEMAR LAKE",
+      "display_name": "Willemar Lake",
+      "region": "1",
+      "scope_note": "",
+      "regs_verbatim": "No trout over 50 cm; bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329095510"
+      ],
+      "extents": [
+        {
+          "op": "whole"
+        }
+      ],
+      "rules": [
+        {
+          "rule_id": "willemar_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "No trout over 50 cm",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "willemar_lake.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "willemar_lake.r3",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },

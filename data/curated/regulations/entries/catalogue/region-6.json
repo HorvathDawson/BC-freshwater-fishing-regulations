@@ -956,6 +956,62 @@
       ]
     },
     {
+      "entry_id": "r6:bear_river_sustut_watershed@6-18",
+      "name": "BEAR RIVER (Sustut Watershed)",
+      "display_name": "Bear River (Sustut Watershed)",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:15535"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "bear_river_sustut.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:bell_irving_river@6-17",
       "name": "BELL-IRVING RIVER",
       "display_name": "Bell-Irving River",
@@ -2103,6 +2159,291 @@
       ]
     },
     {
+      "entry_id": "r6:bulkley_river@6-9",
+      "name": "BULKLEY RIVER",
+      "display_name": "Bulkley River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31\nSee Suskwa River and Telkwa River\nNo Fishing** upstream of Morice/Bulkley River confluence\nBait ban\nNo angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31, and in Moricetown Canyon or within 100 m downstream,\nall year\n**Class II water Sept 1-Oct 31 and Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:2195"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "bulkley_river.r1",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, Sept 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [
+            "Sept 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bulkley_river.r2",
+          "type": "retention_limit",
+          "verbatim": "No Fishing upstream of Morice/Bulkley River confluence",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "bulkley_river__morice_river_into_bulkley_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bulkley_river.r3",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bulkley_river.r4",
+          "type": "angling_from_vessel_prohibited",
+          "verbatim": "No angling from boats from Morice River to CNR Bridge at Barrett, Aug 15-Dec 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Aug 15-Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "bulkley_river__morice_river_into_bulkley_river",
+                "bulkley_river__cnr_bridge_at_barrett"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bulkley_river.r5",
+          "type": "angling_from_vessel_prohibited",
+          "verbatim": "in Moricetown Canyon or within 100 m downstream, all year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "bulkley_river__moricetown_witset_canyon_top",
+                "bulkley_river__in_moricetown_canyon_or_within_100_m_downstream"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bulkley_river.r6",
+          "type": "document_required",
+          "verbatim": "Class II water Sept 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Sept 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "bulkley_river.r7",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Sept 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:casey_lake@6-4",
       "name": "CASEY LAKE",
       "display_name": "Casey Lake",
@@ -2392,6 +2733,150 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:cheslatta_river_downstream_of_falls@6-4",
+      "name": "CHESLATTA RIVER (downstream of falls)",
+      "display_name": "Cheslatta River (downstream of falls)",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Trout catch and release; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:13033"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "cheslatta_river.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout catch and release",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "cheslatta_river__cheslatta_falls"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "cheslatta_river.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "cheslatta_river__cheslatta_falls"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:chilkoot_trail_national_historic_park_waters@6-28",
+      "name": "CHILKOOT TRAIL NATIONAL HISTORIC PARK WATERS",
+      "display_name": "Chilkoot Trail National Historic Park Waters",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing (please contact Parks Canada for details, see **page 9** in the Provincial Regulations)**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "chilkoot_trail_nhp.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing (please contact Parks Canada for details, see",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents"
         }
       ]
     },
@@ -3136,6 +3621,57 @@
       ]
     },
     {
+      "entry_id": "r6:dunalter_lake_irrigation_lake@6-9",
+      "name": "DUNALTER LAKE (Irrigation Lake)",
+      "display_name": "Dunalter Lake (Irrigation Lake)",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Electric motor only - max 7.5 kW",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329064543"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "dunalter_lake.r1",
+          "type": "vessel_rule",
+          "verbatim": "Electric motor only - max 7.5 kW",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "electric_only",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:east_gribbell_creek@6-3",
       "name": "\"EAST GRIBBELL\" CREEK",
       "display_name": "\"East Gribbell\" Creek",
@@ -3367,6 +3903,255 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:fran_ois_lake@6-4",
+      "name": "FRANÇOIS LAKE",
+      "display_name": "François Lake",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "For the area at the outlet of François Lake described on map 1, (see below): **No Fishing** Nov 15-May 31; char daily quota = 2, no more than\n1 over 50 cm; rainbow trout catch and release; bait ban; single barbless hook; no set lining",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329148307"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "francois_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing Nov 15-May 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Nov 15-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+        },
+        {
+          "rule_id": "francois_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "char daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+        },
+        {
+          "rule_id": "francois_lake.r3",
+          "type": "retention_limit",
+          "verbatim": "no more than\n1 over 50 cm",
+          "obligation": "must",
+          "species": [
+            "CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "francois_lake.r2",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+        },
+        {
+          "rule_id": "francois_lake.r4",
+          "type": "retention_limit",
+          "verbatim": "rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+        },
+        {
+          "rule_id": "francois_lake.r5",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+        },
+        {
+          "rule_id": "francois_lake.r6",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
+        },
+        {
+          "rule_id": "francois_lake.r7",
+          "type": "method_rule",
+          "verbatim": "no set lining",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "set_lining",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "the area at the outlet of François Lake described on map 1",
+          "unresolved_locators": [
+            "the area at the outlet of François Lake described on map 1"
+          ],
+          "needs_review": true,
+          "review_reason": "rule applies only to a mapped outlet area with no matching cut-point on this item"
         }
       ]
     },
@@ -3731,6 +4516,95 @@
       ]
     },
     {
+      "entry_id": "r6:glacier_redslide_creek_unnamed_tributary_to_nanika_river@6-9",
+      "name": "GLACIER (Redslide) CREEK (unnamed tributary to Nanika River)",
+      "display_name": "Glacier (Redslide) Creek",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Aug 1-Sept 30; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wsc:400-431358-585806-708951-288577"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "glacier_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing Aug 1-Sept 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Aug 1-Sept 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "glacier_creek.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:gosnell_creek@6-9",
       "name": "GOSNELL CREEK",
       "display_name": "Gosnell Creek",
@@ -3823,6 +4697,65 @@
       ]
     },
     {
+      "entry_id": "r6:hays_creek_in_prince_rupert@6-14",
+      "name": "HAYS CREEK (in Prince Rupert)",
+      "display_name": "Hays Creek",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert\nIncludes \"Oldfield\" Creek",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:4152"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "hays_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing upstream of fishing boundary signs downstream of lower culvert near fish cannery in Prince Rupert",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "hays_creek__lower_culvert_near_cannery"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:helene_lake@6-6",
       "name": "HELENE LAKE",
       "display_name": "Helene Lake",
@@ -3869,6 +4802,95 @@
           "extent_text": "northwest of a line between fishing boundary signs on opposite shores of the outlet bay",
           "needs_review": true,
           "review_reason": "sub-area of the lake bounded by signage, not a polygon or cut-point in the registry"
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:hevenor_mcqueen_creek@6-30",
+      "name": "HEVENOR (\"McQueen\") CREEK",
+      "display_name": "Hevenor (McQueen) Creek",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban; open all year; trout daily quota = 1 (no minimum size)",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:37312"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "hevenor_creek.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "hevenor_creek.r2",
+          "type": "retention_limit",
+          "verbatim": "trout daily quota = 1 (no minimum size)",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -4719,6 +5741,321 @@
       ]
     },
     {
+      "entry_id": "r6:kitimat_river_angling_regulations_for_the_kitimat_river_are@6-3",
+      "name": "KITIMAT RIVER (Angling regulations for the Kitimat River are currently under review. Please check the in-season regulation change website prior to fishing on the Kitimat River)",
+      "display_name": "Kitimat River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** on the west half of river between fishing boundary signs near Kitimat Hatchery outfall\n**No Fishing** in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31\nBait ban\nHatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year\nHatchery steelhead (adipose clipped, >50 cm) daily quota = 2; province-wide hatchery steelhead annual quota = 10. When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day\nNo powered boats",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:3225"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "kitimat_river.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing on the west half of river between fishing boundary signs near Kitimat Hatchery outfall",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "kitimat_river__kitimat_hatchery_outfall_u_s_sign",
+                "kitimat_river__kitimat_hatchery_outfall_d_s_sign"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": true,
+          "review_reason": "closure applies only to the west half of the channel; extent binds the reach between the outfall signs but the schema has no width dimension"
+        },
+        {
+          "rule_id": "kitimat_river.r2",
+          "type": "retention_limit",
+          "verbatim": "No Fishing in tributaries and upstream of Hwy 37 bridge, Mar 16-May 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Mar 16-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "kitimat_river__hwy_37_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitimat_river.r3",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitimat_river.r4",
+          "type": "retention_limit",
+          "verbatim": "Hatchery rainbow trout (adipose clipped, <50 cm) daily quota = 5, no minimum size, all year",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "over_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "hatchery",
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitimat_river.r5",
+          "type": "retention_limit",
+          "verbatim": "Hatchery steelhead (adipose clipped, >50 cm) daily quota = 2",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "under_cm": 50,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "hatchery",
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitimat_river.r6",
+          "type": "retention_limit",
+          "verbatim": "province-wide hatchery steelhead annual quota = 10",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 10,
+          "unlimited": false,
+          "period": "annual",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "hatchery",
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "province-wide",
+          "unresolved_locators": [],
+          "needs_review": true,
+          "review_reason": "this is a province-wide annual quota mentioned on the Kitimat's row, not a Kitimat-specific reach"
+        },
+        {
+          "rule_id": "kitimat_river.r7",
+          "type": "stop_fishing_after_quota",
+          "verbatim": "When you have\ncaught and retained your daily steelhead quota from the Kitimat, you must stop fishing the Kitimat for the remainder of that day",
+          "obligation": "must",
+          "species": [
+            "ST"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "origin": "hatchery",
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitimat_river.r8",
+          "type": "vessel_rule",
+          "verbatim": "No powered boats",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "aspect": "propulsion",
+          "level": "unpowered",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:kitseguecla_river@6-9",
       "name": "KITSEGUECLA RIVER",
       "display_name": "Kitseguecla River",
@@ -4882,6 +6219,212 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:kitsumkalum_kalum_river@6-15",
+      "name": "KITSUMKALUM (Kalum) RIVER",
+      "display_name": "Kitsumkalum (Kalum) River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year (See map page 56)\nAngling prohibited for non-guided non-resident aliens on Sundays for the entire river all year\nClass II water all year**[Includes Tributaries]** ; Steelhead Stamp mandatory Aug 7 - May 31**\nBait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:3942"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "kitsumkalum_river.r1",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays from the outlet of Kitsumkalum Lake to Glacier Creek confluence\nall year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [
+            "Saturday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "kitsumkalum_river__kitsumkalum_lake",
+                "kitsumkalum__glacier_creek_into_kitsumkalum_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitsumkalum_river.r2",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens on Sundays for the entire river all year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitsumkalum_river.r3",
+          "type": "document_required",
+          "verbatim": "Class II water all year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "includes_tributaries": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitsumkalum_river.r4",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Aug 7 - May 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Aug 7 - May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "kitsumkalum_river.r5",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -5517,6 +7060,410 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:ksi_hlginx_river_formerly_ishkheenickh_river@6-14",
+      "name": "KSI HLGINX RIVER (formerly Ishkheenickh River)",
+      "display_name": "Ksi Hlginx River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** June 15-Sept 1; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:4069"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "ksi_hlginx_river.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing June 15-Sept 1",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "June 15-Sept 1"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "ksi_hlginx_river.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:ksi_sgasginist_creek_formerly_seaskinnish_creek@6-15",
+      "name": "KSI SGASGINIST CREEK (formerly Seaskinnish Creek)",
+      "display_name": "Ksi Sgasginist Creek",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** July 1-Sept 15; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:4791"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "ksi_sgasginist_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing July 1-Sept 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "July 1-Sept 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "ksi_sgasginist_creek.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:ksi_sii_aks_river_formerly_tseax_river@6-14",
+      "name": "KSI SII AKS RIVER (formerly Tseax River)",
+      "display_name": "Ksi Sii Aks River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** upstream of Nass Road Bridge, Aug 1-Dec 31; bait ban",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:3828"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "ksi_sii_aks_river.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing upstream of Nass Road Bridge, Aug 1-Dec 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Aug 1-Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "ksi_sii_aks_river__nass_road_bridge"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "ksi_sii_aks_river.r2",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:ksi_x_anmas_river_formerly_kwinamass_river@6-14",
+      "name": "KSI X'ANMAS RIVER (formerly Kwinamass River)",
+      "display_name": "Ksi X'anmas River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** upstream from the lower bridge abutments, July 1-Aug 20\n**Class II water Apr 1-Sept 30; Steelhead Stamp mandatory Apr 1-May 31**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:3815"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "ksi_x_anmas_river.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing upstream from the lower bridge abutments, July 1-Aug 20",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "July 1-Aug 20"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "ksi_x_anmas_river__lower_bridge_abutments"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "ksi_x_anmas_river.r2",
+          "type": "document_required",
+          "verbatim": "Class II water Apr 1-Sept 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1-Sept 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "ksi_x_anmas_river.r3",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Apr 1-May 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Apr 1-May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -8934,6 +10881,326 @@
       ]
     },
     {
+      "entry_id": "r6:prudhomme_lake_south_of_the_hwy_16_bridge@6-14",
+      "name": "PRUDHOMME LAKE (south of the Hwy 16 bridge)",
+      "display_name": "Prudhomme Lake",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** Aug 1-Oct 31\nTrout/char daily quota = 2 (none under 30 cm); bait ban, single barbless hook",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329679837"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "prudhomme_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing Aug 1-Oct 31",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Aug 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "prudhomme_lake.r2",
+          "type": "retention_limit",
+          "verbatim": "Trout/char daily quota = 2 (none under 30 cm)",
+          "obligation": "must",
+          "species": [
+            "TROUT_CHAR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 2,
+          "unlimited": false,
+          "period": "daily",
+          "under_cm": 30,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "prudhomme_lake.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "prudhomme_lake.r4",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:rancheria_river_s_tributaries@6-25",
+      "name": "RANCHERIA RIVER'S TRIBUTARIES",
+      "display_name": "Rancheria River's Tributaries",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Arctic grayling daily quota = 3 (only 1 over 35 cm); whitefish daily quota = 5. **B.C. and Yukon angling licences are valid on all parts of the\nRancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the\nborder the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling**",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:11267"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "rancheria_river_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "Arctic grayling daily quota = 3",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 3,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "rancheria_river_tributaries.r2",
+          "type": "retention_limit",
+          "verbatim": "(only 1 over 35 cm)",
+          "obligation": "must",
+          "species": [
+            "GR"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "within": "rancheria_river_tributaries.r1",
+          "over_cm": 35,
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "rancheria_river_tributaries.r3",
+          "type": "retention_limit",
+          "verbatim": "whitefish daily quota = 5",
+          "obligation": "must",
+          "species": [
+            "WHITEFISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 5,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "rancheria_river_tributaries.r4",
+          "type": "advisory",
+          "verbatim": "B.C. and Yukon angling licences are valid on all parts of the Rancheria River including tributary streams but not lakes, but only one daily quota may be retained regardless of which side of the border the fish were angled, and anglers must follow tackle restrictions and other regulations for the jurisdiction where angling",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:ross_six_mile_lake@6-9",
       "name": "ROSS (Six Mile) LAKE",
       "display_name": "Ross (Six Mile) Lake",
@@ -9036,6 +11303,56 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:seeley_creek_outlet_of_seeley_lake@6-9",
+      "name": "\"SEELEY\" CREEK (outlet of Seeley Lake)",
+      "display_name": "Seeley Creek",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Bait ban; open all year, no minimum size for trout",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wsc:400-426207-245962"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "seeley_creek.r1",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -9148,6 +11465,59 @@
       ]
     },
     {
+      "entry_id": "r6:silverthorne_erickson_lake@6-9",
+      "name": "SILVERTHORNE (Erickson) LAKE",
+      "display_name": "Silverthorne Lake",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** within 50 m of the outlet, May 1-June 30",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329385453"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "silverthorne_lake.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing within 50 m of the outlet, May 1-June 30",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "May 1-June 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "within 50 m of the outlet",
+          "unresolved_locators": [
+            "within 50 m of the outlet"
+          ],
+          "needs_review": true,
+          "review_reason": "no cut-point available for 'within 50 m of the outlet' — item has no bindable boundaries beyond op:whole"
+        }
+      ]
+    },
+    {
       "entry_id": "r6:skeena_river@6-10",
       "name": "SKEENA RIVER",
       "display_name": "Skeena River",
@@ -9199,6 +11569,317 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:skeena_river_kispiox_river_confluence@6-8",
+      "name": "SKEENA RIVER/KISPIOX RIVER CONFLUENCE",
+      "display_name": "Skeena River/Kispiox River Confluence",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "skeena_river_kispiox_river_confluence.r1",
+          "type": "angling_from_vessel_prohibited",
+          "verbatim": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers",
+          "unresolved_locators": [],
+          "needs_review": true,
+          "review_reason": "no registry match — attach an item and bind extents"
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:skeena_river_mainstem_only@6-10",
+      "name": "SKEENA RIVER (mainstem only)",
+      "display_name": "Skeena River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**There are two separate Class II waters on the Skeena River** (non-residents and non-resident aliens require separate licences describing\nwhich section they are fishing): **(a)** from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30; and **(b)** 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31; **Steelhead Stamp** not mandatory for\nSkeena River 2 unless fishing for steelhead. **Steelhead Stamp** is mandatory in Skeena River Section 4 during the Classified Waters period\nfrom July 1-Dec 31\n**Angling prohibited for non-guided non-resident aliens** in Skeena River Section 4 on Saturdays and Sundays in two zones: **(a)** Shegunia\nRiver confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54), and **(b)** Chimdemash Creek confluence to 1.5 km upstream of\nZymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:2936"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "skeena_river.r1",
+          "type": "document_required",
+          "verbatim": "There are two separate Class II waters on the Skeena River (non-residents and non-resident aliens require separate licences describing which section they are fishing): (a) from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\"), July 1-Sept 30",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "July 1-Sept 30"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "skeena_river__exchamsiks_river_into_skeena_river",
+                "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "skeena_river.r2",
+          "type": "document_required",
+          "verbatim": "(b) 1.5 km upstream of Zymoetz River (known as \"Skeena River Section 4\"), July 1-Dec 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "July 1-Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "skeena_river__zymoetz_river_into_skeena_river_u1500m"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "skeena_river.r3",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp not mandatory for Skeena River 2 unless fishing for steelhead.",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": false,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "skeena_river__exchamsiks_river_into_skeena_river",
+                "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": true,
+          "review_reason": "Steelhead Stamp is required only when targeting steelhead in Skeena River 2; document_required has no when_targeting field to express this condition"
+        },
+        {
+          "rule_id": "skeena_river.r4",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp is mandatory in Skeena River Section 4 during the Classified Waters period from July 1-Dec 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "July 1-Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "skeena_river__zymoetz_river_into_skeena_river_u1500m"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "skeena_river.r5",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens in Skeena River Section 4 on Saturdays and Sundays in two zones: (a) Shegunia River confluence to Sedan Creek confluence July 1-Dec 31 (See map page 54)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [
+            "July 1-Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "skeena_river__shegunia_river_into_skeena_river",
+                "skeena_river__sedan_creek_into_skeena_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "skeena_river.r6",
+          "type": "access_permission",
+          "verbatim": "(b) Chimdemash Creek confluence to 1.5 km upstream of Zymoetz River confluence, July 1 - Dec 31, (See map page 55)",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [
+            "July 1 - Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "skeena_river__chimdemash_creek_into_skeena_river",
+                "skeena_river__zymoetz_river_into_skeena_river_u1500m"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -9641,6 +12322,171 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:suskwa_bear_river@6-8",
+      "name": "SUSKWA (Bear) RIVER",
+      "display_name": "Suskwa River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**Angling prohibited for non-guided non-resident aliens** on Saturdays and Sundays, all year\nBait ban\n**Class I water all year; Steelhead Stamp mandatory Sept 1-Oct 31**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:2637"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "suskwa_river.r1",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens on Saturdays and Sundays, all year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [
+            "Saturday",
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "suskwa_river.r2",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "suskwa_river.r3",
+          "type": "document_required",
+          "verbatim": "Class I water all year",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "I",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "suskwa_river.r4",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Sept 1-Oct 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Sept 1-Oct 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -10659,6 +13505,65 @@
           "extent_text": "northwest of a line between fishing boundary signs on opposite shores immediately north of Takysie Lake Settlement",
           "needs_review": true,
           "review_reason": "no split id on this lake expresses the boundary line; bound to whole water pending a curated cut-point"
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:tatsatua_creek_formerly_known_as_tatsamenie_lake_s_outlet_st@6-26",
+      "name": "TATSATUA CREEK (formerly known as Tatsamenie Lake's outlet streams)",
+      "display_name": "Tatsatua Creek",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Fishing** from Dec 1-June 30 and Aug 20-Sept 15",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:25405"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "tatsatua_creek.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing from Dec 1-June 30 and Aug 20-Sept 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Dec 1-June 30",
+            "Aug 20-Sept 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
@@ -11781,6 +14686,163 @@
       ]
     },
     {
+      "entry_id": "r6:unnamed_lake_approx_500_m_south_of_natalkuz_lake@6-1",
+      "name": "UNNAMED LAKE (approx. 500 m south of Natalkuz Lake)",
+      "display_name": "Unnamed Lake",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "**No Ice Fishing;** rainbow trout catch and release\nBait ban, single barbless hook\nLocated approximately 6.25 km south/southeast of Yellow Moose Lake and approximately 6.25 km west/southwest of Chedakuz Arm",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "wbk:329318485"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "unnamed_lake_329318485.r1",
+          "type": "method_rule",
+          "verbatim": "No Ice Fishing",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "method": "ice_fishing",
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_329318485.r2",
+          "type": "retention_limit",
+          "verbatim": "rainbow trout catch and release",
+          "obligation": "must",
+          "species": [
+            "RB"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": true,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_329318485.r3",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "unnamed_lake_329318485.r4",
+          "type": "tackle_restriction",
+          "verbatim": "single barbless hook",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "barbless": true,
+          "hook_count": 1,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
       "entry_id": "r6:wahla_lake@6-2",
       "name": "WAHLA LAKE",
       "display_name": "Wahla Lake",
@@ -11833,6 +14895,555 @@
               "op": "whole"
             }
           ]
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:west_road_blackwater_river_s_tributaries@6-1",
+      "name": "WEST ROAD (\"Blackwater\") RIVER'S TRIBUTARIES",
+      "display_name": "West Road (Blackwater) River's Tributaries",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "Trout daily quota = 1; artificial fly only, bait ban\nFor regulations on the mainstem of the West Road River, see Region 5",
+      "source_pages": [],
+      "symbols": [],
+      "matched": [
+        "gnis:26104"
+      ],
+      "extents": [],
+      "rules": [
+        {
+          "rule_id": "west_road_river_tributaries.r1",
+          "type": "retention_limit",
+          "verbatim": "Trout daily quota = 1",
+          "obligation": "must",
+          "species": [
+            "TROUT"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 1,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_road_river_tributaries.r2",
+          "type": "tackle_restriction",
+          "verbatim": "artificial fly only",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "lure": "artificial_fly",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "west_road_river_tributaries.r3",
+          "type": "bait_restriction",
+          "verbatim": "bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        }
+      ]
+    },
+    {
+      "entry_id": "r6:zymoetz_copper_river@6-9",
+      "name": "ZYMOETZ (Copper) RIVER",
+      "display_name": "Zymoetz River",
+      "region": "6",
+      "scope_note": "",
+      "regs_verbatim": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs\nNo Fishing between fishing boundary signs in Zymoetz Canyon\nNo Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15\nBait ban\nUpstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31; Steelhead Stamp mandatory Jul 24 - Dec 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31**\nDownstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31; Steelhead Stamp mandatory Jul 24 - May 31;\n**Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31**",
+      "source_pages": [],
+      "symbols": [
+        "Includes Tributaries"
+      ],
+      "matched": [
+        "gnis:3137"
+      ],
+      "extents": [],
+      "includes_tributaries": true,
+      "rules": [
+        {
+          "rule_id": "zymoetz_river.r1",
+          "type": "retention_limit",
+          "verbatim": "No Fishing from McDonell Lake downstream approximately 3 km to fishing boundary signs",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "zymoetz_river__mcdonell_lake",
+                "zymoetz__mcdonell_lake_3000_m_downstream"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r2",
+          "type": "retention_limit",
+          "verbatim": "No Fishing between fishing boundary signs in Zymoetz Canyon",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "between",
+              "splits": [
+                "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign",
+                "zymoetz__zymoetz_canyon_upper_entrance"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r3",
+          "type": "retention_limit",
+          "verbatim": "No Fishing upstream of fishing boundary sign at the transmission line crossing (located downstream of Zymoetz Canyon), Jan 1-June 15",
+          "obligation": "must",
+          "species": [
+            "ALL_GAME_FISH"
+          ],
+          "species_except": [],
+          "windows": [
+            "Jan 1-June 15"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "take": 0,
+          "unlimited": false,
+          "may_target": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "zymoetz__zymoetz_canyon_lower_entrance_transmission_line_sign"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r4",
+          "type": "bait_restriction",
+          "verbatim": "Bait ban",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "allowed": false,
+          "when_targeting": [],
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "whole"
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r5",
+          "type": "document_required",
+          "verbatim": "Upstream of Limonite Creek (Zymoetz River A): Class I water Jul 24 - Dec 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Jul 24 - Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "I",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "zymoetz__limonite_creek_into_zymoetz_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r6",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Jul 24 - Dec 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Jul 24 - Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "zymoetz__limonite_creek_into_zymoetz_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r7",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - Dec 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [
+            "Jul 24 - Dec 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "upstream_of",
+              "splits": [
+                "zymoetz__limonite_creek_into_zymoetz_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r8",
+          "type": "document_required",
+          "verbatim": "Downstream of Limonite Creek (Zymoetz River B): Class II water Jul 24 - May 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Jul 24 - May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "classified_waters_licence",
+          "required": true,
+          "water_class": "II",
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "zymoetz__limonite_creek_into_zymoetz_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r9",
+          "type": "document_required",
+          "verbatim": "Steelhead Stamp mandatory Jul 24 - May 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "windows": [
+            "Jul 24 - May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "document": "steelhead_stamp",
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "zymoetz__limonite_creek_into_zymoetz_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
+        },
+        {
+          "rule_id": "zymoetz_river.r10",
+          "type": "access_permission",
+          "verbatim": "Angling prohibited for non-guided non-resident aliens on Fridays, Saturdays, and Sundays Jul 24 - May 31",
+          "obligation": "must",
+          "species": [],
+          "species_except": [],
+          "angler_class": {
+            "residency": "non_resident_alien",
+            "guided": false
+          },
+          "windows": [
+            "Jul 24 - May 31"
+          ],
+          "windows_are": "applies",
+          "weekdays": [
+            "Friday",
+            "Saturday",
+            "Sunday"
+          ],
+          "when_open": false,
+          "unlimited": false,
+          "period": "daily",
+          "band": false,
+          "combined": false,
+          "record_retention": false,
+          "when_targeting": [],
+          "permitted": false,
+          "required": true,
+          "on_retention": false,
+          "tributaries_only": false,
+          "extents": [
+            {
+              "op": "downstream_of",
+              "splits": [
+                "zymoetz__limonite_creek_into_zymoetz_river"
+              ]
+            }
+          ],
+          "exempts": [],
+          "standing": false,
+          "reason": "",
+          "extent_text": "",
+          "unresolved_locators": [],
+          "needs_review": false,
+          "review_reason": ""
         }
       ]
     },
