@@ -441,6 +441,7 @@ dl.qnote{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:-2px 0 
 dl.qnote dt{font:700 9.5px/1.5 var(--fig);letter-spacing:.09em;text-transform:uppercase;
   color:var(--faint);white-space:nowrap;padding-top:1px}
 dl.qnote dd{margin:0;font:400 11.5px/1.5 var(--ui);color:var(--sub)}
+dl.qnote dd s{opacity:.6}
 .qfoot{font:400 11.5px/1.5 var(--ui);color:var(--sub);margin:-4px 0 12px}
 .qtitle{font:700 10px var(--fig);letter-spacing:.11em;text-transform:uppercase;
   color:var(--faint);margin:14px 0 2px}
@@ -938,6 +939,7 @@ function condWords(l){
  * struck through, with the closure's zero in front of it: `0 (normally 4)`.
  */
 function retentionTable(items, title, notes, waterKind){
+  var lifts=liftsIn(items);
   if(notes){
     var kept={};
     for(var b in notes) kept[b]=(notes[b]||[]).filter(function(x){
@@ -983,10 +985,20 @@ function retentionTable(items, title, notes, waterKind){
    * because it tested `take` without `may_target`. Only a rule that shuts the WATER is lifted out
    * to the banner; everything else is a row.
    */
-  var shutAll=live_.filter(shutsTheWater);
+  /* A closure you are EXEMPT from is not a closure here — and it must not drive the verdict,
+     or the water reads shut on the very stretch the book opens. */
+  var shutAll=live_.filter(function(x){ return shutsTheWater(x) && !liftedBy(x, lifts); });
   // Method-qualified limits belong to the gear table — see the note there. Leaving them here
   // printed "Salmon · 0 · you may not fish for it" on a salmon river, off the spear rule.
-  var quotas=all.filter(function(x){ return !shutsTheWater(x) && !x.method; });
+  var quotas=all.filter(function(x){
+    // A FULL exemption is an edit to another row, never a row of its own. A NARROWING one is
+    // kept: "except burbot, which may also be speared" is a fact about burbot that a reader
+    // looking up burbot has to be able to find.
+    return !shutsTheWater(x) && !x.method && !(isExemption(x) && fullLift(x)); });
+  /* The rules this stretch is exempt from still appear — struck, and named — because a reader
+     who has heard of the spring closure needs to see that it was considered and lifted, not
+     silently absent. */
+  var lifted=live_.filter(function(x){ return !!liftedBy(x, lifts); });
   // A possession multiplier names no fish — it is about all of them — so as a row it rendered a
   // blank "All game fish" header that every real species then hung underneath.
   var poss=quotas.filter(function(x){ return x.period==="possession"; });
@@ -1149,7 +1161,9 @@ function retentionTable(items, title, notes, waterKind){
     if(seenD[k+t]) return; seenD[k+t]=1;
     (byFish[k]=byFish[k]||[]).push(esc(t));
   });
-  for(var fish in byFish) fn.push([fish, byFish[fish].join(". ")]);
+  for(var fish in byFish)
+    fn.push([fish, byFish[fish].map(function(t){
+      return String(t).replace(/\.\s*$/,""); }).join(". ")+"."]);
 
   if(false)
     h.push('<div class="qfoot">'+records.map(function(x){
@@ -1165,9 +1179,18 @@ function retentionTable(items, title, notes, waterKind){
       +'\u00d7 the daily quota may be held in possession');
   if(possWords.length) fn.push(["Possession", possWords.join(" · ")]);
 
+  if(lifted.length){
+    var seenL={};
+    var ll=lifted.filter(function(x){
+      var k=x.label; if(seenL[k]) return false; seenL[k]=1; return true; });
+    fn.push(["Lifted here", ll.map(function(x){
+      var by=liftedBy(x, lifts);
+      return '<s>'+esc(x.label)+'</s> — '+esc(by ? by.label : "exempt here");
+    }).join(" · ")]);
+  }
   if(fn.length)
     h.push('<dl class="qnote">'+fn.map(function(x){
-      return '<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>'; }).join("")+'</dl>');
+      return '<dt>'+esc(x[0])+'</dt><dd>'+x[1]+'</dd>'; }).join("")+'</dl>');
   if(false)
     h.push('<div class="qfoot">'+poss[0].conditions.per_daily
       +'× the daily quota may be held in possession</div>');
@@ -1565,6 +1588,82 @@ var FOOTS={
  * can hide a fact but never a restriction, and it must not catch "at or near any lake or
  * stream", which is about both.
  */
+
+/* ------------------------------------------------------------------------------------- *
+ * AN EXEMPTION LIFTS A RULE. NOTHING WAS READING THEM.
+ *
+ * `conditions.exempts` is on 15 rules and names what it lifts — either `default_id`, the zone
+ * entry it exempts you from ("spring_stream_closure"), or `target`, a rule id in the same entry
+ * ("spear_fishing.r1"). Neither was ever looked at, so both halves of the pair came out wrong:
+ *
+ *   the OKANAGAN is exempt from Region 8's spring closure on two of its three stretches, and
+ *   the page showed "No fishing, Apr 1 - Jun 30" over all three. In April that is a closure
+ *   printed on water that is open.
+ *
+ *   and the exemption itself, having no take and no conditions of its own, rendered as a quota
+ *   row reading "All game fish — — this water", which says nothing at all.
+ *
+ * So an exemption is not a row: it is an edit to another row. The rule it names is struck and
+ * marked LIFTED HERE, and — the part that matters — it stops counting as a closure, so it can
+ * no longer shut a water it does not apply to.
+ * ------------------------------------------------------------------------------------- */
+function isExemption(x){
+  return (((x.conditions||{}).exempts)||[]).length > 0;
+}
+/*
+ * NOT EVERY EXEMPTION LIFTS THE WHOLE RULE, and getting that wrong is the dangerous direction.
+ * The six in the corpus are two different things:
+ *
+ *   A FULL LIFT carries no narrowing of its own — "Exempt from spring closure from Okanagan
+ *   Lake Dam downstream to McIntyre Dam", "Mainstem open all year". Where it reaches, the rule
+ *   it names simply does not apply, so that rule is struck and stops counting as a closure.
+ *
+ *   A NARROWING keeps the rule and cuts one hole in it — "dead fin fish may be used WHEN
+ *   FISHING FOR WHITE STURGEON", "except BURBOT, which may also be speared". Striking the
+ *   parent would tell an angler the fin-fish bait ban is gone, when it is gone only if they
+ *   are fishing sturgeon on one of three rivers.
+ *
+ * The test is whether the exemption narrows by species, by quarry, or by method. A species of
+ * ALL_GAME_FISH is not a narrowing — it is the whole list, which is how the territorial ones
+ * are written.
+ */
+function fullLift(x){
+  var c=x.conditions||{}, sp=x.species||[];
+  if(c.when_targeting && c.when_targeting.length) return false;
+  if(c.method) return false;
+  if(sp.length && sp.indexOf("ALL_GAME_FISH")<0) return false;
+  return true;
+}
+/* The rules lifted on this stretch, and the rules merely narrowed, keyed both ways the corpus
+   names a target: `default_id` is a zone entry, `target` a rule id in the same entry. */
+function liftsIn(items){
+  var out={full:{}, part:{}};
+  items.forEach(function(x){
+    if(!isExemption(x) || !live(x.windows)) return;
+    var into = fullLift(x) ? out.full : out.part;
+    ((x.conditions||{}).exempts||[]).forEach(function(e){
+      // A RULE CANNOT LIFT ITSELF. `z6:steelhead_stream_closure.r1` IS the closure and carries
+      // a note about where it does not reach, pointing at its own entry — read as a lift it
+      // deleted the very rule it states.
+      var mine=String(x.entry||"").replace(/^[^:]*:/,"");
+      if(e.default_id && e.default_id!==mine) into["entry:"+e.default_id]=x;
+      if(e.target && e.target!==x.rule)       into["rule:"+e.target]=x;
+    });
+  });
+  return out;
+}
+function liftedBy(x, lifts){
+  if(!lifts || !lifts.full) return null;
+  var k="entry:"+String(x.entry||"").replace(/^[^:]*:/,"");
+  return lifts.full[k] || lifts.full["rule:"+x.rule] || null;
+}
+/* Narrowed, not lifted: the rule stands and this is the hole in it. */
+function narrowedBy(x, lifts){
+  if(!lifts || !lifts.part) return null;
+  var k="entry:"+String(x.entry||"").replace(/^[^:]*:/,"");
+  return lifts.part[k] || lifts.part["rule:"+x.rule] || null;
+}
+
 function forThisWater(x, kind){
   if(!kind) return true;
   if(x.water && x.water!==kind) return false;
@@ -1634,18 +1733,40 @@ function whereFrom(x){
  * neither a document nor an exemption — a fee, an allocation cap, "carry the paper copy" — is a
  * footnote, and a rule that obliges somebody other than the angler is not in this table at all.
  */
+/*
+ * THE TEN DOCUMENTS THE BOOK SELLS, in the words a reader sees on the counter.
+ *
+ * `conditions.document` is a closed enum and every one of the 95 licence rules carries it.
+ */
+var DOC_WORDS={
+  basic_licence:"Basic angling licence",
+  classified_waters_licence:"Classified Waters Licence",
+  steelhead_stamp:"Steelhead Conservation Surcharge Stamp",
+  salmon_stamp:"Conservation Surcharge Stamp for salmon",
+  national_park_permit:"National Park fishing permit",
+  white_sturgeon_licence:"White sturgeon licence",
+  shuswap_rainbow_stamp:"Shuswap rainbow stamp",
+  shuswap_char_stamp:"Shuswap char stamp",
+  kootenay_rainbow_stamp:"Kootenay rainbow stamp",
+  angling_guide_licence:"Angling guide licence"
+};
 function licenceRowOf(x){
   /*
-   * The document, from the label: what sits before "is required" / "is not required".
+   * WHICH DOCUMENT, FROM THE RULE — not from re-reading the sentence the rule generated.
    *
-   * This was anchored at the START of the label, so any rule that says something before naming
-   * its document fell out of the table entirely — "Class II water — a Classified Waters Licence
-   * is required, where open" is the FORDING's only licence and it printed on no row at all,
-   * because the label opens with the water class rather than with "A".
+   * This used to match a regex against `label`, which is itself GENERATED from the rule. A
+   * round trip through prose is a round trip through every decision `label()` makes about
+   * wording, and it failed the moment one of them changed: "Class II water — a Classified
+   * Waters Licence is required" does not begin with "A", so the FORDING's only licence matched
+   * nothing and printed on no row at all.
+   *
+   * `conditions.document` is a closed enum of ten values, and all 95 licence rules in the
+   * corpus carry it. There is nothing to parse.
    */
-  var t=String(x.label||"");
-  var m=t.match(/(?:^|—\s*|,\s*)(?:An?|The)\s+(.+?)\s+is (?:not )?required/i);
-  return m ? m[1] : null;
+  var d=(x.conditions||{}).document;
+  if(!d) return null;
+  return DOC_WORDS[d] || String(d).replace(/_/g," ").replace(/^./,function(c){
+    return c.toUpperCase(); });
 }
 function licenceTable(items, title){
   var lic=items.filter(function(x){ return x.type==="document_required"; });
@@ -1658,7 +1779,23 @@ function licenceTable(items, title){
    * excluded them as licensing. They vanished. But the reader's question here is "what do I need
    * before I fish", and a landowner's yes belongs in that answer next to the licence.
    */
-  var perms=items.filter(function(x){ return x.type==="access_permission" && live(x.windows); });
+  /*
+   * TWO DIFFERENT SENTENCES WEAR THE TYPE `access_permission`, AND ONE OF THEM IS NOT A
+   * PERMISSION AT ALL.
+   *
+   *   "Permission of the landowner is required" — something you must obtain. A row here.
+   *   "Angling prohibited for non-guided, non-resident aliens, on Saturdays" — a rule about WHO
+   *   may fish, which belongs with the closures. Printed in this table it read as a document to
+   *   go and get, which is the opposite of what it says.
+   *
+   * `permitted` cannot separate them: the landowner rule is `permitted: false` too, because the
+   * book writes it under "It is unlawful to… enter or cross private land WITHOUT permission".
+   * `angler_class` is what actually differs — a rule that names a class of angler is about that
+   * class; a rule that names a grantor is about permission.
+   */
+  var perms=items.filter(function(x){
+    return x.type==="access_permission" && live(x.windows)
+        && !((x.conditions||{}).angler_class); });
   if(!lic.length && !perms.length) return "";
   var by=new Map(), notes=[];
   lic.forEach(function(x){
@@ -1673,7 +1810,7 @@ function licenceTable(items, title){
      * a qualification on this table; it is not in it. (A CLASSIFIED WATERS licence is different:
      * that one is the angler's, and it keeps its row.)
      */
-    if(/angling guide|guide.s licence|guide licence/i.test(doc)) return;
+    if((x.conditions||{}).document==="angling_guide_licence") return;
     if(!by.has(doc)) by.set(doc, {need:[], except:[], extra:[]});
     var g=by.get(doc);
     if(x.required===false) g.except.push(x);
@@ -1742,12 +1879,17 @@ function licenceTable(items, title){
         return perms.filter(function(x){
           var k=x.label; if(seen[k]) return false; seen[k]=1; return true;
         }).map(function(x){
-          // "Permission of the landowner is required" -> the thing, then the answer.
-          var m=String(x.label).match(/^Permission of (?:the )?(.+?) is required/i);
-          return '<tr><td class="fish">'+esc(m ? m[1][0].toUpperCase()+m[1].slice(1)
-                                                   +"\u2019s permission" : x.label)+'</td>'
-            +'<td class="cond">Before you cross or fish their land</td>'
-            +'<td class="who">'+esc(whereFrom(x)+viaWords(x))+'</td></tr>';
+          /* `grantor` names who has to say yes, where the parser captured it — the Creston
+             Valley WMA, a landowner. Falling back to the sentence only when it did not. */
+          var who=(x.conditions||{}).grantor;
+          if(!who){
+            var m=String(x.label).match(/^Permission of (?:the )?(.+?) is required/i);
+            who=m ? m[1] : "";
+          }
+          return '<tr><td class="fish">'+esc(who
+                   ? who[0].toUpperCase()+who.slice(1)+"\u2019s permission" : x.label)+'</td>'
+            +'<td class="keep cond">Before you fish</td>'
+            +'<td class="cond">'+esc(x.label)+'</td></tr>';
         }).join("");
       })()
     +'</table></div>'];
@@ -2970,7 +3112,12 @@ function build(name, mount){
         if(x.type==="document_required") return true;
         // taken by the quota table as a note on the fish it names, and by the licence table
         if(x.type==="stop_fishing_after_quota" && (x.species||[]).length) return true;
-        if(x.type==="access_permission") return true;
+        // …but only the ones the licence table actually takes. A rule that names an angler
+        // CLASS ("angling prohibited for non-guided, non-resident aliens, on Saturdays") is not
+        // a document to go and get, so that table refuses it — and claiming it here would have
+        // made it vanish from the page altogether, which is how a restriction on who may fish
+        // becomes invisible.
+        if(x.type==="access_permission" && !((x.conditions||{}).angler_class)) return true;
         // The activity table takes every gear/method rule, `unspecified` dimension included —
         // "angle with a downrigger, provided the line is attached by a quick-release" is a real
         // angling rule whose only fault was having no facet to key on, and excluding it printed
