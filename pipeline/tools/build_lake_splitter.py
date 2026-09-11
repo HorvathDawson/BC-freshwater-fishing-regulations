@@ -70,7 +70,10 @@ CUT_SEEDS = {
          # the NORTH shore, and the arm at that longitude runs 49.5650 to 49.5776, so the line
          # drops south from the park across the water. Not from the place table: the only
          # "McDonalds Landing" on file is in Region 6, 700 km north.
-         "from": [-117.21792, 49.56500], "to": [-117.21792, 49.57957],
+         # Both ends sit on LAND: the cut is now exactly the segment drawn, with no reach past
+         # its ends, so an endpoint on the waterline may not sever. The arm here runs
+         # 49.5650-49.5776, so the south end is dropped below it and the north end is the park.
+         "from": [-117.21792, 49.56300], "to": [-117.21792, 49.57957],
          "approx": False,
          "source": "McDonald's Landing Regional Park (RDCK)",
          "from_name": "south shore", "to_name": "McDonalds Landing"},
@@ -83,7 +86,8 @@ CUT_SEEDS = {
         {"id": "shannon_netting",
          "label": "Netting across the south end",
          "note": "The netted-off portion is south of this line; the rest stays Shannon Lake.",
-         "from": [-119.61650, 49.85588], "to": [-119.60930, 49.85588],
+         # Both ends on land: the lake spans -119.61602..-119.60982 at this latitude.
+         "from": [-119.61700, 49.85588], "to": [-119.60880, 49.85588],
          "approx": True,
          "from_name": "west shore", "to_name": "east shore"},
     ],
