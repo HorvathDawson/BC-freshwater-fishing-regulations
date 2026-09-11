@@ -300,6 +300,9 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt .note{font-style:normal;font-size:11px;color:var(--quiet)}
 .qt .why{margin-top:3px}
 .qt .why summary{font:500 11px/1.4 var(--ui);color:var(--accent);cursor:pointer}
+.qt em.lead{font-style:normal;font-weight:600;color:var(--closed);font-size:11px;
+  display:block;margin-top:2px}
+.qt em.also{font-style:normal;color:var(--quiet);font-size:11px;display:block;margin-top:2px}
 .part{font-style:normal;font-weight:500;color:var(--restricted);font-size:11px;
   display:block;margin-top:2px}
 .qt .why .ovr{display:block;margin:6px 0 3px;opacity:.62;font-style:italic}
@@ -1039,6 +1042,47 @@ function closureBlock(items, waterKind){
   return h.join("")+'</div>';
 }
 
+
+/* ------------------------------------------------------------------------------------- *
+ * TWO RULES FOR ONE FISH, AND NEITHER IS NARROWER THAN THE OTHER.
+ *
+ * Precedence keys on `scope` — a rule written for a named water beats a regional default. It
+ * cannot separate two rules that are BOTH written for the water, and the corpus has fifteen
+ * such pairs. KOOTENAY LAKE is the worst: the book writes one row per arm, and on kokanee the
+ * Main Body says take 0 and you may not fish for them, the Lower West Arm says five a day at
+ * weekends, and the Upper West Arm says release except on four named days. All three reach the
+ * lake, because the lake has no polygons for its arms yet.
+ *
+ * The reader cannot follow three answers. The strictest is the only safe one to lead with — it
+ * is the same reading the page already states for a reach straddling two regions — so it leads,
+ * and the others stay visible beneath it marked as what they are. When the arm polygons land,
+ * each rule binds to its own arm and this stops firing on its own.
+ *
+ * The ORDER is the ladder a regulation actually walks, strictest first:
+ *   0  take 0 and may_target false  — you may not fish for them at all
+ *   1  take 0 and may_target true   — you may fish, everything goes back
+ *   2  a number, lowest first
+ *   3  no number at all             — unlimited, or a rule that sets no count
+ */
+function strictRank(x){
+  if(x.take===0) return x.may_target ? 1 : 0;
+  if(typeof x.take==="number") return 2;
+  return 3;
+}
+function stricter(a, b){
+  var ra=strictRank(a), rb=strictRank(b);
+  if(ra!==rb) return ra-rb;
+  if(ra===2) return (a.take||0)-(b.take||0);
+  return 0;
+}
+/* Two rules are the SAME QUESTION when they limit the same fish, over the same period, on the
+   same water and origin. Different periods (daily vs annual) are two different limits and both
+   stand; different origins (hatchery vs wild) are two different fish as far as a quota goes. */
+function sameQuestion(x){
+  return [speciesOf(x).join(","), x.period||"daily", x.water||"", x.origin||"",
+          x.band?1:0, x.within||""].join("|");
+}
+
 function retentionTable(items, title, notes, waterKind){
   /*
    * A STREAM RULE DOES NOT GOVERN A LAKE, AND THE BINDING LAYER DOES NOT KNOW THAT.
@@ -1150,6 +1194,32 @@ function retentionTable(items, title, notes, waterKind){
   var records=quotas.filter(function(x){
     return x.record_retention && x.take==null && !x.unlimited; });
   quotas=quotas.filter(function(x){ return records.indexOf(x)<0; });
+
+  /*
+   * WHERE TWO OF THE WATER'S OWN RULES ANSWER THE SAME QUESTION, the strictest leads.
+   *
+   * Only among rules that are LIVE — a January closure and a July quota are not in conflict,
+   * they are a calendar — and only where `scope` cannot already decide it, because a regional
+   * default losing to the river's own rule is ordinary precedence and is drawn that way.
+   */
+  var lead={}, alsoSaid={};
+  (function(){
+    var sets={};
+    quotas.forEach(function(x){
+      if(!live(x.windows) || x.scope!=="section") return;
+      (sets[sameQuestion(x)] = sets[sameQuestion(x)] || []).push(x);
+    });
+    for(var k in sets){
+      var g=sets[k];
+      if(g.length<2) continue;
+      var ranks=g.map(strictRank);
+      if(Math.min.apply(null,ranks)===Math.max.apply(null,ranks)
+         && g.every(function(x){ return x.take===g[0].take; })) continue;  // they agree
+      g.sort(stricter);
+      lead[g[0].rule]=g.length;
+      g.slice(1).forEach(function(x){ alsoSaid[x.rule]=1; });
+    }
+  })();
 
   var byId={}; quotas.forEach(function(x){ byId[x.rule]=x; });
   var present=[];
@@ -1323,6 +1393,10 @@ function retentionTable(items, title, notes, waterKind){
       +'<td class="keep'+(keep==="0"||keep==="release"?' zero':'')+'">'+esc(keep)
         +(was?' <s class="was">'+esc(was)+'</s>':'')+'</td>'
       +'<td class="cond">'+esc(condWords(l).join(" · "))
+        +(lead[l.rule]
+          ? ' <em class="lead">\u2014 the strictest of '+lead[l.rule]
+            +' rules here for this fish; follow this one</em>' : '')
+        +(alsoSaid[l.rule] ? ' <em class="also">\u2014 also written for this water</em>' : '')
         +partWords(l)
         +(noteFor(l).length
           ? '<em class="note"> — '+esc(noteFor(l)[0].label)+'</em>' : '')+'</td>'

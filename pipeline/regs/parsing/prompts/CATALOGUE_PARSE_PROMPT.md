@@ -23,6 +23,22 @@ you must follow it, not your intuition about what the words mean.
    appear in that rule's own `verbatim`.
 5. **If you cannot bind a location, say so** — set `needs_review` with a reason that names what is
    missing. An honest flag beats a wrong guess.
+6. **A `bait_restriction` or `tackle_restriction` MUST carry `allowed`.** `true` or `false`, every
+   time. *"Bait ban"* is `allowed: false`; *"roe may be used"* is `allowed: true`. Both are the
+   same type and the field is the entire difference between them, so it is never optional and
+   `permitted` is not a substitute for it. **Seven of twenty-one rejections in one run were this.**
+7. **A `vessel_rule` with `aspect: propulsion` MUST carry `level`.** One ordered scale, strictest
+   first — and `permitted: false` says none of them:
+
+   | the page says | `level` |
+   |---|---|
+   | *"No vessels"* | `none` |
+   | *"No powered boats"* | `unpowered` |
+   | *"Electric motor only"* | `electric_only` |
+   | *"7.5 kW (10 hp)"* | `power_capped` + `max_power_kw: 7.5` |
+
+   *"No vessels"* and *"No powered boats"* are both a refusal and they are **different rules** —
+   one bans the boat, the other bans the motor. **Six of twenty-one rejections were this.**
 
 ---
 
@@ -273,3 +289,8 @@ PYTHONPATH="$PWD" .venv/bin/python -m pipeline.regs.parsing.validate_catalogue b
 
 Exit 0 means every entry passed. Fix what it reports and run it again — do not submit a candidate
 that has not come back clean.
+
+**This step is not optional and it is not a formality.** In the run of 2026-09-10, twenty-one of
+thirty-four entries were rejected on five errors the validator names exactly, in one line each,
+before a human ever sees them. Every one of those entries had to be parsed a second time. Running
+the gate costs seconds; skipping it costs the whole batch.
