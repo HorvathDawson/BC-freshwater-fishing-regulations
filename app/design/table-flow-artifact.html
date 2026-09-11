@@ -103,10 +103,10 @@ li b{color:var(--ink)}
 <header>
   <div class="eyebrow">regs-v3 &middot; how a water&rsquo;s screen is generated</div>
   <h1>How a sheet is built</h1>
-  <p class="lede">Three levels of rule reach every water in British Columbia: the province&rsquo;s,
-  the region&rsquo;s, and the river&rsquo;s own. This is how they are sorted, how they are shown
-  together, and how a reader can tell which one is actually governing them &mdash; from the
-  simplest case to the hardest one in the corpus.</p>
+  <p class="lede">Rules reach a water from four directions: the province&rsquo;s, the
+  region&rsquo;s, the river&rsquo;s own, and those inherited from a river it flows into. This is
+  how they are sorted, how they are shown together, and how a reader can tell which one is
+  actually governing them &mdash; from the simplest case to the hardest one in the corpus.</p>
 </header>
 
 <h2>The one idea</h2>
@@ -116,7 +116,7 @@ they land in the same table, next to each other. That is the whole mechanism: yo
 that a river has narrowed a regional default if both are in front of you.</p>
 
 <figure>
-<svg class="dia" viewBox="0 0 880 268" role="img" aria-label="Provincial, regional and river rules merge into one list, are sorted by type into four tables, and each row names the level that set it.">
+<svg class="dia" viewBox="0 0 880 276" role="img" aria-label="Provincial, regional, river and inherited-tributary rules merge into one list, are sorted by type into four tables, and each row names the level that set it.">
   <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
     orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
 
@@ -127,10 +127,13 @@ that a river has narrowed a regional default if both are in front of you.</p>
   <text x="83" y="95" text-anchor="middle" font-size="12" fill="currentColor">The region</text>
   <rect x="8" y="118" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="2"/>
   <text x="83" y="139" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">This river</text>
+  <rect x="8" y="162" width="150" height="34" rx="6" fill="none" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" opacity=".8"/>
+  <text x="83" y="183" text-anchor="middle" font-size="11.5" fill="currentColor">As a tributary</text>
 
   <line x1="162" y1="47" x2="210" y2="86" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
   <line x1="162" y1="91" x2="210" y2="91" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
   <line x1="162" y1="135" x2="210" y2="96" stroke="currentColor" stroke-width="1.2" opacity=".7"/>
+  <line x1="162" y1="179" x2="210" y2="101" stroke="currentColor" stroke-width="1.2" opacity=".55"/>
 
   <rect x="212" y="66" width="124" height="52" rx="7" fill="none" stroke="currentColor" stroke-width="1.6"/>
   <text x="274" y="88" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">sorted by</text>
@@ -161,36 +164,44 @@ the last column says. It never decides which table.</figcaption>
 </figure>
 
 <h2>Where every kind of rule goes</h2>
-<p class="sub">Fifteen kinds of statement in the corpus. Every one has a home, and nothing lands
-in more than one place by accident.</p>
+<p class="sub">Fifteen kinds of statement, <b>2,396 rules</b> in the shipped corpus. The counts
+are of rules, not of appearances &mdash; a provincial rule reaches thousands of waters and is
+counted once. <b>The column sums to 2,396</b>: every rule in the corpus is accounted for, and
+nothing falls through.</p>
 
 <div class="tw">
 <table>
-<tr><th>A rule that&hellip;</th><th>Appears as</th><th class="n">count</th></tr>
-<tr><td>limits what you keep</td><td><b>A row in the quota table</b> &mdash; fish, number, conditions, who set it</td><td class="n">322</td></tr>
-<tr><td>limits what you keep, <em>and has dates or shuts the water</em></td><td>a quota row <b>and</b> an entry in the closure calendar</td><td class="n">35</td></tr>
-<tr><td>limits what you keep <em>by one method</em></td><td>under that method in <b>How you may fish</b> &mdash; not as a quota</td><td class="n">52</td></tr>
-<tr><td>lifts or narrows another rule</td><td>an edit to <b>that</b> rule &mdash; never a row of its own</td><td class="n">11</td></tr>
-<tr><td>says to stop after your quota</td><td>a note under the quota table, on the fish it names</td><td class="n">13</td></tr>
-<tr><td>restricts tackle or bait</td><td><b>How you may fish</b>, under Angling</td><td class="n">185</td></tr>
-<tr><td>restricts a method</td><td><b>How you may fish</b>, as that method&rsquo;s own line</td><td class="n">73</td></tr>
-<tr><td>restricts a boat</td><td><b>From a boat</b></td><td class="n">6</td></tr>
-<tr><td>requires a document</td><td><b>Before you fish</b> &mdash; one row per document</td><td class="n">163</td></tr>
-<tr><td>requires someone&rsquo;s permission</td><td><b>Before you fish</b>, named for whoever must say yes</td><td class="n">14</td></tr>
-<tr><td>bars a class of angler</td><td>its own line &mdash; it is about <em>who</em>, not about a document</td><td class="n">1</td></tr>
-<tr><td>is a duty about handling your catch</td><td>the folded <b>&ldquo;duties that apply everywhere in B.C.&rdquo;</b></td><td class="n">130</td></tr>
-<tr><td>explains a size limit</td><td>a footnote under the quota table &mdash; only where there is a size</td><td class="n">57</td></tr>
-<tr><td>explains what a closure means</td><td>under the closure banner &mdash; only where there is a closure</td><td class="n">26</td></tr>
-<tr><td>explains a method</td><td>under that method in <b>How you may fish</b></td><td class="n">39</td></tr>
-<tr><td>is a notice, a hazard, a tagging programme</td><td>the notices list</td><td class="n">13</td></tr>
-<tr><td>is about one fish and nothing else</td><td>a note on that fish&rsquo;s row</td><td class="n">3</td></tr>
+<tr><th>A rule that&hellip;</th><th>Appears as</th><th class="n">rules</th></tr>
+<tr><td>limits what you keep</td><td><b>A row in the quota table</b> &mdash; fish, number, conditions, and who set it</td><td class="n">740</td></tr>
+<tr><td>limits what you keep, <em>and shuts the water or carries dates</em></td><td>that row <b>and</b> an entry in the closure calendar</td><td class="n">433</td></tr>
+<tr><td>restricts tackle, bait or a method</td><td><b>How you may fish</b>, under the activity it belongs to</td><td class="n">640</td></tr>
+<tr><td>restricts a boat</td><td><b>From a boat</b></td><td class="n">288</td></tr>
+<tr><td>requires a document, or someone&rsquo;s permission</td><td><b>Before you fish</b> &mdash; one row per document</td><td class="n">100</td></tr>
+<tr><td>lifts or narrows another rule</td><td>an edit to <b>that</b> rule &mdash; never a row of its own</td><td class="n">49</td></tr>
+<tr><td>is a notice, a hazard, a facility, a tagging programme</td><td>the notices list</td><td class="n">115</td></tr>
+<tr><td>is a duty about handling your catch</td><td>the folded <b>&ldquo;duties that apply everywhere in B.C.&rdquo;</b></td><td class="n">10</td></tr>
+<tr><td>explains a size limit</td><td>a footnote under the quota table &mdash; only where a size appears</td><td class="n">7</td></tr>
+<tr><td>bars a class of angler</td><td>its own line &mdash; it is about <em>who</em>, not a document</td><td class="n">7</td></tr>
+<tr><td>explains what a closure means</td><td>under the closure banner &mdash; only where a closure is in force</td><td class="n">2</td></tr>
+<tr><td>says to stop after your quota</td><td>a note under the quota table, on the fish it names</td><td class="n">1</td></tr>
+<tr><td>is about one fish and nothing else</td><td>a note on that fish&rsquo;s row</td><td class="n">1</td></tr>
+<tr><td>records your retention on your licence</td><td>a note under the quota table</td><td class="n">1</td></tr>
+<tr><td style="opacity:.7">tells you to do by hand what the app has done</td><td style="opacity:.7">nothing &mdash; deliberately not shown</td><td class="n">2</td></tr>
 </table>
 </div>
-<div class="note"><b>Sixteen sentences are deliberately not shown.</b> They are notices that
-instruct the reader to do by hand what the app has already done &mdash; &ldquo;check the
-tributaries of the following lakes for special regulations&rdquo; &mdash; or that carry nothing
-to act on, like &ldquo;this is the only white sturgeon fishery in the province&rsquo;s non-tidal
-waters&rdquo;. Each is listed by name in the code, so the set can be argued with.</div>
+<div class="note"><b>Two rules are deliberately not shown</b>, and both are named in the code so the
+choice is arguable: &ldquo;check the tributaries of the following lakes for special
+regulations&rdquo;, which instructs the reader to do by hand what the app has already done, and
+&ldquo;this is the only white sturgeon fishery in the province&rsquo;s non-tidal waters&rdquo;,
+which carries nothing to act on.</div>
+
+<div class="note" style="border-left-color:var(--verify);
+  background:color-mix(in srgb,var(--verify) 7%,transparent)"><b>How to check this.</b> The nine
+cases below are drawn from thirteen rivers rendered end to end &mdash; Fraser, Chilliwack,
+Harrison, Fording, Atnarko, Bella Coola, Skeena, Elk, Coquihalla, Kootenay, Okanagan, Babine and
+the Yakoun on Haida Gwaii. Every sentence quoted is the <code>verbatim</code> stored on the rule,
+every field is the value in the shipped bundle, and every output is what the page renders today.
+</div>
 
 <h2>Building it up, one case at a time</h2>
 <p class="sub">Nine cases, simplest first. Each shows the whole chain: the sentence in the synopsis, the fields the parser recorded from it, and what the sheet does with them. Every line is real &mdash; these are rules from the shipped corpus, not illustrations.</p>
@@ -204,12 +215,34 @@ waters&rdquo;. Each is listed by name in the code, so the set can be argued with
     <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Burbot</b></span><span class="z">2</span><span class="w">Region 4</span></div></div></div>
   </div>
 </div><div class="case">
-  <div class="ch"><span class="cn">case 2</span><span class="ct">The river overrules its region</span></div>
-  <div class="cb">Region 4 allows five trout a day; the Elk River&rsquo;s own row says one. The river&rsquo;s rule leads and is marked <em>this water</em>; the region&rsquo;s stays beneath it, because a reader who cannot see the default cannot tell anything has been narrowed. <b>Nothing is struck</b> &mdash; one rule is simply more local than the other, which the parser knows from <code>scope</code>.</div>
+  <div class="ch"><span class="cn">case 2</span><span class="ct">The river narrows its region</span></div>
+  <div class="cb">Region 4 allows five trout a day; the Elk River&rsquo;s own row says one,
+  between 15 June and 31 October. Both are in the table and the reader is told which is which by
+  the last column. <em>The region&rsquo;s number is the headline and the river&rsquo;s is indented
+  beneath it</em> &mdash; deliberately: the general rule states the default, and the specific one
+  is a narrowing of it. Reading down the group gives &ldquo;trout and char are five a day in
+  Region 4 &mdash; but on this water, one, in season&rdquo;. Nothing is struck, because neither
+  rule is wrong; one is simply more local, which the page knows from <code>scope</code>.</div>
   <div class="chain">
-    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>Elk River (downstream of Elko Dam):</b> Trout/Char daily quota = 1 (no cutthroat under 30 cm, no bull trout under 75 cm)<br><br><b>Region 4 quotas:</b> Trout/char: 5</div></div>
-    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">take</span> <b>1</b> &middot; <span class="k">scope</span> <b>section</b><br><span class="k">windows</span> Jun 15 &ndash; Oct 31<br><span class="k">species</span> [TROUT_CHAR]<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">take</span> 5 &middot; <span class="k">scope</span> <b>area</b><br><span class="k">combined</span> true</p></div>
-    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Trout and char</b></span><span class="z">1</span><span class="w" style="color:var(--verify)">this water</span></div><div class="r"><span>&#8627; all species combined</span><span class="z">5</span><span class="w">Region 4</span></div></div></div>
+    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>Region 4
+      quotas:</b> Trout/char: 5<br><br><b>Elk River (downstream of Elko Dam):</b> Trout/Char daily
+      quota = 1 (no cutthroat under 30&nbsp;cm, no bull trout under 75&nbsp;cm)</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields">
+      <span class="k">take</span> 5 &middot; <span class="k">scope</span> <b>area</b><br>
+      <span class="k">combined</span> true<br>
+      <span class="k">species</span> [TROUT_CHAR]<br>
+      <span style="opacity:.55">&mdash;&mdash;&mdash;</span><br>
+      <span class="k">take</span> <b>1</b> &middot; <span class="k">scope</span> <b>section</b><br>
+      <span class="k">windows</span> Jun 15 &ndash; Oct 31<br>
+      <span class="k">species</span> [TROUT_CHAR]</p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out">
+      <div class="r"><span><b>Trout and char</b> &nbsp;<span style="opacity:.65">all species
+        combined</span></span><span class="z">5</span><span class="w">Region 4</span></div>
+      <div class="r"><span>&#8627; <span style="opacity:.65">jun 15 &ndash; oct 31</span></span>
+        <span class="z">1</span><span class="w" style="color:var(--verify)">this water</span></div>
+      <div class="r"><span>&#8627; <span style="opacity:.65">from streams</span></span>
+        <span class="z">2</span><span class="w">Region 4</span></div>
+    </div></div>
   </div>
 </div><div class="case">
   <div class="ch"><span class="cn">case 3</span><span class="ct">A closure suspends the numbers</span></div>
@@ -221,11 +254,33 @@ waters&rdquo;. Each is listed by name in the code, so the set can be argued with
   </div>
 </div><div class="case">
   <div class="ch"><span class="cn">case 4</span><span class="ct">A closure with a calendar</span></div>
-  <div class="cb">Three closures reach the Coquihalla, with different dates. Gathered above the tables they answer &ldquo;can I fish, and when does that change&rdquo; in one look &mdash; running now with the day it ends, or starting later with the day it starts, soonest first. The dates are <code>windows</code>; nothing is read from the sentence.</div>
+  <div class="cb">Five closures reach the lower Fraser with five different date ranges. Gathered
+  above the tables they answer &ldquo;can I fish, and when does that change&rdquo; in one look
+  &mdash; in force now with the day it ends, or starting later with the day it starts, soonest
+  first. The dates come from <code>windows</code>; whether one is running is decided against
+  today&rsquo;s date, not read from the sentence. <em>Shown here as the page renders it on
+  11&nbsp;September.</em></div>
   <div class="chain">
-    <div class="cc b"><div class="cch">the book says</div><div class="book"><b>No Fishing</b> downstream of the southern entrance to the lower most railway tunnel, Apr 1&ndash;Oct 31<br><br><b>No Fishing</b> upstream of the northern entrance to the upper most railway tunnel, Nov 1&ndash;June 30</div></div>
-    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br><span class="k">windows</span> <b>Apr 1 &ndash; Oct 31</b><br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br><span class="k">windows</span> <b>Nov 1 &ndash; Jun 30</b></p></div>
-    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>No fishing, Apr 1-Oct 31</b><br><span style="opacity:.7">until Oct 31</span></span><span class="no">NOW</span><span class="w">this water</span></div><div class="r"><span>No fishing, Nov 1-June 30<br><span style="opacity:.7">from Nov 1</span></span><span style="color:var(--warn);font-weight:700">SOON</span><span class="w">this water</span></div></div></div>
+    <div class="cc b"><div class="cch">the book says</div><div class="book">
+      <b>No Fishing</b> for steelhead Fraser River Mainstem Aug 15&ndash;Dec 31<br><br>
+      <b>No Fishing</b> for white sturgeon, Sept 15&ndash;July 15</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields">
+      <span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br>
+      <span class="k">species</span> [ST]<br>
+      <span class="k">windows</span> <b>Aug 15 &ndash; Dec 31</b><br>
+      <span style="opacity:.55">&mdash;&mdash;&mdash;</span><br>
+      <span class="k">take</span> 0 &middot; <span class="k">may_target</span> false<br>
+      <span class="k">species</span> [WSG]<br>
+      <span class="k">windows</span> <b>Sep 15 &ndash; Jul 15</b></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out">
+      <div class="r"><span><b>No fishing for steelhead, Aug 15-Dec 31</b><br>
+        <span style="opacity:.7">in force now &middot; until Dec 31</span></span>
+        <span class="no">NOW</span><span class="w">this water</span></div>
+      <div class="r"><span>No fishing for white sturgeon, Sept 15-July 15<br>
+        <span style="opacity:.7">from Sep 15</span></span>
+        <span style="color:var(--warn);font-weight:700">SOON</span>
+        <span class="w">this water</span></div>
+    </div></div>
   </div>
 </div><div class="case">
   <div class="ch"><span class="cn">case 5</span><span class="ct">A river written out of its region&rsquo;s closure</span></div>
@@ -236,12 +291,37 @@ waters&rdquo;. Each is listed by name in the code, so the set can be argued with
     <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><s>No fishing in streams, Apr 1 - Jun 30</s><br><span style="opacity:.85">lifted here &middot; Exempt from spring closure from Okanagan Lake Dam downstream&hellip;</span></span><span class="ok">LIFTED</span><span class="w">Region 8</span></div></div></div>
   </div>
 </div><div class="case">
-  <div class="ch"><span class="cn">case 6</span><span class="ct">An exemption that narrows but does not lift</span></div>
-  <div class="cb">The same field, the opposite outcome &mdash; and this is the one that has to be got right. <code>when_targeting: [WSG]</code> means the hole is only for sturgeon, so the ban stands and the exemption keeps its own line. Striking the parent would tell an angler the fin-fish bait ban is gone, when it is gone for one quarry on three named rivers. Three of the six exemptions in the corpus are full lifts; three are narrowings.</div>
+  <div class="ch"><span class="cn">case 6</span><span class="ct">An exemption that narrows but
+    does not lift</span></div>
+  <div class="cb">The same field as case 5, the opposite outcome &mdash; and this is the one that
+  has to be got right. <code>when_targeting: [WSG]</code> means the hole is only for sturgeon, so
+  the ban <em>stands</em> and the exemption keeps its own line beneath it. Striking the parent
+  would tell an angler the fin-fish bait ban is gone, when it is gone for one quarry on three
+  named rivers. Sixty rules in the corpus carry an exemption &mdash; <b>53 lift the rule they
+  name outright, 7 only cut a hole in it</b>. Note the last column: the exemption reaches the
+  Fraser by naming it, so it reads <em>this water</em>, while the ban it qualifies is
+  provincial.</div>
   <div class="chain">
-    <div class="cc b"><div class="cch">the book says</div><div class="book">The use of fin fish (dead or alive) or parts of fin fish other than roe is prohibited throughout the province<br><br><b>(a)</b> when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt River&hellip;, Lower Harrison River&hellip;</div></div>
-    <div class="cc p"><div class="cch">the parser records</div><p class="fields"><span class="k">dimension</span> bait:fin_fish<br><span class="k">permitted</span> false<br><span style="opacity:.55">&mdash;&mdash;&mdash;</span><br><span class="k">exempts</span> [{ target: <b>"bait.r1"</b> }]<br><span class="k">when_targeting</span> <b>[WSG]</b><br><span style="opacity:.7">&mdash; narrows by quarry &rarr; <b>not a lift</b></span></p></div>
-    <div class="cc o"><div class="cch">the sheet shows</div><div class="out"><div class="r"><span><b>Angling</b></span><span></span><span></span></div><div class="r"><span>&#8627; Fin fish may not be used as bait</span><span></span><span class="w">Provincial</span></div><div class="r"><span>&#8627; Dead fin fish may be used when fishing for white sturgeon &mdash; Fraser, Lower Pitt and Lower Harrison</span><span></span><span class="w">Provincial</span></div></div></div>
+    <div class="cc b"><div class="cch">the book says</div><div class="book">
+      The use of fin fish (dead or alive) or parts of fin fish other than roe is prohibited
+      throughout the province<br><br>
+      <b>(a)</b> when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt
+      River&hellip;, Lower Harrison River&hellip;</div></div>
+    <div class="cc p"><div class="cch">the parser records</div><p class="fields">
+      <span class="k">dimension</span> bait:fin_fish<br>
+      <span class="k">permitted</span> false<br>
+      <span style="opacity:.55">&mdash;&mdash;&mdash;</span><br>
+      <span class="k">exempts</span> [{ target: <b>"bait.r1"</b> }]<br>
+      <span class="k">when_targeting</span> <b>[WSG]</b><br>
+      <span style="opacity:.7">&mdash; narrows by quarry &rarr; <b>not a lift</b></span></p></div>
+    <div class="cc o"><div class="cch">the sheet shows</div><div class="out">
+      <div class="r"><span><b>Angling</b></span><span></span><span></span></div>
+      <div class="r"><span>&#8627; Fin fish may not be used as bait</span><span></span>
+        <span class="w">Provincial</span></div>
+      <div class="r"><span>&#8627; Dead fin fish may be used when fishing for white
+        sturgeon</span><span></span>
+        <span class="w" style="color:var(--verify)">this water</span></div>
+    </div></div>
   </div>
 </div><div class="case">
   <div class="ch"><span class="cn">case 7</span><span class="ct">A ban and a duty that do not conflict</span></div>
@@ -273,8 +353,10 @@ waters&rdquo;. Each is listed by name in the code, so the set can be argued with
 <p class="sub">Three marks, and they are the whole answer.</p>
 <ul>
 <li><b>The last column names the level.</b> &ldquo;this water&rdquo; means the synopsis wrote it
-for this river. &ldquo;Region 8&rdquo; and &ldquo;Provincial&rdquo; mean it reaches you by
-containing you.</li>
+for this river; &ldquo;Region 8&rdquo; and &ldquo;Provincial&rdquo; mean it reaches you by
+containing you; and <b>&ldquo;(as a tributary)&rdquo;</b> means it is a larger river&rsquo;s rule
+that reaches here because this water flows into it &mdash; the Fording&rsquo;s only licence is the
+Elk&rsquo;s, and the Fording&rsquo;s own page in the book does not carry it.</li>
 <li><b>Indentation means narrowing.</b> A row set in from the one above is a condition on it,
 not a separate limit.</li>
 <li><b>A struck number or sentence has been overruled</b> &mdash; and whatever overruled it is on
@@ -286,8 +368,8 @@ cannot, <b>both rows are shown and neither is struck</b> &mdash; so read the riv
 rows before relying on a regional number. The page never drops a rule to make two of them agree.</div>
 
 <h2>What decides all of this</h2>
-<p class="sub">Every routing decision above reads a field on the rule. None reads the words of a
-sentence.</p>
+<p class="sub">Every decision above reads a field on the rule. None reads the words of a sentence &mdash; a claim that is checkable, because a text test looks like <code>/&hellip;/.test(label)</code> and the page contains none.</p>
+<p>The fields read are: <code>type</code>, <code>family</code>, <code>dimension</code>, <code>species</code>, <code>take</code>, <code>may_target</code>, <code>unlimited</code>, <code>over_cm</code>, <code>under_cm</code>, <code>combined</code>, <code>within</code>, <code>origin</code>, <code>period</code>, <code>water</code>, <code>windows</code>, <code>scope</code>, <code>via</code>, <code>permitted</code>, <code>method</code>, <code>record_retention</code>, <code>on_retention</code>, <code>when_open</code>, <code>water_class</code>, <code>angler_class</code>, <code>document</code>, <code>grantor</code>, <code>when_targeting</code> and <code>exempts</code>. Fifteen entry ids are named in one lookup table, for sentences that qualify a specific rule rather than describing one.</p>
 <div class="tw">
 <table>
 <tr><th>Decision</th><th>Read from</th><th>Kind</th></tr>
