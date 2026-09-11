@@ -146,16 +146,22 @@ function metresPerDeg(lat){
   return {lon: 111320 * Math.cos(lat * Math.PI/180), lat: 110540};
 }
 
-/* Extend a segment past both shores — far enough to reach land, nowhere near far enough to
-   reach the rest of the lake. 2 km of overshoot crosses any channel a boundary sign spans. */
-function extended(a, b, overshootM){
-  var lat = (a[1]+b[1])/2, m = metresPerDeg(lat);
-  var dx = (b[0]-a[0]) * m.lon, dy = (b[1]-a[1]) * m.lat;   // metres
-  var len = Math.sqrt(dx*dx + dy*dy) || 1e-9;
-  var ux = dx/len, uy = dy/len;
+/* Extend a cut past both shores — far enough to reach land, nowhere near far enough to reach
+   the rest of the lake. Only the two END segments are extended: a cut may have any number of
+   points, and pushing an interior vertex outward would deform the shape being traced. */
+function extended(pts, overshootM){
+  if (pts.length < 2) return pts.slice();
   var o = overshootM == null ? 2000 : overshootM;
-  return [[a[0] - ux*o/m.lon, a[1] - uy*o/m.lat],
-          [b[0] + ux*o/m.lon, b[1] + uy*o/m.lat]];
+  function push(from, to){                 // a point `o` metres beyond `to`, along from->to
+    var lat = (from[1]+to[1])/2, m = metresPerDeg(lat);
+    var dx = (to[0]-from[0])*m.lon, dy = (to[1]-from[1])*m.lat;
+    var len = Math.sqrt(dx*dx+dy*dy) || 1e-9;
+    return [to[0] + (dx/len)*o/m.lon, to[1] + (dy/len)*o/m.lat];
+  }
+  var out = pts.slice();
+  out[0] = push(pts[1], pts[0]);
+  out[out.length-1] = push(pts[pts.length-2], pts[pts.length-1]);
+  return out;
 }
 
 /* Which side of the line a point falls on: +1 / -1 from the 2-D cross product. */
@@ -195,7 +201,9 @@ function sideWord(feature, a, b){
  * attached to. Sides are then named by which side of the line each piece's own centre lies on.
  * --------------------------------------------------------------------------------------- */
 function cutBy(target, cut){
-  var ex = extended(cut.from, cut.to, 2000);
+  var pts = cutPts(cut);
+  if (pts.length < 2) return [];
+  var ex = extended(pts, 2000);
   var knife;
   try { knife = turf.buffer(turf.lineString(ex), 3, {units:"meters"}); }
   catch(e){ return []; }
@@ -205,13 +213,26 @@ function cutBy(target, cut){
   var polys = rest.geometry.type === "MultiPolygon"
     ? rest.geometry.coordinates.map(function(c){ return turf.polygon(c); })
     : [turf.polygon(rest.geometry.coordinates)];
+  var a = pts[0], b = pts[pts.length-1];
   return polys.filter(function(g){ return turf.area(g) > 1000; })
               .map(function(g){
     var c = turf.pointOnFeature(g).geometry.coordinates;
     return {feature: g, area: turf.area(g),
-            sign: sideOf(cut.from, cut.to, c),
-            side: sideWord(g, cut.from, cut.to)};
+            sign: sideOf(a, b, c),
+            side: sideWord(g, a, b)};
   });
+}
+
+/* A cut is a POLYLINE, because a bay mouth is not always straight.
+ *
+ * It began as two points, which is exactly how Kootenay Lake's boundaries are written — "a
+ * line between boundary signs on opposite shores". Nation Arm and Davis Bay are not written
+ * that way and are not straight: a bay is closed off by following its mouth round. Seeds may
+ * still arrive as `from`/`to`, so those are read as a two-point line and gain points as soon
+ * as anyone adds one. */
+function cutPts(cut){
+  if (!cut.pts) cut.pts = (cut.from && cut.to) ? [cut.from.slice(), cut.to.slice()] : [];
+  return cut.pts;
 }
 
 function drawLake(){
@@ -294,11 +315,27 @@ function reassignIds(){
  * --------------------------------------------------------------------------------------- */
 var cuts = [];
 
+/* A cut the curator starts from nothing: two points across the middle of the view, which is
+   where they have just panned to. Bending and placing it is the same work as editing a seed. */
+function newCut(){
+  var b = map.getBounds(), c = b.getCenter();
+  var dy = (b.getNorth() - b.getSouth()) * 0.22;
+  cuts.push({id: "cut" + (cuts.length+1), label: "Cut " + (cuts.length+1),
+             note: "", approx: true,
+             pts: [[c.lng, c.lat - dy], [c.lng, c.lat + dy]]});
+  renderCuts();
+  status("drag the ends onto opposite shores, then click the line to bend it");
+}
+
 function renderCuts(){
   var box = document.getElementById("cuts");
-  if (!cur || !cuts.length) {
-    box.innerHTML = '<div class="note">No boundary line is written for this lake — its parts '
-      + 'have to be drawn or cut from a management unit.</div>';
+  if (!cur) { box.innerHTML = ""; cutLayer.clearLayers(); return; }
+  if (!cuts.length) {
+    box.innerHTML = '<div class="note">No boundary line is written for this lake. Start one '
+      + 'across the mouth of the part you want, then bend it by clicking the line.</div>'
+      + '<div class="row"><button id="addcut">New cut line</button></div>';
+    var a0 = document.getElementById("addcut");
+    if (a0) a0.onclick = newCut;
     cutLayer.clearLayers();
     return;
   }
@@ -309,38 +346,82 @@ function renderCuts(){
       + '</span></span><button data-cut="' + i + '">Cut</button></div>';
   }).join("")
   + '<div class="note">' + esc(cuts[0].note || "") + '</div>'
-  + '<div class="row"><button id="cutall" class="go">Cut all, in order</button></div>';
+  + '<div class="note">Drag a handle to move a point. <b>Click the line</b> to add one — a bay '
+  + 'mouth is rarely straight. <b>Right-click</b> an inner point to drop it; the two ends stay, '
+  + 'because they are what carry the cut onto land.</div>'
+  + '<div class="row"><button id="addcut">New cut line</button>'
+  + '<button id="cutall" class="go">Cut all, in order</button></div>';
 
   box.querySelectorAll("[data-cut]").forEach(function(b){
     b.onclick = function(){ applyCut(cuts[+b.dataset.cut]); };
   });
   var all = document.getElementById("cutall");
   if (all) all.onclick = cutAll;
+  var add = document.getElementById("addcut");
+  if (add) add.onclick = newCut;
   drawCutLines();
 }
 
 function drawCutLines(){
   cutLayer.clearLayers();
   cuts.forEach(function(c, ci){
+    var pts = cutPts(c);
+    if (pts.length < 2) return;
     var col = c.approx ? css("--warn") : css("--ink");
-    L.polyline([[c.from[1],c.from[0]],[c.to[1],c.to[0]]],
+    var latlngs = pts.map(function(q){ return [q[1], q[0]]; });
+    var line = L.polyline(latlngs,
       {color: col, weight: 2.5, dashArray: c.approx ? "6,5" : null}).addTo(cutLayer);
-    ["from","to"].forEach(function(end){
-      var m = L.circleMarker([c[end][1], c[end][0]],
-        {radius:7, color:col, weight:2, fillColor:css("--panel"), fillOpacity:1,
-         className:"handle"}).addTo(cutLayer);
+
+    /* CLICK THE LINE TO ADD A VERTEX, which is how a straight cut becomes a curved one. The
+       new point goes into the segment nearest the click, so the shape never folds over
+       itself the way appending to the end would. */
+    line.on("click", function(ev){
+      L.DomEvent.stop(ev.originalEvent);
+      var p0 = [ev.latlng.lng, ev.latlng.lat];
+      var best = 1, bestD = Infinity;
+      for (var i = 0; i < pts.length-1; i++) {
+        var d;
+        try {
+          d = turf.pointToLineDistance(turf.point(p0),
+                turf.lineString([pts[i], pts[i+1]]), {units:"meters"});
+        } catch(e){ d = Infinity; }
+        if (d < bestD) { bestD = d; best = i+1; }
+      }
+      pts.splice(best, 0, p0);
+      drawCutLines();
+      status(c.label + " · " + pts.length + " points");
+    });
+
+    pts.forEach(function(q, qi){
+      var isEnd = (qi === 0 || qi === pts.length-1);
+      var m = L.circleMarker([q[1], q[0]],
+        {radius: isEnd ? 7 : 5, color: col, weight: 2,
+         fillColor: isEnd ? css("--panel") : col, fillOpacity: 1,
+         className: "handle"}).addTo(cutLayer);
+
       m.on("mousedown", function(ev){
         L.DomEvent.stop(ev.originalEvent);
         map.dragging.disable();
         function move(e){
-          c[end] = [e.latlng.lng, e.latlng.lat];
+          pts[qi] = [e.latlng.lng, e.latlng.lat];
           drawCutLines();
-          status(c.label + " · " + end + " " + e.latlng.lat.toFixed(4) + ", "
-                 + e.latlng.lng.toFixed(4));
+          status(c.label + " · point " + (qi+1) + " of " + pts.length + " · "
+                 + e.latlng.lat.toFixed(4) + ", " + e.latlng.lng.toFixed(4));
         }
         function up(){ map.off("mousemove", move); map.off("mouseup", up);
                        map.dragging.enable(); }
         map.on("mousemove", move); map.on("mouseup", up);
+      });
+
+      /* Right-click removes an interior point. The two ends are what make it a cut across the
+         water, so they stay — a one-point cut severs nothing. */
+      m.on("contextmenu", function(ev){
+        L.DomEvent.stop(ev.originalEvent);
+        if (isEnd || pts.length <= 2) {
+          status("the two end points stay — they are what carry the cut onto land"); return;
+        }
+        pts.splice(qi, 1); drawCutLines();
+        status(c.label + " · " + pts.length + " points");
       });
     });
   });
