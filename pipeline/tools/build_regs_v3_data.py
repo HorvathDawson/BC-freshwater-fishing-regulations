@@ -167,7 +167,12 @@ def _lake_outline(item_id: str, to_lonlat, ndigits: int = 4):
         xs, ys = zip(*list(ring.coords))
         lon, lat = to_lonlat(list(xs), list(ys))
         pts = [[round(a, ndigits), round(b, ndigits)] for a, b in zip(lon, lat)]
-        return pts, round(geom.area / 1e6, 1)      # km², from the projected polygon
+        # km², from the projected polygon. SIX DECIMALS, not one: a tenth of a km² is 10 ha,
+        # and rounding there reported Shannon Lake — 14.7 ha — as 0.1, which the page then
+        # printed as "0 KM²". The page decides whether to say km² or hectares; it can only do
+        # that if the number reaching it still knows the difference. Same precision the lake
+        # PARTS are already stored at, so a parent and its parts cannot disagree.
+        return pts, round(geom.area / 1e6, 6)
     except Exception:
         return None
 
