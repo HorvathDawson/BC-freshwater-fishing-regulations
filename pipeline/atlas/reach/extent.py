@@ -250,8 +250,26 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
             return None
         limit_sections = set(reg[key].section_ids)
 
+    # `outside_area` SUBTRACTS a polygon — the mirror of `within_area`, and the shape a
+    # regulation needs when its own header carves one out. The synopsis prints "Region 1 Daily
+    # Quotas (excluding Haida Gwaii)" and then prints Haida Gwaii's table beside it; with no way
+    # to say the exclusion, both bound the Yakoun River and the app stated Trout 4 and
+    # Trout/char 5, Kokanee 5 and Kokanee 10, one above the other.
+    #
+    # Applied here, with `within_area`, so it lands AFTER the tributary walk — the walk is what
+    # leaves the area, so subtracting from the seed would do nothing.
+    drop_sections: set[str] = set()
+    drop_id = str(ex.get("outside_area") or "")
+    if drop_id:
+        key = drop_id if drop_id.startswith("area:") else f"area:{drop_id}"
+        if key not in reg:
+            _fail("outside_area_not_in_registry", drop_id)
+            return None
+        drop_sections = set(reg[key].section_ids)
+
     def _limited(sec: set[str]) -> set[str]:
-        return sec if limit_sections is None else (sec & limit_sections)
+        out = sec if limit_sections is None else (sec & limit_sections)
+        return (out - drop_sections) if drop_sections else out
 
     def _out(sec: set[str], **extra) -> dict:
         d = {"sections": sorted(_limited(sec)), "unclassified": [], "ambiguous_cut": [],

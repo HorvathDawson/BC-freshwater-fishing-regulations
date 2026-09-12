@@ -133,6 +133,25 @@ class Extent(BaseModel):
         description="op=within only: restrict the area's members to these feature kinds "
         "(subset of stream/lake/wetland); empty = all features inside the area",
     )
+    within_area: Optional[str] = Field(
+        default=None,
+        description="INTERSECT whatever this extent selects with an area polygon — 'any stream in "
+        "the Fraser River Watershed OF REGION 5' is a watershed meeting an administrative area, "
+        "which no op can express because every op only ever ADDS water. Combines with any op. "
+        "DECLARED HERE BECAUSE IT WAS NOT: the resolver has always read it and the prompt has "
+        "always documented it, but the model did not, so `extra='ignore'` dropped it on every "
+        "round-trip — silently widening the three curated regulations that use it to the whole "
+        "watershed.",
+    )
+    outside_area: Optional[str] = Field(
+        default=None,
+        description="SUBTRACT an area polygon from whatever this extent selects — the mirror of "
+        "`within_area`, for a regulation whose own header carves one out. Region 1's quota table "
+        "is printed '(excluding Haida Gwaii)' and Haida Gwaii's table is printed beside it; "
+        "without this the book's own exclusion is unsayable, both tables bind the Yakoun River, "
+        "and the screen states Trout 4 and Trout/char 5 with no way to choose. Applied AFTER any "
+        "tributary walk, for the same reason `within_area` is.",
+    )
 
     @property
     def scope_ids(self) -> List[str]:

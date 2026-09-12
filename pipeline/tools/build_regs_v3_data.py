@@ -53,8 +53,26 @@ WATERS: list[tuple[str, str, str]] = [
     ("Kootenay River",   "an alias-bound cut-point: the split the page names lost to a gauge"),
     ("Okanagan River",   "McIntyre Dam — the alias case again, and a chain of dams and lakes"),
     ("Babine River",     "counting-fence boundaries, and a lake run in the middle of the river"),
-    ("Yakoun River",     "Haida Gwaii: an island system on its own, with a seasonal steelhead "
-                         "stamp and none of the mainland's regional furniture"),
+    ("Yakoun River",     "Haida Gwaii: MUs 6-12/6-13 but administratively Region 1, so it "
+                         "takes the Region 1 stream rules AND its own quotas on top"),
+
+    # A PAIR, AND THE PAIR IS THE POINT. Region 1's summer closure is written for a GROUP of
+    # management units — "No Fishing in any stream in Management Units 1-1 to 1-6, July 15-Aug
+    # 31" — not for the region. Nothing else separates these two rivers: both are Region 1,
+    # both on Vancouver Island, both take the region's bait ban, its barbless-hook rule and its
+    # quotas. The Cowichan is in MU 1-4 and carries the closure; the Stamp is in MU 1-7 and does
+    # not. Side by side they are the test for whether a reader can see WHICH geography a rule
+    # came from, when the two waters are otherwise alike.
+    ("Cowichan River",   "MU 1-4, inside the 1-1 to 1-6 summer closure group; read beside the "
+                         "Stamp, which is Region 1 but outside it"),
+    ("Stamp River",      "MU 1-7, Region 1 but OUTSIDE the 1-1 to 1-6 group — everything the "
+                         "Cowichan has except the summer closure"),
+    # AND THE BOUNDARY RUNS THROUGH ONE RIVER. The Campbell's synopsis row is filed under MU
+    # 1-10, but 15 of its 20 sections lie inside the 1-1 to 1-6 polygon and 5 do not, so the
+    # summer closure covers part of it and stops. Filed by row it would be in or out; bound by
+    # geography it is both, which is what the book means and what the ladder can show.
+    ("Campbell River",   "the MU 1-1 to 1-6 boundary crosses the river itself: 15 of its 20 "
+                         "sections are inside the closure group and 5 are not"),
 
     # ---- lakes -------------------------------------------------------------------
     # Every screen above is a river, and a lake exercises branches none of them reach: set
@@ -414,7 +432,83 @@ def _rules_by_id(db: sqlite3.Connection) -> dict[tuple[str, str], dict]:
     return out
 
 
+
+def _entry_areas() -> dict[str, list[str]]:
+    """entry_id -> the AREAS its extents declare, straight from the curated entries.
+
+    A zone entry says where it applies in its own extents — `area:region:1`,
+    `area:mu_group:management_units_6_12_and_6_13` — and the page needs that because the id
+    prefix does not carry it. Both of those entries are filed under `z1:`, and one of them is
+    the Region 1 quota table that the book prints "(excluding Haida Gwaii)" while the other is
+    Haida Gwaii's own. Told apart by prefix they are indistinguishable, and the Yakoun River
+    showed Trout 4 and Trout/char 5 one above the other, both labelled "Region 1".
+
+    The bundle keeps no structured extents (only `rule.extent_text`, which is prose), so this
+    reads the curated files the bundle was built from.
+    """
+    from pipeline.common.curated import CURATED
+
+    out: dict[str, list[str]] = {}
+    dirs = (CURATED.regulations.entries.catalogue, CURATED.regulations.entries.dfo_salmon)
+    for path in sorted(q for d in dirs for q in Path(d).glob("region-*.json")):
+        for e in json.loads(path.read_text(encoding="utf-8")).get("entries", []):
+            got: list[str] = []
+            for ex in (e.get("extents") or []):
+                a = ex.get("area_id") or (("kind:" + ex["area_kind"]) if ex.get("area_kind") else "")
+                if a and a not in got:
+                    got.append(a)
+            if got:
+                out[e["entry_id"]] = got
+    return out
+
+
+
+#: How fine a zone entry's geography is. The synopsis prints one quota table for Region 1
+#: "(excluding Haida Gwaii)" and a second for Haida Gwaii itself, rather than writing an
+#: exception list — so the narrower statement is the one that governs where it reaches, and
+#: the data needs to say which is narrower. There is no `excludes` operator and none is needed.
+_TIER = (("area:mu_group:", 2), ("area:region:", 1))
+
+
+def _area_tier(areas: list[str]) -> int:
+    for prefix, tier in _TIER:
+        if any(str(a).startswith(prefix) for a in areas or ()):
+            return tier
+    return 0
+
+
+def _set_by(eid: str, db, eareas: dict[str, list[str]] | None) -> tuple[str, int]:
+    """Who set this rule, in the curator's words, and how fine their geography is.
+
+    The page derived both from the entry id — `z1:` gave "Region 1" for every entry in the
+    Region 1 chapter. `z1:trout_quota` and `z1:hg_quota` are both filed there and they are
+    different jurisdictions: one is the region excluding Haida Gwaii, the other is Haida Gwaii.
+    On the Yakoun both are in force, and the screen showed Trout 4 above Trout/char 5 and
+    Kokanee 5 above Kokanee 10, every row labelled "Region 1".
+
+    Each zone entry already carries a display name that says exactly this, so it is read rather
+    than rebuilt. Returns ("", 0) for a water's own entry — it is not a zone at all.
+    """
+    if not str(eid).startswith("z"):
+        return "", 0
+    # NOT for the provincial chapter. `zp:` IS the province, and an entry there can be NAMED
+    # for a part of it: `zp:white_sturgeon_licence` is "Fraser watershed, Mission to Williams
+    # Lake River", which describes its licence and quota rules — but its third rule is an
+    # advisory scoped to every region ("the only white sturgeon fishery in the province's
+    # non-tidal waters"), and that one reaches the Yakoun River on Haida Gwaii. Labelled from
+    # the entry it read "Set by: Fraser watershed" on a river 800 km away.
+    #
+    # A region chapter has the opposite problem — "Region 1" is false for the Haida Gwaii
+    # table inside it — which is what the name is read for. The province is not ambiguous
+    # about which province it is.
+    if str(eid).startswith("zp:"):
+        return "", 0
+    row = db.execute("SELECT name FROM entry WHERE entry_id = ?", (eid,)).fetchone()
+    return (row[0] if row and row[0] else ""), _area_tier((eareas or {}).get(eid, []))
+
+
 def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "stream",
+               eareas: dict[str, list[str]] | None = None,
                want_item: str = ""):
     """One water's stretches, rules, cut-points and landmarks.
 
@@ -538,9 +632,40 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
             runs[-1]["to"] = km1
             runs[-1]["pts"].extend(pts)
             runs[-1]["n"] += 1
+            # A run is several sections merged, so its geography is the UNION of theirs — the
+            # same way `mus` is gathered below. Without this a stretch reported only the
+            # region of whichever section happened to open it.
+            for key, pref in (("regions", "area:region:"), ("mu_groups", "area:mu_group:")):
+                got = {a.split(":")[-1] for a in (getattr(n, "in_areas", None) or ())
+                       if a.startswith(pref)}
+                runs[-1][key] = sorted(set(runs[-1].get(key) or ()) | got)
+            runs[-1]["mus"] = sorted(set(runs[-1]["mus"])
+                                     | {m for m in (getattr(n, "mus", None) or ())})
         else:
             runs.append({"set": set_id, "from": km0, "to": km1, "pts": pts, "n": 1,
                          "mus": sorted({m for m in (getattr(n, "mus", None) or ())}),
+                         # THE MU NUMBER IS NOT THE REGION, and the page had no way to know it.
+                         #
+                         # It derived one by splitting the MU id at the dash — "6-13" -> Region
+                         # 6 — and used that to drop a zone rule belonging to another region.
+                         # Haida Gwaii is MUs 6-12 and 6-13 and is administered as REGION 1, so
+                         # on the Yakoun that test threw away all 25 Region 1 rules: the bait
+                         # ban, the barbless-hook rule, and the Haida Gwaii quota table itself.
+                         # The screen showed neither region's quotas.
+                         #
+                         # The atlas already knows. Every section's `in_areas` carries the
+                         # region polygon it falls inside — 1,956,214 of 1,957,890 sections
+                         # carry exactly one — so the answer is READ here rather than inferred
+                         # from a string that was never a region id.
+                         "regions": sorted({a.split(":")[-1]
+                                            for a in (getattr(n, "in_areas", None) or ())
+                                            if a.startswith("area:region:")}),
+                         # The MU GROUPS it falls in, for the same reason: "Management Units
+                         # 1-1 to 1-6" is a geography a regulation is written for, and a rule
+                         # scoped to it is not a regional default.
+                         "mu_groups": sorted({a.split(":")[-1]
+                                              for a in (getattr(n, "in_areas", None) or ())
+                                              if a.startswith("area:mu_group:")}),
                          "km": 0.0, "joins": [], "label": _bound_label(n.lower_bound),
                          # WHAT KIND OF THING BOUNDS IT. An AREA names both of its edges — the
                          # Chilliwack Ecological Reserve labels the stretch entering it AND the
@@ -797,8 +922,12 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 continue
             d = dict(zip([c[0] for c in cur.description], src))
             cond = json.loads(d["conditions"] or "{}")
+            _sb, _tier = _set_by(eid, db, eareas)
             rules.append({
                 "entry": eid, "rule": rid,
+                # WHO SET IT AND HOW NARROWLY — from the curated entry, not from the id prefix.
+                **({"setby": _sb} if _sb else {}),
+                **({"tier": _tier} if _tier else {}),
                 # THE CATALOGUE'S OWN WORDS. `kind`/`details` are gone: `type` is one of
                 # fifteen, `family` is the section a reader sees it under, and `label` is
                 # GENERATED, so this document cannot word a rule differently from the app.
@@ -833,7 +962,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 if e:
                     entries[eid] = {"name": e[0], "full": e[1], "verbatim": e[2],
                                     "symbols": json.loads(e[3] or "[]"),
-                                    "mus": json.loads(e[4] or "[]")}
+                                    "mus": json.loads(e[4] or "[]"),
+                                    "areas": (eareas or {}).get(eid, [])}
 
     # ---- rules this water HAS but the atlas could not place ----------------------
     #
@@ -880,7 +1010,8 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                     if e:
                         entries[eid] = {"name": e[0], "full": e[1], "verbatim": e[2],
                                         "symbols": json.loads(e[3] or "[]"),
-                                        "mus": json.loads(e[4] or "[]")}
+                                        "mus": json.loads(e[4] or "[]"),
+                                        "areas": (eareas or {}).get(eid, [])}
         unplaced.sort(key=lambda r: (r["entry"], r["rule"]))
 
     # `place_water.ckm` IS NOT CHAINAGE. It is centikm from the place TO the water, capped at
@@ -941,12 +1072,16 @@ def main() -> int:
     geoms = read_artifact(str(build / "geometries.pkl"))
     to_lonlat = _albers_to_lonlat()
 
+    eareas = _entry_areas()
+    log(f"  {len(eareas)} entries declare an area")
+
     out: dict[str, object] = {}
     for entry in WATERS:
         name, why = entry[0], entry[1]
         kind = entry[2] if len(entry) > 2 else "stream"
         want = entry[3] if len(entry) > 3 else ""
-        got = _one_water(db, graph, geoms, handles, to_lonlat, name, kind, want)
+        got = _one_water(db, graph, geoms, handles, to_lonlat, name, kind,
+                         eareas, want)
         if got is None:
             log(f"  ✗ {name}: no stream item of that name — SKIPPED")
             continue

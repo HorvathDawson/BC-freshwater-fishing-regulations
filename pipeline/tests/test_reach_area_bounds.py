@@ -1,0 +1,176 @@
+"""`within_area` and `outside_area` — the two ways an extent is bounded by a polygon.
+
+THE BOOK CARVES ONE REGION OUT OF ANOTHER AND THERE WAS NO WAY TO SAY SO. The synopsis prints
+"Region 1 Daily Quotas (excluding Haida Gwaii)" and then prints Haida Gwaii's own table beside
+it. Every op in the vocabulary only ever ADDS water, so the exclusion was unsayable: both
+tables bound the Yakoun River, and the app stated Trout 4 and Trout/char 5, Kokanee 5 and
+Kokanee 10, one above the other, with no way for a reader to choose.
+
+`outside_area` subtracts, mirroring `within_area`, which intersects. Both are applied at the
+same point — after the walk, never to the seed — because the walk is what leaves the area.
+
+`within_area` is tested here too because it had no test and no model field: the resolver read
+it and the prompt documented it, but `Extent` did not declare it, so pydantic's `extra="ignore"`
+dropped it on every round-trip. Three curated regulations use it.
+"""
+
+from __future__ import annotations
+
+from pipeline.atlas.reach.extent import resolve_extent
+from pipeline.common.models import FlowEdge, NodeKind, StreamGraph, StreamNode
+from pipeline.regs.parsing.entry_models import Extent
+
+
+def _n(nid):
+    return StreamNode(node_id=nid, kind=NodeKind.stream, blk=nid.split(":")[0],
+                      down_m=0.0, up_m=100.0, length_m=100.0, stream_order=1)
+
+
+def _graph():
+    g = StreamGraph()
+    g.nodes = {n.node_id: n for n in (_n("a:0"), _n("b:0"), _n("c:0"))}
+    g.edges = [FlowEdge(from_node="b:0", to_node="a:0", kind="tributary", at_measure=0.0)]
+    g.up_adj, g.down_adj = {"a:0": [0]}, {"b:0": [0]}
+    return g
+
+
+class _Item:
+    def __init__(self, sections=()):
+        self.section_ids = tuple(sections)
+        self.boundaries = ()
+        self.kind = "stream"
+        self.name = "x"
+
+
+#: `region` holds all three sections; `island` holds the two that are NOT the excluded one.
+REG = {
+    "area:region:1": _Item(["a:0", "b:0", "c:0"]),
+    "area:mu_group:hg": _Item(["c:0"]),
+    "area:mu_group:south": _Item(["a:0"]),
+}
+
+
+def _sections(ex: dict) -> set[str]:
+    got = resolve_extent(REG, _graph(), [], ex)
+    return set(got["sections"]) if got else set()
+
+
+def test_within_area_alone_takes_the_whole_area():
+    assert _sections({"op": "within", "area_id": "area:region:1"}) == {"a:0", "b:0", "c:0"}
+
+
+def test_outside_area_subtracts_the_named_polygon():
+    """The Region 1 quota table, headed '(excluding Haida Gwaii)'."""
+    assert _sections({"op": "within", "area_id": "area:region:1",
+                      "outside_area": "area:mu_group:hg"}) == {"a:0", "b:0"}
+
+
+def test_the_excluded_area_keeps_its_own_rules():
+    """Haida Gwaii's own table still reaches Haida Gwaii — the exclusion is one-directional."""
+    assert _sections({"op": "within", "area_id": "area:mu_group:hg"}) == {"c:0"}
+
+
+def test_outside_area_and_within_area_compose():
+    """Intersect, then subtract: 'Region 1, but only the south island, and not Haida Gwaii'."""
+    assert _sections({"op": "within", "area_id": "area:region:1",
+                      "within_area": "area:mu_group:south",
+                      "outside_area": "area:mu_group:hg"}) == {"a:0"}
+
+
+def test_outside_area_naming_nothing_is_a_failure_not_an_empty_carve_out():
+    """A misspelled id must not silently mean 'subtract nothing' — that ships the wider rule."""
+    assert resolve_extent(REG, _graph(), [], {"op": "within", "area_id": "area:region:1",
+                                              "outside_area": "area:mu_group:typo"}) is None
+
+
+def test_both_fields_survive_the_model():
+    """They are DECLARED, not passed through. `extra='ignore'` silently dropped `within_area`
+    on every round-trip, which widened the three curated regulations that use it."""
+    e = Extent(op="whole", within_area="area:region:5", outside_area="area:mu_group:hg")
+    back = Extent(**e.model_dump(exclude_defaults=True))
+    assert back.within_area == "area:region:5"
+    assert back.outside_area == "area:mu_group:hg"
+
+
+# --------------------------------------------------------------------------------------
+# The corpus, not a fixture. The synthetic tests above prove the operator works; this proves
+# it is actually wired to the two entries the book carves Haida Gwaii out of, across every
+# Region 1 water in the shipped bundle. That is the assertion that was false for real readers.
+# --------------------------------------------------------------------------------------
+
+import collections
+import sqlite3
+
+import pytest
+
+from pipeline.common.curated import GENERATED
+
+HG_MUS = {"6-12", "6-13"}
+HG_QUOTA = {"z1:hg_quota"}
+REGION_1_QUOTAS = {"z1:trout_quota", "z1:species_quotas"}
+#: Written for every stream of Region 1, Haida Gwaii included — the book's own preamble says
+#: "all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)".
+BOTH = {"z1:bait_ban_streams", "z1:single_barbless_hook"}
+
+
+def _region1_waters():
+    bundle = GENERATED.bundle / "bundle.sqlite"
+    if not bundle.exists():
+        pytest.skip("no bundle built")
+    db = sqlite3.connect(f"file:{bundle}?mode=ro", uri=True)
+    if not db.execute("SELECT 1 FROM sqlite_master WHERE type='table' "
+                      "AND name='ruleset'").fetchone():
+        pytest.skip("bundle predates the ruleset tables")
+    got: dict[str, set[str]] = collections.defaultdict(set)
+    names, kinds = {}, {}
+    for iid, name, kind, eid in db.execute(
+            "SELECT i.item_id, i.name, i.kind, rs.entry_id FROM ruleset rs"
+            " JOIN section_ruleset sr ON sr.set_id = rs.set_id"
+            " JOIN item_section isec ON isec.sid = sr.sid"
+            " JOIN item i ON i.ord = isec.ord"
+            " WHERE rs.entry_id LIKE 'z1:%' GROUP BY i.item_id, rs.entry_id"):
+        got[iid].add(eid)
+        names[iid], kinds[iid] = name, kind
+    mus = {iid: {m for (m,) in db.execute(
+        "SELECT DISTINCT value FROM entry, json_each(entry.mus) WHERE item_id = ?", (iid,))}
+        for iid in got}
+    return got, names, kinds, mus
+
+
+@pytest.mark.slow
+def test_haida_gwaii_takes_its_own_quotas_and_not_region_1s():
+    """The defect, stated as the corpus: on Haida Gwaii the book prints one quota table and
+    the app showed two, contradicting each other, both labelled "Region 1"."""
+    got, names, _kinds, mus = _region1_waters()
+    hg = [i for i in got if mus[i] and mus[i] <= HG_MUS]
+    assert hg, "no Haida Gwaii water carries a Region 1 rule — the fixture is wrong"
+    wrong = [(names[i], sorted(got[i] & REGION_1_QUOTAS)) for i in hg
+             if got[i] & REGION_1_QUOTAS]
+    assert not wrong, f"Region 1's '(excluding Haida Gwaii)' quotas reached Haida Gwaii: {wrong}"
+    missing = [names[i] for i in hg if not got[i] & HG_QUOTA]
+    assert not missing, f"Haida Gwaii waters with no Haida Gwaii quota table: {missing}"
+
+
+@pytest.mark.slow
+def test_the_island_keeps_region_1s_quotas_and_never_haida_gwaiis():
+    """The other half: an exclusion that over-reaches is as wrong as one that under-reaches."""
+    got, names, _kinds, mus = _region1_waters()
+    island = [i for i in got if mus[i] and not (mus[i] <= HG_MUS)]
+    assert island, "no mainland/island Region 1 water in the bundle"
+    leaked = [names[i] for i in island if got[i] & HG_QUOTA]
+    assert not leaked, f"Haida Gwaii's quotas reached water outside it: {leaked}"
+    lost = [names[i] for i in island if not got[i] & REGION_1_QUOTAS]
+    assert not lost, f"Region 1 waters that lost the region's quotas: {lost}"
+
+
+@pytest.mark.slow
+def test_the_rules_written_for_both_reach_both():
+    """The bait ban and the barbless-hook rule are written for every stream of Region 1 AND
+    Haida Gwaii. Subtracting the quota tables must not subtract these with them."""
+    got, names, kinds, mus = _region1_waters()
+    hg_streams = [i for i in got if kinds[i] == "stream" and mus[i] and mus[i] <= HG_MUS]
+    assert hg_streams, "no Haida Gwaii stream in the bundle"
+    for iid in hg_streams:
+        assert BOTH <= got[iid], (
+            f"{names[iid]} lost a rule written for Region 1 including Haida Gwaii: "
+            f"{sorted(BOTH - got[iid])}")

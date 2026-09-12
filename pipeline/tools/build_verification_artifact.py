@@ -39,6 +39,15 @@ SOURCE_PAGE = REPO_ROOT / "app" / "design" / "regs-v3.html"
 BUNDLE = REPO_ROOT / "data" / "generated" / "bundle" / "bundle.sqlite"
 
 
+
+def _page_order() -> list[str]:
+    """The water names in the order `regs-v3.html` lists them."""
+    data = json.loads(re.search(
+        r'<script id="d" type="application/json">(.*?)</script>',
+        SOURCE_PAGE.read_text(encoding="utf-8"), re.S).group(1))
+    return [n for n in data if not n.startswith("_")]
+
+
 def _squash(s: str) -> str:
     return " ".join((s or "").split())
 
@@ -469,6 +478,15 @@ def main() -> int:
     html = PAGE.read_text(encoding="utf-8")
     pack = json.loads(re.search(r'<script id="pack" type="application/json">(.*?)</script>',
                                 html, re.S).group(1))
+    # A PARTIAL RUN MERGES. `--waters "Yakoun River"` used to REPLACE the pack, so a one-water
+    # re-run silently cut the document from twenty-two sheets to one — and the result still
+    # looked finished, which is this document's whole failure mode. Order follows the page.
+    if waters:
+        by = {w["name"]: w for w in pack.get("waters", [])}
+        for w in got:
+            by[w["name"]] = w
+        order = {n: i for i, n in enumerate(_page_order())}
+        got = sorted(by.values(), key=lambda w: order.get(w["name"], 10_000))
     pack["waters"] = got                       # the CSS block is authored, not generated
     pack["matching"] = counts
     blob = json.dumps(pack, ensure_ascii=False, separators=(",", ":"))
