@@ -155,6 +155,18 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
   text-transform:uppercase;color:var(--ink)}
 .sect em{font:500 13px/17px var(--fig);color:var(--sub);font-style:normal;
   letter-spacing:0}
+/* The count, when it is also the way to see what it is counting. It has to read as the same
+   line it replaced — a reader is not being offered a new feature, they are being given the
+   rest of a sentence — so the figure keeps its own type and only the affordance is added. */
+.sect button.later{display:flex;align-items:baseline;gap:9px;text-align:right;
+  padding:0;background:none;border:0;cursor:pointer;color:inherit}
+.sect button.later .n{font:700 10px/14px var(--ui);letter-spacing:1.2px;color:var(--accent);
+  white-space:nowrap}
+.sect button.later:hover em,.sect button.later:focus-visible em{color:var(--ink)}
+.sect button.later:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Out of season is a state of the water, not a second authority, so this band is the quiet
+   grey of the rows it introduces rather than the accent the inherited band carries. */
+.from.later{background:var(--wash);border-left-color:var(--line2)}
 
 /* ---- stage 1: where ------------------------------------------------------- */
 .mapbox{position:relative;background:var(--tint);border-bottom:1px solid var(--line);
@@ -3199,6 +3211,30 @@ function build(name, mount){
    * A single-family block gets no heading: a heading over a list of one is noise, and most
    * short waters are one family.
    */
+  /*
+   * THE ORDER `rows()` WILL ACTUALLY PRINT, so the numbers can be assigned against it.
+   *
+   * `rows()` regroups its list by family before drawing. The numbering did not, and the
+   * comment that governs it — "IN THE ORDER THEY ARE SHOWN" — had quietly stopped being
+   * true: Shuswap Lake counted down 1, 2, 7, 9, 10, 11, 12, 13, 3, 4, 8, 5, 6. A reader
+   * pairing a row with its sentence in the source has to trust that sequence, and a sequence
+   * that jumps backwards reads as a bug in the page rather than an order they have missed.
+   *
+   * One function, used by both, so they cannot drift again.
+   */
+  function shownOrder(list){
+    var fams=FAMILIES.filter(function(f){
+      return list.some(function(x){ return x.family===f[0]; }); });
+    if(fams.length<2) return list.slice();
+    var out=[];
+    fams.forEach(function(f){
+      list.forEach(function(x){ if(x.family===f[0]) out.push(x); }); });
+    /* Anything whose family is not in FAMILIES would vanish from the numbering while still
+       being drawn, so it is kept, at the end, exactly as `rows()` would drop it. */
+    list.forEach(function(x){ if(out.indexOf(x)<0) out.push(x); });
+    return out;
+  }
+
   function rows(list, tag, num){
     var dup=dupSet(list);
     var row=function(x,i){
@@ -3212,6 +3248,8 @@ function build(name, mount){
       out.push('<div class="fam">'+esc(f[1])+'</div>');
       mine.forEach(function(x){ out.push(row(x, i++)); });
     });
+    list.forEach(function(x){ if(fams.every(function(f){ return x.family!==f[0]; }))
+      out.push(row(x, i++)); });
     return out.join("");
   }
 
@@ -3287,7 +3325,11 @@ function build(name, mount){
      * the same sequence.
      */
     var num=new Map(), seq=0;
-    nowOwn.concat(nowInh, nowZone, later).forEach(function(x){ num.set(x, ++seq); });
+    /* `later` moved UP, to sit with the water's own rules where the count that mentions it
+       is printed — so the numbering moves with it, or the contract above stops holding and
+       the reader counting down the list skips from 3 to 6 and back to 4. */
+    shownOrder(nowOwn).concat(shownOrder(nowInh), shownOrder(later), shownOrder(nowZone))
+      .forEach(function(x){ num.set(x, ++seq); });
 
     // THE SOURCE IS BUILT BEFORE THE ROWS, so a row knows whether its number has anywhere
     // to go. See `marked` for why some numbers cannot be anchored.
@@ -3304,7 +3346,7 @@ function build(name, mount){
      * rule's own sentence inside it exactly as it does for a synopsis row.
      */
     var byEntry=new Map();
-    nowOwn.concat(nowInh, nowZone, st.later?later:[], st.other?notMine:[]).forEach(function(x){
+    nowOwn.concat(nowInh, st.later?later:[], nowZone, st.other?notMine:[]).forEach(function(x){
       var e=(r.entries||{})[x.entry];
       if(!e||!e.verbatim) return;
       var zoneOf=(x.scope==="area")?authority(x.entry, e):null;
@@ -3438,18 +3480,42 @@ function build(name, mount){
      */
     var ownAll=own.concat(inh);
     var ownNow=nowOwn.length+nowInh.length;
-    h.push('<div class="sect"><span>Written for this '+NOUN+'</span><em>'
-      +(ownAll.length
-         ? (ownNow===ownAll.length
+    /*
+     * "15 OF 18 IN FORCE TODAY" RAISES A QUESTION, SO THE ANSWER GOES HERE.
+     *
+     * The other three were always on the page — greyed, behind a fold, correct — but the fold
+     * sat at the foot of the screen under the source block: 3,075 px below this line on the
+     * Harrison and 5,247 on Shuswap Lake. A reader who has just been told a number is short
+     * has no way to know a control exists five screens down, and scrolling past everything
+     * that IS in force is the wrong way to find what is not.
+     *
+     * So the count itself is the control, and the rules it names open directly beneath the
+     * water's own — still greyed by `.off`, because out of season is what they are, and still
+     * the same `st.later`.
+     */
+    var lateWord=later.length+(later.length===1?' rule':' rules')+' out of season';
+    h.push('<div class="sect"><span>Written for this '+NOUN+'</span>'
+      +(later.length
+         ? '<button class="later" data-later="1" aria-expanded="'+(st.later?"true":"false")
+           +'"><em>'+ownNow+' of '+ownAll.length+' in force today</em>'
+           +'<span class="n">'+(st.later?'HIDE':'SHOW')+' THE '+later.length+'</span></button>'
+         : '<em>'+(ownAll.length
              ? ownAll.length+(ownAll.length===1?' rule':' rules')
-             : ownNow+' of '+ownAll.length+' in force today')
-         : 'none yet')+'</em></div>');
+             : 'none yet')+'</em>')
+      +'</div>');
     h.push(groupBar());
     h.push(rows(nowOwn,'n',num));
     if(nowInh.length){
       h.push('<div class="from">Also in force here, written for the <b>'+esc(src)
         +'</b> and inherited by every water flowing into it.</div>');
       h.push(rows(nowInh,'i',num));
+    }
+    if(st.later&&later.length){
+      var nxl=nextChange(here);
+      h.push('<div class="from later">Written for this '+NOUN+' and <b>not in force today</b> '
+        +'&mdash; out of season, not lifted.'
+        +(nxl?' The next of them starts '+MON[nxl.d.month]+' '+nxl.d.day+'.':'')+'</div>');
+      h.push(rows(later,'l',num));
     }
     /*
      * THE ZONE RULES LAST, AND SAID TO BE GENERAL.
@@ -3642,15 +3708,10 @@ function build(name, mount){
         +'</span></span><span class="n">'+(st.other?"HIDE":"SHOW")+'</span></button>');
       if(st.other) h.push(rows(notMine,"o",num));
     }
-    if(later.length){
-      var nx=nextChange(here);
-      h.push('<button class="fold" data-later="1"><span><b>'+later.length
-        +' not in force today</b>'
-        +(nx?'<span class="nx">Next change '+MON[nx.d.month]+' '+nx.d.day+" — "
-          +esc(nx.r.label||nx.r.type)+'</span>':"")
-        +'</span><span class="n">'+(st.later?"HIDE":"SHOW")+'</span></button>');
-      if(st.later) h.push(rows(later,'l',num));
-    }
+    /* The out-of-season fold used to live here, at the foot of the screen. It is now the
+       count in the "written for this water" band, which is where a reader learns the number
+       is short — see there. Two controls for one `st.later` would have rendered the same
+       rules twice. */
     /*
      * A WORDING BLOCK PER ENTRY, and only for entries with a rule on this screen.
      *
