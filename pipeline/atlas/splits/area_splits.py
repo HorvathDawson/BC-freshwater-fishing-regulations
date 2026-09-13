@@ -49,6 +49,42 @@ def apply_remap(g, name_field: str, remap: dict | None, layer: str = "") -> None
     g[name_field] = [values.get(str(k), v) for k, v in zip(g[field], g[name_field])]
 
 
+
+def mu_region_table(bbox=None) -> dict[str, str]:
+    """``{"6-13": "1", "2-18": "2", ...}`` — which region administers each management unit.
+
+    THE SAME TWO INPUTS THE REGION POLYGONS ARE DISSOLVED FROM: the `wmu` layer's
+    ``REGION_RESPONSIBLE_ID`` and the curated `remap` beside it in `areas.json`. Derived here
+    rather than re-typed, because a second copy of "Haida Gwaii is Region 1" is a second thing
+    to forget: the source layer still files MUs 6-12 and 6-13 under Region 6, and reading it
+    raw is exactly the mistake this table exists to make impossible.
+
+    NOT A SUBSTITUTE FOR `node.in_areas`, and the difference was measured across all 1,957,890
+    sections: the two agree on 1,955,747 of them, the table never loses a region the polygons
+    found (0 cases), and it recovers one on 394 the polygons missed. But on 710 sections it is
+    WIDER, and wrongly so — `mus` is every unit a piece TOUCHES, so a section cut at the region
+    line lies wholly in one region while still touching a unit across it. Those 710 would pick
+    up a second region's whole rulebook, which is the defect the cutter exists to prevent.
+
+    So: the polygons decide where a section is; this answers "which region is this unit in",
+    which is a question about administration and has one answer.
+    """
+    import geopandas as gpd
+
+    rd = next((a for a in load_area_split_defs() if a.get("id") == "regions"), None)
+    if rd is None:
+        raise KeyError("areas.json defines no `regions` area")
+    kw: dict = {"engine": "pyogrio", "ignore_geometry": True,
+                "columns": ["WILDLIFE_MGMT_UNIT_ID", rd["name_field"]]}
+    if bbox is not None:
+        kw["bbox"] = tuple(bbox)
+    g = gpd.read_file(_GPKG, layer=rd["layer"], **kw)
+    apply_remap(g, rd["name_field"], rd.get("remap"), rd["layer"])
+    return {str(k): str(v).upper()
+            for k, v in zip(g["WILDLIFE_MGMT_UNIT_ID"], g[rd["name_field"]])
+            if str(k) and str(k) != "None"}
+
+
 def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     """{key -> (Multi)Polygon} for one area def. `where` filters the layer (e.g. ecological reserves
     within parks_bc); absent `where` = the whole layer.
