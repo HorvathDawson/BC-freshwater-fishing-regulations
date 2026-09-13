@@ -332,6 +332,13 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
   display:block;margin-top:2px}
 .quote .na{color:var(--quiet);opacity:.72}
 .naNote{padding:0 13px 11px;font:400 11px/15px var(--ui);color:var(--quiet)}
+/* Clauses inside one topic row: each keeps its own voice, and the dot is quiet enough that
+   the clauses read as a list rather than as one run-on sentence. */
+.qt .cl.muted{color:var(--quiet)}
+.qt .subt{display:block;font-weight:400;color:var(--sub)}
+.qt .cldot{color:var(--line2)}
+.qt em.clwho{font-style:normal;font-size:10.5px;color:var(--quiet);white-space:nowrap}
+.qt td.fish i.in+ , .qt td.fish{overflow-wrap:break-word}
 .qorder{padding:0 18px 9px;font:400 11.5px/16px var(--ui);color:var(--sub)}
 .qorder b{font-weight:700;color:var(--ink)}
 .qorder s{text-decoration:line-through;opacity:.75}
@@ -1876,6 +1883,41 @@ var GEAR_RANK={"bait:any":0, "bait:fin_fish":1, "bait:dead_fin_fish":1,
   barbless:2, hook_count:2, hook_points:2, max_gap_mm:2,
   lure:3, max_flies:3, max_lines:4, max_weight_kg:4, angling:5, other:6, unspecified:6};
 
+/*
+ * ONE ROW PER TOPIC, NOT ONE ROW PER RULE.
+ *
+ * `GEAR_RANK` has always grouped the angling dimensions into tiers — bait, then hooks, then
+ * what else is on the line — and nothing ever used them as GROUPS. So the Elk printed ten
+ * separate angling rows, four of them about bait, and a reader asking "can I use bait" had to
+ * find rows 2, 3, 4 and 10 of a nineteen-row table and put them together themselves.
+ *
+ * The tiers become rows. Every clause is still printed, in its own words, with its own
+ * authority where that differs from the rest of its topic — nothing is folded, nothing is
+ * summarised, nothing is dropped. What goes is nine repetitions of the row furniture: an
+ * indent marker, a table row, and a "Set by" cell carrying "Provincial" for the ninth time.
+ *
+ * It also puts the reader's own word in the left column. "BAIT" and "HOOKS" are what someone
+ * scans for; `dimWord` gave "Fin fish as bait", "Invertebrates as bait", "Roe" and "Barbs" as
+ * four unrelated labels, none of which is the word in the question.
+ */
+var GEAR_TOPIC={0:"bait", 1:"bait", 2:"hooks", 3:"line", 4:"line"};
+var GEAR_TOPIC_WORD={bait:"Bait", hooks:"Hooks", line:"Line & tackle", also:""};
+function topicOf(x){
+  var r=GEAR_RANK[x.dimension];
+  var t=(r==null) ? "" : (GEAR_TOPIC[r]||"");
+  if(t) return t;
+  /* A TACKLE RULE WITH NO DIMENSION IS STILL ABOUT THE LINE. The downrigger clause — 109
+     characters, the longest row in the table — carries `dimension: "unspecified"`, so it fell
+     out of every tier and took a row of its own. It is a rule about what may be attached to
+     the line, which is what "Line & tackle" means. */
+  if(x.type==="tackle_restriction") return "line";
+  /* EVERYTHING ELSE UNDER ONE ACTIVITY GOES IN ONE ROW. Crayfish trapping has three: that it
+     is permitted, that fin fish caught in a trap go back, and that small or berried crayfish
+     go back. Three rows, three "Provincial" cells and three indent markers to carry three
+     clauses about one activity. */
+  return "also";
+}
+
 /* "All other methods of taking fin fish and crayfish are illegal" closes the list — it is the
    last line of `zp:prohibited_methods` and says the lines above it are the whole of it. Picked
    by its identity rather than by its words: the sentence can be reworded, the rule cannot be
@@ -2015,6 +2057,13 @@ function gearTable(items, title, waterKind, extras){
     }
     else if(yes.length && !rest.length){ head="Permitted"; headWho=whereFrom(yes[0]); }
 
+    /*
+     * NO HEADER ROW WITH NOTHING IN IT. "Angling" carried an empty Rule cell and an empty
+     * Set by cell on every screen — a whole row to print one word that the topic rows beneath
+     * it (Bait, Hooks, Line & tackle) already imply. The header stays wherever it says
+     * something: "Not permitted here", "Permitted — non-game fish only", or a struck clause.
+     */
+    if(head || struck.length)
     rows.push('<tr class="act'+(no.length?" shut":"")+'">'
       +'<td class="fish">'+esc(ACT_WORD[a]||a)+'</td>'
       +'<td class="cond">'+(head?'<b>'+esc(head)+'</b>':'')
@@ -2078,14 +2127,43 @@ function gearTable(items, title, waterKind, extras){
       var act=ACTIVITY[ent] || actOf(e);
       if(act===a) show.push(e);
     });
+    /* Grouped in the order they arrive, which `show.sort` has already put in GEAR_RANK order,
+       so the topics come out bait, hooks, line — the order they change from water to water. */
+    var groups=[], byTopic={};
     show.forEach(function(x){
-      var muted=banOn && /^bait:/.test(String(x.dimension)) && x.dimension!=="bait:any";
-      rows.push('<tr class="sub'+(muted?" muted":"")+'">'
-        +'<td class="fish"><i class="in"></i></td>'
-        +'<td class="cond">'+esc(x.label)+partWords(x)
-          +(muted?' <em class="note">— the bait ban above applies</em>':'')
-          +(no.length?' <em class="note">— if it happens anyway</em>':'')+'</td>'
-        +'<td class="who">'+esc(whereFrom(x)+viaWords(x))+'</td></tr>');
+      var t=topicOf(x);
+      if(!t){ groups.push({t:"", items:[x]}); return; }
+      if(!byTopic[t]){ byTopic[t]={t:t, items:[]}; groups.push(byTopic[t]); }
+      byTopic[t].items.push(x);
+    });
+    groups.forEach(function(g){
+      var clause=function(x){
+        var muted=banOn && /^bait:/.test(String(x.dimension)) && x.dimension!=="bait:any";
+        return {muted:muted, who:whereFrom(x)+viaWords(x),
+                html:'<span class="cl'+(muted?" muted":"")+'">'+esc(x.label)+partWords(x)
+                  +(muted?' <em class="note">— the bait ban above applies</em>':'')
+                  +(no.length?' <em class="note">— if it happens anyway</em>':'')+'</span>'};
+      };
+      var cs=g.items.map(clause);
+      /* The row's authority is the one most of its clauses share; a clause that differs says
+         so inline, so the ladder survives the merge rather than being averaged away. */
+      var tally={}, best="", bestN=0;
+      cs.forEach(function(c){ tally[c.who]=(tally[c.who]||0)+1;
+        if(tally[c.who]>bestN){ bestN=tally[c.who]; best=c.who; } });
+      var body=cs.map(function(c){
+        return c.html + (c.who===best ? ""
+          : ' <em class="clwho">'+esc(c.who)+'</em>'); }).join('<span class="cldot"> · </span>');
+      /* Where the activity printed no header of its own, its first row carries the activity's
+         name instead of an indent marker — or the reader meets "Bait" with nothing saying what
+         activity it belongs to. */
+      var lead=(!head && !struck.length && g===groups[0]);
+      var word=lead ? (ACT_WORD[a]||a) : (GEAR_TOPIC_WORD[g.t]||"");
+      rows.push('<tr class="sub'+(cs.length===1&&cs[0].muted?" muted":"")+'">'
+        +'<td class="fish">'+(lead?"":'<i class="in"></i>')+esc(word)
+        +(lead&&GEAR_TOPIC_WORD[g.t]
+           ? '<span class="subt">'+esc(GEAR_TOPIC_WORD[g.t])+'</span>' : '')+'</td>'
+        +'<td class="cond">'+body+'</td>'
+        +'<td class="who">'+esc(best)+'</td></tr>');
     });
   });
   if(!rows.length) return "";
