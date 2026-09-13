@@ -331,6 +331,11 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt em.lead{font-style:normal;font-weight:600;color:var(--closed);font-size:11px;
   display:block;margin-top:2px}
 .qt em.also{font-style:normal;color:var(--quiet);font-size:11px;display:block;margin-top:2px}
+/* Replaced, not removed: struck through so a reader who came looking for it can see that a
+   narrower rule answered first, rather than that the page lost it. Faded alone would read as
+   "less important", which is not what happened to it. */
+.qt tr.over td{opacity:.6}
+.qt tr.over td.keep{text-decoration:line-through}
 
 .part{font-style:normal;font-weight:500;color:var(--restricted);font-size:11px;
   display:block;margin-top:2px}
@@ -1163,6 +1168,22 @@ function sameQuestion(x){
   return [speciesOf(x).join(","), x.period||"daily", x.water||"", x.origin||"",
           x.band?1:0, x.within||""].join("|");
 }
+/*
+ * THE SAME FISH, WHICH IS A LOOSER TEST THAN THE SAME QUESTION — deliberately.
+ *
+ * `sameQuestion` includes `within`, the id of the parent rule a limit narrows, because a size
+ * floor inside "trout/char = 1" is not the same statement as a standalone quota and the two
+ * must not be ranked against each other for strictness.
+ *
+ * The tributary ladder asks something simpler: is there anything written FOR this water about
+ * this fish. The Elk River's own bull trout line is a sub-limit of its trout/char quota, so by
+ * the stricter key it was a different question from "Kootenay Lake's tributaries: bull trout
+ * catch and release" and the two stood side by side — "none under 75 cm" above "release" — on
+ * the same fish, the same water and the same day.
+ */
+function sameFish(x){
+  return [speciesOf(x).join(","), x.period||"daily", x.water||"", x.origin||""].join("|");
+}
 
 function retentionTable(items, title, notes, waterKind){
   /*
@@ -1277,6 +1298,50 @@ function retentionTable(items, title, notes, waterKind){
   quotas=quotas.filter(function(x){ return records.indexOf(x)<0; });
 
   /*
+   * A RULE WRITTEN FOR THIS WATER BEATS ONE THAT ARRIVED BY THE TRIBUTARY WALK.
+   *
+   * The Elk River's own row says bull trout, none under 75 cm, June 15-Oct 31 — you may keep
+   * one over 75. "Kootenay Lake's tributaries: bull trout catch and release" reaches the Elk
+   * because the Elk drains into Kootenay Lake, and it says release everything. Both are true
+   * statements about bull trout on the same water on the same day, and the reader was shown
+   * both, one under the other, with "release" leading because it is the stricter of the two.
+   *
+   * Strictness is the wrong ladder here. A tributary rule is a DEFAULT for the tributaries
+   * that have no listing of their own; where the book gives a water its own line, that line is
+   * the answer — which is the same principle already applied when a water's rule narrows a
+   * regional default, one rung further down. The ladder, strongest first:
+   *
+   *   1  written for this water          `scope: section`, reached along its own reach
+   *   2  reached by the tributary walk    `scope: section`, `via: trib` — written for another
+   *                                        water, and true here only because this one flows in
+   *   3  a regional or provincial default `scope: area`
+   *
+   * ONLY WHILE THE WATER'S OWN RULE IS IN FORCE. The Elk's runs June 15 to October 31; outside
+   * those dates it is not an answer to anything, and the tributary rule is the only statement
+   * left standing. That falls out of testing `live()` and is not a special case.
+   *
+   * The beaten rule is struck, never dropped. A reader who has heard "bull trout are catch and
+   * release above Kootenay Lake" and cannot find it here has no way to learn that a narrower
+   * rule replaced it rather than that this page forgot it.
+   */
+  var tribBeaten={}, tribBeats={};
+  (function(){
+    var sets={};
+    quotas.forEach(function(x){
+      if(!live(x.windows) || x.scope!=="section") return;
+      (sets[sameFish(x)] = sets[sameFish(x)] || []).push(x);
+    });
+    for(var k in sets){
+      var g=sets[k];
+      var mine=g.filter(function(x){ return x.via!=="trib"; });
+      var trib=g.filter(function(x){ return x.via==="trib"; });
+      if(!mine.length || !trib.length) continue;
+      trib.forEach(function(x){ tribBeaten[x.rule]=1; });
+      mine.forEach(function(x){ tribBeats[x.rule]=1; });
+    }
+  })();
+
+  /*
    * WHERE TWO OF THE WATER'S OWN RULES ANSWER THE SAME QUESTION, the strictest leads.
    *
    * Only among rules that are LIVE — a January closure and a July quota are not in conflict,
@@ -1287,7 +1352,7 @@ function retentionTable(items, title, notes, waterKind){
   (function(){
     var sets={};
     quotas.forEach(function(x){
-      if(!live(x.windows) || x.scope!=="section") return;
+      if(!live(x.windows) || x.scope!=="section" || tribBeaten[x.rule]) return;
       (sets[sameQuestion(x)] = sets[sameQuestion(x)] || []).push(x);
     });
     for(var k in sets){
@@ -1469,7 +1534,8 @@ function retentionTable(items, title, notes, waterKind){
     // Only a real quota can be overridden to zero. A rule with no count — a size floor, a
     // paperwork duty — was rendered "0 (normally —)", a number it never had.
     if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
-    return '<tr'+(depth?' class="sub"':'')+'>'
+    var over=!!tribBeaten[l.rule];
+    return '<tr class="'+(depth?"sub":"")+(over?" over":"")+'">'
       +'<td class="fish">'+(depth?'<i class="in"></i>':'')+esc(who)+'</td>'
       +'<td class="keep'+(keep==="0"||keep==="release"?' zero':'')+'">'+esc(keep)
         +(was?' <s class="was">'+esc(was)+'</s>':'')+'</td>'
@@ -1478,6 +1544,12 @@ function retentionTable(items, title, notes, waterKind){
           ? ' <em class="lead">\u2014 the strictest of '+lead[l.rule]
             +' rules here for this fish; follow this one</em>' : '')
         +(alsoSaid[l.rule] ? ' <em class="also">\u2014 also written for this water</em>' : '')
+        +(tribBeats[l.rule]
+          ? ' <em class="lead">\u2014 written for this water; it governs over the rule '
+            +'inherited from upstream</em>' : '')
+        +(tribBeaten[l.rule]
+          ? ' <em class="also">\u2014 inherited as a tributary, and replaced here by this '
+            +'water\u2019s own rule</em>' : '')
         +partWords(l)
         +(noteFor(l).length
           ? '<em class="note"> — '+esc(noteFor(l)[0].label)+'</em>' : '')+'</td>'
@@ -3552,8 +3624,22 @@ function build(name, mount){
      * water's own — still greyed by `.off`, because out of season is what they are, and still
      * the same `st.later`.
      */
+    /*
+     * BUILT HERE, PRINTED AFTER THE TABLES.
+     *
+     * It used to lead the screen, which put four to eighteen rules — every one of them already
+     * tabulated below — between the reader and the tables that answer "may I keep this fish".
+     * On Shuswap Lake that was most of a phone screen of scrolling to reach the first number.
+     *
+     * The order is not a demotion. The tables are the ANSWER and they already mark which rows
+     * this water set; the ladder is the WORKING — the book's own lines, in the book's own
+     * words, in the order it prints them — and working belongs under the answer. It is built
+     * at this point because the numbering and the out-of-season split are computed here, with
+     * everything else that reads `here`.
+     */
     var lateWord=later.length+(later.length===1?' rule':' rules')+' out of season';
-    h.push('<div class="sect"><span>Written for this '+NOUN+'</span>'
+    var ladder=[];
+    ladder.push('<div class="sect"><span>Written for this '+NOUN+'</span>'
       +(later.length
          ? '<button class="later" data-later="1" aria-expanded="'+(st.later?"true":"false")
            +'"><em>'+ownNow+' of '+ownAll.length+' in force today</em>'
@@ -3562,19 +3648,21 @@ function build(name, mount){
              ? ownAll.length+(ownAll.length===1?' rule':' rules')
              : 'none yet')+'</em>')
       +'</div>');
-    h.push(groupBar());
-    h.push(rows(nowOwn,'n',num));
+    ladder.push(groupBar());
+    ladder.push(rows(nowOwn,'n',num));
     if(nowInh.length){
-      h.push('<div class="from">Also in force here, written for the <b>'+esc(src)
-        +'</b> and inherited by every water flowing into it.</div>');
-      h.push(rows(nowInh,'i',num));
+      ladder.push('<div class="from">Also in force here, written for the <b>'+esc(src)
+        +'</b> and inherited by every water flowing into it. Where this '+NOUN+' has a rule of '
+        +'its own about the same fish, that one governs and this is struck in the table above.'
+        +'</div>');
+      ladder.push(rows(nowInh,'i',num));
     }
     if(st.later&&later.length){
       var nxl=nextChange(here);
-      h.push('<div class="from later">Written for this '+NOUN+' and <b>not in force today</b> '
-        +'&mdash; out of season, not lifted.'
+      ladder.push('<div class="from later">Written for this '+NOUN+' and <b>not in force today'
+        +'</b> &mdash; out of season, not lifted.'
         +(nxl?' The next of them starts '+MON[nxl.d.month]+' '+nxl.d.day+'.':'')+'</div>');
-      h.push(rows(later,'l',num));
+      ladder.push(rows(later,'l',num));
     }
     /*
      * THE ZONE RULES LAST, AND SAID TO BE GENERAL.
@@ -3637,21 +3725,25 @@ function build(name, mount){
        *
        * It sat between the quota table and the gear table, reading as a footnote to the first
        * and a heading for the second, and saying "the one above governs" about rows that were
-       * by then out of view. But every table below starts as the REGION'S and the PROVINCE'S
-       * rules and is then edited by whatever this water says for itself — so the note is a
-       * preface, not an afterthought.
+       * by then out of view. Every table below starts as the REGION'S and the PROVINCE'S rules
+       * and is then edited by whatever this water says for itself — so the note is a preface.
        *
-       * It also has to be honest about what the editing can and cannot promise. A water rule
-       * replaces a regional one only where the app can see they are about the same thing; where
-       * it cannot, both rows are shown and neither is struck. Telling the reader to check the
-       * water's own row themselves is not a hedge, it is the accurate description.
+       * AND IT SHOULD NOT SOUND LIKE A GUARANTEE. The earlier wording described the merge as
+       * though it always worked: "a row marked this water is one we matched to a regional
+       * default and replaced". It is our attempt at a merge. It succeeds where the app can see
+       * that two rules are about the same fish; where it cannot, both rows stand and neither is
+       * struck, and the reader is the one who has to notice. Saying so plainly is not hedging —
+       * a reader who believes the page has resolved everything will stop looking, and that is
+       * the failure this sentence exists to prevent.
        */
-      h.push('<div class="from">Everything below starts as the rules for <b>where this water '
-        +'is</b>'+(muHere.length?' — MU'+(muHere.length>1?'s':'')+' '+esc(muHere.join(", ")):'')
-        +', and is then edited by what this '+NOUN+' says for itself. A row marked '
-        +'<b>this water</b> is one we matched to a regional default and replaced; where we '
-        +'could not match them, <b>both are shown and neither is struck</b> — so read this '
-        +NOUN+'\u2019s own rows above before relying on a regional number.</div>');
+      h.push('<div class="from">Below is <b>our best attempt</b> at merging what applies here: '
+        +'it starts as the rules for <b>where this water is</b>'
+        +(muHere.length?' — MU'+(muHere.length>1?'s':'')+' '+esc(muHere.join(", ")):'')
+        +', and is then edited by what this '+NOUN+' says for itself. Where we could see that '
+        +'two rules are about the same fish, the narrower one leads and the other is struck. '
+        +'<b>Where we could not, both are shown and neither is struck</b> — so check this '
+        +NOUN+'\u2019s own rules, printed in full below the tables, before relying on a '
+        +'regional number.</div>');
       h.push(closureBlock(own.concat(inh, zone), r.kind||"stream"));
       h.push(retentionTable(nowOwn.concat(nowInh, nowZone), "Quotas & closures here",
                             bucket, r.kind||"stream"));
@@ -3667,6 +3759,8 @@ function build(name, mount){
                        r.kind||"stream", bucket.gear));
       h.push(vesselTable(nowOwn.concat(nowInh, nowZone), "From a boat"));
       h.push(licenceTable(nowOwn.concat(nowInh, nowZone), "Licences & permission here"));
+      // THE WORKING, UNDER THE ANSWER. See where `ladder` is built.
+      h.push(ladder.join(""));
 
       /*
        * A FOOTNOTE IS A LIST, AND THE PROVINCE REPEATS ITSELF.
