@@ -330,6 +330,8 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt .why summary{font:500 11px/1.4 var(--ui);color:var(--accent);cursor:pointer}
 .qt em.lead{font-style:normal;font-weight:600;color:var(--closed);font-size:11px;
   display:block;margin-top:2px}
+.quote .na{color:var(--quiet);opacity:.72}
+.naNote{padding:0 13px 11px;font:400 11px/15px var(--ui);color:var(--quiet)}
 .qorder{padding:0 18px 9px;font:400 11.5px/16px var(--ui);color:var(--sub)}
 .qorder b{font-weight:700;color:var(--ink)}
 .qorder s{text-decoration:line-through;opacity:.75}
@@ -1412,6 +1414,7 @@ function retentionTable(items, title, notes, waterKind){
 
   var out=[];
   present.forEach(function(g){
+    lastWho=null;
     if(g.base) out.push(tr(g.base, g.name, 0));
     // A TOTAL ORDER. The old comparator returned -1 for compare(a,b) AND compare(b,a) when both
     // keys equalled the group's, so the block came out exactly reversed and the narrowing meant
@@ -1575,6 +1578,21 @@ function retentionTable(items, title, notes, waterKind){
     var codes=speciesOf(x);
     return codes.join(",")===g.code ? "" : speciesWords(codes);
   }
+  /*
+   * A REPEATED AUTHORITY IS NOT INFORMATION, AND SAYING IT FIVE TIMES HIDES THE ONE THAT MATTERS.
+   *
+   * Region 8's trout quota is one limit with three narrowings, and the column printed "Region 8"
+   * on all four rows. The table already blanks a repeated FISH for exactly this reason — a
+   * repeat renders blank and indented, which reads as "a narrowing of the row above" — and the
+   * same is true of who set it.
+   *
+   * It earns more than quiet: with the repeats gone, a row that says "this water" is the only
+   * ink in the column for several rows around it, which is precisely the row the legend above
+   * tells a reader to follow. Two rules keep it honest — every fish states its authority on its
+   * first row, and any row carrying a note (struck, replaced, or leading) always states its own,
+   * because those are the rows whose authority is the point.
+   */
+  var lastWho=null;
   function tr(l, who, depth){
     var keep=keepWord(l), was="", carried=null;
     /*
@@ -1606,6 +1624,15 @@ function retentionTable(items, title, notes, waterKind){
     // paperwork duty — was rendered "0 (normally —)", a number it never had.
     if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
     var over=!!tribBeaten[l.rule];
+    var whoCell=function(rule, subject){
+      var txt=whereFrom(rule)+viaWords(rule);
+      var must = !!subject                       // the first row of a fish
+              || !!tribBeaten[rule.rule] || !!tribBeats[rule.rule]
+              || !!lead[rule.rule] || !!alsoSaid[rule.rule];
+      var show = (!must && txt===lastWho) ? "" : txt;
+      lastWho = txt;
+      return show;
+    };
     return '<tr class="'+(depth?"sub":"")+(over?" over":"")+'">'
       +'<td class="fish">'+(depth?'<i class="in"></i>':'')+esc(who)+'</td>'
       +'<td class="keep'+(keep==="0"||keep==="release"?' zero':'')+'">'+esc(keep)
@@ -1632,7 +1659,7 @@ function retentionTable(items, title, notes, waterKind){
       // WITHOUT THIS the river's own quota and the region's default are typographically
       // identical, and the note under the table promising that "the one above governs" has
       // nothing to point at.
-      +'<td class="who">'+esc(whereFrom(l)+viaWords(l))+'</td></tr>';
+      +'<td class="who">'+esc(whoCell(l, who))+'</td></tr>';
   }
 }
 
@@ -1986,6 +2013,10 @@ var FOOTS={
   "z1:trout_quota":"size", "z2:trout_char_quota":"size", "z5:no_minimum_size_lakes":"size",
   "zp:barbless_single_hook_streams":"gear", "zp:prohibited_methods":"gear",
   "zp:crayfish_trapping":"gear", "zp:allowable_methods":"gear",
+  // "Some styles and sizes of legal traps are very effective at catching and drowning turtles…
+  // use traps with minimally-sized circular openings." It is advice about HOW TO TRAP, and it
+  // sat under Notices, a screen away from the crayfish-trap row it qualifies.
+  "z8:crayfish_traps_turtles":"gear",
   // "If you accidentally catch one, you must release it right away where you captured it."
   // "One" is a protected species, named in the rule this sentence sits beside — and in a list
   // of general duties it has no antecedent at all. It belongs under the table that names them.
@@ -2401,10 +2432,26 @@ function marked(verbatim, items){
     if(at) spans.push({a:at[0], b:at[1], n:it.n});
   });
   spans.sort(function(p,q){ return p.a-q.a || q.b-p.b; });
-  var out="", cur=0, shown=[];
+  /*
+   * THE SENTENCES THAT DID NOT REACH THIS WATER ARE GREYED, NOT LEFT LOOKING LIKE THE REST.
+   *
+   * A row's whole text is quoted, and only the sentences that produced a rule here are marked.
+   * The rest was drawn in the same ink as the marked ones — so `zp:white_sturgeon_licence`,
+   * which reaches the Okanagan River with ONE advisory ("the only white sturgeon fishery in the
+   * province's non-tidal waters"), showed a reader on the Okanagan the two sentences above it:
+   * "You must purchase a White Sturgeon Conservation Licence... from the CPR Bridge at Mission
+   * to and including Williams Lake River."
+   *
+   * They are kept, because the quote is the provenance and cutting it would make the page a
+   * paraphrase of the book rather than the book. They are greyed, and the caption underneath
+   * says what the grey means.
+   */
+  var out="", cur=0, shown=[], off=0;
+  var gap=function(t){ if(!t) return ""; off+=t.replace(/\s+/g,"").length;
+    return '<span class="na">'+esc(t)+'</span>'; };
   spans.forEach(function(s){
     if(s.a<cur) return;                       // overlapping matches: keep the first
-    out+=esc(raw.slice(cur,s.a))
+    out+=gap(raw.slice(cur,s.a))
         +'<mark id="src-'+s.n+'" data-back-to="'+s.n+'">'+esc(raw.slice(s.a,s.b))
         +'<i>'+s.n+'</i></mark>';
     shown.push(s.n);
@@ -2414,7 +2461,12 @@ function marked(verbatim, items){
      swallowed by an earlier one, gets no mark — and its number must not then link to a
      place that does not exist, inside the one feature whose whole promise is "here is
      where this came from". */
-  return {html: out+esc(raw.slice(cur)), shown: shown};
+  var tail=raw.slice(cur);
+  var html=out+gap(tail);
+  return {html: html, shown: shown,
+          /* how much of the row is NOT in force here, as a share of its non-space characters —
+             a caption is worth printing when it is a real part of the text, not a stray comma */
+          off: raw.replace(/\s+/g,"").length ? off/raw.replace(/\s+/g,"").length : 0};
 }
 
 /*
@@ -3591,10 +3643,26 @@ function build(name, mount){
      * which is also how the page they came from actually reads. `marked` then finds each
      * rule's own sentence inside it exactly as it does for a synopsis row.
      */
+    /*
+     * A ROW THAT CONTRIBUTES NOTHING TO THIS SCREEN IS NOT ITS PROVENANCE.
+     *
+     * `FOOTS` sends a few entries to `drop` — text that tells a reader nothing they can act on.
+     * The rule was dropped and the ROW was still quoted under "Where does this come from?", so
+     * the Okanagan River, which `zp:white_sturgeon_licence` reaches with one stray advisory,
+     * showed a reader the licence sentence above it: "You must purchase a White Sturgeon
+     * Conservation Licence… from the CPR Bridge at Mission to and including Williams Lake
+     * River." On the Okanagan.
+     *
+     * Only the rules that are NOT rendered are withheld — the same entry on the Fraser carries
+     * the licence and the quota, which are shown, so there it keeps its quote.
+     */
+    var dropped=function(x){
+      return FOOTS[x.entry]==="drop" && x.family==="information";
+    };
     var byEntry=new Map();
     nowOwn.concat(nowInh, st.later?later:[], nowZone, st.other?notMine:[]).forEach(function(x){
       var e=(r.entries||{})[x.entry];
-      if(!e||!e.verbatim) return;
+      if(!e||!e.verbatim || dropped(x)) return;
       var zoneOf=(x.scope==="area")?authority(x.entry, e):null;
       var k=zoneOf?("zone:"+zoneOf):e.verbatim;
       if(!byEntry.has(k)){
@@ -3612,7 +3680,28 @@ function build(name, mount){
     });
     var quotes=[];
     LINKABLE={};
-    byEntry.forEach(function(grp){
+    /*
+     * THE SAME LADDER THE TABLES USE. The block came out in whatever order the rules were
+     * visited, so on the Okanagan River it read: the river's own row, Region 8, the province,
+     * Region 8 again, the province again, and a Fraser entry last. A reader looking for "what
+     * does the region say" had to find both halves of it.
+     */
+    var rank=function(grp){
+      var r=(grp.items[0]||{}).rule||{};
+      var eid=String(r.entry||"");
+      if(eid.indexOf("zp:")===0) return 3;
+      if(/^z/.test(eid)) return 2;
+      return r.via==="trib" ? 1 : 0;
+    };
+    var ordered=[];
+    byEntry.forEach(function(grp){ ordered.push(grp); });
+    ordered.sort(function(a,b){
+      var ra=rank(a), rb=rank(b);
+      if(ra!==rb) return ra-rb;
+      var na=(a.e.name||""), nb=(b.e.name||"");
+      return na<nb?-1:na>nb?1:0;
+    });
+    ordered.forEach(function(grp){
       var m=marked(grp.e.verbatim, grp.items);
       m.shown.forEach(function(n){ LINKABLE[n]=1; });
       var pg=(grp.e.pages||[])[0];
@@ -3635,6 +3724,9 @@ function build(name, mount){
           ?'<div class="syms">'+grp.e.symbols.map(function(s){
               return '<span class="sym">'+esc(s)+'</span>'; }).join("")+'</div>':"")
         +'<pre>'+m.html+'</pre>'
+        +(m.off>0.12 && m.shown.length
+          ? '<div class="naNote">The greyed words are other parts of this row that do not '
+            +'apply here.</div>' : '')
         +'<a class="pdf" target="_blank" rel="noopener" href="'+esc(SYNOPSIS)
         +(pg?"#page="+pg:"")+'">Open the synopsis'+(pg?' at page '+pg:'')
         +' \u2197</a></div>');
