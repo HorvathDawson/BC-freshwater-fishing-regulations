@@ -418,8 +418,13 @@ def _species_groups() -> list[dict]:
     kin = {"TROUT_CHAR": ("TROUT", "CHAR"),
            "SALMON": ("SA",),
            "ALL_GAME_FISH": ("TROUT", "CHAR", "TROUT_CHAR", "WHITEFISH", "BASS")}
+    # `ALL_FIN_FISH` IS EVERY GROUP'S BUSINESS, NOT A GROUP OF ITS OWN. Three rules name it —
+    # "any fish snagged must be released", "release all fin fish caught in your trap", the Pine
+    # River's catch-and-release — and each is true of trout, of salmon, of bass alike. As its own
+    # chip it would sit beside "All game fish" saying almost the same words; listed in every
+    # group's codes it does what it says, and appears wherever the reader is looking.
     return [{"id": code.lower(), "name": _SPECIES_WORDS[code],
-             "codes": [code, *kin.get(code, ()), *SPECIES_GROUPS[code]]}
+             "codes": [code, *kin.get(code, ()), *SPECIES_GROUPS[code], "ALL_FIN_FISH"]}
             for code in ("TROUT_CHAR", "SALMON", "WHITEFISH", "BASS", "ALL_GAME_FISH")]
 
 

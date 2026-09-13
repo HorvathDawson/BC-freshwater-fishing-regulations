@@ -211,6 +211,31 @@ SPECIES_GROUPS["ALL_GAME_FISH"] = SPECIES_GROUPS["TROUT_CHAR"] + SPECIES_GROUPS[
 #: silently handed an empty list. `CP` (Carp) is nameable on its own because the sentence names it.
 SPECIES_GROUPS["NON_GAME_FISH"] = ()
 
+#: ALL FIN FISH — everything with fins, which is wider than the game-fish list.
+#:
+#: Three rules in the corpus say a set the vocabulary could not name, and all three were written
+#: down as `ALL_GAME_FISH` because the menu said to use it for "everything":
+#:
+#:   "any fish willfully or accidentally snagged must be released immediately"  (snagging)
+#:   "You must release all fin fish caught in your trap."                       (crayfish traps)
+#:   "Catch and release all fish upstream of the Hasler Road Bridge"            (Pine River)
+#:
+#: `ALL_GAME_FISH` is the provincial closed list. It excludes salmon, which are federal, and every
+#: non-game fish. So each of those sentences came out of the pipeline narrower than it was
+#: written — the page told a reader that a snagged carp or a snagged coho need not be released.
+#: That is the one direction a regulation must never be wrong in.
+#:
+#: It is EMPTY for the same reason `NON_GAME_FISH` is: it is not a list the province publishes,
+#: it is "everything that is a fish", and half of it (the non-game half) is an open complement
+#: that would go stale the moment it was written down. `expand_species` passes an empty group
+#: through, so a caller sees the claim the rule actually made rather than a silently short list.
+#:
+#: It does NOT include crayfish, which is exactly why the book's two sentences are worded the way
+#: they are: "All other methods of taking fin fish AND CRAYFISH are illegal" names both, and
+#: "release all fin fish caught in your trap" names only one — the crayfish in the trap are the
+#: point of the trap.
+SPECIES_GROUPS["ALL_FIN_FISH"] = ()
+
 #: PROTECTED SPECIES — the twelve taxa it is illegal to fish for at all, listed by name in the
 #: provincial regulations. Unlike NON_GAME_FISH this one IS enumerated, because the book
 #: enumerates it: a closed list of named fish is exactly what can be written down.
@@ -575,7 +600,7 @@ _SPECIES_WORDS = {
     # groups — the words the synopsis itself prints
     "ALL_GAME_FISH": "All game fish", "TROUT_CHAR": "Trout and char", "TROUT": "Trout",
     "CHAR": "Char", "WHITEFISH": "Whitefish", "BASS": "Bass", "SALMON": "Salmon",
-    "NON_GAME_FISH": "Non-game fish",
+    "NON_GAME_FISH": "Non-game fish", "ALL_FIN_FISH": "All fish",
     # the CSV's own "General" rows, kept distinct from our groups above
     "SLV": "Char", "WF": "Whitefish", "BS": "Bass", "SA": "Salmon", "SG": "Sturgeon",
     "P": "Perch",
@@ -639,13 +664,16 @@ def species_menu() -> str:
            "sentence names that fish (\"Bull trout: release\" -> `BT`). Never expand a group yourself.",
            "",
            "GROUPS — prefer these:"]
-    for code in ("ALL_GAME_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH", "BASS", "SALMON",
-                 "NON_GAME_FISH"):
+    for code in ("ALL_GAME_FISH", "ALL_FIN_FISH", "TROUT_CHAR", "TROUT", "CHAR", "WHITEFISH",
+                 "BASS", "SALMON", "NON_GAME_FISH"):
         members = SPECIES_GROUPS[code]
         gloss = {"ALL_GAME_FISH": "everything on the provincial closed list; NOT salmon",
                  "TROUT_CHAR": "the usual quota line — trout rules cover char unless char are excluded",
                  "SALMON": "federal; not part of ALL_GAME_FISH",
-                 "NON_GAME_FISH": "carp, suckers, chub and the rest — the spear rule's subject"}.get(code, "")
+                 "NON_GAME_FISH": "carp, suckers, chub and the rest — the spear rule's subject",
+                 "ALL_FIN_FISH": ("anything with fins — game fish, salmon AND non-game. Use it when "
+                                  "the sentence says \"any fish\" or \"fin fish\", NOT ALL_GAME_FISH, "
+                                  "which excludes salmon and every non-game fish")}.get(code, "")
         if not members:
             out.append(f"  `{code}` — {_SPECIES_WORDS[code]}" + (f"  · {gloss}" if gloss else ""))
             continue
@@ -659,7 +687,9 @@ def species_menu() -> str:
         out.append(f"  {family}: " + " · ".join(f"`{c}` {_SPECIES_WORDS[c]}" for c in codes))
     out += ["",
             "Leaving `species` empty is NOT 'all species' — it is refused on a retention rule.",
-            "Use `ALL_GAME_FISH`. Bait and tackle rules take no `species` at all (use",
+            "Use `ALL_GAME_FISH` for the game-fish list, or `ALL_FIN_FISH` when the sentence",
+            "says \"any fish\" / \"all fin fish\" and so covers salmon and non-game fish too.",
+            "Bait and tackle rules take no `species` at all (use",
             "`when_targeting` if the rule only applies when fishing FOR something)."]
     return "\n".join(out)
 

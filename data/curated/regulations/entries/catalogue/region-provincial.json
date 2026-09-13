@@ -771,7 +771,7 @@
      "verbatim": "You must release all fin fish caught in your trap.",
      "obligation": "must",
      "species": [
-      "ALL_GAME_FISH"
+      "ALL_FIN_FISH"
      ],
      "species_except": [
       "CRA"
@@ -931,7 +931,7 @@
      "verbatim": "any fish willfully or accidentally snagged must be released immediately",
      "obligation": "must",
      "species": [
-      "ALL_GAME_FISH"
+      "ALL_FIN_FISH"
      ],
      "species_except": [],
      "windows": [],

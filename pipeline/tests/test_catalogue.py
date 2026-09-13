@@ -378,3 +378,43 @@ def test_a_propulsion_rule_with_no_level_is_NOT_guessed():
                     "permitted": False, "verbatim": "No powered boats"}]}
     assert coerce_shapes(d) == 0
     assert "level" not in d["rules"][0]
+
+
+def test_all_fin_fish_is_wider_than_the_game_list():
+    """"Any fish" is not "all game fish", and the difference is salmon and every non-game fish.
+
+    Three rules in the corpus say a set wider than the provincial closed list — the snagging
+    release duty, the crayfish-trap release duty, and the Pine River's catch-and-release. All
+    three were written as ALL_GAME_FISH because the menu said to use it for "everything", which
+    told a reader that a snagged coho or a snagged carp need not be released.
+    """
+    from pipeline.regs.parsing.catalogue import (
+        KNOWN_SPECIES, SPECIES_GROUPS, expand_species, species_menu, species_words)
+
+    assert "ALL_FIN_FISH" in KNOWN_SPECIES
+    # Open, like NON_GAME_FISH: the non-game half is a complement that would go stale if listed.
+    assert SPECIES_GROUPS["ALL_FIN_FISH"] == ()
+    assert expand_species(["ALL_FIN_FISH"]) == ["ALL_FIN_FISH"]
+    assert species_words(["ALL_FIN_FISH"]) == "All fish"
+    # The menu must offer it, or the parser reaches for ALL_GAME_FISH again.
+    assert "`ALL_FIN_FISH`" in species_menu()
+
+
+def test_the_three_wider_than_game_rules_say_so():
+    """The curated entries for those three sentences must not claim the narrower set."""
+    import json
+    from pathlib import Path
+
+    want = {("zp:crayfish_trapping", "crayfish_trapping.r2"),
+            ("zp:prohibited_methods", "prohibited_methods.r3"),
+            ("r7:pine_river@7-32", "pine_river.r1")}
+    root = Path(__file__).resolve().parents[2] / "data/curated/regulations/entries/catalogue"
+    seen = set()
+    for f in root.glob("*.json"):
+        for entry in json.loads(f.read_text()).get("entries") or []:
+            for rule in entry.get("rules") or []:
+                key = (entry["entry_id"], rule["rule_id"])
+                if key in want:
+                    seen.add(key)
+                    assert rule["species"] == ["ALL_FIN_FISH"], f"{key} narrowed to {rule['species']}"
+    assert seen == want, f"missing: {want - seen}"

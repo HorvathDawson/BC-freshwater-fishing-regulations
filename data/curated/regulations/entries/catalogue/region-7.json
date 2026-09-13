@@ -12003,7 +12003,7 @@
           "verbatim": "Catch and release all fish upstream of the Hasler Road Bridge",
           "obligation": "must",
           "species": [
-            "ALL_GAME_FISH"
+            "ALL_FIN_FISH"
           ],
           "species_except": [],
           "windows": [],
