@@ -313,7 +313,14 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 /* The tables: a reference object, not a list. `who` is who set the rule, and it is a column
    because on a contradictory row (the province permits spear fishing, Region 2 forbids it) it
    is the only thing that tells the two lines apart. */
-.qt .who{font:500 11px/1.4 var(--fig);color:var(--quiet);white-space:nowrap;text-align:right}
+/* NO `nowrap` ON EITHER OF THESE ANY MORE.
+   Both were safe while the cells were short — "5" and "Region 4" — and both outgrew it: the
+   Keep cell now carries composite answers ("10 hatchery · release wild") and the figures they
+   replaced, and Set by carries a curated authority name ("Haida Gwaii (MUs 6-12, 6-13)",
+   "Every stream in Region 4"). Unwrappable, they pushed the quota table to 622 px inside a
+   409 px phone on the Fraser, and 19 of the 22 waters had a table that scrolled sideways. */
+.qt .who{font:500 11px/1.4 var(--fig);color:var(--quiet);text-align:right;
+  overflow-wrap:break-word}
 .qt .keep .was{opacity:.5;margin-left:5px;font-weight:400}
 .qt tr.sub .fish{padding-left:6px}
 .qt .in{display:inline-block;width:11px;height:7px;margin-right:5px;
@@ -406,7 +413,7 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt .wasx{opacity:.5;text-decoration:line-through;font-weight:400}
 .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 10px}
 .tw .qt{margin-bottom:0}
-.qt .who{white-space:nowrap}
+/* (the `nowrap` that used to be here is gone — see the rule above) */
 @media (max-width:430px){
   .qt{font-size:12px}
   .qt th,.qt td{padding-right:7px}
@@ -486,8 +493,23 @@ a.no:hover{text-decoration:underline}
 .qt th{font:700 9.5px var(--fig);letter-spacing:.1em;text-transform:uppercase;
   color:var(--faint);text-align:left;padding:5px 10px 5px 0;
   border-bottom:1.5px solid var(--ink)}
-.qt td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
-.qt .keep{font:700 14px var(--fig);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qt td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);vertical-align:top;
+  overflow-wrap:break-word}
+/* THE COLUMNS ARE PROPORTIONED, NOT MEASURED FROM THEIR CONTENT.
+   `auto` layout sizes a column to its widest unbreakable run, so one long authority name or a
+   composite Keep value silently widened the whole table and the reader lost a column off the
+   right edge. Fixed proportions give the Conditions column the slack — it is the one that can
+   always take another line — and guarantee the table is exactly as wide as the screen. */
+.qt{table-layout:fixed}
+.qt .fish{width:26%}
+.qt .keep{width:19%}
+.qt .cond{width:33%}
+.qt .who{width:22%}
+.qt.gt .fish{width:25%}
+.qt.gt .cond{width:48%}
+.qt.gt .who{width:27%}
+.qt .keep{font:700 14px var(--fig);font-variant-numeric:tabular-nums;
+  overflow-wrap:break-word}
 .qt .zero{color:var(--closed)}
 .qt .fish{font-weight:600}
 .qt .cond{color:var(--sub);font-size:11.5px}
