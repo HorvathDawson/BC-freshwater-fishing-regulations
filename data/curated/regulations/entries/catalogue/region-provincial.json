@@ -1552,7 +1552,13 @@
      "reason": "",
      "extent_text": "within 23 m downstream of any fishway, canal, obstacle or leap",
      "needs_review": true,
-     "review_reason": "STANDING: no dataset of fishways, canals, obstacles or leaps exists, so this cannot be bound to a reach. Show on every water; keep out of the override contest."
+     "review_reason": "STANDING: no dataset of fishways, canals, obstacles or leaps exists, so this cannot be bound to a reach. Show on every water; keep out of the override contest.",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
     },
     {
      "rule_id": "no_fishing_buffers.r2",
@@ -1582,7 +1588,13 @@
      "reason": "",
      "extent_text": "within 100 m of any government fish counting, passing or rearing facility",
      "needs_review": true,
-     "review_reason": "STANDING: no dataset of government fish facilities exists."
+     "review_reason": "STANDING: no dataset of government fish facilities exists.",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "region"
+      }
+     ]
     },
     {
      "rule_id": "no_fishing_buffers.r3",
@@ -2501,7 +2513,13 @@
      "reason": "",
      "extent_text": "a provincial licence is not valid inside a National Park",
      "needs_review": true,
-     "review_reason": "NOT 'no licence required': the provincial licence does not WORK there and a National Park Fishing Permit is needed instead. Encoding it as required=False on basic_licence told the reader they need nothing."
+     "review_reason": "NOT 'no licence required': the provincial licence does not WORK there and a National Park Fishing Permit is needed instead. Encoding it as required=False on basic_licence told the reader they need nothing.",
+     "extents": [
+      {
+       "op": "within",
+       "area_kind": "national_parks"
+      }
+     ]
     },
     {
      "rule_id": "basic_licence.r3",
@@ -3494,7 +3512,21 @@
      "reason": "",
      "extent_text": "Pacific Rim, Gwaii Haanas and Gulf Islands National Park Reserves",
      "needs_review": true,
-     "review_reason": "An UNCONDITIONAL closure on three named reserves. zp:superior_closures says 'prohibited unless opened' — this says closed, full stop, and the two are different."
+     "review_reason": "An UNCONDITIONAL closure on three named reserves. zp:superior_closures says 'prohibited unless opened' — this says closed, full stop, and the two are different.",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:national_parks:pacific_rim_national_park_reserve_of_canada"
+      },
+      {
+       "op": "within",
+       "area_id": "area:national_parks:gwaii_haanas_national_park_reserve_and_haida_heritage_site"
+      },
+      {
+       "op": "within",
+       "area_id": "area:national_parks:southern_gulf_islands_national_park_reserve_of_canada"
+      }
+     ]
     },
     {
      "rule_id": "national_park_reserves.r2",
