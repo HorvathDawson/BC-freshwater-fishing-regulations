@@ -1187,7 +1187,11 @@ function sameQuestion(x){
  * the same fish, the same water and the same day.
  */
 function sameFish(x){
-  return [speciesOf(x).join(","), x.period||"daily", x.water||"", x.origin||""].join("|");
+  /* NO `water` IN THIS KEY. It is what the water-kind ladder compares — "kokanee 15" against
+     "no fishing for kokanee in streams" — so including it would put the two rules in different
+     buckets and there would be nothing to rank. `sameQuestion` still keys on it, because for
+     ranking strictness a lake limit and a stream limit really are two different limits. */
+  return [speciesOf(x).join(","), x.period||"daily", x.origin||""].join("|");
 }
 
 function retentionTable(items, title, notes, waterKind){
@@ -1335,6 +1339,70 @@ function retentionTable(items, title, notes, waterKind){
    * then has to work out that the un-struck row is the live one. "Follow this one" is the whole
    * message, and the struck row below carries the explanation.
    */
+  /*
+   * A RULE THAT NAMES THIS KIND OF WATER BEATS ONE THAT NAMES NO KIND.
+   *
+   * Region 4 writes two things about kokanee: "Kokanee: 15 per day (no more than 5 over 30 cm)",
+   * which names no water kind, and "No fishing for kokanee in streams", which names streams. On
+   * the Elk River — a stream — all three rows were printed together, so the table said you may
+   * not fish for kokanee AND that you may keep fifteen of them, with nothing choosing.
+   *
+   * `sameQuestion` keys on `water`, deliberately: a lake limit and a stream limit are two
+   * different limits and both belong in a corpus. But on a screen that IS a stream, the rule
+   * naming streams is the narrower statement about the same fish, and it governs.
+   *
+   * ONLY where the kinds actually differ and one of them is THIS water's. Two rules that both
+   * name streams are the ordinary case the strictest pass handles.
+   */
+  var kindBeaten={}, kindBeats={};
+  (function(){
+    if(!waterKind) return;
+    var sets={};
+    quotas.forEach(function(x){
+      if(!live(x.windows)) return;
+      (sets[sameFish(x)] = sets[sameFish(x)] || []).push(x);
+    });
+    for(var k in sets){
+      var g=sets[k];
+      /*
+       * A NARROWING CANNOT REPLACE THE THING IT NARROWS.
+       *
+       * Region 4 writes "trout and char — 5 per day" and, INSIDE it, "2 per day, from streams".
+       * The second names streams, so on a river it looked like the narrower statement and struck
+       * its own parent — which deleted the 5 that the 2 is a part of, and struck the river's own
+       * "1 per day" with it. A rule with a `within` is a clause of its parent; only a standalone
+       * statement can replace one.
+       *
+       * `trout_char_winter_release` is the case this ladder is FOR: "release all, from streams,
+       * Nov 1 - Mar 31" has no parent, so in winter it does govern the regional 5, and does.
+       */
+      /*
+       * AND A SIZE LIMIT IS NOT A REPLACEMENT EITHER. Haida Gwaii writes "trout/char 5" and
+       * "release all UNDER 30 CM from streams". The second names streams and has no parent, so
+       * it read as the narrower statement and struck the 5 — telling a reader on the Yakoun to
+       * release every trout, when the book releases only the small ones. A rule carrying a size
+       * bound is qualifying WHICH fish, not whether the quota applies.
+       *
+       * `trout_char_winter_release` has no size bound: "release all, from streams, Nov 1 - Mar
+       * 31" really does replace the quota for those months, and still does.
+       */
+      var here=g.filter(function(x){
+        return x.water===waterKind && !x.within
+            && x.over_cm==null && x.under_cm==null; });
+      var any=g.filter(function(x){ return !x.water && !x.within; });
+      if(!here.length || !any.length) continue;
+      here.forEach(function(x){ kindBeats[x.rule]=1; });
+      any.forEach(function(x){ kindBeaten[x.rule]=1; });
+    }
+    /* A beaten rule takes its own clauses with it: the sub-limits of a quota that does not
+       apply here do not apply either, and leaving them standing under a struck parent is how
+       "no more than 5 over 30 cm" survives the death of the 15 it was carving up. */
+    for(var pass=0; pass<4; pass++){
+      quotas.forEach(function(x){
+        if(x.within && kindBeaten[x.within]) kindBeaten[x.rule]=1; });
+    }
+  })();
+
   var tribBeaten={}, tribBeats={};
   (function(){
     var sets={};
@@ -1363,7 +1431,8 @@ function retentionTable(items, title, notes, waterKind){
   (function(){
     var sets={};
     quotas.forEach(function(x){
-      if(!live(x.windows) || x.scope!=="section" || tribBeaten[x.rule]) return;
+      if(!live(x.windows) || x.scope!=="section"
+         || tribBeaten[x.rule] || kindBeaten[x.rule]) return;
       (sets[sameQuestion(x)] = sets[sameQuestion(x)] || []).push(x);
     });
     for(var k in sets){
@@ -1376,6 +1445,40 @@ function retentionTable(items, title, notes, waterKind){
       lead[g[0].rule]=g.length;
       g.slice(1).forEach(function(x){ alsoSaid[x.rule]=1; });
     }
+  })();
+
+  /*
+   * "BASS - NO LIMIT" DIRECTLY ABOVE "SMALLMOUTH BASS - 4 PER DAY".
+   *
+   * Elk Lake's own row limits smallmouth bass to four; Region 1 says bass are unlimited. Both
+   * are true — largemouth really is unlimited there — so NEITHER may be struck, and the two
+   * cannot be merged: they are about different, overlapping sets of fish. But printed as two
+   * plain rows the first reads as the answer, and a reader keeps ten smallmouth.
+   *
+   * So the broader row carries a pointer to the narrower one. A cross-reference, not a ruling:
+   * it says where to look rather than deciding for a fish the narrow rule does not cover.
+   */
+  var narrowedBy={};
+  (function(){
+    quotas.forEach(function(b){
+      if(!live(b.windows)) return;
+      var big=speciesOf(b);
+      if(big.length!==1) return;                       // only a collective name like "bass"
+      quotas.forEach(function(n){
+        if(n===b || !live(n.windows)) return;
+        var small=speciesOf(n);
+        if(small.length!==1 || small[0]===big[0]) return;
+        /* the narrow rule must be a MEMBER of the broad one's group and must say something
+           different, or this fires on every fish that shares a filter group */
+        var g=(GROUPS||[]).filter(function(q){ return q.codes.indexOf(big[0])>=0
+                                                   && q.codes.indexOf(small[0])>=0; });
+        if(!g.length) return;
+        if(SPECIES[big[0]]===undefined || SPECIES[small[0]]===undefined) return;
+        if(String(SPECIES[small[0]]||"").toLowerCase()
+             .indexOf(String(SPECIES[big[0]]||"").toLowerCase())<0) return;  // "smallmouth bass" in "bass"
+        (narrowedBy[b.rule]=narrowedBy[b.rule]||[]).push(SPECIES[small[0]]);
+      });
+    });
   })();
 
   var byId={}; quotas.forEach(function(x){ byId[x.rule]=x; });
@@ -1623,11 +1726,12 @@ function retentionTable(items, title, notes, waterKind){
     // Only a real quota can be overridden to zero. A rule with no count — a size floor, a
     // paperwork duty — was rendered "0 (normally —)", a number it never had.
     if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
-    var over=!!tribBeaten[l.rule];
+    var over=!!tribBeaten[l.rule] || !!kindBeaten[l.rule];
     var whoCell=function(rule, subject){
       var txt=whereFrom(rule)+viaWords(rule);
       var must = !!subject                       // the first row of a fish
               || !!tribBeaten[rule.rule] || !!tribBeats[rule.rule]
+              || !!kindBeaten[rule.rule] || !!kindBeats[rule.rule]
               || !!lead[rule.rule] || !!alsoSaid[rule.rule];
       var show = (!must && txt===lastWho) ? "" : txt;
       lastWho = txt;
@@ -1642,7 +1746,16 @@ function retentionTable(items, title, notes, waterKind){
           ? ' <em class="lead">\u2014 the strictest of '+lead[l.rule]
             +' rules here for this fish; follow this one</em>' : '')
         +(alsoSaid[l.rule] ? ' <em class="also">\u2014 also written for this water</em>' : '')
-        +(tribBeats[l.rule] ? ' <em class="lead">\u2014 follow this one</em>' : '')
+        +((tribBeats[l.rule]||kindBeats[l.rule])
+          ? ' <em class="lead">\u2014 follow this one</em>' : '')
+        +(narrowedBy[l.rule]
+          ? ' <em class="also">\u2014 but see '
+            +esc(narrowedBy[l.rule].filter(function(v,i,a){return a.indexOf(v)===i;}).join(" and "))
+            +' below, which is limited separately</em>' : '')
+        +(kindBeaten[l.rule]
+          ? ' <em class="also">\u2014 the general limit for any water; on this '
+            +(waterKind==="lake"?"lake":"river")+' the '
+            +(waterKind==="lake"?"lake":"stream")+' rule for this fish governs</em>' : '')
         +(tribBeaten[l.rule]
           ? ' <em class="also">\u2014 inherited from upstream, and replaced by this '
             +(waterKind==="lake"?"lake":"river")+'\u2019s own rule above</em>' : '')
@@ -1781,9 +1894,28 @@ function actOf(x){
    are in, not about how the fish is caught, and mixing them into the method list put "electric
    motor only" between "single barbless hook" and "no set lines". Separate question, separate
    table — and on a water with no vessel rule at all, no table. */
-function vesselTable(items, title){
+/*
+ * A CATEGORY MAY NOT VANISH WHILE A RULE OF THAT CATEGORY IS ON THE PAGE.
+ *
+ * Elk Lake has four boat rules — engine power 7.5 kW, no vessels, no powered boats, no towing —
+ * and every one of them is in the unplaced block, because the book puts them "on parts" of the
+ * lake and names no boundary. So the table had nothing to draw and returned nothing, and the
+ * screen carried no "From a boat" heading at all. A missing section reads as "no restriction
+ * here", which is the opposite of the truth, and it reads that way silently.
+ *
+ * `unplacedCount` is the number of boat rules this water has that could not be placed. When
+ * there is nothing to show but something to warn about, the section renders as the warning.
+ */
+function vesselTable(items, title, unplacedCount){
   var v=items.filter(function(x){ return x.family==="vessel" && live(x.windows); });
-  if(!v.length) return "";
+  if(!v.length){
+    if(!unplacedCount) return "";
+    return '<div class="qtitle">'+esc(title||"From a boat")+'</div>'
+      +'<div class="qorder"><b>No boat or motor rule we could place on this water.</b> '
+      +unplacedCount+' boat rule'+(unplacedCount===1?" is":"s are")+' listed below, under '
+      +'&ldquo;in a place we could not map&rdquo; &mdash; the book gives '
+      +(unplacedCount===1?"it":"them")+' by landmark or by sign. Check on the water.</div>';
+  }
   var seen={}, rows=[];
   v.sort(function(a,b){ return (a.scope==="section"?0:1)-(b.scope==="section"?0:1); });
   v.forEach(function(x){
@@ -2032,7 +2164,16 @@ var FOOTS={
   "z4:tributaries_of_lakes":"drop",
   // "Please report any lake trout you catch in the Kootenay Region." It is about lake trout and
   // nothing else, so it rides on the lake trout row.
-  "z4:report_lake_trout":"onrow"
+  "z4:report_lake_trout":"onrow",
+  // NEITHER OF THESE IS A DUTY, AND NEITHER APPLIES EVERYWHERE IN B.C.
+  //
+  // The mercury advisory is a health warning addressed to pregnant and breastfeeding readers,
+  // and it was folded inside "9 duties that apply everywhere in B.C. - handling, transport and
+  // sale of your catch" — on the one screen that tells a reader how many fish to take home.
+  // The Syilx Okanagan Nation's territorial statement was in the same drawer, which both
+  // misdescribes it and hides it. They are notices, they are regional, and they stay open.
+  "z1:mercury_advisory":"notice",
+  "z8:syilx_territory":"notice"
 };
 /*
  * A LAKE FACT ON A RIVER IS NOISE, wherever the sentence ends up printed.
@@ -3976,7 +4117,11 @@ function build(name, mount){
        */
       h.push(gearTable(nowOwn.concat(nowInh, nowZone), "How you may fish here",
                        r.kind||"stream", bucket.gear));
-      h.push(vesselTable(nowOwn.concat(nowInh, nowZone), "From a boat"));
+      h.push(vesselTable(nowOwn.concat(nowInh, nowZone), "From a boat",
+                         /* `r.unplaced`, not the local `unplaced` — that is declared further
+                            down this function, so at this point it is a hoisted undefined. */
+                         (r.unplaced||[]).filter(function(x){
+                           return x.family==="vessel" && live(x.windows); }).length));
       h.push(licenceTable(nowOwn.concat(nowInh, nowZone), "Licences & permission here"));
       // THE WORKING, UNDER THE ANSWER. See where `ladder` is built.
       h.push(ladder.join(""));
