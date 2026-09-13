@@ -334,6 +334,13 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .naNote{padding:0 13px 11px;font:400 11px/15px var(--ui);color:var(--quiet)}
 /* Clauses inside one topic row: each keeps its own voice, and the dot is quiet enough that
    the clauses read as a list rather than as one run-on sentence. */
+/* The summary line for a fish: the answer, and how much is behind it. */
+.qt tr.sumr>td{cursor:pointer;background:var(--card)}
+.qt tr.sumr .nx{font:400 11px/15px var(--ui);color:var(--quiet)}
+.qt tr.sumr .chev{display:inline-block;margin-left:7px;font:600 12px/1 var(--mono);
+  color:var(--accent)}
+.qt tr.sumr.clash>td{background:color-mix(in srgb,var(--closed) 7%,transparent)}
+.qt tr.ch>td{background:var(--wash)}
 .qt .cl.muted{color:var(--quiet)}
 .qt .subt{display:block;font-weight:400;color:var(--sub)}
 .qt .cldot{color:var(--line2)}
@@ -1211,7 +1218,9 @@ function sameFish(x){
   return [speciesOf(x).join(","), x.period||"daily", x.origin||""].join("|");
 }
 
-function retentionTable(items, title, notes, waterKind){
+/* `openFish` is the per-water open/closed state for the fish folds. Passed in rather than
+   read from `st`, which belongs to one water's closure and is not in scope here. */
+function retentionTable(items, title, notes, waterKind, openFish){
   /*
    * A STREAM RULE DOES NOT GOVERN A LAKE, AND THE BINDING LAYER DOES NOT KNOW THAT.
    *
@@ -1371,7 +1380,7 @@ function retentionTable(items, title, notes, waterKind){
    * ONLY where the kinds actually differ and one of them is THIS water's. Two rules that both
    * name streams are the ordinary case the strictest pass handles.
    */
-  var kindBeaten={}, kindBeats={};
+  var kindBeaten={}, kindBeats={}, cascadedFrom={};
   (function(){
     if(!waterKind) return;
     var sets={};
@@ -1436,7 +1445,20 @@ function retentionTable(items, title, notes, waterKind){
        "no more than 5 over 30 cm" survives the death of the 15 it was carving up. */
     for(var pass=0; pass<4; pass++){
       quotas.forEach(function(x){
-        if(x.within && kindBeaten[x.within]) kindBeaten[x.rule]=1; });
+        if(x.within && kindBeaten[x.within] && !kindBeaten[x.rule]){
+          kindBeaten[x.rule]=1;
+          /* WHOSE LIMIT THIS WAS A PART OF. A clause struck because its parent was struck has
+             no winner of its own to sit beside — "Bull trout and Dolly Varden - 1" is a clause
+             of the regional trout/char quota, and when that quota is replaced this is replaced
+             with it. Rendered as a bare "replaced" it pointed at nothing, and after the fish
+             folds landed the rule that replaced it was inside a collapsed block. */
+          /* Found by scanning, not through `byId` — that map is built further down this
+             function, so here it is a hoisted undefined. */
+          var par=null;
+          for(var qi=0; qi<quotas.length; qi++)
+            if(quotas[qi].rule===x.within){ par=quotas[qi]; break; }
+          if(par) cascadedFrom[x.rule]=speciesWords(speciesOf(par)).toLowerCase();
+        } });
     }
   })();
 
@@ -1626,6 +1648,104 @@ function retentionTable(items, title, notes, waterKind){
   });
   if(!out.length && !shutAll.length) return "";
 
+  /*
+   * ONE ROW PER FISH, AND THE CHAIN BEHIND IT ON REQUEST.
+   *
+   * The Fording in November spent eight rows on trout and char: a struck regional 5, the
+   * river's own release, the stream rule that governs, a struck sub-limit, and three more.
+   * All of it true, all of it needed by somebody, and none of it the answer to "can I keep a
+   * trout here today" — which is one word.
+   *
+   * So the fish gets a line with that word on it, and the rows that produced it fold underneath
+   * it. NOTHING IS REMOVED: every row that was on the screen is still on the screen, in the
+   * same order, with its strike, its note and its authority — one tap away instead of in your
+   * way. The summary line names the authority that governs, so the custody chain starts on the
+   * collapsed row rather than beginning only once you open it.
+   *
+   * WHERE IT CANNOT RESOLVE, IT DOES NOT PRETEND TO. Measured over the corpus: 322 of 353 live
+   * fish-groups have one answer at their strongest authority. The other 31 print both values
+   * and open by default — an unresolved contradiction is the one thing that must never be
+   * behind a tap.
+   */
+  var blocks=[], cur=null;
+  out.forEach(function(rec){
+    if(rec.fish || !cur){ cur={fish:rec.fish||"", rows:[]}; blocks.push(cur); }
+    cur.rows.push(rec);
+  });
+
+  var rows2=[];
+  blocks.forEach(function(b, bi){
+    /* The rows that can answer the question: still standing, and carrying a number of their
+       own rather than a size or a cross-reference. */
+    var live_=b.rows.filter(function(r){ return !r.over && !r.sizeOnly
+      && r.keep && r.keep!=="\u2014"; });
+    var lo=null;
+    live_.forEach(function(r){ var k=authRank(r.rule); if(lo===null||k<lo) lo=k; });
+    var top=live_.filter(function(r){ return authRank(r.rule)===lo; });
+    /*
+     * TWO ANSWERS FOR ONE FISH ARE NOT ALWAYS A CONTRADICTION.
+     *
+     * "Steelhead — 10, hatchery only, per licence year" and "Steelhead — release, wild only"
+     * are both true and both complete: they are about different FISH (origin) over different
+     * PERIODS. Counting them as a clash lit the row red and printed "two answers stand here"
+     * over the ordinary, correct steelhead rule that every water in the province carries.
+     *
+     * A clash is two values for the same origin over the same period. Different origins or
+     * periods are one composite answer, joined and stated in full.
+     */
+    var slot=function(r){ return (r.rule.origin||"")+"|"+(r.rule.period||"daily"); };
+    var buckets={}, order=[];
+    top.forEach(function(r){ var k=slot(r);
+      if(!buckets[k]){ buckets[k]=[]; order.push(k); } buckets[k].push(r); });
+    var clash=false, parts=[];
+    order.forEach(function(k){
+      var vs=[]; buckets[k].forEach(function(r){ if(vs.indexOf(r.keep)<0) vs.push(r.keep); });
+      if(vs.length>1) clash=true;
+      var o=buckets[k][0].rule.origin;
+      parts.push(vs.join(" or ")+(o?" "+esc(String(o)):""));
+    });
+    var vals=parts;
+
+    var open=clash;                                 // a contradiction is never folded
+    var head=vals.length ? vals.join(" \u00b7 ") : "\u2014";
+    /*
+     * WHAT THIS WATER CHANGED, IN THE ROW THAT CHANGED IT.
+     *
+     * A replaced limit was a second row, struck, underneath — so the fact that the number moved
+     * cost a whole row to say. It is the same fact the closure rows already state in one cell
+     * ("0" with the ordinary number struck beside it), and it reads better there: the figure
+     * that applies, and the figure it displaced, side by side.
+     */
+    var wasVals=[];
+    b.rows.forEach(function(r){
+      if(!r.over || !r.keep || r.keep==="\u2014") return;
+      if(vals.indexOf(r.keep)>=0) return;
+      if(wasVals.indexOf(r.keep)<0) wasVals.push(r.keep); });
+    var who=top.length ? top[0].who : (b.rows[0]||{}).who||"";
+    var more=b.rows.length;
+    var key=(b.fish||("g"+bi)).replace(/[^A-Za-z0-9]+/g,"_");
+    var shown=!!(openFish||{})[key] || open;
+
+    if(!b.fish || more<=1){ b.rows.forEach(function(r){ rows2.push(r.html); }); return; }
+
+    rows2.push('<tr class="sumr'+(open?" clash":"")+'" data-fish="'+esc(key)+'">'
+      +'<td class="fish">'+esc(b.fish)+'</td>'
+      +'<td class="keep'+(head==="0"||head==="release"?" zero":"")+'">'+esc(head)
+        +(wasVals.length?' <s class="was">'+esc(wasVals.join(" \u00b7 "))+'</s>':'')+'</td>'
+      +'<td class="cond">'+(open
+          ? '<em class="lead">two answers stand here \u2014 read them both</em>'
+          : '<span class="nx">'+(wasVals.length
+              ? 'replaces '+esc(wasVals.join(" and "))+' \u00b7 '+more+' rules behind this'
+              : more+' rule'+(more===1?"":"s")+' behind this')+'</span>')
+      +'</td>'
+      +'<td class="who">'+esc(who)+'<span class="chev">'+(shown?"\u2013":"+")+'</span></td></tr>');
+    b.rows.forEach(function(r){
+      rows2.push(r.html.replace('<tr class="', '<tr data-of="'+esc(key)+'"'
+        +(shown?"":" hidden")+' class="ch '));
+    });
+  });
+  out=rows2;
+
   var h=[];
   // THE CLOSURE FIRST AND PLAINLY. It is the answer; the quotas are what applies when it lifts.
   if(shutAll.length)
@@ -1770,6 +1890,7 @@ function retentionTable(items, title, notes, waterKind){
     // paperwork duty — was rendered "0 (normally —)", a number it never had.
     if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
     var over=!!tribBeaten[l.rule] || !!kindBeaten[l.rule];
+    var html;
     var whoCell=function(rule, subject){
       var txt=whereFrom(rule)+viaWords(rule);
       var must = !!subject                       // the first row of a fish
@@ -1780,7 +1901,7 @@ function retentionTable(items, title, notes, waterKind){
       lastWho = txt;
       return show;
     };
-    return '<tr class="'+(depth?"sub":"")+(over?" over":"")+'">'
+    html='<tr class="'+(depth?"sub":"")+(over?" over":"")+'">'
       +'<td class="fish">'+(depth?'<i class="in"></i>':'')+esc(who)+'</td>'
       +'<td class="keep'+(keep==="0"||keep==="release"?' zero':'')+'">'+esc(keep)
         +(was?' <s class="was">'+esc(was)+'</s>':'')+'</td>'
@@ -1807,7 +1928,10 @@ function retentionTable(items, title, notes, waterKind){
           ? ' <em class="also">\u2014 but see '
             +esc(narrowedBy[l.rule].filter(function(v,i,a){return a.indexOf(v)===i;}).join(" and "))
             +' below, which is limited separately</em>' : '')
-        +(kindBeaten[l.rule] ? ' <em class="also">\u2014 replaced</em>' : '')
+        +(kindBeaten[l.rule]
+          ? ' <em class="also">\u2014 '+(cascadedFrom[l.rule]
+              ? 'part of the '+esc(cascadedFrom[l.rule])+' limit above, replaced with it'
+              : 'replaced')+'</em>' : '')
         +(tribBeaten[l.rule]
           ? ' <em class="also">\u2014 inherited from upstream, and replaced by this '
             +(waterKind==="lake"?"lake":"river")+'\u2019s own rule above</em>' : '')
@@ -1825,6 +1949,8 @@ function retentionTable(items, title, notes, waterKind){
       // identical, and the note under the table promising that "the one above governs" has
       // nothing to point at.
       +'<td class="who">'+esc(whoCell(l, who))+'</td></tr>';
+    return {html:html, fish:who, rule:l, keep:keep, over:over, sizeOnly:sizeOnly,
+            who:whereFrom(l)+viaWords(l)};
   }
 }
 
@@ -2770,7 +2896,7 @@ function build(name, mount){
   /* THE WORD FOR THIS WATER. The page said "river" in four places, which is true of thirteen
      of the seventeen screens and wrong on the other four. */
   var NOUN=(r.kind==="lake") ? "lake" : "river";
-  var st={stage:many?"where":"what", i:0, later:false, whole:false, open:{}, scrub:null,
+  var st={stage:many?"where":"what", i:0, later:false, fish_:{}, whole:false, open:{}, scrub:null,
           z:0, pan:null, src:false, groups:[], other:false, pick:false, jump:null,
           conduct:false};
 
@@ -4229,7 +4355,7 @@ function build(name, mount){
         +'regional number.</div>');
       h.push(closureBlock(own.concat(inh, zone), r.kind||"stream"));
       h.push(retentionTable(nowOwn.concat(nowInh, nowZone), "Quotas & closures here",
-                            bucket, r.kind||"stream"));
+                            bucket, r.kind||"stream", st.fish_));
       /*
        * WHAT THE TABLES DID NOT COVER, and only that.
        *
@@ -4487,6 +4613,9 @@ function build(name, mount){
     var b=screen.querySelector("[data-back]");
     if(b) b.onclick=function(){ if(many&&!where){ st.stage="where"; st.z=0; st.pan=null;
       screen.scrollTop=0; render(); } };
+    screen.querySelectorAll("[data-fish]").forEach(function(b){
+      b.onclick=function(){ var k=b.getAttribute("data-fish");
+        st.fish_[k]=!st.fish_[k]; render(); }; });
     var l=screen.querySelector("[data-later]");
     if(l) l.onclick=function(){ st.later=!st.later; render(); };
     var sc=screen.querySelector("[data-src]");
