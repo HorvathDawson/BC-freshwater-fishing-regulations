@@ -477,7 +477,8 @@ def _area_tier(areas: list[str]) -> int:
     return 0
 
 
-def _set_by(eid: str, db, eareas: dict[str, list[str]] | None) -> tuple[str, int]:
+def _set_by(eid: str, db, eareas: dict[str, list[str]] | None,
+            via: str = "", this_water: str = "") -> tuple[str, int]:
     """Who set this rule, in the curator's words, and how fine their geography is.
 
     The page derived both from the entry id — `z1:` gave "Region 1" for every entry in the
@@ -490,6 +491,17 @@ def _set_by(eid: str, db, eareas: dict[str, list[str]] | None) -> tuple[str, int
     than rebuilt. Returns ("", 0) for a water's own entry — it is not a zone at all.
     """
     if not str(eid).startswith("z"):
+        # A RULE THAT ARRIVED BY THE TRIBUTARY WALK SHOULD NAME THE WATER IT WAS WRITTEN FOR.
+        #
+        # It read "Set by: this water (as a tributary)", which is both true and useless: the
+        # reader is looking at the Elk River and is told the rule is the Elk's, in a parenthesis
+        # that quietly means it is not. The rule is "KOOTENAY LAKE'S TRIBUTARIES — bull trout
+        # catch and release", and the entry has always carried that name.
+        if via == "trib":
+            row = db.execute("SELECT name FROM entry WHERE entry_id = ?", (eid,)).fetchone()
+            name = row[0] if row and row[0] else ""
+            if name and name.strip().lower() != (this_water or "").strip().lower():
+                return name, 0
         return "", 0
     # NOT for the provincial chapter. `zp:` IS the province, and an entry there can be NAMED
     # for a part of it: `zp:white_sturgeon_licence` is "Fraser watershed, Mission to Williams
@@ -922,7 +934,7 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 continue
             d = dict(zip([c[0] for c in cur.description], src))
             cond = json.loads(d["conditions"] or "{}")
-            _sb, _tier = _set_by(eid, db, eareas)
+            _sb, _tier = _set_by(eid, db, eareas, via, name)
             rules.append({
                 "entry": eid, "rule": rid,
                 # WHO SET IT AND HOW NARROWLY — from the curated entry, not from the id prefix.
