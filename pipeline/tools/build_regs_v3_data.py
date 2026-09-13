@@ -952,6 +952,11 @@ def _one_water(db, graph, geoms, handles, to_lonlat, name: str, kind: str = "str
                 "label": d["label"],
                 "windows": json.loads(d["windows"] or "[]"),
                 "species": json.loads(d["species"] or "[]"),
+                # THE FISH A RULE CARVES OUT is part of what it says — "a salmon of any legal
+                # size or species (other than kokanee)", "all game fish other than burbot". It
+                # is a bundle column and was simply not copied, so every renderer that answers
+                # from fields rather than from the generated label lost the exception.
+                "species_except": json.loads(d["species_except"] or "[]"),
                 "take": d["take"], "may_target": d["may_target"],
                 # The retention fields the QUOTA TABLE needs, at the top level rather than
                 # buried in `conditions` — a table that has to parse a JSON blob per cell is a

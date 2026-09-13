@@ -300,3 +300,55 @@ def test_a_quoted_prohibition_reads_as_one():
                        f"\n      but renders : {label(r)[:64]!r}")
     assert not bad, ("a quote is doing duty as a label without the clause that forbids it — "
                      "set `required: false`:\n  " + "\n  ".join(bad))
+
+
+def test_a_quota_of_zero_is_not_a_prohibition():
+    """"Kokanee: 5 (none from streams)" sets a quota. It does not close the streams.
+
+    Eleven rules carried `may_target: False` off a quota-table parenthetical, which the label
+    generator renders as "No fishing for kokanee in streams" — a claim the synopsis does not
+    make, on every water in nine regions. The entries are titled `species_quotas` and hold
+    nothing else: Bass 20, Crappie 20, Crayfish 25, Kokanee 5, Whitefish 15. The source section
+    is headed "Region 2 Daily Quotas".
+
+    The book has its own way of closing a water and uses it when it means it — Wood Lake's
+    "No Fishing** for kokanee Sept 1-Mar 31" is a real closure and keeps `may_target: False`.
+    A number in a quota column is a number.
+    """
+    for p, e in _authored_entries():
+        for r in e.rules:
+            if "KO" not in r.species or r.take != 0:
+                continue
+            v = (r.verbatim or "").strip().lower()
+            if v.startswith("none from streams") or v.startswith("kokanee daily quota = 0"):
+                assert r.may_target is not False, (
+                    f"{p.name}: {e.entry_id}::{r.rule_id} reads a quota of zero as a closure — "
+                    f"{r.verbatim!r}")
+
+
+def test_a_condition_is_not_an_extent():
+    """`extent_text` means "a place I was told about and could not draw", and a rule that has one
+    is denied its entry's default extent — deliberately, so a 500 m closure is never widened to
+    a whole lake. The cost of getting it wrong is total: the rule binds to no section and is
+    lost on every water.
+
+    Seven provincial rules held a CONDITION in that field — "alone in a boat on a lake", "warn
+    others of your ice hole", "chumming", "the listed protected species only" — and so were lost
+    everywhere. `reason` is the field for a qualifier with no structured slot.
+    """
+    bad = []
+    for p, e in _authored_entries():
+        for r in e.rules:
+            t = (r.extent_text or "").strip().lower()
+            if not t:
+                continue
+            # A place names one, or measures from one. These never do.
+            if t in {"alone in a boat on a lake", "chumming",
+                     "the listed protected species only",
+                     "warn others of your ice hole; remove your hut before breakup",
+                     "marked with name, address and telephone number",
+                     "submerged and within 1 m of the hook",
+                     "gear in the water during a No Fishing period".lower()}:
+                bad.append(f"{p.name}: {e.entry_id}::{r.rule_id} extent_text={r.extent_text!r}")
+    assert not bad, ("a condition is filed as a place, so the rule binds to nothing:\n  "
+                     + "\n  ".join(bad))

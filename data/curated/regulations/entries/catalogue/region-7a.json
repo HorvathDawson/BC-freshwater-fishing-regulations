@@ -1,1190 +1,1190 @@
 {
-  "region": "7a",
-  "entries": [
+ "region": "7a",
+ "entries": [
+  {
+   "entry_id": "z7a:spring_stream_closure",
+   "name": "Spring stream closure",
+   "display_name": "Every stream in Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30. (See tables for exceptions). No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
     {
-      "entry_id": "z7a:spring_stream_closure",
-      "name": "Spring stream closure",
-      "display_name": "Every stream in Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1-June 30. (See tables for exceptions). No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a",
-          "feature_types": [
-            "stream"
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "spring_stream_closure.r1",
-          "type": "retention_limit",
-          "verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
-          "obligation": "must",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [],
-          "windows": [
-            "Apr 1 - Jun 30"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a",
-              "feature_types": [
-                "stream"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:single_barbless_hook",
-      "name": "Single barbless hook",
-      "display_name": "Every stream in Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a",
-          "feature_types": [
-            "stream"
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "single_barbless_hook.r1",
-          "type": "tackle_restriction",
-          "verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "barbless": true,
-          "hook_count": 1,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a",
-              "feature_types": [
-                "stream"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:bait_ban_streams",
-      "name": "Bait ban",
-      "display_name": "Every stream in Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "Bait ban: applies to all streams of Zone A, all year.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a",
-          "feature_types": [
-            "stream"
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "bait_ban_streams.r1",
-          "type": "bait_restriction",
-          "verbatim": "Bait ban: applies to all streams of Zone A, all year.",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "bait": "any",
-          "allowed": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a",
-              "feature_types": [
-                "stream"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:set_lining",
-      "name": "Set lining",
-      "display_name": "Lakes of Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a",
-          "feature_types": [
-            "lake"
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "set_lining.r1",
-          "type": "method_rule",
-          "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "lake",
-          "method": "set_lining",
-          "hook_count": 1,
-          "min_gap_cm": 3,
-          "max_lines": 1,
-          "permitted": true,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a",
-              "feature_types": [
-                "lake"
-              ]
-            }
-          ]
-        },
-        {
-          "obligation": "must",
-          "windows_are": "applies",
-          "required": true,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_id": "set_lining.r2",
-          "type": "method_rule",
-          "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-          "method": "set_lining",
-          "permitted": true,
-          "water": "lake",
-          "may_target": null,
-          "extent_text": "marked with the angler's name, address and telephone number"
-        },
-        {
-          "obligation": "must",
-          "windows_are": "applies",
-          "required": true,
-          "needs_review": false,
-          "review_reason": "",
-          "rule_id": "set_lining.r3",
-          "type": "retention_limit",
-          "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
-          "species": [
-            "ALL_GAME_FISH"
-          ],
-          "species_except": [
-            "BB"
-          ],
-          "take": 0,
-          "may_target": true,
-          "method": "set_lining",
-          "water": "lake",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a",
-              "feature_types": [
-                "lake"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:trout_char_quota",
-      "name": "Trout and char daily quota",
-      "display_name": "Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "Zone A Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm 2 from streams 3 lake trout 1 bull trout (Dolly Varden) NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length. And you must release: Bull trout (Dolly Varden): from streams, all year; from lakes, Aug 15-Oct 15 Lake trout: of any size, Sept 15-Oct 31; under 30 cm all year Arctic grayling: catch and release only Burbot: 5 Kokanee: 10 (none from streams) White Sturgeon: CLOSED TO ALL FISHING Whitefish: 15 (all species combined)",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "trout_char_quota.r1",
-          "type": "retention_limit",
-          "verbatim": "Trout/char: 5",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": true,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r2",
-          "type": "retention_limit",
-          "verbatim": "1 over 50 cm",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r1",
-          "over_cm": 50,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r3",
-          "type": "retention_limit",
-          "verbatim": "2 from streams",
-          "obligation": "must",
-          "species": [
-            "TROUT_CHAR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 2,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r1",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r4",
-          "type": "retention_limit",
-          "verbatim": "3 lake trout",
-          "obligation": "must",
-          "species": [
-            "LT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 3,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r1",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r5",
-          "type": "retention_limit",
-          "verbatim": "NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length.",
-          "obligation": "must",
-          "species": [
-            "BT",
-            "DV"
-          ],
-          "species_except": [],
-          "windows": [
-            "Oct 16 - Aug 14"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 1,
-          "unlimited": false,
-          "period": "daily",
-          "within": "trout_char_quota.r1",
-          "over_cm": 50,
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "lake",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r6",
-          "type": "retention_limit",
-          "verbatim": "Bull trout (Dolly Varden): from streams, all year",
-          "obligation": "must",
-          "species": [
-            "BT",
-            "DV"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r7",
-          "type": "retention_limit",
-          "verbatim": "from lakes, Aug 15-Oct 15",
-          "obligation": "must",
-          "species": [
-            "BT",
-            "DV"
-          ],
-          "species_except": [],
-          "windows": [
-            "Aug 15 - Oct 15"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "lake",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r8",
-          "type": "retention_limit",
-          "verbatim": "Lake trout: of any size, Sept 15-Oct 31",
-          "obligation": "must",
-          "species": [
-            "LT"
-          ],
-          "species_except": [],
-          "windows": [
-            "Sept 15 - Oct 31"
-          ],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "trout_char_quota.r9",
-          "type": "retention_limit",
-          "verbatim": "under 30 cm all year",
-          "obligation": "must",
-          "species": [
-            "LT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "under_cm": 30,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:species_quotas",
-      "name": "Other daily quotas",
-      "display_name": "Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "Arctic grayling: catch and release only. Burbot: 5. Kokanee: 10 (none from streams). White Sturgeon: CLOSED TO ALL FISHING. Whitefish: 15 (all species combined).",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "species_quotas.r1",
-          "type": "retention_limit",
-          "verbatim": "Arctic grayling: catch and release only",
-          "obligation": "must",
-          "species": [
-            "GR"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": true,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "species_quotas.r2",
-          "type": "retention_limit",
-          "verbatim": "Burbot: 5",
-          "obligation": "must",
-          "species": [
-            "BB"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 5,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "species_quotas.r3",
-          "type": "retention_limit",
-          "verbatim": "Kokanee: 10",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 10,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "species_quotas.r4",
-          "type": "retention_limit",
-          "verbatim": "none from streams",
-          "obligation": "must",
-          "species": [
-            "KO"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "water": "stream",
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "species_quotas.r5",
-          "type": "retention_limit",
-          "verbatim": "White Sturgeon: CLOSED TO ALL FISHING",
-          "obligation": "must",
-          "species": [
-            "WSG"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "species_quotas.r6",
-          "type": "retention_limit",
-          "verbatim": "Whitefish: 15 (all species combined)",
-          "obligation": "must",
-          "species": [
-            "WHITEFISH"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 15,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": true,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:possession_exceptions",
-      "name": "Possession quota exceptions",
-      "display_name": "Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "Possession quotas = 2 daily quotas for most species. Lake trout: possession quota = 1 daily quota. Bull trout (Dolly Varden): possession quota = 1 daily quota. Char - Lake trout and Bull trout (Dolly Varden): 5 over 60 cm ``` Lake trout: 1 daily quota. Bull trout (Dolly Varden): 1 daily quota.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "possession_exceptions.r1",
-          "type": "retention_limit",
-          "verbatim": "Lake trout: 1 daily quota.",
-          "obligation": "must",
-          "species": [
-            "LT"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "possession",
-          "per_daily": 1,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        },
-        {
-          "rule_id": "possession_exceptions.r2",
-          "type": "retention_limit",
-          "verbatim": "Bull trout (Dolly Varden): 1 daily quota.",
-          "obligation": "must",
-          "species": [
-            "BT",
-            "DV"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "possession",
-          "per_daily": 1,
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:sara_sturgeon",
-      "name": "White sturgeon — SARA",
-      "display_name": "Upper Fraser and Nechako",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "White Sturgeon in the Omineca Region. White Sturgeon from the Nechako and the Upper Fraser watersheds are listed as endangered under the Species at Risk Act (SARA). It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [],
-      "rules": [
-        {
-          "rule_id": "sara_sturgeon.r1",
-          "type": "retention_limit",
-          "verbatim": "It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers.",
-          "obligation": "must",
-          "species": [
-            "WSG"
-          ],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "take": 0,
-          "unlimited": false,
-          "may_target": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "authority": "superior",
-          "reason": "",
-          "extent_text": "Upper Fraser and Nechako watersheds",
-          "needs_review": true,
-          "review_reason": "OVER-BROAD: bound to the whole Fraser watershed (325,606 sections). SARA lists the NECHAKO and UPPER FRASER populations — the upper Fraser needs a downstream bound, and the whole-river binding currently covers the lower Fraser where the listing does not apply.",
-          "extents": [
-            {
-              "op": "whole",
-              "item_id": "gnis:16605",
-              "includes_tributaries": true
-            },
-            {
-              "op": "whole",
-              "item_id": "gnis:39325",
-              "includes_tributaries": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:ice_fishing_huts",
-      "name": "Ice fishing huts",
-      "display_name": "Lakes of Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a",
-          "feature_types": [
-            "lake"
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "ice_fishing_huts.r1",
-          "type": "method_rule",
-          "verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "method": "ice_fishing",
-          "permitted": true,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "huts must be removed before spring breakup",
-          "needs_review": false,
-          "review_reason": ""
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:tagging_program",
-      "name": "Omineca tagging studies",
-      "display_name": "Zone A",
-      "region": "7a",
-      "scope_note": "",
-      "regs_verbatim": "NOTICE TO ANGLERS The Ministry and it's partners are conducting several tagging studies on a variety of species throughout the Omineca region. Some tags offer cash rewards for reporting. If you catch a fish with a coloured \"spaghetti\" tag, whether you retain it or release it, please report the tag number, tag colour, date, time and location prior to releasing the fish. To report your catch of a tagged fish please contact the Fish and Wildlife Regional Office in Prince George at (250) 614-7400.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a"
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "tagging_program.r1",
-          "type": "advisory",
-          "verbatim": "NOTICE TO ANGLERS The Ministry and it's partners are conducting several tagging studies on a variety of species throughout the Omineca region. Some tags offer cash rewards for reporting. If you catch a fish with a coloured \"spaghetti\" tag, whether you retain it or release it, please report the tag number, tag colour, date, time and location prior to releasing the fish. To report your catch of a tagged fish please contact the Fish and Wildlife Regional Office in Prince George at (250) 614-7400.",
-          "obligation": "should",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "entry_id": "z7a:stocked_lakes",
-      "name": "Stocked lakes",
-      "display_name": "Lakes of Zone A",
-      "region": "7a",
-      "scope_note": "RECOVERED — the tables list only stocked lakes that ALSO carry water-specific rules, so the 'Stocked' symbol under-counts by design.",
-      "regs_verbatim": "54 lakes in the Omineca region are currently stocked with Rainbow trout, Eastern Brook trout, and/or Kokanee. The water-specific regulations tables identify only stocked lakes with waterbody specific regulations.",
-      "source_pages": [
-        54
-      ],
-      "symbols": [],
-      "matched": [],
-      "extents": [
-        {
-          "op": "within",
-          "area_id": "area:region:7a",
-          "feature_types": [
-            "lake"
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "rule_id": "stocked_lakes.r1",
-          "type": "advisory",
-          "verbatim": "54 lakes in the Omineca region are currently stocked with Rainbow trout, Eastern Brook trout, and/or Kokanee. The water-specific regulations tables identify only stocked lakes with waterbody specific regulations.",
-          "obligation": "must",
-          "species": [],
-          "species_except": [],
-          "windows": [],
-          "windows_are": "applies",
-          "weekdays": [],
-          "when_open": false,
-          "unlimited": false,
-          "period": "daily",
-          "band": false,
-          "combined": false,
-          "record_retention": false,
-          "required": true,
-          "on_retention": false,
-          "exempts": [],
-          "standing": false,
-          "reason": "",
-          "extent_text": "",
-          "needs_review": false,
-          "review_reason": "",
-          "extents": [
-            {
-              "op": "within",
-              "area_id": "area:region:7a",
-              "feature_types": [
-                "lake"
-              ]
-            }
-          ]
-        }
-      ]
+     "op": "within",
+     "area_id": "area:region:7a",
+     "feature_types": [
+      "stream"
+     ]
     }
-  ]
+   ],
+   "rules": [
+    {
+     "rule_id": "spring_stream_closure.r1",
+     "type": "retention_limit",
+     "verbatim": "No fishing (spring closure): in any stream of Zone A, Apr 1 – June 30.",
+     "obligation": "must",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "species_except": [],
+     "windows": [
+      "Apr 1 - Jun 30"
+     ],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "stream",
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:single_barbless_hook",
+   "name": "Single barbless hook",
+   "display_name": "Every stream in Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a",
+     "feature_types": [
+      "stream"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "single_barbless_hook.r1",
+     "type": "tackle_restriction",
+     "verbatim": "Single barbless hook: must be used in all streams of Zone A, all year.",
+     "obligation": "must",
+     "species": [],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "stream",
+     "barbless": true,
+     "hook_count": 1,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:bait_ban_streams",
+   "name": "Bait ban",
+   "display_name": "Every stream in Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "Bait ban: applies to all streams of Zone A, all year.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a",
+     "feature_types": [
+      "stream"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "bait_ban_streams.r1",
+     "type": "bait_restriction",
+     "verbatim": "Bait ban: applies to all streams of Zone A, all year.",
+     "obligation": "must",
+     "species": [],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "stream",
+     "bait": "any",
+     "allowed": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "stream"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:set_lining",
+   "name": "Set lining",
+   "display_name": "Lakes of Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a",
+     "feature_types": [
+      "lake"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "set_lining.r1",
+     "type": "method_rule",
+     "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+     "obligation": "must",
+     "species": [],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "lake",
+     "method": "set_lining",
+     "hook_count": 1,
+     "min_gap_cm": 3,
+     "max_lines": 1,
+     "permitted": true,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    },
+    {
+     "obligation": "must",
+     "windows_are": "applies",
+     "required": true,
+     "needs_review": false,
+     "review_reason": "",
+     "rule_id": "set_lining.r2",
+     "type": "method_rule",
+     "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+     "method": "set_lining",
+     "permitted": true,
+     "water": "lake",
+     "may_target": null,
+     "extent_text": "marked with the angler's name, address and telephone number"
+    },
+    {
+     "obligation": "must",
+     "windows_are": "applies",
+     "required": true,
+     "needs_review": false,
+     "review_reason": "",
+     "rule_id": "set_lining.r3",
+     "type": "retention_limit",
+     "verbatim": "Set lining: only permitted in the lakes of Zone A (see tables for exclusions). One line, single hook, gap not less than 3 cm, marked with the angler's name, address and telephone number. Any game fish that you catch other than burbot must be released.",
+     "species": [
+      "ALL_GAME_FISH"
+     ],
+     "species_except": [
+      "BB"
+     ],
+     "take": 0,
+     "may_target": true,
+     "method": "set_lining",
+     "water": "lake",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:trout_char_quota",
+   "name": "Trout and char daily quota",
+   "display_name": "Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "Zone A Daily Quotas. Trout/char: 5, but not more than 1 over 50 cm 2 from streams 3 lake trout 1 bull trout (Dolly Varden) NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length. And you must release: Bull trout (Dolly Varden): from streams, all year; from lakes, Aug 15-Oct 15 Lake trout: of any size, Sept 15-Oct 31; under 30 cm all year Arctic grayling: catch and release only Burbot: 5 Kokanee: 10 (none from streams) White Sturgeon: CLOSED TO ALL FISHING Whitefish: 15 (all species combined)",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "trout_char_quota.r1",
+     "type": "retention_limit",
+     "verbatim": "Trout/char: 5",
+     "obligation": "must",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 5,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": true,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r2",
+     "type": "retention_limit",
+     "verbatim": "1 over 50 cm",
+     "obligation": "must",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 1,
+     "unlimited": false,
+     "period": "daily",
+     "within": "trout_char_quota.r1",
+     "over_cm": 50,
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r3",
+     "type": "retention_limit",
+     "verbatim": "2 from streams",
+     "obligation": "must",
+     "species": [
+      "TROUT_CHAR"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 2,
+     "unlimited": false,
+     "period": "daily",
+     "within": "trout_char_quota.r1",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "stream",
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r4",
+     "type": "retention_limit",
+     "verbatim": "3 lake trout",
+     "obligation": "must",
+     "species": [
+      "LT"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 3,
+     "unlimited": false,
+     "period": "daily",
+     "within": "trout_char_quota.r1",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r5",
+     "type": "retention_limit",
+     "verbatim": "NOTE: Bull trout (Dolly Varden) may only be retained Oct 16-Aug 14. These fish may only be taken from lakes and only 30-50 cm in length.",
+     "obligation": "must",
+     "species": [
+      "BT",
+      "DV"
+     ],
+     "species_except": [],
+     "windows": [
+      "Oct 16 - Aug 14"
+     ],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 1,
+     "unlimited": false,
+     "period": "daily",
+     "within": "trout_char_quota.r1",
+     "over_cm": 50,
+     "under_cm": 30,
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "lake",
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r6",
+     "type": "retention_limit",
+     "verbatim": "Bull trout (Dolly Varden): from streams, all year",
+     "obligation": "must",
+     "species": [
+      "BT",
+      "DV"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": true,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "stream",
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r7",
+     "type": "retention_limit",
+     "verbatim": "from lakes, Aug 15-Oct 15",
+     "obligation": "must",
+     "species": [
+      "BT",
+      "DV"
+     ],
+     "species_except": [],
+     "windows": [
+      "Aug 15 - Oct 15"
+     ],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": true,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "lake",
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r8",
+     "type": "retention_limit",
+     "verbatim": "Lake trout: of any size, Sept 15-Oct 31",
+     "obligation": "must",
+     "species": [
+      "LT"
+     ],
+     "species_except": [],
+     "windows": [
+      "Sept 15 - Oct 31"
+     ],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": true,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "trout_char_quota.r9",
+     "type": "retention_limit",
+     "verbatim": "under 30 cm all year",
+     "obligation": "must",
+     "species": [
+      "LT"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": true,
+     "period": "daily",
+     "under_cm": 30,
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:species_quotas",
+   "name": "Other daily quotas",
+   "display_name": "Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "Arctic grayling: catch and release only. Burbot: 5. Kokanee: 10 (none from streams). White Sturgeon: CLOSED TO ALL FISHING. Whitefish: 15 (all species combined).",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "species_quotas.r1",
+     "type": "retention_limit",
+     "verbatim": "Arctic grayling: catch and release only",
+     "obligation": "must",
+     "species": [
+      "GR"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": true,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r2",
+     "type": "retention_limit",
+     "verbatim": "Burbot: 5",
+     "obligation": "must",
+     "species": [
+      "BB"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 5,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r3",
+     "type": "retention_limit",
+     "verbatim": "Kokanee: 10",
+     "obligation": "must",
+     "species": [
+      "KO"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 10,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r4",
+     "type": "retention_limit",
+     "verbatim": "none from streams",
+     "obligation": "must",
+     "species": [
+      "KO"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": true,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "water": "stream",
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r5",
+     "type": "retention_limit",
+     "verbatim": "White Sturgeon: CLOSED TO ALL FISHING",
+     "obligation": "must",
+     "species": [
+      "WSG"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "species_quotas.r6",
+     "type": "retention_limit",
+     "verbatim": "Whitefish: 15 (all species combined)",
+     "obligation": "must",
+     "species": [
+      "WHITEFISH"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 15,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": true,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:possession_exceptions",
+   "name": "Possession quota exceptions",
+   "display_name": "Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "Possession quotas = 2 daily quotas for most species. Lake trout: possession quota = 1 daily quota. Bull trout (Dolly Varden): possession quota = 1 daily quota. Char - Lake trout and Bull trout (Dolly Varden): 5 over 60 cm ``` Lake trout: 1 daily quota. Bull trout (Dolly Varden): 1 daily quota.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "possession_exceptions.r1",
+     "type": "retention_limit",
+     "verbatim": "Lake trout: 1 daily quota.",
+     "obligation": "must",
+     "species": [
+      "LT"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "possession",
+     "per_daily": 1,
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    },
+    {
+     "rule_id": "possession_exceptions.r2",
+     "type": "retention_limit",
+     "verbatim": "Bull trout (Dolly Varden): 1 daily quota.",
+     "obligation": "must",
+     "species": [
+      "BT",
+      "DV"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "possession",
+     "per_daily": 1,
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:sara_sturgeon",
+   "name": "White sturgeon — SARA",
+   "display_name": "Upper Fraser and Nechako",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "White Sturgeon in the Omineca Region. White Sturgeon from the Nechako and the Upper Fraser watersheds are listed as endangered under the Species at Risk Act (SARA). It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [],
+   "rules": [
+    {
+     "rule_id": "sara_sturgeon.r1",
+     "type": "retention_limit",
+     "verbatim": "It is illegal to fish for, kill, harm, or harass SARA-listed White Sturgeon in the Upper Fraser and Nechako Rivers.",
+     "obligation": "must",
+     "species": [
+      "WSG"
+     ],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "take": 0,
+     "unlimited": false,
+     "may_target": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "authority": "superior",
+     "reason": "",
+     "extent_text": "Upper Fraser and Nechako watersheds",
+     "needs_review": true,
+     "review_reason": "OVER-BROAD: bound to the whole Fraser watershed (325,606 sections). SARA lists the NECHAKO and UPPER FRASER populations — the upper Fraser needs a downstream bound, and the whole-river binding currently covers the lower Fraser where the listing does not apply.",
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "gnis:16605",
+       "includes_tributaries": true
+      },
+      {
+       "op": "whole",
+       "item_id": "gnis:39325",
+       "includes_tributaries": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:ice_fishing_huts",
+   "name": "Ice fishing huts",
+   "display_name": "Lakes of Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a",
+     "feature_types": [
+      "lake"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "ice_fishing_huts.r1",
+     "type": "method_rule",
+     "verbatim": "ICE FISHING HUTS: WARNING! Failure to remove ice fishing huts from lakes before spring breakup is an offence under the Environmental Management Act.",
+     "obligation": "must",
+     "species": [],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "method": "ice_fishing",
+     "permitted": true,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "huts must be removed before spring breakup",
+     "needs_review": false,
+     "review_reason": ""
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:tagging_program",
+   "name": "Omineca tagging studies",
+   "display_name": "Zone A",
+   "region": "7a",
+   "scope_note": "",
+   "regs_verbatim": "NOTICE TO ANGLERS The Ministry and it's partners are conducting several tagging studies on a variety of species throughout the Omineca region. Some tags offer cash rewards for reporting. If you catch a fish with a coloured \"spaghetti\" tag, whether you retain it or release it, please report the tag number, tag colour, date, time and location prior to releasing the fish. To report your catch of a tagged fish please contact the Fish and Wildlife Regional Office in Prince George at (250) 614-7400.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a"
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "tagging_program.r1",
+     "type": "advisory",
+     "verbatim": "NOTICE TO ANGLERS The Ministry and it's partners are conducting several tagging studies on a variety of species throughout the Omineca region. Some tags offer cash rewards for reporting. If you catch a fish with a coloured \"spaghetti\" tag, whether you retain it or release it, please report the tag number, tag colour, date, time and location prior to releasing the fish. To report your catch of a tagged fish please contact the Fish and Wildlife Regional Office in Prince George at (250) 614-7400.",
+     "obligation": "should",
+     "species": [],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "entry_id": "z7a:stocked_lakes",
+   "name": "Stocked lakes",
+   "display_name": "Lakes of Zone A",
+   "region": "7a",
+   "scope_note": "RECOVERED — the tables list only stocked lakes that ALSO carry water-specific rules, so the 'Stocked' symbol under-counts by design.",
+   "regs_verbatim": "54 lakes in the Omineca region are currently stocked with Rainbow trout, Eastern Brook trout, and/or Kokanee. The water-specific regulations tables identify only stocked lakes with waterbody specific regulations.",
+   "source_pages": [
+    54
+   ],
+   "symbols": [],
+   "matched": [],
+   "extents": [
+    {
+     "op": "within",
+     "area_id": "area:region:7a",
+     "feature_types": [
+      "lake"
+     ]
+    }
+   ],
+   "rules": [
+    {
+     "rule_id": "stocked_lakes.r1",
+     "type": "advisory",
+     "verbatim": "54 lakes in the Omineca region are currently stocked with Rainbow trout, Eastern Brook trout, and/or Kokanee. The water-specific regulations tables identify only stocked lakes with waterbody specific regulations.",
+     "obligation": "must",
+     "species": [],
+     "species_except": [],
+     "windows": [],
+     "windows_are": "applies",
+     "weekdays": [],
+     "when_open": false,
+     "unlimited": false,
+     "period": "daily",
+     "band": false,
+     "combined": false,
+     "record_retention": false,
+     "required": true,
+     "on_retention": false,
+     "exempts": [],
+     "standing": false,
+     "reason": "",
+     "extent_text": "",
+     "needs_review": false,
+     "review_reason": "",
+     "extents": [
+      {
+       "op": "within",
+       "area_id": "area:region:7a",
+       "feature_types": [
+        "lake"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
 }

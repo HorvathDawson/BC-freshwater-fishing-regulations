@@ -808,6 +808,20 @@ def _where(r: CatalogueRule) -> str:
     return f" — {r.extent_text}" if r.extent_text else ""
 
 
+def _because(r: CatalogueRule) -> str:
+    """The condition that has no field of its own, appended.
+
+    `reason` is the catalogue's slot for a qualifier the schema cannot hold structurally — "not
+    required until reopened to steelhead fishing", "alone in a boat". Five rules carried one and
+    NOTHING rendered it: it reached `conditions` in the bundle and stopped there, so a reader was
+    shown a licence requirement without the condition that lifts it.
+
+    It is appended, never substituted. A reason narrows the sentence in front of it; printed on
+    its own it would read as the whole rule.
+    """
+    return f" — {r.reason}" if r.reason else ""
+
+
 def label(r: CatalogueRule) -> str:
     """The line a reader sees. Verbatim is always available underneath."""
     t = r.type
@@ -828,7 +842,7 @@ def label(r: CatalogueRule) -> str:
             if r.method:                      # "No fishing by spear fishing", not ", by spear fishing"
                 head += f" by {r.method.value.replace('_', ' ')}"
             rest = _scope(r.model_copy(update={"water": None, "method": None}), taking=False)
-            return head + rest + _dates(r) + _where(r)
+            return head + rest + _dates(r) + _where(r) + _because(r)
         if r.take == 0:
             head = f"{sp} — release all" if not (r.over_cm or r.under_cm) else f"{sp} — release all"
         elif r.unlimited:
@@ -849,7 +863,7 @@ def label(r: CatalogueRule) -> str:
             head = sp                      # a size gate with no count: the region supplies it
         else:
             return r.verbatim              # nothing numeric to generate from
-        out = head + _size(r) + _who(r) + _scope(r) + _dates(r) + _where(r)
+        out = head + _size(r) + _who(r) + _scope(r) + _dates(r) + _where(r) + _because(r)
         if r.record_retention:
             out += " — record your retention on your licence immediately"
         return out
@@ -861,7 +875,7 @@ def label(r: CatalogueRule) -> str:
             "Bait ban" if (r.bait or Bait.any) is Bait.any else f"{what} may not be used as bait")
         if r.when_targeting:
             head += f" when fishing for {species_words(r.when_targeting).lower()}"
-        return head + _scope(r) + _dates(r) + _where(r)
+        return head + _scope(r) + _dates(r) + _where(r) + _because(r)
 
     if t is RuleType.tackle_restriction:
         if r.lure:
@@ -882,13 +896,22 @@ def label(r: CatalogueRule) -> str:
                 head += f" (no more than {r.max_gap_mm} mm from point to shank)"
         if r.when_targeting:
             head += f" when fishing for {species_words(r.when_targeting).lower()}"
-        return head + _scope(r) + _dates(r) + _where(r)
+        return head + _scope(r) + _dates(r) + _where(r) + _because(r)
 
     if t is RuleType.method_rule:
-        if r.extent_text and not any((r.max_lines, r.hook_count, r.min_gap_cm)):
+        if (r.extent_text or r.reason) and not any((r.max_lines, r.hook_count, r.min_gap_cm)):
             # a procedural duty; no template renders a duty — but a FORBIDDEN one still has
             # to read as forbidden, or the quote is the label and the label is inverted.
-            return _quoted_prohibition(r) if r.required is False else r.verbatim
+            #
+            # `reason` counts as well as `extent_text`. This test used `extent_text` alone as
+            # the signal, which meant a duty had to claim a PLACE to be printed at all — and a
+            # rule that claims a place the atlas cannot draw binds to no section and is lost on
+            # every water. Four provincial duties sat in exactly that trap ("set lines must be
+            # marked with the angler's name", "chumming is prohibited", the ice-hut duty, "do
+            # not place gear in the water during a No Fishing period"); moving their words to
+            # `reason` lets the atlas place them, and this keeps them readable.
+            return (_quoted_prohibition(r, quote_is_whole=True) if r.required is False
+                    else r.verbatim)
         m = r.method.value.replace("_", " ")
         head = f"{m.capitalize()} is permitted" if r.permitted else f"{m.capitalize()} is prohibited"
         rig = []
@@ -897,7 +920,7 @@ def label(r: CatalogueRule) -> str:
         if r.min_gap_cm: rig.append(f"gap {r.min_gap_cm} cm or more from point to shank")
         if rig: head += " — " + ", ".join(rig)
         rest = _scope(r.model_copy(update={"method": None}))
-        return head + rest + _dates(r) + _where(r)
+        return head + rest + _dates(r) + _where(r) + _because(r)
 
     if t is RuleType.vessel_rule:
         if r.aspect is VesselAspect.speed:
@@ -914,7 +937,7 @@ def label(r: CatalogueRule) -> str:
                     PropulsionLevel.power_capped:
                         f"Engine power restriction {kw:g} kW ({_HP.get(kw, '')} hp)" if kw
                         else "Engine power restriction"}[r.level]
-        return head + _dates(r) + _where(r)
+        return head + _dates(r) + _where(r) + _because(r)
 
     if t is RuleType.angling_from_vessel_prohibited:
         return "No angling from boats" + _scope(r) + _dates(r)
@@ -930,6 +953,11 @@ def label(r: CatalogueRule) -> str:
             head = f"Class {r.water_class} water — " + head[0].lower() + head[1:]
         if r.on_retention:
             head += ", only if you keep the fish"
+        # A STAMP MAY EXCLUDE A FISH. "Required to keep a salmon of any legal size or species
+        # (OTHER THAN KOKANEE) from non-tidal waters" — this branch never read `species_except`,
+        # so the one fish the stamp does not cover was dropped from the only sentence about it.
+        if r.species_except:
+            head += " (not " + species_words(r.species_except).lower() + ")"
         if r.issuing_jurisdiction:
             head += f"; a {r.issuing_jurisdiction} licence is also valid"
         if r.allocation:
@@ -937,7 +965,7 @@ def label(r: CatalogueRule) -> str:
         # `taking=False`: you do not need a licence FROM a stream, you need one IN one. Its own
         # docstring says the wrong preposition reads as nonsense, and it did — "A Classified
         # Waters Licence is required, from streams".
-        return head + _who(r) + _scope(r, taking=False) + _dates(r) + _where(r)
+        return head + _who(r) + _scope(r, taking=False) + _dates(r) + _where(r) + _because(r)
 
     if t is RuleType.access_permission:
         # ONE WHO-BUILDER. This branch had its own, and the two disagreed: it spelled
@@ -951,7 +979,7 @@ def label(r: CatalogueRule) -> str:
             return f"Permission of the {r.grantor} is required" + _dates(r)
         head = f"Angling prohibited for {subject}" if r.permitted is False \
             else f"{subject[:1].upper() + subject[1:]} may fish here"
-        return head + _scope(r, taking=False) + _dates(r) + _where(r)
+        return head + _scope(r, taking=False) + _dates(r) + _where(r) + _because(r)
 
     if r.required is False and t in _PROHIBITABLE:
         return _quoted_prohibition(r)
@@ -960,7 +988,7 @@ def label(r: CatalogueRule) -> str:
     return r.verbatim
 
 
-def _quoted_prohibition(r: "CatalogueRule") -> str:
+def _quoted_prohibition(r: "CatalogueRule", quote_is_whole: bool = False) -> str:
     """"Do not …" around a quote whose own sentence carried the prohibition.
 
         THE PROHIBITION IS IN THE HEADING, NOT THE BULLET. The synopsis prints these under
@@ -973,7 +1001,11 @@ def _quoted_prohibition(r: "CatalogueRule") -> str:
     So the prohibition lives in the DATA — `required: false` — and is rendered here.
     """
     body = r.verbatim.strip().rstrip(".")
-    return "Do not " + body[0].lower() + body[1:] + _dates(r) + _where(r)
+    # `quote_is_whole`: the caller is the duty branch, where the quoted sentence already says
+    # everything — its `reason` is there to mark it as a duty, not to add to it. Appending it
+    # printed "…during a No Fishing period — gear in the water during a No Fishing period".
+    tail = _dates(r) + _where(r) + ("" if quote_is_whole else _because(r))
+    return "Do not " + body[0].lower() + body[1:] + tail
 
 
 # --------------------------------------------------------------------------------------- #
