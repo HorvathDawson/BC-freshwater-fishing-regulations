@@ -2979,6 +2979,17 @@ function licenceTable(items, title){
      * that one is the angler's, and it keeps its row.)
      */
     if((x.conditions||{}).document==="angling_guide_licence") return;
+    /*
+     * `extra` WAS A BUCKET NOTHING EVER READ.
+     *
+     * A second unconditioned rule about the same document went into it and was never printed —
+     * which is how the YAKOUN lost "A Steelhead Conservation Surcharge Stamp is required,
+     * Dec 1-Apr 30". The province's flat rule arrived first and claimed `need`; the river's own
+     * rule, being equally unconditioned, fell through to `extra` and off the page.
+     *
+     * It is still a separate bucket, because these rules are NOT alternatives to `need[0]` and
+     * must not be ranked against it — but it is read now, below, for what it carries.
+     */
     if(!by.has(doc)) by.set(doc, {need:[], except:[], extra:[]});
     var g=by.get(doc);
     if(x.required===false) g.except.push(x);
@@ -3033,7 +3044,56 @@ function licenceTable(items, title){
       else if(x.when_open && when==="Yes") when="Only where open";
     });
     if(flat && forFish) when="Only if you fish for "+forFish.toLowerCase();
-    var w=winWord(base.windows); if(w!=="ALL YEAR") when+=" · "+w.toLowerCase();
+    /*
+     * ONE DOCUMENT, TWO RULES, AND ONLY THE FIRST ONE'S DATES SURVIVED.
+     *
+     * The window came off `base` — `g.need[0]` — and a group holds every rule about the same
+     * document. On the YAKOUN there are two: the province's "A Steelhead Conservation Surcharge
+     * Stamp is required", which carries no window, and the river's own "…is required,
+     * Dec 1-Apr 30". The provincial rule sorts first, so the river's dates were dropped from a
+     * table headed "what you need before you fish here".
+     *
+     * They are NOT merged into one answer. The provincial rule has no window, so the stamp is
+     * needed whenever you fish for steelhead, all year; appending "· dec 1-apr 30" to that
+     * sentence would read as "only then", which is a narrowing — the one mistake this table
+     * must not make. The water's rule is stated as what it is: an addition, attributed, in
+     * words already in the data.
+     */
+    /*
+     * A SEASON ON ONE RULE IS NOT A SEASON ON THE DOCUMENT.
+     *
+     * The window came off `base` alone and was appended to the whole answer, which on the
+     * YAKOUN printed "Only if you fish for steelhead · dec 1 – apr 30". Two rules reach that
+     * river about that stamp: the river's own "…is required, Dec 1-Apr 30" (which sorts first
+     * and became `base`) and the province's "A Steelhead Conservation Surcharge Stamp is
+     * required", which carries NO window at all. So the stamp is needed all year when you fish
+     * for steelhead, and the cell said it was needed for five months. A reader fishing the
+     * Yakoun in July would have read that as permission.
+     *
+     * A season may qualify the answer only when every rule in the group has one. Where one is
+     * unbounded, the general answer stands, and the seasonal rules are stated for what they
+     * are — additions, attributed, in words already in the data.
+     *
+     * (`extra` is included: it is where a second unconditioned rule lands, and until now
+     * nothing read that bucket at all.)
+     */
+    var all_=g.need.concat(g.extra);
+    var bounded=all_.length>0 && all_.every(function(x){
+      return winWord(x.windows)!=="ALL YEAR"; });
+    var seenW={};
+    if(bounded){
+      all_.forEach(function(x){
+        var xw=winWord(x.windows);
+        if(seenW[xw]) return; seenW[xw]=1;
+        when+=" · "+xw.toLowerCase();
+      });
+    } else {
+      all_.forEach(function(x){
+        var xw=winWord(x.windows);
+        if(xw==="ALL YEAR" || seenW[xw]) return; seenW[xw]=1;
+        when+=" · "+whereFrom(x)+": required "+xw.toLowerCase();
+      });
+    }
     var exc=g.except.map(function(x){
       var who=(String(x.label).split("— for ")[1]||"").trim();
       return who || "some anglers";
