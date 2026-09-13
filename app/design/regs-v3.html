@@ -353,6 +353,7 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt .cldot{color:var(--line2)}
 .qt em.clwho{font-style:normal;font-size:10.5px;color:var(--quiet);white-space:nowrap}
 .qt td.fish i.in+ , .qt td.fish{overflow-wrap:break-word}
+.qorder.poss{padding-top:2px}
 .qorder{padding:0 18px 9px;font:400 11.5px/16px var(--ui);color:var(--sub)}
 .qorder b{font-weight:700;color:var(--ink)}
 .qorder s{text-decoration:line-through;opacity:.75}
@@ -1638,6 +1639,29 @@ function retentionTable(items, title, notes, waterKind, openFish){
       present.push({code:code, name:g.name, members:g.codes.slice(1), rows:[], base:null});
   });
 
+  /* A duty that names a fish is filed under that fish, and the two steelhead sentences were on
+     separate lines with nothing joining them. */
+  var byFish={};
+  var seenD={};
+  duties.concat(records).forEach(function(x){
+    var k=speciesWords(speciesOf(x)); if(!k) return;
+    var t=(x.type==="stop_fishing_after_quota") ? x.label : condWords(x).join(" · ");
+    if(seenD[k+t]) return; seenD[k+t]=1;
+    (byFish[k]=byFish[k]||[]).push(esc(t));
+  });
+  /*
+   * A DUTY THAT NAMES A FISH RIDES ON THAT FISH.
+   *
+   * "When you have caught and retained your daily quota of hatchery steelhead you must stop
+   * fishing that water for the rest of the day" is not a general note — it is what happens
+   * when you reach the number on the steelhead row, and it was printed four subjects below it,
+   * truncated. It goes on the row, where it fires at the moment it applies.
+   */
+  var dutyFor={};
+  for(var fish in byFish)
+    dutyFor[fish]=byFish[fish].map(function(t){
+      return String(t).replace(/\.\s*$/,""); }).join(". ")+".";
+
   var loose=[];
   quotas.forEach(function(x){
     var codes=speciesOf(x);
@@ -1909,7 +1933,9 @@ function retentionTable(items, title, notes, waterKind, openFish){
       +'<td class="fish">'+esc(b.fish)+'</td>'
       +'<td class="keep'+(head==="0"||head==="release"?" zero":"")+'">'+esc(head)
         +(wasVals.length?' <s class="was">'+esc(wasVals.join(" \u00b7 "))+'</s>':'')+'</td>'
-      +'<td class="cond">'+(open
+      +'<td class="cond">'+(dutyFor[b.fish]
+          ? '<em class="note">'+dutyFor[b.fish]+'</em> ' : '')
+        +(open
           ? '<em class="lead">two answers stand here \u2014 read them both</em>'
           : '<span class="nx">'+(wasVals.length
               ? 'replaces '+esc(wasVals.join(" and "))+' \u00b7 '+more+' rules behind this'
@@ -1944,10 +1970,28 @@ function retentionTable(items, title, notes, waterKind, openFish){
    * and one from the region, and nothing on the page saying which to follow. It is written out
    * rather than encoded in a colour or a position, so it cannot be misread.
    */
+  /* The possession rule is one subject and was printed as two lines a row apart — the multiple,
+     then the sentences that say what the multiple is for. One line. */
+  var possWords=(notes&&notes.possession||[]).map(function(x){ return esc(x.label); });
+  if(poss.length && poss[0].conditions && poss[0].conditions.per_daily!=null)
+    possWords.unshift(poss[0].conditions.per_daily
+      +'\u00d7 the daily quota may be held in possession');
+  /*
+   * POSSESSION GOES ABOVE THE TABLE, NOT UNDER IT.
+   *
+   * "Twice the daily quota may be held in possession" is not a footnote to one row; it is a
+   * second limit on EVERY number in the table, and a separately chargeable one. Under the
+   * table it was the fourth subject in a list a reader reaches after the answer they came for
+   * — and by then they have their number and have stopped reading.
+   */
+  var possLine=possWords.length
+    ? '<div class="qorder poss"><b>Possession:</b> '+possWords.join(" \u00b7 ")+'</div>' : "";
+
   h.push('<div class="qtitle">'+esc(title||"Quotas here")+'</div>'
     +'<div class="qorder">If two rows disagree, follow the one set by <b>this water</b>; then '
     +'a rule inherited from the water it flows into; then the region; then the province. '
     +'A row that has been replaced is <s>struck</s> and says what replaced it.</div>'
+    +possLine
     +'<div class="tw"><table class="qt">'
     +'<tr><th>Fish</th><th>Keep</th><th>Conditions</th><th>Set by</th></tr>'
     +out.join("")+'</table></div>');
@@ -1972,19 +2016,6 @@ function retentionTable(items, title, notes, waterKind, openFish){
     fn.push(["Sizes", notes.size.map(function(x){
       return esc(String(x.label).replace(/^\s*NOTE:\s*/i,"")); }).join(" ")]);
 
-  /* A duty that names a fish is filed under that fish, and the two steelhead sentences were on
-     separate lines with nothing joining them. */
-  var byFish={};
-  var seenD={};
-  duties.concat(records).forEach(function(x){
-    var k=speciesWords(speciesOf(x)); if(!k) return;
-    var t=(x.type==="stop_fishing_after_quota") ? x.label : condWords(x).join(" · ");
-    if(seenD[k+t]) return; seenD[k+t]=1;
-    (byFish[k]=byFish[k]||[]).push(esc(t));
-  });
-  for(var fish in byFish)
-    fn.push([fish, byFish[fish].map(function(t){
-      return String(t).replace(/\.\s*$/,""); }).join(". ")+"."]);
 
   if(false)
     h.push('<div class="qfoot">'+records.map(function(x){
@@ -1992,13 +2023,6 @@ function retentionTable(items, title, notes, waterKind, openFish){
       // it on your licence at once" — the join is the caller's to make.
       return esc(speciesWords(speciesOf(x))+" \u2014 "+condWords(x).join(" \u00b7 "));
     }).join(" · ")+'</div>');
-  /* The possession rule is one subject and was printed as two lines a row apart — the multiple,
-     then the sentences that say what the multiple is for. One line. */
-  var possWords=(notes&&notes.possession||[]).map(function(x){ return esc(x.label); });
-  if(poss.length && poss[0].conditions && poss[0].conditions.per_daily!=null)
-    possWords.unshift(poss[0].conditions.per_daily
-      +'\u00d7 the daily quota may be held in possession');
-  if(possWords.length) fn.push(["Possession", possWords.join(" · ")]);
 
   if(lifted.length){
     var seenL={};
@@ -2255,8 +2279,24 @@ var GEAR_RANK={"bait:any":0, "bait:fin_fish":1, "bait:dead_fin_fish":1,
  */
 var GEAR_TOPIC={0:"bait", 1:"bait", 2:"hooks", 3:"line", 4:"line"};
 var GEAR_TOPIC_WORD={bait:"Bait", hooks:"Hooks", line:"Line & tackle", also:""};
+/*
+ * AN ADVISORY IS ABOUT WHATEVER ITS ENTRY IS ABOUT. "Note: the use of barbed hooks in lakes is
+ * permitted" carries `dimension: "advisory"`, so it fell out of every tier and printed as an
+ * orphan row with no label — directly under a Hooks row it appears to contradict. Its ENTRY is
+ * `zp:barbless_single_hook_streams`, which is the hook rule; the note is its second sentence.
+ */
+var GEAR_TOPIC_BY_ENTRY={ barbless_single_hook_streams:"hooks", terminal_tackle:"line",
+                          bait:"bait", crayfish_trapping:"also" };
 function topicOf(x){
+  var ent=String(x.entry||"").replace(/^z[^:]*:/,"").replace(/^r[^:]*:/,"");
+  if(x.dimension==="advisory" && GEAR_TOPIC_BY_ENTRY[ent]) return GEAR_TOPIC_BY_ENTRY[ent];
+  /* A DIMENSION MAY NAME THE FISH IT IS ABOUT, and the tier table does not.
+     "bait:dead_fin_fish/WSG" is `bait:dead_fin_fish` written for white sturgeon; the suffix is
+     the species, which is already in the label ("Dead fin fish may be used when fishing for
+     white sturgeon"). Looked up whole it matched nothing, fell out of every tier, and printed
+     as a row with no heading at all. The slash is the qualifier; the tier is what precedes it. */
   var r=GEAR_RANK[x.dimension];
+  if(r==null) r=GEAR_RANK[String(x.dimension||"").split("/")[0]];
   var t=(r==null) ? "" : (GEAR_TOPIC[r]||"");
   if(t) return t;
   /* A TACKLE RULE WITH NO DIMENSION IS STILL ABOUT THE LINE. The downrigger clause — 109
@@ -2393,7 +2433,24 @@ function gearTable(items, title, waterKind, extras){
       return ((x.conditions||{}).exempts||[]).length && (x.species||[]).length; });
 
     var head="", headWho="", struck=[];
-    if(no.length){ head="Not permitted here"; headWho=whereFrom(no[0]); struck=yes; }
+    if(no.length){
+      head="Not permitted here"; headWho=whereFrom(no[0]);
+      /*
+       * A SENTENCE DOES NOT OVERRIDE ITSELF.
+       *
+       * The province's spear-fishing rule is one statement in three parts: only non-game fish
+       * may be speared, burbot as well in Regions 3 and 5 through 8, and NO spear fishing of
+       * any kind in Regions 1, 2 and 4. On the Elk (Region 4) the page printed "Not permitted
+       * here" with "Spear fishing is permitted" struck beside it — and the strike means "a
+       * closer authority replaced this", which is false: both halves are the same provincial
+       * sentence and the same authority. There was never a general permission to strike.
+       *
+       * A permission from the SAME authority as the prohibition is not an override, it is the
+       * other half of one rule, and the prohibition already says it. Struck only where the
+       * authorities actually differ.
+       */
+      struck=yes.filter(function(x){ return whereFrom(x)!==headWho; });
+    }
     else if(yes.length && shutSp.length){
       var barred=[], allGame=false;
       shutSp.forEach(function(x){
@@ -2416,14 +2473,23 @@ function gearTable(items, title, waterKind, extras){
      * it (Bait, Hooks, Line & tackle) already imply. The header stays wherever it says
      * something: "Not permitted here", "Permitted — non-game fish only", or a struck clause.
      */
-    if(head || struck.length)
-    rows.push('<tr class="act'+(no.length?" shut":"")+'">'
-      +'<td class="fish">'+esc(ACT_WORD[a]||a)+'</td>'
-      +'<td class="cond">'+(head?'<b>'+esc(head)+'</b>':'')
-      +(struck.length?' <span class="wasx">'+struck.map(function(x){
-          return esc(x.label); }).join(" · ")+'</span>':'')
-      +'</td><td class="who">'+esc(headWho+(no.length?viaWords(no[0])
-          :(yes.length?viaWords(yes[0]):"")))+'</td></tr>');
+    /*
+     * THE HEADER ROW IS BUILT NOW AND PUSHED LATER, so a headless first group can join it.
+     *
+     * "Snagging — not permitted here" and "all game fish taken by snagging must be released"
+     * are one rule in two sentences, and the second has no topic of its own. Pushed here, it
+     * became the row below with an EMPTY first cell; held until the groups are known, it goes
+     * in the cell beside the prohibition it qualifies.
+     */
+    var headHTML=(head || struck.length)
+      ? ['<tr class="act'+(no.length?" shut":"")+'">'
+          +'<td class="fish">'+esc(ACT_WORD[a]||a)+'</td>'
+          +'<td class="cond">'+(head?'<b>'+esc(head)+'</b>':'')
+          +(struck.length?' <span class="wasx">'+struck.map(function(x){
+              return esc(x.label); }).join(" · ")+'</span>':''),
+         '</td><td class="who">'+esc(headWho+(no.length?viaWords(no[0])
+            :(yes.length?viaWords(yes[0]):"")))+'</td></tr>']
+      : null;
 
     var show=(no.length||head) ? rest.slice() : live_.slice();
     /*
@@ -2465,6 +2531,24 @@ function gearTable(items, title, waterKind, extras){
       if(seen[k]) return false; seen[k]=1; return true; });
 
     /*
+     * "SINGLE BARBLESS HOOK" AND "SINGLE HOOK" ARE ONE REQUIREMENT, SAID TWICE.
+     *
+     * The province prohibits "barbed hooks OR a hook with more than one point" — two
+     * properties — and the region restates the pair as "single barbless hook". They are
+     * different DIMENSIONS (`barbless`, `hook_count`), so neither the dedupe above nor the
+     * water-scope filter could see the overlap, and the Hooks row read "Single barbless hook,
+     * from streams · Single hook, from streams".
+     *
+     * Where a barbless clause already says SINGLE in its own generated words, the separate
+     * single-hook clause adds nothing to it. Read from the label rather than assumed: a
+     * barbless rule that does not say "single" leaves the count rule standing.
+     */
+    var saysSingle=show.some(function(x){
+      return x.dimension==="barbless" && /\bsingle\b/i.test(String(x.label||"")); });
+    if(saysSingle) show=show.filter(function(x){
+      return !(x.dimension==="hook_count" && /^single hook\b/i.test(String(x.label||""))); });
+
+    /*
      * AN ADVISORY BELONGS TO THE ACTIVITY ITS ENTRY IS ABOUT.
      *
      * `actOf` reads the dimension, and an advisory's dimension is "advisory" — so every one of
@@ -2489,6 +2573,38 @@ function gearTable(items, title, waterKind, extras){
       if(!byTopic[t]){ byTopic[t]={t:t, items:[]}; groups.push(byTopic[t]); }
       byTopic[t].items.push(x);
     });
+    /*
+     * A CLAUSE THAT QUALIFIES THE ROWS ABOVE IT IS NOT A TOPIC OF ITS OWN.
+     *
+     * `also` and the untopiced remainder have no heading word by design — they are second
+     * sentences, not new subjects. Left as their own groups they printed as rows with an EMPTY
+     * first cell: the Okanagan crayfish advisory floating free of the "Trapping crayfish" rule
+     * it is about, and the province's "release all game fish taken by snagging" floating free
+     * of "Snagging is prohibited". A reader met a sentence with nothing saying what it applied
+     * to.
+     *
+     * Folded into the group that precedes them, they land in the row they qualify — which is
+     * where the book prints them. A headless group that arrives FIRST has nothing to attach to,
+     * so it keeps its own row and takes the activity's name from `lead` as before.
+     */
+    groups=groups.reduce(function(acc, g){
+      if(acc.length && !GEAR_TOPIC_WORD[g.t]) {
+        acc[acc.length-1].items = acc[acc.length-1].items.concat(g.items);
+        return acc;
+      }
+      acc.push(g); return acc;
+    }, []);
+    /* A first group that is still headless has the header row to attach to. */
+    var headExtra="";
+    if(headHTML && groups.length && !GEAR_TOPIC_WORD[groups[0].t]){
+      headExtra=groups[0].items.map(function(x){
+        return '<span class="cl">'+esc(x.label)+partWords(x)
+          +(no.length?' <em class="note">\u2014 if it happens anyway</em>':'')+'</span>';
+      }).join('<span class="cldot"> \u00b7 </span>');
+      groups=groups.slice(1);
+    }
+    if(headHTML) rows.push(headHTML[0]
+      +(headExtra?'<span class="cldot"> \u00b7 </span>'+headExtra:'')+headHTML[1]);
     groups.forEach(function(g){
       var clause=function(x){
         var muted=banOn && /^bait:/.test(String(x.dimension)) && x.dimension!=="bait:any";
@@ -2904,7 +3020,15 @@ function licenceTable(items, title){
       .filter(Boolean)[0]
       || (/^(.*?)\s+conservation surcharge stamp/i.test(doc) ? RegExp.$1 : "");
     if(!flat) g.need.forEach(function(x){
-      if(x.water_class && when==="Yes") when="Only on classified water (Class "+x.water_class+")";
+      /*
+       * ANSWER THE QUESTION THE COLUMN ASKS.
+       *
+       * The header is "Needed here?" and the cell said "Only on classified water (Class II)" —
+       * which restates what the licence is for and leaves the reader to work out whether this
+       * water qualifies. The app already knows: the rule is only on this screen BECAUSE this
+       * water is that class. It is a yes.
+       */
+      if(x.water_class && when==="Yes") when="Yes — this is Class "+x.water_class+" water";
       else if(x.on_retention && when==="Yes") when="Only if you keep the fish";
       else if(x.when_open && when==="Yes") when="Only where open";
     });
@@ -2935,10 +3059,27 @@ function licenceTable(items, title){
              used to read the sentence back when the field was empty; the two rules that were
              empty now carry it. */
           var who=(x.conditions||{}).grantor||"";
-          return '<tr><td class="fish">'+esc(who
-                   ? who[0].toUpperCase()+who.slice(1)+"\u2019s permission" : x.label)+'</td>'
+          var head=who ? who[0].toUpperCase()+who.slice(1)+"\u2019s permission" : x.label;
+          /*
+           * THE EXCEPTIONS COLUMN HELD THE REQUIREMENT, NOT AN EXCEPTION.
+           *
+           * The row read: "Landowner's permission | Before you fish | Permission of the
+           * landowner is required" — the same sentence twice, once as its own heading, once
+           * in the column that is supposed to say what LIFTS it. A reader scanning that column
+           * for a way out found a restatement of the duty.
+           *
+           * The test is textual, not semantic: strip the words the first two columns already
+           * printed, and if nothing is left to say, say nothing. A label that DOES carry more
+           * than the heading — a named area, a season, a condition on the permission — still
+           * prints in full, because the stripping only recognises the restatement.
+           */
+          var bare=function(t){ return String(t||"").toLowerCase()
+            .replace(/[^a-z]+/g," ").replace(/\b(the|of|a|is|are|required|permission|before|you|fish|here|to|s)\b/g," ")
+            .replace(/\s+/g," ").trim(); };
+          var extra=bare(x.label)===bare(head) ? "" : x.label;
+          return '<tr><td class="fish">'+esc(head)+'</td>'
             +'<td class="keep cond">Before you fish</td>'
-            +'<td class="cond">'+esc(x.label)+'</td></tr>';
+            +'<td class="cond">'+(extra ? esc(extra) : '\u2014')+'</td></tr>';
         }).join("");
       })()
     +'</table></div>'];
