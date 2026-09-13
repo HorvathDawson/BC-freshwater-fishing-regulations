@@ -1484,6 +1484,46 @@ function retentionTable(items, title, notes, waterKind, openFish){
     }
   })();
 
+  /*
+   * A WEAKER AUTHORITY'S NUMBER IS REPLACED, AND SAYS SO.
+   *
+   * The legend promises "follow the one set by this water; then a rule inherited from upstream;
+   * then the region; then the province", and three ladders already strike what they replace.
+   * This one did not: the Kootenay River's own "bass — no limit" and Region 4's "no fishing for
+   * bass" simply stood side by side, and once the fish folds landed, the regional row was
+   * HIDDEN while the headline showed the water's answer. A superseded rule that is merely
+   * tucked away reads as an oversight; struck, it reads as what it is.
+   *
+   * Within one slot only — the same fish, the same origin, the same period — because a daily
+   * limit and an annual cap do not compete, and because two values for genuinely different
+   * questions are not a contradiction. And only where the values DIFFER: an agreeing rule is
+   * not replaced, it is a second authority saying the same thing.
+   */
+  var authBeaten={};
+  (function(){
+    var sets={};
+    quotas.forEach(function(x){
+      if(!live(x.windows) || x.within) return;
+      var k=sameFish(x)+"|"+(x.origin||"")+"|"+(x.period||"daily");
+      (sets[k]=sets[k]||[]).push(x);
+    });
+    for(var k in sets){
+      var g=sets[k];
+      if(g.length<2) continue;
+      var lo=Math.min.apply(null, g.map(authRank));
+      var win=g.filter(function(x){ return authRank(x)===lo; });
+      var vals=[]; win.forEach(function(x){ if(vals.indexOf(keepWord(x))<0) vals.push(keepWord(x)); });
+      if(vals.length!==1) continue;                 // the winners disagree: not ours to settle
+      g.forEach(function(x){
+        if(authRank(x)>lo && keepWord(x)!==vals[0]) authBeaten[x.rule]=1; });
+    }
+    /* the clauses of a replaced quota go with it, as everywhere else */
+    for(var pass=0; pass<4; pass++){
+      quotas.forEach(function(x){
+        if(x.within && authBeaten[x.within]) authBeaten[x.rule]=1; });
+    }
+  })();
+
   var tribBeaten={}, tribBeats={};
   (function(){
     var sets={};
@@ -1513,7 +1553,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
     var sets={};
     quotas.forEach(function(x){
       if(!live(x.windows) || x.scope!=="section"
-         || tribBeaten[x.rule] || kindBeaten[x.rule]) return;
+         || tribBeaten[x.rule] || kindBeaten[x.rule] || authBeaten[x.rule]) return;
       (sets[sameQuestion(x)] = sets[sameQuestion(x)] || []).push(x);
     });
     for(var k in sets){
@@ -1599,7 +1639,8 @@ function retentionTable(items, title, notes, waterKind, openFish){
   var out=[];
   present.forEach(function(g){
     lastWho=null;
-    if(g.base) out.push(tr(g.base, g.name, 0));
+    var tag=function(rec){ rec.grp=g.code; return rec; };
+    if(g.base) out.push(tag(tr(g.base, g.name, 0)));
     // A TOTAL ORDER. The old comparator returned -1 for compare(a,b) AND compare(b,a) when both
     // keys equalled the group's, so the block came out exactly reversed and the narrowing meant
     // to sit at the top ("not more than 1 over 50 cm") sank to the bottom.
@@ -1634,8 +1675,8 @@ function retentionTable(items, title, notes, waterKind, openFish){
       /* THE ROW THAT GOVERNS GOES FIRST, and the ones it replaced follow. The winner used to
          land wherever breadth put it — on the Fording, fourth of five, under three struck
          rows — so a reader met three crossed-out numbers before the one to follow. */
-      var oa=(kindBeaten[a.rule]||tribBeaten[a.rule])?1:0;
-      var ob=(kindBeaten[b.rule]||tribBeaten[b.rule])?1:0;
+      var oa=(kindBeaten[a.rule]||tribBeaten[a.rule]||authBeaten[a.rule])?1:0;
+      var ob=(kindBeaten[b.rule]||tribBeaten[b.rule]||authBeaten[b.rule])?1:0;
       if(oa!==ob) return oa-ob;
       if(sa.length!==sb.length) return sb.length-sa.length;
       return ka<kb?-1:ka>kb?1:0;
@@ -1643,7 +1684,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
     var last=null;
     g.rows.forEach(function(x){
       var k=speciesOf(x).join(",");
-      out.push(tr(x, k===last?"":subjectOf(x, g), 1));
+      out.push(tag(tr(x, k===last?"":subjectOf(x, g), 1)));
       last=k;
     });
   });
@@ -1691,9 +1732,46 @@ function retentionTable(items, title, notes, waterKind, openFish){
    */
   var blocks=[], cur=null;
   out.forEach(function(rec){
-    if(rec.fish || !cur){ cur={fish:rec.fish||"", rows:[]}; blocks.push(cur); }
+    if(rec.fish || !cur){ cur={fish:rec.fish||"", rows:[], grp:rec.grp}; blocks.push(cur); }
     cur.rows.push(rec);
   });
+
+  /*
+   * A ROW THAT ADDS NO ANSWER IS EVIDENCE, NOT A HEADING.
+   *
+   * The Fording on 15 November: "Trout and char - release" governs, and beneath it stood four
+   * more top-level fish — bull trout (release, inherited), bull trout and Dolly Varden (1,
+   * struck), rainbow and cutthroat (1, struck) — each with its own line, its own authority and
+   * its own explanation. Every one of them is a trout or a char, every one of them resolves to
+   * release, and together they took four fifths of the table to repeat the row above them.
+   *
+   * They fold into that row's chain. TWO CONDITIONS, AND NEITHER IS A GUESS:
+   *
+   *   the same group   `GROUPS` already says which fish are trout and char, and it is the same
+   *                    containment the species filter uses. A block only ever merges into the
+   *                    block that heads ITS OWN group.
+   *   nothing new      every row in it is struck — already replaced, so not an answer — or its
+   *                    Keep is the very value the heading row already shows.
+   *
+   * A row with a different live answer is never merged, so the headline cannot change by
+   * merging and no fish can lose a limit that differs from its group's. When the Fording is
+   * read on 7 September, where trout and char is 5 and bull trout is its own 1, none of these
+   * blocks merge and the table is exactly what it was.
+   */
+  var merged=[];
+  blocks.forEach(function(b){
+    var into=merged.length ? merged[merged.length-1] : null;
+    var can = into && b.grp && into.grp===b.grp && into.fish && b.fish
+      && b.rows.every(function(r){
+           return r.over || (r.keep && into.head && r.keep===into.head); });
+    if(can){ b.rows.forEach(function(r){ into.rows.push(r); }); return; }
+    /* the heading value of a block, computed before the next block can be tested against it */
+    var first=b.rows.filter(function(r){ return !r.over && !r.sizeOnly
+      && r.keep && r.keep!=="\u2014"; })[0];
+    b.head=first?first.keep:"";
+    merged.push(b);
+  });
+  blocks=merged;
 
   var rows2=[];
   blocks.forEach(function(b, bi){
@@ -1701,9 +1779,29 @@ function retentionTable(items, title, notes, waterKind, openFish){
        own rather than a size or a cross-reference. */
     var live_=b.rows.filter(function(r){ return !r.over && !r.sizeOnly
       && r.keep && r.keep!=="\u2014"; });
-    var lo=null;
-    live_.forEach(function(r){ var k=authRank(r.rule); if(lo===null||k<lo) lo=k; });
-    var top=live_.filter(function(r){ return authRank(r.rule)===lo; });
+    /*
+     * THE STRONGEST AUTHORITY *WITHIN EACH SLOT*, NOT ACROSS THEM.
+     *
+     * Ranking the whole group first and bucketing after threw away every constraint whose
+     * authority was weaker than the strongest one present — even when it was not competing
+     * with it. Steelhead: Region 2 sets 2 per day, the province sets 10 per licence year.
+     * They are different periods and both bind; the region is the stronger authority, so the
+     * provincial ANNUAL CAP vanished from the headline and sat behind the fold. A reader could
+     * take two a day all season and pass ten without the summary ever saying so.
+     *
+     * A daily limit and an annual cap are not two answers to one question. Rank inside the
+     * slot, where rules really do compete, and keep every slot.
+     */
+    var slot0=function(r){ return (r.rule.origin||"")+"|"+(r.rule.period||"daily"); };
+    var bySlot={}, slotOrder=[];
+    live_.forEach(function(r){ var k=slot0(r);
+      if(!bySlot[k]){ bySlot[k]=[]; slotOrder.push(k); } bySlot[k].push(r); });
+    var top=[];
+    slotOrder.forEach(function(k){
+      var lo=null;
+      bySlot[k].forEach(function(r){ var q=authRank(r.rule); if(lo===null||q<lo) lo=q; });
+      bySlot[k].forEach(function(r){ if(authRank(r.rule)===lo) top.push(r); });
+    });
     /*
      * TWO ANSWERS FOR ONE FISH ARE NOT ALWAYS A CONTRADICTION.
      *
@@ -1723,8 +1821,11 @@ function retentionTable(items, title, notes, waterKind, openFish){
     order.forEach(function(k){
       var vs=[]; buckets[k].forEach(function(r){ if(vs.indexOf(r.keep)<0) vs.push(r.keep); });
       if(vs.length>1) clash=true;
-      var o=buckets[k][0].rule.origin;
-      parts.push(vs.join(" or ")+(o?" "+esc(String(o)):""));
+      var r0=buckets[k][0].rule;
+      var o=r0.origin, pd=r0.period;
+      parts.push(vs.join(" or ")
+        +(o?" "+esc(String(o)):"")
+        +(pd&&pd!=="daily"?" per "+esc(String(pd).replace(/_/g," ")):" a day"));
     });
     var vals=parts;
 
@@ -1911,7 +2012,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
     // Only a real quota can be overridden to zero. A rule with no count — a size floor, a
     // paperwork duty — was rendered "0 (normally —)", a number it never had.
     if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
-    var over=!!tribBeaten[l.rule] || !!kindBeaten[l.rule];
+    var over=!!tribBeaten[l.rule] || !!kindBeaten[l.rule] || !!authBeaten[l.rule];
     var html;
     var whoCell=function(rule, subject){
       var txt=whereFrom(rule)+viaWords(rule);
@@ -1950,6 +2051,9 @@ function retentionTable(items, title, notes, waterKind, openFish){
           ? ' <em class="also">\u2014 but see '
             +esc(narrowedBy[l.rule].filter(function(v,i,a){return a.indexOf(v)===i;}).join(" and "))
             +' below, which is limited separately</em>' : '')
+        +(authBeaten[l.rule] && !kindBeaten[l.rule] && !tribBeaten[l.rule]
+          ? ' <em class="also">\u2014 replaced by the rule above, set closer to this water</em>'
+          : '')
         +(kindBeaten[l.rule]
           ? ' <em class="also">\u2014 '+(cascadedFrom[l.rule]
               ? 'part of the '+esc(cascadedFrom[l.rule])+' limit above, replaced with it'
