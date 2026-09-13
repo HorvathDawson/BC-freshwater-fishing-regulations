@@ -817,6 +817,34 @@ function ord(w){return w.month*100+w.day;}
 function live(ws){ if(!ws||!ws.length) return true; var t=ord(TODAY);
   return ws.some(function(w){var a=ord(w.from),b=ord(w.to);
     return a<=b?(t>=a&&t<=b):(t>=a||t<=b);}); }
+/*
+ * SOME RULES APPLY ON NAMED DAYS OF THE WEEK, AND NOTHING READ THEM.
+ *
+ * Kootenay Lake's Lower West Arm allows five kokanee on Saturdays and Sundays and requires
+ * release from Monday to Friday. Both are the water's own, both are in force in every month,
+ * so the page put them side by side and flagged a contradiction — "5 or release, two answers
+ * stand here" — when the book is perfectly clear and the discriminator is the day.
+ *
+ * Fifteen rules in the corpus carry `weekdays`, and the other thirteen matter more than the
+ * kokanee: "angling prohibited for non-guided, non-resident aliens on Saturdays and Sundays"
+ * on the Babine, the Bulkley, the Kispiox, the Kitseguecla and the Kitsumkalum. Shown without
+ * the days, that is a prohibition on the wrong six days of the week.
+ *
+ * The field survives into the bundle inside `conditions`, and reaches this page — it was
+ * simply never read. The YEAR is 2026 because the date control fixes it there; a regulation
+ * window is a month and a day, and the weekday is the one thing on this screen that needs
+ * more than that.
+ */
+var DAYNAME=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function weekdaysOf(x){ return ((x&&x.conditions)||{}).weekdays||[]; }
+function onDayNow(x){
+  var w=weekdaysOf(x);
+  if(!w.length) return true;
+  var d=new Date(2026, TODAY.month-1, TODAY.day).getDay();
+  return w.indexOf(DAYNAME[d])>=0;
+}
+/** In force TODAY: the right part of the year, and the right day of the week. */
+function liveNow(x){ return live(x.windows) && onDayNow(x); }
 function oneWin(w){ return (MON[w.from.month]+" "+w.from.day+" – "+MON[w.to.month]+" "
   +w.to.day).toUpperCase(); }
 function winWord(ws){ if(!ws||!ws.length) return "ALL YEAR";
@@ -1125,7 +1153,7 @@ function closureCal(items, waterKind){
     var k=x.label+"|"+winWord(x.windows);
     if(seen[k]) return; seen[k]=1;
     if(liftedBy(x, lifts)) lifted.push(x);
-    else if(live(x.windows)) now.push(x);
+    else if(liveNow(x)) now.push(x);
     else if((x.windows||[]).length) soon.push(x);
   });
   /* Soonest first: the closure that starts next week matters more than the one in eight
@@ -1274,7 +1302,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
    * else on the page.
    */
   var duties=items.filter(function(x){
-    return x.type==="stop_fishing_after_quota" && (x.species||[]).length && live(x.windows); });
+    return x.type==="stop_fishing_after_quota" && (x.species||[]).length && liveNow(x); });
   /* A duty filed under the same ENTRY as a rule in this table is about that rule — it is how
      "release it right away" finds the protected-species row and nothing else. */
   var onrow={}, onsp={};
@@ -1290,7 +1318,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
     return got;
   };
   if(!all.length && !duties.length) return "";
-  var live_=all.filter(function(x){ return live(x.windows); });
+  var live_=all.filter(function(x){ return liveNow(x); });
 
   /*
    * A CLOSURE IS A ROW, NOT A DELETION.
@@ -1407,7 +1435,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
     if(!waterKind) return;
     var sets={};
     quotas.forEach(function(x){
-      if(!live(x.windows)) return;
+      if(!liveNow(x)) return;
       (sets[sameFish(x)] = sets[sameFish(x)] || []).push(x);
     });
     for(var k in sets){
@@ -1503,7 +1531,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
   (function(){
     var sets={};
     quotas.forEach(function(x){
-      if(!live(x.windows) || x.within) return;
+      if(!liveNow(x) || x.within) return;
       var k=sameFish(x)+"|"+(x.origin||"")+"|"+(x.period||"daily");
       (sets[k]=sets[k]||[]).push(x);
     });
@@ -1528,7 +1556,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
   (function(){
     var sets={};
     quotas.forEach(function(x){
-      if(!live(x.windows) || x.scope!=="section") return;
+      if(!liveNow(x) || x.scope!=="section") return;
       (sets[sameFish(x)] = sets[sameFish(x)] || []).push(x);
     });
     for(var k in sets){
@@ -1552,7 +1580,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
   (function(){
     var sets={};
     quotas.forEach(function(x){
-      if(!live(x.windows) || x.scope!=="section"
+      if(!liveNow(x) || x.scope!=="section"
          || tribBeaten[x.rule] || kindBeaten[x.rule] || authBeaten[x.rule]) return;
       (sets[sameQuestion(x)] = sets[sameQuestion(x)] || []).push(x);
     });
@@ -1777,7 +1805,19 @@ function retentionTable(items, title, notes, waterKind, openFish){
   blocks.forEach(function(b, bi){
     /* The rows that can answer the question: still standing, and carrying a number of their
        own rather than a size or a cross-reference. */
-    var live_=b.rows.filter(function(r){ return !r.over && !r.sizeOnly
+    /*
+     * A NARROWING IS NOT AN ALTERNATIVE ANSWER.
+     *
+     * Region 8 writes "trout/char 5, but not more than 1 over 50 cm, 4 from streams, 2 over
+     * 30 cm from streams". Four numbers, one limit: the last three are clauses `within` the
+     * first. The headline read them as four competing values — "5 or 1 or 4 or 2 a day, two
+     * answers stand here — read them both" — turning a quota and its own conditions into a
+     * contradiction, and lighting the row as one.
+     *
+     * Only a rule that stands on its own can BE the answer. The clauses are still in the
+     * chain, in full, under the row they narrow.
+     */
+    var live_=b.rows.filter(function(r){ return !r.over && !r.sizeOnly && !r.rule.within
       && r.keep && r.keep!=="\u2014"; });
     /*
      * THE STRONGEST AUTHORITY *WITHIN EACH SLOT*, NOT ACROSS THEM.
@@ -1823,9 +1863,19 @@ function retentionTable(items, title, notes, waterKind, openFish){
       if(vs.length>1) clash=true;
       var r0=buckets[k][0].rule;
       var o=r0.origin, pd=r0.period;
+      /*
+       * "RELEASE WILD A DAY" IS NOT ENGLISH, AND IT IS NOT A PERIOD EITHER.
+       *
+       * The period was appended to every value so a daily limit and an annual cap could be
+       * told apart — which they must be. But "release" is not a quantity: there is no number
+       * of fish per day being described, so there is nothing for "a day" to qualify. Only a
+       * COUNT takes a period, and a count of zero does not either: "0 a day" and "0 per annual"
+       * are the same prohibition said twice.
+       */
+      var num=vs.some(function(v){ return /^[0-9]+$/.test(v) && v!=="0"; });
       parts.push(vs.join(" or ")
         +(o?" "+esc(String(o)):"")
-        +(pd&&pd!=="daily"?" per "+esc(String(pd).replace(/_/g," ")):" a day"));
+        +(num ? (pd&&pd!=="daily" ? " per "+esc(String(pd).replace(/_/g," ")) : " a day") : ""));
     });
     var vals=parts;
 
@@ -1839,10 +1889,14 @@ function retentionTable(items, title, notes, waterKind, openFish){
      * ("0" with the ordinary number struck beside it), and it reads better there: the figure
      * that applies, and the figure it displaced, side by side.
      */
+    /* Compared against the RAW values, not the formatted ones. `vals` now carries "1 a day",
+       so a struck row whose Keep is "1" no longer matched it and the headline announced that
+       it "replaces 1" — while showing 1 as the answer. */
+    var rawVals=[]; top.forEach(function(r){ if(rawVals.indexOf(r.keep)<0) rawVals.push(r.keep); });
     var wasVals=[];
     b.rows.forEach(function(r){
       if(!r.over || !r.keep || r.keep==="\u2014") return;
-      if(vals.indexOf(r.keep)>=0) return;
+      if(rawVals.indexOf(r.keep)>=0) return;
       if(wasVals.indexOf(r.keep)<0) wasVals.push(r.keep); });
     var who=top.length ? top[0].who : (b.rows[0]||{}).who||"";
     var more=b.rows.length;
@@ -2029,6 +2083,8 @@ function retentionTable(items, title, notes, waterKind, openFish){
       +'<td class="keep'+(keep==="0"||keep==="release"?' zero':'')+'">'+esc(keep)
         +(was?' <s class="was">'+esc(was)+'</s>':'')+'</td>'
       +'<td class="cond">'+esc(condWords(l).join(" · "))
+        +(weekdaysOf(l).length
+          ? ' <em class="note">\u2014 '+esc(weekdaysOf(l).join(", "))+' only</em>' : '')
         +(lead[l.rule]
           ? ' <em class="lead">\u2014 the strictest of '+lead[l.rule]
             +' rules here for this fish; follow this one</em>' : '')
@@ -2246,7 +2302,7 @@ function actOf(x){
  * there is nothing to show but something to warn about, the section renders as the warning.
  */
 function vesselTable(items, title, unplacedCount){
-  var v=items.filter(function(x){ return x.family==="vessel" && live(x.windows); });
+  var v=items.filter(function(x){ return x.family==="vessel" && liveNow(x); });
   if(!v.length){
     if(!unplacedCount) return "";
     return '<div class="qtitle">'+esc(title||"From a boat")+'</div>'
@@ -2281,7 +2337,7 @@ function gearTable(items, title, waterKind, extras){
   if(!gear.length) return "";
 
   var banOn=gear.some(function(x){
-    return x.dimension==="bait:any" && x.permitted===false && live(x.windows); });
+    return x.dimension==="bait:any" && x.permitted===false && liveNow(x); });
 
   var by={};
   gear.forEach(function(x){ var a=actOf(x); (by[a]=by[a]||[]).push(x); });
@@ -2289,7 +2345,7 @@ function gearTable(items, title, waterKind, extras){
   var rows=[];
   ACT_ORDER.forEach(function(a){
     var list=by[a]; if(!list||!list.length) return;
-    var live_=list.filter(function(x){ return live(x.windows); });
+    var live_=list.filter(liveNow);
     if(!live_.length) return;
     // …and never hide a prohibition, only a permission that cannot apply here.
     if(waterKind && ACT_ONLY_ON[a] && ACT_ONLY_ON[a]!==waterKind
@@ -3874,7 +3930,7 @@ function build(name, mount){
         for(var j=0;j<list.length;j++) if(live(list[j].windows)) return list[j];
         return list[0];
       };
-      var tag=function(x){ return live(x.windows)?"":" \u2014 out of season"; };
+      var tag=function(x){ return liveNow(x)?"":" \u2014 not in force today"; };
       var d=[];
       if(add.length){ var a0=pick(add);
         d.push('<span class="add">+ '+esc(say(a0))
@@ -3933,7 +3989,7 @@ function build(name, mount){
    */
   var LINKABLE={};
   function ruleRow(x,i,dupLoc,num){
-    var on=live(x.windows), k=name+"/"+st.i+"/"+i, open=st.open[k];
+    var on=liveNow(x), k=name+"/"+st.i+"/"+i, open=st.open[k];
     var inherited=x.via==="trib"&&x.src&&x.src!==name;
     var meta=[winWord(x.windows)];
     if(dupLoc&&x.extent_text) meta.push(x.extent_text);
@@ -4124,13 +4180,16 @@ function build(name, mount){
     var inh=here.filter(function(x){ return !zoned(x) && x.via==="trib"; });
     var zone=here.filter(zoned);
     var srcOf=function(x){ return x.setby || x.src || "the water this one flows into"; };
-    var nowOwn=own.filter(function(x){return live(x.windows);});
+    /* `liveNow`, not `live`: in force today means the right part of the year AND the right day
+       of the week. Fifteen rules in the corpus name days, and until this read them the page
+       showed a Saturday-only quota beside a Monday-to-Friday release all week long. */
+    var nowOwn=own.filter(liveNow);
     /* THE WATER'S OWN, out of season. An inherited rule that is out of season is shown in its
        own source's block below, greyed where it stands — putting it behind this water's
        "show the N" control would file another water's rule under this one's count. */
-    var later=own.filter(function(x){return !live(x.windows);});
-    var nowInh=inh.filter(function(x){return live(x.windows);});
-    var nowZone=zone.filter(function(x){return live(x.windows);});
+    var later=own.filter(function(x){ return !liveNow(x); });
+    var nowInh=inh.filter(liveNow);
+    var nowZone=zone.filter(liveNow);
     /*
      * ONE NUMBER, TWO PLACES. The rule carries it, and so does the sentence it came from.
      *
@@ -4266,7 +4325,16 @@ function build(name, mount){
       var i=mapMarks.indexOf(label);
       return i<0?"":'<i class="bn">'+(i+1)+'</i> ';
     };
-    if(many){
+    /*
+     * A LAKE'S PARTS HAVE NO FROM AND NO TO.
+     *
+     * This band names the two landmarks a stretch of river runs between, which is the whole
+     * question on moving water. On a lake the book writes as several waters it produced
+     * "From: Kootenay Lake — Lower West Arm · To: the head" — an arm of a lake is not a point
+     * you pass, and a lake has no head. The part names itself in the heading above and in the
+     * ladder below; there is nothing for this band to add.
+     */
+    if(many && !LAKE){
       /* "Also" names the ticks in view that are NOT this stretch's ends. The ends now carry
          which crossing they are, so a bare comparison stopped matching and the boundary was
          listed under Also as well as being the end itself. */
@@ -4363,6 +4431,9 @@ function build(name, mount){
      * everything else that reads `here`.
      */
     var lateWord=later.length+(later.length===1?' rule':' rules')+' out of season';
+    /* A rule held back because of the DAY is not out of season, and the reader needs to know
+       which days it does apply on — otherwise "not in force today" is the whole message and
+       they never learn there is a Saturday rule at all. */
     var ladder=[];
     ladder.push('<div class="sect"><span>Written for this '+NOUN+'</span>'
       +(later.length
