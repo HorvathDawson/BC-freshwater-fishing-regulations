@@ -1193,6 +1193,16 @@ function sameQuestion(x){
  * catch and release" and the two stood side by side — "none under 75 cm" above "release" — on
  * the same fish, the same water and the same day.
  */
+/*
+ * HOW STRONG A RULE'S CLAIM ON THIS WATER IS — the ladder the page states in its own legend.
+ * Lower is stronger, so a weaker authority cannot win on a technicality.
+ */
+function authRank(x){
+  var eid=String((x&&x.entry)||"");
+  if(eid.indexOf("zp:")===0) return 3;
+  if(/^z/.test(eid)) return 2;
+  return x.via==="trib" ? 1 : 0;
+}
 function sameFish(x){
   /* NO `water` IN THIS KEY. It is what the water-kind ladder compares — "kokanee 15" against
      "no fishing for kokanee in streams" — so including it would put the two rules in different
@@ -1398,6 +1408,26 @@ function retentionTable(items, title, notes, waterKind){
             && x.over_cm==null && x.under_cm==null; });
       var any=g.filter(function(x){ return !x.water && !x.within; });
       if(!here.length || !any.length) continue;
+      /*
+       * AUTHORITY OUTRANKS WATER KIND, AND THIS LADDER FORGOT IT.
+       *
+       * On the Fording, "trout and char - release all, Jun 15 - Mar 31" is THE RIVER'S OWN
+       * rule. "Release all, from streams, Nov 1 - Mar 31" is Region 4's. The regional one
+       * names streams, so it looked like the narrower statement and struck the river's own —
+       * inverting the one ordering this page is built on, two lines under a legend promising
+       * the opposite. Naming a water KIND is a weaker claim than being written for the water.
+       */
+      var lo=Math.min.apply(null, here.map(authRank));
+      any=any.filter(function(x){ return authRank(x)>=lo; });
+      /*
+       * AND TWO RULES THAT SAY THE SAME THING ARE NOT A CONFLICT. Both of the Fording's rules
+       * say RELEASE. Striking one in favour of another with the identical outcome tells a
+       * reader nothing, and costs a struck row plus an explanation of a difference that is
+       * not there. The strictest pass has always had this guard; this one did not.
+       */
+      var win=keepWord(here[0]);
+      any=any.filter(function(x){ return keepWord(x)!==win; });
+      if(!any.length) continue;
       here.forEach(function(x){ kindBeats[x.rule]=1; });
       any.forEach(function(x){ kindBeaten[x.rule]=1; });
     }
@@ -1557,6 +1587,12 @@ function retentionTable(items, title, notes, waterKind){
       if(ga!==gb) return ga-gb;
       var la=lead(a), lb=lead(b);
       if(la!==lb) return la<lb?-1:1;
+      /* THE ROW THAT GOVERNS GOES FIRST, and the ones it replaced follow. The winner used to
+         land wherever breadth put it — on the Fording, fourth of five, under three struck
+         rows — so a reader met three crossed-out numbers before the one to follow. */
+      var oa=(kindBeaten[a.rule]||tribBeaten[a.rule])?1:0;
+      var ob=(kindBeaten[b.rule]||tribBeaten[b.rule])?1:0;
+      if(oa!==ob) return oa-ob;
       if(sa.length!==sb.length) return sb.length-sa.length;
       return ka<kb?-1:ka>kb?1:0;
     });
@@ -1753,16 +1789,25 @@ function retentionTable(items, title, notes, waterKind){
           ? ' <em class="lead">\u2014 the strictest of '+lead[l.rule]
             +' rules here for this fish; follow this one</em>' : '')
         +(alsoSaid[l.rule] ? ' <em class="also">\u2014 also written for this water</em>' : '')
-        +((tribBeats[l.rule]||kindBeats[l.rule])
+        /*
+         * THE REASON ONCE, ON THE ROW THAT WINS — not on every row that lost.
+         *
+         * The struck rows each carried "the general limit for any water; on this river the
+         * stream rule for this fish governs". Fourteen words, seven lines at 409 px, five
+         * times in one fish group: the explanation was longer than everything it explained.
+         * The winner says what it replaced; the struck rows keep the strike, their own
+         * authority in the Set by column, and one word.
+         */
+        +(kindBeats[l.rule]
+          ? ' <em class="lead">\u2014 follow this one: it replaces the general limit for '
+            +'this fish on a '+(waterKind==="lake"?"lake":"river")+'</em>' : '')
+        +(tribBeats[l.rule] && !kindBeats[l.rule]
           ? ' <em class="lead">\u2014 follow this one</em>' : '')
         +(narrowedBy[l.rule]
           ? ' <em class="also">\u2014 but see '
             +esc(narrowedBy[l.rule].filter(function(v,i,a){return a.indexOf(v)===i;}).join(" and "))
             +' below, which is limited separately</em>' : '')
-        +(kindBeaten[l.rule]
-          ? ' <em class="also">\u2014 the general limit for any water; on this '
-            +(waterKind==="lake"?"lake":"river")+' the '
-            +(waterKind==="lake"?"lake":"stream")+' rule for this fish governs</em>' : '')
+        +(kindBeaten[l.rule] ? ' <em class="also">\u2014 replaced</em>' : '')
         +(tribBeaten[l.rule]
           ? ' <em class="also">\u2014 inherited from upstream, and replaced by this '
             +(waterKind==="lake"?"lake":"river")+'\u2019s own rule above</em>' : '')
