@@ -1416,10 +1416,35 @@ function retentionTable(items, title, notes, waterKind){
     // A TOTAL ORDER. The old comparator returned -1 for compare(a,b) AND compare(b,a) when both
     // keys equalled the group's, so the block came out exactly reversed and the narrowing meant
     // to sit at the top ("not more than 1 over 50 cm") sank to the bottom.
+    /*
+     * THE BROADER STATEMENT LEADS, so a fish gets one section and not two.
+     *
+     * Sorted alphabetically, "BT" came before "BT,DV" — so the Elk River printed "Bull trout,
+     * none under 75 cm" and then, three rows down, "Bull trout, Dolly Varden — 1", which reads
+     * as two sections about the same fish rather than one general limit and its narrowing.
+     * Dolly Varden is never written without bull trout beside it (23 rules name both, 16 name
+     * both plus lake trout, 11 name bull trout alone, and NONE name Dolly Varden alone), so
+     * the two are always one section in the book's mind.
+     *
+     * Ordering by how many fish a row covers, widest first, is the same general-then-specific
+     * shape the group's own baseline already has, and it needs no table of which fish belong
+     * with which. The rows are not merged and no label is rewritten: "Bull trout, Dolly Varden"
+     * still says exactly that, it just leads the fish's block instead of trailing it.
+     */
+    /* Ordering by breadth ALONE put every two-fish row first and every one-fish row after, so
+       "Bull trout, Dolly Varden" and "Bull trout" ended up with a rainbow-trout row between
+       them — the same two-sections complaint, one step along. The fish comes first and the
+       breadth second: rows that share a lead fish stay together, and inside that block the
+       wider statement leads its own narrowings. */
+    var lead=function(x){ return speciesOf(x).slice().sort()[0]||""; };
     g.rows.sort(function(a,b){
-      var ka=speciesOf(a).join(","), kb=speciesOf(b).join(",");
+      var sa=speciesOf(a), sb=speciesOf(b);
+      var ka=sa.join(","), kb=sb.join(",");
       var ga=(ka===g.code)?0:1, gb=(kb===g.code)?0:1;
       if(ga!==gb) return ga-gb;
+      var la=lead(a), lb=lead(b);
+      if(la!==lb) return la<lb?-1:1;
+      if(sa.length!==sb.length) return sb.length-sa.length;
       return ka<kb?-1:ka>kb?1:0;
     });
     var last=null;
@@ -1569,6 +1594,14 @@ function retentionTable(items, title, notes, waterKind){
       var par=byId[l.within], pk=keepWord(par);
       if(pk!=="\u2014"){ keep=pk; carried=par; }
     }
+    /*
+     * AND WHERE THERE IS NOTHING TO CARRY, SAY SO. The parent is only on this table while IT is
+     * in force, and eight rules in the corpus outlive their parent's season — the Kootenay's
+     * upper reach has four that run all year under a quota that stops on October 31. On those
+     * days the child stands alone with no number, and an em dash in a column of 0s and 5s reads
+     * as "none". It is a size, and the row now says which.
+     */
+    var sizeOnly = (keep==="\u2014");
     // Only a real quota can be overridden to zero. A rule with no count — a size floor, a
     // paperwork duty — was rendered "0 (normally —)", a number it never had.
     if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
@@ -1586,6 +1619,9 @@ function retentionTable(items, title, notes, waterKind){
         +(tribBeaten[l.rule]
           ? ' <em class="also">\u2014 inherited from upstream, and replaced by this '
             +(waterKind==="lake"?"lake":"river")+'\u2019s own rule above</em>' : '')
+        +(sizeOnly
+          ? ' <em class="also">\u2014 this sets a size, not a number; the limit is the one '
+            +'shown for this fish above</em>' : '')
         +(carried
           ? ' <em class="also">\u2014 counts toward the '+esc(keepWord(carried))+' '
             +esc(speciesWords(speciesOf(carried)).toLowerCase())
@@ -3253,11 +3289,31 @@ function build(name, mount){
         if((a.label||"")===(b.label||"")) clash[a.label]=1; }); });
       var say=function(x){ var t=(x.label||x.type||"").toLowerCase();
         return clash[x.label]?t+" ("+winWord(x.windows).toLowerCase()+")":t; };
+      /*
+       * THE HEADLINE IS A RULE THAT IS IN FORCE, WHERE THERE IS ONE.
+       *
+       * The delta is structural — it says where along the river the rules CHANGE, which is why
+       * the stretch is cut here, and that is true in every month. The rule it named was just
+       * the first in the list. So on May 1 the Elk's rungs read CLOSED, in the closed colour,
+       * over the words "+ trout and char — 1 per day, june 15-oct 31": a rule that will not be
+       * in force for six weeks, offered as the reason.
+       *
+       * The counts still cover everything — nothing is hidden and no stretch loses its delta —
+       * but the one rule printed is one a reader could act on today, and if none of them is,
+       * the line says so rather than letting the date control silently not apply here.
+       */
+      var pick=function(list){
+        for(var j=0;j<list.length;j++) if(live(list[j].windows)) return list[j];
+        return list[0];
+      };
+      var tag=function(x){ return live(x.windows)?"":" \u2014 out of season"; };
       var d=[];
-      if(add.length) d.push('<span class="add">+ '+esc(say(add[0]))
-        +(add.length>1?" and "+(add.length-1)+" more":"")+'</span>');
-      if(rm.length) d.push('<span class="rm">− '+esc(say(rm[0]))
-        +(rm.length>1?" and "+(rm.length-1)+" more":"")+'</span>');
+      if(add.length){ var a0=pick(add);
+        d.push('<span class="add">+ '+esc(say(a0))
+          +(add.length>1?" and "+(add.length-1)+" more":"")+esc(tag(a0))+'</span>'); }
+      if(rm.length){ var r0=pick(rm);
+        d.push('<span class="rm">− '+esc(say(r0))
+          +(rm.length>1?" and "+(rm.length-1)+" more":"")+esc(tag(r0))+'</span>'); }
       if(!d.length) d.push('<span class="same">same rules as below</span>');
       /*
        * A STRETCH IS A ROW LIKE A RULE IS A ROW.
