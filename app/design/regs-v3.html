@@ -509,9 +509,17 @@ a.no:hover{text-decoration:underline}
 .qt .keep{width:19%}
 .qt .cond{width:33%}
 .qt .who{width:22%}
-.qt.gt .fish{width:25%}
-.qt.gt .cond{width:48%}
-.qt.gt .who{width:27%}
+/* Two columns carry the heading line — the subject, and who set it. The sentence spans all
+   three underneath. The pair is ONE block: the rule under `ghead` drops its border so a
+   heading can never be separated from the rule it names. */
+.qt.gt .fish{width:60%}
+.qt.gt .who{width:40%}
+.qt.gt tr.ghead td{border-bottom:0;padding-bottom:1px}
+.qt.gt tr.ghead .fish{font-weight:700}
+/* The activity's own answer, beside its name: normal weight, so the NAME stays the heading. */
+.qt.gt .verdict{font-weight:400;color:var(--ink)}
+.qt.gt tr.shut .verdict{color:var(--closed);font-weight:600}
+.qt.gt tr.gbody td{padding-top:0}
 .qt .keep{font:700 14px var(--fig);font-variant-numeric:tabular-nums;
   overflow-wrap:break-word}
 .qt .zero{color:var(--closed)}
@@ -2684,13 +2692,22 @@ function gearTable(items, title, waterKind, extras){
      * in the cell beside the prohibition it qualifies.
      */
     var headHTML=(head || struck.length)
-      ? ['<tr class="act'+(no.length?" shut":"")+'">'
-          +'<td class="fish">'+esc(ACT_WORD[a]||a)+'</td>'
-          +'<td class="cond">'+(head?'<b>'+esc(head)+'</b>':'')
-          +(struck.length?' <span class="wasx">'+struck.map(function(x){
-              return esc(x.label); }).join(" · ")+'</span>':''),
-         '</td><td class="who">'+esc(headWho+(no.length?viaWords(no[0])
-            :(yes.length?viaWords(yes[0]):"")))+'</td></tr>']
+      /*
+       * AN ACTIVITY'S VERDICT IS SHORT, SO IT SHARES THE HEADING LINE.
+       *
+       * "Not permitted here" is three words; given a row of its own under "Spear fishing" it
+       * spends a whole line saying what fits beside the name. The topic rows stack because what
+       * they carry is a SENTENCE; this carries a verdict. Only what is left over — a struck
+       * permission, a duty that qualifies the refusal — goes underneath, and where there is
+       * none there is no second row at all.
+       */
+      ? ['<tr class="act ghead'+(no.length?" shut":"")+'">'
+          +'<td class="fish" colspan="2">'+esc(ACT_WORD[a]||a)
+          +(head?' <b class="verdict">'+esc(head)+'</b>':'')+'</td>'
+          +'<td class="who">'+esc(headWho+(no.length?viaWords(no[0])
+              :(yes.length?viaWords(yes[0]):"")))+'</td></tr>',
+         (struck.length?'<span class="wasx">'+struck.map(function(x){
+              return esc(x.label); }).join(" · ")+'</span>':'')]
       : null;
 
     var show=(no.length||head) ? rest.slice() : live_.slice();
@@ -2844,8 +2861,13 @@ function gearTable(items, title, waterKind, extras){
       }).join('<span class="cldot"> \u00b7 </span>');
       groups=groups.slice(1);
     }
-    if(headHTML) rows.push(headHTML[0]
-      +(headExtra?'<span class="cldot"> \u00b7 </span>'+headExtra:'')+headHTML[1]);
+    if(headHTML){
+      rows.push(headHTML[0]);
+      var underHead=headHTML[1]
+        +(headExtra?(headHTML[1]?'<span class="cldot"> \u00b7 </span>':'')+headExtra:'');
+      if(underHead) rows.push('<tr class="act gbody'+(no.length?" shut":"")+'">'
+        +'<td class="cond" colspan="3">'+underHead+'</td></tr>');
+    }
     groups.forEach(function(g){
       var clause=function(x){
         var muted=banOn && /^bait:/.test(String(x.dimension)) && x.dimension!=="bait:any";
@@ -2874,14 +2896,30 @@ function gearTable(items, title, waterKind, extras){
          activity it belongs to. */
       var lead=(!head && !struck.length && g===groups[0]);
       var word=lead ? (ACT_WORD[a]||a) : (GEAR_TOPIC_WORD[g.t]||"");
-      rows.push('<tr class="sub'+(cs.length===1&&cs[0].muted?" muted":"")+'">'
-        +'<td class="fish">'+(lead?"":'<i class="in"></i>')+esc(word)
+      /*
+       * THE SUBJECT ON ITS OWN LINE, THE RULE ACROSS THE WHOLE WIDTH.
+       *
+       * Three columns on a 409 px screen left the Rule column about half the width, and the
+       * rule is the only thing in the row that is a SENTENCE. Region 2's bait line wrapped
+       * every three words down eleven lines while "Angling / Bait" sat beside it in a column
+       * sized for two words, and the taller the row grew the further the authority drifted
+       * from the text it belongs to.
+       *
+       * A subject and its authority are short and pair naturally on one line; the sentence
+       * gets the full width underneath. Same three facts, half the height, and nothing wraps
+       * that did not have to. The border goes under the SENTENCE, so the two rows read as the
+       * one block they are.
+       */
+      var mutedRow=(cs.length===1&&cs[0].muted);
+      rows.push('<tr class="ghead'+(mutedRow?" muted":"")+'">'
+        +'<td class="fish" colspan="2">'+(lead?"":'<i class="in"></i>')+esc(word)
         /* "Also" names no subject — it is where the rules that have none go — so on a lead
            row it adds a second line under the activity's name saying nothing. */
         +(lead&&GEAR_TOPIC_WORD[g.t]&&g.t!=="other"
            ? '<span class="subt">'+esc(GEAR_TOPIC_WORD[g.t])+'</span>' : '')+'</td>'
-        +'<td class="cond">'+body+'</td>'
-        +'<td class="who">'+esc(best)+'</td></tr>');
+        +'<td class="who">'+esc(best)+'</td></tr>'
+        +'<tr class="gbody'+(mutedRow?" muted":"")+'">'
+        +'<td class="cond" colspan="3">'+body+'</td></tr>');
     });
   });
   if(!rows.length) return "";
@@ -2896,7 +2934,7 @@ function gearTable(items, title, waterKind, extras){
   var close=(extras||[]).filter(isClosingLine);
   return '<div class="qtitle">'+esc(title||"How you may fish")+'</div><div class="tw">'
     +'<table class="qt gt">'
-    +'<tr><th>Way of fishing</th><th>Rule</th><th>Set by</th></tr>'+rows.join("")
+    +'<tr><th colspan="2">Way of fishing</th><th>Set by</th></tr>'+rows.join("")
     +'</table></div>'
     +(close.length?'<div class="qfoot shut">'+esc(close[0].label)+'</div>':'');
 }

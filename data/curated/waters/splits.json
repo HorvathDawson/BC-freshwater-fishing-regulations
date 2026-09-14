@@ -5101,7 +5101,8 @@
      "_coord": [
       -117.46642,
       49.4676
-     ]
+     ],
+     "proximity_m": 300.0
     },
     {
      "id": "kootenay_river__brilliant_dam",
