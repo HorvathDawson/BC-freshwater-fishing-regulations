@@ -632,12 +632,20 @@
       {
        "op": "between",
        "splits": [
-        "south_atnarko_river__tenas_lake",
-        "atnarko_bella_coola_rivers_includes_tributaries_exce__atnarko_park_campsite_boundary_signs"
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__atnarko_park_campsite_boundary_signs",
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river"
+       ],
+       "item_id": "gnis:17209"
+      },
+      {
+       "op": "between",
+       "splits": [
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+        "south_atnarko_river__tenas_lake"
        ],
        "item_ids": [
-        "gnis:29411",
-        "gnis:17209"
+        "gnis:17209",
+        "gnis:29411"
        ]
       }
      ],
@@ -647,7 +655,16 @@
      "extent_text": "",
      "unresolved_locators": [],
      "needs_review": false,
-     "review_reason": ""
+     "review_reason": "",
+     "tributary_excludes": [
+      {
+       "op": "upstream_of",
+       "splits": [
+        "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river"
+       ],
+       "item_id": "gnis:17209"
+      }
+     ]
     },
     {
      "rule_id": "atnarko_bella_coola_rivers.r3",

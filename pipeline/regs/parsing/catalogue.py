@@ -416,6 +416,22 @@ class CatalogueRule(BaseModel):
     #: A row routinely binds its rules to different reaches — "no fishing above the falls, bait ban
     #: throughout" — and without this the narrower rule silently widens to the whole water.
     extents: Optional[List[dict]] = None
+    #: WATER THIS RULE REACHES BY THE TRIBUTARY WALK AND MUST NOT. Subtracted from this rule's
+    #: tributary set only — the entry-wide `Tributaries.excludes` carves every rule in the row,
+    #: which is wrong where one rule is ABOUT the water another must not touch.
+    #:
+    #: The Atnarko is the case. "No Fishing from Tenas Lake to the Atnarko Park campsite" runs up
+    #: the SOUTH Atnarko, and the row says "includes tributaries" — so the walk reaches the fork
+    #: and climbs the MAIN Atnarko above it, which the sentence never mentions. Its sibling rule
+    #: "No Fishing upstream of Tweedsmuir Park, Apr 1-June 30" is precisely about that upper
+    #: water, so an entry-wide exclude would delete the rule that belongs there.
+    #:
+    #: Each entry is an extent, resolved by the same machinery as any other and passed to the walk
+    #: as BLOCKED, so it removes the named water *and everything above it* and the walk cannot
+    #: descend through it either. `pipeline/atlas/reach/build.py::resolve_carve_outs` has read this
+    #: field since the catalogue landed; it was only ever declared on the retired prose model, so
+    #: nothing could set it. Curator-filled — the parser never writes one.
+    tributary_excludes: List[dict] = Field(default_factory=list)
     exempts: List[Exempts] = Field(default_factory=list)
     standing: bool = False
     authority: Optional[str] = Field(default=None, pattern="^superior$")

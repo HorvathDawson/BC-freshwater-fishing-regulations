@@ -90,6 +90,9 @@ _NOT_CONDITIONS = frozenset({
     "rule_id", "type", "verbatim", "species", "species_except", "windows", "take",
     "may_target", "extents", "extent_text", "needs_review", "review_reason",
     "unresolved_locators",
+    # Build-time only: a carve-out the reach builder applies before any section reaches the
+    # bundle. Shipping it as a `condition` would put a resolver's input in front of a reader.
+    "tributary_excludes",
 })
 
 
