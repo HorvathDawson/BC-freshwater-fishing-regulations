@@ -412,7 +412,18 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt tr.act .fish{font-weight:700}
 .qt tr.act.shut .fish{color:var(--closed)}
 .qt .wasx{opacity:.5;text-decoration:line-through;font-weight:400}
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 0 10px}
+/*
+ * ONE GUTTER DOWN THE SCREEN.
+ *
+ * The prose blocks were inset 18px and the tables, their titles, the closure list and the
+ * footnotes were flush at 0 — so every table butted against the phone's edge while the
+ * sentence above it stood clear of it, and a right-hand "Set by" ran to the very edge with
+ * nothing to stop it. Five block types out of eight.
+ *
+ * `.tw` takes MARGIN rather than padding: it is the horizontal scroll container, and padding
+ * would put the gutter inside the scrolling area where a wide table slides under it.
+ */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 18px 10px}
 .tw .qt{margin-bottom:0}
 /* (the `nowrap` that used to be here is gone — see the rule above) */
 @media (max-width:430px){
@@ -528,14 +539,14 @@ a.no:hover{text-decoration:underline}
 .qt tr.sub td{border-bottom:1px solid var(--line)}
 .qt tr.sub .fish{padding-left:14px;font-weight:400;color:var(--sub)}
 .qt tr.sub .fish:before{content:"↳ ";color:var(--quiet)}
-dl.qnote{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:-2px 0 14px;
+dl.qnote{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:-2px 18px 14px;
   padding:8px 0 0;border-top:1px solid var(--line)}
 dl.qnote dt{font:700 9.5px/1.5 var(--fig);letter-spacing:.09em;text-transform:uppercase;
   color:var(--faint);white-space:nowrap;padding-top:1px}
 dl.qnote dd{margin:0;font:400 11.5px/1.5 var(--ui);color:var(--sub)}
 dl.qnote dd s{opacity:.6}
-.qfoot{font:400 11.5px/1.5 var(--ui);color:var(--sub);margin:-4px 0 12px}
-.clrs{margin:0 0 16px}
+.qfoot{font:400 11.5px/1.5 var(--ui);color:var(--sub);margin:-4px 18px 12px}
+.clrs{margin:0 18px 16px}
 .clr{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:baseline;
   padding:8px 0;border-bottom:1px solid var(--line)}
 .clr:last-child{border-bottom:0}
@@ -552,7 +563,7 @@ dl.qnote dd s{opacity:.6}
 .clr.lift .clb s{opacity:.55}
 .clr.lift .clb em{opacity:.95;font-weight:500}
 .qtitle{font:700 10px var(--fig);letter-spacing:.11em;text-transform:uppercase;
-  color:var(--faint);margin:14px 0 2px}
+  color:var(--faint);margin:14px 18px 2px}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);
   font:500 11px/1.75 var(--fig);color:var(--faint)}
 </style>
@@ -1171,7 +1182,24 @@ function closureCal(items, waterKind){
      * cannot fish, or the answer changes on a day the reader can plan around. A permanent
      * species closure is neither, and the table says it anyway.
      */
-    return shutsTheWater(x) || (x.windows||[]).length>0;
+    /*
+     * …AND A CLOSURE THAT NARROWS ON PLACE OR TIME IS STILL A CLOSURE.
+     *
+     * `shutsTheWater` is false for these by design — "within 23 m downstream of any fishway"
+     * does not shut the river and must never drive the verdict — and they carry no windows, so
+     * neither arm of the test above caught them and all of them fell through to the QUOTA
+     * table. There they became rows reading "All game fish · 0 · you may not fish for it",
+     * sitting under Whitefish 15 and Trout and char 4 and appearing to cancel them. On the
+     * Harrison that block held three: the two provincial buffers and the river's own
+     * "No fishing, one hour after sunset to one hour before sunrise" — a NIGHT closure, printed
+     * with no mention of the night.
+     *
+     * They are closures of a piece of the water or a part of the day. This is the block for
+     * closures, their labels already say which, and `narrows` is the same function the verdict
+     * uses — so the two cannot disagree about what these are.
+     */
+    var nw=narrows(x, null);
+    return shutsTheWater(x) || (x.windows||[]).length>0 || nw==="place" || nw==="time";
   });
   var now=[], soon=[], lifted=[], seen={};
   shut.forEach(function(x){
@@ -1213,7 +1241,9 @@ function closureBlock(items, waterKind){
       +'<span class="clx">'+esc(whereFrom(x)+viaWords(x))+'</span></div>';
   };
   var h=['<div class="qtitle">Closures on this stretch</div><div class="clrs">'];
-  c.now.forEach(function(x){ h.push(row(x,"on","in force now &middot; "+esc(whenWords(x)))); });
+  c.now.forEach(function(x){
+    var w=whenWords(x);
+    h.push(row(x,"on","in force now"+(w?" &middot; "+esc(w):""))); });
   c.soon.forEach(function(x){ h.push(row(x,"off",esc(whenWords(x)))); });
   c.lifted.forEach(function(x){
     var by=liftedBy(x, c.lifts);
@@ -1363,7 +1393,12 @@ function retentionTable(items, title, notes, waterKind, openFish){
     // A FULL exemption is an edit to another row, never a row of its own. A NARROWING one is
     // kept: "except burbot, which may also be speared" is a fact about burbot that a reader
     // looking up burbot has to be able to find.
-    return !shutsTheWater(x) && !x.method && !(isExemption(x) && fullLift(x)); });
+    /* A whole-water closure narrowed to a PLACE or a TIME has gone to the closure block above
+       — see `closureCal`. It sets no number anyone can act on, and as a row it read as a quota
+       of zero on every fish, directly under the numbers it appeared to cancel. */
+    var nw=narrows(x, null);
+    return !shutsTheWater(x) && nw!=="place" && nw!=="time"
+           && !x.method && !(isExemption(x) && fullLift(x)); });
   /* The rules this stretch is exempt from still appear — struck, and named — because a reader
      who has heard of the spring closure needs to see that it was considered and lifted, not
      silently absent. */
