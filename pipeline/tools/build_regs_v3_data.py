@@ -428,6 +428,19 @@ def _species_groups() -> list[dict]:
             for code in ("TROUT_CHAR", "SALMON", "WHITEFISH", "BASS", "ALL_GAME_FISH")]
 
 
+def _group_members() -> dict[str, list[str]]:
+    """The members of the groups a rule may name but the page cannot expand on its own.
+
+    `_species_groups` builds the five the reader FILTERS by. `PROTECTED_SPECIES` is not one of
+    those — nobody filters for "the fish it is illegal to fish for" — but a row that says
+    "No fishing for protected species" and names none of them tells a reader to look up twelve
+    taxa somewhere else. The closed list is in the catalogue; this carries it across so the page
+    can print the names instead of asserting them.
+    """
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    return {"PROTECTED_SPECIES": list(SPECIES_GROUPS["PROTECTED_SPECIES"])}
+
+
 def _rules_by_id(db: sqlite3.Connection) -> dict[tuple[str, str], dict]:
     cols = [r[1] for r in db.execute("PRAGMA table_info(rule)")]
     out = {}
@@ -1114,6 +1127,7 @@ def main() -> int:
 
     out["_species"] = _species_names()
     out["_groups"] = _species_groups()
+    out["_members"] = _group_members()
     blob = json.dumps(out, separators=(",", ":"), ensure_ascii=False)
 
     if a.to_stdout:
