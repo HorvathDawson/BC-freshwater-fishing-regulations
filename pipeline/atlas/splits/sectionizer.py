@@ -112,9 +112,26 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
         n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
             continue
-        for m in (n.down_m, n.up_m):
-            if m <= lo_ext or m >= hi_ext:      # skip the blk's natural ends
-                continue
+        for m, bnd in ((n.down_m, n.lower_bound), (n.up_m, n.upper_bound)):
+            if m <= lo_ext or m >= hi_ext:
+                # THE END OF THE LINE IS NOT ALWAYS NOTHING.
+                #
+                # The guard is here so a split near a river's mouth or source cannot slide onto
+                # it: a mouth is where this water stops being itself, and snapping a cut there
+                # turns "downstream of X" into the whole river. That reasoning holds only where
+                # the end is BARE.
+                #
+                # A stream that terminates AT A LAKE has a real, named boundary sitting on that
+                # end, and rules bind to it. The Stamp River is the case: its blue line stops at
+                # 20,232 m, the Great Central Lake edge is the bound ON that end, and the dam at
+                # the lake's outlet resolves 0.5 m away — half a metre, well inside even the
+                # coincident-only default, and refused purely for being at the end. The result is
+                # two boundaries at one place, which is the shape that draws a 0 km stretch.
+                #
+                # So: a lake edge at a natural end is a boundary like any other and may be picked
+                # up. A bare end, or any other kind of bound there, is still refused.
+                if bnd is None or not str(bnd.boundary_id).startswith("lake:"):
+                    continue
             d = abs(m - M)
             if d <= best_d:
                 best_m, best_d = m, d

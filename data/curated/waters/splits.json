@@ -252,7 +252,8 @@
      "_coord": [
       -125.33989,
       50.04179
-     ]
+     ],
+     "proximity_m": 60.0
     },
     {
      "id": "campbell_river__strathcona_dam_100_m_downstream",
@@ -4418,7 +4419,8 @@
      "_coord": [
       -117.77353,
       49.34196
-     ]
+     ],
+     "proximity_m": 80.0
     },
     {
      "id": "columbia_river__washington_state_border",
@@ -5424,7 +5426,8 @@
      "_coord": [
       -117.61186,
       49.0039
-     ]
+     ],
+     "proximity_m": 80.0
     },
     {
      "id": "pend_d_oreille_river__seven_mile_dam",
@@ -9089,7 +9092,8 @@
      "_coord": [
       -115.35084,
       49.49944
-     ]
+     ],
+     "proximity_m": 60.0
     },
     {
      "id": "bull_river__galbraith_creek_confl",
