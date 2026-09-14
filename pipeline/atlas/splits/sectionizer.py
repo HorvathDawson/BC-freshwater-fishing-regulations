@@ -132,6 +132,16 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
                 # up. A bare end, or any other kind of bound there, is still refused.
                 if bnd is None or not str(bnd.boundary_id).startswith("lake:"):
                     continue
+                # AND ONLY A CURATED SPLIT MAY TAKE THAT NAME.
+                #
+                # A pickup RELABELS the boundary it reuses, carrying the old id as an alias. For
+                # a dam that is the point: "Corra Linn Dam" is a better name for the Kootenay's
+                # outlet than `lake:-22`, and rules bind to the dam. For an auto-generated split
+                # it is pure loss — nothing binds to `gauge__08HB008` by name, and relabelling
+                # cost `sproat_river__sproat_lake` the lake edge it resolves through, collapsing
+                # "No Fishing from Sproat Lake to the Hwy 4 signs" to an empty reach.
+                if sp.split_id.split("__")[0] in _AUTO_SPLIT_PREFIXES:
+                    continue
             d = abs(m - M)
             if d <= best_d:
                 best_m, best_d = m, d
@@ -166,6 +176,10 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
             graph.nodes[nid] = replace(n, lower_bound=bnd)
     return True
 
+
+#: Split families the pipeline mints itself. They are positions, not names anybody binds to, so
+#: they may never relabel a named boundary at a natural end — see `_pickup`.
+_AUTO_SPLIT_PREFIXES = frozenset({"gauge", "area", "border", "length"})
 
 _ALIAS_MAX_FROM_EDGE_M = 3000.0   # how far into the lake a split may sit and still mean its edge
 
