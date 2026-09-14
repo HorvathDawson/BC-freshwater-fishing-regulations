@@ -5940,6 +5940,21 @@
      "applies_to": {
       "wsc": "910-275583-999439"
      }
+    },
+    {
+     "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__south_atnarko_river_into_atnarko_river",
+     "label": "South Atnarko River → Atnarko River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "910-275583-999439-546443-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
+      "_name": "South Atnarko River"
+     },
+     "note": "",
+     "_note": "The fork the 'No Fishing from Tenas Lake to the Atnarko Park campsite' closure passes through. Its two ends sit on DIFFERENT blue lines - Tenas Lake is on the South Atnarko, the campsite is on the Atnarko - so the reach crosses this confluence and there was no boundary here to name it by. Authored so the reach can be stated as two single-river spans, and so the water above the fork can be referred to at all.",
+     "applies_to": {
+      "wsc": "910-275583-999439"
+     }
     }
    ]
   },
