@@ -535,6 +535,9 @@ a.no:hover{text-decoration:underline}
   overflow-wrap:break-word}
 .qt .zero{color:var(--closed)}
 .qt .fish{font-weight:600}
+/* The duty line under a fish's summary row: one block with it, so the border falls below. */
+.qt tr.sumr td{border-bottom:0}
+.qt tr.sumd td{padding-top:0;border-bottom:1px solid var(--line)}
 .qt .cond{color:var(--sub);font-size:11.5px}
 .qt tr.sub td{border-bottom:1px solid var(--line)}
 .qt tr.sub .fish{padding-left:14px;font-weight:400;color:var(--sub)}
@@ -562,6 +565,13 @@ dl.qnote dd s{opacity:.6}
 .clr.lift .clw{color:var(--open)}
 .clr.lift .clb s{opacity:.55}
 .clr.lift .clb em{opacity:.95;font-weight:500}
+/* The disclosure that opens the working. Full width, so it reads as the lid on everything
+   below it rather than as one more control in a row. */
+.provt{display:flex;width:calc(100% - 36px);margin:18px 18px 0;align-items:center;
+  justify-content:space-between;gap:10px;background:none;border:0;
+  border-top:1px solid var(--line);padding:13px 0 0;cursor:pointer;text-align:left;
+  font:700 12.5px var(--ui);color:var(--ink)}
+.provt .n{font:700 9.5px var(--fig);letter-spacing:.09em;color:var(--accent)}
 .qtitle{font:700 10px var(--fig);letter-spacing:.11em;text-transform:uppercase;
   color:var(--faint);margin:14px 18px 2px}
 .foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--line2);
@@ -2054,8 +2064,7 @@ function retentionTable(items, title, notes, waterKind, openFish){
       +'<td class="fish">'+esc(b.fish)+'</td>'
       +'<td class="keep'+(head==="0"||head==="release"?" zero":"")+'">'+esc(head)
         +(wasVals.length?' <s class="was">'+esc(wasVals.join(" \u00b7 "))+'</s>':'')+'</td>'
-      +'<td class="cond">'+(dutyFor[b.fish]
-          ? '<em class="note">'+dutyFor[b.fish]+'</em> ' : '')
+      +'<td class="cond">'
         +(open
           ? '<em class="lead">two answers stand here \u2014 read them both</em>'
           : '<span class="nx">'+(placeOnly
@@ -2065,6 +2074,21 @@ function retentionTable(items, title, notes, waterKind, openFish){
               : more+' rule'+(more===1?"":"s")+' behind this')+'</span>')
       +'</td>'
       +'<td class="who">'+esc(who)+'<span class="chev">'+(shown?"\u2013":"+")+'</span></td></tr>');
+    /*
+     * A DUTY IS A SENTENCE, AND A SENTENCE DOES NOT FIT IN THE CONDITIONS COLUMN.
+     *
+     * The steelhead stop-fishing duty is forty words. In a column a third of a 409 px screen it
+     * wrapped to fifteen lines and drove the whole row taller than the four above it put
+     * together, pushing "Set by" away from the number it belongs to. It is not a condition on
+     * the quota in the way "hatchery only" is — it is what happens AFTER you reach the number,
+     * so it reads as a line under the row rather than a qualifier inside it.
+     *
+     * Same shape as the gear table: the short facts stay in their columns, the sentence gets
+     * the full width beneath them.
+     */
+    if(dutyFor[b.fish])
+      rows2.push('<tr class="sumd'+(open?" clash":"")+'">'
+        +'<td class="cond" colspan="4"><em class="note">'+dutyFor[b.fish]+'</em></td></tr>');
     b.rows.forEach(function(r){
       rows2.push(r.html.replace('<tr class="', '<tr data-of="'+esc(key)+'"'
         +(shown?"":" hidden")+' class="ch '));
@@ -4964,6 +4988,22 @@ function build(name, mount){
        which days it does apply on — otherwise "not in force today" is the whole message and
        they never learn there is a Saturday rule at all. */
     var ladder=[];
+    /*
+     * THE WORKING IS FOLDED AWAY UNTIL IT IS ASKED FOR.
+     *
+     * The tables are the answer. Below them the page prints every rule again in the book's own
+     * words — the river's own, then each water it inherits from, then the region's and the
+     * province's — which on the Fraser is eighty-odd rules and several screens of scrolling
+     * between the answer and the end of the page. A reader who wants to check where a number
+     * came from needs all of it; a reader who wants the number needs none of it, and until now
+     * paid for it anyway.
+     *
+     * `st.prov` rather than <details> because the screen is re-rendered on every date change
+     * and a native disclosure would snap shut each time. Same mechanism as `st.later`.
+     */
+    ladder.push('<button class="provt" data-prov="1" aria-expanded="'+(st.prov?"true":"false")
+      +'"><span>Where these rules come from</span>'
+      +'<span class="n">'+(st.prov?"HIDE":"SHOW")+' THE WORKING</span></button>');
     ladder.push('<div class="sect"><span>Written for this '+NOUN+'</span>'
       +(later.length
          ? '<button class="later" data-later="1" aria-expanded="'+(st.later?"true":"false")
@@ -5114,7 +5154,9 @@ function build(name, mount){
                            return x.family==="vessel" && live(x.windows); }).length));
       h.push(licenceTable(nowOwn.concat(nowInh, nowZone), "Licences & permission here"));
       // THE WORKING, UNDER THE ANSWER. See where `ladder` is built.
-      h.push(ladder.join(""));
+      /* Collapsed, only the button — `ladder[0]`. The rest is still BUILT (it is string
+         concatenation, and the counts in the button come from it) and simply not appended. */
+      h.push(st.prov ? ladder.join("") : ladder[0]);
 
       /*
        * A FOOTNOTE IS A LIST, AND THE PROVINCE REPEATS ITSELF.
@@ -5337,14 +5379,14 @@ function build(name, mount){
         }
         from=null;
         var pick=st.scrub; st.scrub=null;
-        st.i=pick; st.stage="what"; st.later=false; st.z=0; st.pan=null;
+        st.i=pick; st.stage="what"; st.later=false; st.prov=false; st.z=0; st.pan=null;
         screen.scrollTop=0; render();
       };
       rl.onpointercancel=function(){ st.scrub=null; render(); };
     }
     screen.querySelectorAll("[data-go]").forEach(function(n){
       n.onclick=function(){ st.i=+n.getAttribute("data-go"); st.stage="what";
-        st.later=false; st.z=0; st.pan=null; screen.scrollTop=0; render(); }; });
+        st.later=false; st.prov=false; st.z=0; st.pan=null; screen.scrollTop=0; render(); }; });
     screen.querySelectorAll("[data-i]").forEach(function(n){
       n.onclick=function(){ st.i=+n.getAttribute("data-i"); st.stage="what";
         st.later=false; screen.scrollTop=0; render(); }; });
@@ -5359,6 +5401,8 @@ function build(name, mount){
         st.fish_[k]=!st.fish_[k]; render(); }; });
     var l=screen.querySelector("[data-later]");
     if(l) l.onclick=function(){ st.later=!st.later; render(); };
+    var pv=screen.querySelector("[data-prov]");
+    if(pv) pv.onclick=function(){ st.prov=!st.prov; render(); };
     var sc=screen.querySelector("[data-src]");
     if(sc) sc.onclick=function(){ st.src=!st.src; render(); };
     var ot=screen.querySelector("[data-other]");
