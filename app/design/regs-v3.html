@@ -1760,6 +1760,20 @@ function retentionTable(items, title, notes, waterKind, openFish){
        */
       var aa=authRank(a), ab=authRank(b);
       if(aa!==ab) return ab-aa;
+      /*
+       * WITHIN ONE RUNG, A CLAUSE STAYS WITH THE RULE IT NARROWS.
+       *
+       * Region 4 writes kokanee as one limit in three parts: 15 a day, no more than 5 over
+       * 30 cm, and none from streams. All three are the region's, so the ladder cannot order
+       * them — and the stream rule landed between the 15 and its own sub-limit, so "part of the
+       * kokanee limit above, replaced with it" pointed at a row two places up.
+       *
+       * A rule with `within` sorts as though it were its parent, and then immediately after it.
+       */
+      var pa=a.within||a.rule, pb=b.within||b.rule;
+      if(pa!==pb) return pa<pb?-1:1;
+      var wa=a.within?1:0, wb=b.within?1:0;
+      if(wa!==wb) return wa-wb;
       if(sa.length!==sb.length) return sb.length-sa.length;
       return ka<kb?-1:ka>kb?1:0;
     });
@@ -1874,7 +1888,22 @@ function retentionTable(items, title, notes, waterKind, openFish){
      * Only a rule that stands on its own can BE the answer. The clauses are still in the
      * chain, in full, under the row they narrow.
      */
+    /*
+     * …AND NEITHER DOES A SIZE BAND.
+     *
+     * `sizeOnly` catches a rule that sets NO number ("none under 60 cm"). It does not catch one
+     * that sets a number inside a size band, and Region 2 writes two of those for trout: release
+     * WILD from streams, and release HATCHERY UNDER 30 CM from streams. Bucketed by origin, the
+     * second became the whole answer for hatchery fish and the headline read
+     *
+     *     4 a day · release wild · release hatchery
+     *
+     * which says keep four and release everything — and is simply false about a 40 cm hatchery
+     * fish, which may be kept. A band is a clause of its slot in exactly the way `within` is a
+     * clause of its parent, and it belongs under the row it narrows, not in front of it.
+     */
     var live_=b.rows.filter(function(r){ return !r.over && !r.sizeOnly && !r.rule.within
+      && r.rule.over_cm==null && r.rule.under_cm==null
       && r.keep && r.keep!=="\u2014"; });
     /*
      * THE STRONGEST AUTHORITY *WITHIN EACH SLOT*, NOT ACROSS THEM.
@@ -2173,10 +2202,25 @@ function retentionTable(items, title, notes, waterKind, openFish){
          * The winner says what it replaced; the struck rows keep the strike, their own
          * authority in the Set by column, and one word.
          */
-        +(kindBeats[l.rule]
+        /*
+         * A RULE THAT IS NOT IN FORCE TODAY CANNOT BE THE ONE TO FOLLOW.
+         *
+         * The quota table shows a water's rules whether or not they are in season, on purpose:
+         * a reader needs to see that the river turns catch-and-release in November. But the
+         * winner's marker was applied from the ladder alone, so on 7 September the Fording
+         * printed "release · in streams · nov 1 – mar 31 — FOLLOW THIS ONE" over the rule that
+         * actually governs in September. The dates were on the row; the instruction contradicted
+         * them.
+         *
+         * It is the same `liveNow` the rest of the page uses, so the table and the verdict
+         * cannot disagree.
+         */
+        +(!liveNow(l)
+          ? ' <em class="also">\u2014 not in force today</em>' : '')
+        +(kindBeats[l.rule] && liveNow(l)
           ? ' <em class="lead">\u2014 follow this one: it replaces the general limit for '
             +'this fish on a '+(waterKind==="lake"?"lake":"river")+'</em>' : '')
-        +(tribBeats[l.rule] && !kindBeats[l.rule]
+        +(tribBeats[l.rule] && !kindBeats[l.rule] && liveNow(l)
           ? ' <em class="lead">\u2014 follow this one</em>' : '')
         +(narrowedBy[l.rule]
           ? ' <em class="also">\u2014 but see '
