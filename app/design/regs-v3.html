@@ -1076,7 +1076,28 @@ function plural(ns){
  * So a species that BELONGS TO a group whose quota is stated here is drawn under it, whether
  * it got there by `within` or by naming that fish on its own.
  */
-function speciesOf(x){ return (x.species||[]).slice(); }
+/*
+ * THE SAME TWO FISH, WRITTEN IN TWO ORDERS, ARE ONE SUBJECT.
+ *
+ * Every subject key on this page is `speciesOf(x).join(",")` — which block a row belongs to,
+ * which rows sort together, whether two rules answer the same question. The corpus does not
+ * write its lists in a settled order: three of its four multi-fish subjects appear more than
+ * one way round.
+ *
+ *     BT,DV,LT  ->  BT,DV,LT  |  DV,BT,LT  |  LT,BT,DV
+ *     BT,DV     ->  BT,DV     |  DV,BT
+ *     CT,RB     ->  RB,CT     |  CT,RB
+ *
+ * So on the Atnarko `trout_char_quota.r4` ("DV,BT", 1 a day) and `r8` ("BT,DV", release) are
+ * the same two fish and keyed as two different subjects. They formed two blocks, each heading
+ * naming bull trout and Dolly Varden, with the struck rule in one and the rule that governs in
+ * the other — and a reader met the same fish twice with no way to tell the pair apart.
+ *
+ * Sorted once here, every key downstream agrees and the label reads the same way each time.
+ * Nothing is merged that was not already the same subject: this changes the ORDER of a list,
+ * not its contents.
+ */
+function speciesOf(x){ return (x.species||[]).slice().sort(); }
 
 /** Does this rule shut the WATER — as opposed to one species, or one way of fishing it? */
 function shutsTheWater(x){
@@ -1957,9 +1978,13 @@ function retentionTable(items, title, notes, waterKind, openFish){
        * The heading becomes the fish the block actually holds, in the rows' own words. Nothing
        * is renamed and no group is inferred: it is the list of subjects already printed inside.
        */
+      /* Deduped FISH BY FISH, not subject by subject: "Bull trout, Dolly Varden" and
+         "Bull trout" are different strings naming an overlapping pair, and collecting the
+         strings printed "Bull trout" twice in one heading. */
       var names=[], seen={};
       into.rows.forEach(function(r){
-        var f=(r.fish||"").trim(); if(!f||seen[f]) return; seen[f]=1; names.push(f); });
+        (r.fish||"").split(", ").forEach(function(f){
+          f=f.trim(); if(!f||seen[f]) return; seen[f]=1; names.push(f); }); });
       if(names.length>1) into.fish=names.join(", ");
       return;
     }
