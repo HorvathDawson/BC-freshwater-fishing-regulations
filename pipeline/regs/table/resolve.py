@@ -155,12 +155,6 @@ def resolve(rungs: List[Rung], subject: Subject,
         if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
             best[r.subject] = r
     year_round = head_of(list(best.values()))
-    # A closure on the WATER still outranks all of it: "No Fishing" is not a statement about a
-    # fish that other statements about fish can outvote.
-    shut_always = next((r for r in cand if r.applies.always and r.outcome.kind == "closed"
-                        and _shuts_the_water(r.subject)), None)
-    if shut_always is not None:
-        year_round = shut_always
     if year_round is None:
         # NO UNCONDITIONAL ANSWER HERE. Falling back to the first seasonal rung printed a
         # closure as the year-round answer with its dates stripped — the Cowichan read "you may
@@ -255,7 +249,9 @@ def head_of(winners: List[Rung]) -> Optional[Rung]:
         return None
     zero = [w for w in winners if w.outcome.kind in ("closed", "release")]
     if zero:
-        return min(zero, key=lambda r: (r.outcome.rank, r.rank))
+        # Among closures, the one on the WATER speaks first: "No Fishing" is the statement a
+        # reader needs, not "Bass: 0", even where both are true.
+        return min(zero, key=lambda r: (r.outcome.rank, not _shuts_the_water(r.subject), r.rank))
     def covered_by(r):
         return sum(1 for o in winners if o is not r and o.subject.covers(r.subject))
     return min(winners, key=lambda r: (r.rank, -covered_by(r), r.outcome.rank))
