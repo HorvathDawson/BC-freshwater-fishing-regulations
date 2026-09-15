@@ -6,20 +6,27 @@ WHAT IT HANDLES
   override (`shutAll`) applied straight to the keep cell outside any of them. Four mechanisms,
   four sets of hand-written guards, four places for a defect.
 
-  Here there is ONE mechanism, and it is not a mechanism so much as a sort:
+  Here there is ONE rule, the domain owner's: "Regional always overrides provincial (except full
+  closure), and this water overrides regional always (except closures unless they are lifted in
+  this water's regs)." Authority wins, with one exception. For the subject being asked about:
 
-      candidates = every rule whose Subject COVERS the subject being asked about
-      order by  (authority rank, then Outcome strictness)
-      winner    = the first
-      chain     = the rest, in that same order, each with why it is not the winner
+      candidates  every rule whose Subject COVERS it
+      (1)         group them by their own subject; in a group the closest authority, then the
+                  strictest
+      (2)         among the group-winners a take of zero — closed or release — stands unless
+                  something lifted it; closed over release, the one on the water first
+      (3)         otherwise the closest authority; at equal authority the narrower subject;
+                  then the strictest
+      chain       the answer first, then the rest, each with why it is not the answer
 
-  The chain of custody is not computed separately — it IS the sorted list. That is the point
-  of doing this in the pipeline: the page cannot disagree with the chain, because the page
-  never derives either one.
+  The chain of custody is not computed separately from the answer — the answer is `chain[0]`
+  by construction. That is the point of doing this in the pipeline: the page cannot disagree
+  with the chain, because the page never derives either one.
 
-  CLOSURE IS ABSOLUTE, and says so in one line rather than in a keep-cell rewrite. A `Closed`
-  from any authority wins outright unless something lifts it; that is the book's own shape
-  ("No fishing" is not outranked by a regional quota) and it is now a property of the fold.
+  A LIFT is the only thing that moves a take of zero. "except burbot, which may also be speared
+  in Regions 3, 5, 6, 7 and 8" is a subtraction from the ban's subject where it bites; a
+  regional table that merely says "release" under a federal closure does not lift it, and the
+  closure stands (see `lifts.contradicted_closures` for the one case in the corpus).
 
   MERGING is the last step, and it is safe BECAUSE outcomes are comparable: two rows merge only
   when their subjects join on one axis AND their outcomes are equal. "Release · wild only" plus
@@ -63,7 +70,9 @@ class Row:
     dormant: List = None            # clauses of a rule in the chain that is NOT the answer
 
     @property
-    def governs(self) -> Rung: return self.chain[0]
+    def governs(self) -> Rung:
+        """The answer's own rule — first in the chain, by construction (see `resolve`)."""
+        return self.chain[0]
 
 
 def resolve(rungs: List[Rung], subject: Subject,
@@ -100,30 +109,12 @@ def resolve(rungs: List[Rung], subject: Subject,
     cand = [r for r in cand if r not in other]
     if not cand:
         cand, other = other, []
-    ceilings, also_ran = [], []
-    # An annual ceiling is a ceiling on a number. Where the row has no number it is not a
-    # constraint on anything, and it rode on 19 closed and 16 release rows.
-    for per in sorted({r.outcome.period for r in other}):
-        same = sorted((r for r in other if r.outcome.period == per),
-                      key=lambda r: (r.rank, r.outcome.rank))
-        ceilings.append(same[0])
-        # The ones it beat are still rules somebody wrote. Taking only the winner is how the
-        # first pass at this lost 102 of them.
-        also_ran += same[1:]
-
-    # ONE SORT, NOT THREE REORDERINGS.
-    #
-    # This was a sort followed by two `remove/insert` moves — one to float a water-shutting
-    # closure, one to float the year-round answer — and statuses were then written against the
-    # first while the row's outcome came from the second. The two differ exactly when the
-    # strictest closure is seasonal, and 78 rungs said the wrong thing about why they lost.
-    #
-    # All three orderings are one key. A closure that shuts the WATER outranks authority ("No
-    # Fishing" is not something a regional quota argues with); a quota of zero for one fish does
-    # not, and is simply the strictest point on the ladder the rank already walks.
-    cand.sort(key=lambda r: (0 if (r.outcome.kind == "closed"
-                                   and _shuts_the_water(r.subject)) else 1,
-                             r.rank, r.outcome.rank))
+    # Every one of them rides — strictest first within its period. The first pass kept one
+    # winner per period and dropped the rest, and lost 102 rules that way; the second carried
+    # the losers into the chain as "a weaker annual ceiling", which measured empty across the
+    # whole corpus. A ceiling that another ceiling beats is still a ceiling; it needs no
+    # separate bucket, and the reader reads them in order.
+    ceilings = sorted(other, key=lambda r: (r.outcome.period, r.rank, r.outcome.rank))
 
     # THE ORDER, in the domain owner's words: "Regional always overrides provincial (except full
     # closure), and this water overrides regional always (except closures unless they are lifted
@@ -154,21 +145,29 @@ def resolve(rungs: List[Rung], subject: Subject,
         cur = best.get(r.subject)
         if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
             best[r.subject] = r
-    year_round = head_of(list(best.values()))
-    if year_round is None:
+    head = head_of(list(best.values()))
+    if head is None:
         # NO UNCONDITIONAL ANSWER HERE. Falling back to the first seasonal rung printed a
         # closure as the year-round answer with its dates stripped — the Cowichan read "you may
         # not fish for it" off a rule that closes it for eleven days in July, and 36 other rows
         # did the same. A subject whose only rules are seasonal has no year-round row; the
         # seasonal rules are still carried, and the client shows them on the days they bite.
         return None
-    head = year_round
     out, chain = head.outcome, []
     # An annual ceiling is a ceiling on a NUMBER. Where the row has none it constrains nothing,
     # and it rode on 19 closed and 16 release rows. Demoted before the chain is built, so the
     # rungs land in it rather than being dropped.
+    demoted = []
     if out.kind not in ("quota", "unlimited"):
-        also_ran, ceilings = also_ran + ceilings, []
+        demoted, ceilings = ceilings, []
+    # THE CHAIN STARTS WITH ITS ANSWER. It used to be sorted by (authority, strictness) and the
+    # answer found by a second algorithm, so `chain[0]` was not the head on 370 of 846 rows and
+    # `Row.governs` returned the wrong rung. The answer goes first; behind it, a closure on the
+    # water — a season's "No Fishing" is what a reader looks for — then authority, then
+    # strictness.
+    cand.sort(key=lambda r: (r is not head,
+                             not (r.outcome.kind == "closed" and _shuts_the_water(r.subject)),
+                             r.rank, r.outcome.rank))
     for r in cand:
         if r is head:
             st = "governs"
@@ -209,7 +208,7 @@ def resolve(rungs: List[Rung], subject: Subject,
         why = (lifted.get(r.rule_id) if isinstance(lifted, dict) else None)
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
                           r.verbatim, r.applies, why or "lifted here — does not apply"))
-    for r in also_ran:
+    for r in demoted:
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome, r.verbatim,
                           r.applies, f"a weaker {r.outcome.period} ceiling"))
     # A CLAUSE OF A RULE THAT LOST IS STILL A RULE. Sub-limits attached to the head alone, so
@@ -227,12 +226,9 @@ def resolve(rungs: List[Rung], subject: Subject,
 
 
 #: "No Fishing" — a closure on the water itself, as opposed to a quota of zero for one fish.
-_ALL_GAME = None
+_ALL_GAME = Subject(frozenset({"ALL_GAME_FISH"}))
 
 def _shuts_the_water(s) -> bool:
-    global _ALL_GAME
-    if _ALL_GAME is None:
-        _ALL_GAME = Subject(frozenset({"ALL_GAME_FISH"}))
     return s.method is None and s.covers(_ALL_GAME)
 
 

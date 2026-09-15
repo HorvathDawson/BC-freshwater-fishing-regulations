@@ -477,3 +477,13 @@ def test_a_superior_closure_stands_and_says_why(tables):
                     assert c.status == "does not open what a superior authority closed", c.status
                     seen += 1
     assert seen, "the Region 2 sturgeon release reached no Fraser table"
+
+
+def test_the_answer_is_the_first_rung_of_every_chain(tables):
+    """The chain was sorted by (authority, strictness) and the answer found by a second
+    algorithm, so `chain[0]` was not the governing rung on 370 of 846 rows — and
+    `Row.governs`, which returns `chain[0]`, was wrong on every one of them."""
+    for w, run, _, _, t in tables:
+        for r in t:
+            assert r.chain and r.chain[0].status == "governs" and r.governs is r.chain[0], (
+                f"{w} stretch {run + 1}: chain does not start with its answer")

@@ -10,7 +10,7 @@ a defect, and a steady trickle of them.
     outcome.py   what you may do, as one point on a TOTAL ORDER — so "stricter" is a comparison
     applies.py   whether it bites here and now, always — or only in a season or an undrawable spot
     clauses.py   sub-limits, pooled quotas, and lifts
-    resolve.py   the fold: sort by (authority, strictness); the chain IS the sorted list
+    resolve.py   the fold: authority wins, except a take of zero; the answer is chain[0]
     build.py     one interned ruleset in, one finished table out
     comply.py    the guarantee: every rule handed in is findable in the table that comes out
 """
