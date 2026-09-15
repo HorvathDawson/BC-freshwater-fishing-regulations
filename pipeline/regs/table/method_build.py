@@ -7,7 +7,8 @@ from pipeline.regs.table.subject import Subject, Origin, Water
 from pipeline.regs.table.size import size_of
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.where import parse_where
-from pipeline.regs.table.method import MethodRung, resolve_method, ALLOWED, FORBIDDEN
+from pipeline.regs.table.method import (MethodRung, resolve_method, ALLOWED,
+                                        FORBIDDEN, RIG_TOPIC, RIG_TYPES)
 from pipeline.regs.table.lifts import lifts_here
 from pipeline.regs.table.corpus import rules as corpus_rules, section_rules, rid
 
@@ -22,11 +23,23 @@ def _auth(x):
     if e.startswith("z"):   return 2, "Region " + (e[1:2] if e[1:2].isdigit() else "?")
     return (1, "inherited") if x.get("via") == "trib" else (0, "this water")
 
+#: Every way of fishing the corpus names, plus angling — which names itself only by omission.
+#: `other` is the schema's catch-all, and two real prohibitions live in it — chumming, and
+#: "do not place any fishing gear in any water during a No Fishing period". Leaving it off the
+#: list left them in no table at all.
+METHODS = ["angling", "spear_fishing", "netting", "snagging", "crayfish_trapping",
+           "ice_fishing", "set_lining", "chumming", "other"]
+
+
 def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRung]:
     narrow, drop = lifts_here(rules, here)
     out = []
     for x in rules:
-        if x.get("method") != method: continue
+        # A RIGGING RULE NAMES NO METHOD because it does not have to: you rig a rod to angle.
+        # Matching on `method` alone is why 751 of them were invisible to both tables.
+        rig = (not x.get("method") and str(x.get("type") or "") in RIG_TYPES)
+        if not rig and x.get("method") != method: continue
+        if rig and method != "angling": continue
         if rid(x) in drop: continue                 # disapplied here outright
         rank, who = _auth(x)
         w = parse_where(x.get("extent_text"))
@@ -46,8 +59,9 @@ def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRu
                              frozenset(x.get("species_except") or [])
                                | narrow.get(rid(x), frozenset())), o)
         con = "" if (perm is not None or takes is not None) else (x.get("label") or "")
+        topic = RIG_TOPIC.get(str(x.get("dimension") or "").split(":")[0], "Also") if rig else ""
         out.append(MethodRung(rid(x), who, rank, w, perm, takes, con,
-                              x.get("verbatim") or ""))
+                              topic, x.get("verbatim") or ""))
     return out
 
 def all_rules() -> List[dict]:
@@ -75,6 +89,12 @@ def show(method: str, water: str, run: int = 0):
             who, q = t.takes[0].words(nm)
             print(f"      {t.takes[1].word():>8s}  {who[:34]:34s} {q[:22]}")
             print(f"         “{t.verbatim[:62]}”")
+    if row.rig:
+        print("   HOW YOU MUST RIG IT:")
+        for topic, rs in row.rig.items():
+            print(f"      {topic}")
+            for r in rs[:4]:
+                print(f"         {r.authority:11s} {r.constraint[:52]}")
     if row.unplaceable:
         print("   ALSO, SOMEWHERE IN HERE:")
         for u in row.unplaceable[:3]:

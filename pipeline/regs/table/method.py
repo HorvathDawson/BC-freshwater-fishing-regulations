@@ -39,6 +39,18 @@ class Permission:
 FORBIDDEN, ALLOWED = Permission(False), Permission(True)
 
 
+#: HOW YOU MUST RIG IT, grouped the way a reader looks for it. 751 rules — "Artificial fly
+#: only", "Single barbless hook", "Fin fish may not be used as bait" — carry no `method` at all,
+#: so nothing in this module saw them and the quota side filed them "not a quota". They reached
+#: NEITHER table. They are angling rules, and their dimension says which part of the tackle.
+RIG_TOPIC = {"bait": "Bait", "barbless": "Hooks", "hook_count": "Hooks",
+             "max_gap_mm": "Hooks", "min_gap_cm": "Hooks", "lure": "Line & tackle",
+             "max_lines": "Line & tackle", "max_flies": "Line & tackle",
+             "max_weight_kg": "Line & tackle"}
+RIG_ORDER = ["Bait", "Hooks", "Line & tackle", "Also"]
+RIG_TYPES = {"bait_restriction", "tackle_restriction"}
+
+
 @dataclass(frozen=True)
 class MethodRung:
     rule_id: str
@@ -48,6 +60,7 @@ class MethodRung:
     permission: Optional[Permission] = None    # may you use it
     takes: Optional[Tuple[Subject, Outcome]] = None   # what you may keep by it
     constraint: str = ""                       # how you must rig it
+    topic: str = ""                            # Bait | Hooks | Line & tackle | Also
     verbatim: str = ""
     status: str = ""
 
@@ -58,8 +71,9 @@ class MethodRow:
     permission: Permission
     chain: List[MethodRung]
     takes: List[MethodRung]        # what you may keep by this method, strictest first
-    constraints: List[MethodRung]
+    constraints: List[MethodRung]              # ungrouped, in authority order
     unplaceable: List[MethodRung]  # true somewhere in here, but nothing can draw where
+    rig: dict = None                           # topic -> rungs, the shape a reader scans
 
 
 def resolve_method(method: str, rungs: List[MethodRung],
@@ -73,25 +87,55 @@ def resolve_method(method: str, rungs: List[MethodRung],
     mine = [r for r in mine if r.where.bites_in(here) is True]
 
     perms = [r for r in mine if r.permission is not None]
-    # A REGION-SCOPED RULE OUTRANKS A PROVINCE-WIDE ONE. "No spear fishing of any kind in
-    # Regions 1, 2 and 4" is written in the provincial chapter, so by entry id it is provincial
-    # — but it names five fewer regions than "spear fishing is permitted", and the narrower
-    # statement is the one that governs where it applies. Scope is authority here.
-    perms.sort(key=lambda r: (0 if r.where.kind == "regions" else 1,
-                              r.rank, r.permission.rank))
+    # SCOPE BREAKS A TIE; IT DOES NOT OUTRANK AUTHORITY.
+    #
+    # This used to sort scope FIRST, on the reasoning that "No spear fishing of any kind in
+    # Regions 1, 2 and 4" names five fewer regions than "spear fishing is permitted" and so is
+    # the narrower statement. True — but it bought nothing and cost a great deal. Both spear
+    # rules are provincial and `Forbidden < Allowed` already decides between them; meanwhile a
+    # scope-first key let a province-wide permission scoped to Region 2 beat a LAKE'S OWN "no
+    # ice fishing", which is the ladder this whole module exists to keep upright.
+    #
+    # Within one authority, the rule that names fewer places is the more specific one and wins.
+    # Across authorities, the closer authority wins, whatever either one names.
+    perms.sort(key=lambda r: (r.rank,
+                              0 if r.where.kind == "regions" else 1,
+                              r.permission.rank))
     if not perms:
-        return None
+        # NOTHING SAYING YOU MAY NOT IS AN ANSWER. Angling carries no `permitted` rule anywhere
+        # in the corpus — it is the activity a licence is for, and the book states permission
+        # only for the methods that need it. Returning None here meant the whole angling table,
+        # every bait and hook and line rule on the water, rendered as "(nothing says)".
+        #
+        # Said explicitly rather than assumed: the rung records that the verdict rests on the
+        # ABSENCE of a prohibition, so a reader can see that is why.
+        win = MethodRung("", "no rule here", 9, ANYWHERE, ALLOWED,
+                         verbatim="no rule here forbids it")
+        perms = [win]
     win = perms[0]
     chain = []
     for r in perms:
+        # A rule that BITES HERE and lost did not lose for being somewhere else — `mine` has
+        # already dropped everything scoped out. Saying "elsewhere" of a rule that applies here
+        # is simply false; it lost to a closer authority, or to a narrower scope within one.
         st = ("governs" if r is win
               else "says the same thing" if r.permission == win.permission
-              else f"{'wider' if r.where.kind != 'regions' else 'elsewhere'} — "
-                   f"{r.where.words() or 'province-wide'}")
+              else f"set wider — {r.where.words() or 'province-wide'}")
         chain.append(MethodRung(r.rule_id, r.authority, r.rank, r.where, r.permission,
-                                r.takes, r.constraint, r.verbatim, st))
+                                r.takes, r.constraint, r.topic, r.verbatim, st))
 
-    takes = sorted((r for r in mine if r.takes is not None),
-                   key=lambda r: (r.takes[1].rank, r.rank))
-    return MethodRow(method, win.permission, chain, takes,
-                     [r for r in mine if r.constraint], undrawable)
+    # WHAT YOU MAY KEEP BY A METHOD YOU MAY NOT USE IS NOT A QUESTION. Printed under "not
+    # permitted here" it read as a keep list for a forbidden method — "Snagging · not permitted
+    # here · what you may keep by it: release Everything".
+    takes = (sorted((r for r in mine if r.takes is not None),
+                    key=lambda r: (r.takes[1].rank, r.rank))
+             if win.permission.allowed else [])
+    # THE RIGGING RULES DO NOT COMPETE FOR A VERDICT. "Single barbless hook" and "no fin fish
+    # as bait" are both true at once; they accumulate, grouped by the part of the tackle they
+    # are about, closest authority first so a river's own rule reads above the province's.
+    cons = sorted((r for r in mine if r.constraint), key=lambda r: (r.rank, r.rule_id))
+    rig = {}
+    for r in cons:
+        rig.setdefault(r.topic or "Also", []).append(r)
+    rig = {t: rig[t] for t in RIG_ORDER if t in rig}
+    return MethodRow(method, win.permission, chain, takes, cons, undrawable, rig)

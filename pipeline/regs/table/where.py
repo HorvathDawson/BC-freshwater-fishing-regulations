@@ -22,8 +22,11 @@ import re
 from dataclasses import dataclass
 from typing import FrozenSet, Optional
 
-#: "Regions 3, 5, 6, 7 and 8" / "Region 2" / "Regions 1, 2 and 4"
-_NUMBERED = re.compile(r"\bregions?\b((?:\s*\d+\s*(?:,|and|&)?)+)", re.I)
+#: Every "Region N" / "Regions N, M and P" mention, letter suffixes kept (7A, 7B).
+_MENTION = re.compile(r"\bregions?\b((?:\s*\d+[ab]?\s*(?:,|and|&|/)?)+)", re.I)
+_ONE = re.compile(r"\d+[ab]?", re.I)
+#: What a partial parse looks like: a range, or a zone the region list does not enumerate.
+_UNPARSEABLE = re.compile(r"\bregions?\s*\d+\s*(?:-|–|—|to)\s*\d+|\bzone\b", re.I)
 
 
 @dataclass(frozen=True)
@@ -33,9 +36,17 @@ class Where:
     text: str = ""
 
     def bites_in(self, here: FrozenSet[str]) -> Optional[bool]:
-        """True / False / None where it cannot be decided (an undrawable place)."""
+        """True / False / None where it cannot be decided (an undrawable place).
+
+        A REGION CONTAINS ITS SUB-REGIONS. Sections carry `7a` and `7b`; the book writes
+        "Regions 3, 5, 6, 7 and 8". Comparing those as plain strings made `{"7"} & {"7a"}`
+        empty, so the burbot exception was scoped OUT of Region 7A — a reader on the Fraser's
+        last stretch was told burbot is closed to the spear where the book allows it. Naming
+        the parent names the children; naming 7A names only 7A.
+        """
         if self.kind == "anywhere": return True
-        if self.kind == "regions":  return bool(self.regions & here)
+        if self.kind == "regions":
+            return any(h == r or h.startswith(r) for h in here for r in self.regions)
         return None
 
     def words(self) -> str:
@@ -59,9 +70,14 @@ def parse_where(extent_text: str | None) -> Where:
     t = (extent_text or "").strip()
     if not t:
         return ANYWHERE
-    m = _NUMBERED.search(t)
-    if m:
-        nums = re.findall(r"\d+", m.group(1))
-        if nums:
-            return Where("regions", frozenset(nums), t)
-    return Where("undrawable", frozenset(), t)
+    if _UNPARSEABLE.search(t):
+        # A PARTIAL PARSE IS A GUESS, and this module's whole claim is that it does not guess.
+        # First-match-only turned "Regions 3-8" into {3} and "lakes of Region 6 and Zone A of
+        # Region 7" into {6} — each one a scope silently narrowed to a fraction of itself,
+        # which puts a closure on rivers the book never named. Anything this cannot enumerate
+        # in full stays undrawable, where it is a caveat rather than a verdict.
+        return Where("undrawable", frozenset(), t)
+    found = set()
+    for m in _MENTION.finditer(t):
+        found |= {x.lower() for x in _ONE.findall(m.group(1))}
+    return Where("regions", frozenset(found), t) if found else Where("undrawable", frozenset(), t)
