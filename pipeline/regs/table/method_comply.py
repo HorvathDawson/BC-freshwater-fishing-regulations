@@ -41,7 +41,7 @@ def audit(rules, here, water_kind="stream"):
             mark(r.rule_id, "scoped out of this section")
     # A rule an exemption disapplies here never becomes a rung — that is the mechanism working,
     # not a rule going missing, and the check has to be able to tell those apart.
-    _, dropped = lifts_here(rules, here)
+    _, dropped, _unresolved = lifts_here(rules, here)
     for k in dropped:
         mark(k, "lifted here by an exemption")
     for x in rules:

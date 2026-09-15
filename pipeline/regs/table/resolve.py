@@ -101,6 +101,8 @@ def resolve(rungs: List[Rung], subject: Subject,
     if not cand:
         cand, other = other, []
     ceilings, also_ran = [], []
+    # An annual ceiling is a ceiling on a number. Where the row has no number it is not a
+    # constraint on anything, and it rode on 19 closed and 16 release rows.
     for per in sorted({r.outcome.period for r in other}):
         same = sorted((r for r in other if r.outcome.period == per),
                       key=lambda r: (r.rank, r.outcome.rank))
@@ -122,7 +124,39 @@ def resolve(rungs: List[Rung], subject: Subject,
     cand.sort(key=lambda r: (0 if (r.outcome.kind == "closed"
                                    and _shuts_the_water(r.subject)) else 1,
                              r.rank, r.outcome.rank))
-    year_round = next((r for r in cand if r.applies.always), None)
+
+    # AUTHORITY SETTLES ONE SUBJECT. IT DOES NOT SETTLE TWO.
+    #
+    # A straight (rank, strictness) sort says the closest rule wins, full stop — and that is
+    # right only when two rules are about the SAME fish. Across different fish they are not
+    # competing at all; they bind at once, and the answer is the strictest:
+    #
+    #   "All wild steelhead must be released" is provincial and has no exception anywhere in
+    #   the book. Region 4's "Trout/char: 5" says how many trout and char you may keep; it does
+    #   not say a wild steelhead may be among them. Ranked against each other the 5 won, on 27
+    #   sections, and the table offered wild steelhead to a reader in Regions 4, 7 and 8.
+    #
+    # The mirror case rules out simply preferring the narrower rule: where a WATER says "trout
+    # and char: 2" and the province says "rainbow trout: 5", the answer for a rainbow is 2. And
+    # the same-subject case rules out preferring the stricter: a water writing "trout and char:
+    # 10" over a regional 5 really does replace it, upward.
+    #
+    # All three fall out of one rule. Group the candidates by subject; within a group the
+    # closest authority replaces the wider one; the answer is the strictest group-winner.
+    best = {}
+    for r in cand:
+        if not r.applies.always:
+            continue
+        cur = best.get(r.subject)
+        if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
+            best[r.subject] = r
+    year_round = min(best.values(), key=lambda r: (r.outcome.rank, r.rank)) if best else None
+    # A closure on the WATER still outranks all of it: "No Fishing" is not a statement about a
+    # fish that other statements about fish can outvote.
+    shut_always = next((r for r in cand if r.applies.always and r.outcome.kind == "closed"
+                        and _shuts_the_water(r.subject)), None)
+    if shut_always is not None:
+        year_round = shut_always
     if year_round is None:
         # NO UNCONDITIONAL ANSWER HERE. Falling back to the first seasonal rung printed a
         # closure as the year-round answer with its dates stripped — the Cowichan read "you may
@@ -132,6 +166,11 @@ def resolve(rungs: List[Rung], subject: Subject,
         return None
     head = year_round
     out, chain = head.outcome, []
+    # An annual ceiling is a ceiling on a NUMBER. Where the row has none it constrains nothing,
+    # and it rode on 19 closed and 16 release rows. Demoted before the chain is built, so the
+    # rungs land in it rather than being dropped.
+    if out.kind not in ("quota", "unlimited"):
+        also_ran, ceilings = also_ran + ceilings, []
     for r in cand:
         if r is head:
             st = "governs"

@@ -84,7 +84,11 @@ def attach(rows, quals: List[Qualifier]) -> List[Qualifier]:
             # rows are merged upward.
             if not (q.subject.covers(r.subject) or r.subject.covers(q.subject)):
                 continue
-            if q.kind == "duty" and r.outcome.kind not in ("quota", "unlimited"):
+            # NOTHING TO KEEP, NOTHING TO CARRY. A possession multiple is a multiplier on a
+            # daily limit, and there is no daily limit on a row that says release or closed;
+            # "you may have 2 days' worth in possession" sat on 123 closed and 331 release rows.
+            # A duty discharged by keeping has the same problem, and always skipped them.
+            if q.kind in ("duty", "possession") and r.outcome.kind not in ("quota", "unlimited"):
                 continue
             bag = "duties" if q.kind == "duty" else "quals"
             cur = list(getattr(r, bag, None) or [])

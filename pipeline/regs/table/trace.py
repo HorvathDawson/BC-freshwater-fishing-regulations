@@ -33,7 +33,16 @@ def trace(water, run=0):
         if others:
             print(f"  │ behind it:")
             for c in others[:4]:
-                print(f"  │    {c.outcome.word():>7s}  {c.authority:11s} {c.status[:40]}")
+                # WHOSE RULE IS THIS? Absorption merges the chains of rows about different fish,
+                # so a rung under "Trout and char" can be a lake-trout closure or a steelhead
+                # season. Shown as an outcome and a status alone it reads as a statement about
+                # the whole row — 149 rungs.
+                about = ""
+                if c.subject != r.subject:
+                    w, _ = c.subject.words(name, is_release=(c.outcome.kind == "release"))
+                    about = f"  [{w[:26]}]"
+                print(f"  │    {c.outcome.word():>7s}  {c.authority:11s} "
+                      f"{c.status[:32]}{about}")
                 print(f"  │            “{c.verbatim[:62]}”")
         for l in (r.limits or []):
             print(f"  │ OF WHICH: {l.sentence(name)}")

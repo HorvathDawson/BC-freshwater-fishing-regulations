@@ -41,7 +41,7 @@ def rungs_for(method: str, rules: List[dict], here=frozenset(),
     section carried both bait rules at once, which contradict each other and are each true of
     the other kind of water.
     """
-    narrow, drop = lifts_here(rules, here)
+    narrow, drop, _unresolved = lifts_here(rules, here)
     out = []
     for x in rules:
         wk = x.get("water")

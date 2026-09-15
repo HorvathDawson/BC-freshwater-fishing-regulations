@@ -87,7 +87,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
     region-scoped lifts are measured against."""
     kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
-    narrow, lifted = lifts_here(rules, here)           # `exempts` -> narrowed / disapplied here
+    narrow, lifted, unresolved_lifts = lifts_here(rules, here)           # `exempts` -> narrowed / disapplied here
 
     # sub-limits become a FIELD on their parent, never a row
     # A CLAUSE THAT NAMES THIS KIND OF WATER IS NOT A CLAUSE HERE — IT IS THE ANSWER.

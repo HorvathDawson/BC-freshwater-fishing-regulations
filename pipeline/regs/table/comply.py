@@ -67,7 +67,7 @@ def audit(rules, kind="stream", here=frozenset(), label=""):
             mark(l.rule_id, "sub-limit")
         for l in (r.dormant or []):
             mark(l.rule_id, "clause of a rule that is not the answer here")
-    narrow, dropped = lifts_here(rules, here)
+    narrow, dropped, _unresolved = lifts_here(rules, here)
     for t in dropped | set(narrow): mark(t, "lifted")
     for x in rules:
         if x.get("exempts"): mark(rid(x), "lifts another rule")

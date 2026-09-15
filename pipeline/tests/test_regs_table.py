@@ -130,14 +130,21 @@ def test_size_polarity(kw, expect):
 # --------------------------------------------------------------------------- #
 @pytest.fixture(scope="module")
 def tables():
-    from pipeline.regs.table.build import section_rules, build, D, WATERS
+    """Built the way the pipeline builds them — WITH the section's regions and label.
+
+    Without those, a region-scoped rule cannot be placed and an extent the atlas already cut
+    reads as undrawable, so the fixture was testing a table no reader will ever see.
+    """
+    from pipeline.regs.table.build import (section_rules, section_regions, section_label,
+                                           build, D, WATERS)
     out = []
     for w in WATERS:
         kind = "lake" if (D[w].get("kind") == "lake") else "stream"
         for run in range(len(D[w].get("runs") or [])):
             rs = section_rules(w, run)
             if rs:
-                out.append((w, run, kind, rs, build(rs, kind)))
+                out.append((w, run, kind, rs,
+                            build(rs, kind, section_regions(w, run), section_label(w, run))))
     return out
 
 
@@ -181,3 +188,88 @@ def test_a_species_closure_does_not_shut_a_water_that_is_open(tables):
             assert not local, (
                 f"{w} stretch {run + 1}: {r.subject.words(name)[0]} reads closed by "
                 f"{gov.authority}, over a more local rule saying {local[0].outcome.word()}")
+
+
+# --------------------------------------------------------------------------- #
+# Authority settles one subject; it does not settle two.
+# --------------------------------------------------------------------------- #
+def test_a_broad_local_quota_does_not_override_a_narrow_wider_protection(tables):
+    """"All wild steelhead must be released" is provincial and has no exception anywhere in the
+    book. Region 4's "Trout/char: 5" says how many trout and char you may keep — it does not say
+    a wild steelhead may be among them. Ranked against each other the 5 won on 27 sections."""
+    from pipeline.regs.table.build import name
+    for w, run, _, _, t in tables:
+        for r in t:
+            who, q = r.subject.words(name, is_release=(r.outcome.kind == "release"))
+            if "Steelhead" in who and "wild" in q:
+                assert r.outcome.kind != "quota", (
+                    f"{w} stretch {run + 1} offers wild steelhead to keep: {r.outcome.word()}")
+
+
+def test_a_water_may_replace_a_regional_number_upward(tables):
+    """The mirror case, which rules out simply preferring the stricter or the narrower rule: a
+    water writing "Bass daily quota = unlimited" over Region 4's "Bass: 0 quota" really does
+    replace it, and the reader is allowed to be told so."""
+    from pipeline.regs.table.build import name
+    upward = []
+    for w, run, _, _, t in tables:
+        for r in t:
+            who, _ = r.subject.words(name)
+            if who != "Bass" or r.outcome.kind != "unlimited":
+                continue
+            gov = next((c for c in r.chain if c.status == "governs"), None)
+            beaten = [c for c in r.chain
+                      if c is not gov and c.rank > gov.rank and c.outcome.rank < gov.outcome.rank]
+            if beaten:
+                upward.append((w, run, gov.authority, beaten[0].authority))
+    assert upward, ("no row anywhere replaces a wider, STRICTER rule — the ordering has "
+                    "collapsed into 'strictest wins' and authority no longer counts")
+
+
+def test_a_superior_authority_is_not_outranked(tables):
+    """Fishing in a National Park is prohibited unless the National Parks regulations open it.
+    A regional quota does not open it — and the park closure was being demoted under one."""
+    from pipeline.regs.table.build import name
+    for w, run, _, _, t in tables:
+        # Only a closure on the WATER. The federal protected-species closure is a superior
+        # authority about twelve fish, and says nothing about the rest of the river.
+        from pipeline.regs.table.resolve import _shuts_the_water
+        sup = [c for r in t for c in r.chain
+               if c.authority == "Federal or Parks" and c.outcome.kind == "closed"
+               and c.status == "governs" and _shuts_the_water(c.subject)]
+        if not sup:
+            continue
+        for r in t:
+            assert r.outcome.kind == "closed", (
+                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is "
+                f"{r.outcome.word()} where a federal or parks closure governs")
+
+
+def test_a_rule_cannot_lift_itself(tables):
+    """Region 6's steelhead stream closure names its OWN entry as the default it exempts, so it
+    lifted itself on every water in the region — and the Babine, which the exemption's note does
+    not name, lost a closure the book keeps."""
+    from pipeline.regs.table.lifts import lifts_here
+    from pipeline.regs.table.corpus import rid
+    for w, run, _, rules, _ in tables:
+        narrow, drop, _u = lifts_here(rules, frozenset())
+        for x in rules:
+            assert rid(x) not in drop or not any(
+                ex.get("default_id") and rid(x).split("::")[-1].startswith(ex["default_id"])
+                for ex in (x.get("exempts") or [])), f"{rid(x)} lifts itself"
+
+
+def test_nothing_rides_on_a_row_that_permits_nothing(tables):
+    """A possession multiple is a multiplier on a daily limit, and an annual ceiling is a
+    ceiling on a number. A row that says release or closed has neither."""
+    from pipeline.regs.table.build import name
+    for w, run, _, _, t in tables:
+        for r in t:
+            if r.outcome.kind in ("quota", "unlimited"):
+                continue
+            assert not (r.ceilings or []), (
+                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is {r.outcome.word()} "
+                f"and carries a ceiling")
+            assert not [q for q in (r.quals or []) if q.kind == "possession"], (
+                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is {r.outcome.word()} "
+                f"and carries a possession multiple")
