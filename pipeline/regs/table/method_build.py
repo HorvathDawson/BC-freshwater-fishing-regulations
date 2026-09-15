@@ -31,10 +31,21 @@ METHODS = ["angling", "spear_fishing", "netting", "snagging", "crayfish_trapping
            "ice_fishing", "set_lining", "chumming", "other"]
 
 
-def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRung]:
+def rungs_for(method: str, rules: List[dict], here=frozenset(),
+              water_kind: str = "stream") -> List[MethodRung]:
+    """`water_kind` is the section's own kind, and the gear table had no notion of it.
+
+    Every lake printed "use barbed hooks" and "a hook with more than one point in any river,
+    stream, creek or slough in B.C." — river law, on a lake. Every river printed "no freshwater
+    invertebrate as bait AT A LAKE" and "two lines when alone in a boat on a lake". One lake
+    section carried both bait rules at once, which contradict each other and are each true of
+    the other kind of water.
+    """
     narrow, drop = lifts_here(rules, here)
     out = []
     for x in rules:
+        wk = x.get("water")
+        if wk and wk != water_kind: continue
         # A RIGGING RULE NAMES NO METHOD because it does not have to: you rig a rod to angle.
         # Matching on `method` alone is why 751 of them were invisible to both tables.
         rig = (not x.get("method") and str(x.get("type") or "") in RIG_TYPES)
@@ -53,7 +64,7 @@ def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRu
                              size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
                                      within=x.get("within"), band=bool(x.get("band")),
                                      period=x.get("period") or "daily"),
-                             Water.any, None,
+                             Water(wk) if wk else Water.any, None,
                              # A LIFT IS A SUBTRACTION: whatever an exception takes out of this
                              # rule HERE joins what the rule already excepts.
                              frozenset(x.get("species_except") or [])
@@ -74,8 +85,9 @@ def show(method: str, water: str, run: int = 0):
     decide the answer on a Region 5 river, because a water-specific rule outranks everything and
     there were forty-four of them in the pile."""
     rules, here = section_rules(water, run)
+    kind = "lake" if (D[water].get("kind") == "lake") else "stream"
     region = ", ".join(sorted(here)) or "?"
-    row = resolve_method(method, rungs_for(method, rules, here), here)
+    row = resolve_method(method, rungs_for(method, rules, here, kind), here)
     print(f"\n{'─'*76}\n  {method.replace('_',' ').upper()}  ·  {water} (Region {region})\n{'─'*76}")
     if row is None:
         print("   (nothing says)"); return

@@ -109,43 +109,28 @@ def resolve(rungs: List[Rung], subject: Subject,
         # first pass at this lost 102 of them.
         also_ran += same[1:]
 
-    # WHICH CLOSURES OUTRANK AUTHORITY — and it is not all of them.
+    # ONE SORT, NOT THREE REORDERINGS.
     #
-    # "No Fishing" shuts the water, and a regional quota cannot argue with it. "Bass: 0 quota"
-    # does not shut anything; it is a quota of zero, which is simply the strictest point on the
-    # ladder the sort already walks. Treating the two alike let a WIDER authority's species
-    # closure suppress a LOCAL rule that re-opens the fish — 1,652 rows of it:
+    # This was a sort followed by two `remove/insert` moves — one to float a water-shutting
+    # closure, one to float the year-round answer — and statuses were then written against the
+    # first while the row's outcome came from the second. The two differ exactly when the
+    # strictest closure is seasonal, and 78 rungs said the wrong thing about why they lost.
     #
-    #   Columbia River, `columbia_river.r5` says bass are unlimited here, at this water's own
-    #   rank. Region 4's "Bass: 0 quota" took the row anyway and the page read "you may not
-    #   fish for it", with the local rule demoted under "suspended while the water is closed".
-    #   The water is not closed.
-    #
-    #   `protected_species.r1` covers white sturgeon, so it suppressed Region 2/3's "White
-    #   Sturgeon: CATCH AND RELEASE ONLY" on 1,440 rows — telling a reader a legal catch-and-
-    #   release fishery is closed.
-    #
-    # And the pick was made from an UNSORTED list, so where two closures agreed, the one named
-    # as the reason was whichever came first — the inherited rule rather than the water's own,
-    # 245 times. The sort has to happen first; `chain[0]` is what the page prints as "set by".
-    cand.sort(key=lambda r: (r.rank, r.outcome.rank))
-    shut = [r for r in cand
-            if r.outcome.kind == "closed" and _shuts_the_water(r.subject)]
-    win = shut[0] if shut else cand[0]
-    if win is not cand[0]:
-        cand.remove(win); cand.insert(0, win)
-    # THE SHIPPED ANSWER IS THE YEAR-ROUND ONE. A seasonal rule keeps its sorted place in the
-    # chain — the client takes the first rung live on the day being viewed — but the value baked
-    # in here has to be the one that needs no date to be true, or a page with its date control
-    # untouched would show a rule that is out of season.
+    # All three orderings are one key. A closure that shuts the WATER outranks authority ("No
+    # Fishing" is not something a regional quota argues with); a quota of zero for one fish does
+    # not, and is simply the strictest point on the ladder the rank already walks.
+    cand.sort(key=lambda r: (0 if (r.outcome.kind == "closed"
+                                   and _shuts_the_water(r.subject)) else 1,
+                             r.rank, r.outcome.rank))
     year_round = next((r for r in cand if r.applies.always), None)
-    # ...and it leads the chain, because `chain[0]` is what the page prints as "set by" and what
-    # the row's own outcome must agree with. A seasonal rule that outranks it keeps its place
-    # further down, labelled with the dates on which it takes over.
-    if year_round is not None and year_round is not cand[0]:
-        cand.remove(year_round); cand.insert(0, year_round)
-
-    head = year_round if year_round is not None else cand[0]
+    if year_round is None:
+        # NO UNCONDITIONAL ANSWER HERE. Falling back to the first seasonal rung printed a
+        # closure as the year-round answer with its dates stripped — the Cowichan read "you may
+        # not fish for it" off a rule that closes it for eleven days in July, and 36 other rows
+        # did the same. A subject whose only rules are seasonal has no year-round row; the
+        # seasonal rules are still carried, and the client shows them on the days they bite.
+        return None
+    head = year_round
     out, chain = head.outcome, []
     for r in cand:
         if r is head:
@@ -154,13 +139,13 @@ def resolve(rungs: List[Rung], subject: Subject,
             st = f"instead, {r.applies.detail}"
         elif r.outcome == out:
             st = "says the same thing"
-        elif head.outcome.kind == "closed" and r.rank <= head.rank:
+        elif head.outcome.kind == "closed" and r.rank <= head.rank:  # noqa
             # AGAINST THE ANSWER, NOT AGAINST `win`. The two differ exactly when the strictest
             # closure is seasonal — and then 38 rows told a reader a rule was "suspended while
             # the water is closed" on a row whose own answer was release or a number.
             st = "suspended while the water is closed"
-        elif r.rank > win.rank:
-            st = f"wider rule ({r.authority}), replaced by one closer to this water"
+        elif r.rank > head.rank:
+            st = f"set wider ({r.authority}), replaced by one closer to this water"
         else:
             st = "not the strictest here"
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,

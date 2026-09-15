@@ -32,9 +32,23 @@ for _k in WATERS:
 def name(c): return NAME.get(c, c)
 
 def _authority(x):
+    """The ladder, closest first. Rank is a sort key: SMALLER WINS.
+
+    `authority: superior` is the catalogue's own mark for a rule no provincial table can write
+    over — the federal species-at-risk closures, the National Parks closure, the ecological
+    reserves. Six rules carry it and nothing read it, so on the Kootenay a park closure was
+    demoted under "wider rule (Provincial), replaced by one closer to this water" while the
+    same table offered burbot, bull trout, whitefish and crayfish to keep. Fishing in Kootenay
+    National Park is prohibited unless the National Parks regulations open it; a regional quota
+    does not open it.
+    """
+    if str(x.get("authority") or "") == "superior":
+        return -1, "Federal or Parks"
     e = str(x.get("entry") or "")
     if e.startswith("zp:"): return 3, "Provincial"
-    if e.startswith("z"):   return 2, "Region " + (e[1:2] if e[1:2].isdigit() else "?")
+    if e.startswith("z"):
+        r = e[1:].split(":")[0]
+        return 2, "Region " + (r.upper() if r and r[0].isdigit() else "?")
     return (1, "inherited") if x.get("via") == "trib" else (0, "this water")
 
 def subject_of(x, lifted_out=None) -> Subject:
@@ -76,9 +90,30 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     narrow, lifted = lifts_here(rules, here)           # `exempts` -> narrowed / disapplied here
 
     # sub-limits become a FIELD on their parent, never a row
+    # A CLAUSE THAT NAMES THIS KIND OF WATER IS NOT A CLAUSE HERE — IT IS THE ANSWER.
+    #
+    # Region 3 writes "Trout/char: 5" and, inside it, "4 from streams". On a lake the 5 governs
+    # and the 4 is irrelevant; on a STREAM the 4 is the daily quota and the 5 is the number it
+    # replaces. Held as a sub-limit either way, 61 stream sections printed "keep up to 5 ... of
+    # which no more than 4 in streams" — the lake number as the headline on a river, with the
+    # real limit demoted to a condition on it.
+    #
+    # Promoting it to a rung at its parent's rank needs no new mechanism: the existing sort puts
+    # 4 ahead of 5 at equal authority, and `applies_here` drops it on a lake. `within` is a
+    # composition constraint only when the clause narrows the FISH; when it narrows the WATER,
+    # the context has already decided which one is speaking.
+    by_key = {rid(r): r for r in rules}
+    promoted = set()
+    for parent, cs in kid_rules.items():
+        p = by_key.get(parent)
+        for c in cs:
+            if c.get("water") and not (p or {}).get("water") and c.get("take") is not None:
+                promoted.add(rid(c))
+
     kids: Dict[str, List[SubLimit]] = {}
     for parent, cs in kid_rules.items():
         for c in cs:
+            if rid(c) in promoted: continue
             # A count-less clause is kept, not skipped: it constrains the composition just as a
             # numbered one does. And a clause can be SEASONAL — "1 trout from streams, July 1 –
             # Oct 31" printed year-round without its dates.
@@ -96,7 +131,8 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
 
     rungs, quals = [], []
     for x in rules:
-        if x.get("within"): continue                   # a clause, handled above
+        if x.get("within") and rid(x) not in promoted:
+            continue                                   # a clause, handled above
         # A RULE THAT NAMES A METHOD IS ABOUT THE METHOD. "Only non-game fish may be speared" is
         # a take of zero, so it walked into the quota table and said "Salmon · 0 · you may not
         # fish for it" on a salmon river — off the spear-fishing rule. It belongs in the gear
@@ -112,6 +148,11 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                 if q is not None: quals.append(q)
             continue
         rank, who = _authority(x)
+        if rid(x) in promoted:
+            # It speaks with its parent's voice: the same table wrote both.
+            par = by_key.get(f"{x.get('entry')}::{x.get('within')}")
+            if par is not None:
+                rank, who = _authority(par)
         rungs.append(Rung(rid(x), who, rank, subj, o,
                           x.get("verbatim") or "",
                           applies_of(x.get("windows"), x.get("extent_text"),
@@ -121,6 +162,21 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                                      to_time=x.get("to_time"),
                                      weekdays=x.get("weekdays"))))
     rows = table(rungs, water_kind, kids, lifted)
+
+    # A CLAUSE WHOSE PARENT IS IN NO CHAIN. `dormant` picks up the clauses of rules that lost,
+    # but a parent can also leave the table entirely — beaten, then absorbed, its chain merged
+    # into a row that is about something broader. Its clauses then belong to no row at all.
+    # Sweeping for them is the difference between "carried" and "happened to be carried".
+    placed = {l.rule_id for r in rows for l in (r.limits or []) + (r.dormant or [])}
+    for parent, ls in kids.items():
+        for l in ls:
+            if l.rule_id in placed:
+                continue
+            host = next((r for r in rows if r.subject.covers(l.subject)
+                         or l.subject.covers(r.subject)), None)
+            if host is not None:
+                host.dormant = (host.dormant or []) + [l]
+
     build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
     return rows
 

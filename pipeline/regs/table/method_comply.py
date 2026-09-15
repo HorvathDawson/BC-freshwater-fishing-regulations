@@ -17,13 +17,13 @@ from pipeline.regs.table.lifts import lifts_here
 from pipeline.regs.table.method import resolve_method
 
 
-def audit(rules, here):
+def audit(rules, here, water_kind="stream"):
     """Where each gear rule of this section lands, across every method."""
     where = {}
     def mark(k, how):
         where.setdefault(k, how)
     for m in METHODS:
-        rs = rungs_for(m, rules, here)
+        rs = rungs_for(m, rules, here, water_kind)
         if not rs:
             continue
         row = resolve_method(m, rs, here)
@@ -44,6 +44,10 @@ def audit(rules, here):
     _, dropped = lifts_here(rules, here)
     for k in dropped:
         mark(k, "lifted here by an exemption")
+    for x in rules:
+        w = x.get("water")
+        if w and w != water_kind:
+            mark(rid(x), "written about the other kind of water")
     given = {rid(x) for x in rules
              if x.get("method") or str(x.get("type") or "") in RIG_TYPES}
     return where, sorted(given - set(where))
@@ -58,7 +62,8 @@ if __name__ == "__main__":
             if not rules:
                 continue
             checked += 1
-            where, gone = audit(rules, section_regions(w, run))
+            kind = "lake" if (D[w].get("kind") == "lake") else "stream"
+            where, gone = audit(rules, section_regions(w, run), kind)
             tally.update(where.values())
             missing += len(gone)
             if gone and shown < 3:
