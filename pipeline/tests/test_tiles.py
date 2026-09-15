@@ -129,7 +129,9 @@ def test_only_hard_closures_and_regulatory_zones_cut_the_streams_that_cross_them
     between the halves or region 5's rules cannot attach to the half that is in region 5.
     The Fraser already carried three such boundaries placed BY HAND, at the Chilcotin, the
     Williams Lake River and the Cottonwood; this generalises that to all nine regions and to
-    the two management-unit groups the synopsis writes group regulations for.
+    the management-unit groups a regulation is written for as a GROUP — two in the synopsis
+    (southern Vancouver Island, Haida Gwaii) and one in the DFO salmon pages, where Region 5
+    is split across two pages and 5b's default is written for "Management Units 5-6 to 5-11".
 
     WHAT IT COST, measured, which is the part that makes it admissible: 3,054 region
     transitions and 46 MU-group transitions cut, +1,086 graph nodes (0.06%) and +1,098 rule
@@ -147,7 +149,7 @@ def test_only_hard_closures_and_regulatory_zones_cut_the_streams_that_cross_them
         # hard closures — the edge is where fishing stops
         "national_parks", "ecological_reserves", "chilkoot_trail", "restricted_land_access",
         # regulatory zones — the synopsis is written per zone
-        "regions", "mu_group_south_island", "mu_group_haida_gwaii",
+        "regions", "mu_group_south_island", "mu_group_haida_gwaii", "mu_group_cariboo_coastal",
     }
 
 

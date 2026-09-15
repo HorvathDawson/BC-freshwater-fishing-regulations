@@ -268,8 +268,13 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "within",
+            "area_id": "area:mu_group:management_units_5_6_to_5_11"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

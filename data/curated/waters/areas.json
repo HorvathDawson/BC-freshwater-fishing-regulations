@@ -146,6 +146,19 @@
       "note": "HAIDA GWAII, which is MUs 6-12 and 6-13 — administratively in Region 6, but the Region 1 preamble governs it: 'all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)'. This def was first written as 'Lower Skeena', which is wrong, and it was caught three ways: the archived rule text names Haida Gwaii outright, a second reader flagged it, and the polygon's centroid is lon -131.5 lat 53.2 — the islands, not Terrace. The AREA ID slugs from `combine`, not from this id, so nothing downstream moved when the name was corrected. Combined because the bait ban and the Region 1 preamble are both written for the pair.",
       "tile_layer": null,
       "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
+    },
+    {
+      "id": "mu_group_cariboo_coastal",
+      "kind": "mu_group",
+      "layer": "wmu",
+      "name_field": "WILDLIFE_MGMT_UNIT_ID",
+      "where": "WILDLIFE_MGMT_UNIT_ID IN ('5-6', '5-7', '5-8', '5-9', '5-10', '5-11')",
+      "combine": "Management Units 5-6 to 5-11",
+      "label_term": "",
+      "cut": true,
+      "note": "REGION 5B, the Cariboo's coastal half. DFO splits Region 5 across two pages — 5a is the Fraser River Watershed, 5b the Coastal Watershed — and 5b's default is written for the GROUP: 'All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B'. Combined for the same reason as the other two: the regulation names the group, so the boundaries between 5-7 and 5-8 are internal to it.\n\nThe WATERSHED reading looks equivalent and is NOT. 'Region 5 minus the Fraser basin' tiles region 5 exactly (80,352 + 189,633 = 269,985, zero overlap) but is only 54% MUs 5-6 to 5-11: it also pulls in 5-12, 5-2 and 5-13, because MU boundaries do not follow the Fraser divide. The MU list is the operative text, so it is the one that binds. Measured before this def was written, which is the only reason it exists.",
+      "tile_layer": null,
+      "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
     }
   ],
   "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut. Regions and MU groups are also cut, for a different reason than a closure: a regulation written per region or per group of units needs a section boundary at that area's edge or it cannot be attached to its own half of a water that crosses it.",

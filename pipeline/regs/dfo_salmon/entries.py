@@ -386,6 +386,13 @@ SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
                  {"op": "within", "area_id": HAIDA_GWAII,
                   "outside_areas": [HAIDA_GWAII]}],
     ("4", "region"): [{"op": "within", "area_id": "area:region:4"}],
+    # 5b is the Cariboo's COASTAL half (5a is the Fraser half). Bound by the MU list the page
+    # prints, not by the watershed its title names: "region 5 minus the Fraser basin" tiles region
+    # 5 exactly but is only 54% MUs 5-6 to 5-11 — it also pulls in 5-12, 5-2 and 5-13, because MU
+    # boundaries do not follow the Fraser divide. Measured before this was written.
+    # The area itself is `mu_group_cariboo_coastal` in areas.json; it exists after the next build.
+    ("5b", "region"): [{"op": "within",
+                        "area_id": "area:mu_group:management_units_5_6_to_5_11"}],
 }
 
 #: Scopes deliberately NOT in the table, and why. Held rather than guessed.
@@ -393,7 +400,7 @@ SCOPE_HELD = {
     ("6", "E"): "a RESIDUAL: region 6 minus B, C, D and F. A rule's extents UNION, so the "
                 "subtraction cannot be written as more extents, and `outside_area` takes an "
                 "`area:` id while B/C/F are walks. Needs a general `minus`.",
-    ("5b", "region"): "scoped to Management Units 5-6 to 5-11, which has no area yet. Two "
+    ("5b", "region_PLACEHOLDER"): "scoped to Management Units 5-6 to 5-11, which has no area yet. Two "
                       "readings agree on the water and either would do: the MU list the page "
                       "prints (an `areas.json` mu_group row, like Haida Gwaii's), or the "
                       "watershed the page's own title names — 5b is the COASTAL half of region "
