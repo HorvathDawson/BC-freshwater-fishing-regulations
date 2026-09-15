@@ -50,6 +50,9 @@ def trace(water, run=0):
         for c in (r.caveats or [])[:3]:
             print(f"  │ BUT: {c.outcome.word()} {c.applies.kind} — {c.applies.detail[:46]}")
             print(f"  │            “{c.verbatim[:62]}”")
+        for e in (r.exemptions or [])[:2]:
+            print(f"  │ EXCEPT: {e['note'][:60]}")
+            print(f"  │            (nothing can draw where — so the rule above still stands)")
         print(f"  └")
 
 if __name__ == "__main__":

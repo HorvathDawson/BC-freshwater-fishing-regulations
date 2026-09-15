@@ -88,7 +88,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
     region-scoped lifts are measured against."""
     kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
-    narrow, _drop, _unresolved = lifts_here(rules, here)
+    narrow, _drop, unresolved = lifts_here(rules, here)
     lifted = {t: None for t in _drop}           # `exempts` -> narrowed / disapplied here
 
     # sub-limits become a FIELD on their parent, never a row
@@ -228,6 +228,14 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                          or l.subject.covers(r.subject)), None)
             if host is not None:
                 host.dormant = (host.dormant or []) + [l]
+
+    # AN EXEMPTION NOBODY CAN PLACE STILL HAS TO REACH THE READER. `lifts_here` declines to
+    # apply one — applied blanket, Region 6's steelhead exemption deleted a closure from a river
+    # its own note does not name. The justification for holding it back was that it would ride
+    # beside the closure in the reader's own words, and that half was never built: `unresolved`
+    # was computed by four callers and read by none. It rides on every row now.
+    for r in rows:
+        r.exemptions = list(unresolved)
 
     build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
     return rows

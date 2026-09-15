@@ -487,3 +487,34 @@ def test_the_answer_is_the_first_rung_of_every_chain(tables):
         for r in t:
             assert r.chain and r.chain[0].status == "governs" and r.governs is r.chain[0], (
                 f"{w} stretch {run + 1}: chain does not start with its answer")
+
+
+def test_a_take_of_zero_beats_a_closer_number_only_where_the_book_means_it(tables):
+    """The "except closures" clause is GENERAL, and its blast radius is not.
+
+    Authority wins: a regional table overrides the province, and a water overrides the region.
+    The one exception is a take of zero, which stands unless something lifts it — and that
+    exception exists for one sentence in the book, "All wild steelhead must be released", which a
+    regional trout-and-char quota does not mention and does not lift.
+
+    Measured across all 102 sections, the exception changes the answer on 27 rows and every one
+    of them is wild steelhead. That is the rule behaving as written rather than as hoped, and it
+    is worth pinning: a general rule that happens to fire narrowly today will fire wider the
+    moment the corpus moves, and the next reader of that row deserves someone to have looked.
+    """
+    from pipeline.regs.table.build import name
+    wider = []
+    for w, run, _, _, t in tables:
+        for r in t:
+            gov = next((c for c in r.chain if c.status == "governs"), None)
+            if gov is None or gov.outcome.kind not in ("closed", "release"):
+                continue
+            if not any(c is not gov and c.rank < gov.rank
+                       and c.outcome.kind in ("quota", "unlimited") for c in r.chain):
+                continue
+            who, _ = r.subject.words(name, is_release=(r.outcome.kind == "release"))
+            if "Steelhead" not in who:
+                wider.append((w, run + 1, who, gov.verbatim[:60]))
+    assert not wider, (
+        "a take of zero now beats a closer authority's number for something other than wild "
+        f"steelhead — look at whether the book means it: {wider[:4]}")

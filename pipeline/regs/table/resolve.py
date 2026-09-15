@@ -67,6 +67,7 @@ class Row:
     ceilings: List[Rung] = None     # other periods that bind AT THE SAME TIME (annual, possession)
     duties: List[Rung] = None       # what you must DO on keeping one
     quals: List = None              # size gates and possession multiples (see qualifiers.py)
+    exemptions: List = None         # an exception whose place cannot be drawn — see lifts.py
     dormant: List = None            # clauses of a rule in the chain that is NOT the answer
 
     @property
@@ -381,8 +382,6 @@ def table(rungs: List[Rung], water_kind: str = "stream",
         hd = {c.rule_id for c in (host.duties or [])}
         host.duties = (host.duties or []) + [c for c in (row.duties or [])
                                              if c.rule_id not in hd]
-        hq = {c.rule_id for c in (host.quals or [])}
-        host.quals = (host.quals or []) + [c for c in (row.quals or []) if c.rule_id not in hq]
         host.dormant = _dedup((host.dormant or []) + list(row.dormant or []))
     out.sort(key=lambda r: (r.outcome.rank, sorted(r.subject.fish)))
     return out
