@@ -90,7 +90,8 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                             from_time=c.get("from_time"), to_time=c.get("to_time"),
                             weekdays=c.get("weekdays"))
             kids.setdefault(parent, []).append(
-                SubLimit(subject_of(c), c.get("take"), pooled_of(c), c.get("verbatim") or "",
+                SubLimit(subject_of(c), c.get("take"), pooled_of(c, subject_of(c)),
+                         c.get("verbatim") or "",
                          rid(c), "" if ap.always else ap.detail))
 
     rungs, quals = [], []
@@ -101,8 +102,9 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
         # fish for it" on a salmon river — off the spear-fishing rule. It belongs in the gear
         # table, under the way of fishing it restricts (see method.py). 90 of 601 rungs.
         if x.get("method"): continue
+        subj = subject_of(x, narrow.get(rid(x)))
         o = outcome_of(x.get("take"), x.get("may_target"), x.get("unlimited"),
-                       x.get("period"), pooled_of(x))
+                       x.get("period"), pooled_of(x, subj))
         if o is None:
             # No count of its own — but a retention rule with no count is still ABOUT a count.
             if str(x.get("type") or "") == "retention_limit":
@@ -110,7 +112,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                 if q is not None: quals.append(q)
             continue
         rank, who = _authority(x)
-        rungs.append(Rung(rid(x), who, rank, subject_of(x, narrow.get(rid(x))), o,
+        rungs.append(Rung(rid(x), who, rank, subj, o,
                           x.get("verbatim") or "",
                           applies_of(x.get("windows"), x.get("extent_text"),
                                      all_year=not x.get("windows"),

@@ -76,15 +76,15 @@ class Outcome:
         return {"closed": "you may not fish for it",
                 "release": "you may fish for it, and must release every one",
                 "unlimited": "no limit",
-                # "OF EACH" IS A CLAIM, AND IT IS USUALLY NOT IN THE DATA. `combined` is unset
-                # on 224 of 248 group quotas — "Char daily quota = 1" says nothing about
-                # whether that is one char or one of each kind of char. Defaulting to "of each"
-                # answers the question in the permissive direction on every one of them: one
-                # bull trout AND one Dolly Varden AND one lake trout, which is the
-                # five-times-the-legal-limit read this type was written to prevent.
+                # A GROUP QUOTA IS COMBINED. "Char daily quota = 1" is one char — not one bull
+                # trout AND one Dolly Varden AND one lake trout. `combined` is unset on 224 of
+                # 248 group quotas because the book does not repeat what naming a group already
+                # says; the flag marks the cases it spells out, not the cases it means.
                 #
-                # `combined` set is a fact and says "between them". `combined` unset is silence,
-                # and the number alone is what the book gives the reader.
+                # This first printed "of each", which is the five-times-the-legal-limit read,
+                # and was then made silent — which only moved the guess into the reader's head.
+                # Combined is the law, so it is the default, and `pooled` is derived from the
+                # subject rather than from a flag that is usually absent.
                 "quota": f"keep up to {self.n}"
                           + (" between them" if self.pooled else "")
                           + f" per {_PERIOD.get(self.period, self.period)}"

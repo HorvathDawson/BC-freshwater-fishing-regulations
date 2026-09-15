@@ -57,9 +57,21 @@ class SubLimit:
         return f"no more than {self.n}{pool} may be {who.lower()}{tail}{when}"
 
 
-def pooled_of(rule: dict) -> bool:
-    """`combined` on a quota means the number is a SHARED pool across the species named."""
-    return bool(rule.get("combined"))
+def pooled_of(rule: dict, subject=None) -> bool:
+    """Is this number shared across the fish it names, or one each?
+
+    COMBINED IS THE DEFAULT WHEREVER MORE THAN ONE FISH IS NAMED. "Char daily quota = 1" means
+    one char, and the book does not add "combined" because naming a group already says it. The
+    flag marks the places the book spells it out; its absence is not the opposite claim.
+
+    So `combined` set is a fact, and a subject covering more than one species is combined too.
+    A quota on a single fish has no pool to share and is neither.
+    """
+    if rule.get("combined"):
+        return True
+    if subject is None:
+        return False
+    return len(subject.effective()) > 1
 
 
 def lifted_ids(rules: List[dict]) -> Set[str]:
