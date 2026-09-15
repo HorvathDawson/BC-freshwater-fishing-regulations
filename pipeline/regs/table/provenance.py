@@ -66,9 +66,25 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
         wins = rule_of(rung.rule_id)["windows"]
         return not wins or any(_in_window(w, *on) for w in wins)
 
+    # WHICH ROW SITS UNDER WHICH. "Bull trout" and "Steelhead" are inside "Trout and char", and
+    # listed flat they read as four unrelated answers when three of them are the group's own
+    # members. The narrowest row that covers another is its parent.
+    def parent_of(r):
+        cands = [o for o in rows if o is not r and o.subject.covers(r.subject)
+                 and not r.subject.covers(o.subject)]
+        if not cands:
+            return None
+        narrow = min(cands, key=lambda o: sum(1 for x in cands if x.subject.covers(o.subject)))
+        return narrow
+
+    def key_of(r):
+        w, q = r.subject.words(name, is_release=(r.outcome.kind == "release"))
+        return w + "||" + q
+
     out = []
     for r in rows:
         who, qual = r.subject.words(name, is_release=(r.outcome.kind == "release"))
+        par = parent_of(r)
         chain = [{"rule": c.rule_id, "authority": c.authority, "rank": c.rank,
                   "outcome": c.outcome.word(), "why": c.status,
                   "when": c.applies.detail if c.applies.kind != "always" else "",
@@ -98,27 +114,64 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
             answer = next((d for c, d in zip(r.chain, chain) if c is won), None)
         out.append({
             "fish": who, "qualifier": qual,
+            "key": who + "||" + qual,
+            "under": key_of(par) if par is not None else None,
+            "pooled": bool(r.outcome.pooled),
+            "members": sorted(name(c) for c in r.subject.effective())[:24],
             "keep": r.outcome.word(), "means": r.outcome.sentence(),
             "answer_today": (answer or {}).get("outcome"),
             "set_by": (answer or {}).get("rule"),
             "chain": chain,
-            "of_which": [{"rule": l.rule_id, "says": l.sentence(name)} for l in (r.limits or [])],
+            # A SUB-LIMIT IS PART OF A NUMBER, so it ships with the pieces a reader needs to
+            # see it that way: which fish it caps, how many, and whether that cap is shared.
+            "of_which": [{"rule": l.rule_id, "says": l.sentence(name),
+                          "n": l.n, "pooled": l.pooled,
+                          "fish": l.subject.words(name)[0],
+                          "qualifier": l.subject.words(name)[1]}
+                         for l in (r.limits or [])],
             "also": [{"rule": c.rule_id, "outcome": c.outcome.word(),
-                      "per": c.outcome.period} for c in (r.ceilings or [])],
+                      "per": c.outcome.period,
+                      "fish": c.subject.words(name)[0],
+                      "qualifier": c.subject.words(name)[1]} for c in (r.ceilings or [])],
             "somewhere": [{"rule": c.rule_id, "where": c.applies.detail}
                           for c in (r.caveats or [])],
+            # SIZE GATES AND DUTIES ARE NOT COMPETITORS EITHER. A count and a size bound are
+            # both true at once — "5 per day" and "none under 30 cm" do not argue — so they
+            # ride on the row rather than winning or losing a chain. They were shipped nowhere
+            # and rendered nowhere, which is how a size limit disappears off a page.
+            "gates": [{"rule": q.rule_id, "says": q.sentence(name), "kind": q.kind}
+                      for q in (r.quals or [])],
+            "duties": [{"rule": q.rule_id, "says": q.sentence(name)} for q in (r.duties or [])],
             "except": list(r.exemptions or []),
         })
 
+    # A CLOSURE IS NOT ONLY ABOUT FISH. "Do not place any fishing gear in any water during a No
+    # Fishing period" bites whenever a No Fishing rule does, and it is a method rule, so it goes
+    # to the gear table and never appears beside the closure it belongs to.
+    #
+    # Matched on the rule's own sentence, which is the honest way to say it: the schema has no
+    # field for "conditional on another rule closing the water", so there is nothing structural
+    # to match on. That is a gap in the catalogue, not a licence to guess — the sentence names
+    # the condition explicitly, and the page says it was matched that way.
+    while_closed = [rule_of(rid(x)) for x in rules
+                    if x.get("permitted") is False
+                    and "no fishing period" in (x.get("verbatim") or "").lower()]
+
+    # EVERY rule the page can name has to be in here, or it renders an empty quotation mark.
+    # The annual ceiling did exactly that: cited on the row, absent from the dictionary.
     used = sorted({c["rule"] for row in out for c in row["chain"]}
                   | {l["rule"] for row in out for l in row["of_which"]}
+                  | {c["rule"] for row in out for c in row["also"]}
+                  | {g["rule"] for row in out for g in row["gates"]}
+                  | {d["rule"] for row in out for d in row["duties"]}
                   | {c["rule"] for row in out for c in row["somewhere"]})
     return {"water": water, "stretch": run + 1,
             "label": section_label(water, run) or f"stretch {run + 1}",
             "kind": kind, "regions": sorted(section_regions(water, run)),
             "on": list(on) if on else None,
             "rules_in": len(rules), "rows_out": len(out),
-            "rows": out, "rules": {k: rule_of(k) for k in used}}
+            "rows": out, "while_closed": while_closed,
+            "rules": {k: rule_of(k) for k in used}}
 
 
 if __name__ == "__main__":

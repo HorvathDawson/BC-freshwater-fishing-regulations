@@ -15,7 +15,7 @@ from typing import Dict, List
 from pipeline.regs.table.subject import Subject, Origin, Water, note_origin_split
 from pipeline.regs.table.size import size_of
 from pipeline.regs.table.outcome import outcome_of
-from pipeline.regs.table.resolve import Rung, Row, table
+from pipeline.regs.table.resolve import Rung, Row, table, applies_here
 from pipeline.regs.table.applies import applies_of
 from pipeline.regs.table.clauses import SubLimit, children_of, pooled_of
 from pipeline.regs.table.corpus import rid, section_rules as corpus_section
@@ -208,10 +208,17 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     # rung of the same id — leaves the table with nothing saying so. The Shuswap's "Lake trout —
     # release all, Oct 15 – Jan 31" went that way. Sweeping is the difference between "carried"
     # and "happened to be carried", and it is the same principle as the clause sweep below.
+    #
+    # ...BUT NOT A RUNG THAT IS ABOUT THE OTHER KIND OF WATER. `table` drops those before it
+    # resolves anything, and sweeping them back in undid that: Region 4's "Trout and char — 2
+    # per day, FROM STREAMS" landed in the chain on Kootenay LAKE, where the lake's answer is 5.
+    # It sat there labelled "also written here" — harmless until anything re-weighed the chain,
+    # and the date-aware pass does exactly that, so the lake read 2. A rule about streams is
+    # accounted for on a lake by NOT BEING THERE; `comply` files it under "not-here".
     in_chain = {c.rule_id for r in rows
                 for c in r.chain + (r.caveats or []) + (r.ceilings or [])}
     for rg in rungs:
-        if rg.rule_id in in_chain:
+        if rg.rule_id in in_chain or not applies_here(rg, water_kind):
             continue
         host = next((r for r in rows if r.subject.covers(rg.subject)
                      or rg.subject.covers(r.subject)), None)

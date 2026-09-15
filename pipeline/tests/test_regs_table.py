@@ -518,3 +518,22 @@ def test_a_take_of_zero_beats_a_closer_number_only_where_the_book_means_it(table
     assert not wider, (
         "a take of zero now beats a closer authority's number for something other than wild "
         f"steelhead — look at whether the book means it: {wider[:4]}")
+
+
+def test_a_stream_rule_never_reaches_a_lake_table_by_any_route(tables):
+    """`table` drops rules about the other kind of water before it resolves anything, and the
+    orphan sweep put them back — Region 4's "Trout and char — 2 per day, FROM STREAMS" sat in
+    the chain on Kootenay LAKE, whose answer is 5. It was inert until something re-weighed the
+    chain, and the date-aware pass does exactly that, so the lake read 2."""
+    from pipeline.regs.table.corpus import rid
+    for w, run, kind, rules, t in tables:
+        other = "lake" if kind == "stream" else "stream"
+        # COMPOSITE IDS. A bare rule id is shared by up to nine rules — `trout_char_quota.r7`
+        # is one per region — so comparing on it flags a stream rule because some OTHER
+        # region's rule of the same name is about lakes. The test that guards the collision
+        # must not fall for it.
+        bad = {rid(x) for x in rules if x.get("water") == other}
+        for r in t:
+            for c in r.chain + (r.caveats or []) + (r.ceilings or []):
+                assert c.rule_id not in bad, (
+                    f"{w} stretch {run + 1} is a {kind}, and {c.rule_id} is about {other}s")
