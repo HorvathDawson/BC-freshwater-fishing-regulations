@@ -16,7 +16,7 @@ from pipeline.regs.table.subject import Subject, Origin, Water, note_origin_spli
 from pipeline.regs.table.size import size_of, ANY as SIZE_ANY
 from pipeline.regs.table.gates import Gate, attach as attach_gates
 from pipeline.regs.table.outcome import outcome_of
-from pipeline.regs.table.resolve import Rung, Row, table, applies_here
+from pipeline.regs.table.resolve import Rung, Row, table, applies_here, resolve, REPLACED_BY_CLAUSE
 from pipeline.regs.table.applies import applies_of
 from pipeline.regs.table.clauses import SubLimit, children_of, pooled_of
 from pipeline.regs.table.corpus import rid, section_rules as corpus_section
@@ -178,7 +178,8 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
             ap = applies_of(src.get("windows"), c.get("extent_text"),
                             all_year=not src.get("windows"), section_label=label,
                             from_time=c.get("from_time"), to_time=c.get("to_time"),
-                            weekdays=c.get("weekdays"))
+                            weekdays=c.get("weekdays"),
+                            unless=str(src.get("windows_are") or "") == "excepts")
             when = "" if ap.always else ap.detail
             # A CLAUSE'S SIZE BOUND IS A GATE, like anyone else's. "none under 60 cm" inside
             # "Trout/char: 5" sends a small char back whichever number ends up governing char
@@ -221,7 +222,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
         par = promoted_parent.get(p)
         c = by_key.get(p) or {}
         if par and not c.get("windows") and c.get("water") == water_kind:
-            lifted[par] = "replaced here by its own clause for this kind of water"
+            lifted[par] = REPLACED_BY_CLAUSE
 
     rungs, quals = [], []
     for x in rules:
@@ -244,7 +245,8 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
         ap = applies_of(x.get("windows"), x.get("extent_text"),
                         all_year=not x.get("windows"), section_label=label,
                         from_time=x.get("from_time"), to_time=x.get("to_time"),
-                        weekdays=x.get("weekdays"))
+                        weekdays=x.get("weekdays"),
+                        unless=str(x.get("windows_are") or "") == "excepts")
         # THE BOUND, SPLIT FROM THE COUNT. Whatever else the rule says, a size that sends a
         # fish back rides as a gate on every row about that fish — including the rows this
         # rule's own count loses on, because a number does not lift a take of zero.
@@ -292,6 +294,23 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     # accounted for on a lake by NOT BEING THERE; `comply` files it under "not-here".
     in_chain = {c.rule_id for r in rows
                 for c in r.chain + (r.caveats or []) + (r.ceilings or [])}
+    # A SUBJECT ONLY SEASONS SPEAK TO, AND NO ROW COVERS. `resolve` declines to head a row
+    # with a seasonal rule, rightly — but where no row covers the subject at all, that rule
+    # has nowhere to ride and leaves the table. It gets a row of its own, headed by its
+    # season (see `resolve(stranded=True)`).
+    stranded = {rg.subject for rg in rungs
+                if rg.rule_id not in in_chain and applies_here(rg, water_kind)
+                and rg.applies.can_win
+                and not any(r.subject.covers(rg.subject) or rg.subject.covers(r.subject)
+                            for r in rows)}
+    for subj in sorted(stranded, key=lambda x: sorted(x.fish)):
+        row = resolve([replace(r, subject=replace(r.subject, water=Water.any))
+                       for r in rungs if applies_here(r, water_kind)],
+                      replace(subj, water=Water.any), kids, lifted, stranded=True)
+        if row is not None:
+            row.exemptions = list(unresolved)
+            rows.append(row)
+            in_chain |= {c.rule_id for c in row.chain + (row.caveats or []) + (row.ceilings or [])}
     for rg in rungs:
         if rg.rule_id in in_chain or not applies_here(rg, water_kind):
             continue

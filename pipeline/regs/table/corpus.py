@@ -76,11 +76,28 @@ def section_rules(water: str, run: int = 0, path: str = BUNDLE):
     lo, hi = runs[run]["from"], runs[run]["to"]
     # Keyed on (entry, rule) — the bare rule id is shared by up to nine different rules, so
     # matching on it alone pulled Region 7b's bait rule onto a Region 2 river.
-    want = set()
+    #
+    # AN EMPTY SPAN LIST BINDS NO STRETCH. The page's own filter (`runRules`) takes a rule
+    # onto a stretch only where one of its spans overlaps it, so `spans: []` reaches nothing.
+    # Read here as "no filter, take it everywhere", the tributary-walk copy of the Atnarko's
+    # "No Fishing from Tenas Lake to the Atnarko Park campsite" — whose reach copy binds three
+    # stretches — shut all six, and the Bella Coola with them.
+    #
+    # AND THE WALK IS REMEMBERED. `via: trib` lives on the page's copy of a rule and not in
+    # the bundle, and this join threw it away — so "Elk River's tributaries" spoke on the
+    # Fording with the Fording's own voice, at rank 0, when the ladder has a rung for it.
+    want, inherited = set(), {}
     for x in (w.get("rules") or []):
         sp = x.get("spans") or []
-        if sp and not any(abs(a - lo) < .05 and abs(b - hi) < .05 for a, b in sp):
+        if not any(abs(a - lo) < .05 and abs(b - hi) < .05 for a, b in sp):
             continue
-        want.add(f"{x.get('entry')}::{x.get('rule')}")
-    out = [x for x in rules(path) if rid(x) in want]
+        k = f"{x.get('entry')}::{x.get('rule')}"
+        want.add(k)
+        inherited[k] = inherited.get(k, True) and x.get("via") == "trib"
+    out = []
+    for x in rules(path):
+        if rid(x) in want:
+            x = dict(x)
+            x["via"] = "trib" if inherited[rid(x)] else "reach"
+            out.append(x)
     return out, frozenset(runs[run].get("regions") or [])

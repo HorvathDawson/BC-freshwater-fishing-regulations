@@ -25,7 +25,7 @@ from typing import Optional
 from pipeline.regs.table.build import (build, section_rules, section_regions,
                                        section_label, name, D)
 from pipeline.regs.table.corpus import rid, rules as all_rules
-from pipeline.regs.table.resolve import head_of
+from pipeline.regs.table.resolve import head_of, competes
 
 
 def _win(w) -> Optional[dict]:
@@ -33,6 +33,11 @@ def _win(w) -> Optional[dict]:
         return None
     f, t = w.get("from") or {}, w.get("to") or {}
     return {"from": [f.get("month"), f.get("day")], "to": [t.get("month"), t.get("day")]}
+
+
+#: Every (month, day) of a year, Feb 29 included — the calendar a row's answer is walked over.
+_DAYS = [(m, d) for m, n in enumerate((31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), 1)
+         for d in range(1, n + 1)]
 
 
 def _in_window(win: dict, month: int, day: int) -> bool:
@@ -57,14 +62,34 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
                 "label": x.get("label") or "",
                 "verbatim": x.get("verbatim") or "",
                 "windows": [w for w in (_win(o) for o in (x.get("windows") or [])) if w],
+                # The dates can be when the rule does NOT apply (`windows_are: excepts`).
+                "unless": str(x.get("windows_are") or "") == "excepts",
+                # A CONDITION INSIDE THE DAY. "One hour after sunset to one hour before
+                # sunrise" and "Saturday and Sunday only" are windows too, and a (month, day)
+                # cannot settle them. Such a rung is never the answer FOR A DATE; it rides.
+                "within_day": bool(x.get("from_time") or x.get("to_time") or x.get("weekdays")),
                 "extent": x.get("extent_text") or "",
                 "type": x.get("type") or ""}
 
+    def live_on(rung, day) -> bool:
+        x = rule_of(rung.rule_id)
+        wins = x["windows"]
+        if rung.applies.kind == "window":
+            inside = not wins or any(_in_window(w, *day) for w in wins)
+            return not inside if x["unless"] else inside
+        if x["unless"] and wins:
+            return not any(_in_window(w, *day) for w in wins)
+        return True
+
     def live(rung) -> bool:
-        if on is None or rung.applies.kind != "window":
-            return True
-        wins = rule_of(rung.rule_id)["windows"]
-        return not wins or any(_in_window(w, *on) for w in wins)
+        return on is None or live_on(rung, on)
+
+    def for_a_date(rung) -> bool:
+        """Can this rung be THE ANSWER on a date? Not if it left the running (lifted, or
+        replaced by its own clause), and not if its window is a time of day or a weekday.
+        The Harrison's dusk-to-dawn closure was live on every date, so every date read
+        closed; the Lower West Arm's weekday kokanee release did the same to its weekend 5."""
+        return competes(rung) and not rule_of(rung.rule_id)["within_day"]
 
     # WHICH ROW SITS UNDER WHICH. "Bull trout" and "Steelhead" are inside "Trout and char", and
     # listed flat they read as four unrelated answers when three of them are the group's own
@@ -87,7 +112,7 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
         par = parent_of(r)
         chain = [{"rule": c.rule_id, "authority": c.authority, "rank": c.rank,
                   "outcome": c.outcome.word(), "why": c.status,
-                  "when": c.applies.detail if c.applies.kind != "always" else "",
+                  "when": c.applies.detail,
                   "about": c.subject.words(name)[0],
                   "live": live(c)}
                  for c in r.chain]
@@ -101,17 +126,49 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
         # So the live rungs are re-weighed by the same rule that weighed them in the first
         # place: one winner per subject, then `head_of`. The page does not re-implement the
         # ladder; it hands the day back to the ladder.
-        if on is None:
-            answer = chain[0] if chain else None
-        else:
-            live_rungs = [c for c, d in zip(r.chain, chain) if d["live"]]
+        # ...AND ONLY BY THE RUNGS THAT SPEAK FOR THE WHOLE ROW. A chain carries rungs about
+        # narrower fish — absorbed rows, orphans the sweep placed — and `resolve` never let
+        # one of those decide a subject it does not cover. Re-weighed as if it could, the
+        # Chilliwack's "hatchery rainbow trout: 4" answered for every hatchery trout on the
+        # river, and Region 6's May 15 – Jun 15 steelhead closure shut the Skeena's trout.
+        # A joined row ("release · wild and hatchery") is covered by neither of its halves and
+        # is decided by both, so where nothing covers the row every live rung is weighed.
+        def answer_on(day):
+            live_rungs = [c for c in r.chain if for_a_date(c) and live_on(c, day)]
+            whole = [c for c in live_rungs if c.subject.covers(r.subject)]
+            live_rungs = whole or live_rungs
             best = {}
             for rg in live_rungs:
                 cur = best.get(rg.subject)
                 if cur is None or (rg.rank, rg.outcome.rank) < (cur.rank, cur.outcome.rank):
                     best[rg.subject] = rg
-            won = head_of(list(best.values())) if best else None
+            return head_of(list(best.values())) if best else None
+        if on is None:
+            answer = chain[0] if chain else None
+        else:
+            won = answer_on(on)
             answer = next((d for c, d in zip(r.chain, chain) if c is won), None)
+        # THE YEAR, AS THE ANSWER CHANGES. The headline is the year-round rule, and on the
+        # Skeena the year-round rule for a trout is never the answer on any day: "1 trout
+        # from streams, Jul 1 – Oct 31" and "trout of any size from streams — release, Nov 1
+        # – Jun 30" cover the calendar between them, and "Trout/char: 5" reads above both.
+        # The calendar is the honest headline — every stretch of days with its answer and
+        # the rule that set it — and `year_round` says whether the headline ever holds.
+        calendar, cur = [], None
+        for day in _DAYS:
+            won = answer_on(day)
+            key = (won.outcome.word(), won.rule_id) if won is not None else (None, None)
+            if cur is not None and cur[0] == key:
+                cur[2] = day
+            else:
+                cur = [key, day, day]; calendar.append(cur)
+        if len(calendar) > 1 and calendar[0][0] == calendar[-1][0]:
+            # Dec 31 wraps into Jan 1: one stretch, not two.
+            calendar[0][1] = calendar[-1][1]; calendar.pop()
+        calendar = [{"from": list(a), "to": list(b), "keep": k[0], "rule": k[1]}
+                    for k, a, b in calendar]
+        year_round = any(seg["rule"] == (chain[0]["rule"] if chain else None)
+                         for seg in calendar)
         out.append({
             "fish": who, "qualifier": qual,
             "key": who + "||" + qual,
@@ -119,8 +176,12 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
             "pooled": bool(r.outcome.pooled),
             "members": sorted(name(c) for c in r.subject.effective())[:24],
             "keep": r.outcome.word(), "means": r.outcome.sentence(),
+            # The headline's own season, where it has one — a row nothing year-round speaks to.
+            "season": r.governs.applies.detail if not r.governs.applies.always else "",
             "answer_today": (answer or {}).get("outcome"),
             "set_by": (answer or {}).get("rule"),
+            "calendar": calendar,
+            "year_round": year_round,
             "chain": chain,
             # A SUB-LIMIT IS PART OF A NUMBER, so it ships with the pieces a reader needs to
             # see it that way: which fish it caps, how many, and whether that cap is shared.

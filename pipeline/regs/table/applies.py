@@ -73,10 +73,17 @@ ALWAYS = Applies("always")
 def applies_of(windows: List[str] | None, extent_text: str | None,
                all_year: bool = True, *, section_label: str | None = None,
                from_time: str | None = None, to_time: str | None = None,
-               weekdays: List[str] | None = None) -> Applies:
+               weekdays: List[str] | None = None, unless: bool = False) -> Applies:
     """The one place this is decided. `extent_text` is the piece of water a rule names and the
     atlas could not cut — so the rule is true SOMEWHERE in here and the reader has to recognise
-    the spot on the ground. That is a caveat, never an answer."""
+    the spot on the ground. That is a caveat, never an answer.
+
+    `unless` is the catalogue's `windows_are: excepts`: the dates are when the rule does NOT
+    apply. "Kokanee catch and release, EXCEPT Apr 1-3 and July 1-2" is a year-round release
+    with five days out of it; read as a window it became a five-day release, and the Upper
+    West Arm of Kootenay Lake printed Region 4's fifteen kokanee the rest of the year."""
+    if unless and windows:
+        return Applies("always", "except " + _w(windows))
     # AN EXTENT THE ATLAS ALREADY CUT IS NOT A CAVEAT. Where the section being drawn IS the
     # place the rule names, the rule is simply the answer here. Treating it as "true somewhere
     # in here" put the Kootenay's Main Body rules behind the regional quota and told a reader

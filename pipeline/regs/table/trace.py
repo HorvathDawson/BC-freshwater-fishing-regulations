@@ -22,7 +22,10 @@ def trace(water, run=0):
     for r in rows:
         who, q = r.subject.words(name, is_release=(r.outcome.kind == 'release'))
         print(f"\n  ┌ {who}")
-        print(f"  │ KEEP: {r.outcome.word()}    {q}")
+        # A SEASON THAT HEADS A ROW IS PRINTED WITH ITS DATES. The only time one does is when
+        # nothing year-round speaks to the fish here (see `resolve(stranded=True)`).
+        when = f"  — {r.governs.applies.detail} only" if not r.governs.applies.always else ""
+        print(f"  │ KEEP: {r.outcome.word()}    {q}{when}")
         print(f"  │ means: {r.outcome.sentence()}")
         gov = [c for c in r.chain if c.status == "governs"]
         if gov:

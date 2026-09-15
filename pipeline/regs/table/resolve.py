@@ -44,6 +44,22 @@ from pipeline.regs.table.applies import Applies, ALWAYS
 from pipeline.regs.table.clauses import SubLimit
 
 
+#: The statuses that take a rung OUT OF THE RUNNING, as opposed to recording why it lost. A
+#: rung with one of these is shown, and never re-weighed — see `competes`.
+LIFTED = "lifted here — does not apply"
+REPLACED_BY_CLAUSE = "replaced here by its own clause for this kind of water"
+
+
+def competes(rung: "Rung") -> bool:
+    """Could this rung be the answer on SOME day? A lifted rule, a parent its own clause
+    replaced and a demoted ceiling cannot — they ride in the chain so the reader can see them,
+    and that is all. The date-aware pass re-weighed every live rung in a chain, and Region 3's
+    spring closure — lifted on the Fraser by the Fraser's own "Exempt from spring closure" —
+    took the whole river back for six months of the year."""
+    st = rung.status
+    return st != LIFTED and st != REPLACED_BY_CLAUSE and not st.startswith("a weaker ")
+
+
 @dataclass(frozen=True)
 class Rung:
     """One rule's claim on a subject, and what became of it."""
@@ -78,8 +94,15 @@ class Row:
 
 
 def resolve(rungs: List[Rung], subject: Subject,
-            kids=None, lifted=frozenset()) -> Optional[Row]:
-    """Everything that speaks to `subject`, ordered, with the winner first."""
+            kids=None, lifted=frozenset(), stranded: bool = False) -> Optional[Row]:
+    """Everything that speaks to `subject`, ordered, with the winner first.
+
+    `stranded` is for a subject NOTHING ELSE CAN CARRY: only seasonal rules speak to it and
+    no row covers it. White sturgeon on the Fraser in Region 5, below Williams Lake River,
+    has one rule here — "No Fishing for sturgeon Sept 15 – July 15" — and once the protected
+    list stopped covering the fish, that rule was in no chain, no caveat list, nowhere, and
+    the check failed on it. Its season heads the row, and the head carries its window so a
+    reader is never shown a bare "0" for a closure that lifts in July."""
     cand = [r for r in rungs if r.subject.covers(subject)]
     if not cand:
         return None
@@ -148,12 +171,19 @@ def resolve(rungs: List[Rung], subject: Subject,
         if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
             best[r.subject] = r
     head = head_of(list(best.values()))
+    if head is None and stranded:
+        for r in cand:
+            cur = best.get(r.subject)
+            if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
+                best[r.subject] = r
+        head = head_of(list(best.values()))
     if head is None:
         # NO UNCONDITIONAL ANSWER HERE. Falling back to the first seasonal rung printed a
         # closure as the year-round answer with its dates stripped — the Cowichan read "you may
         # not fish for it" off a rule that closes it for eleven days in July, and 36 other rows
         # did the same. A subject whose only rules are seasonal has no year-round row; the
         # seasonal rules are still carried, and the client shows them on the days they bite.
+        # (Unless nothing can carry them — see `stranded`.)
         return None
     out, chain = head.outcome, []
     # An annual ceiling is a ceiling on a NUMBER. Where the row has none it constrains nothing,
@@ -209,7 +239,7 @@ def resolve(rungs: List[Rung], subject: Subject,
         # a reader who is shown the rule needs to know which.
         why = (lifted.get(r.rule_id) if isinstance(lifted, dict) else None)
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
-                          r.verbatim, r.applies, why or "lifted here — does not apply"))
+                          r.verbatim, r.applies, why or LIFTED))
     for r in demoted:
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome, r.verbatim,
                           r.applies, f"a weaker {r.outcome.period} ceiling"))
@@ -257,6 +287,42 @@ def head_of(winners: List[Rung]) -> Optional[Rung]:
     def covered_by(r):
         return sum(1 for o in winners if o is not r and o.subject.covers(r.subject))
     return min(winners, key=lambda r: (r.rank, -covered_by(r), r.outcome.rank))
+
+
+def _restates(row: Row, host: Row) -> bool:
+    """Does `row` say what `host` says on EVERY date, not only year-round?
+
+    Absorption asked one question — is the narrow row's answer the host's answer — and the
+    answer it compared was the year-round one. The Chilliwack's "hatchery rainbow trout: 4,
+    Jul 1 – Apr 30" sat in a rainbow row whose year-round answer was Region 2's 2, the same
+    2 the "Trout and char · hatchery only" row had, so the rainbow row was absorbed and its
+    season went with it: the group row then read 4 on the day, for every hatchery trout on
+    the river. Shuswap's "Lake trout — release, Oct 15 – Jan 31" did the same to "Trout and
+    char · 5", which read release for every trout in November.
+
+    A row with a season of its own — a windowed rung that is not the host's and would beat
+    the host's answer on the days it is live — is its own row. Beating is decided by the
+    order itself: a windowed release under a host that is CLOSED changes nothing on any day,
+    and the "Trout and char · 0" row it would otherwise print beside "All game fish · 0" is
+    the restatement absorption exists to remove.
+    """
+    have = {c.rule_id for c in host.chain}
+    g = host.governs
+    for c in row.chain:
+        if c.rule_id in have or not competes(c) or not c.applies.can_win or c.applies.always:
+            continue
+        best = {}
+        for r in (g, c):
+            cur = best.get(r.subject)
+            if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
+                best[r.subject] = r
+        won = head_of(list(best.values()))
+        # THE SAME ANSWER, NOT THE SAME RUNG. A whole-water "No Fishing" in September beats a
+        # species closure in `head_of` by being the statement a reader looks for — and both
+        # are 0. Region 4's "White Sturgeon: CLOSED" restates the protected list either way.
+        if won is not g and not won.outcome.same_answer(g.outcome):
+            return False
+    return True
 
 
 def _dedup(limits):
@@ -311,7 +377,8 @@ def table(rungs: List[Rung], water_kind: str = "stream",
             # into "2 · wild and hatchery" reads as two. All 3,264 joins in the corpus are
             # releases today; the guard is for the day one is not.
             if (m.outcome == row.outcome and m.outcome.kind in ("release", "closed")
-                    and (j := m.subject.join(row.subject)) is not None):
+                    and (j := m.subject.join(row.subject)) is not None
+                    and _restates(row, m) and _restates(m, row)):
                 m.subject = j
                 m.chain = m.chain + [replace(c, status="says the same thing"
                                              if c.status == "governs" else c.status)
@@ -355,7 +422,8 @@ def table(rungs: List[Rung], water_kind: str = "stream",
         host_of[id(row)] = next((m for j, m in enumerate(merged)
                                  if m is not row and m.outcome == row.outcome
                                  and m.subject.covers(row.subject)
-                                 and (not row.subject.covers(m.subject) or j < i)), None)
+                                 and (not row.subject.covers(m.subject) or j < i)
+                                 and _restates(row, m)), None)
     def final(row):
         seen = set()
         while host_of.get(id(row)) is not None:

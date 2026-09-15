@@ -136,8 +136,7 @@ def tables():
     Without those, a region-scoped rule cannot be placed and an extent the atlas already cut
     reads as undrawable, so the fixture was testing a table no reader will ever see.
     """
-    from pipeline.regs.table.build import (section_rules, section_regions, section_label,
-                                           build, D, WATERS)
+    from pipeline.regs.table.build import (section_rules, section_label, build, D, WATERS)
     out = []
     for w in WATERS:
         kind = "lake" if (D[w].get("kind") == "lake") else "stream"
@@ -502,8 +501,18 @@ def test_a_take_of_zero_beats_a_closer_number_only_where_the_book_means_it(table
     of them is wild steelhead. That is the rule behaving as written rather than as hoped, and it
     is worth pinning: a general rule that happens to fire narrowly today will fire wider the
     moment the corpus moves, and the next reader of that row deserves someone to have looked.
+
+    SOMEONE LOOKED, once the tributary walk was ranked as inherited: "Kootenay Lake's
+    tributaries — Bull trout catch and release" now stands over the Elk's own "Trout/Char daily
+    quota = 1 (no bull trout under 75 cm), June 15 – Oct 31" and the upper Kootenay's twin of
+    it. The book does not mean it — the same entry says "Does not include the Kootenay River
+    upstream from Kootenay Lake to the U.S. border", and the Elk lies above that border — but
+    the walk reaches them anyway, because the exclusion is prose and not `tributary_excludes`.
+    That is the data's defect, and it is named here so it cannot pass as the fold's.
     """
     from pipeline.regs.table.build import name
+    known = {("Elk River", 1, "Bull trout"), ("Kootenay River", 7, "Bull trout"),
+             ("Kootenay River", 8, "Bull trout"), ("Kootenay River", 10, "Bull trout")}
     wider = []
     for w, run, _, _, t in tables:
         for r in t:
@@ -514,8 +523,11 @@ def test_a_take_of_zero_beats_a_closer_number_only_where_the_book_means_it(table
                        and c.outcome.kind in ("quota", "unlimited") for c in r.chain):
                 continue
             who, _ = r.subject.words(name, is_release=(r.outcome.kind == "release"))
-            if "Steelhead" not in who:
+            if "Steelhead" not in who and (w, run + 1, who) not in known:
                 wider.append((w, run + 1, who, gov.verbatim[:60]))
+            if (w, run + 1, who) in known:
+                assert gov.rule_id == "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1"
+                assert gov.authority == "inherited", gov.authority
     assert not wider, (
         "a take of zero now beats a closer authority's number for something other than wild "
         f"steelhead — look at whether the book means it: {wider[:4]}")
@@ -662,3 +674,117 @@ def test_dormant_clauses_are_the_losing_rules_clauses():
     clause = SubLimit(Subject(frozenset({"BT"})), 1, False, "1 bull trout", "z4:trout_char.r2")
     row = resolve(rungs, Subject(frozenset({"TROUT_CHAR"})), kids={"z4:trout_char.r1": [clause]})
     assert row.dormant == [clause] and row.exemptions is None and row.limits == []
+
+
+# --------------------------------------------------------------------------- #
+# What a section is handed: the page's spans, and the walk.
+# --------------------------------------------------------------------------- #
+def test_an_empty_span_list_binds_no_stretch():
+    """The page takes a rule onto a stretch only where a span overlaps it, so `spans: []`
+    reaches nothing. Read as "no filter", the tributary-walk copy of the Atnarko's "No Fishing
+    from Tenas Lake to the Atnarko Park campsite" — whose reach copy binds three stretches —
+    shut all six and the Bella Coola. And the Chilliwack's "(c) hatchery rainbow trout ...
+    daily quota = 4" is written for the Vedder, downstream of Vedder Crossing, which is not a
+    stretch of the Chilliwack at all."""
+    from pipeline.regs.table.corpus import section_rules, rid
+    closure = "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r2"
+    got = {run: {rid(x) for x in section_rules("Atnarko River", run)[0]} for run in range(6)}
+    assert closure not in got[0] and closure not in got[4] and closure not in got[5]
+    assert closure in got[1] and closure in got[2] and closure in got[3]
+    assert closure not in {rid(x) for x in section_rules("Bella Coola River", 0)[0]}
+    chilliwack = {rid(x).split("::")[-1] for x in section_rules("Chilliwack River", 0)[0]}
+    assert "chilliwack_vedder_rivers.r9" not in chilliwack
+    assert "chilliwack_vedder_rivers.r3" in chilliwack
+
+
+def test_a_rule_reached_by_the_tributary_walk_is_inherited(tables):
+    """`via: trib` lives on the page's copy of a rule and not in the bundle, and the join
+    threw it away — so "Elk River's tributaries: Trout/char daily quota = 1" spoke on the
+    Fording with the Fording's own voice, at rank 0, when the ladder has a rung for it."""
+    (t,) = [t for w, run, _, _, t in tables if w == "Fording River" and run == 0]
+    tc = _row(t, "Trout and char")
+    elk = [c for c in tc.chain if "elk_river_s_tributaries" in c.rule_id]
+    assert elk and all(c.authority == "inherited" and c.rank == 1 for c in elk)
+    own = [c for c in tc.chain if "fording_river_downstream" in c.rule_id]
+    assert own and all(c.authority == "this water" and c.rank == 0 for c in own)
+
+
+# --------------------------------------------------------------------------- #
+# The answer on a date is decided by the rungs that speak for the whole row.
+# --------------------------------------------------------------------------- #
+def test_a_row_with_a_season_of_its_own_is_its_own_row(tables):
+    """Shuswap's "Lake trout — release, Oct 15 – Jan 31" sat in a lake-trout row whose
+    year-round answer was Region 3's 5 — the same 5 "Trout and char" had — so the row was
+    absorbed and its season went with it: the group row read release for every trout in
+    November. On the Skeena the Region 6 trout seasons did the same to every char."""
+    (t,) = [t for w, run, _, _, t in tables if w == "Shuswap Lake"]
+    lt = _row(t, "Lake trout")
+    assert lt.outcome.n == 1 and lt.governs.rule_id.endswith("shuswap_lake.r9")   # "Char daily quota = 1"
+    assert any("Oct 15" in c.applies.detail and c.outcome == RELEASE for c in lt.chain)
+    assert _row(t, "Char").outcome.n == 1
+    (t,) = [t for w, run, _, _, t in tables if w == "Skeena River" and run == 0]
+    trout = _row(t, "Trout")
+    assert {c.outcome.word() for c in trout.chain if not c.applies.always} == {"release", "1"}
+
+
+def test_a_lifted_rule_never_decides_a_date():
+    """Region 3's spring closure is lifted on the Fraser by the Fraser's own "Exempt from
+    spring closure" — and the date-aware pass re-weighed every live rung in the chain, so the
+    lifted closure took the river back for six months of the year."""
+    from pipeline.regs.table.provenance import section
+    d = section("Fraser River", 8, (3, 1))            # Thompson River → Fraser River
+    burbot = next(r for r in d["rows"] if r["fish"] == "Burbot")
+    assert burbot["answer_today"] == "2", burbot["set_by"]
+    assert any(c["why"] == "lifted here — does not apply" and c["live"] for c in burbot["chain"])
+
+
+def test_a_narrower_rung_does_not_answer_for_the_whole_row():
+    """Region 6's "No fishing for steelhead, May 15 – Jun 15" rode in the Skeena's trout-and-
+    char chain — it is about a fish inside the group — and the re-weigh let it shut every
+    trout and char on 1 June. `resolve` never lets a rung decide a subject it does not cover;
+    the date must not either."""
+    from pipeline.regs.table.provenance import section
+    d = section("Skeena River", 0, (6, 1))
+    by = {(r["fish"], r["qualifier"]): r for r in d["rows"]}
+    assert by[("Trout and char", "")]["answer_today"] == "5"
+    assert by[("Steelhead", "wild only")]["answer_today"] == "0"
+    assert by[("Trout", "")]["answer_today"] == "release"
+
+
+def test_a_closure_within_the_day_is_not_a_days_answer():
+    """"No Fishing from one hour after sunset to one hour before sunrise" has no dates, so it
+    was live on every date, and the Harrison read closed around the clock. The Lower West
+    Arm's "kokanee catch and release Monday through Friday" did the same to its weekend 5:
+    a (month, day) cannot settle a weekday, and such a rung is never the answer FOR A DATE."""
+    from pipeline.regs.table.provenance import section
+    d = section("Harrison River", 0, (3, 1))
+    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    assert ko["answer_today"] == "release", ko["set_by"]
+    d = section("Kootenay Lake", 2, (7, 15))
+    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    assert ko["answer_today"] == "5" and ko["year_round"]
+
+
+def test_dates_the_book_writes_as_exceptions_are_read_as_exceptions():
+    """"Kokanee catch and release, EXCEPT Apr 1-3 and July 1-2, when daily quota = 5" carries
+    `windows_are: excepts`, which nothing read: the release became a five-day window and the
+    Upper West Arm printed Region 4's fifteen kokanee for the rest of the year."""
+    from pipeline.regs.table.provenance import section
+    d = section("Kootenay Lake", 1, (4, 2))
+    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    assert ko["keep"] == "release" and ko["answer_today"] == "5", (ko["keep"], ko["answer_today"])
+    d = section("Kootenay Lake", 1, (8, 1))
+    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    assert ko["answer_today"] == "release"
+
+
+def test_the_calendar_says_when_the_headline_never_holds():
+    """On the Skeena the year-round rule for a trout is never the answer on any day: "1 trout
+    from streams, Jul 1 – Oct 31" and "trout of any size from streams — release, Nov 1 – Jun
+    30" cover the calendar between them, and "Trout/char: 5" reads above both."""
+    from pipeline.regs.table.provenance import section
+    d = section("Skeena River", 0)
+    trout = next(r for r in d["rows"] if r["fish"] == "Trout" and not r["qualifier"])
+    assert trout["keep"] == "5" and not trout["year_round"]
+    assert [(s["from"], s["to"], s["keep"]) for s in trout["calendar"]] == [
+        ([11, 1], [6, 30], "release"), ([7, 1], [10, 31], "1")]
