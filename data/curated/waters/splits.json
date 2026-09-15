@@ -5923,7 +5923,8 @@
      ],
      "applies_to": {
       "wsc": "910-275583"
-     }
+     },
+     "proximity_m": 100.0
     },
     {
      "id": "atnarko_bella_coola_rivers_includes_tributaries_exce__young_creek_into_atnarko_river",
@@ -9280,7 +9281,8 @@
       "_name": "Hyde Creek"
      },
      "note": "",
-     "_note": "[dfo-salmon 2026-09-02] DFO r2: 'downstream of the confluence of Cedar Creek and Hyde Creek.' Only the HYDE CREEK end is written here — the 'Cedar Creek' in that text resolves to gnis:11727 in the Kootenays (wsc 300-432687-...), a name collision, and the real Cedar Creek is still to be identified. Derived from FWA topology, not a coordinate: Hyde Creek's wsc 100-025956-070515-996760 is a child of the mainstem's, which is the test that distinguished it from same-named creeks in other watersheds."
+     "_note": "[dfo-salmon 2026-09-02] DFO r2: 'downstream of the confluence of Cedar Creek and Hyde Creek.' Only the HYDE CREEK end is written here — the 'Cedar Creek' in that text resolves to gnis:11727 in the Kootenays (wsc 300-432687-...), a name collision, and the real Cedar Creek is still to be identified. Derived from FWA topology, not a coordinate: Hyde Creek's wsc 100-025956-070515-996760 is a child of the mainstem's, which is the test that distinguished it from same-named creeks in other watersheds.",
+     "proximity_m": 30.0
     }
    ]
   },

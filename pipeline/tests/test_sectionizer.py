@@ -353,3 +353,97 @@ def test_pickup_keeps_the_id_of_the_boundary_it_reuses():
     got = g.nodes["1:0"].upper_bound
     assert got.boundary_id == "split:region_2_to_3"
     assert "split:spuzzum" in (got.aliases or ()), "the displaced id must survive as an alias"
+
+
+# --- pickup at a natural end (the Bella Coola / Stamp / Sproat matrix) ---------------------
+#
+# A split a few metres from where a blue line stops is the shape that draws a 0 km stretch. The
+# three cases below are the three answers, and they differ by what is sitting ON that end.
+
+def _one_block(head_bound=None):
+    """A single stream node 0..1000 — both its ends ARE the block's extent, so any pickup there
+    is a natural-end pickup. `head_bound` is whatever sits on the source end, or None for bare."""
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    g = StreamGraph()
+    g.nodes = {"1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
+                                 down_m=0.0, up_m=1000.0, upper_bound=head_bound)}
+    return g, {"1": ["1:0"]}
+
+
+def _sp(split_id, m=950.0, proximity_m=100.0):
+    from pipeline.common.models.splits import AnchorType, SplitPoint
+    return SplitPoint(split_id=split_id, blk="1", route_measure=m, fid="",
+                      label=split_id, anchor_type=AnchorType.point, proximity_m=proximity_m)
+
+
+def test_pickup_takes_a_bare_natural_end():
+    """The Bella Coola. Its head is the confluence where the Talchako meets the Atnarko; FWA
+    leaves no boundary object there, and the curated Talchako split resolved 58 m below it. The
+    58 m became its own stretch — "From Talchako River -> Bella Coola River To the head" — which
+    is not a reach anybody wrote a regulation about. A bare end has no id and no alias, so there
+    is nothing to destroy by naming it."""
+    from pipeline.atlas.splits.sectionizer import _pickup
+    g, by_blk = _one_block(head_bound=None)
+    assert _pickup(g, "1", _sp("bella_coola__talchako_river"), by_blk) is True
+    got = g.nodes["1:0"].upper_bound
+    assert got.boundary_id == "split:bella_coola__talchako_river"
+    assert got.route_measure == 1000.0, "the cut moves onto the end, not near it"
+    assert got.aliases == (), "a bare end displaces no id"
+
+
+def test_pickup_takes_a_lake_edge_at_a_natural_end_and_keeps_its_id():
+    """The Stamp. Its blue line stops at the Great Central Lake edge, and the dam at the lake's
+    outlet resolves half a metre away — two boundaries at one place. The lake edge is a real bound
+    that rules resolve through, so it has to survive the relabel as an alias."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    from pipeline.atlas.splits.sectionizer import _pickup
+    lake = SectionBoundary(boundary_id="lake:329016196", kind=BoundaryKind.lake,
+                           route_measure=1000.0, label="Great Central Lake")
+    g, by_blk = _one_block(head_bound=lake)
+    assert _pickup(g, "1", _sp("stamp_river__great_central_lake_dam"), by_blk) is True
+    got = g.nodes["1:0"].upper_bound
+    assert got.boundary_id == "split:stamp_river__great_central_lake_dam"
+    assert "lake:329016196" in (got.aliases or ()), "the lake edge must survive as an alias"
+
+
+def test_pickup_refuses_a_natural_end_for_an_auto_split():
+    """The Sproat regression. A pickup relabels, and for a split the pipeline minted itself that
+    is pure loss — nothing binds to `gauge__08HB008` by name, while `sproat_river__sproat_lake`
+    resolves THROUGH the lake edge it would overwrite, collapsing "No Fishing from Sproat Lake to
+    the Hwy 4 signs" to an empty reach.
+
+    Both spellings are covered on purpose: the first version of the test split on `__` only, so
+    every `area:`, `border:` and `length:` split walked straight through it."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    from pipeline.atlas.splits.sectionizer import _pickup
+    for auto in ("gauge__08HB008", "area:6", "border:360512399:0", "length:356559402:23614"):
+        lake = SectionBoundary(boundary_id="lake:329016196", kind=BoundaryKind.lake,
+                               route_measure=1000.0, label="Sproat Lake")
+        g, by_blk = _one_block(head_bound=lake)
+        assert _pickup(g, "1", _sp(auto), by_blk) is False, f"{auto} must not take an end"
+        assert g.nodes["1:0"].upper_bound.boundary_id == "lake:329016196"
+
+        g, by_blk = _one_block(head_bound=None)
+        assert _pickup(g, "1", _sp(auto), by_blk) is False, f"{auto} must not take a bare end"
+
+
+def test_pickup_refuses_an_end_another_curated_split_already_holds():
+    """Only bare and lake ends are takeable. An end already named by another curated split is a
+    collision — two authored names for one place — and wants curation, not a silent relabel."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    from pipeline.atlas.splits.sectionizer import _pickup
+    other = SectionBoundary(boundary_id="split:someone_elses_bridge", kind=BoundaryKind.split,
+                            route_measure=1000.0, label="Someone Else's Bridge")
+    g, by_blk = _one_block(head_bound=other)
+    assert _pickup(g, "1", _sp("my_dam"), by_blk) is False
+    assert g.nodes["1:0"].upper_bound.boundary_id == "split:someone_elses_bridge"
+
+
+def test_pickup_at_an_end_still_obeys_the_radius():
+    """The radius is what keeps "downstream of X" from becoming the whole river: a split only ever
+    reaches an end it was already a few metres from. Without an authored proximity_m the default is
+    coincident-only, so the same 50 m gap that is picked up above is cut normally here."""
+    from pipeline.atlas.splits.sectionizer import _pickup
+    g, by_blk = _one_block(head_bound=None)
+    assert _pickup(g, "1", _sp("bella_coola__talchako_river", proximity_m=0.0), by_blk) is False
+    assert g.nodes["1:0"].upper_bound is None, "nothing authored -> nothing snapped"

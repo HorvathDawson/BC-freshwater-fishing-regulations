@@ -123,6 +123,26 @@ you want to verify before adopting:
 # verify, then:  rm -rf full_prev_bak && mv full full_prev_bak && mv _full_staging full
 ```
 
+⚠️ **Promote the atlas BEFORE building reaches against it, never after.** Every reach run
+writes the atlas dir it read into its own `report.json`, and `_reach_run()` in
+`pipeline/deliver/bundle/build.py` pairs the bundle by matching that string against the
+atlas directory's *name*. Build reaches against `_full_staging` and then rename the atlas to
+`full`, and the reach run still says `_full_staging` — so the bundler matches nothing new,
+falls back to whichever old run says `full`, and **bundles the previous reaches against the
+new atlas**. It prints the run it chose; that line is the only warning you get, and section
+ids that shifted in the rebuild then bind to the wrong water with no error anywhere.
+
+If reaches were already built against the staging name, re-point them rather than rebuilding:
+
+```bash
+.venv/bin/python - <<'EOF'
+import json, pathlib
+p = pathlib.Path("data/generated/reaches/<run>/report.json")
+d = json.loads(p.read_text()); d["build"] = "full"
+p.write_text(json.dumps(d, indent=1))
+EOF
+```
+
 Worth making the button do this staging-and-swap itself; it is the only reason not to press it
 mid-session.
 

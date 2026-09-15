@@ -97,8 +97,9 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
     border split, or an earlier curated cut) sits within the merge radius (``_MERGE_PROXIMITY_M``,
     or an explicitly authored ``sp.proximity_m``) of this split's measure, RELABEL it with this split
     instead of cutting a near-duplicate. Returns True if it
-    picked up an existing boundary (so the caller skips the cut). Natural mouth/source ends are
-    excluded — a pickup only ever reuses a real interior boundary."""
+    picked up an existing boundary (so the caller skips the cut). A natural mouth or source end
+    is reachable too, but only by a CURATED split and only where the end is bare or carries a
+    lake edge — see the long comment below."""
     lo_ext, hi_ext = _blk_extent(graph, blk, by_blk)
     if lo_ext is None:
         return False
@@ -114,33 +115,56 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
             continue
         for m, bnd in ((n.down_m, n.lower_bound), (n.up_m, n.upper_bound)):
             if m <= lo_ext or m >= hi_ext:
-                # THE END OF THE LINE IS NOT ALWAYS NOTHING.
+                # THE END OF THE LINE IS NOT NOTHING.
                 #
-                # The guard is here so a split near a river's mouth or source cannot slide onto
-                # it: a mouth is where this water stops being itself, and snapping a cut there
-                # turns "downstream of X" into the whole river. That reasoning holds only where
-                # the end is BARE.
+                # The first version of this refused every natural end, on the reasoning that a
+                # mouth is where the water stops being itself, so snapping a cut there turns
+                # "downstream of X" into the whole river. That danger is real, but it is the
+                # RADIUS that holds it off, not this test: a split only reaches an end it is
+                # already within a few metres of, and at that distance "the whole river" and
+                # "all but 58 m of it" are not two different rivers. What the refusal actually
+                # produced was the sliver — a cut a stone's throw from the end, and a stretch
+                # the page draws as 0 km with a name on both sides of it.
                 #
-                # A stream that terminates AT A LAKE has a real, named boundary sitting on that
-                # end, and rules bind to it. The Stamp River is the case: its blue line stops at
-                # 20,232 m, the Great Central Lake edge is the bound ON that end, and the dam at
-                # the lake's outlet resolves 0.5 m away — half a metre, well inside even the
-                # coincident-only default, and refused purely for being at the end. The result is
-                # two boundaries at one place, which is the shape that draws a 0 km stretch.
+                # Two ends may now be taken, for opposite reasons:
                 #
-                # So: a lake edge at a natural end is a boundary like any other and may be picked
-                # up. A bare end, or any other kind of bound there, is still refused.
-                if bnd is None or not str(bnd.boundary_id).startswith("lake:"):
+                #   a LAKE EDGE, because it is a real named bound and rules bind to it. The Stamp
+                #   River is the case: its blue line stops at 20,232 m, the Great Central Lake
+                #   edge sits ON that end, and the dam at the lake's outlet resolves 0.5 m away —
+                #   refused purely for being at the end, leaving two boundaries at one place.
+                #
+                #   a BARE END, because there is nothing there to lose. No boundary object means
+                #   no id, no alias, nothing a rule could already be bound to — the pickup only
+                #   moves the cut onto the end and names it. The Bella Coola is the case: its
+                #   head is the confluence where the Talchako meets the Atnarko, FWA leaves no
+                #   boundary there, and the curated Talchako split landed 58 m below it. That
+                #   58 m became its own stretch, "From Talchako River -> Bella Coola River To the
+                #   head", which is not a reach anybody wrote a regulation about.
+                #
+                # Any OTHER bound at an end is still refused — an end already claimed by another
+                # curated split is a collision, not a pickup.
+                #
+                # AND ONLY A CURATED SPLIT MAY TAKE AN END AT ALL.
+                #
+                # NOT because a minted split is a lesser name — rules bind to twelve `gauge__`
+                # stations across all seven catalogue files, and `parse_context` shows those ids
+                # to the parser on purpose. The reason is narrower: a pickup RELABELS, and the
+                # relabel can destroy a name something else resolves THROUGH. `gauge__08HB008`
+                # sat half a metre from the Sproat Lake edge — inside any radius, so distance was
+                # never going to catch it — and taking that edge cost `sproat_river__sproat_lake`
+                # the boundary it resolves through, collapsing "No Fishing from Sproat Lake to the
+                # Hwy 4 signs" to an empty reach. The displaced id IS carried forward as an alias;
+                # it did not save the reach, because alias coverage leaks (docs/04).
+                #
+                # So this is a naming rule, not a geometric one, and the radius cannot stand in
+                # for it. Two known gaps, both deliberate to leave until the alias path is sound:
+                # this test runs only in the natural-end branch, so an auto split may still
+                # relabel an INTERIOR lake edge; and it reads authorship off the id spelling,
+                # which is a list that has already been wrong once — it belongs on SplitPoint,
+                # set where each family is minted.
+                if _auto_split(sp.split_id):
                     continue
-                # AND ONLY A CURATED SPLIT MAY TAKE THAT NAME.
-                #
-                # A pickup RELABELS the boundary it reuses, carrying the old id as an alias. For
-                # a dam that is the point: "Corra Linn Dam" is a better name for the Kootenay's
-                # outlet than `lake:-22`, and rules bind to the dam. For an auto-generated split
-                # it is pure loss — nothing binds to `gauge__08HB008` by name, and relabelling
-                # cost `sproat_river__sproat_lake` the lake edge it resolves through, collapsing
-                # "No Fishing from Sproat Lake to the Hwy 4 signs" to an empty reach.
-                if sp.split_id.split("__")[0] in _AUTO_SPLIT_PREFIXES:
+                if bnd is not None and not str(bnd.boundary_id).startswith("lake:"):
                     continue
             d = abs(m - M)
             if d <= best_d:
@@ -180,6 +204,17 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
 #: Split families the pipeline mints itself. They are positions, not names anybody binds to, so
 #: they may never relabel a named boundary at a natural end — see `_pickup`.
 _AUTO_SPLIT_PREFIXES = frozenset({"gauge", "area", "border", "length"})
+
+
+def _auto_split(split_id: str) -> bool:
+    """A split the pipeline minted itself, by either of the two spellings it uses.
+
+    `gauge__08HB008` separates with a double underscore; `area:6`, `border:360512399:0` and
+    `length:356559402:23614` separate with a colon. Testing only the first — which is what the
+    first version of this did — let every area, border and length split through.
+    """
+    head = split_id.split("__")[0] if "__" in split_id else split_id.split(":")[0]
+    return head in _AUTO_SPLIT_PREFIXES
 
 _ALIAS_MAX_FROM_EDGE_M = 3000.0   # how far into the lake a split may sit and still mean its edge
 
