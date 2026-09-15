@@ -442,41 +442,51 @@ def test_the_fraser_bait_exemption_does_not_lift_the_ban_on_the_chilliwack(table
 # --------------------------------------------------------------------------- #
 # White sturgeon: a closure the book scopes by population, and a table that cannot.
 # --------------------------------------------------------------------------- #
-def test_the_contradicted_closures_are_the_sturgeon_ones_and_no_others():
+def test_the_contradicted_closures_are_the_sara_listing_and_no_others():
     """The book's protected-species entry lists "White Sturgeon (Nechako, Upper Fraser,
-    Kootenay and Columbia populations)"; the catalogue's group holds bare WSG, so the federal
-    closure covers the Fraser fishery the regional tables open. Nothing lifts it, the closure
-    stands, and the reader on the Fraser is told there is no sturgeon fishery. The fix is a
-    lift in the catalogue (see `contradicted_closures`); this pins the report so the defect
-    cannot quietly grow or quietly vanish."""
+    Kootenay and Columbia populations)"; the catalogue's group held bare WSG, so the provincial
+    closure covered the Fraser fishery the regional tables open, nothing lifted it, and every
+    Fraser stretch read "you may not fish for it" — on the one water in the province with a
+    legal sturgeon fishery. The group no longer names the fish; the populations are the
+    regional closures. What remains reported is the SARA listing, whose extent ("Upper Fraser
+    and Nechako watersheds") nothing can draw, so it rides beside the fishery as a caveat.
+    Pinned so the report cannot quietly grow back."""
     from pipeline.regs.table.corpus import rules
     from pipeline.regs.table.lifts import contradicted_closures
     got = {(x["closure"], x["opened_by"]) for x in contradicted_closures(rules())}
-    closures = {"zp:protected_species::protected_species.r1", "z7a:sara_sturgeon::sara_sturgeon.r1"}
     openers = {"z1:species_quotas::species_quotas.r5", "z2:species_quotas::species_quotas.r7",
                "z3:species_quotas::species_quotas.r7", "z5:white_sturgeon::white_sturgeon.r2",
                "zp:white_sturgeon_licence::white_sturgeon_licence.r2"}
-    assert got == {(c, o) for c in closures for o in openers}, sorted(got)
+    assert got == {("z7a:sara_sturgeon::sara_sturgeon.r1", o) for o in openers}, sorted(got)
 
 
-def test_a_superior_closure_stands_and_says_why(tables):
-    """On the Fraser in Region 2 the protected-species row governs white sturgeon, and the
-    regional "CATCH AND RELEASE ONLY" rides beneath it — not as "set wider, replaced by one
-    closer to this water", which a federal closure is not, but as the thing it is."""
+def test_the_fraser_sturgeon_fishery_is_catch_and_release_where_the_book_says_so(tables):
+    """Regions 1, 2 and 3 write "White Sturgeon: CATCH AND RELEASE ONLY"; the domain owner's
+    statement is that the Fraser is the only place sturgeon may be fished, and only that way.
+    Every Fraser stretch in Regions 2 and 3 read closed, by a provincial list that names four
+    populations the Fraser's lower river is not among. Above Williams Lake River the Region 5
+    closure is the answer, and the SARA listing rides as a caveat on the release rows."""
     from pipeline.regs.table.build import name
     seen = 0
     for w, run, _, _, t in tables:
         if w != "Fraser River":
             continue
-        for r in t:
-            if r.subject.words(name)[0] != "Protected species":
-                continue
-            assert r.outcome == CLOSED
-            for c in r.chain:
-                if c.rule_id == "z2:species_quotas::species_quotas.r7":
-                    assert c.status == "does not open what a superior authority closed", c.status
-                    seen += 1
-    assert seen, "the Region 2 sturgeon release reached no Fraser table"
+        rows = [r for r in t if r.subject.words(name)[0] == "White sturgeon"]
+        if not rows:
+            # Hell's Gate: the whole water is shut, and the sturgeon row is absorbed into it.
+            assert any(r.subject.words(name)[0] == "All game fish" and r.outcome == CLOSED
+                       for r in t), run + 1
+            continue
+        (row,) = rows
+        regions = section_regions(w, run)
+        if regions <= {"2", "3"}:
+            assert row.outcome == RELEASE, (run + 1, row.outcome)
+            assert row.governs.authority.startswith("Region"), row.governs.authority
+            assert any(c.rule_id == "z7a:sara_sturgeon::sara_sturgeon.r1" for c in row.caveats)
+            seen += 1
+        elif run + 1 >= 17:
+            assert row.outcome == CLOSED and row.governs.rule_id.endswith("fraser_river.r5"), run + 1
+    assert seen == 11    # 14 stretches in Regions 2 and 3, less Hell's Gate (2) and the Region 3/5 boundary
 
 
 def test_the_answer_is_the_first_rung_of_every_chain(tables):
@@ -788,3 +798,15 @@ def test_the_calendar_says_when_the_headline_never_holds():
     assert trout["keep"] == "5" and not trout["year_round"]
     assert [(s["from"], s["to"], s["keep"]) for s in trout["calendar"]] == [
         ([11, 1], [6, 30], "release"), ([7, 1], [10, 31], "1")]
+
+
+def test_a_subject_only_seasons_speak_to_gets_a_row_with_its_season():
+    """White sturgeon on the Fraser in Region 5, below Williams Lake River, has one rule here:
+    "No Fishing for sturgeon Sept 15 – July 15". With nothing year-round covering the fish it
+    was in no chain and no caveat list — gone — and the check failed on it. Its season heads
+    the row, and the head carries its dates so a reader is not shown a bare "0"."""
+    from pipeline.regs.table.provenance import section
+    d = section("Fraser River", 14)
+    wsg = next(r for r in d["rows"] if r["fish"] == "White sturgeon")
+    assert wsg["keep"] == "0" and wsg["season"] == "Sep 15 – Jul 15"
+    assert [s["keep"] for s in wsg["calendar"]] == ["0", None]

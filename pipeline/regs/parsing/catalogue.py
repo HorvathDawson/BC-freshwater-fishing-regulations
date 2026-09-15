@@ -248,8 +248,20 @@ SPECIES_GROUPS["ALL_FIN_FISH"] = ()
 #:
 #: Region 2 adds green sturgeon, so this is a floor and not the complete set — which is why
 #: a water may still carry its own protected-species rule on top.
+#:
+#: WHITE STURGEON IS NOT IN IT, because the book does not put the FISH in it. The list reads
+#: "White Sturgeon (Nechako, Upper Fraser, Kootenay and Columbia populations)" — a qualifier
+#: no other entry carries, and the whole difference between "closed everywhere" and "closed
+#: where those populations are". A bare WSG here made the provincial rule a superior closure
+#: on every water in the province, over the regional tables that state the fishery — "White
+#: Sturgeon: CATCH AND RELEASE ONLY" in Regions 1, 2 and 3, and Region 5 downstream of
+#: Williams Lake River — and every Fraser stretch read "you may not fish for it" on the one
+#: water in the province with a legal sturgeon fishery. The four populations ARE stated, as
+#: the regional closures that name them: Region 4 (Kootenay, Columbia), Regions 6 and 7A
+#: (Nechako, Upper Fraser), Region 5 upstream of Williams Lake River, and `z7a:sara_sturgeon`
+#: for the SARA listing itself. The regional tables carry the qualifier the group cannot.
 SPECIES_GROUPS["PROTECTED_SPECIES"] = (
-    "CCL", "ELS", "MLS", "NDC", "PLS", "RMS", "SHS", "SSU", "VCS", "VLA", "WBL", "WSG",
+    "CCL", "ELS", "MLS", "NDC", "PLS", "RMS", "SHS", "SSU", "VCS", "VLA", "WBL",
 )
 
 #: Salmon are federal, not on the provincial game-fish list, and so are NOT in ALL_GAME_FISH.
