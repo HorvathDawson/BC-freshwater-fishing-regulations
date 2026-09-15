@@ -350,6 +350,10 @@ h1{font:800 42px/1.02 var(--dis);letter-spacing:-.9px;margin:14px 0 16px;
 .qt tr.ch>td{background:var(--wash)}
 .qt .cl.muted{color:var(--quiet)}
 .qt .subt{display:block;font-weight:400;color:var(--sub)}
+/* The activity's name over its topics: it opens the block, so it keeps the weight of a
+   heading and drops the rule under it — the topics below are what it is introducing. */
+.qt.gt tr.gname td{border-bottom:0;padding-bottom:1px;font-weight:700}
+.qt.gt tr.gname+tr.ghead td{padding-top:1px}
 .qt .cldot{color:var(--line2)}
 .qt em.clwho{font-style:normal;font-size:10.5px;color:var(--quiet);white-space:nowrap}
 .qt td.fish i.in+ , .qt td.fish{overflow-wrap:break-word}
@@ -538,7 +542,20 @@ a.no:hover{text-decoration:underline}
 /* "which 12?" — a quiet control inside a conditions cell, and the names it reveals. */
 .qt .spx{background:none;border:0;padding:0;cursor:pointer;font:inherit;
   color:var(--accent);text-decoration:underline;text-underline-offset:2px}
-.qt .spl{display:block;margin-top:3px;color:var(--sub)}
+/* The names as a LIST, because twelve of them run as prose is a wall a reader has to parse
+   word by word — and the reader here is holding a fish they cannot identify. Two columns so
+   the block stays short, with a rule down the side tying it to the row that opened it. */
+.qt .spl{margin:5px 0 2px;padding:1px 0 1px 9px;list-style:none;
+  border-left:2px solid var(--line);
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:0 12px}
+.qt .spl li{font:400 11.5px/1.6 var(--ui);color:var(--sub)}
+/* `hidden` is a UA `display:none`, and ANY author `display` above outranks it — which is why
+   this list was open from the moment the page drew and the control did nothing. Belt and
+   braces on the row too, since it carries a `display` of its own from the table. */
+.qt .spl[hidden]{display:none}
+.qt tr.splr[hidden]{display:none}
+.qt tr.splr>td{padding-top:0;border-bottom:1px solid var(--line)}
+.qt tr.splr.sub>td{padding-left:20px}
 /* The duty line under a fish's summary row: one block with it, so the border falls below. A
    summary row with no duty under it keeps its own rule — `:has` scopes this to the pair. */
 .qt tr.sumr:has(+ tr.sumd) td{border-bottom:0}
@@ -745,6 +762,29 @@ var GROUPS=D._groups||[];
    them; see `_group_members` in the builder. */
 var MEMBERS=D._members||{};
 /*
+ * A FISH THE BOOK SPLITS BY ORIGIN, AND A RULE THAT DOES NOT.
+ *
+ * Steelhead carried four rows here: "10 · hatchery only", "release · wild only", a Region 5
+ * "release" with nothing beside it, and "0 · you may not fish for it". The third is the
+ * province's `z5:trout_char_quota.r6`, whose own label is "Steelhead — release all" — no
+ * origin, because it covers BOTH. On the page it rendered as a bare "release" between two
+ * rows that each named an origin, and the only honest reading a person could take from that
+ * was "some origin, unstated".
+ *
+ * `condWords` says "wild only" when a rule names an origin and nothing when it does not, which
+ * is right where nobody splits the fish and wrong where somebody does. So: the species the
+ * corpus splits somewhere, collected once. A take rule on one of those fish that names no
+ * origin is saying ALL of them, and now says it.
+ */
+var ORIGIN_SPLIT={};
+Object.keys(D).forEach(function(k){
+  if(k.charAt(0)==="_") return;
+  ((D[k]||{}).rules||[]).forEach(function(x){
+    if(!x || !x.origin) return;
+    (x.species||[]).forEach(function(cd){ ORIGIN_SPLIT[cd]=1; });
+  });
+});
+/*
  * WHAT YOU ARE FISHING FOR, AND WHY IT CAN BE FILTERED SAFELY.
  *
  * Somebody after trout does not need the sturgeon rules, and once zone regulations arrive the
@@ -881,12 +921,12 @@ function live(ws){ if(!ws||!ws.length) return true; var t=ord(TODAY);
 document.addEventListener("click", function(e){
   var b=e.target.closest && e.target.closest("button.spx");
   if(!b) return;
-  var list=b.nextElementSibling;
-  if(!list || !list.classList.contains("spl")) return;
-  var open=list.hidden;
-  list.hidden=!open;
+  var row=b.closest("tr"), det=row && row.nextElementSibling;
+  if(!det || !det.classList.contains("splr")) return;
+  var open=det.hidden;
+  det.hidden=!open;
   b.setAttribute("aria-expanded", String(open));
-  b.textContent = open ? "hide" : "which "+list.textContent.split(", ").length+"?";
+  b.textContent = open ? "hide" : "which "+det.querySelectorAll("li").length+"?";
 });
 var DAYNAME=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function weekdaysOf(x){ return ((x&&x.conditions)||{}).weekdays||[]; }
@@ -1168,6 +1208,14 @@ function condWords(l){
   var sz=sizeWords(l); if(sz) c.push(sz);
   if(l.water) c.push(l.take===0 ? "in "+l.water+"s" : "from "+l.water+"s");
   if(l.origin) c.push(l.origin+" only");
+  /* No origin on a fish the book splits by origin means BOTH — see `ORIGIN_SPLIT`.
+     ONLY on a release. A number is not ambiguous: "4 · all species combined" was never asking
+     the reader which fish it counted, and saying "wild and hatchery" beside it put the phrase on
+     22 rows to earn it on two. The word "release" IS ambiguous, and only there, because it sits
+     directly under "release · wild only" and above "0 · you may not fish for it". */
+  else if(l.take===0 && l.may_target!==0 && (l.species||[]).length
+          && (l.species||[]).every(function(cd){ return ORIGIN_SPLIT[cd]; }))
+    c.push("wild and hatchery");
   // A closure that names a METHOD closes that method, not the water. Without this the page said
   // "Salmon · 0 · you may not fish for it" on a salmon river, off the spear-fishing rule.
   if(l.method) c.push("by "+String(l.method).replace(/_/g," "));
@@ -2320,6 +2368,9 @@ function retentionTable(items, title, notes, waterKind, openFish){
       lastWho = txt;
       return show;
     };
+    /* The twelve taxa, if this row names a group that has them — needed twice below: the
+       control sits in the conditions cell, the names go in a row of their own. */
+    var memb=((l.species||[]).length===1 && MEMBERS[l.species[0]]) ? MEMBERS[l.species[0]] : null;
     html='<tr class="'+(depth?"sub":"")+(over?" over":"")+'">'
       +'<td class="fish">'+(depth?'<i class="in"></i>':'')+esc(who)+'</td>'
       +'<td class="keep'+(keep==="0"||keep==="release"?' zero':'')+'">'+esc(keep)
@@ -2334,12 +2385,8 @@ function retentionTable(items, title, notes, waterKind, openFish){
          * the book. Built HERE and not in `condWords`, because that returns text and every one
          * of its callers escapes it; markup added there prints as markup.
          */
-        +((l.species||[]).length===1 && MEMBERS[l.species[0]]
-          ? ' <button class="spx" type="button" aria-expanded="false">which '
-            +MEMBERS[l.species[0]].length+'?</button>'
-            +'<span class="spl" hidden>'+esc(MEMBERS[l.species[0]].map(function(cd){
-                return SPECIES[cd]||cd; }).join(", "))+'</span>'
-          : '')
+        +(memb ? ' <button class="spx" type="button" aria-expanded="false">which '
+                 +memb.length+'?</button>' : '')
         +(weekdaysOf(l).length
           ? ' <em class="note">\u2014 '+esc(weekdaysOf(l).join(", "))+' only</em>' : '')
         +(lead[l.rule]
@@ -2402,7 +2449,20 @@ function retentionTable(items, title, notes, waterKind, openFish){
       // WITHOUT THIS the river's own quota and the region's default are typographically
       // identical, and the note under the table promising that "the one above governs" has
       // nothing to point at.
-      +'<td class="who">'+esc(whoCell(l, who))+'</td></tr>';
+      +'<td class="who">'+esc(whoCell(l, who))+'</td></tr>'
+      /*
+       * THE NAMES GET THE WHOLE WIDTH, NOT THE CONDITIONS CELL.
+       *
+       * They were a list inside that cell, which on a 430 px phone is 72 px wide — twelve
+       * species names in a 72 px column, each one clipped or broken over four lines. The cell
+       * is the right place for the CONTROL, because that is what the sentence there is about;
+       * it is the wrong place for the answer. So the answer is a row of its own spanning every
+       * column, which is also what makes two columns of names possible.
+       */
+      +(memb ? '<tr class="splr'+(depth?" sub":"")+'" hidden><td colspan="3">'
+               +'<ul class="spl">'+memb.map(function(cd){
+                   return '<li>'+esc(SPECIES[cd]||cd)+'</li>'; }).join("")+'</ul></td></tr>'
+             : '');
     return {html:html, fish:who, rule:l, keep:keep, over:over, sizeOnly:sizeOnly,
             who:whereFrom(l)+viaWords(l)};
   }
@@ -3013,6 +3073,31 @@ function gearTable(items, title, waterKind, extras){
       if(underHead) rows.push('<tr class="act gbody'+(no.length?" shut":"")+'">'
         +'<td class="cond" colspan="3">'+underHead+'</td></tr>');
     }
+    /*
+     * AN ACTIVITY WITH NOTHING TO SAY OF ITS OWN IS A HEADING, NOT A ROW.
+     *
+     * "Spear fishing" carries a verdict — "Not permitted here" — and that shares its line
+     * (above). Angling carries none: it is just the name over Bait, Hooks and Line & tackle.
+     * That name used to be folded into the FIRST topic's row, which cost twice:
+     *
+     *   Bait was the one topic with no indent marker, so three peers rendered as two topics
+     *   and a caption, and a reader scanning the markers would not count it;
+     *
+     *   the authority printed beside "Angling" was that first topic's, not the activity's —
+     *   actively wrong here, because Hooks answers to "Every stream in Region 2" while Bait
+     *   and Line & tackle are Provincial. An activity does not have ONE authority to show.
+     *
+     * So the name gets its own line and claims no authority, and every topic under it looks
+     * like what it is.
+     */
+    /* Only where there are real topics to head. "Trapping crayfish" has one group and its topic
+       is the catch-all, so a heading over it produces "Trapping crayfish" then "Also" — a second
+       line naming nothing. There the activity keeps the row, as it always did. */
+    var topical=groups.filter(function(g){
+      return GEAR_TOPIC_WORD[g.t] && g.t!=="other"; }).length;
+    var useHead=(!headHTML && groups.length && topical>0);
+    if(useHead)
+      rows.push('<tr class="gname"><td class="fish" colspan="3">'+esc(ACT_WORD[a]||a)+'</td></tr>');
     groups.forEach(function(g){
       var clause=function(x){
         var muted=banOn && /^bait:/.test(String(x.dimension)) && x.dimension!=="bait:any";
@@ -3036,10 +3121,9 @@ function gearTable(items, title, waterKind, extras){
       var body=cs.map(function(c){
         return c.html + (c.who===best ? ""
           : ' <em class="clwho">'+esc(c.who)+'</em>'); }).join('<span class="cldot"> · </span>');
-      /* Where the activity printed no header of its own, its first row carries the activity's
-         name instead of an indent marker — or the reader meets "Bait" with nothing saying what
-         activity it belongs to. */
-      var lead=(!head && !struck.length && g===groups[0]);
+      /* Without a heading above it, the first row carries the activity's name instead of an
+         indent marker — or the reader meets "Also" with nothing saying what it belongs to. */
+      var lead=(!headHTML && !useHead && g===groups[0]);
       var word=lead ? (ACT_WORD[a]||a) : (GEAR_TOPIC_WORD[g.t]||"");
       /*
        * THE SUBJECT ON ITS OWN LINE, THE RULE ACROSS THE WHOLE WIDTH.
@@ -3057,11 +3141,7 @@ function gearTable(items, title, waterKind, extras){
        */
       var mutedRow=(cs.length===1&&cs[0].muted);
       rows.push('<tr class="ghead'+(mutedRow?" muted":"")+'">'
-        +'<td class="fish" colspan="2">'+(lead?"":'<i class="in"></i>')+esc(word)
-        /* "Also" names no subject — it is where the rules that have none go — so on a lead
-           row it adds a second line under the activity's name saying nothing. */
-        +(lead&&GEAR_TOPIC_WORD[g.t]&&g.t!=="other"
-           ? '<span class="subt">'+esc(GEAR_TOPIC_WORD[g.t])+'</span>' : '')+'</td>'
+        +'<td class="fish" colspan="2">'+(lead?"":'<i class="in"></i>')+esc(word)+'</td>'
         +'<td class="who">'+esc(best)+'</td></tr>'
         +'<tr class="gbody'+(mutedRow?" muted":"")+'">'
         +'<td class="cond" colspan="3">'+body+'</td></tr>');
