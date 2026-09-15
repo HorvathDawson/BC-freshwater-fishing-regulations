@@ -2548,3 +2548,67 @@ def test_a_watershed_scope_reaches_its_lakes():
         secs = set(reg[ids[0]].section_ids)
         assert secs <= nass, f"{name} should be in the Nass walk"
         assert not (secs & skeena), f"{name} leaked into the Skeena walk — the basins are not disjoint"
+
+
+@pytest.mark.slow
+def test_the_region_6_cascade_tiles_its_region():
+    """**The completeness check for the whole cascade.**
+
+    Section A is "all Region 6 waters" and B(i)/B(ii)/C/D/E/F divide it. Three properties have to
+    hold together, and each failed at least once while this was built:
+
+    * the sections must COVER A — water under no section default silently keeps A's much more
+      generous limits;
+    * they must not reach OUTSIDE A — this is what caught section F. Bound as the bare Fraser
+      watershed it reached 325,598 sections of which 300,569 were outside Region 6, so a Region 6
+      closure was shutting salmon across the Fraser in regions 2, 3, 5, 7 and 8. It needs
+      `within_area`, and that works only because both sides are area lookups: `within_area` is
+      applied inside `resolve_extent`, BEFORE the tributary walk, so on a walk-based extent it
+      clips the seed and the walk simply escapes again;
+    * they must not OVERLAP, or a section falls under two sections at once and nothing says which.
+
+    Tolerances are loose on purpose — the atlas build is not deterministic — but an order of
+    magnitude means something real moved.
+    """
+    from pipeline.atlas.registry import load_registry
+    from pipeline.atlas.reach.build import build_reach
+    from pipeline.common.curated import GENERATED
+    from pipeline.common.io.serialize import read_artifact
+    from pipeline.regs.dfo_salmon import entries as E
+
+    build = Path(GENERATED.build())
+    if not (build / "graph.pkl").exists():
+        pytest.skip("no built atlas on this machine")
+    reg = load_registry(build / "registry.json")
+    g = read_artifact(build / "graph.pkl")
+
+    ef = E.load("6")
+    got = {}
+    for loc in [l for l in ef.locations if not l.water_id and l.status == "active"]:
+        entry, rules = E.to_reach_input(loc, [{"species": None}], ef.water(loc.water_id))
+        b, _ = build_reach(entry, rules[0], reg, g)
+        key = loc.section + ("/areas" if (loc.source_text or {}).get("areas") else "")
+        got[key] = set(b.sections or [])
+
+    assert "A" in got, "section A did not resolve"
+    a = got["A"]
+    kids = {k: v for k, v in got.items() if k != "A" and not k.endswith("/areas")}
+    assert set(kids) == {"B(i)", "B(ii)", "C", "D", "E", "F"}, sorted(kids)
+
+    union = set().union(*kids.values())
+    assert len(a & union) / len(a) > 0.99, (
+        f"only {len(a & union)/len(a):.2%} of Region 6 falls under a section default — the rest "
+        f"silently keeps section A's limits")
+    assert len(union - a) < 1_000, (
+        f"{len(union - a):,} sections reach OUTSIDE Region 6 — a section default is binding water "
+        f"in another region, which is what section F did before `within_area`")
+    for name, sec in kids.items():
+        assert len(sec - a) < 1_000, f"section {name} reaches {len(sec - a):,} sections outside A"
+
+    pairs = sorted(kids)
+    for i, x in enumerate(pairs):
+        for y in pairs[i + 1:]:
+            both = kids[x] & kids[y]
+            assert len(both) < 100, (
+                f"sections {x} and {y} share {len(both):,} sections — a water cannot sit under "
+                f"two lettered sections at once")

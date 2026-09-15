@@ -2702,8 +2702,9 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:39325"
+            "op": "within",
+            "area_id": "area:basin:100-",
+            "within_area": "area:region:6"
           }
         ],
         "tributaries": true,
@@ -5976,8 +5977,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace"
+            ],
+            "item_id": "gnis:2936"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -6037,8 +6046,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace"
+            ],
+            "item_id": "gnis:2936"
+          }
+        ],
+        "tributaries": true,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,

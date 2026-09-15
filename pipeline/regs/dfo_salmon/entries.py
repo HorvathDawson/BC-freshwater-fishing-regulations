@@ -341,6 +341,10 @@ def bind_whole(ef: EntryFile) -> tuple[list, list]:
 #: `area:region:6` contains none of it — so section A must name both.
 HAIDA_GWAII = "area:mu_group:management_units_6_12_and_6_13"
 
+#: The B(i)/B(ii) divide, authored in `splits.json` and verified 14.9 m off the Skeena mainstem at
+#: route measure ~131,894 m — between the Zymoetz confluence and the Usk gauge, i.e. at Terrace.
+CNR_BRIDGE = "skeena_river__cnr_railway_bridge_terrace"
+
 SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
     ("6", "A"): [{"op": "within", "area_id": "area:region:6"},
                  {"op": "within", "area_id": HAIDA_GWAII}],
@@ -354,10 +358,24 @@ SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
     ("6", "B"): [{"op": "whole", "item_id": "gnis:2936"}],            # Skeena watershed
     ("6", "C"): [{"op": "whole", "item_id": "gnis:3206"}],            # Nass watershed
     ("6", "D"): [{"op": "within", "area_id": HAIDA_GWAII}],
+    # B(i)/B(ii) — ONE CUT, TWO SCOPES. The bridge divides the Skeena WATERSHED, not just the
+    # mainstem, so the directional op is scoped to the Skeena item and the tributary walk does the
+    # rest: `build_reach` hands the resolved measure window to the walk, which is what makes this
+    # "everything above the bridge" rather than "the mainstem above it plus every tributary".
+    ("6", "B(i)"): [{"op": "upstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936"}],
+    ("6", "B(ii)"): [{"op": "downstream_of", "splits": [CNR_BRIDGE], "item_id": "gnis:2936"}],
     # F is "the portions of the FRASER watershed IN REGION 6" — a watershed meeting an
     # administrative area, which no op expresses because every op only ever ADDS water.
     # `within_area` is exactly that intersection.
-    ("6", "F"): [{"op": "whole", "item_id": "gnis:39325"}],           # Fraser watershed
+    # F is "the portions of the Fraser watershed IN REGION 6" — a watershed meeting an
+    # administrative area, which no op expresses because every op only ever ADDS water.
+    # MEASURED: bound as the bare Fraser walk this reached 325,598 sections of which 300,569 were
+    # OUTSIDE Region 6 — a Region 6 closure shutting salmon across the Fraser in regions 2, 3, 5,
+    # 7 and 8. `within_area` is the intersection, and it works here (and not on a walk) because
+    # both sides are area lookups: `within_area` is applied inside `resolve_extent`, BEFORE the
+    # tributary walk, so on a walk-based extent it clips the seed and the walk re-escapes.
+    ("6", "F"): [{"op": "within", "area_id": "area:basin:100-",
+                  "within_area": "area:region:6"}],
     # E IS A RESIDUAL: "Other Mainland Watersheds" — the region minus its siblings. A rule's
     # extents UNION, so this cannot be written as more extents; `outside_areas` is the subtraction.
     # The list mirrors `Scope.minus` (B, C, D, F) and must be regenerated from it, never hand-held,
@@ -372,9 +390,6 @@ SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
 
 #: Scopes deliberately NOT in the table, and why. Held rather than guessed.
 SCOPE_HELD = {
-    ("6", "B(i)"): "needs the CNR Railway Bridge cut — authored in splits.json, awaiting an "
-                   "atlas rebuild to become a boundary on the Skeena",
-    ("6", "B(ii)"): "same cut, other side",
     ("6", "E"): "a RESIDUAL: region 6 minus B, C, D and F. A rule's extents UNION, so the "
                 "subtraction cannot be written as more extents, and `outside_area` takes an "
                 "`area:` id while B/C/F are walks. Needs a general `minus`.",
