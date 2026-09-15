@@ -138,9 +138,15 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
             # SIZE GATES AND DUTIES ARE NOT COMPETITORS EITHER. A count and a size bound are
             # both true at once — "5 per day" and "none under 30 cm" do not argue — so they
             # ride on the row rather than winning or losing a chain. They were shipped nowhere
-            # and rendered nowhere, which is how a size limit disappears off a page.
-            "gates": [{"rule": q.rule_id, "says": q.sentence(name), "kind": q.kind}
-                      for q in (r.quals or [])],
+            # and rendered nowhere, which is how a size limit disappears off a page. A gate
+            # ships with its authority and its status: one the closer authority replaced, or
+            # one that is moot because nothing may be kept, is still shown, marked.
+            "gates": [{"rule": g.rule_id, "says": g.sentence(name, r.subject), "kind": "size",
+                       "bound": g.size.bound, "authority": g.authority, "when": g.when,
+                       "why": g.status, "fish": g.subject.words(name)[0]}
+                      for g in (r.gates or [])]
+                     + [{"rule": q.rule_id, "says": q.sentence(name), "kind": q.kind}
+                        for q in (r.quals or [])],
             "duties": [{"rule": q.rule_id, "says": q.sentence(name)} for q in (r.duties or [])],
             "except": list(r.exemptions or []),
         })

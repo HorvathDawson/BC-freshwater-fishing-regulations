@@ -35,6 +35,25 @@ class Size:
     @property
     def is_any(self) -> bool: return self.kind == "any"
 
+    @property
+    def is_gate(self) -> bool:
+        """A PROHIBITION on a size class, as opposed to a size class a NUMBER counts.
+
+        "none under 30 cm" sends a fish back; "1 over 50 cm" inside a 4 says how many big ones
+        the four may include. The first is a GATE — a take of zero on a size class, true beside
+        whatever the count is — and belongs to no Subject (see gates.py). The second is a
+        SELECTOR: it names the fish a number is about, and stays on the subject of that number.
+        """
+        return self.kind in ("none_over", "none_under", "slot", "band")
+
+    @property
+    def bound(self) -> str:
+        """Which kind of bound this is — so two gates on one fish can be told apart from one
+        gate said twice. A floor and a ceiling are both true at once; two floors are one
+        statement, and the closer authority's is the one that stands."""
+        return {"none_under": "floor", "none_over": "ceiling", "counts_over": "ceiling",
+                "counts_under": "floor"}.get(self.kind, self.kind)
+
     def covers(self, s: "Size") -> bool:
         return self.is_any or self == s
 

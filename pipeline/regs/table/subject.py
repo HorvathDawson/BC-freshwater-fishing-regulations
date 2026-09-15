@@ -164,6 +164,30 @@ class Subject:
                 and self.size.covers(o.size) and self.water.covers(o.water)
                 and (self.method is None or self.method == o.method))
 
+    def meets(self, o: "Subject") -> bool:
+        """Is there a fish both of these are about?
+
+        `covers` is containment, and a gate needs INTERSECTION: "bull trout, Dolly Varden and
+        lake trout — none under 60 cm" and a row headed "Trout and char · hatchery only" cover
+        neither each other nor nothing — a hatchery bull trout is inside both. Tested with
+        `covers` in either direction the bound landed on no row, on seven Fraser stretches.
+
+        Every axis must admit a common value. On the fish axis that is a non-empty overlap of
+        what each is actually about, with a universal subject meeting anything it does not
+        carve out; on the others, one side covering the other is the only way to share a value.
+        """
+        if not self.is_everything and not o.is_everything:
+            fish = bool(self.effective() & o.effective())
+        elif self.is_everything and o.is_everything:
+            fish = True
+        else:
+            wide, narrow = (self, o) if self.is_everything else (o, self)
+            fish = bool(narrow.effective() - expand(wide._open_excepts()))
+        return (fish and (self.origin.covers(o.origin) or o.origin.covers(self.origin))
+                and (self.size.covers(o.size) or o.size.covers(self.size))
+                and (self.water.covers(o.water) or o.water.covers(self.water))
+                and (self.method is None or o.method is None or self.method == o.method))
+
     # `disjoint()` USED TO LIVE HERE. It had no callers anywhere in the repo, and all three of
     # its clauses were wrong — it read an open group's empty expansion as "no overlap", and
     # ignored `excepts`, `size` and `method` entirely. A loaded gun with the safety off is worse

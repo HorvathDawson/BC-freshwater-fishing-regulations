@@ -13,7 +13,8 @@ from dataclasses import replace
 from typing import Dict, List
 
 from pipeline.regs.table.subject import Subject, Origin, Water, note_origin_split
-from pipeline.regs.table.size import size_of
+from pipeline.regs.table.size import size_of, ANY as SIZE_ANY
+from pipeline.regs.table.gates import Gate, attach as attach_gates
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.resolve import Rung, Row, table, applies_here
 from pipeline.regs.table.applies import applies_of
@@ -54,15 +55,52 @@ def _authority(x):
 
 def subject_of(x, lifted_out=None) -> Subject:
     """`lifted_out` is whatever an exception takes out of this rule HERE — a lift is a
-    subtraction, so it joins what the rule already excepts (see lifts.py)."""
+    subtraction, so it joins what the rule already excepts (see lifts.py).
+
+    THE SUBJECT CARRIES NO GATE. A size that sends a fish back — "none under 30 cm" — is not
+    part of what the rule is ABOUT; it is a second thing the rule says, true beside the count,
+    and it is split off here (see `gate_of`). Left on the subject it made "trout and char, none
+    under 30 cm" a different subject from "trout and char", so the two never competed and the
+    bound printed on its own row or on none. A size a number COUNTS — "1 over 50 cm" inside a
+    4 — is what that number is about, and stays.
+    """
+    size = size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
+                   within=x.get("within"), band=bool(x.get("band")),
+                   period=x.get("period") or "daily")
     return Subject(frozenset(x.get("species") or []),
                    Origin(x["origin"]) if x.get("origin") else Origin.both,
-                   size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
-                           within=x.get("within"), band=bool(x.get("band")),
-                           period=x.get("period") or "daily"),
+                   SIZE_ANY if size.is_gate else size,
                    Water(x["water"]) if x.get("water") else Water.any,
                    x.get("method"),
                    frozenset(x.get("species_except") or []) | (lifted_out or frozenset()))
+
+
+def gate_of(x, subject: Subject, rank: int, who: str, when: str = "",
+            status: str = "") -> Gate | None:
+    """The size bound a rule carries, if it is a bound and not a selector — from EVERY shape
+    the book writes one in. "No trout under 25 cm", "Trout/char daily quota = 1 (none under
+    30 cm)", "Hatchery trout/char under 30 cm from streams: 0" and a clause "none under 60 cm"
+    inside a 5 are one kind of statement, and they leave here as one kind of value."""
+    size = size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
+                   within=x.get("within"), band=bool(x.get("band")),
+                   period=x.get("period") or "daily")
+    if not size.is_gate:
+        return None
+    return Gate(replace(subject, size=SIZE_ANY, water=Water.any), size, rid(x), who, rank,
+                x.get("verbatim") or "", when, status)
+
+def _water_of(c: dict, by_key: Dict[str, dict]) -> str | None:
+    """The kind of water a clause is about: its own, or the nearest parent's that names one.
+    `children_of` flattens a grandchild onto the top of the chain, and the top is the one
+    parent that usually names NO water — "4 from streams" is the middle."""
+    seen = set()
+    while c is not None and rid(c) not in seen:
+        seen.add(rid(c))
+        if c.get("water"):
+            return c["water"]
+        c = by_key.get(f"{c.get('entry')}::{c.get('within')}") if c.get("within") else None
+    return None
+
 
 def section_rules(water: str, run: int) -> List[dict]:
     """COMPLETE records for one stretch — see `corpus.py`.
@@ -119,6 +157,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                 promoted_parent[rid(c)] = parent
 
     kids: Dict[str, List[SubLimit]] = {}
+    gates: List[Gate] = []
     for parent, cs in kid_rules.items():
         for c in cs:
             if rid(c) in promoted: continue
@@ -131,18 +170,37 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
             for pr, par in promoted_parent.items():
                 if par == parent:
                     kids.setdefault(pr, [])
-            # A count-less clause is kept, not skipped: it constrains the composition just as a
-            # numbered one does. And a clause can be SEASONAL — "1 trout from streams, July 1 –
-            # Oct 31" printed year-round without its dates.
-            if c.get("take") is None and not (c.get("over_cm") or c.get("under_cm")
-                                              or c.get("band")):
-                continue
-            ap = applies_of(c.get("windows"), c.get("extent_text"),
-                            all_year=not c.get("windows"), section_label=label,
+            # A clause can be SEASONAL — "1 trout from streams, July 1 – Oct 31" printed
+            # year-round without its dates. And a clause of a seasonal allowance is seasonal
+            # with it.
+            top = by_key.get(parent) or {}
+            src = c if c.get("windows") else top
+            ap = applies_of(src.get("windows"), c.get("extent_text"),
+                            all_year=not src.get("windows"), section_label=label,
                             from_time=c.get("from_time"), to_time=c.get("to_time"),
                             weekdays=c.get("weekdays"))
+            when = "" if ap.always else ap.detail
+            # A CLAUSE'S SIZE BOUND IS A GATE, like anyone else's. "none under 60 cm" inside
+            # "Trout/char: 5" sends a small char back whichever number ends up governing char
+            # here; as a sub-limit it rode on its parent alone, and went dormant with it.
+            # Its authority is its parent's, and so is its kind of water.
+            wk = _water_of(c, by_key)
+            if (not wk or wk == water_kind) and str(c.get("type") or "") == "retention_limit":
+                st = "lifted here — does not apply" if parent in _drop else ""
+                rank, who = _authority(top or c)
+                g = gate_of(c, subject_of(c), rank, who, when, st)
+                if g is not None:
+                    gates.append(g)
+            # A count-less clause that is not a gate constrains nothing the table can hold.
+            if c.get("take") is None:
+                continue
+            # A CLAUSE ABOUT THE OTHER KIND OF WATER IS NOT A CLAUSE HERE. Region 8's "only 2
+            # over 30 cm" sits inside "4 from streams"; flattened onto "Trout/char: 5" it rode
+            # on Okanagan LAKE as a condition on the five, wearing "in streams" as a label.
+            if wk and wk != water_kind:
+                continue
             lim = SubLimit(subject_of(c), c.get("take"), pooled_of(c, subject_of(c)),
-                           c.get("verbatim") or "", rid(c), "" if ap.always else ap.detail)
+                           c.get("verbatim") or "", rid(c), when)
             kids.setdefault(parent, []).append(lim)
             for pr, par in promoted_parent.items():
                 if par == parent:
@@ -177,26 +235,43 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
         subj = subject_of(x, narrow.get(rid(x)))
         o = outcome_of(x.get("take"), x.get("may_target"), x.get("unlimited"),
                        x.get("period"), pooled_of(x, subj))
-        if o is None:
-            # No count of its own — but a retention rule with no count is still ABOUT a count.
-            if str(x.get("type") or "") == "retention_limit":
-                q = qualifier_of(x, subject_of(x, narrow.get(rid(x))), rid(x))
-                if q is not None: quals.append(q)
-            continue
         rank, who = _authority(x)
         if rid(x) in promoted:
             # It speaks with its parent's voice: the same table wrote both.
             par = by_key.get(f"{x.get('entry')}::{x.get('within')}")
             if par is not None:
                 rank, who = _authority(par)
-        rungs.append(Rung(rid(x), who, rank, subj, o,
-                          x.get("verbatim") or "",
-                          applies_of(x.get("windows"), x.get("extent_text"),
-                                     all_year=not x.get("windows"),
-                                     section_label=label,
-                                     from_time=x.get("from_time"),
-                                     to_time=x.get("to_time"),
-                                     weekdays=x.get("weekdays"))))
+        ap = applies_of(x.get("windows"), x.get("extent_text"),
+                        all_year=not x.get("windows"), section_label=label,
+                        from_time=x.get("from_time"), to_time=x.get("to_time"),
+                        weekdays=x.get("weekdays"))
+        # THE BOUND, SPLIT FROM THE COUNT. Whatever else the rule says, a size that sends a
+        # fish back rides as a gate on every row about that fish — including the rows this
+        # rule's own count loses on, because a number does not lift a take of zero.
+        # ONLY A RETENTION RULE GATES. "Conservation Surcharge Stamp required to catch and
+        # keep rainbow trout over 50 cm" carries `over_cm` too, and it is a licence rule: read
+        # as a bound it told the Shuswap "none over 50 cm" on a water where the stamp is
+        # exactly what lets you keep one.
+        if (subj.water in (Water.any, Water(water_kind))
+                and str(x.get("type") or "") == "retention_limit"):
+            g = gate_of(x, subj, rank, who, "" if ap.always else ap.detail,
+                        "" if rid(x) not in _drop else "lifted here — does not apply")
+            if g is not None:
+                gates.append(g)
+                if o is not None and o.kind in ("release", "closed"):
+                    # A TAKE OF ZERO ON A SIZE CLASS IS THE GATE, AND NOTHING ELSE. "Hatchery
+                    # trout/char under 30 cm from streams: 0" is not a release of hatchery
+                    # trout — it is the floor on the two you may keep. As a rung it was a
+                    # release for a subject nobody else wrote about, took a row of its own,
+                    # and the keep row beside it never showed the 30 cm.
+                    continue
+        if o is None:
+            # No count of its own — but a retention rule with no count is still ABOUT a count.
+            if str(x.get("type") or "") == "retention_limit":
+                q = qualifier_of(x, subject_of(x, narrow.get(rid(x))), rid(x))
+                if q is not None: quals.append(q)
+            continue
+        rungs.append(Rung(rid(x), who, rank, subj, o, x.get("verbatim") or "", ap))
     rows = table(rungs, water_kind, kids, lifted)
 
     # A CLAUSE WHOSE PARENT IS IN NO CHAIN. `dormant` picks up the clauses of rules that lost,
@@ -245,4 +320,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
         r.exemptions = list(unresolved)
 
     build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
+    # A GATE THAT REACHED NO ROW IS A RULE THE READER NEVER SEES. It is not filed with the
+    # duties that have nothing to trigger them; it stays visible here and `comply` fails on it.
+    build.unattached_gates = attach_gates(rows, gates)
     return rows

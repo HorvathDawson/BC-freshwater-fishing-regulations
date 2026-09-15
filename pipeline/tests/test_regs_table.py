@@ -12,6 +12,7 @@ import pytest
 from pipeline.regs.table.subject import Subject, Origin, expand
 from pipeline.regs.table.outcome import Outcome, outcome_of, CLOSED, RELEASE
 from pipeline.regs.table.size import size_of
+from pipeline.regs.table.build import section_regions
 
 
 # --------------------------------------------------------------------------- #
@@ -537,3 +538,127 @@ def test_a_stream_rule_never_reaches_a_lake_table_by_any_route(tables):
             for c in r.chain + (r.caveats or []) + (r.ceilings or []):
                 assert c.rule_id not in bad, (
                     f"{w} stretch {run + 1} is a {kind}, and {c.rule_id} is about {other}s")
+
+
+# --------------------------------------------------------------------------- #
+# A size bound is a gate, not a competitor.
+# --------------------------------------------------------------------------- #
+def _row(t, fish, qual=""):
+    from pipeline.regs.table.build import name
+    for r in t:
+        who, q = r.subject.words(name)
+        if who == fish and q == qual:
+            return r
+    raise AssertionError(f"no row {fish!r} · {qual!r} in {[r.subject.words(name) for r in t]}")
+
+
+def test_meets_is_symmetric_and_reflexive_where_a_subject_names_a_fish():
+    """`covers` is containment and a gate needs intersection: "bull trout, Dolly Varden and
+    lake trout" and "trout and char · hatchery only" cover neither each other nor nothing —
+    a hatchery bull trout is inside both."""
+    hatch = Subject(frozenset({"TROUT_CHAR"}), Origin.hatchery)
+    char = Subject(frozenset({"BT", "DV", "LT"}))
+    assert not hatch.covers(char) and not char.covers(hatch)
+    assert hatch.meets(char) and char.meets(hatch)
+    for a in _subjects():
+        for b in _subjects():
+            assert a.meets(b) == b.meets(a)
+        if a.effective() or a.is_everything:
+            assert a.meets(a)
+    assert not Subject(frozenset({"KO"})).meets(Subject(frozenset({"BB"})))
+    assert not Subject(frozenset({"ST"}), Origin.wild).meets(Subject(frozenset({"ST"}), Origin.hatchery))
+
+
+def test_a_size_bound_reaches_the_keep_row_it_narrows_across_origin(tables):
+    """Region 2's "none under 60 cm" is about bull trout, Dolly Varden and lake trout of either
+    origin; the Fraser's only keep row is "Trout and char · hatchery only". Neither subject
+    covers the other, so the bound reached no row on seven Fraser stretches and the check
+    filed it under "no trigger" — a bucket for duties. Same sentence in Region 3, filed as a
+    qualifier, printed."""
+    for w, run, _, _, t in tables:
+        if w != "Fraser River" or run > 2:
+            continue
+        keep = _row(t, "Trout and char", "hatchery only")
+        ids = {g.rule_id for g in keep.gates if g.binds}
+        assert "z2:trout_char_quota::trout_char_quota.r5b" in ids, (run + 1, ids)
+        assert "z2:trout_char_quota::trout_char_quota.r8" in ids, (run + 1, ids)
+
+
+def test_a_take_of_zero_on_a_size_class_is_the_gate_and_not_a_row(tables):
+    """"Hatchery trout/char under 30 cm from streams: 0" is not a release of hatchery trout —
+    it is the floor on the two you may keep. As a rung it was a release for a subject nobody
+    else wrote about, took a row of its own, and the keep row beside it never showed 30 cm."""
+    from pipeline.regs.table.build import name
+    for w, run, kind, rules, t in tables:
+        for r in t:
+            for c in r.chain:
+                assert not c.subject.size.is_gate, (
+                    f"{w} stretch {run + 1}: {c.rule_id} competes with a size bound on its subject")
+            assert not r.subject.size.is_gate, (w, run + 1, r.subject.words(name))
+            assert r.governs.rule_id.split("::")[-1] != "trout_char_quota.r8" or "z2" not in r.governs.rule_id
+
+
+def test_every_size_bound_handed_in_rides_on_a_row(tables):
+    """Every spelling of a size bound — a parenthesis on a number, a bare "No trout under 25
+    cm", a take of zero on the class, a clause inside an allowance — is one kind of value and
+    reaches the table by one route. None may vanish, and none may be filed as "no trigger"."""
+    from pipeline.regs.table.corpus import rid
+    from pipeline.regs.table.build import _water_of
+    for w, run, kind, rules, t in tables:
+        by = {rid(x): x for x in rules}
+        landed = {g.rule_id for r in t for g in (r.gates or [])}
+        for x in rules:
+            if str(x.get("type") or "") != "retention_limit" or x.get("method"):
+                continue
+            size = size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
+                           within=x.get("within"), band=bool(x.get("band")),
+                           period=x.get("period") or "daily")
+            wk = _water_of(x, by)
+            if not size.is_gate or (wk and wk != kind):
+                continue
+            assert rid(x) in landed, f"{w} stretch {run + 1}: {rid(x)} “{x.get('verbatim')}”"
+
+
+def test_a_licence_rule_with_a_length_in_it_is_not_a_size_bound(tables):
+    """"Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm"
+    carries `over_cm` too. Read as a bound it told the Shuswap "none over 50 cm" on the water
+    where the stamp is exactly what lets you keep one."""
+    (t,) = [t for w, run, _, _, t in tables if w == "Shuswap Lake"]
+    for r in t:
+        for g in (r.gates or []):
+            assert "shuswap_lake.r13" not in g.rule_id and "shuswap_lake.r14" not in g.rule_id
+
+
+def test_the_shuswap_rainbow_row_carries_its_floor_as_a_gate(tables):
+    """"Rainbow trout daily quota = 1 (none under 50 cm)" is one rule saying two things. With
+    the bound on its subject it was a different subject from "rainbow trout", so the row was
+    headed "Rainbow trout · none under 50 cm" and competed with nothing."""
+    (t,) = [t for w, run, _, _, t in tables if w == "Shuswap Lake"]
+    rb = _row(t, "Rainbow trout")
+    assert rb.outcome.n == 1
+    assert [g.size.words() for g in rb.gates if g.binds] == ["none under 50 cm"]
+    assert rb.gates[0].rule_id == rb.governs.rule_id
+
+
+def test_a_stream_clause_is_not_a_condition_on_a_lake(tables):
+    """Region 8's "only 2 over 30 cm" sits inside "4 from streams"; flattened onto "Trout/char:
+    5" it rode on Okanagan Lake as a condition on the five, wearing "in streams" as a label."""
+    for w, run, kind, _, t in tables:
+        if kind != "lake":
+            continue
+        for r in t:
+            for l in (r.limits or []) + (r.dormant or []):
+                assert "z8:trout_char_quota::trout_char_quota.r4" != l.rule_id, (w, run + 1)
+
+
+def test_dormant_clauses_are_the_losing_rules_clauses():
+    """`Row` was built positionally and `dormant` landed in `exemptions`, which `build` then
+    overwrote — so the clauses of a beaten rule computed in `resolve` were thrown away every
+    time, and only a sweep in `build` found them again on whichever row it tried first."""
+    from pipeline.regs.table.resolve import resolve
+    from pipeline.regs.table.clauses import SubLimit
+    rungs = [_rung("r:water.r1", 0, {"TROUT_CHAR"}, Outcome("quota", 2, pooled=True)),
+             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
+    clause = SubLimit(Subject(frozenset({"BT"})), 1, False, "1 bull trout", "z4:trout_char.r2")
+    row = resolve(rungs, Subject(frozenset({"TROUT_CHAR"})), kids={"z4:trout_char.r1": [clause]})
+    assert row.dormant == [clause] and row.exemptions is None and row.limits == []

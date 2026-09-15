@@ -11,6 +11,7 @@ WHAT IT HANDLES
       caveat       true here, but only in a window or a spot nobody can draw
       sub-limit    a clause of an allowance, carried on that allowance's row
       ceiling      a quota on ANOTHER period — annual, possession — that binds at the same time
+      gate         a size bound, riding on every row about the fish it names
       no-trigger   a duty on keeping, on a water where nothing may be kept
       lifted       disapplied here by something that says so
       not-here     written about the other kind of water — a stream rule on a lake
@@ -53,6 +54,10 @@ def audit(rules, kind="stream", here=frozenset(), label=""):
         for c in (r.ceilings or []): mark(c.rule_id, "ceiling")
         for c in (r.duties or []): mark(c.rule_id, "duty")
         for c in (r.quals or []): mark(c.rule_id, c.kind)
+        for g in (r.gates or []): mark(g.rule_id, "gate")
+    # A DUTY with nothing to trigger it is an answer. A GATE that reached no row is not — it is
+    # a size limit the reader never sees, and it is deliberately left unmarked here so the
+    # check fails on it rather than filing it under a bucket that means something else.
     for q in (getattr(build, "unattached", None) or []):
         mark(q.rule_id, "no-trigger")
     # FROM THE TABLE, NOT FROM THE INPUT. This used to mark every clause `children_of` found,
@@ -68,10 +73,12 @@ def audit(rules, kind="stream", here=frozenset(), label=""):
     for t in dropped | set(narrow): mark(t, "lifted")
     for x in rules:
         if x.get("exempts"): mark(rid(x), "lifts another rule")
+    by_key = {rid(x): x for x in rules}
     for x in rules:
         # A stream rule on a lake is not missing; it is about somewhere else. The CONTEXT
         # decided that (see `applies_here`), which is the whole point of deciding it once.
-        w = x.get("water")
+        # A clause inherits its parent's kind of water where it names none of its own.
+        w = x.get("water") or (by_key.get(f"{x.get('entry')}::{x.get('within')}") or {}).get("water")
         if w and w != kind: mark(rid(x), "not-here")
         if x.get("method"): mark(rid(x), "by-method")
         if str(x.get("type") or "") != "retention_limit":

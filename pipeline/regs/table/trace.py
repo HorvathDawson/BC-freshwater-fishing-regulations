@@ -47,6 +47,10 @@ def trace(water, run=0):
         for l in (r.limits or []):
             print(f"  │ OF WHICH: {l.sentence(name)}")
             print(f"  │            “{l.verbatim[:62]}”")
+        for g in (r.gates or []):
+            tag = f"  ({g.status})" if g.status else ""
+            print(f"  │ SIZE: {g.sentence(name, r.subject)}  — {g.authority}{tag}")
+            print(f"  │            “{g.verbatim[:62]}”")
         for c in (r.caveats or [])[:3]:
             print(f"  │ BUT: {c.outcome.word()} {c.applies.kind} — {c.applies.detail[:46]}")
             print(f"  │            “{c.verbatim[:62]}”")

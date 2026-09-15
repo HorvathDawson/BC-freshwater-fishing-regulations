@@ -66,7 +66,8 @@ class Row:
     limits: List[SubLimit] = None   # what the allowance may be MADE OF (`within`)
     ceilings: List[Rung] = None     # other periods that bind AT THE SAME TIME (annual, possession)
     duties: List[Rung] = None       # what you must DO on keeping one
-    quals: List = None              # size gates and possession multiples (see qualifiers.py)
+    quals: List = None              # possession multiples (see qualifiers.py)
+    gates: List = None              # size bounds, accumulated from every rule (see gates.py)
     exemptions: List = None         # an exception whose place cannot be drawn — see lifts.py
     dormant: List = None            # clauses of a rule in the chain that is NOT the answer
 
@@ -222,8 +223,12 @@ def resolve(rungs: List[Rung], subject: Subject,
     kids = kids or {}
     dormant = [l for c in chain if c.rule_id != head.rule_id
                for l in kids.get(c.rule_id, [])]
-    return Row(subject, out, chain, caveats,
-               list(kids.get(head.rule_id, [])), ceilings, [], None, dormant)
+    # BY NAME. Positionally, `dormant` landed in `exemptions` — the ninth field — and `build`
+    # then overwrote `exemptions` with the unresolved lifts, so the dormant clauses computed
+    # here were thrown away every time and only the orphan sweep in `build` found them again,
+    # on whichever row it tried first rather than the row whose chain holds their parent.
+    return Row(subject, out, chain, caveats, limits=list(kids.get(head.rule_id, [])),
+               ceilings=ceilings, duties=[], dormant=dormant)
 
 
 #: "No Fishing" — a closure on the water itself, as opposed to a quota of zero for one fish.

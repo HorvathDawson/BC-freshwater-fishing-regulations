@@ -1,4 +1,4 @@
-"""The three shapes a retention rule takes when it carries NO COUNT OF ITS OWN.
+"""The two shapes a retention rule takes when it carries NO COUNT OF ITS OWN and no size.
 
 `outcome_of` returns None for these, and the first version of this module let that stand — they
 were binned as "not a quota" beside the boat rules, and the compliance check passed while 294
@@ -16,10 +16,12 @@ each attaches to the allowance it qualifies:
                                row whose outcome permits keeping — and nowhere at all on a row
                                that says release.
 
-    A BARE SIZE GATE           "Bull trout, Dolly Varden and Lake trout (none under 60 cm)"
-                               (23 rules). A constraint on WHICH fish the allowance may be made
-                               of, with no count of its own — which is a sub-limit without a
-                               number, and reads on the row it qualifies.
+A BARE SIZE GATE — "Bull trout, Dolly Varden and Lake trout (none under 60 cm)" — used to be the
+third shape here, and it was the wrong home. A size bound is not peculiar to count-less rules:
+the same sentence arrives as a take of zero on the size class, as a parenthesis on a number, or
+as a clause inside one, and handling only the count-less spelling here is why "none under 30 cm"
+reached some rows and silently missed others. Every spelling is one thing, a GATE, and lives in
+`gates.py`.
 """
 from __future__ import annotations
 from dataclasses import dataclass
@@ -30,7 +32,7 @@ from pipeline.regs.table.subject import Subject
 
 @dataclass(frozen=True)
 class Qualifier:
-    kind: str                 # possession | duty | size_gate
+    kind: str                 # possession | duty
     subject: Subject
     text: str
     verbatim: str
@@ -42,17 +44,12 @@ class Qualifier:
             # "1 days' worth" is not English, and the plural is load-bearing on a 2.
             d = "a day's" if self.n == 1 else f"{self.n} days'"
             return f"you may have {d} worth in possession"
-        if self.kind == "size_gate" and name is not None:
-            # A SIZE GATE WITHOUT ITS FISH IS A FLOOR ON EVERYTHING. "none under 60 cm" is about
-            # bull trout, Dolly Varden and lake trout; hung on a row headed "Trout and char" with
-            # no subject it read as a minimum size for every trout on the water.
-            who, _ = self.subject.words(name)
-            return f"{who.lower()}: {self.text}"
         return self.text
 
 
 def qualifier_of(x: dict, subject: Subject, key: str) -> Optional[Qualifier]:
-    """The one place a count-less retention rule becomes something the table can carry."""
+    """The one place a count-less retention rule becomes something the table can carry. A
+    count-less rule with a SIZE is a gate, and `build` has already made one of it."""
     if x.get("take") is not None or x.get("unlimited"):
         return None
     lab, verb = (x.get("label") or ""), (x.get("verbatim") or "")
@@ -60,8 +57,6 @@ def qualifier_of(x: dict, subject: Subject, key: str) -> Optional[Qualifier]:
         return Qualifier("possession", subject, lab, verb, key, int(x["per_daily"]))
     if x.get("record_retention") or x.get("on_retention"):
         return Qualifier("duty", subject, lab, verb, key)
-    if x.get("over_cm") or x.get("under_cm") or x.get("band"):
-        return Qualifier("size_gate", subject, subject.size.words() or lab, verb, key)
     return None
 
 
