@@ -80,3 +80,31 @@ def lifts_here(rules: List[dict], here: FrozenSet[str]
                 else:
                     drop.add(t)
     return {k: frozenset(v) for k, v in narrow.items()}, drop, unresolved
+
+
+def self_lifting(rules: List[dict]) -> List[dict]:
+    """Rules whose own exemption names them — a DATA defect, reported rather than absorbed.
+
+    `lifts_here` refuses to let a rule lift itself, which stops the damage. It does not fix the
+    entry, and a workaround that leaves no trace is how a corpus defect becomes permanent. One
+    rule is in this state:
+
+        z6:steelhead_stream_closure.r1 — "No fishing for steelhead in streams, May 15 – Jun 15"
+        exempts: default_id "steelhead_stream_closure"  (its own entry)
+        note:    "mainstem Skeena, Nass, Iskut, Stikine and Taku, where not already closed"
+
+    The note says what the exemption is FOR: five named mainstems. The `default_id` should name
+    the closure being lifted on those waters — instead it names this rule, so the closure lifted
+    itself on every water in Region 6 and the Babine lost a steelhead season the book keeps.
+    The fix is in the catalogue, not here: the exemption belongs on the five waters that have
+    it, or the note belongs in `extent_text` where a scope can be read from it.
+    """
+    out = []
+    for r in rules:
+        me = rule_part(rid(r))
+        for ex in (r.get("exempts") or []):
+            if ex.get("target") == me or (ex.get("default_id")
+                                          and me.split(".")[0] == ex["default_id"]):
+                out.append({"rule": rid(r), "note": ex.get("note") or "",
+                            "label": r.get("label") or ""})
+    return out

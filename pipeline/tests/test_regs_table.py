@@ -273,3 +273,14 @@ def test_nothing_rides_on_a_row_that_permits_nothing(tables):
             assert not [q for q in (r.quals or []) if q.kind == "possession"], (
                 f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is {r.outcome.word()} "
                 f"and carries a possession multiple")
+
+
+def test_no_new_self_lifting_rules_appear():
+    """A rule whose own exemption names it lifts itself everywhere. `lifts_here` refuses to let
+    that happen, but the entry is still wrong, and a workaround that leaves no trace is how a
+    corpus defect becomes permanent. One is known; a second would be a new one."""
+    from pipeline.regs.table.corpus import rules
+    from pipeline.regs.table.lifts import self_lifting
+    got = {x["rule"] for x in self_lifting(rules())}
+    known = {"z6:steelhead_stream_closure::steelhead_stream_closure.r1"}
+    assert got <= known, f"new self-lifting rule(s) in the corpus: {sorted(got - known)}"

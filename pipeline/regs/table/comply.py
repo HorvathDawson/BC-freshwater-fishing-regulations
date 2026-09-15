@@ -40,7 +40,7 @@ from pipeline.regs.table.build import (build, section_rules, section_regions,
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.clauses import children_of
 from pipeline.regs.table.corpus import rid
-from pipeline.regs.table.lifts import lifts_here
+from pipeline.regs.table.lifts import lifts_here, self_lifting
 
 
 def audit(rules, kind="stream", here=frozenset(), label=""):
@@ -117,6 +117,17 @@ if __name__ == "__main__":
     print("every rule landed somewhere:")
     for k, v in tally.most_common():
         print(f"   {k:14s} {v:6d}")
+    # A defect in the DATA, not in the table. Reported every run so the workaround in
+    # `lifts_here` cannot quietly become the permanent answer.
+    from pipeline.regs.table.corpus import rules as _all
+    selfs = self_lifting(_all())
+    if selfs:
+        print(f"\n⚠ {len(selfs)} rule(s) exempt THEMSELVES — a curation defect, worked around "
+              f"here but not fixed:")
+        for x in selfs:
+            print(f"   {x['rule']}")
+            print(f"      “{x['label'][:66]}”")
+            print(f"      its note says the exemption is for: {x['note'][:60]}")
     print(f"\nunaccounted-for rules : {total_missing}")
     print(f"self-contradicting rows: {total_bad}")
     print("\nCOMPLIES" if total_missing == 0 and total_bad == 0 else "\nDOES NOT COMPLY")
