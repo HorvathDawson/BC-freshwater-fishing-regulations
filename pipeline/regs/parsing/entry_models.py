@@ -160,6 +160,16 @@ class Extent(BaseModel):
             return list(self.item_ids)
         return [self.item_id] if self.item_id else []
 
+    outside_areas: List[str] = Field(
+        default_factory=list,
+        description="SUBTRACT SEVERAL areas — `outside_area` for more than one carve-out. A rule's "
+        "extents UNION, so a subtraction can never be written as more extents; and a RESIDUAL "
+        "scope needs several at once. DFO Region 6 section E is the case: 'Other Mainland "
+        "Watersheds' is the region minus the Skeena, the Nass, the Fraser and Haida Gwaii, and "
+        "with only a single-valued field it cannot be said at all. The two fields are unioned, so "
+        "`outside_area` keeps working and needs no migration.",
+    )
+
     @model_validator(mode="after")
     def _check_arity(self) -> "Extent":
         n = len(self.splits)
@@ -173,6 +183,8 @@ class Extent(BaseModel):
             raise ValueError(f"op between needs exactly 2 split ids, got {n}")
         if self.op == Op.WHOLE and n != 0:
             raise ValueError(f"op whole takes no split ids, got {n}")
+        if self.outside_area and self.outside_area in self.outside_areas:
+            raise ValueError(f"{self.outside_area!r} is in both outside_area and outside_areas")
         if self.op == Op.WITHIN and not (self.area_id or self.area_kind or self.splits):
             raise ValueError("op within needs an area, an area_kind, or bounding split ids")
         if self.feature_types:

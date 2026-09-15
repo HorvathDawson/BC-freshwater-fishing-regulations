@@ -11,12 +11,15 @@ named only in name_variants, not FWA GNIS — is labelled correctly here.
     registry = build_registry(graph)        # {item_id: RegistryItem}
 """
 
+import logging
 import re
 from collections import Counter, defaultdict
 from dataclasses import replace
 
 from pipeline.common.models import WATERBODY_KINDS, NameSource, NodeKind, RegistryBoundary, RegistryItem, StreamGraph, StreamNode
 from pipeline.common.utils.wsc import trim_wsc
+
+logger = logging.getLogger(__name__)
 
 
 def _slug(s: str) -> str:
@@ -342,6 +345,56 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
             aid = area if area.startswith("area:") else f"area:{_slug(area)}"
             registry[aid] = RegistryItem(id=aid, name=area, kind="area", variants=(),
                                          section_ids=tuple(n.node_id for n in nodes), boundaries=())
+
+    # DRAINAGE areas (kind=area, id `area:drains_to:pfma_N`). Same shape as the blanket areas
+    # above and resolved by the same `within` branch, but membership comes from the FLOW, not from
+    # point-in-polygon: DFO Region 6 section E says "all streams flowing INTO tidal water Area 5",
+    # and those streams are freshwater above the marine polygon, so nothing contains them.
+    #
+    # Deliberately NOT stamped onto `node.in_areas`: that field is rendered as user-facing text by
+    # `StreamNode.location_identifier`, so stamping would print "within area:drains_to:pfma_5"
+    # across the whole north coast.
+    with prof.phase("drainage areas"):
+        try:
+            from pipeline.atlas.splits import pfma_drainage
+            basins = pfma_drainage.basin_areas()
+        except Exception as exc:                      # layer not fetched, or no geometry stack
+            logger.warning("drainage areas skipped (%s) — DFO section E's tidal scopes will not "
+                           "resolve; fetch with: python -m data.fetch_data --layers pfma_areas", exc)
+            basins = {}
+        if basins:
+            drain: dict[str, list[StreamNode]] = defaultdict(list)
+            for n in graph.nodes.values():
+                area = pfma_drainage.area_of(getattr(n, "wsc", "") or "", basins)
+                if area:
+                    drain[pfma_drainage.area_id(area)].append(n)
+            for aid, nodes in drain.items():
+                registry[aid] = RegistryItem(id=aid, name=aid, kind="area", variants=(),
+                                             section_ids=tuple(n.node_id for n in nodes),
+                                             boundaries=())
+            logger.info("drainage areas: %s",
+                        {k: len(v) for k, v in sorted(drain.items())})
+
+    # BASIN areas (kind=area, id `area:basin:400-`). A watershed IS a prefix of the FWA code, so
+    # "the Skeena watershed" is a set the registry can hold rather than a walk every consumer has
+    # to repeat. Cross-checked against the tributary walk: of the 84,624 sections `build_reach`
+    # reaches from the Skeena, 84,617 carry prefix `400-` — 99.99%.
+    #
+    # Only the MAJOR watersheds are minted (a code whose first group is not 9XX): there are a
+    # handful, they are the ones regulations name as watersheds, and minting all 15,720 coastal
+    # basins would add more registry items than there are waters.
+    with prof.phase("basin areas"):
+        basin_nodes: dict[str, list[StreamNode]] = defaultdict(list)
+        for n in graph.nodes.values():
+            code = getattr(n, "wsc", "") or ""
+            head = code.split("-")[0] if code else ""
+            if head and not head.startswith("9") and head != "999":
+                basin_nodes[f"area:basin:{head}-"].append(n)
+        for aid, nodes in basin_nodes.items():
+            registry[aid] = RegistryItem(id=aid, name=aid, kind="area", variants=(),
+                                         section_ids=tuple(n.node_id for n in nodes),
+                                         boundaries=())
+        logger.info("basin areas: %s", {k: len(v) for k, v in sorted(basin_nodes.items())})
     prof.report("build_registry")
     return registry
 

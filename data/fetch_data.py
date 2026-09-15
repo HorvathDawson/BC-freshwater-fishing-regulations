@@ -1720,6 +1720,22 @@ def main():
             "url": "https://build.canifishthis.ca/DFO_TIDAL_BOUNDARY.gpkg",
             "layer": "tidal_boundary",
         },
+        # The PFMA AREAS — the same DFO geography the tidal boundary is dissolved from, but
+        # with its Area numbers intact. `tidal_boundary` answers "is this water tidal"; this
+        # answers "WHICH Pacific Fishery Management Area", which is what DFO Region 6 section E
+        # scopes by ("all streams flowing into tidal water Area 5").
+        #
+        # This is the STAT AREA layer, not the subareas one. Section E names Areas (3, 4, 5, 6),
+        # so Areas are the right granularity — and the subarea layer
+        # (WHSE_ADMIN_BOUNDARIES.DFO_PFMA_SUBAREAS_SP) is NOT published on the public WFS: it is
+        # an order-form "Custom Download" and the WFS answers "Feature type unknown".
+        #
+        # 171 polygons, 49 distinct MANAGEMENT_AREA values. **120 of them are MANAGEMENT_AREA 0**
+        # — land and filler, which any consumer must drop, or every stream in BC lands in "Area 0".
+        "pfma_areas": {
+            "type": "WFS",
+            "source": "WHSE_ADMIN_BOUNDARIES.DFO_PFMA_STAT_AREA_BDRY_SP",
+        },
         # Protomaps basemap tiles (OSM-derived). Not produced by the pipeline —
         # downloaded from our R2 data domain so local dev / deploy can serve the
         # map background at /bc.pmtiles.

@@ -174,3 +174,37 @@ def test_the_rules_written_for_both_reach_both():
         assert BOTH <= got[iid], (
             f"{names[iid]} lost a rule written for Region 1 including Haida Gwaii: "
             f"{sorted(BOTH - got[iid])}")
+
+
+def test_outside_areas_subtracts_several():
+    """**A residual scope needs more than one carve-out.**
+
+    A rule's extents UNION, so a subtraction can never be written as more extents. DFO Region 6
+    section E is the case: "Other Mainland Watersheds" is the region minus the Skeena, the Nass,
+    the Fraser and Haida Gwaii — four at once, where `outside_area` holds one.
+
+    The two fields are unioned, so every existing `outside_area` keeps working untouched.
+    """
+    from pipeline.regs.parsing.entry_models import Extent
+
+    both = Extent(op="within", area_id="area:region:6",
+                  outside_areas=["area:basin:400-", "area:basin:500-"],
+                  outside_area="area:basin:100-")
+    assert both.outside_areas == ["area:basin:400-", "area:basin:500-"]
+    assert both.outside_area == "area:basin:100-"
+
+    # the single-value field alone still round-trips
+    one = Extent(op="within", area_id="area:region:1", outside_area="area:mu_group:hg")
+    assert one.model_dump(mode="json", exclude_defaults=True)["outside_area"] == "area:mu_group:hg"
+    assert "outside_areas" not in one.model_dump(mode="json", exclude_defaults=True)
+
+
+def test_an_area_named_twice_in_a_subtraction_is_refused():
+    """Naming the same area in both fields is a curator slip, not a shorthand — and a silent
+    duplicate is how a subtraction list drifts out of step with the scope tree it mirrors."""
+    import pytest
+    from pipeline.regs.parsing.entry_models import Extent
+
+    with pytest.raises(ValueError, match="both outside_area and outside_areas"):
+        Extent(op="within", area_id="area:region:6",
+               outside_areas=["area:basin:400-"], outside_area="area:basin:400-")

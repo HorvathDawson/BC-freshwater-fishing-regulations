@@ -331,14 +331,20 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
     #
     # Applied here, with `within_area`, so it lands AFTER the tributary walk — the walk is what
     # leaves the area, so subtracting from the seed would do nothing.
+    # `outside_areas` is the same thing for SEVERAL carve-outs, unioned with `outside_area`. A
+    # residual scope needs it: DFO Region 6 section E is "Other Mainland Watersheds", the region
+    # minus the Skeena, the Nass, the Fraser and Haida Gwaii, and a rule's extents UNION so the
+    # subtraction can never be written as more extents.
     drop_sections: set[str] = set()
-    drop_id = str(ex.get("outside_area") or "")
-    if drop_id:
+    drop_ids = [str(x) for x in (ex.get("outside_areas") or []) if x]
+    if ex.get("outside_area"):
+        drop_ids.append(str(ex["outside_area"]))
+    for drop_id in drop_ids:
         key = drop_id if drop_id.startswith("area:") else f"area:{drop_id}"
         if key not in reg:
             _fail("outside_area_not_in_registry", drop_id)
             return None
-        drop_sections = set(reg[key].section_ids)
+        drop_sections |= set(reg[key].section_ids)
 
     def _limited(sec: set[str]) -> set[str]:
         out = sec if limit_sections is None else (sec & limit_sections)
