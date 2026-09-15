@@ -93,6 +93,19 @@ class Subject:
     method: Optional[str] = None
     excepts: FrozenSet[str] = frozenset()
 
+    def __post_init__(self):
+        """ONE SUBJECT, ONE SPELLING.
+
+        `ALL_FIN_FISH` names every fin fish; naming nobody means the same thing. Held as two
+        different values they covered each other while comparing unequal — antisymmetry gone,
+        and `table()` then refuses to absorb either into the other, so the same answer prints
+        twice under two headings. A universal group with nothing carved out IS the empty
+        subject; `NON_GAME_FISH` is not, because it carries a complement.
+        """
+        bare = {g for g, comp in OPEN_GROUPS.items() if not comp}
+        if self.fish and self.fish <= bare:
+            object.__setattr__(self, "fish", frozenset())
+
     # -- the lattice ------------------------------------------------------------------
     @property
     def is_everything(self) -> bool:
@@ -116,11 +129,34 @@ class Subject:
         return expand(self.fish) - expand(self.excepts)
 
     def _fish_covers(self, o: "Subject") -> bool:
+        """Containment on the fish axis — SYMMETRIC in the universal case.
+
+        The first version special-cased "self is universal" and tested the carve-outs against
+        `o.effective() or expand(o.fish)`. Where `o` is ALSO universal both of those are empty,
+        so the intersection was vacuously empty and the answer unconditionally True — the
+        excepts were never consulted. Two consequences, the same class of hole as the two this
+        module has already been bitten by:
+
+          "every fin fish EXCEPT crayfish" covered plain "everything", crayfish included;
+
+          and the moment a rule names NON_GAME_FISH — declared in OPEN_GROUPS, not yet used by
+          the corpus — the order INVERTS: the complement covers the universe, which breaks
+          transitivity and antisymmetry together and would let a non-game-fish rule govern the
+          kokanee row.
+
+        Comparing complements instead makes both strict, and keeps the order sound whichever
+        way the data moves.
+        """
+        if not self.is_everything and o.is_everything:
+            return False
+        if self.is_everything and o.is_everything:
+            return expand(self._open_excepts()) <= expand(o._open_excepts())
         if self.is_everything:
-            # ...except whatever it carves out. "Every fin fish other than burbot" does not
-            # cover burbot, and "non-game fish" does not cover a game fish.
-            return not (expand(self._open_excepts()) & (o.effective() or expand(o.fish)))
-        if o.is_everything: return False
+            return not (expand(self._open_excepts()) & o.effective())
+        # A subject that carves out everything it names speaks about no fish, and the empty set
+        # is a subset of everything — so without this it would be covered by every rule alive.
+        if not o.effective():
+            return False
         return o.effective() <= self.effective()
 
     def covers(self, o: "Subject") -> bool:
@@ -128,12 +164,11 @@ class Subject:
                 and self.size.covers(o.size) and self.water.covers(o.water)
                 and (self.method is None or self.method == o.method))
 
-    def disjoint(self, o: "Subject") -> bool:
-        if self.fish and o.fish and not (expand(self.fish) & expand(o.fish)): return True
-        if not self.origin.covers(o.origin) and not o.origin.covers(self.origin): return True
-        if self.water is not Water.any and o.water is not Water.any and self.water is not o.water:
-            return True
-        return False
+    # `disjoint()` USED TO LIVE HERE. It had no callers anywhere in the repo, and all three of
+    # its clauses were wrong — it read an open group's empty expansion as "no overlap", and
+    # ignored `excepts`, `size` and `method` entirely. A loaded gun with the safety off is worse
+    # than a missing feature, so it is gone rather than fixed; write it when something needs it,
+    # against the laws in the test suite.
 
     def join(self, o: "Subject") -> Optional["Subject"]:
         """One subject meaning both, or None. Only ever across ONE axis — merging two

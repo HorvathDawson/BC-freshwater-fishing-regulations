@@ -36,13 +36,32 @@ class Outcome:
     period: str = "daily"
     pooled: bool = False            # `combined`: n SHARED across the species, not n of each
 
+    def __post_init__(self):
+        # A QUOTA OF ZERO IS NOT A QUOTA. It is a release or a closure, and both already have a
+        # point on this order — strictly stricter than any quota. Left representable, `Quota(0)`
+        # ranked (2,0), WEAKER than release, which is the order upside down. And `Quota(None)`
+        # printed the word "None" into the keep column.
+        if self.kind == "quota" and not self.n:
+            raise ValueError("a quota of zero or None is a release or a closure, not a quota")
+
     # smaller == stricter. One definition, used by every fold.
     @property
-    def rank(self) -> Tuple[int, int]:
-        return {"closed": (0, 0), "release": (1, 0),
-                "quota": (2, self.n or 0), "unlimited": (3, 0)}[self.kind]
+    def rank(self) -> Tuple[int, int, int]:
+        # POOLED IS STRICTER AT THE SAME NUMBER. "6 in the aggregate" and "6 of each" ranked
+        # equal, so the winner was whichever the candidate list happened to hold first — and on
+        # Lois Lake it printed "keep up to 6 of each" for a rule that allows 6 between them.
+        # That is the five-times-the-legal-limit read, decided by list order.
+        return {"closed": (0, 0, 0), "release": (1, 0, 0),
+                "quota": (2, self.n or 0, 0 if self.pooled else 1),
+                "unlimited": (3, 0, 0)}[self.kind]
 
     def __lt__(self, o: "Outcome") -> bool: return self.rank < o.rank
+
+    def same_answer(self, o: "Outcome") -> bool:
+        """`period` is meaningless on a closure, a release and an unlimited, yet it takes part in
+        `__eq__` — so two identical releases could fail to be called "says the same thing"."""
+        if self.kind != o.kind: return False
+        return (self.n, self.pooled) == (o.n, o.pooled) if self.kind == "quota" else True
     def stricter(self, o: "Outcome") -> "Outcome": return self if self.rank <= o.rank else o
 
     def word(self) -> str:

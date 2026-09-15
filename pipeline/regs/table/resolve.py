@@ -81,10 +81,30 @@ def resolve(rungs: List[Rung], subject: Subject,
     if not cand:
         return None
 
-    shut = [r for r in cand if r.outcome.kind == "closed"]
+    # WHICH CLOSURES OUTRANK AUTHORITY — and it is not all of them.
+    #
+    # "No Fishing" shuts the water, and a regional quota cannot argue with it. "Bass: 0 quota"
+    # does not shut anything; it is a quota of zero, which is simply the strictest point on the
+    # ladder the sort already walks. Treating the two alike let a WIDER authority's species
+    # closure suppress a LOCAL rule that re-opens the fish — 1,652 rows of it:
+    #
+    #   Columbia River, `columbia_river.r5` says bass are unlimited here, at this water's own
+    #   rank. Region 4's "Bass: 0 quota" took the row anyway and the page read "you may not
+    #   fish for it", with the local rule demoted under "suspended while the water is closed".
+    #   The water is not closed.
+    #
+    #   `protected_species.r1` covers white sturgeon, so it suppressed Region 2/3's "White
+    #   Sturgeon: CATCH AND RELEASE ONLY" on 1,440 rows — telling a reader a legal catch-and-
+    #   release fishery is closed.
+    #
+    # And the pick was made from an UNSORTED list, so where two closures agreed, the one named
+    # as the reason was whichever came first — the inherited rule rather than the water's own,
+    # 245 times. The sort has to happen first; `chain[0]` is what the page prints as "set by".
     cand.sort(key=lambda r: (r.rank, r.outcome.rank))
+    shut = [r for r in cand
+            if r.outcome.kind == "closed" and _shuts_the_water(r.subject)]
     win = shut[0] if shut else cand[0]
-    if shut:
+    if win is not cand[0]:
         cand.remove(win); cand.insert(0, win)
 
     out, chain = win.outcome, []
@@ -105,6 +125,16 @@ def resolve(rungs: List[Rung], subject: Subject,
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
                           r.verbatim, r.applies, "lifted here — does not apply"))
     return Row(subject, out, chain, caveats, list((kids or {}).get(win.rule_id, [])))
+
+
+#: "No Fishing" — a closure on the water itself, as opposed to a quota of zero for one fish.
+_ALL_GAME = None
+
+def _shuts_the_water(s) -> bool:
+    global _ALL_GAME
+    if _ALL_GAME is None:
+        _ALL_GAME = Subject(frozenset({"ALL_GAME_FISH"}))
+    return s.method is None and s.covers(_ALL_GAME)
 
 
 def _dedup(limits):
@@ -149,7 +179,12 @@ def table(rungs: List[Rung], water_kind: str = "stream",
     merged: List[Row] = []
     for row in rows:
         for m in merged:
-            if m.outcome == row.outcome and (j := m.subject.join(row.subject)) is not None:  # noqa
+            # ONLY WHERE THE OUTCOME HAS NO NUMBER. "release · wild" + "release · hatchery" is
+            # one statement said twice. "2 · wild" + "2 · hatchery" is FOUR FISH, and merging it
+            # into "2 · wild and hatchery" reads as two. All 3,264 joins in the corpus are
+            # releases today; the guard is for the day one is not.
+            if (m.outcome == row.outcome and m.outcome.kind in ("release", "closed")
+                    and (j := m.subject.join(row.subject)) is not None):
                 m.subject = j
                 m.chain = m.chain + [replace(c, status="says the same thing"
                                              if c.status == "governs" else c.status)
@@ -176,15 +211,25 @@ def table(rungs: List[Rung], water_kind: str = "stream",
     # ABSORPTION IS TRANSITIVE. A absorbs into B, B into C — and the first pass handed A's chain
     # to B after B had already emptied into C, so A's rules were lost on a row nobody prints.
     # Follow the host chain to whoever actually survives.
+    # THE GUARD THAT BLOCKS MUTUAL COVER ALSO BLOCKS EQUALITY, and `join` manufactures equality
+    # after the merge pass has run: (ST, wild) + (ST, hatchery) becomes (ST, both), which is the
+    # row already sitting there. Neither could absorb the other, so both printed — 684 identical
+    # rows, sorted adjacent. Ordering by POSITION keeps the relation acyclic and lets the earlier
+    # row win, without letting a genuinely mutual pair collapse the wrong way.
     host_of = {}
-    for row in merged:
-        host_of[id(row)] = next((m for m in merged
+    for i, row in enumerate(merged):
+        host_of[id(row)] = next((m for j, m in enumerate(merged)
                                  if m is not row and m.outcome == row.outcome
                                  and m.subject.covers(row.subject)
-                                 and not row.subject.covers(m.subject)), None)
+                                 and (not row.subject.covers(m.subject) or j < i)), None)
     def final(row):
         seen = set()
-        while host_of.get(id(row)) is not None and id(row) not in seen:
+        while host_of.get(id(row)) is not None:
+            if id(row) in seen:
+                # Unreachable while the ordering above stays acyclic — and if it ever is
+                # reachable, the row silently leaves the table with its whole chain, which is
+                # the one failure `comply` exists to catch and this path would escape.
+                raise AssertionError("absorption cycle: a row would vanish with its chain")
             seen.add(id(row)); row = host_of[id(row)]
         return row
     out: List[Row] = []
