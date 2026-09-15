@@ -1,6 +1,6 @@
 """Build a method table from the corpus, and answer it per region."""
 from __future__ import annotations
-import json, re, sys
+import sys
 from typing import Dict, FrozenSet, List
 
 from pipeline.regs.table.subject import Subject, Origin, Water
@@ -11,17 +11,10 @@ from pipeline.regs.table.method import (MethodRung, resolve_method, ALLOWED,
                                         FORBIDDEN, RIG_TOPIC, RIG_TYPES)
 from pipeline.regs.table.lifts import lifts_here
 from pipeline.regs.table.corpus import rules as corpus_rules, section_rules, rid
-
-H = open("app/design/regs-v3.html").read()
-D = json.loads(re.search(r'<script id="d" type="application/json">(.*?)</script>', H, re.S).group(1))
-NAME = D.get("_species") or {}
-def nm(c): return NAME.get(c, c)
-
-def _auth(x):
-    e = str(x.get("entry") or "")
-    if e.startswith("zp:"): return 3, "Provincial"
-    if e.startswith("z"):   return 2, "Region " + (e[1:2] if e[1:2].isdigit() else "?")
-    return (1, "inherited") if x.get("via") == "trib" else (0, "this water")
+# ONE LADDER. This module parsed the page a second time and kept its own copy of the authority
+# ladder, which did not know `authority: superior` and printed "Region 7" for 7A. The quota side
+# owns both; measured, the swap changes none of the 715 gear rows.
+from pipeline.regs.table.build import D, name as nm, _authority as _auth
 
 #: Every way of fishing the corpus names, plus angling — which names itself only by omission.
 #: `other` is the schema's catch-all, and two real prohibitions live in it — chumming, and
