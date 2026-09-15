@@ -137,102 +137,6 @@ class Location:
         return asdict(self)
 
 
-#: "Apr 1 until further notice", "Until further notice", "May 8 2018 until further
-#: notice" — an open-ended window, 35+ occurrences across the archives. It is a real
-#: shape, not a parse failure: the season has a start and no announced end.
-_RE_OPEN_ENDED = re.compile(r"\buntil\s+fu\w*\s+notice\b", re.I)
-_RE_YEAR = re.compile(r"\b(19|20)\d{2}\b")
-
-
-def _first_pass_parses(raw: str) -> bool:
-    from pipeline.regs.parsing.dates import parse_date_window
-
-    if _RE_OPEN_ENDED.search(raw):
-        return True
-    return parse_date_window(raw) is not None
-
-
-_MONTHS = ["january", "february", "march", "april", "may", "june", "july",
-           "august", "september", "october", "november", "december"]
-
-
-def _repair_dates(raw: str) -> str:
-    """Fix source typos that have exactly one possible reading. Nothing ambiguous.
-
-    Observed in the archives: `"Aprl 1 to Jun 15"` (2022 Region 6) and
-    `"Nov 01- to Dec 31"` (Region 5b, five versions). Both have one reading, so
-    normalising them is safe — and `interpret_dates` records what it changed, so the
-    repair is auditable rather than invisible.
-    """
-    import difflib
-
-    out = raw
-    # A stray separator glued to the day: "Nov 01- to Dec 31" -> "Nov 01 to Dec 31".
-    out = re.sub(r"(\d)\s*[-–—]\s+(?=to\b)", r"\1 ", out, flags=re.I)
-    # A trailing calendar year: "June 15 to July 14 2017". The window is the same
-    # every season, so the year adds nothing and blocks the parse.
-    out = re.sub(r"\s+(?:19|20)\d{2}\s*$", "", out)
-
-    # A misspelled month, ONLY when one real month is a clear closest match.
-    def fix_word(m):
-        w = m.group(0)
-        lw = w.lower()
-        if any(lw == mo or mo.startswith(lw) for mo in _MONTHS):
-            return w                                  # already valid or a prefix
-        near = difflib.get_close_matches(lw, _MONTHS, n=2, cutoff=0.8)
-        if len(near) == 1:
-            return near[0][:3].capitalize()
-        return w
-
-    out = re.sub(r"\b[A-Za-z]{3,9}(?=\.?\s+\d)", fix_word, out)
-    return out
-
-
-def interpret_dates(text: str) -> dict:
-    """Structured form of a `Dates` cell, alongside the verbatim string.
-
-    Returns `{start, end, open_ended, parsed}`. `parsed` False means a human should
-    look — it is how a source typo ("Aprl 1 to Jun 15", "Nov 01- to Dec 31") surfaces
-    instead of silently becoming a window that is not what the page says.
-    """
-    from pipeline.regs.parsing.dates import parse_date_window
-
-    raw = (text or "").strip()
-    out = {"start": None, "end": None, "open_ended": False, "parsed": False,
-           "repaired_from": None}
-    if not raw:
-        return out
-
-    if not _first_pass_parses(raw):
-        fixed = _repair_dates(raw)
-        if fixed != raw and _first_pass_parses(fixed):
-            out["repaired_from"] = raw
-            raw = fixed
-
-    if _RE_OPEN_ENDED.search(raw):
-        out["open_ended"] = True
-        head = _RE_YEAR.sub("", _RE_OPEN_ENDED.sub("", raw)).strip(" .,-–—")
-        if head:
-            w = parse_date_window(head)
-            if w is not None:
-                out["start"] = str(w).split(" - ")[0].split(" to ")[0].strip()
-        out["parsed"] = True
-        return out
-
-    w = parse_date_window(raw)
-    if w is not None:
-        out["parsed"] = True
-        text_w = str(w)
-        for sep in (" - ", " to ", " – "):
-            if sep in text_w:
-                a, b = text_w.split(sep, 1)
-                out["start"], out["end"] = a.strip(), b.strip()
-                break
-        else:
-            out["start"] = out["end"] = text_w.strip()
-    return out
-
-
 @dataclass
 class RuleRecord:
     """A regulation, keyed only by the fingerprint of the location it sits on.
@@ -245,25 +149,9 @@ class RuleRecord:
     species: str
     dates: str
     limits_gear: str
-    no_fishing: bool
-    non_retention: bool
-    hatchery_marked_only: bool
-    bait_ban: bool
-    single_barbless_hook: bool
-    daily_limit: Optional[int]
     fishery_notices: List[Dict[str, str]]
     source: str
     order: int
-    #: Derived from `dates`; the verbatim string above is always kept.
-    date_start: Optional[str] = None
-    date_end: Optional[str] = None
-    date_open_ended: bool = False
-    #: False = the string did not yield a window even after repair. Surfaces a source
-    #: problem rather than inventing a window the page does not state.
-    date_parsed: bool = False
-    #: The verbatim string, when an unambiguous typo had to be repaired to read it.
-    #: Non-null means "we changed this to parse it" — auditable, never silent.
-    date_repaired_from: Optional[str] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -330,16 +218,9 @@ def extract(u: Untangled) -> tuple[List[Location], List[RuleRecord], dict]:
             seen[loc.fingerprint] = loc
             locations.append(loc)
         for r in rule_rows:
-            dw = interpret_dates(r.dates)
             rules.append(RuleRecord(
                 fingerprint=loc.fingerprint,
                 species=r.species or "All", dates=r.dates, limits_gear=r.limits_gear,
-                date_start=dw["start"], date_end=dw["end"],
-                date_open_ended=dw["open_ended"], date_parsed=dw["parsed"],
-                date_repaired_from=dw["repaired_from"],
-                no_fishing=r.no_fishing, non_retention=r.non_retention,
-                hatchery_marked_only=r.hatchery_marked_only, bait_ban=r.bait_ban,
-                single_barbless_hook=r.single_barbless_hook, daily_limit=r.daily_limit,
                 fishery_notices=r.fishery_notices, source=r.source, order=order,
             ))
             order += 1

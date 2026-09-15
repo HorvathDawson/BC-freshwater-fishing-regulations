@@ -126,7 +126,7 @@ def check_region(slug: str, parsed: ParsedRegion, u: Untangled,
         if sp and sp not in KNOWN_SPECIES:
             warn("unknown_species", f"{r.species!r}")
 
-    from pipeline.regs.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.typed import interpret_dates
 
     for r in parsed.rows:
         d = (r.dates or "").strip()

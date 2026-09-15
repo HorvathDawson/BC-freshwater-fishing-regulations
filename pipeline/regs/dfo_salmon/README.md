@@ -19,17 +19,46 @@ regions from `pac.dfo-mpo.gc.ca`.
 .venv/bin/python -m pytest pipeline/tests/test_dfo_salmon.py
 ```
 
-Three stages, deliberately separate:
+Five stages, deliberately separate:
 
 | module | job |
 |---|---|
 | `fetch.py` | snapshot the page, validate it, hash it, never overwrite good with bad |
-| `parse.py` | faithful transcription — every `<tr>` becomes one row, nothing merged |
+| `parse.py` | faithful transcription — every `<tr>` becomes one row, nothing read |
 | `untangle.py` | regroup into waters → reaches → rules + the defaults, for consumption |
+| `typed.py` | **the whole decode** — limits and dates read once, then typed rules |
+| `feed.py` | write those rules as a feed, keyed by the locator fingerprint |
 
 `parse.py` output is what you store; `untangle.py` output is what you read and what a
 resolver should bind to. `untangle.verify()` asserts every parsed row lands in exactly
 one rule, so the readable view can never quietly lose a rule the transcription had.
+
+The last two are the catalogue move: the corpus left the prose model that the synopsis
+retired in `1cc991fa`. Because these pages are a *table*, the conversion is a pure
+function of the row and spends no credits — unlike the synopsis reparse it mirrors.
+
+`parse.py` reads nothing out of the `Limits/Gear` or `Dates` cells, and `locations.py` reads
+nothing out of them either. Both decodes used to live upstream — flags on the row, a date window
+on the `RuleRecord` — and were carried through two more dataclasses to reach the one consumer
+that ever read them, which meant a wording had to be fixed in two modules. That is how ten
+`Finfish closure` rows came to state nothing at all. The link structure (`fishery_notices`)
+stays in the transcription, because only the HTML can see an `<a>`.
+
+The dates decode earns its place here rather than merely sitting here: **`CatalogueRule` does not
+check that a window parses** — the retired prose `Rule` did — so `windows=["Smarch 40 to
+Bluneteen 99"]` builds without complaint. `to_rules` now sends an unreadable season to review and
+publishes an unambiguous source typo repaired (`"Aprl 1 to Jun 15"` -> `"Apr 1 to Jun 15"`),
+which restores the guard the catalogue dropped. An EMPTY cell stays a fact: no window means the
+rule applies all year.
+
+**Rules are a feed; locators are curated.** They meet at read time and never in one
+file, the same way `data/curated/gauges/matches.json` holds the station-to-node match
+while the readings arrive on a schedule and are joined at build time. `feed.py` takes no
+curated input at all, so the scheduled run cannot corrupt anything a curator has touched:
+
+    curated  data/curated/regulations/entries/dfo_salmon/  item, cut-points, tributaries
+    feed     data/generated/regs/dfo_salmon/typed/         species, dates, limits, gear
+    join     EntryFile.by_fingerprint()                    fingerprint -> location_id
 
 ---
 

@@ -156,12 +156,6 @@ class Rule:
     species: str
     dates: str
     limits_gear: str
-    no_fishing: bool = False
-    non_retention: bool = False
-    hatchery_marked_only: bool = False
-    bait_ban: bool = False
-    single_barbless_hook: bool = False
-    daily_limit: Optional[int] = None
     fishery_notices: List[Dict[str, str]] = field(default_factory=list)
     source: str = "table"
     row_index: int = -1
@@ -172,12 +166,6 @@ class Rule:
             species=r.species or "All",
             dates=r.dates,
             limits_gear=r.limits_gear,
-            no_fishing=r.no_fishing,
-            non_retention=r.non_retention,
-            hatchery_marked_only=r.hatchery_marked_only,
-            bait_ban=r.bait_ban,
-            single_barbless_hook=r.single_barbless_hook,
-            daily_limit=r.daily_limit,
             fishery_notices=r.fishery_notices,
             source=r.source,
             row_index=r.row_index,

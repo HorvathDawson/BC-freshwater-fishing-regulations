@@ -170,13 +170,6 @@ class RegRow:
     #: banner that states its restriction in prose and publishes no rows beneath it
     #: (Region 6 section F). Prose-only rules are invisible to a resolver otherwise.
     source: str = "table"
-    #: Derived, best-effort flags. The source text is always kept verbatim above.
-    no_fishing: bool = False
-    non_retention: bool = False
-    hatchery_marked_only: bool = False
-    bait_ban: bool = False
-    single_barbless_hook: bool = False
-    daily_limit: Optional[int] = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -367,27 +360,6 @@ def _expand_grid(table: Tag) -> List[List[Optional[Cell]]]:
 # ---------------------------------------------------------------------------
 # Derived flags
 # ---------------------------------------------------------------------------
-
-
-_RE_DAILY = re.compile(r"\b(\d+)\s+(?:hatchery[- ]marked\s+)?per\s+day\b", re.I)
-
-
-def _flags(limits: str) -> dict:
-    low = limits.lower()
-    daily = None
-    m = _RE_DAILY.search(limits)
-    if m:
-        daily = int(m.group(1))
-    elif re.search(r"\bnon[- ]retention\b|\bno fishing\b", low):
-        daily = 0
-    return {
-        "no_fishing": "no fishing" in low,
-        "non_retention": bool(re.search(r"\bnon[- ]retention\b", low)),
-        "hatchery_marked_only": "hatchery marked" in low or "hatchery-marked" in low,
-        "bait_ban": "bait ban" in low or "no natural bait" in low,
-        "single_barbless_hook": "single barbless hook" in low,
-        "daily_limit": daily,
-    }
 
 
 def _areas_in(text: str) -> List[int]:
@@ -594,7 +566,6 @@ def parse_region(
                 areas=areas,
                 fishery_notices=fns,
                 see_also=see,
-                **_flags(limits.text),
             )
         )
         idx += 1
@@ -624,7 +595,6 @@ def parse_region(
                 limits_gear=sec.title,
                 precedence=1,
                 source="section_banner",
-                **_flags(sec.title),
             )
         )
         idx += 1
