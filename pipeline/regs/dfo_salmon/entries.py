@@ -268,6 +268,182 @@ class EntryFile:
 DUPLICATE_THRESHOLD = 0.87
 
 
+#: THE ONLY SCOPE THAT IS UNAMBIGUOUSLY THE WHOLE WATER IS NO SCOPE AT ALL.
+#:
+#: The parsed `op` looked like it could stand in for this and it cannot. `described`,
+#: `named_tributaries` and `tributary_set` are the classifier's leftover buckets, and what sits in
+#: them is not whole water:
+#:
+#:     [described]         Babine Lake    "within a 400 m radius of the mouth of Pinkut Creek."
+#:     [tributary_set]     Bulkley River  "all tributaries ... other than the Suskwa River."
+#:     [named_tributaries] Osoyoos Lake   "the portion ... north of the bridge at Highway 3"
+#:     [described]         Skeena River   "mainstem waters only."
+#:
+#: Binding the first whole applies a 400 m radius closure to the entire lake; the second adds a
+#: mainstem the scope omits; the third opens a lake the page bounds at a bridge. So the op is not
+#: consulted. A locator qualifies when DFO printed NOTHING in the specific-area column — the row
+#: is the water and the whole of it — and every locator that says anything at all goes to a human.
+_WHOLE_SCOPE_IS_EMPTY = True
+
+
+def bind_whole(ef: EntryFile) -> tuple[list, list]:
+    """Write `{op: whole}` where the scope column is empty. Returns (wrote, held).
+
+    Each condition below is a way of being wrong:
+
+    * the water must be bound to a registry item — with no item there is nothing to take the whole of;
+    * the locator must have no extent — an existing binding is a curator's and is never overwritten;
+    * the scope column must be **empty**, because any text may narrow the reach (see above);
+    * **no spatial caveat** — `narrows_extent` marks a note that makes the reach smaller than the
+      water. Binding those whole publishes a rule as reaching water the source closes, which is the
+      one direction of error that matters.
+    """
+    wrote, held = [], []
+    for loc in ef.locations:
+        st = loc.source_text or {}
+        scope = (st.get("specific_area") or "").strip()
+        if loc.binding.extents:
+            continue
+        water = ef.water(loc.water_id) if loc.water_id else None
+        if not (water and water.item_ids):
+            held.append((loc.location_id, "water is not bound to a registry item"))
+            continue
+        if scope:
+            held.append((loc.location_id, f"scope names something: {scope[:56]!r}"))
+            continue
+        if loc.binding.spatial_caveat:
+            held.append((loc.location_id, "a note narrows the extent — binding whole reads too open"))
+            continue
+        loc.binding.extents = [Extent(op="whole")]
+        wrote.append(loc.location_id)
+    return wrote, held
+
+
+#: How each cascade default's scope becomes an extent. Keyed by `(region slug, section)`.
+#:
+#: TWO THINGS THIS TABLE ENCODES, both measured rather than assumed:
+#:
+#: 1. **A WATERSHED IS A WALK, NOT A POLYGON.** `{op: whole, item_id: <mainstem>}` with
+#:    tributaries on IS the watershed — the walk follows the flow graph, so it is exact where a
+#:    drainage polygon is an approximation. Measured: Skeena 84,624 sections, Nass 39,097,
+#:    Fraser 325,602, and the three basins share EXACTLY ZERO sections with one another. No
+#:    `areas.json` row and no atlas rebuild are needed, and `item_id` supplies the universe a
+#:    cascade default lacks (it has no water record of its own).
+#:
+#: 2. **DFO REGION 6 IS NOT PROVINCIAL REGION 6.** DFO puts Haida Gwaii in Region 6 section D;
+#:    the province puts it in Region 1, and `area:region:6` contains none of it (measured: the
+#:    islands are 100% inside `area:region:1`). Neither authority is wrong and neither region may
+#:    be changed — the provincial corpus subtracts Haida Gwaii from its Region 1 table for the
+#:    same reason (`z1:hg_quota`, and the case `Extent.outside_area` was written for). So section
+#:    A is the UNION of the two, which `extents` already expresses because a rule's extents union.
+#:    Section A = 586,828 + 25,772 = 612,600 sections, exactly additive.
+#: Haida Gwaii. DFO puts it in Region 6 section D; the province puts it in Region 1, and
+#: `area:region:6` contains none of it — so section A must name both.
+HAIDA_GWAII = "area:mu_group:management_units_6_12_and_6_13"
+
+SCOPE_EXTENTS: Dict[tuple, List[dict]] = {
+    ("6", "A"): [{"op": "within", "area_id": "area:region:6"},
+                 {"op": "within", "area_id": HAIDA_GWAII}],
+    # A WATERSHED IS A PREFIX OF THE FWA CODE, so the registry can hold it as an area rather than
+    # every consumer repeating a walk. Cross-checked: of the 84,624 sections `build_reach` reaches
+    # walking the Skeena, 84,617 carry prefix `400-` — 99.99%. `area:basin:400-` is minted by
+    # `pipeline.atlas.registry.build`.
+    # Bound by WALK, not by `area:basin:`, because the walk resolves against the atlas that exists
+    # today while a basin area is minted only by the next registry build. The two agree to 99.99%,
+    # so switching later is safe — but not at the cost of unbinding something that works now.
+    ("6", "B"): [{"op": "whole", "item_id": "gnis:2936"}],            # Skeena watershed
+    ("6", "C"): [{"op": "whole", "item_id": "gnis:3206"}],            # Nass watershed
+    ("6", "D"): [{"op": "within", "area_id": HAIDA_GWAII}],
+    # F is "the portions of the FRASER watershed IN REGION 6" — a watershed meeting an
+    # administrative area, which no op expresses because every op only ever ADDS water.
+    # `within_area` is exactly that intersection.
+    ("6", "F"): [{"op": "whole", "item_id": "gnis:39325"}],           # Fraser watershed
+    # E IS A RESIDUAL: "Other Mainland Watersheds" — the region minus its siblings. A rule's
+    # extents UNION, so this cannot be written as more extents; `outside_areas` is the subtraction.
+    # The list mirrors `Scope.minus` (B, C, D, F) and must be regenerated from it, never hand-held,
+    # or a newly added section silently leaves E too wide.
+    ("6", "E"): [{"op": "within", "area_id": "area:region:6",
+                  "outside_areas": ["area:basin:400-", "area:basin:500-",
+                                    "area:basin:100-", HAIDA_GWAII]},
+                 {"op": "within", "area_id": HAIDA_GWAII,
+                  "outside_areas": [HAIDA_GWAII]}],
+    ("4", "region"): [{"op": "within", "area_id": "area:region:4"}],
+}
+
+#: Scopes deliberately NOT in the table, and why. Held rather than guessed.
+SCOPE_HELD = {
+    ("6", "B(i)"): "needs the CNR Railway Bridge cut — authored in splits.json, awaiting an "
+                   "atlas rebuild to become a boundary on the Skeena",
+    ("6", "B(ii)"): "same cut, other side",
+    ("6", "E"): "a RESIDUAL: region 6 minus B, C, D and F. A rule's extents UNION, so the "
+                "subtraction cannot be written as more extents, and `outside_area` takes an "
+                "`area:` id while B/C/F are walks. Needs a general `minus`.",
+    ("5b", "region"): "scoped to Management Units 5-6 to 5-11, which has no area yet. Two "
+                      "readings agree on the water and either would do: the MU list the page "
+                      "prints (an `areas.json` mu_group row, like Haida Gwaii's), or the "
+                      "watershed the page's own title names — 5b is the COASTAL half of region "
+                      "5 and 5a the Fraser half, so 5b is region 5 minus the Fraser walk, which "
+                      "needs the same `minus` as section E. The MU list is the operative text, "
+                      "so prefer it and use the watershed as the cross-check. NOTE its "
+                      "'in the aggregate (combined total)' is a RULE-side quota shared across "
+                      "waters, not a geography: `CatalogueRule.combined` + `aggregation_domain` "
+                      "already carry exactly that (the Kootenay West Arm kokanee quota is the "
+                      "worked precedent).",
+}
+
+#: A tidal-area scope is keyed by the AREAS it names, not by its section letter — three of them
+#: sit under E and would otherwise collect E's own reason.
+_TIDAL_HELD = ("'all streams flowing into tidal water Area N' is a drainage relation, not "
+               "containment: the streams are freshwater ABOVE the marine area, so no polygon "
+               "contains them. Needs the PFMA subarea layer re-fetched — the local copy has been "
+               "dissolved to a single row — then a drainage membership pass at atlas build.")
+
+
+#: The tidal scopes, keyed by the Area numbers the page names. `feature_types` is load-bearing:
+#: Area 5 and Area 6 say "streams", Areas 3-4-5-6 says "streams AND LAKES", and that is the only
+#: field that carries the difference.
+TIDAL_EXTENTS: Dict[tuple, List[dict]] = {
+    (5,): [{"op": "within", "area_id": "area:drains_to:pfma_5", "feature_types": ["stream"]}],
+    (6,): [{"op": "within", "area_id": "area:drains_to:pfma_6", "feature_types": ["stream"]}],
+    (3, 4, 5, 6): [{"op": "within", "area_id": f"area:drains_to:pfma_{n}"} for n in (3, 4, 5, 6)],
+}
+
+
+def bind_scopes(ef: EntryFile) -> tuple[list, list]:
+    """Write the cascade defaults' extents from `SCOPE_EXTENTS`. Returns (wrote, held).
+
+    Never overwrites an existing binding, exactly like `bind_whole`. A scope with no table entry
+    is HELD with the reason from `SCOPE_HELD`, so an unbound default is always explained rather
+    than silently empty.
+    """
+    wrote, held = [], []
+    for loc in ef.locations:
+        if loc.water_id or loc.binding.extents:
+            continue                      # a named water, or already bound
+        areas_named = tuple((loc.source_text or {}).get("areas") or ())
+        if areas_named:
+            exts = TIDAL_EXTENTS.get(areas_named)
+            if not exts:
+                held.append((loc.location_id, f"no tidal extent defined for Areas {list(areas_named)}"))
+                continue
+            loc.binding.extents = [Extent(**e) for e in exts]
+            if loc.binding.tributaries is None:
+                loc.binding.tributaries = False   # the drainage area already IS the whole basin
+            wrote.append(loc.location_id)
+            continue
+        key = (ef.region, loc.section or "")
+        exts = SCOPE_EXTENTS.get(key)
+        if not exts:
+            held.append((loc.location_id, SCOPE_HELD.get(key, f"no extent defined for {key}")))
+            continue
+        loc.binding.extents = [Extent(**e) for e in exts]
+        if loc.binding.tributaries is None:
+            # A watershed scope reaches its tributaries by definition; that IS the watershed.
+            loc.binding.tributaries = any(e.get("item_id") for e in exts)
+        wrote.append(loc.location_id)
+    return wrote, held
+
+
 def propose_groups(ef: EntryFile, threshold: float = DUPLICATE_THRESHOLD) -> List[tuple]:
     """Fold near-identical scopes on the same water into one primary.
 
@@ -716,7 +892,7 @@ def _untangled(slug: str, out_dir: Path):
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["seed", "reconcile", "group", "contest"])
+    ap.add_argument("command", choices=["seed", "reconcile", "group", "contest", "bind-whole", "bind-scopes"])
     ap.add_argument("--regions", nargs="+", choices=ALL_SLUGS)
     ap.add_argument("--scrape", type=Path, default=GENERATED.regs.dfo_salmon)
     ap.add_argument("--entries-dir", type=Path, default=ENTRIES_DIR)
@@ -725,6 +901,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                          "so a seasonal revival is an exact hit rather than a review item")
     ap.add_argument("--history-dir", type=Path, default=Path("cache/dfo_salmon/history"))
     ap.add_argument("--verbose", action="store_true")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="bind-whole: report what would be written, change nothing")
     ap.add_argument("--threshold", type=float, default=DUPLICATE_THRESHOLD,
                     help="group: scope similarity above which two reaches are the same")
     ap.add_argument("--location-id", help="contest: the location to break out of its group")
@@ -745,6 +923,40 @@ def main(argv: Optional[List[str]] = None) -> int:
                 return 0
         print(f"no such location: {args.location_id}")
         return 1
+
+    if args.command == "bind-whole":
+        wrote = held = 0
+        for slug in todo:
+            slug = normalize_slug(slug)
+            ef = load(slug, args.entries_dir)
+            w, h = bind_whole(ef)
+            if w and not args.dry_run:
+                save(ef, args.entries_dir)
+            wrote += len(w); held += len(h)
+            print(f"region {slug:<3} {ef.region_name:<38} whole={len(w):<4} held={len(h)}")
+            if args.verbose:
+                for lid, why in h:
+                    print(f"      held  {lid:<44} {why}")
+        print(f"\n{wrote} locator(s) bound to the whole water; {held} held for a curator"
+              + (" (dry run, nothing written)" if args.dry_run else ""))
+        return 0
+
+    if args.command == "bind-scopes":
+        wrote = held = 0
+        for slug in todo:
+            slug = normalize_slug(slug)
+            ef = load(slug, args.entries_dir)
+            w, h = bind_scopes(ef)
+            if w and not args.dry_run:
+                save(ef, args.entries_dir)
+            wrote += len(w); held += len(h)
+            if w or h:
+                print(f"region {slug:<3} {ef.region_name:<38} bound={len(w):<3} held={len(h)}")
+            for lid, why in h:
+                print(f"      held  {lid:<34} {why}")
+        print(f"\n{wrote} cascade default(s) bound; {held} held"
+              + (" (dry run, nothing written)" if args.dry_run else ""))
+        return 0
 
     if args.command == "group":
         total = folded = 0

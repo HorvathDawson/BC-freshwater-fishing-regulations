@@ -47,4 +47,7 @@ literal refuses the connection while the app is running fine.
   curated splits that do not resolve — rules naming them go to review.
 - 22 curated splits bind only through an ALIAS (a gauge that landed on the same measure). That
   works everywhere, but it means the id stored is the gauge's, not the dam's.
-- The DFO salmon corpus is still on the retired prose model.
+- The DFO salmon corpus is on the rule catalogue: 438 scraped rows -> 517 typed rules, written as
+  a feed by `pipeline.regs.dfo_salmon.feed` and joined to the curated locators by fingerprint.
+  Not ingested into the bundle yet, and 243 of the 247 locators still have no extent — that is
+  the cut-point curation, not a gap in the format.

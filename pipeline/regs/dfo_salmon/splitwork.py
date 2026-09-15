@@ -32,7 +32,19 @@ from pipeline.common.curated import GENERATED
 
 HISTORY = Path("cache/dfo_salmon/history")
 RAW = Path("cache/dfo_salmon/raw")
-SKIP_OPS = {"whole_water", "tributaries_only", "described", "tributary_set", "named_tributaries"}
+#: Locators already carrying an extent are done and drop off the queue. NOTHING ELSE IS FILTERED.
+#:
+#: This used to be `SKIP_OPS` — a set of parsed `op` values whose locators were dropped before the
+#: worklist was built, on the theory that they named no place. It hid 123 unbound locators carrying
+#: 253 rules, and the classifier was plainly wrong about them:
+#:
+#:     [described]         Cayeghle River  "including Colonial River."
+#:     [named_tributaries] Qualicum River  "All open portions of the Qualicum River"
+#:     [described]         Babine Lake     "within a 400 m radius of the mouth of Pinkut Creek."
+#:
+#: `described` is the classifier's own "could not decompose" bucket, which is exactly the set a
+#: human most needs to see. The op is kept as a triage HINT on each row and never as a filter: a
+#: complete locator is its own row, and whether it needs a cut is a curator's call, not a regex's.
 COORD_ANCHORS = {"bridge", "boundary_sign", "road", "dam_or_hatchery", "point", "place_name"}
 TRIB_RE = re.compile(r"\b([A-Z][A-Za-z'\-]*(?:\s+[A-Z][A-Za-z'\-]*)*\s+(?:River|Creek))\b")
 
@@ -115,6 +127,35 @@ def _registry(path=None):
     return load_registry(p if p.exists() else default_registry_path())
 
 
+def rule_weight() -> dict[str, int]:
+    """`location_id` -> how many typed rules ride on it, joined from the feed.
+
+    **This is what makes the queue orderable by consequence.** An unbound extent is not just a
+    gap in the geometry: every rule on that locator resolves to nothing until it is cut, so a
+    locator carrying nine rules costs nine regulations and one carrying one costs one. Before the
+    rules were typed there was no way to tell those apart, and the worklist could only be ranked
+    by how many anchors a water happened to mention.
+
+    Returns an empty map when the feed has not been built — the column then reads 0 and the
+    worklist behaves exactly as it did before, rather than failing.
+    """
+    feed_dir = GENERATED.regs.dfo_salmon / "typed"
+    if not feed_dir.exists():
+        return {}
+    per_fp: dict[str, int] = {}
+    for f in sorted(feed_dir.glob("region-*.json")):
+        for loc in json.loads(f.read_text(encoding="utf-8")).get("locators", []):
+            per_fp[loc["fingerprint"]] = per_fp.get(loc["fingerprint"], 0) + len(loc["rules"])
+
+    out: dict[str, int] = {}
+    for f in sorted(ENTRIES.glob("region-*.json")):
+        for loc in json.loads(f.read_text(encoding="utf-8")).get("locations", []):
+            n = sum(per_fp.get(fp, 0) for fp in loc.get("fingerprints") or [])
+            if n:
+                out[loc["location_id"]] = n
+    return out
+
+
 def waters(reg) -> list[dict]:
     """One row per DFO water that has at least one place-naming locator."""
     by_stream_name: dict[str, list] = {}
@@ -125,6 +166,7 @@ def waters(reg) -> list[dict]:
     def wscs(it):
         return [x.split(":", 1)[1] for x in it.ref_ids if x.startswith("wsc:")]
 
+    weights = rule_weight()
     out: list[dict] = []
     for p in sorted(ENTRIES.glob("region-*.json")):
         doc = json.loads(p.read_text(encoding="utf-8"))
@@ -132,8 +174,8 @@ def waters(reg) -> list[dict]:
         locs: dict[str, list] = {}
         for loc in doc["locations"]:
             st = loc.get("source_text") or {}
-            if (st.get("op") or "") in SKIP_OPS:
-                continue
+            if loc.get("binding", {}).get("extents"):
+                continue                      # already bound — the only reason to drop a locator
             if loc.get("water_id") in by_id:
                 locs.setdefault(loc["water_id"], []).append(loc)
         for wid, ls in locs.items():
@@ -164,7 +206,8 @@ def waters(reg) -> list[dict]:
                 rows.append({"op": st.get("op"), "anchors": st.get("anchor_types") or [],
                              "text": text, "kind": kind, "detail": detail,
                              "status": loc.get("status") or "active",
-                             "loc": loc["location_id"]})
+                             "loc": loc["location_id"],
+                             "rules": weights.get(loc["location_id"], 0)})
             out.append({"slug": p.stem.split("region-")[1], "water": w["name"],
                         "region": w.get("region_number"), "sections": w.get("sections") or [],
                         "items": items, "cuts": cuts, "locators": rows})
@@ -312,6 +355,9 @@ def main() -> None:
     ap.add_argument("name", nargs="?", help="water name (substring); omit for the worklist")
     ap.add_argument("--registry")
     ap.add_argument("--all", action="store_true", help="render every water needing a cut")
+    ap.add_argument("--by-impact", action="store_true",
+                    help="rank the worklist by how many RULES are waiting on each water's cuts, "
+                         "rather than by how many anchors it mentions")
     ap.add_argument("--extents", action="store_true",
                     help="show what the water's locators RESOLVE TO once bound, grouped by section "
                          "rather than by wording. Needs a built graph.")
@@ -339,9 +385,18 @@ def main() -> None:
     def _need(w, status=None):
         return sum(1 for r in w["locators"] if r["kind"] != "satisfied"
                    and (status is None or (r["status"] == "active") == (status == "active")))
+
+    def _stalled(w, status="active"):
+        """Rules that resolve to nothing until this water's cuts are placed."""
+        return sum(r.get("rules", 0) for r in w["locators"]
+                   if r["kind"] != "satisfied"
+                   and (r["status"] == "active") == (status == "active"))
     # ranked by ACTIVE need first — the live page is the priority — then dormant, so a water with
     # only dormant gaps still appears rather than dropping off the list entirely.
-    ranked = sorted(ws, key=lambda w: (-_need(w, "active"), -_need(w, "dormant"), w["water"]))
+    if args.by_impact:
+        ranked = sorted(ws, key=lambda w: (-_stalled(w), -_need(w, "active"), w["water"]))
+    else:
+        ranked = sorted(ws, key=lambda w: (-_need(w, "active"), -_need(w, "dormant"), w["water"]))
     todo = [w for w in ranked if _need(w)]
     if args.all:
         for w in todo:
@@ -355,8 +410,12 @@ def main() -> None:
     print("ACTIVE locators: " + " · ".join("%s %d" % (k, v) for k, v in tot.most_common()))
     print("plus %d DORMANT locators needing a cut — archived wordings a regulation update can "
           "bring back,\n     so worth pinning, just after the live page\n" % dorm)
-    print("%-30s %-6s %5s %5s %5s %6s %6s  %s"
-          % ("WATER", "REGION", "need", "MAP", "TRIB", "maybe?", "dormnt", "cuts"))
+    stalled = sum(_stalled(w) for w in todo)
+    print("%d rules resolve to nothing until these cuts are placed "
+          "(%d more behind dormant locators)\n"
+          % (stalled, sum(_stalled(w, "dormant") for w in todo)))
+    print("%-30s %-6s %5s %5s %5s %5s %6s %6s  %s"
+          % ("WATER", "REGION", "rules", "need", "MAP", "TRIB", "maybe?", "dormnt", "cuts"))
     print("   'maybe?' = of the ACTIVE ones, how many already have a plausible existing cut —\n"
           "   a rewording the strict label test cannot see. Check those before pinning anything.")
     for w in todo:
@@ -364,8 +423,9 @@ def main() -> None:
         maybe = sum(1 for r in w["locators"]
                     if r["kind"] != "satisfied" and r["status"] == "active"
                     and cover_candidates(r["text"], w["cuts"], w["water"]))
-        print("%-30s r%-5s %5d %5d %5d %6d %6d  %d"
-              % (w["water"][:30], w["region"], sum(v for k, v in c.items() if k != "satisfied"),
+        print("%-30s r%-5s %5d %5d %5d %5d %6d %6d  %d"
+              % (w["water"][:30], w["region"], _stalled(w),
+                 sum(v for k, v in c.items() if k != "satisfied"),
                  c["coordinate"], c["confluence"], maybe, _need(w, "dormant"), len(w["cuts"])))
 
 

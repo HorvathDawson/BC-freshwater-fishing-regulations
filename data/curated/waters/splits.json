@@ -7538,6 +7538,25 @@
      },
      "note": "",
      "_note": "Cedarvale on the Skeena — the bound for the Region 6 winter stream closure ('any stream in the watershed of the Skeena River upstream of Cedarvale, Jan 1-June 15'). 55°01'09\"N 128°19'50\"W."
+    },
+    {
+     "id": "skeena_river__cnr_railway_bridge_terrace",
+     "label": "CNR Railway Bridge at Terrace",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.56104,
+       54.51568
+      ],
+      "is_lonlat": true
+     },
+     "note": "THE B(i)/B(ii) SCOPE DIVIDE. DFO Region 6 splits the whole Skeena watershed at this bridge: section B(i) is everything upstream, B(ii) everything downstream, and the two carry different defaults. One split, two scopes — so this cut decides 10 default rules and which set 68 named waters inherit.",
+     "_note": "[human-located 2026-09-15] user-supplied coord (54.51567537685832, -128.56103728003353), rounded to 5 dp. Verified 14.9 m from the Skeena mainstem blue line (BLUE_LINE_KEY 360887278) at downstream route measure ~131,894 m, between the Zymoetz confluence and the Usk gauge — i.e. at Terrace, as the regulation says.",
+     "_coord": [
+      -128.56104,
+      54.51568
+     ]
     }
    ]
   },

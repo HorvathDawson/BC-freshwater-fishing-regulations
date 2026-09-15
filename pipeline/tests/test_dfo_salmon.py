@@ -13,6 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import json
+import re
 import pytest
 
 from pipeline.regs.dfo_salmon.parse import (
@@ -21,6 +22,7 @@ from pipeline.regs.dfo_salmon.parse import (
     parse_region,
 )
 from pipeline.common.curated import CURATED, GENERATED, SOURCE
+from pipeline.regs.dfo_salmon.typed import decode
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dfo_salmon"
 
@@ -65,7 +67,7 @@ def test_region7_row_content():
     assert species == {"Sockeye", "Pink"}
     for row in parsed.rows:
         assert row.waters == "Nechako River"
-        assert row.bait_ban is True
+        assert decode(row.limits_gear)["bait_ban"] is True
         assert [fn["text"] for fn in row.fishery_notices] == ["FN0851"]
 
 
@@ -151,7 +153,7 @@ def test_section_bi_catchall_closes_everything_before_june_16(r6):
     """B(i)'s catch-all rows are the fallback for the upper Skeena."""
     catchall = [r for r in r6.rows if r.section_key == "B(i)" and r.precedence == 1]
     assert len(catchall) == 5
-    assert all(r.no_fishing for r in catchall)
+    assert all(decode(r.limits_gear)["no_fishing"] for r in catchall)
     closed = next(r for r in catchall if r.species == "All")
     assert closed.dates == "Jan 1 to Jun 15"
 
@@ -167,7 +169,7 @@ def test_section_f_closure_is_synthesised(r6):
     f = [r for r in r6.rows if r.section_key == "F"]
     assert len(f) == 1
     assert f[0].source == "section_banner"
-    assert f[0].no_fishing is True
+    assert decode(f[0].limits_gear)["no_fishing"] is True
     assert f[0].species == "All"
 
 
@@ -196,12 +198,18 @@ def test_fishery_notices_are_captured(r6):
             assert fn["href"].startswith("https://notices.dfo-mpo.gc.ca/")
 
 
-def test_derived_flags(r6):
+def test_the_transcription_reads_nothing_out_of_the_limits_cell(r6):
+    """`parse.py` hands over the columns as printed. The decode lives with the rest of the
+    lookup in `typed.py`, because a decode split across two modules is one wording fixed in
+    two places — which is how ten `Finfish closure` rows came to state nothing at all."""
+    assert not hasattr(r6.rows[0], "no_fishing"), "a derived flag is back on the transcription"
+
     row = next(r for r in r6.rows if r.waters == "Babine Lake" and "Aug 1 to Aug 27" in r.dates)
-    assert row.daily_limit == 2
-    assert row.no_fishing is False
-    closed = next(r for r in r6.rows if r.no_fishing)
-    assert closed.daily_limit == 0
+    says = decode(row.limits_gear)
+    assert says["daily_limit"] == 2 and says["no_fishing"] is False
+
+    closed = next(r for r in r6.rows if decode(r.limits_gear)["no_fishing"])
+    assert decode(closed.limits_gear)["daily_limit"] == 0
 
 
 # ---------------------------------------------------------------------------
@@ -1195,7 +1203,7 @@ def test_validator_catches_a_lost_rule():
 def test_interpret_dates(text, start, end, open_ended):
     """"until further notice" is a real shape — an announced start with no announced
     end — not a parse failure. It appears 35+ times across the archives."""
-    from pipeline.regs.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.typed import interpret_dates
 
     got = interpret_dates(text)
     assert got["open_ended"] is open_ended
@@ -1215,7 +1223,7 @@ def test_unambiguous_typos_are_repaired_and_recorded(text, start, end):
     """All three are real strings from archived pages, and each has exactly one
     possible reading — so repairing them is safe. `repaired_from` keeps the verbatim
     original, so the repair is auditable rather than invisible."""
-    from pipeline.regs.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.typed import interpret_dates
 
     got = interpret_dates(text)
     assert got["parsed"] is True
@@ -1227,7 +1235,7 @@ def test_unambiguous_typos_are_repaired_and_recorded(text, start, end):
 def test_ambiguous_text_is_never_repaired_into_a_window(text):
     """The guard on the repair: only ONE candidate month may match. Anything else
     stays unparsed rather than becoming a window the page does not state."""
-    from pipeline.regs.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.typed import interpret_dates
 
     got = interpret_dates(text)
     assert got["parsed"] is False
@@ -1235,21 +1243,24 @@ def test_ambiguous_text_is_never_repaired_into_a_window(text):
 
 
 def test_a_clean_date_is_never_marked_repaired():
-    from pipeline.regs.dfo_salmon.locations import interpret_dates
+    from pipeline.regs.dfo_salmon.typed import interpret_dates
 
     for t in ("Apr 1 to Mar 31", "Aug 1 to Aug 27", "Sept 1 to Oct 15"):
         assert interpret_dates(t)["repaired_from"] is None
 
 
 def test_every_live_rule_has_a_window_or_a_reason():
+    """The transcription carries the `Dates` cell verbatim and reads nothing out of it, so the
+    window is interpreted here, the same way `typed.to_rules` does it."""
     from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.typed import interpret_dates
     from pipeline.regs.dfo_salmon.untangle import untangle
     from pipeline.regs.dfo_salmon.validate import NO_WINDOW_DATES
 
     for slug in ("1", "2", "6"):
         _locs, rules, _ = extract(untangle(parse_region(_load(slug), slug)))
         for r in rules:
-            if not r.date_parsed:
+            if not interpret_dates(r.dates)["parsed"]:
                 assert r.dates.strip().lower() in NO_WINDOW_DATES, (slug, r.dates)
 
 
@@ -2066,3 +2077,474 @@ def test_a_dfo_name_variant_never_relabels_a_gazetted_water():
         n = by_wsc[wsc]["names"][0]
         assert n["name"] == name and n["source"] == "dfo"
         assert n["display"] is True, "FWA names this stream nothing, so the DFO name is the label"
+
+
+# ---------------------------------------------------------------------------
+# The catalogue move — a scraped row becomes a typed rule
+#
+# The synopsis corpus retired the prose model in `1cc991fa`; DFO is the half that moved
+# next. These pin the conversion, and every one of them is a wording the flags dropped
+# before the move surfaced it.
+# ---------------------------------------------------------------------------
+
+
+def _row(**kw) -> dict:
+    """A scraped row as the transcription hands it over — the printed columns, nothing read."""
+    rec = {"species": "Chinook", "dates": "Jul 1 to Aug 31", "limits_gear": "",
+           "fishery_notices": []}
+    rec.update(kw)
+    return rec
+
+
+def _typed(**kw):
+    from pipeline.regs.dfo_salmon.typed import to_rules
+    return to_rules(_row(**kw), "t", 0)
+
+
+def test_take_zero_says_whether_you_may_fish_at_all():
+    """The 605-rule defect: `take=0` alone cannot tell a closure from catch-and-release."""
+    closed, = _typed(limits_gear="No fishing for chinook")
+    assert closed.take == 0 and closed.may_target is False
+
+    release, = _typed(limits_gear="Non-retention")
+    assert release.take == 0 and release.may_target is True
+
+
+@pytest.mark.parametrize("gear", [
+    "No retention of coho",
+    "No retention of salmon",
+    "Open for salmon catch and release",
+])
+def test_release_written_the_other_three_ways(gear):
+    """Only 'Non-retention' was matched; these three read as stating nothing at all, which
+    published a water with no rule rather than one you must release."""
+    rules = _typed(species="All", limits_gear=gear)
+    assert rules[0].take == 0 and rules[0].may_target is True
+    assert not any(r.needs_review for r in rules)
+
+
+def test_finfish_closure_is_a_closure():
+    """10 rows. A closure that types as nothing is an open-looking water the page closes."""
+    rule, = _typed(species="All", limits_gear="Finfish closure")
+    assert rule.take == 0 and rule.may_target is False
+
+
+def test_dfo_typo_still_closes_the_water():
+    """DFO's own 'No fishinf for chinook'. One reading, so it is repaired rather than dropped."""
+    rule, = _typed(limits_gear="No fishinf for chinook")
+    assert rule.take == 0 and rule.may_target is False
+
+
+@pytest.mark.parametrize("gear,take", [
+    ("4 per day", 4),
+    ("4 hatchery marked per day", 4),
+    ("4 hatchery marked only per day", 4),   # the 'only' cost 4 rows their limit
+    ("4 pink per day", 4),                   # the species word cost 1 more
+])
+def test_the_count_survives_the_words_between_it_and_per_day(gear, take):
+    assert _typed(limits_gear=gear)[0].take == take
+
+
+def test_a_size_sublimit_is_its_own_rule_pointing_at_its_parent():
+    """`z2:trout_char_quota.r2` is the convention: "1 over 50 cm" WITHIN "Trout/char: 4".
+    One rule carrying both numbers is the shape that loses the 4."""
+    parent, sub = _typed(limits_gear="4 per day, only 2 over 50 cm.")
+    assert (parent.take, parent.over_cm) == (4, None)
+    assert (sub.take, sub.over_cm, sub.within) == (2, 50, parent.rule_id)
+
+
+def test_none_over_is_a_release_rule_not_a_closure():
+    parent, sub = _typed(limits_gear="4 per day, none over 50 cm")
+    assert parent.take == 4
+    assert (sub.take, sub.over_cm, sub.may_target) == (0, 50, True)
+
+
+def test_a_bundled_row_is_two_rules_of_different_types():
+    """"2 per day, bait ban" is a quota AND a bait ban — you obey both, so they never compete."""
+    from pipeline.regs.parsing.catalogue import RuleType
+    quota, bait = _typed(species="Sockeye", limits_gear="2 per day, bait ban — FN0846")
+    assert quota.type is RuleType.retention_limit and quota.take == 2
+    assert bait.type is RuleType.bait_restriction and bait.allowed is False
+    assert quota.reason == bait.reason == "FN0846", "the notice that set the row is provenance"
+
+
+def test_a_gear_rule_is_scoped_by_what_you_fish_for_not_what_you_may_keep():
+    """A hook or bait rule binds every species you may catch. `species` would read it narrower
+    than the law; `when_targeting` is the scope the tables actually state."""
+    _, bait = _typed(species="Sockeye", limits_gear="2 per day, bait ban")
+    assert bait.species == [] and bait.when_targeting == ["SK"]
+
+
+def test_all_on_a_salmon_page_means_all_salmon():
+    """Not all fish. Read as every species it would state a salmon closure over trout."""
+    from pipeline.regs.dfo_salmon.typed import species_for
+    assert species_for("All") == ["SA"]
+
+
+def test_to_be_determined_is_a_state_not_a_parse_failure():
+    rule, = _typed(species="All", limits_gear="To be determined")
+    assert rule.needs_review and "determined" in rule.review_reason
+
+
+def test_every_scraped_rule_types_and_keeps_its_chain_of_custody():
+    """All 438 rows convert, and every rule's verbatim is a span of its own row — the check
+    that caught an invented sub-limit on the synopsis corpus's first sample."""
+    from pipeline.regs.dfo_salmon.typed import row_text, to_rules
+    from pipeline.regs.parsing.catalogue import squash
+
+    rules_dir = Path(GENERATED.regs.dfo_salmon) / "rules"
+    rows = made = 0
+    for path in sorted(rules_dir.glob("region-*.json")):
+        for i, rec in enumerate(json.loads(path.read_text(encoding="utf-8"))["rules"]):
+            typed = to_rules(rec, "t", i)
+            assert typed, f"{path.name} row {i} typed to nothing"
+            haystack = squash(row_text(rec))
+            for rule in typed:
+                assert squash(rule.verbatim) in haystack, f"{rule.rule_id}: verbatim is not in its row"
+            rows += 1
+            made += len(typed)
+    assert rows == 438, f"the corpus is 438 rows, got {rows}"
+    assert made > rows, "a bundled row states more than one rule"
+
+
+def test_the_feed_revalidates_from_disk():
+    """What is on disk is what the catalogue model accepts — not merely what we wrote."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+
+    feed_dir = Path(GENERATED.regs.dfo_salmon) / "typed"
+    total = 0
+    for path in sorted(feed_dir.glob("region-*.json")):
+        for loc in json.loads(path.read_text(encoding="utf-8"))["locators"]:
+            for rule in loc["rules"]:
+                CatalogueRule(**rule)
+                total += 1
+    assert total == 517, f"expected the 517 typed rules on disk, got {total}"
+
+
+def test_the_feed_takes_no_curated_input():
+    """Rules are a feed and locators are curated: they meet at read time, never in one file.
+    A feed that read curated state could not be rebuilt without it — and, worse, a scheduled
+    run rewriting 517 rules inside `data/curated/` would be rewriting the half that never moves.
+    """
+    src = (Path("pipeline/regs/dfo_salmon/feed.py")).read_text(encoding="utf-8")
+    body = src[src.index('"""', src.index('"""') + 3):]     # past the module docstring
+    assert "CURATED" not in body, "the feed must not read curated data to be written"
+
+    from pipeline.regs.dfo_salmon.feed import build
+    scraped = json.loads((Path(GENERATED.regs.dfo_salmon) / "rules" / "region-1.json")
+                         .read_text(encoding="utf-8"))
+    assert build(scraped)["locators"], "the feed builds from the scrape alone"
+
+
+def test_no_scraped_rule_lands_on_a_locator_nobody_curated():
+    """The join. Every fingerprint the page publishes must resolve to a curated record, or the
+    rules on it reach no geometry and vanish — the DFO twin of the 137 provincial rules that
+    bound nowhere."""
+    from pipeline.regs.dfo_salmon.feed import resolve
+
+    for slug in ("1", "6"):
+        rep = resolve(slug)
+        assert not rep["unbound"], \
+            f"region {slug}: {len(rep['unbound'])} scraped locator(s) no entry file knows"
+        assert rep["bound"], f"region {slug}: nothing joined at all"
+
+
+def test_the_somass_binding_is_what_the_feed_joins_to():
+    """The only fully curated water. Its registry item and extent live on the CURATED side and
+    the feed carries none of it — that separation is the point."""
+    from pipeline.regs.dfo_salmon import entries as E
+
+    ef = E.load("1")
+    loc = next(l for l in ef.locations if l.location_id == "1:somass-river:whole")
+    assert ef.water(loc.water_id).item_ids == ["gnis:25707"]
+    assert [e.op for e in loc.binding.extents] == ["whole"]
+
+
+def test_an_unreadable_season_goes_to_review_rather_than_publishing_as_none():
+    """`CatalogueRule` does not check that a window parses — the retired prose `Rule` did, via
+    `date_parse_errors`. So `windows=["Smarch 40 to Bluneteen 99"]` builds without complaint, and
+    an unparsed window would reach the app indistinguishable from a rule that states no season.
+    They are opposite facts: no window means the rule applies ALL YEAR."""
+    from pipeline.regs.parsing.catalogue import CatalogueRule, RuleType
+
+    accepted = CatalogueRule(rule_id="x.r1", type=RuleType.retention_limit, verbatim="2 per day",
+                             species=["CH"], take=2, windows=["Smarch 40 to Bluneteen 99"])
+    assert accepted.windows, "if the catalogue starts refusing these, this guard can move there"
+
+    rules = _typed(dates="Smarch 40 to Bluneteen 99", limits_gear="2 per day")
+    assert all(r.needs_review for r in rules)
+    assert "do not parse" in rules[0].review_reason
+
+    # An EMPTY cell is a fact, not a failure: the regulation applies all year.
+    assert not any(r.needs_review for r in _typed(dates="", limits_gear="2 per day"))
+
+
+def test_a_repaired_window_is_published_repaired():
+    """"Aprl 1 to Jun 15" (2022 Region 6) has one possible reading. Publishing the typo verbatim
+    hands the app a season it cannot parse; the repair is recorded, never silent."""
+    rules = _typed(dates="Aprl 1 to Jun 15", limits_gear="2 per day")
+    assert rules[0].windows == ["Apr 1 to Jun 15"]
+    assert not rules[0].needs_review
+
+
+def test_a_row_that_says_per_day_always_yields_a_quota():
+    """`_QUALIFIER` is a CLOSED vocabulary of the words DFO puts between the count and "per day".
+    That is deliberate — a wildcard would read "no more than 2 fish per day" as a limit of 2 —
+    but it means a new wording silently drops a quota, which is exactly what "4 hatchery marked
+    ONLY per day" did. This is the tripwire: if DFO invents a qualifier, this fails rather than
+    publishing a water with no limit."""
+    from pipeline.regs.dfo_salmon.typed import decode
+
+    rules_dir = Path(GENERATED.regs.dfo_salmon) / "rules"
+    missed = []
+    for path in sorted(rules_dir.glob("region-*.json")):
+        for rec in json.loads(path.read_text(encoding="utf-8"))["rules"]:
+            gear = rec["limits_gear"]
+            if re.search(r"per\s+day", gear, re.I) and decode(gear)["daily_limit"] is None:
+                missed.append(gear)
+    assert not missed, f"a quota the decode cannot read: {missed}"
+
+
+def test_a_row_that_states_a_size_always_binds_it():
+    """Same tripwire for the size sub-limit wordings, of which DFO uses at least six."""
+    from pipeline.regs.dfo_salmon.typed import to_rules
+
+    rules_dir = Path(GENERATED.regs.dfo_salmon) / "rules"
+    missed = []
+    for path in sorted(rules_dir.glob("region-*.json")):
+        for i, rec in enumerate(json.loads(path.read_text(encoding="utf-8"))["rules"]):
+            if not re.search(r"\d+\s*cm", rec["limits_gear"], re.I):
+                continue
+            typed = to_rules(rec, "t", i)
+            if not any(r.over_cm or r.under_cm or r.max_gap_mm for r in typed):
+                missed.append(rec["limits_gear"])
+    assert not missed, f"a size the decode cannot read: {missed}"
+
+
+def test_the_feed_is_deterministic():
+    """A scheduled run rebuilds this every time. If the same page produced a different feed, every
+    run would look like a change and the review queue would be noise."""
+    from pipeline.regs.dfo_salmon.feed import build
+
+    scraped = json.loads((Path(GENERATED.regs.dfo_salmon) / "rules" / "region-6.json")
+                         .read_text(encoding="utf-8"))
+    assert json.dumps(build(scraped), sort_keys=True) == json.dumps(build(scraped), sort_keys=True)
+
+
+def test_the_skeena_cascade_resolves_through_the_join():
+    """**The case the whole split has to survive.** Region 6 is the only cascade: eight lettered
+    bands where a broad default is progressively narrowed, and read flat it says the opposite of
+    what it means. Precedence is a property of the LOCATOR, so it lives on the curated side and
+    the feed carries none of it — this asserts the two halves still answer the question together.
+
+    The Kispiox is the worked example: section A opens coho 4/day region-wide, B(i) closes coho
+    outright, and the water itself reopens a 5-week window. A join that lost the ranking would
+    publish the region default on a water the page closes.
+    """
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.parsing.catalogue import CatalogueRule
+
+    ef = E.load("6")
+    feed = json.loads((Path(GENERATED.regs.dfo_salmon) / "typed" / "region-6.json")
+                      .read_text(encoding="utf-8"))
+    by_fp = {l["fingerprint"]: l for l in feed["locators"]}
+
+    def rules_for(loc):
+        return [CatalogueRule(**r) for fp in loc.fingerprints
+                for r in by_fp.get(fp, {}).get("rules", [])]
+
+    water = next(l for l in ef.locations
+                 if l.water == "Kispiox River" and l.precedence == 3)
+    assert water.section == "B(i)"
+    assert ef.chain_for(water.section) == ["B(i)", "B", "A"], "narrowest first, widest last"
+
+    # the water reopens coho for a window
+    coho = [r for r in rules_for(water) if r.species == ["CO"] and r.take == 4]
+    assert coho and coho[0].windows == ["Jul 15 to Aug 23"]
+
+    # the band it sits in closes coho outright
+    band = next(l for l in ef.locations if l.section == "B(i)" and l.precedence == 1)
+    closed = [r for r in rules_for(band)
+              if r.species == ["CO"] and r.take == 0 and r.may_target is False]
+    assert closed, "B(i) must close coho, or the water's reopening says nothing"
+
+    # and the region default it all hangs off is wider still
+    region = next(l for l in ef.locations if l.precedence == 0)
+    assert region.section == "A"
+    assert any(r.species == ["CO"] and r.take == 4 for r in rules_for(region))
+
+    assert water.precedence > band.precedence > region.precedence
+
+
+def test_every_archived_wording_is_still_a_known_locator():
+    """**A locator is never lost.** These pages list openings, so a reach leaves when its fishery
+    closes and returns later — the Kispiox River Resort reach has cycled out and back four times.
+    The entry files are seeded as a SUPERSET of every archived version, so a returning wording
+    matches its own dormant record by fingerprint and revives with its binding intact, rather than
+    arriving as a `new` locator a curator has to bind again.
+
+    Measured across the whole history cache: 50 versions, 9 regions, back to 2023 — zero unknown.
+    If this fails, either the superset seeding regressed or a version was added without seeding it.
+    """
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon.locations import extract
+    from pipeline.regs.dfo_salmon.parse import parse_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
+
+    hist = sorted(Path("cache/dfo_salmon/history").glob("*.html"))
+    if not hist:
+        pytest.skip("no history cache on this machine")
+
+    unknown, checked = [], 0
+    for path in hist:
+        slug = re.match(r"region(\w+?)_\d{14}\.html", path.name).group(1)
+        try:
+            locs, _rules, _sig = extract(untangle(parse_region(
+                path.read_text(encoding="utf-8", errors="ignore"), slug)))
+        except Exception:
+            continue
+        idx = E.load(slug).by_fingerprint()
+        checked += 1
+        unknown += [(path.name, l.water, l.specific_area[:60])
+                    for l in locs if l.fingerprint not in idx]
+
+    assert checked, "no archived version parsed"
+    assert not unknown, (
+        f"{len(unknown)} archived wording(s) no entry file knows — a revival would arrive as a "
+        f"NEW locator needing rebinding: {unknown[:5]}")
+
+
+def test_no_water_name_in_the_archives_is_unknown():
+    """The same guarantee at the name level: a water DFO published under an older name must still
+    resolve, or its rules land on a locator nobody has bound."""
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon.locations import normalize
+    from pipeline.regs.dfo_salmon.parse import parse_region
+    from pipeline.regs.dfo_salmon.untangle import untangle
+
+    hist = sorted(Path("cache/dfo_salmon/history").glob("*.html"))
+    if not hist:
+        pytest.skip("no history cache on this machine")
+
+    missing = []
+    for path in hist:
+        slug = re.match(r"region(\w+?)_\d{14}\.html", path.name).group(1)
+        try:
+            u = untangle(parse_region(path.read_text(encoding="utf-8", errors="ignore"), slug))
+        except Exception:
+            continue
+        known = {normalize(w.name) for w in E.load(slug).waters}
+        missing += [(path.name, w.name) for w in u.waters if normalize(w.name) not in known]
+
+    assert not missing, f"historical water name(s) the entry files do not know: {missing[:5]}"
+
+
+def test_bind_whole_never_binds_a_locator_that_names_a_place():
+    """**The auto-binder reads the scope column, never the parsed op.**
+
+    The op looked like it could stand in and it cannot: `described`, `named_tributaries` and
+    `tributary_set` are the classifier's leftover buckets, and they hold "within a 400 m radius of
+    the mouth of Pinkut Creek" (Babine Lake), "all tributaries ... other than the Suskwa River"
+    (Bulkley) and "the portion ... north of the bridge" (Osoyoos). Binding the first whole applies
+    a radius closure to an entire lake.
+
+    So: an empty specific-area column is the only thing that auto-binds. Anything else is a
+    curator's call.
+    """
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
+
+    for slug in [s for s in ALL_SLUGS if not PAGES[s].is_stub]:
+        ef = E.load(slug)
+        before = {l.location_id: list(l.binding.extents) for l in ef.locations}
+        wrote, _held = E.bind_whole(ef)
+        by_id = {l.location_id: l for l in ef.locations}
+        for lid in wrote:
+            loc = by_id[lid]
+            scope = (loc.source_text or {}).get("specific_area") or ""
+            assert not scope.strip(), f"{lid} names a place and was bound whole: {scope!r}"
+            assert not loc.binding.spatial_caveat, f"{lid} has a caveat that narrows the extent"
+            assert before[lid] == [], f"{lid} already had an extent and was overwritten"
+        # re-running writes nothing: every qualifying locator is already bound
+        again, _ = E.bind_whole(ef)
+        assert not again, f"region {slug}: bind_whole is not idempotent, rewrote {again}"
+
+
+def test_the_queue_hides_no_unbound_locator():
+    """A parsed op may SORT a locator; it may never remove one. The old `SKIP_OPS` filter dropped
+    123 unbound locators carrying 253 rules before a human ever saw them, including every scope the
+    classifier could not decompose — the ones most needing a person."""
+    from pipeline.regs.dfo_salmon import entries as E
+    from pipeline.regs.dfo_salmon.fetch import ALL_SLUGS, PAGES
+    from pipeline.regs.dfo_salmon.splitwork import _registry, waters
+
+    queued = {r["loc"] for w in waters(_registry()) for r in w["locators"]}
+    missing = []
+    for slug in [s for s in ALL_SLUGS if not PAGES[s].is_stub]:
+        ef = E.load(slug)
+        for loc in ef.locations:
+            if loc.binding.extents or not loc.water_id:
+                continue                      # bound, or a cascade default (no water to queue on)
+            w = ef.water(loc.water_id)
+            if w and w.item_ids and loc.location_id not in queued:
+                missing.append((slug, loc.location_id,
+                                (loc.source_text or {}).get("specific_area", "")[:50]))
+    assert not missing, f"unbound locators the queue never shows: {missing[:5]}"
+
+
+def test_a_watershed_scope_reaches_its_lakes():
+    """**A watershed is a walk, and the walk must pass lakes.**
+
+    Section B is "All waters in the Skeena River Watershed" — waters, not streams. If the
+    tributary walk followed only streams, every lake in the basin would silently fall out of the
+    section default and inherit section A's much more generous limits instead. Measured: 15,073 of
+    the Skeena walk's 84,624 sections are lakes, and every major named lake in the system is
+    reached through its outlet.
+
+    The second half is the property that makes the section E residual safe: two adjacent basins
+    must not share a lake, or subtracting one would remove water belonging to the other.
+    """
+    from pipeline.common.curated import GENERATED
+    from pipeline.common.io.serialize import read_artifact
+    from pipeline.atlas.reach.build import build_reach
+    from pipeline.regs.dfo_salmon.splitwork import _registry
+
+    graph_path = Path(GENERATED.build()) / "graph.pkl"
+    if not graph_path.exists():
+        pytest.skip("no built atlas on this machine")
+    reg = _registry()
+    g = read_artifact(graph_path)
+
+    def walk(item_id):
+        entry = {"entry_id": "t", "matched": [],
+                 "tributaries": {"included": True, "only": False, "excludes": []}, "scope": []}
+        rule = {"rule_id": "r1", "extents": [{"op": "whole", "item_id": item_id}],
+                "includes_tributaries": True, "tributaries_only": False, "tributary_excludes": []}
+        b, _ = build_reach(entry, rule, reg, g)
+        return set(b.sections or [])
+
+    skeena, nass = walk("gnis:2936"), walk("gnis:3206")
+    assert skeena and nass
+
+    lakes = sum(1 for s in skeena
+                if getattr(g.nodes.get(s), "kind", None) is not None
+                and str(getattr(g.nodes[s], "kind")).endswith("lake"))
+    assert lakes > 10_000, f"the Skeena walk reached only {lakes} lake sections — it is dropping lakes"
+
+    # every major lake in the system, reached through its outlet
+    for name in ("Babine Lake", "Lakelse Lake", "Kitsumkalum Lake", "Morice Lake", "Sustut Lake"):
+        ids = [k for k, v in reg.items()
+               if getattr(v, "kind", "") == "lake" and (v.name or "").lower() == name.lower()]
+        assert ids, f"no registry lake named {name}"
+        secs = set(reg[ids[0]].section_ids)
+        assert secs <= skeena, f"{name} is not in the Skeena watershed walk"
+
+    # and a neighbouring basin's lakes are NOT in it
+    for name in ("Meziadin Lake", "Bowser Lake"):
+        ids = [k for k, v in reg.items()
+               if getattr(v, "kind", "") == "lake" and (v.name or "").lower() == name.lower()]
+        if not ids:
+            continue
+        secs = set(reg[ids[0]].section_ids)
+        assert secs <= nass, f"{name} should be in the Nass walk"
+        assert not (secs & skeena), f"{name} leaked into the Skeena walk — the basins are not disjoint"
