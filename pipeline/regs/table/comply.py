@@ -36,15 +36,15 @@ import sys
 from collections import Counter
 
 from pipeline.regs.table.build import (build, section_rules, section_regions,
-                                       render, D, WATERS, name)
+                                       section_label, render, D, WATERS, name)
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.clauses import children_of
 from pipeline.regs.table.corpus import rid
 from pipeline.regs.table.lifts import lifts_here
 
 
-def audit(rules, kind="stream", here=frozenset()):
-    rows = build(rules, kind, here)
+def audit(rules, kind="stream", here=frozenset(), label=""):
+    rows = build(rules, kind, here, label)
     seen, why = set(), {}
     def mark(rid, how):
         if rid and rid not in seen: seen.add(rid); why[rid] = how
@@ -58,9 +58,15 @@ def audit(rules, kind="stream", here=frozenset()):
         for c in (r.quals or []): mark(c.rule_id, c.kind)
     for q in (getattr(build, "unattached", None) or []):
         mark(q.rule_id, "no-trigger")
-    kid = children_of(rules)
-    for cs in kid.values():
-        for c in cs: mark(rid(c), "sub-limit")
+    # FROM THE TABLE, NOT FROM THE INPUT. This used to mark every clause `children_of` found,
+    # without asking whether it reached a row — and 140 of 404 did not, while the check printed
+    # COMPLIES. That is the `not-a-quota` pattern again: a bucket filled from the input can only
+    # ever report what was HANDED IN, never what came out.
+    for r in rows:
+        for l in (r.limits or []):
+            mark(l.rule_id, "sub-limit")
+        for l in (r.dormant or []):
+            mark(l.rule_id, "clause of a rule that is not the answer here")
     narrow, dropped = lifts_here(rules, here)
     for t in dropped | set(narrow): mark(t, "lifted")
     for x in rules:
@@ -97,7 +103,8 @@ if __name__ == "__main__":
             rules = section_rules(w, run)
             if not rules: continue
             checked += 1
-            rows, why, missing, bad = audit(rules, kind, section_regions(w, run))
+            rows, why, missing, bad = audit(rules, kind, section_regions(w, run),
+                                            section_label(w, run))
             tally.update(why.values())
             total_missing += len(missing); total_bad += len(bad)
             if missing and fails < 3:

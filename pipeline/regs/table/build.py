@@ -63,7 +63,13 @@ def section_rules(water: str, run: int) -> List[dict]:
 def section_regions(water: str, run: int):
     return corpus_section(water, run)[1]
 
-def build(rules: List[dict], water_kind: str = "stream", here=frozenset()) -> List[Row]:
+
+def section_label(water: str, run: int) -> str:
+    runs = D[water].get("runs") or []
+    return (runs[run].get("label") or "") if run < len(runs) else ""
+
+def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
+          label: str = "") -> List[Row]:
     """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
     region-scoped lifts are measured against."""
     kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
@@ -73,9 +79,19 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset()) -> Li
     kids: Dict[str, List[SubLimit]] = {}
     for parent, cs in kid_rules.items():
         for c in cs:
-            if c.get("take") is None: continue
+            # A count-less clause is kept, not skipped: it constrains the composition just as a
+            # numbered one does. And a clause can be SEASONAL — "1 trout from streams, July 1 –
+            # Oct 31" printed year-round without its dates.
+            if c.get("take") is None and not (c.get("over_cm") or c.get("under_cm")
+                                              or c.get("band")):
+                continue
+            ap = applies_of(c.get("windows"), c.get("extent_text"),
+                            all_year=not c.get("windows"), section_label=label,
+                            from_time=c.get("from_time"), to_time=c.get("to_time"),
+                            weekdays=c.get("weekdays"))
             kids.setdefault(parent, []).append(
-                SubLimit(subject_of(c), c["take"], pooled_of(c), c.get("verbatim") or ""))
+                SubLimit(subject_of(c), c.get("take"), pooled_of(c), c.get("verbatim") or "",
+                         rid(c), "" if ap.always else ap.detail))
 
     rungs, quals = [], []
     for x in rules:
@@ -97,7 +113,11 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset()) -> Li
         rungs.append(Rung(rid(x), who, rank, subject_of(x, narrow.get(rid(x))), o,
                           x.get("verbatim") or "",
                           applies_of(x.get("windows"), x.get("extent_text"),
-                                     all_year=not x.get("windows"))))
+                                     all_year=not x.get("windows"),
+                                     section_label=label,
+                                     from_time=x.get("from_time"),
+                                     to_time=x.get("to_time"),
+                                     weekdays=x.get("weekdays"))))
     rows = table(rungs, water_kind, kids, lifted)
     build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
     return rows

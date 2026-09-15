@@ -29,6 +29,10 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 
+#: "per daily" is not English. The book says "per day".
+_PERIOD = {"daily": "day", "annual": "licence year", "possession": "day in possession"}
+
+
 @dataclass(frozen=True)
 class Outcome:
     kind: str                       # closed | release | quota | unlimited
@@ -72,9 +76,18 @@ class Outcome:
         return {"closed": "you may not fish for it",
                 "release": "you may fish for it, and must release every one",
                 "unlimited": "no limit",
+                # "OF EACH" IS A CLAIM, AND IT IS USUALLY NOT IN THE DATA. `combined` is unset
+                # on 224 of 248 group quotas — "Char daily quota = 1" says nothing about
+                # whether that is one char or one of each kind of char. Defaulting to "of each"
+                # answers the question in the permissive direction on every one of them: one
+                # bull trout AND one Dolly Varden AND one lake trout, which is the
+                # five-times-the-legal-limit read this type was written to prevent.
+                #
+                # `combined` set is a fact and says "between them". `combined` unset is silence,
+                # and the number alone is what the book gives the reader.
                 "quota": f"keep up to {self.n}"
-                          + (" between them" if self.pooled else " of each")
-                          + f" per {self.period.replace('annual','licence year')}"
+                          + (" between them" if self.pooled else "")
+                          + f" per {_PERIOD.get(self.period, self.period)}"
                 }[self.kind]
 
 

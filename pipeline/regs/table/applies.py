@@ -71,17 +71,46 @@ ALWAYS = Applies("always")
 
 
 def applies_of(windows: List[str] | None, extent_text: str | None,
-               all_year: bool = True) -> Applies:
+               all_year: bool = True, *, section_label: str | None = None,
+               from_time: str | None = None, to_time: str | None = None,
+               weekdays: List[str] | None = None) -> Applies:
     """The one place this is decided. `extent_text` is the piece of water a rule names and the
     atlas could not cut — so the rule is true SOMEWHERE in here and the reader has to recognise
     the spot on the ground. That is a caveat, never an answer."""
+    # AN EXTENT THE ATLAS ALREADY CUT IS NOT A CAVEAT. Where the section being drawn IS the
+    # place the rule names, the rule is simply the answer here. Treating it as "true somewhere
+    # in here" put the Kootenay's Main Body rules behind the regional quota and told a reader
+    # to keep fifteen kokanee on a release-only water.
+    from pipeline.regs.table.where import cut_for_this
+    if extent_text and cut_for_this(extent_text, section_label):
+        extent_text = None
+    # A TIME OF DAY IS A WINDOW, and going unread it made one absolute. "No Fishing from one
+    # hour after sunset to one hour before sunrise" reached the fold as an unconditional
+    # closure, `_shuts_the_water` was true, and it took every row on the Harrison — the whole
+    # river shut, around the clock, off a dusk-to-dawn rule. Eight closures corpus-wide.
+    when = []
+    if from_time or to_time:
+        when.append(f"{from_time or '?'} to {to_time or '?'}")
+    if weekdays:
+        when.append(", ".join(weekdays) + " only")
     if extent_text:
         return Applies("somewhere", str(extent_text))
+    if when:
+        return Applies("window", " · ".join(when + ([_w(windows)] if windows and not all_year
+                                                     else [])))
     if windows and not all_year:
         # A window ships as {"from":..,"to":..} objects, not strings — one more field whose
         # shape every consumer has to already know. Absorbed here, once.
-        M = ("", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
-        def d(p): return f"{M[p['month']]} {p['day']}" if isinstance(p, dict) else str(p)
-        def w(o): return f"{d(o.get('from'))} – {d(o.get('to'))}" if isinstance(o, dict) else str(o)
-        return Applies("window", ", ".join(w(o) for o in windows))
+        return Applies("window", _w(windows))
     return ALWAYS
+
+
+_MON = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def _w(windows) -> str:
+    def d(p): return f"{_MON[p['month']]} {p['day']}" if isinstance(p, dict) else str(p)
+    def one(o): return (f"{d(o.get('from'))} – {d(o.get('to'))}"
+                        if isinstance(o, dict) else str(o))
+    return ", ".join(one(o) for o in (windows or []))

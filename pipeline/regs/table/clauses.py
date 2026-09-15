@@ -26,7 +26,7 @@ WHAT IT HANDLES
 """
 from __future__ import annotations
 from dataclasses import dataclass, replace
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from pipeline.regs.table.subject import Subject
 from pipeline.regs.table.outcome import Outcome
@@ -37,15 +37,24 @@ from pipeline.regs.table.corpus import rid, rule_part
 class SubLimit:
     """A constraint on the COMPOSITION of an allowance, not an allowance of its own."""
     subject: Subject
-    n: int
+    n: Optional[int]      # None where the clause constrains WHICH fish, not how many
     pooled: bool
     verbatim: str
+    rule_id: str = ""     # so `comply` can ask whether it actually reached a row
+    when: str = ""        # a clause can be seasonal: "1 trout from streams, July 1 – Oct 31"
 
     def sentence(self, name) -> str:
         who, q = self.subject.words(name)
-        bits = [b for b in (q,) if b]
+        when = f", {self.when}" if self.when else ""
+        if self.n is None:
+            # A CLAUSE WITH NO COUNT CONSTRAINS WHICH FISH, NOT HOW MANY. "Bull trout (none
+            # under 75 cm)" inside a quota of five does not allow five of anything; it says
+            # which bull trout may be among them. Printed as "no more than None may be…" it
+            # was nonsense, so it was dropped instead — thirty-one of them.
+            return f"{who.lower()}: {q or 'no further limit'}{when}"
         pool = " combined" if self.pooled else ""
-        return f"no more than {self.n}{pool} may be {who.lower()}" + (f" ({', '.join(bits)})" if bits else "")
+        tail = f" ({q})" if q else ""
+        return f"no more than {self.n}{pool} may be {who.lower()}{tail}{when}"
 
 
 def pooled_of(rule: dict) -> bool:

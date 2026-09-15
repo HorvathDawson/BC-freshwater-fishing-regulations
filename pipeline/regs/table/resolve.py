@@ -60,6 +60,7 @@ class Row:
     ceilings: List[Rung] = None     # other periods that bind AT THE SAME TIME (annual, possession)
     duties: List[Rung] = None       # what you must DO on keeping one
     quals: List = None              # size gates and possession multiples (see qualifiers.py)
+    dormant: List = None            # clauses of a rule in the chain that is NOT the answer
 
     @property
     def governs(self) -> Rung: return self.chain[0]
@@ -153,7 +154,10 @@ def resolve(rungs: List[Rung], subject: Subject,
             st = f"instead, {r.applies.detail}"
         elif r.outcome == out:
             st = "says the same thing"
-        elif win.outcome.kind == "closed" and r.rank <= win.rank:
+        elif head.outcome.kind == "closed" and r.rank <= head.rank:
+            # AGAINST THE ANSWER, NOT AGAINST `win`. The two differ exactly when the strictest
+            # closure is seasonal — and then 38 rows told a reader a rule was "suspended while
+            # the water is closed" on a row whose own answer was release or a number.
             st = "suspended while the water is closed"
         elif r.rank > win.rank:
             st = f"wider rule ({r.authority}), replaced by one closer to this water"
@@ -167,8 +171,18 @@ def resolve(rungs: List[Rung], subject: Subject,
     for r in also_ran:
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome, r.verbatim,
                           r.applies, f"a weaker {r.outcome.period} ceiling"))
+    # A CLAUSE OF A RULE THAT LOST IS STILL A RULE. Sub-limits attached to the head alone, so
+    # every clause whose parent was beaten vanished — 142 of them, while the check that exists
+    # to catch exactly that printed COMPLIES because it counted the input instead of the output.
+    #
+    # They do not constrain the answer, so they cannot sit in `limits` where a reader would take
+    # them as conditions on the number above. They ride separately, attributed to the parent
+    # they belong to, which is also what makes them checkable.
+    kids = kids or {}
+    dormant = [l for c in chain if c.rule_id != head.rule_id
+               for l in kids.get(c.rule_id, [])]
     return Row(subject, out, chain, caveats,
-               list((kids or {}).get(head.rule_id, [])), ceilings, [])
+               list(kids.get(head.rule_id, [])), ceilings, [], None, dormant)
 
 
 #: "No Fishing" — a closure on the water itself, as opposed to a quota of zero for one fish.
@@ -240,6 +254,7 @@ def table(rungs: List[Rung], water_kind: str = "stream",
                                                  if c.rule_id not in
                                                  {x.rule_id for x in (m.caveats or [])}]
                 m.limits = _dedup((m.limits or []) + list(row.limits or []))
+                m.dormant = _dedup((m.dormant or []) + list(row.dormant or []))
                 mk = {c.rule_id for c in (m.ceilings or [])}
                 m.ceilings = (m.ceilings or []) + [c for c in (row.ceilings or [])
                                                    if c.rule_id not in mk]
@@ -305,5 +320,6 @@ def table(rungs: List[Rung], water_kind: str = "stream",
                                              if c.rule_id not in hd]
         hq = {c.rule_id for c in (host.quals or [])}
         host.quals = (host.quals or []) + [c for c in (row.quals or []) if c.rule_id not in hq]
+        host.dormant = _dedup((host.dormant or []) + list(row.dormant or []))
     out.sort(key=lambda r: (r.outcome.rank, sorted(r.subject.fish)))
     return out

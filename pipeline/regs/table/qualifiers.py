@@ -37,9 +37,17 @@ class Qualifier:
     rule_id: str
     n: Optional[int] = None   # the multiplier, for a possession multiple
 
-    def sentence(self) -> str:
+    def sentence(self, name=None) -> str:
         if self.kind == "possession":
-            return f"you may have {self.n} days' worth in possession"
+            # "1 days' worth" is not English, and the plural is load-bearing on a 2.
+            d = "a day's" if self.n == 1 else f"{self.n} days'"
+            return f"you may have {d} worth in possession"
+        if self.kind == "size_gate" and name is not None:
+            # A SIZE GATE WITHOUT ITS FISH IS A FLOOR ON EVERYTHING. "none under 60 cm" is about
+            # bull trout, Dolly Varden and lake trout; hung on a row headed "Trout and char" with
+            # no subject it read as a minimum size for every trout on the water.
+            who, _ = self.subject.words(name)
+            return f"{who.lower()}: {self.text}"
         return self.text
 
 
