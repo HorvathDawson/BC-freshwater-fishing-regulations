@@ -2353,9 +2353,19 @@ function retentionTable(items, title, notes, waterKind, openFish){
      * as "none". It is a size, and the row now says which.
      */
     var sizeOnly = (keep==="\u2014");
-    // Only a real quota can be overridden to zero. A rule with no count — a size floor, a
-    // paperwork duty — was rendered "0 (normally —)", a number it never had.
-    if(shutAll.length && l.take!=null && l.take!==0){ was=keep; keep="0"; }
+    /*
+     * Only a real quota can be overridden to zero. A rule with no count — a size floor, a
+     * paperwork duty — was rendered "0 (normally —)", a number it never had. That is what
+     * `take!=null` is for.
+     *
+     * AND A SHUT WATER ZEROES A RELEASE TOO. The second guard used to be `take!==0`, which let
+     * every release rule through untouched: on a water closed to kokanee, Region 5's "release
+     * all, from streams" still printed "release", and the summary read the streams rule as the
+     * answer. "Release" tells a reader they may fish and must let them go. They may not fish.
+     * There is nothing to release, and the stricter statement is the one that governs — which
+     * this page shows by zeroing the row and striking what it would otherwise have said.
+     */
+    if(shutAll.length && l.take!=null && keep!=="0"){ was=keep; keep="0"; }
     var over=!!tribBeaten[l.rule] || !!kindBeaten[l.rule] || !!authBeaten[l.rule];
     var html;
     var whoCell=function(rule, subject){
