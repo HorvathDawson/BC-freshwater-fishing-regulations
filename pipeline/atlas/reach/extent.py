@@ -65,7 +65,8 @@ def _cut_at(g, refs: set[str], universe: set[str]):
     return None
 
 
-def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float) -> tuple[set[str], set[str]]:
+def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float,
+                seed_outside: frozenset = frozenset()) -> tuple[set[str], set[str]]:
     """(sections in the reach, braided pieces that STRADDLE its end).
 
     Two passes. First the cut's own blue line, selected by ROUTE MEASURE — exact, no topology needed.
@@ -100,8 +101,17 @@ def _by_measure(g, universe: set[str], blk: str, lo: float, hi: float) -> tuple[
         elif n.down_m >= lo - 0.001 and n.up_m <= hi + 0.001:
             on_blk.add(nid)
 
-    inside, outside = set(on_blk), {n for n in universe if g.nodes.get(n) and g.nodes[n].blk == blk} - on_blk
-    pending = set(others)
+    inside = set(on_blk)
+    outside = {n for n in universe if g.nodes.get(n) and g.nodes[n].blk == blk} - on_blk
+    # `outside` is normally seeded from this blue line’s own pieces that fall outside the window.
+    # A window covering the WHOLE line leaves it empty, and an empty `outside` is not neutral: the
+    # fixpoint below can then only ever move a piece INWARD (`nbrs <= outside` is unsatisfiable), so
+    # it cascades across the junction and swallows water on the far side of the cut. That is how
+    # "everything below the Talchako confluence" came to claim five Atnarko sections that are ABOVE
+    # it, and it stayed hidden while a 58 m sliver sat above the cut acting as the seed. A caller
+    # that knows which pieces sit across the cut passes them here.
+    outside |= (set(seed_outside) & universe)
+    pending = set(others) - outside
     while True:
         settled = set()
         for nid in pending:
@@ -170,6 +180,70 @@ def _waters(g, section_ids) -> list[str]:
     return [n for n, _ in sorted(by_name.items(), key=lambda kv: (-kv[1], kv[0]))]
 
 
+def _on_line_end(g, universe: set[str], blk: str, m: float, upper: bool) -> bool:
+    """Does this cut sit exactly on the END of its own blue line, within the scoped water?"""
+    ms = [(g.nodes[n].up_m if upper else g.nodes[n].down_m)
+          for n in universe if g.nodes.get(n) is not None and g.nodes[n].blk == blk]
+    return bool(ms) and abs(m - (max(ms) if upper else min(ms))) < 0.01
+
+
+def _half(g, universe: set[str], blk: str, m: float, upper: bool):
+    """One side of a cut — measure-selected, and by COMPLEMENT when the cut sits on the line's end.
+
+    `_by_measure` seeds from nodes of the cut's OWN blue line that fall inside the window, then grows
+    over the braid. A cut sitting exactly on that line's end leaves the window with nothing to seed
+    from, so the half comes back EMPTY — not "nearly empty", but zero, no matter how the cut got
+    there. That is a limit of the seeding, not a fact about the river: the Bella Coola's head IS the
+    confluence where the Talchako meets the Atnarko, and the water above it is simply on the next
+    blue line up. Before this, "between Goat Creek and the Talchako" intersected with that empty half
+    and bound nothing — a rule that reads as "no regulation here", which is the failure this project
+    can least afford.
+
+    So when the measure half is empty AND the cut is on that end, take the other half's COMPLEMENT.
+    A cut cleanly halves the water, which is the same assumption `_between_across_lines` already
+    makes.
+
+    The complement takes everything the other half did not, INCLUDING what that pass called
+    straddling. When one side of the cut is empty there is nothing for the braid fixpoint to settle
+    against — `outside` never gets a seed, so no piece can ever be placed outside, and whatever fails
+    to settle is reported as straddling by default. On the Bella Coola that was all 17 Atnarko
+    sections: the entire answer, labelled unplaceable. A piece cannot straddle the end of a line
+    anyway — there is no water on the far side to straddle into."""
+    INF = float("inf")
+    lo, hi = (m, INF) if upper else (0.0, m)
+    # Which end (if either) this cut sits on is a property of the CUT, not of the side being asked
+    # for. Both sides need the junction seed: the empty side so its complement is taken from a
+    # correct other half, and the populated side so it does not swallow the far water itself.
+    at_top = _on_line_end(g, universe, blk, m, True)
+    at_bottom = _on_line_end(g, universe, blk, m, False)
+    if not (at_top or at_bottom):
+        return _by_measure(g, universe, blk, lo, hi)
+    seed = _across_the_junction(g, universe, blk, m, at_top)
+    sec, straddling = _by_measure(g, universe, blk, lo, hi, seed_outside=seed)
+    if sec:
+        return sec, straddling
+    other, _ = _by_measure(g, universe, blk, *((0.0, m) if upper else (m, INF)), seed_outside=seed)
+    return universe - other, set()
+
+
+def _across_the_junction(g, universe: set[str], blk: str, m: float, upper: bool) -> frozenset:
+    """Pieces on OTHER blue lines meeting this line exactly at `m` — the far side of a cut that
+    sits on this line’s end. Seeding them as `outside` is what stops the braid fixpoint walking up
+    the next river and calling it downstream."""
+    out: set[str] = set()
+    for nid in universe:
+        n = g.nodes.get(nid)
+        if n is None or n.blk != blk:
+            continue
+        if abs((n.up_m if upper else n.down_m) - m) >= 0.01:
+            continue
+        for i in g.down_adj.get(nid, []):
+            out.add(g.edges[i].to_node)
+        for i in g.up_adj.get(nid, []):
+            out.add(g.edges[i].from_node)
+    return frozenset(x for x in (out & universe) if g.nodes.get(x) and g.nodes[x].blk != blk)
+
+
 def _between_across_lines(g, universe: set[str], a, b):
     """`between` when the two cuts sit on DIFFERENT blue lines, or None if they are not on one flow.
 
@@ -183,12 +257,11 @@ def _between_across_lines(g, universe: set[str], a, b):
     Which cut is upstream is read off the halves themselves rather than by walking the flow graph
     (unreliable across braids): if B's own piece falls inside A's downstream half, then B is below A.
     Both cuts keep their braid handling, and a piece that straddles EITHER cut stays unplaceable."""
-    INF = float("inf")
     (blk_a, m_a, _), (blk_b, m_b, _) = a, b
-    down_a, s_a = _by_measure(g, universe, blk_a, 0.0, m_a)     # everything below cut A
-    down_b, s_b = _by_measure(g, universe, blk_b, 0.0, m_b)     # everything below cut B
-    up_a, _ = _by_measure(g, universe, blk_a, m_a, INF)
-    up_b, _ = _by_measure(g, universe, blk_b, m_b, INF)
+    down_a, s_a = _half(g, universe, blk_a, m_a, upper=False)   # everything below cut A
+    down_b, s_b = _half(g, universe, blk_b, m_b, upper=False)   # everything below cut B
+    up_a, _ = _half(g, universe, blk_a, m_a, upper=True)
+    up_b, _ = _half(g, universe, blk_b, m_b, upper=True)
 
     b_below_a = any(n in down_a for n in universe if n.startswith(f"{blk_b}:"))
     a_below_b = any(n in down_b for n in universe if n.startswith(f"{blk_a}:"))
@@ -394,7 +467,7 @@ def resolve_extent(reg, g, covered_ids: list[str], ex: dict,
         blk, m = at[0], at[1]
         lo, hi = (m, INF) if op == "upstream_of" else (0.0, m)
         window = (blk, lo, hi)
-        sec, braided = _by_measure(g, universe, blk, lo, hi)
+        sec, braided = _half(g, universe, blk, m, upper=(op == "upstream_of"))
     elif op == "between" and len(ids) == 2:
         a = _cut_at(g, _refs(ids[0]), universe)
         b = _cut_at(g, _refs(ids[1]), universe)
