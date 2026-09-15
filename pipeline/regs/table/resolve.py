@@ -125,24 +125,28 @@ def resolve(rungs: List[Rung], subject: Subject,
                                    and _shuts_the_water(r.subject)) else 1,
                              r.rank, r.outcome.rank))
 
-    # AUTHORITY SETTLES ONE SUBJECT. IT DOES NOT SETTLE TWO.
+    # THE ORDER, in the domain owner's words: "Regional always overrides provincial (except full
+    # closure), and this water overrides regional always (except closures unless they are lifted
+    # in this water's regs)." AUTHORITY WINS, with one exception, and that exception is why the
+    # first version of this — "group by subject, take the strictest group-winner" — was wrong for
+    # everything but the one case it was written for:
     #
-    # A straight (rank, strictness) sort says the closest rule wins, full stop — and that is
-    # right only when two rules are about the SAME fish. Across different fish they are not
-    # competing at all; they bind at once, and the answer is the strictest:
+    #   "All wild steelhead must be released" is provincial and has no exception anywhere in the
+    #   book. Region 4's "Trout/char: 5" does not say a wild steelhead may be among them. The
+    #   release stands — a take of zero from ANY authority stands unless something lifts it.
     #
-    #   "All wild steelhead must be released" is provincial and has no exception anywhere in
-    #   the book. Region 4's "Trout/char: 5" says how many trout and char you may keep; it does
-    #   not say a wild steelhead may be among them. Ranked against each other the 5 won, on 27
-    #   sections, and the table offered wild steelhead to a reader in Regions 4, 7 and 8.
+    #   But Kootenay Lake's own "rainbow trout daily quota = 10" over Region 4's "Trout/char: 5"
+    #   is not a closure, and the strictest-wins rule handed the lake's reader a 5. The closest
+    #   authority wins. And Region 8's "20 brook trout from streams" beside its own "4 from
+    #   streams" is one authority speaking twice, once about all trout and once about this one:
+    #   the narrower statement is the one about the fish, and the reader was told 4.
     #
-    # The mirror case rules out simply preferring the narrower rule: where a WATER says "trout
-    # and char: 2" and the province says "rainbow trout: 5", the answer for a rainbow is 2. And
-    # the same-subject case rules out preferring the stricter: a water writing "trout and char:
-    # 10" over a regional 5 really does replace it, upward.
-    #
-    # All three fall out of one rule. Group the candidates by subject; within a group the
-    # closest authority replaces the wider one; the answer is the strictest group-winner.
+    # So, in three steps. (1) Group the candidates by their own subject; within a group the
+    # closest authority replaces the wider one, and at equal authority the stricter stands. (2)
+    # Among the group-winners a take of zero — closed or release — stands, closed over release.
+    # (3) Otherwise the closest authority wins; at equal authority the narrower subject; then
+    # the stricter. A water that writes "trout and char: 10" over a regional 5 replaces it,
+    # upward, by step (1) alone — the two are about the same fish.
     best = {}
     for r in cand:
         if not r.applies.always:
@@ -150,7 +154,7 @@ def resolve(rungs: List[Rung], subject: Subject,
         cur = best.get(r.subject)
         if cur is None or (r.rank, r.outcome.rank) < (cur.rank, cur.outcome.rank):
             best[r.subject] = r
-    year_round = min(best.values(), key=lambda r: (r.outcome.rank, r.rank)) if best else None
+    year_round = head_of(list(best.values()))
     # A closure on the WATER still outranks all of it: "No Fishing" is not a statement about a
     # fish that other statements about fish can outvote.
     shut_always = next((r for r in cand if r.applies.always and r.outcome.kind == "closed"
@@ -178,15 +182,23 @@ def resolve(rungs: List[Rung], subject: Subject,
             st = f"instead, {r.applies.detail}"
         elif r.outcome == out:
             st = "says the same thing"
-        elif head.outcome.kind == "closed" and r.rank <= head.rank:  # noqa
+        elif r.rank > head.rank:
+            st = f"set wider ({r.authority}), replaced by one closer to this water"
+        elif r.subject == head.subject:
+            # Same fish, and no closer than the answer: it lost on strictness alone.
+            st = "not the strictest here"
+        elif head.outcome.kind == "closed" and _shuts_the_water(head.subject):
             # AGAINST THE ANSWER, NOT AGAINST `win`. The two differ exactly when the strictest
             # closure is seasonal — and then 38 rows told a reader a rule was "suspended while
             # the water is closed" on a row whose own answer was release or a number.
             st = "suspended while the water is closed"
-        elif r.rank > head.rank:
-            st = f"set wider ({r.authority}), replaced by one closer to this water"
+        elif head.outcome.kind in ("closed", "release"):
+            # Step (2): a closer or equal authority wrote a number for a broader group of fish,
+            # and a number does not lift a take of zero on one of them.
+            st = "a take of zero stands unless something lifts it here"
         else:
-            st = "not the strictest here"
+            # Step (3), equal authority: the same table wrote a narrower rule for this fish.
+            st = f"{r.authority} also wrote a narrower rule for this fish, which speaks first"
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
                           r.verbatim, r.applies, st))
     for r in gone:
@@ -221,6 +233,25 @@ def _shuts_the_water(s) -> bool:
     if _ALL_GAME is None:
         _ALL_GAME = Subject(frozenset({"ALL_GAME_FISH"}))
     return s.method is None and s.covers(_ALL_GAME)
+
+
+def head_of(winners: List[Rung]) -> Optional[Rung]:
+    """The answer among ONE RULE PER SUBJECT — steps (2) and (3) of the order in `resolve`.
+
+    A take of zero stands, closed over release, then the closest. Otherwise the closest
+    authority; at equal authority the subject fewer of the others cover — the narrower one —
+    and then the stricter. Narrowness is read off `covers` rather than off a species count, so
+    "wild steelhead" is narrower than "steelhead" the same way "brook trout" is narrower than
+    "trout and char".
+    """
+    if not winners:
+        return None
+    zero = [w for w in winners if w.outcome.kind in ("closed", "release")]
+    if zero:
+        return min(zero, key=lambda r: (r.outcome.rank, r.rank))
+    def covered_by(r):
+        return sum(1 for o in winners if o is not r and o.subject.covers(r.subject))
+    return min(winners, key=lambda r: (r.rank, -covered_by(r), r.outcome.rank))
 
 
 def _dedup(limits):

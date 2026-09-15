@@ -284,3 +284,89 @@ def test_no_new_self_lifting_rules_appear():
     got = {x["rule"] for x in self_lifting(rules())}
     known = {"z6:steelhead_stream_closure::steelhead_stream_closure.r1"}
     assert got <= known, f"new self-lifting rule(s) in the corpus: {sorted(got - known)}"
+
+
+# --------------------------------------------------------------------------- #
+# The order: authority wins, except a take of zero. Four real cases.
+# --------------------------------------------------------------------------- #
+def _rung(rule_id, rank, fish, outcome, origin=Origin.both):
+    from pipeline.regs.table.resolve import Rung
+    who = {3: "Provincial", 2: "Region 4", 0: "this water"}[rank]
+    return Rung(rule_id, who, rank, Subject(frozenset(fish), origin), outcome, rule_id)
+
+
+def _answer(rungs, fish, origin=Origin.both):
+    from pipeline.regs.table.resolve import resolve
+    row = resolve(rungs, Subject(frozenset(fish), origin))
+    return row.outcome, next(c for c in row.chain if c.status == "governs").rule_id
+
+
+def test_a_take_of_zero_stands_over_a_closer_number_for_a_broader_group():
+    """(a) "All wild steelhead must be released" is provincial; Region 4's "Trout/char: 5" is
+    closer and says nothing about wild steelhead. The release stands — a take of zero from any
+    authority stands unless something lifts it."""
+    rungs = [_rung("zp:steelhead.r2", 3, {"ST"}, RELEASE, Origin.wild),
+             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
+    out, gov = _answer(rungs, {"ST"}, Origin.wild)
+    assert out == RELEASE and gov == "zp:steelhead.r2"
+
+
+def test_b_the_closest_authority_wins_across_subjects_when_nothing_is_closed():
+    """(b) Kootenay Lake's own "rainbow trout daily quota = 10" over Region 4's "Trout/char: 5".
+    Strictest-group-winner said 5; the water is the closer authority and the answer is 10."""
+    rungs = [_rung("r4:kootenay_lake_main_body.r4", 0, {"RB"}, Outcome("quota", 10)),
+             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
+    out, gov = _answer(rungs, {"RB"})
+    assert out.n == 10 and gov == "r4:kootenay_lake_main_body.r4"
+    # ...and the trout-and-char row itself is still the regional 5: the 10 is about one fish.
+    out, gov = _answer(rungs, {"TROUT_CHAR"})
+    assert out.n == 5
+
+
+def test_c_at_equal_authority_the_narrower_subject_speaks_first():
+    """(c) Region 8 writes "Trout/char: 4 from streams" and "20 brook trout from streams" in the
+    same table. One authority, two statements; the one about brook trout is the one about
+    brook trout, and the reader was told 4."""
+    rungs = [_rung("z8:trout_char.r3", 2, {"TROUT_CHAR"}, Outcome("quota", 4, pooled=True)),
+             _rung("z8:trout_char.r5", 2, {"EB"}, Outcome("quota", 20))]
+    out, gov = _answer(rungs, {"EB"})
+    assert out.n == 20 and gov == "z8:trout_char.r5"
+
+
+def test_d_a_water_replaces_a_regional_number_upward():
+    """(d) A water's "trout and char: 10" over a regional 5 is the same fish, and the closer
+    authority replaces it — upward. Neither strictness nor narrowness gets a say."""
+    rungs = [_rung("r4:some_lake.r1", 0, {"TROUT_CHAR"}, Outcome("quota", 10, pooled=True)),
+             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
+    out, gov = _answer(rungs, {"TROUT_CHAR"})
+    assert out.n == 10 and gov == "r4:some_lake.r1"
+
+
+def test_the_mirror_case_still_holds():
+    """A WATER's "trout and char: 2" over the province's "rainbow trout: 5": the water is the
+    closer authority and 2 is the answer for a rainbow, even though the province named it."""
+    rungs = [_rung("r:water.r1", 0, {"TROUT_CHAR"}, Outcome("quota", 2, pooled=True)),
+             _rung("zp:rb.r1", 3, {"RB"}, Outcome("quota", 5))]
+    out, gov = _answer(rungs, {"RB"})
+    assert out.n == 2 and gov == "r:water.r1"
+
+
+def test_closed_stands_over_release_among_takes_of_zero():
+    rungs = [_rung("r:water.r1", 0, {"RB"}, RELEASE),
+             _rung("zp:x.r1", 3, {"TROUT_CHAR"}, CLOSED)]
+    out, _ = _answer(rungs, {"RB"})
+    assert out == CLOSED
+
+
+def test_brook_trout_on_the_okanagan_is_twenty(tables):
+    """The corpus form of (c): Region 8's "20 brook trout from streams" was absorbed into
+    "Trout and char | 4" as "not the strictest here", and no brook trout row existed."""
+    from pipeline.regs.table.build import name
+    seen = 0
+    for w, run, _, _, t in tables:
+        if w != "Okanagan River":
+            continue
+        eb = [r for r in t if r.subject.words(name)[0] == "Brook trout"]
+        assert eb and eb[0].outcome.n == 20, f"{w} stretch {run + 1}: {[r.outcome.word() for r in eb]}"
+        seen += 1
+    assert seen == 3
