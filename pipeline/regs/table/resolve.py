@@ -292,6 +292,11 @@ def table(rungs: List[Rung], water_kind: str = "stream",
 
     rows = [row for s in subjects if (row := resolve(rungs, s, kids, lifted))]
 
+    # MEASURED AND KEPT. On the corpus today every wild/hatchery pair also has a broader
+    # release row to absorb into, so switching this step off changes no row and no chain
+    # membership on any of the 102 sections — six differ in chain order only. It stays because
+    # the row it produces, "release · wild and hatchery", is the honest heading where NO broader
+    # row exists, and absorption cannot produce it.
     merged: List[Row] = []
     for row in rows:
         for m in merged:

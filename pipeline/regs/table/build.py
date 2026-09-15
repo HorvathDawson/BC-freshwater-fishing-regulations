@@ -18,7 +18,7 @@ from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.resolve import Rung, Row, table
 from pipeline.regs.table.applies import applies_of
 from pipeline.regs.table.clauses import SubLimit, children_of, pooled_of
-from pipeline.regs.table.corpus import rid, rule_part, section_rules as corpus_section
+from pipeline.regs.table.corpus import rid, section_rules as corpus_section
 from pipeline.regs.table.lifts import lifts_here
 from pipeline.regs.table.qualifiers import qualifier_of, attach
 
@@ -88,7 +88,7 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
     region-scoped lifts are measured against."""
     kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
-    narrow, _drop, unresolved_lifts = lifts_here(rules, here)
+    narrow, _drop, _unresolved = lifts_here(rules, here)
     lifted = {t: None for t in _drop}           # `exempts` -> narrowed / disapplied here
 
     # sub-limits become a FIELD on their parent, never a row
@@ -231,13 +231,3 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
 
     build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
     return rows
-
-def render(rows: List[Row]) -> str:
-    """The page's whole job, for comparison: print what it was given."""
-    out = []
-    for r in rows:
-        who, q = r.subject.words(name, is_release=(r.outcome.kind == "release"))
-        out.append(f"{who}|{r.outcome.word()}|{q}")
-        for l in (r.limits or []):
-            out.append(f"   limit: {l.sentence(name)}")
-    return "\n".join(out)

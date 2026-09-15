@@ -11,7 +11,7 @@ whose `rule` table keeps every condition in a JSON column.
 """
 from __future__ import annotations
 import json, sqlite3
-from typing import Dict, List
+from typing import List
 
 BUNDLE = "data/generated/bundle/bundle.sqlite"
 
@@ -52,10 +52,6 @@ def rid(x: dict) -> str:
 def rule_part(key: str) -> str:
     """The `rule_id` half, for matching `exempts.target` / `within`, which name it bare."""
     return key.split("::", 1)[-1]
-
-
-def by_id(rs: List[dict]) -> Dict[str, dict]:
-    return {rid(r): r for r in rs if r.get("rule")}
 
 
 def section_rules(water: str, run: int = 0, path: str = BUNDLE):

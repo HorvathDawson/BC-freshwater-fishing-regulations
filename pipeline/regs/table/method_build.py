@@ -1,7 +1,7 @@
 """Build a method table from the corpus, and answer it per region."""
 from __future__ import annotations
 import sys
-from typing import Dict, FrozenSet, List
+from typing import List
 
 from pipeline.regs.table.subject import Subject, Origin, Water
 from pipeline.regs.table.size import size_of
@@ -10,7 +10,7 @@ from pipeline.regs.table.where import parse_where
 from pipeline.regs.table.method import (MethodRung, resolve_method, ALLOWED,
                                         FORBIDDEN, RIG_TOPIC, RIG_TYPES)
 from pipeline.regs.table.lifts import lifts_here
-from pipeline.regs.table.corpus import rules as corpus_rules, section_rules, rid
+from pipeline.regs.table.corpus import section_rules, rid
 # ONE LADDER. This module parsed the page a second time and kept its own copy of the authority
 # ladder, which did not know `authority: superior` and printed "Region 7" for 7A. The quota side
 # owns both; measured, the swap changes none of the 715 gear rows.
@@ -67,11 +67,6 @@ def rungs_for(method: str, rules: List[dict], here=frozenset(),
         out.append(MethodRung(rid(x), who, rank, w, perm, takes, con,
                               topic, x.get("verbatim") or ""))
     return out
-
-def all_rules() -> List[dict]:
-    """FROM THE BUNDLE, not from the page's copy — see `corpus.py`. The page's data has no
-    `exempts`, so read from it and the burbot exception does not exist to be applied."""
-    return corpus_rules()
 
 def show(method: str, water: str, run: int = 0):
     """ONE STRETCH. Handing the fold the whole corpus let a Region 3 lake's "No Ice Fishing"

@@ -32,13 +32,10 @@ WHAT IT HANDLES
   and no row is printed with no subject.
 """
 from __future__ import annotations
-import sys
 from collections import Counter
 
 from pipeline.regs.table.build import (build, section_rules, section_regions,
-                                       section_label, render, D, WATERS, name)
-from pipeline.regs.table.outcome import outcome_of
-from pipeline.regs.table.clauses import children_of
+                                       section_label, D, WATERS, name)
 from pipeline.regs.table.corpus import rid
 from pipeline.regs.table.lifts import lifts_here, self_lifting, contradicted_closures
 

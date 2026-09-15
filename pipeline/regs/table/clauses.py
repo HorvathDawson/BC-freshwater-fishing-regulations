@@ -25,12 +25,11 @@ WHAT IT HANDLES
   candidate list and stays in the chain, marked.
 """
 from __future__ import annotations
-from dataclasses import dataclass, replace
-from typing import Dict, List, Optional, Set, Tuple
+from dataclasses import dataclass
+from typing import Dict, List, Optional
 
 from pipeline.regs.table.subject import Subject
-from pipeline.regs.table.outcome import Outcome
-from pipeline.regs.table.corpus import rid, rule_part
+from pipeline.regs.table.corpus import rid
 
 
 @dataclass(frozen=True)
@@ -72,24 +71,6 @@ def pooled_of(rule: dict, subject=None) -> bool:
     if subject is None:
         return False
     return len(subject.effective()) > 1
-
-
-def lifted_ids(rules: List[dict]) -> Set[str]:
-    """Every rule id that something present here disapplies.
-
-    Two spellings, because the corpus has two: `target` names a rule outright, `default_id`
-    names a standing default whose rules share that id as their prefix.
-    """
-    out: Set[str] = set()
-    ids = {r.get("rule") for r in rules}
-    for r in rules:
-        for ex in (r.get("exempts") or []):
-            t = ex.get("target")
-            if t: out.add(t)
-            d = ex.get("default_id")
-            if d:
-                out |= {i for i in ids if i and i.split(".")[0] == d}
-    return out
 
 
 def children_of(rules: List[dict]) -> Dict[str, List[dict]]:
