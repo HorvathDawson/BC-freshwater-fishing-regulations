@@ -370,3 +370,35 @@ def test_brook_trout_on_the_okanagan_is_twenty(tables):
         assert eb and eb[0].outcome.n == 20, f"{w} stretch {run + 1}: {[r.outcome.word() for r in eb]}"
         seen += 1
     assert seen == 3
+
+
+def test_a_stream_clause_does_not_retire_its_parent_on_a_lake(tables):
+    """Region 4 writes "Trout/char: 5" and, inside it, "2 from streams". On a stream the 2 is
+    the answer and the 5 retires. On a LAKE the 2 is about somewhere else — and the 5 retired
+    anyway, so eight of nine lake sections had no trout and char row at all. Kootenay Lake's
+    cutthroat and lake trout had no quota."""
+    from pipeline.regs.table.corpus import rid
+    for w, run, kind, rules, t in tables:
+        by = {rid(x): x for x in rules}
+        # The parents a clause FOR THIS KIND OF WATER may retire, and no others.
+        may_retire = {f"{c.get('entry')}::{c.get('within')}" for c in rules
+                      if c.get("within") and c.get("water") == kind
+                      and c.get("take") is not None}
+        for r in t:
+            for c in r.chain:
+                if "its own clause for this kind of water" in c.status:
+                    assert c.rule_id in may_retire, (
+                        f"{w} stretch {run + 1} ({kind}): {c.rule_id} retired by a clause "
+                        f"about the other kind of water")
+
+
+def test_kootenay_lake_main_body_is_the_corpus_form_of_case_b(tables):
+    """The water's "rainbow trout daily quota = 10" and Region 4's "Trout/char: 5" are both
+    printed, each about its own fish: 10 for a rainbow, 5 for the rest."""
+    from pipeline.regs.table.build import name
+    (t,) = [t for w, run, _, _, t in tables if w == "Kootenay Lake" and run == 0]
+    by = {r.subject.words(name)[0]: r for r in t}
+    assert by["Rainbow trout"].outcome.n == 10
+    assert by["Trout and char"].outcome.n == 5
+    gov = next(c for c in by["Rainbow trout"].chain if c.status == "governs")
+    assert gov.authority == "this water"

@@ -154,9 +154,15 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     # Skipping the parent outright lost it from every table instead; it retires into the chain,
     # where a reader can see the number that WOULD apply and why it does not. Only for an
     # unconditional clause: where the clause is seasonal, the parent is the answer out of season.
+    #
+    # FOR THIS KIND OF WATER, WHICH THE CLAUSE HAS TO NAME. "2 from streams" retired its parent
+    # on every LAKE as well — the clause was dropped as not-here, the parent as replaced, and
+    # eight of nine lake sections had no trout and char row at all. Kootenay Lake's cutthroat
+    # and lake trout had no quota; Region 4's 5 is the answer there and it had simply gone.
     for p in promoted:
         par = promoted_parent.get(p)
-        if par and not (by_key.get(p) or {}).get("windows"):
+        c = by_key.get(p) or {}
+        if par and not c.get("windows") and c.get("water") == water_kind:
             lifted[par] = "replaced here by its own clause for this kind of water"
 
     rungs, quals = [], []
