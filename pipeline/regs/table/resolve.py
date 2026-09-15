@@ -190,8 +190,12 @@ def resolve(rungs: List[Rung], subject: Subject,
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
                           r.verbatim, r.applies, st))
     for r in gone:
+        # `lifted` may carry a REASON. A rule can leave the running for more than one cause —
+        # an exemption disapplies it, or its own clause replaced it on this kind of water — and
+        # a reader who is shown the rule needs to know which.
+        why = (lifted.get(r.rule_id) if isinstance(lifted, dict) else None)
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
-                          r.verbatim, r.applies, "lifted here — does not apply"))
+                          r.verbatim, r.applies, why or "lifted here — does not apply"))
     for r in also_ran:
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome, r.verbatim,
                           r.applies, f"a weaker {r.outcome.period} ceiling"))

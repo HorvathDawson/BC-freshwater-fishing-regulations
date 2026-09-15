@@ -9,6 +9,7 @@ WHAT IT HANDLES
 """
 from __future__ import annotations
 import json, re
+from dataclasses import replace
 from typing import Dict, List
 
 from pipeline.regs.table.subject import Subject, Origin, Water, note_origin_split
@@ -87,7 +88,8 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
     region-scoped lifts are measured against."""
     kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
-    narrow, lifted, unresolved_lifts = lifts_here(rules, here)           # `exempts` -> narrowed / disapplied here
+    narrow, _drop, unresolved_lifts = lifts_here(rules, here)
+    lifted = {t: None for t in _drop}           # `exempts` -> narrowed / disapplied here
 
     # sub-limits become a FIELD on their parent, never a row
     # A CLAUSE THAT NAMES THIS KIND OF WATER IS NOT A CLAUSE HERE — IT IS THE ANSWER.
@@ -103,17 +105,32 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     # composition constraint only when the clause narrows the FISH; when it narrows the WATER,
     # the context has already decided which one is speaking.
     by_key = {rid(r): r for r in rules}
-    promoted = set()
+    promoted, promoted_parent = set(), {}
     for parent, cs in kid_rules.items():
-        p = by_key.get(parent)
         for c in cs:
-            if c.get("water") and not (p or {}).get("water") and c.get("take") is not None:
+            # THE IMMEDIATE PARENT, not the top of the chain. `children_of` flattens a grandchild
+            # onto the outermost allowance, so "only 2 over 30 cm" — a clause of "4 from streams",
+            # which is itself a clause — passed the "parent names no water" test and was promoted
+            # to a row of its own beside the 4 it is a part of.
+            direct = by_key.get(f"{c.get('entry')}::{c.get('within')}")
+            if (c.get("water") and not (direct or {}).get("water")
+                    and c.get("take") is not None):
                 promoted.add(rid(c))
+                promoted_parent[rid(c)] = parent
 
     kids: Dict[str, List[SubLimit]] = {}
     for parent, cs in kid_rules.items():
         for c in cs:
             if rid(c) in promoted: continue
+            # A PROMOTED CLAUSE TAKES ITS SIBLINGS WITH IT. On a stream, "2 per day from streams"
+            # IS the allowance, and "no more than 1 rainbow over 50 cm" and "1 bull trout" are
+            # constraints on THAT two — they were written inside the same limit. Keyed only to
+            # the parent's id they became "clauses of a rule that is not the answer here", and
+            # the Fording told a reader to keep two rainbows over 50 cm where the book allows
+            # one. 63 rows, 130 clauses.
+            for pr, par in promoted_parent.items():
+                if par == parent:
+                    kids.setdefault(pr, [])
             # A count-less clause is kept, not skipped: it constrains the composition just as a
             # numbered one does. And a clause can be SEASONAL — "1 trout from streams, July 1 –
             # Oct 31" printed year-round without its dates.
@@ -124,10 +141,23 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
                             all_year=not c.get("windows"), section_label=label,
                             from_time=c.get("from_time"), to_time=c.get("to_time"),
                             weekdays=c.get("weekdays"))
-            kids.setdefault(parent, []).append(
-                SubLimit(subject_of(c), c.get("take"), pooled_of(c, subject_of(c)),
-                         c.get("verbatim") or "",
-                         rid(c), "" if ap.always else ap.detail))
+            lim = SubLimit(subject_of(c), c.get("take"), pooled_of(c, subject_of(c)),
+                           c.get("verbatim") or "", rid(c), "" if ap.always else ap.detail)
+            kids.setdefault(parent, []).append(lim)
+            for pr, par in promoted_parent.items():
+                if par == parent:
+                    kids[pr].append(lim)
+
+    # A PARENT WHOSE OWN CLAUSE REPLACED IT LEAVES THE RUNNING — BUT NOT THE PAGE. "2 from
+    # streams (must be hatchery)" is promoted as a HATCHERY subject, which does not cover its
+    # parent's "either origin", so the lake number stood as the headline on a stream on 23 rows.
+    # Skipping the parent outright lost it from every table instead; it retires into the chain,
+    # where a reader can see the number that WOULD apply and why it does not. Only for an
+    # unconditional clause: where the clause is seasonal, the parent is the answer out of season.
+    for p in promoted:
+        par = promoted_parent.get(p)
+        if par and not (by_key.get(p) or {}).get("windows"):
+            lifted[par] = "replaced here by its own clause for this kind of water"
 
     rungs, quals = [], []
     for x in rules:
@@ -167,6 +197,22 @@ def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
     # but a parent can also leave the table entirely — beaten, then absorbed, its chain merged
     # into a row that is about something broader. Its clauses then belong to no row at all.
     # Sweeping for them is the difference between "carried" and "happened to be carried".
+    # A RUNG THAT LANDED IN NO CHAIN. `resolve` only ever sees one subject at a time, and a rule
+    # whose own subject produced no row — or whose row was absorbed by a host that already had a
+    # rung of the same id — leaves the table with nothing saying so. The Shuswap's "Lake trout —
+    # release all, Oct 15 – Jan 31" went that way. Sweeping is the difference between "carried"
+    # and "happened to be carried", and it is the same principle as the clause sweep below.
+    in_chain = {c.rule_id for r in rows
+                for c in r.chain + (r.caveats or []) + (r.ceilings or [])}
+    for rg in rungs:
+        if rg.rule_id in in_chain:
+            continue
+        host = next((r for r in rows if r.subject.covers(rg.subject)
+                     or rg.subject.covers(r.subject)), None)
+        if host is not None:
+            note = ("instead, " + rg.applies.detail) if not rg.applies.always else "also written here"
+            host.chain = host.chain + [replace(rg, status=note)]
+
     placed = {l.rule_id for r in rows for l in (r.limits or []) + (r.dormant or [])}
     for parent, ls in kids.items():
         for l in ls:
