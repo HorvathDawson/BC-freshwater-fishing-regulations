@@ -270,6 +270,119 @@ def render(w: dict) -> str:
     return "\n".join(L)
 
 
+#: How a locator's `op` becomes an extent, and how many cut-points that op needs. `whole` needs
+#: none — a locator whose scope column is empty IS the whole water.
+_OP_ARITY = {"between": ("between", 2), "upstream_of": ("upstream_of", 1),
+             "downstream_of": ("downstream_of", 1), "whole_water": ("whole", 0)}
+
+_RULES_CACHE: dict = {}
+
+
+def _rules_for(location_id: str) -> list:
+    """The typed rules riding on one locator, as generated labels.
+
+    What is at stake if the cut is placed wrongly, or never placed at all — a locator carrying
+    nine rules costs nine regulations and one carrying none costs nothing, and until the rules
+    were typed there was no way to tell those apart.
+    """
+    if not _RULES_CACHE:
+        from pipeline.regs.parsing.catalogue import CatalogueRule, label
+        feed_dir = GENERATED.regs.dfo_salmon / "typed"
+        by_fp: dict = {}
+        if feed_dir.exists():
+            for fd in sorted(feed_dir.glob("region-*.json")):
+                for l in json.loads(fd.read_text(encoding="utf-8"))["locators"]:
+                    by_fp[l["fingerprint"]] = [label(CatalogueRule(**r)) for r in l["rules"]]
+        for f in sorted(ENTRIES.glob("region-*.json")):
+            for loc in json.loads(f.read_text(encoding="utf-8")).get("locations", []):
+                got = [x for fp in (loc.get("fingerprints") or []) for x in by_fp.get(fp, [])]
+                _RULES_CACHE[loc["location_id"]] = got
+        _RULES_CACHE.setdefault("", [])
+    return _RULES_CACHE.get(location_id, [])
+
+
+def _propose(r: dict, w: dict) -> str:
+    """The extent this locator would get, with cut-points it still needs marked `?`."""
+    op, arity = _OP_ARITY.get(r["op"] or "", (None, None))
+    if op is None:
+        return "op=%s — no extent shape for this one; a curator decides" % (r["op"] or "none")
+    if arity == 0:
+        return '{"op": "whole"}'
+    have = [c[0] for c in cover_candidates(r["text"], w["cuts"], w["water"])][:arity]
+    slots = have + ["?"] * (arity - len(have))
+    return '{"op": "%s", "splits": [%s]}' % (op, ", ".join(repr(x) for x in slots))
+
+
+def render_solve(w: dict) -> str:
+    """One water, everything needed to finish it in a single sitting.
+
+    The per-water loop exists because a river's locators reference each other — "from the signs
+    200 m above the bridge down to the cable car 200 m below it" — and its existing cuts are the
+    vocabulary the next one should reuse. Splitting that across sittings does the work twice, and
+    binding the extents in a second pass does it twice again.
+
+    **NOTHING HERE IS WRITTEN.** Every derived cut is printed with the evidence that derived it,
+    for a human to agree with or reject; every extent is a proposal with its unknown ends marked.
+    The watershed-code child test is the evidence that matters: a tributary's `wsc` starting with
+    `mainstem_wsc + "-"` PROVES the relationship where a name does not — "Cedar Creek" and
+    "Howson Creek" each exist several times over in this province.
+    """
+    out = [render(w), "", "  " + "-" * 94,
+           "  SOLVE — proposed cuts and extents. NOTHING BELOW IS WRITTEN.",
+           "  " + "-" * 94]
+
+    derive, pins, done = [], [], []
+    for r in w["locators"]:
+        if r["kind"] == "satisfied":
+            done.append(r)
+        elif r["kind"] in ("confluence", "lake"):
+            derive.append(r)
+        else:
+            pins.append(r)
+
+    out.append("")
+    out.append("  [1] DERIVABLE — no map needed. VERIFY each against its evidence, then write.")
+    if not derive:
+        out.append("      (none)")
+    for r in derive:
+        out.append("      [%s] %s" % (r["status"][:4], r["text"]))
+        out.append("           evidence : %s" % (r["detail"] or "—"))
+        out.append("           extent   : %s" % _propose(r, w))
+        for lab in _rules_for(r["loc"])[:4]:
+            out.append("           at stake : %s" % lab)
+
+    out.append("")
+    out.append("  [2] NEEDS A PIN — a human on a map. One list per water, not one per anchor.")
+    if not pins:
+        out.append("      (none)")
+    for r in pins:
+        out.append("      [%s] %s" % (r["status"][:4], r["text"]))
+        out.append("           anchors  : %s" % (r["anchors"] or "—"))
+        cands = cover_candidates(r["text"], w["cuts"], w["water"])
+        if cands:
+            out.append("           maybe?   : %s" % ", ".join(c[0] for c in cands[:3]))
+            out.append("                      ^ CHECK FIRST — a rewording of an existing cut is "
+                       "not a new one")
+        out.append("           extent   : %s" % _propose(r, w))
+        for lab in _rules_for(r["loc"])[:4]:
+            out.append("           at stake : %s" % lab)
+
+    out.append("")
+    out.append("  [3] ALREADY SATISFIED — reuse the id, do not mint a second one.")
+    if not done:
+        out.append("      (none)")
+    for r in done:
+        out.append("      %-68s -> %s" % (r["text"][:68], r["detail"]))
+
+    n_act = sum(1 for r in pins if r["status"] == "active")
+    waiting = sum(len(_rules_for(r["loc"])) for r in derive + pins)
+    out.append("")
+    out.append("  SUMMARY  %d derivable · %d need a pin (%d on the live page) · %d satisfied"
+               % (len(derive), len(pins), n_act, len(done)))
+    out.append("           %d rules are waiting on this water's cuts" % waiting)
+    return "\n".join(out)
+
+
 def render_extents(water_name: str, slug: str, reg, graph) -> str:
     """What a water's regulations actually SELECT, once its locators are bound.
 
@@ -358,6 +471,11 @@ def main() -> None:
     ap.add_argument("--by-impact", action="store_true",
                     help="rank the worklist by how many RULES are waiting on each water's cuts, "
                          "rather than by how many anchors it mentions")
+    ap.add_argument("--solve", action="store_true",
+                    help="one water, everything needed to finish it in one sitting: every locator "
+                         "verbatim, the rules riding on it, which cuts are derivable (with the "
+                         "evidence) and which need a pin, and the extent each would get. It "
+                         "PROPOSES and never writes.")
     ap.add_argument("--extents", action="store_true",
                     help="show what the water's locators RESOLVE TO once bound, grouped by section "
                          "rather than by wording. Needs a built graph.")
@@ -379,7 +497,7 @@ def main() -> None:
             print("no water matching %r with place-naming locators" % args.name)
             return
         for w in hits:
-            print(render(w))
+            print(render_solve(w) if args.solve else render(w))
         return
 
     def _need(w, status=None):
