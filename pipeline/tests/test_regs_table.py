@@ -437,3 +437,43 @@ def test_the_fraser_bait_exemption_does_not_lift_the_ban_on_the_chilliwack(table
         row = resolve_method("angling", rungs_for("angling", rules, here, kind), here)
         ids = {c.rule_id for c in row.constraints}
         assert "zp:bait::bait.r1" in ids, f"{w} stretch {run + 1}: the fin-fish ban is lifted"
+
+
+# --------------------------------------------------------------------------- #
+# White sturgeon: a closure the book scopes by population, and a table that cannot.
+# --------------------------------------------------------------------------- #
+def test_the_contradicted_closures_are_the_sturgeon_ones_and_no_others():
+    """The book's protected-species entry lists "White Sturgeon (Nechako, Upper Fraser,
+    Kootenay and Columbia populations)"; the catalogue's group holds bare WSG, so the federal
+    closure covers the Fraser fishery the regional tables open. Nothing lifts it, the closure
+    stands, and the reader on the Fraser is told there is no sturgeon fishery. The fix is a
+    lift in the catalogue (see `contradicted_closures`); this pins the report so the defect
+    cannot quietly grow or quietly vanish."""
+    from pipeline.regs.table.corpus import rules
+    from pipeline.regs.table.lifts import contradicted_closures
+    got = {(x["closure"], x["opened_by"]) for x in contradicted_closures(rules())}
+    closures = {"zp:protected_species::protected_species.r1", "z7a:sara_sturgeon::sara_sturgeon.r1"}
+    openers = {"z1:species_quotas::species_quotas.r5", "z2:species_quotas::species_quotas.r7",
+               "z3:species_quotas::species_quotas.r7", "z5:white_sturgeon::white_sturgeon.r2",
+               "zp:white_sturgeon_licence::white_sturgeon_licence.r2"}
+    assert got == {(c, o) for c in closures for o in openers}, sorted(got)
+
+
+def test_a_superior_closure_stands_and_says_why(tables):
+    """On the Fraser in Region 2 the protected-species row governs white sturgeon, and the
+    regional "CATCH AND RELEASE ONLY" rides beneath it — not as "set wider, replaced by one
+    closer to this water", which a federal closure is not, but as the thing it is."""
+    from pipeline.regs.table.build import name
+    seen = 0
+    for w, run, _, _, t in tables:
+        if w != "Fraser River":
+            continue
+        for r in t:
+            if r.subject.words(name)[0] != "Protected species":
+                continue
+            assert r.outcome == CLOSED
+            for c in r.chain:
+                if c.rule_id == "z2:species_quotas::species_quotas.r7":
+                    assert c.status == "does not open what a superior authority closed", c.status
+                    seen += 1
+    assert seen, "the Region 2 sturgeon release reached no Fraser table"

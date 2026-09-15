@@ -40,7 +40,7 @@ from pipeline.regs.table.build import (build, section_rules, section_regions,
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.clauses import children_of
 from pipeline.regs.table.corpus import rid
-from pipeline.regs.table.lifts import lifts_here, self_lifting
+from pipeline.regs.table.lifts import lifts_here, self_lifting, contradicted_closures
 
 
 def audit(rules, kind="stream", here=frozenset(), label=""):
@@ -128,6 +128,22 @@ if __name__ == "__main__":
             print(f"   {x['rule']}")
             print(f"      “{x['label'][:66]}”")
             print(f"      its note says the exemption is for: {x['note'][:60]}")
+    # ALSO IN THE DATA. A superior closure that a lower table opens, with nothing lifting it:
+    # the closure stands, as the order says it must, and the reader on the Fraser is told there
+    # is no sturgeon fishery. The fix is a lift the catalogue does not yet carry — see the
+    # docstring — and it is printed every run so the table's answer cannot pass as the book's.
+    contra = contradicted_closures(_all())
+    if contra:
+        by = {}
+        for x in contra:
+            by.setdefault(x["closure"], []).append(x)
+        print(f"\n⚠ {len(by)} superior closure(s) are opened by a lower table, and nothing "
+              f"lifts them — a curation defect, reported here and not worked around:")
+        for c, xs in by.items():
+            print(f"   {c}")
+            for x in xs:
+                print(f"      opened by {x['opened_by']}")
+                print(f"         “{x['verbatim'][:64]}”" + (f"  [{x['extent'][:36]}]" if x['extent'] else ""))
     print(f"\nunaccounted-for rules : {total_missing}")
     print(f"self-contradicting rows: {total_bad}")
     print("\nCOMPLIES" if total_missing == 0 and total_bad == 0 else "\nDOES NOT COMPLY")

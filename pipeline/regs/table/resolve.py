@@ -182,6 +182,13 @@ def resolve(rungs: List[Rung], subject: Subject,
             st = f"instead, {r.applies.detail}"
         elif r.outcome == out:
             st = "says the same thing"
+        elif head.rank < 0 and r.outcome.kind not in ("closed",):
+            # Under a superior authority nothing is "closer to this water". The regional table's
+            # "White Sturgeon: CATCH AND RELEASE ONLY" beneath the federal closure was printed
+            # as "set wider (Region 2), replaced by one closer" — a federal closure is not closer
+            # to the Fraser than the Fraser's own region is. It is simply not something a lower
+            # table can open (see `lifts.contradicted_closures`).
+            st = "does not open what a superior authority closed"
         elif r.rank > head.rank:
             st = f"set wider ({r.authority}), replaced by one closer to this water"
         elif r.subject == head.subject:
