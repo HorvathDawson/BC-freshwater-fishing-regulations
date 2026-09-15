@@ -3,7 +3,8 @@ from __future__ import annotations
 import json, re, sys
 from typing import Dict, FrozenSet, List
 
-from pipeline.regs.table.subject import Subject, Origin, Size, Water
+from pipeline.regs.table.subject import Subject, Origin, Water
+from pipeline.regs.table.size import size_of
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.where import parse_where
 from pipeline.regs.table.method import MethodRung, resolve_method, ALLOWED, FORBIDDEN
@@ -36,7 +37,9 @@ def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRu
         if o is not None:
             takes = (Subject(frozenset(x.get("species") or []),
                              Origin(x["origin"]) if x.get("origin") else Origin.both,
-                             Size(x.get("over_cm"), x.get("under_cm")),
+                             size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
+                                     within=x.get("within"), band=bool(x.get("band")),
+                                     period=x.get("period") or "daily"),
                              Water.any, None,
                              # A LIFT IS A SUBTRACTION: whatever an exception takes out of this
                              # rule HERE joins what the rule already excepts.

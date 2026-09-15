@@ -12,9 +12,18 @@ WHAT IT HANDLES
       sub-limit    a clause of an allowance, carried on that allowance's row
       lifted       disapplied here by something that says so
       not-here     written about the other kind of water — a stream rule on a lake
-      not-a-quota  it is not about how many fish (gear, licence, boats) — a different table
+      by-method    it restricts a WAY of fishing, and belongs in the gear table
+      not-a-quota  it is not a retention rule at all — licence, boat, advisory
 
   Anything left over is a rule the reader would never see, and the check fails on it.
+
+  THE BUCKET THAT WAS A LIE. `not-a-quota` used to mean "outcome_of returned None", which is
+  not the same statement: a retention rule whose SHAPE this module cannot hold — a bare size
+  gate, a possession multiplier, an exemption with no count of its own — returned None too, and
+  was filed as though it were a boat rule. Twenty-three retention rules sat in that bucket while
+  the check printed COMPLIES. A guarantee that launders its own failures is worse than none,
+  because it is trusted. `not-a-quota` now requires the rule to say it is not a retention rule;
+  anything else that cannot be placed is UNACCOUNTED, and the check fails, which is the point.
 
   It also checks the table cannot contradict itself: every row's printed outcome IS its
   governing rung's outcome (the page cannot drift from the chain, because it is handed both),
@@ -47,9 +56,9 @@ def audit(rules, kind="stream"):
         # decided that (see `applies_here`), which is the whole point of deciding it once.
         w = x.get("water")
         if w and w != kind: mark(x.get("rule"), "not-here")
-        o = outcome_of(x.get("take"), x.get("may_target"), x.get("unlimited"),
-                       x.get("period"), bool(x.get("combined")))
-        if o is None: mark(x.get("rule"), "not-a-quota")
+        if x.get("method"): mark(x.get("rule"), "by-method")
+        if str(x.get("type") or "") != "retention_limit":
+            mark(x.get("rule"), "not-a-quota")
 
     given = {x.get("rule") for x in rules if x.get("rule")}
     missing = sorted(given - seen)

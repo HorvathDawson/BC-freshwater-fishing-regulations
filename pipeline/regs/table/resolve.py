@@ -151,7 +151,9 @@ def table(rungs: List[Rung], water_kind: str = "stream",
         for m in merged:
             if m.outcome == row.outcome and (j := m.subject.join(row.subject)) is not None:  # noqa
                 m.subject = j
-                m.chain = m.chain + [c for c in row.chain if c.rule_id not in
+                m.chain = m.chain + [replace(c, status="says the same thing"
+                                             if c.status == "governs" else c.status)
+                                     for c in row.chain if c.rule_id not in
                                      {x.rule_id for x in m.chain}]
                 # The caveats come too. Leaving them behind here leaked 22 rules that were only
                 # ever conditional — a seasonal closure on the merged fish, gone without trace.
@@ -191,7 +193,12 @@ def table(rungs: List[Rung], water_kind: str = "stream",
         if host is row:
             out.append(row); continue
         have = {c.rule_id for c in host.chain}
-        host.chain += [c for c in row.chain if c.rule_id not in have]
+        # ONE ROW, ONE WINNER. An absorbed row brings its own `governs` rung, and a page that
+        # renders "governs" as "follow this one" then prints it twice for the same fish.
+        # Whatever governed the narrower row governed a restatement of this one.
+        host.chain += [replace(c, status="says the same thing" if c.status == "governs"
+                               else c.status)
+                       for c in row.chain if c.rule_id not in have]
         hc = {c.rule_id for c in (host.caveats or [])}
         host.caveats = (host.caveats or []) + [c for c in (row.caveats or []) if c.rule_id not in hc]
         host.limits = _dedup((host.limits or []) + list(row.limits or []))

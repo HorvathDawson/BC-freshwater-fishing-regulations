@@ -11,7 +11,8 @@ from __future__ import annotations
 import json, re
 from typing import Dict, List
 
-from pipeline.regs.table.subject import Subject, Origin, Size, Water, note_origin_split
+from pipeline.regs.table.subject import Subject, Origin, Water, note_origin_split
+from pipeline.regs.table.size import size_of
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.resolve import Rung, Row, table
 from pipeline.regs.table.applies import applies_of
@@ -36,7 +37,9 @@ def _authority(x):
 def subject_of(x) -> Subject:
     return Subject(frozenset(x.get("species") or []),
                    Origin(x["origin"]) if x.get("origin") else Origin.both,
-                   Size(x.get("over_cm"), x.get("under_cm")),
+                   size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
+                           within=x.get("within"), band=bool(x.get("band")),
+                           period=x.get("period") or "daily"),
                    Water(x["water"]) if x.get("water") else Water.any,
                    x.get("method"), frozenset(x.get("species_except") or []))
 
@@ -67,6 +70,11 @@ def build(rules: List[dict], water_kind: str = "stream") -> List[Row]:
     rungs = []
     for x in rules:
         if x.get("within"): continue                   # a clause, handled above
+        # A RULE THAT NAMES A METHOD IS ABOUT THE METHOD. "Only non-game fish may be speared" is
+        # a take of zero, so it walked into the quota table and said "Salmon · 0 · you may not
+        # fish for it" on a salmon river — off the spear-fishing rule. It belongs in the gear
+        # table, under the way of fishing it restricts (see method.py). 90 of 601 rungs.
+        if x.get("method"): continue
         o = outcome_of(x.get("take"), x.get("may_target"), x.get("unlimited"),
                        x.get("period"), pooled_of(x))
         if o is None: continue                         # not about how many -> not a table row
@@ -81,7 +89,7 @@ def render(rows: List[Row]) -> str:
     """The page's whole job, for comparison: print what it was given."""
     out = []
     for r in rows:
-        who, q = r.subject.words(name)
+        who, q = r.subject.words(name, is_release=(r.outcome.kind == "release"))
         out.append(f"{who}|{r.outcome.word()}|{q}")
         for l in (r.limits or []):
             out.append(f"   limit: {l.sentence(name)}")

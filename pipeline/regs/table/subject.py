@@ -26,6 +26,7 @@ from enum import Enum
 from typing import FrozenSet, Optional, Tuple
 
 from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+from pipeline.regs.table.size import ANY as SIZE_ANY, Size, size_of  # noqa: F401
 
 
 class Origin(str, Enum):
@@ -38,22 +39,6 @@ class Water(str, Enum):
     any = "any"; stream = "stream"; lake = "lake"
     def covers(self, w: "Water") -> bool:
         return self is Water.any or self is w
-
-
-@dataclass(frozen=True, order=True)
-class Size:
-    """`any`, or a bound. Two loose ints let `over_cm=30, under_cm=None` and `over_cm=30,
-    under_cm=0` be different keys for one idea; a tagged value cannot."""
-    lo: Optional[int] = None          # keep only fish OVER this
-    hi: Optional[int] = None          # keep only fish UNDER this
-    @property
-    def is_any(self) -> bool: return self.lo is None and self.hi is None
-    def covers(self, s: "Size") -> bool:
-        return self.is_any or self == s
-    def words(self) -> str:
-        if self.is_any: return ""
-        if self.lo is not None and self.hi is not None: return f"{self.lo}–{self.hi} cm"
-        return f"over {self.lo} cm" if self.lo is not None else f"under {self.hi} cm"
 
 
 #: A group the catalogue lists with NO members. Two of them, and they mean opposite things —
@@ -103,7 +88,7 @@ def expand(codes: FrozenSet[str]) -> FrozenSet[str]:
 class Subject:
     fish: FrozenSet[str] = frozenset()      # empty = everyone; groups kept AS groups
     origin: Origin = Origin.both
-    size: Size = Size()
+    size: Size = SIZE_ANY
     water: Water = Water.any
     method: Optional[str] = None
     excepts: FrozenSet[str] = frozenset()
@@ -167,12 +152,17 @@ class Subject:
         return None
 
     # -- how it reads -----------------------------------------------------------------
-    def words(self, name) -> Tuple[str, str]:
-        """(who it is about, what qualifies it) — the two cells, from the value itself."""
+    def words(self, name, *, is_release: bool = False) -> Tuple[str, str]:
+        """(who it is about, what qualifies it) — the two cells, from the value itself.
+
+        `is_release` gates one phrase only. "Wild and hatchery" answers a question a bare
+        "release" raises — is that wild ones, hatchery ones, or all of them — and a NUMBER never
+        raises it. Printed on every origin-split row it lands on 22 to earn its keep on two."""
         who = ", ".join(sorted(name(c) for c in self.fish)) if self.fish else "Everything"
         q = []
         if self.origin is not Origin.both: q.append(f"{self.origin.value} only")
-        elif self.fish and any(_split_by_origin(c) for c in self.fish): q.append("wild and hatchery")
+        elif is_release and self.fish and any(_split_by_origin(c) for c in self.fish):
+            q.append("wild and hatchery")
         if not self.size.is_any: q.append(self.size.words())
         if self.water is not Water.any: q.append(f"in {self.water.value}s")
         if self.method: q.append(f"by {self.method.replace('_',' ')}")

@@ -19,7 +19,7 @@ def trace(water, run=0):
     print(f"{len(rules)} rules in  ->  {len(rows)} rows out")
     print("=" * 86)
     for r in rows:
-        who, q = r.subject.words(name)
+        who, q = r.subject.words(name, is_release=(r.outcome.kind == 'release'))
         print(f"\n  ┌ {who}")
         print(f"  │ KEEP: {r.outcome.word()}    {q}")
         print(f"  │ means: {r.outcome.sentence()}")
