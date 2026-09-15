@@ -16,7 +16,10 @@ from pipeline.regs.table.size import size_of
 from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.resolve import Rung, Row, table
 from pipeline.regs.table.applies import applies_of
-from pipeline.regs.table.clauses import SubLimit, children_of, lifted_ids, pooled_of
+from pipeline.regs.table.clauses import SubLimit, children_of, pooled_of
+from pipeline.regs.table.corpus import rid, rule_part, section_rules as corpus_section
+from pipeline.regs.table.lifts import lifts_here
+from pipeline.regs.table.qualifiers import qualifier_of, attach
 
 H = open("app/design/regs-v3.html").read()
 D = json.loads(re.search(r'<script id="d" type="application/json">(.*?)</script>', H, re.S).group(1))
@@ -34,30 +37,37 @@ def _authority(x):
     if e.startswith("z"):   return 2, "Region " + (e[1:2] if e[1:2].isdigit() else "?")
     return (1, "inherited") if x.get("via") == "trib" else (0, "this water")
 
-def subject_of(x) -> Subject:
+def subject_of(x, lifted_out=None) -> Subject:
+    """`lifted_out` is whatever an exception takes out of this rule HERE — a lift is a
+    subtraction, so it joins what the rule already excepts (see lifts.py)."""
     return Subject(frozenset(x.get("species") or []),
                    Origin(x["origin"]) if x.get("origin") else Origin.both,
                    size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
                            within=x.get("within"), band=bool(x.get("band")),
                            period=x.get("period") or "daily"),
                    Water(x["water"]) if x.get("water") else Water.any,
-                   x.get("method"), frozenset(x.get("species_except") or []))
+                   x.get("method"),
+                   frozenset(x.get("species_except") or []) | (lifted_out or frozenset()))
 
 def section_rules(water: str, run: int) -> List[dict]:
-    runs = D[water].get("runs") or []
-    if run >= len(runs): return []
-    lo, hi = runs[run]["from"], runs[run]["to"]
-    out = []
-    for x in (D[water].get("rules") or []):
-        sp = x.get("spans") or []
-        if sp and not any(abs(a-lo) < .05 and abs(b-hi) < .05 for a, b in sp): continue
-        out.append(x)
-    return out
+    """COMPLETE records for one stretch — see `corpus.py`.
 
-def build(rules: List[dict], water_kind: str = "stream") -> List[Row]:
-    """THE WHOLE GENERATOR."""
+    This used to read the page's own embedded rule list, which made the comparison honest and
+    the result wrong: that copy drops `exempts`, so sixty-odd "Exempt from spring closure"
+    rules arrived carrying nothing at all, and the closure they lift stood on every one of
+    those waters. No work in the browser could have recovered it.
+    """
+    return corpus_section(water, run)[0]
+
+
+def section_regions(water: str, run: int):
+    return corpus_section(water, run)[1]
+
+def build(rules: List[dict], water_kind: str = "stream", here=frozenset()) -> List[Row]:
+    """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
+    region-scoped lifts are measured against."""
     kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
-    lifted = lifted_ids(rules)                         # `exempts` -> disapplied here
+    narrow, lifted = lifts_here(rules, here)           # `exempts` -> narrowed / disapplied here
 
     # sub-limits become a FIELD on their parent, never a row
     kids: Dict[str, List[SubLimit]] = {}
@@ -67,7 +77,7 @@ def build(rules: List[dict], water_kind: str = "stream") -> List[Row]:
             kids.setdefault(parent, []).append(
                 SubLimit(subject_of(c), c["take"], pooled_of(c), c.get("verbatim") or ""))
 
-    rungs = []
+    rungs, quals = [], []
     for x in rules:
         if x.get("within"): continue                   # a clause, handled above
         # A RULE THAT NAMES A METHOD IS ABOUT THE METHOD. "Only non-game fish may be speared" is
@@ -77,13 +87,20 @@ def build(rules: List[dict], water_kind: str = "stream") -> List[Row]:
         if x.get("method"): continue
         o = outcome_of(x.get("take"), x.get("may_target"), x.get("unlimited"),
                        x.get("period"), pooled_of(x))
-        if o is None: continue                         # not about how many -> not a table row
+        if o is None:
+            # No count of its own — but a retention rule with no count is still ABOUT a count.
+            if str(x.get("type") or "") == "retention_limit":
+                q = qualifier_of(x, subject_of(x, narrow.get(rid(x))), rid(x))
+                if q is not None: quals.append(q)
+            continue
         rank, who = _authority(x)
-        rungs.append(Rung(x.get("rule") or "?", who, rank, subject_of(x), o,
+        rungs.append(Rung(rid(x), who, rank, subject_of(x, narrow.get(rid(x))), o,
                           x.get("verbatim") or "",
                           applies_of(x.get("windows"), x.get("extent_text"),
                                      all_year=not x.get("windows"))))
-    return table(rungs, water_kind, kids, lifted)
+    rows = table(rungs, water_kind, kids, lifted)
+    build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
+    return rows
 
 def render(rows: List[Row]) -> str:
     """The page's whole job, for comparison: print what it was given."""

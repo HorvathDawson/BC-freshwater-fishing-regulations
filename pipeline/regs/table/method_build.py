@@ -9,7 +9,7 @@ from pipeline.regs.table.outcome import outcome_of
 from pipeline.regs.table.where import parse_where
 from pipeline.regs.table.method import MethodRung, resolve_method, ALLOWED, FORBIDDEN
 from pipeline.regs.table.lifts import lifts_here
-from pipeline.regs.table.corpus import rules as corpus_rules, section_rules
+from pipeline.regs.table.corpus import rules as corpus_rules, section_rules, rid
 
 H = open("app/design/regs-v3.html").read()
 D = json.loads(re.search(r'<script id="d" type="application/json">(.*?)</script>', H, re.S).group(1))
@@ -27,7 +27,7 @@ def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRu
     out = []
     for x in rules:
         if x.get("method") != method: continue
-        if x.get("rule") in drop: continue          # disapplied here outright
+        if rid(x) in drop: continue                 # disapplied here outright
         rank, who = _auth(x)
         w = parse_where(x.get("extent_text"))
         perm = (ALLOWED if x.get("permitted") else FORBIDDEN) if x.get("permitted") is not None else None
@@ -44,9 +44,9 @@ def rungs_for(method: str, rules: List[dict], here=frozenset()) -> List[MethodRu
                              # A LIFT IS A SUBTRACTION: whatever an exception takes out of this
                              # rule HERE joins what the rule already excepts.
                              frozenset(x.get("species_except") or [])
-                               | narrow.get(x.get("rule"), frozenset())), o)
+                               | narrow.get(rid(x), frozenset())), o)
         con = "" if (perm is not None or takes is not None) else (x.get("label") or "")
-        out.append(MethodRung(x.get("rule") or "?", who, rank, w, perm, takes, con,
+        out.append(MethodRung(rid(x), who, rank, w, perm, takes, con,
                               x.get("verbatim") or ""))
     return out
 

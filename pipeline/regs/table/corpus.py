@@ -37,8 +37,25 @@ def rules(path: str = BUNDLE) -> List[dict]:
     return out
 
 
+def rid(x: dict) -> str:
+    """The identity of a rule, which is NOT its `rule_id`.
+
+    408 rules share 140 rule_ids: `species_quotas.r1` is nine different rules, one per region,
+    and `spring_stream_closure.r1` is five, with different windows (Jan 1–Jun 30, Apr 1–Jun 14,
+    Apr 1–Jun 30), different regions and different extents. Only `(entry_id, rule_id)` is
+    unique. Every map keyed on the bare id silently merges them — the Region 1 kokanee quota
+    and the Region 9 one become one rule, and four of the five spring closures cease to exist.
+    """
+    return f"{x.get('entry') or x.get('entry_id')}::{x.get('rule') or x.get('rule_id')}"
+
+
+def rule_part(key: str) -> str:
+    """The `rule_id` half, for matching `exempts.target` / `within`, which name it bare."""
+    return key.split("::", 1)[-1]
+
+
 def by_id(rs: List[dict]) -> Dict[str, dict]:
-    return {r["rule"]: r for r in rs if r.get("rule")}
+    return {rid(r): r for r in rs if r.get("rule")}
 
 
 def section_rules(water: str, run: int = 0, path: str = BUNDLE):
@@ -61,11 +78,13 @@ def section_rules(water: str, run: int = 0, path: str = BUNDLE):
     if run >= len(runs):
         return [], frozenset()
     lo, hi = runs[run]["from"], runs[run]["to"]
+    # Keyed on (entry, rule) — the bare rule id is shared by up to nine different rules, so
+    # matching on it alone pulled Region 7b's bait rule onto a Region 2 river.
     want = set()
     for x in (w.get("rules") or []):
         sp = x.get("spans") or []
         if sp and not any(abs(a - lo) < .05 and abs(b - hi) < .05 for a, b in sp):
             continue
-        want.add(x.get("rule"))
-    full = by_id(rules(path))
-    return [full[r] for r in want if r in full], frozenset(runs[run].get("regions") or [])
+        want.add(f"{x.get('entry')}::{x.get('rule')}")
+    out = [x for x in rules(path) if rid(x) in want]
+    return out, frozenset(runs[run].get("regions") or [])

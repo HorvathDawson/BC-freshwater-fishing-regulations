@@ -6,14 +6,14 @@ WHAT IT HANDLES
   rule, it is visible here as a number with nothing under it.
 """
 import sys
-from pipeline.regs.table.build import build, section_rules, name, D
+from pipeline.regs.table.build import build, section_rules, section_regions, name, D
 
 def trace(water, run=0):
     kind = "lake" if (D[water].get("kind") == "lake") else "stream"
     runs = D[water].get("runs") or []
     lbl = (runs[run].get("label") if run < len(runs) else "") or f"stretch {run+1}"
     rules = section_rules(water, run)
-    rows = build(rules, kind)
+    rows = build(rules, kind, section_regions(water, run))
     print("\n" + "=" * 86)
     print(f"{water}  ·  {lbl}  ·  {kind}")
     print(f"{len(rules)} rules in  ->  {len(rows)} rows out")

@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import Dict, FrozenSet, List, Set, Tuple
 
 from pipeline.regs.table.where import parse_where
+from pipeline.regs.table.corpus import rid, rule_part
 
 
 def lifts_here(rules: List[dict], here: FrozenSet[str]
@@ -33,16 +34,19 @@ def lifts_here(rules: List[dict], here: FrozenSet[str]
     """
     narrow: Dict[str, Set[str]] = {}
     drop: Set[str] = set()
-    ids = {r.get("rule") for r in rules}
+    # Keys are COMPOSITE (`entry::rule`) because a bare rule id is not unique; `exempts` names
+    # the bare one, so the match is on the rule half and the key that comes back is whole.
+    ids = {rid(r) for r in rules}
     for r in rules:
         for ex in (r.get("exempts") or []):
             if parse_where(r.get("extent_text")).bites_in(here) is False:
                 continue
             targets = set()
             if ex.get("target"):
-                targets.add(ex["target"])
+                targets |= {i for i in ids if rule_part(i) == ex["target"]}
             if ex.get("default_id"):
-                targets |= {i for i in ids if i and i.split(".")[0] == ex["default_id"]}
+                targets |= {i for i in ids
+                            if rule_part(i).split(".")[0] == ex["default_id"]}
             sp = set(r.get("species") or [])
             for t in targets:
                 if sp:

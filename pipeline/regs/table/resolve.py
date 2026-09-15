@@ -57,6 +57,9 @@ class Row:
     chain: List[Rung]
     caveats: List[Rung] = None      # true here, but not the answer: a window or an undrawable spot
     limits: List[SubLimit] = None   # what the allowance may be MADE OF (`within`)
+    ceilings: List[Rung] = None     # other periods that bind AT THE SAME TIME (annual, possession)
+    duties: List[Rung] = None       # what you must DO on keeping one
+    quals: List = None              # size gates and possession multiples (see qualifiers.py)
 
     @property
     def governs(self) -> Rung: return self.chain[0]
@@ -80,6 +83,30 @@ def resolve(rungs: List[Rung], subject: Subject,
     cand = [r for r in cand if r.applies.can_win]
     if not cand:
         return None
+
+    # A DAILY QUOTA AND AN ANNUAL ONE ARE NOT COMPETITORS. They bind at the same time: you may
+    # keep 4 trout today AND no more than 10 hatchery steelhead this licence year. Ranked
+    # against each other one of them loses, and `rank` put "1 per day" ahead of "5 per licence
+    # year" — so the annual province-wide steelhead quota, the most recognisable number in BC
+    # angling regulation, was demoted into the chain on 2,716 rows under the words "wider rule,
+    # replaced by one closer to this water". It is not wider and it is not replaced.
+    #
+    # So each period is resolved in its own partition. The daily winner is the row's answer;
+    # the others ride on the row as ceilings, the same shape `SubLimit` already has — a
+    # constraint on the allowance, never a competitor and never a loser in the chain.
+    other = [r for r in cand
+             if r.outcome.kind == "quota" and (r.outcome.period or "daily") != "daily"]
+    cand = [r for r in cand if r not in other]
+    if not cand:
+        cand, other = other, []
+    ceilings, also_ran = [], []
+    for per in sorted({r.outcome.period for r in other}):
+        same = sorted((r for r in other if r.outcome.period == per),
+                      key=lambda r: (r.rank, r.outcome.rank))
+        ceilings.append(same[0])
+        # The ones it beat are still rules somebody wrote. Taking only the winner is how the
+        # first pass at this lost 102 of them.
+        also_ran += same[1:]
 
     # WHICH CLOSURES OUTRANK AUTHORITY — and it is not all of them.
     #
@@ -106,11 +133,24 @@ def resolve(rungs: List[Rung], subject: Subject,
     win = shut[0] if shut else cand[0]
     if win is not cand[0]:
         cand.remove(win); cand.insert(0, win)
+    # THE SHIPPED ANSWER IS THE YEAR-ROUND ONE. A seasonal rule keeps its sorted place in the
+    # chain — the client takes the first rung live on the day being viewed — but the value baked
+    # in here has to be the one that needs no date to be true, or a page with its date control
+    # untouched would show a rule that is out of season.
+    year_round = next((r for r in cand if r.applies.always), None)
+    # ...and it leads the chain, because `chain[0]` is what the page prints as "set by" and what
+    # the row's own outcome must agree with. A seasonal rule that outranks it keeps its place
+    # further down, labelled with the dates on which it takes over.
+    if year_round is not None and year_round is not cand[0]:
+        cand.remove(year_round); cand.insert(0, year_round)
 
-    out, chain = win.outcome, []
+    head = year_round if year_round is not None else cand[0]
+    out, chain = head.outcome, []
     for r in cand:
-        if r is win:
+        if r is head:
             st = "governs"
+        elif not r.applies.always:
+            st = f"instead, {r.applies.detail}"
         elif r.outcome == out:
             st = "says the same thing"
         elif win.outcome.kind == "closed" and r.rank <= win.rank:
@@ -124,7 +164,11 @@ def resolve(rungs: List[Rung], subject: Subject,
     for r in gone:
         chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome,
                           r.verbatim, r.applies, "lifted here — does not apply"))
-    return Row(subject, out, chain, caveats, list((kids or {}).get(win.rule_id, [])))
+    for r in also_ran:
+        chain.append(Rung(r.rule_id, r.authority, r.rank, r.subject, r.outcome, r.verbatim,
+                          r.applies, f"a weaker {r.outcome.period} ceiling"))
+    return Row(subject, out, chain, caveats,
+               list((kids or {}).get(head.rule_id, [])), ceilings, [])
 
 
 #: "No Fishing" — a closure on the water itself, as opposed to a quota of zero for one fish.
@@ -196,6 +240,12 @@ def table(rungs: List[Rung], water_kind: str = "stream",
                                                  if c.rule_id not in
                                                  {x.rule_id for x in (m.caveats or [])}]
                 m.limits = _dedup((m.limits or []) + list(row.limits or []))
+                mk = {c.rule_id for c in (m.ceilings or [])}
+                m.ceilings = (m.ceilings or []) + [c for c in (row.ceilings or [])
+                                                   if c.rule_id not in mk]
+                md = {c.rule_id for c in (m.duties or [])}
+                m.duties = (m.duties or []) + [c for c in (row.duties or [])
+                                               if c.rule_id not in md]
                 break
         else:
             merged.append(row)
@@ -247,5 +297,13 @@ def table(rungs: List[Rung], water_kind: str = "stream",
         hc = {c.rule_id for c in (host.caveats or [])}
         host.caveats = (host.caveats or []) + [c for c in (row.caveats or []) if c.rule_id not in hc]
         host.limits = _dedup((host.limits or []) + list(row.limits or []))
+        hk = {c.rule_id for c in (host.ceilings or [])}
+        host.ceilings = (host.ceilings or []) + [c for c in (row.ceilings or [])
+                                                 if c.rule_id not in hk]
+        hd = {c.rule_id for c in (host.duties or [])}
+        host.duties = (host.duties or []) + [c for c in (row.duties or [])
+                                             if c.rule_id not in hd]
+        hq = {c.rule_id for c in (host.quals or [])}
+        host.quals = (host.quals or []) + [c for c in (row.quals or []) if c.rule_id not in hq]
     out.sort(key=lambda r: (r.outcome.rank, sorted(r.subject.fish)))
     return out

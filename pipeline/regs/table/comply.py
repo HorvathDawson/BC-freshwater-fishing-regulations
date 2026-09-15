@@ -10,6 +10,8 @@ WHAT IT HANDLES
       chain        it lost to something, and the row says which and why
       caveat       true here, but only in a window or a spot nobody can draw
       sub-limit    a clause of an allowance, carried on that allowance's row
+      ceiling      a quota on ANOTHER period — annual, possession — that binds at the same time
+      no-trigger   a duty on keeping, on a water where nothing may be kept
       lifted       disapplied here by something that says so
       not-here     written about the other kind of water — a stream rule on a lake
       by-method    it restricts a WAY of fishing, and belongs in the gear table
@@ -33,13 +35,16 @@ from __future__ import annotations
 import sys
 from collections import Counter
 
-from pipeline.regs.table.build import build, section_rules, render, D, WATERS, name
+from pipeline.regs.table.build import (build, section_rules, section_regions,
+                                       render, D, WATERS, name)
 from pipeline.regs.table.outcome import outcome_of
-from pipeline.regs.table.clauses import children_of, lifted_ids
+from pipeline.regs.table.clauses import children_of
+from pipeline.regs.table.corpus import rid
+from pipeline.regs.table.lifts import lifts_here
 
 
-def audit(rules, kind="stream"):
-    rows = build(rules, kind)
+def audit(rules, kind="stream", here=frozenset()):
+    rows = build(rules, kind, here)
     seen, why = set(), {}
     def mark(rid, how):
         if rid and rid not in seen: seen.add(rid); why[rid] = how
@@ -48,19 +53,28 @@ def audit(rules, kind="stream"):
             mark(c.rule_id, "governs" if i == 0 and c.status == "governs" else
                  ("lifted" if "lifted" in c.status else "chain"))
         for c in (r.caveats or []): mark(c.rule_id, "caveat")
+        for c in (r.ceilings or []): mark(c.rule_id, "ceiling")
+        for c in (r.duties or []): mark(c.rule_id, "duty")
+        for c in (r.quals or []): mark(c.rule_id, c.kind)
+    for q in (getattr(build, "unattached", None) or []):
+        mark(q.rule_id, "no-trigger")
     kid = children_of(rules)
     for cs in kid.values():
-        for c in cs: mark(c.get("rule"), "sub-limit")
+        for c in cs: mark(rid(c), "sub-limit")
+    narrow, dropped = lifts_here(rules, here)
+    for t in dropped | set(narrow): mark(t, "lifted")
+    for x in rules:
+        if x.get("exempts"): mark(rid(x), "lifts another rule")
     for x in rules:
         # A stream rule on a lake is not missing; it is about somewhere else. The CONTEXT
         # decided that (see `applies_here`), which is the whole point of deciding it once.
         w = x.get("water")
-        if w and w != kind: mark(x.get("rule"), "not-here")
-        if x.get("method"): mark(x.get("rule"), "by-method")
+        if w and w != kind: mark(rid(x), "not-here")
+        if x.get("method"): mark(rid(x), "by-method")
         if str(x.get("type") or "") != "retention_limit":
-            mark(x.get("rule"), "not-a-quota")
+            mark(rid(x), "not-a-quota")
 
-    given = {x.get("rule") for x in rules if x.get("rule")}
+    given = {rid(x) for x in rules if x.get("rule")}
     missing = sorted(given - seen)
 
     bad = []
@@ -83,7 +97,7 @@ if __name__ == "__main__":
             rules = section_rules(w, run)
             if not rules: continue
             checked += 1
-            rows, why, missing, bad = audit(rules, kind)
+            rows, why, missing, bad = audit(rules, kind, section_regions(w, run))
             tally.update(why.values())
             total_missing += len(missing); total_bad += len(bad)
             if missing and fails < 3:

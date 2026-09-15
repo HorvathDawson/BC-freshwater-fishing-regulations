@@ -30,6 +30,7 @@ from typing import Dict, List, Set, Tuple
 
 from pipeline.regs.table.subject import Subject
 from pipeline.regs.table.outcome import Outcome
+from pipeline.regs.table.corpus import rid, rule_part
 
 
 @dataclass(frozen=True)
@@ -74,12 +75,15 @@ def children_of(rules: List[dict]) -> Dict[str, List[dict]]:
     """parent rule id -> its clauses. A clause with a clause is flattened onto the top parent,
     because the allowance it constrains is the one at the top."""
     kids: Dict[str, List[dict]] = {}
-    by = {r.get("rule"): r for r in rules}
+    # `within` names a BARE rule id, and a bare id is not unique — but a clause and its parent
+    # are always in the same entry, so the parent is looked up within that entry alone.
+    by = {rid(r): r for r in rules}
     for r in rules:
         p = r.get("within")
         if not p: continue
-        seen = set()
-        while p in by and by[p].get("within") and p not in seen:
-            seen.add(p); p = by[p]["within"]
-        kids.setdefault(p, []).append(r)
+        entry = (r.get("entry") or r.get("entry_id"))
+        key, seen = f"{entry}::{p}", set()
+        while key in by and by[key].get("within") and key not in seen:
+            seen.add(key); key = f"{entry}::{by[key]['within']}"
+        kids.setdefault(key, []).append(r)
     return kids

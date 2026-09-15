@@ -35,7 +35,31 @@ class Applies:
     detail: str = ""
 
     @property
-    def can_win(self) -> bool: return self.kind == "always"
+    def can_win(self) -> bool:
+        """A SEASON IS NOT A DISQUALIFICATION.
+
+        This used to be `kind == "always"`, which made a windowed rule a caveat that could never
+        be the answer whatever the date — so the Fording's OWN "trout and char, release all,
+        Jun 15 – Mar 31" lost to Region 4's year-round 5, which is the exact inversion the page
+        has fifty lines of comment about fixing.
+
+        A window says WHEN a rule is the answer, not whether. It stays in the running and takes
+        its sorted place; what it cannot do is be resolved at BUILD time, because "today" is
+        something the reader's screen knows and the pipeline does not. So the ordered candidates
+        ship, each carrying its own window, and the client takes the first one live now — one
+        filter, not four ladders.
+
+        A place nobody can draw is the different thing: 23 m below a fishway is not a question
+        about the date, and no amount of client-side evaluation can settle it. That one still
+        cannot win.
+        """
+        return self.kind in ("always", "window")
+
+    @property
+    def always(self) -> bool:
+        """True where the rule needs no date to be the answer — the year-round default the
+        pipeline can safely precompute."""
+        return self.kind == "always"
 
     def caveat(self, outcome_word: str) -> str:
         if self.kind == "window":    return f"{outcome_word} — but only {self.detail}"
