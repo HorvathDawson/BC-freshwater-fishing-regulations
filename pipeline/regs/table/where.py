@@ -77,9 +77,17 @@ def parse_where(extent_text: str | None) -> Where:
         # which puts a closure on rivers the book never named. Anything this cannot enumerate
         # in full stays undrawable, where it is a caveat rather than a verdict.
         return Where("undrawable", frozenset(), t)
-    found = set()
-    for m in _MENTION.finditer(t):
-        found |= {x.lower() for x in _ONE.findall(m.group(1))}
+    # THE WHOLE TEXT, OR NONE OF IT. "Fraser, Lower Pitt and Lower Harrison Rivers, Region 2"
+    # names three waters and then says which region they are in; read for its region mention
+    # alone it became a scope over all of Region 2, and a bait exemption written for three
+    # rivers lifted the province-wide fin-fish ban on the Chilliwack, the Coquihalla and the
+    # Harrison — eleven sections. "Hells Gate upstream to the Region 3 boundary" and "Fraser
+    # watershed within Region 6" were read the same way. A region mention with anything else
+    # around it is a place the atlas cannot draw, and it stays undrawable.
+    m = _MENTION.fullmatch(t.strip().rstrip("."))
+    if m is None:
+        return Where("undrawable", frozenset(), t)
+    found = {x.lower() for x in _ONE.findall(m.group(1))}
     return Where("regions", frozenset(found), t) if found else Where("undrawable", frozenset(), t)
 
 

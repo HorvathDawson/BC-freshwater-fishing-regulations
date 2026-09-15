@@ -402,3 +402,38 @@ def test_kootenay_lake_main_body_is_the_corpus_form_of_case_b(tables):
     assert by["Trout and char"].outcome.n == 5
     gov = next(c for c in by["Rainbow trout"].chain if c.status == "governs")
     assert gov.authority == "this water"
+
+
+# --------------------------------------------------------------------------- #
+# A named-water list qualified by a region is not a region scope.
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("text,kind,regions", [
+    ("Regions 3, 5, 6, 7 and 8", "regions", {"3", "5", "6", "7", "8"}),
+    ("Regions 1, 2 and 4", "regions", {"1", "2", "4"}),
+    ("Fraser, Lower Pitt and Lower Harrison Rivers, Region 2", "undrawable", set()),
+    ("Hells Gate upstream to the Region 3 boundary", "undrawable", set()),
+    ("Fraser watershed within Region 6", "undrawable", set()),
+    ("non-tidal portion of the Fraser River in Region 2", "undrawable", set()),
+    ("Regions 3-8", "undrawable", set()),
+])
+def test_a_region_mention_scopes_only_when_it_is_the_whole_extent(text, kind, regions):
+    """"(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt
+    River, Lower Harrison River" names three rivers. Read for its "Region 2" alone, the
+    exemption lifted the province-wide fin-fish bait ban on the Chilliwack, the Coquihalla and
+    the Harrison — eleven sections that the book keeps under the ban."""
+    from pipeline.regs.table.where import parse_where
+    w = parse_where(text)
+    assert (w.kind, set(w.regions)) == (kind, regions)
+
+
+def test_the_fraser_bait_exemption_does_not_lift_the_ban_on_the_chilliwack(tables):
+    from pipeline.regs.table.method_build import rungs_for
+    from pipeline.regs.table.method import resolve_method
+    from pipeline.regs.table.build import section_regions
+    for w, run, kind, rules, _ in tables:
+        if w not in ("Chilliwack River", "Coquihalla River"):
+            continue
+        here = section_regions(w, run)
+        row = resolve_method("angling", rungs_for("angling", rules, here, kind), here)
+        ids = {c.rule_id for c in row.constraints}
+        assert "zp:bait::bait.r1" in ids, f"{w} stretch {run + 1}: the fin-fish ban is lifted"
