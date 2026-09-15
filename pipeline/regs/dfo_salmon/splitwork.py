@@ -270,116 +270,178 @@ def render(w: dict) -> str:
     return "\n".join(L)
 
 
-#: How a locator's `op` becomes an extent, and how many cut-points that op needs. `whole` needs
-#: none — a locator whose scope column is empty IS the whole water.
+#: How a locator's `op` becomes an extent, and how many cut-points that op needs.
+#: `whole_water_excluding` is NOT mapped to `whole`. Its text carries two ends — "upstream of the
+#: CNR bridge to a point above the Babine confluence, excluding the areas below" — and the
+#: exclusion is the sibling locators carving out, which precedence resolves. Calling it `whole`
+#: would silently bind the entire river.
 _OP_ARITY = {"between": ("between", 2), "upstream_of": ("upstream_of", 1),
-             "downstream_of": ("downstream_of", 1), "whole_water": ("whole", 0)}
+             "downstream_of": ("downstream_of", 1), "whole_water": ("whole", 0),
+             "tributaries_only": ("whole", 0), "whole_water_excluding": ("between", 2)}
 
 _RULES_CACHE: dict = {}
+_COORD_CACHE: dict = {}
 
 
 def _rules_for(location_id: str) -> list:
-    """The typed rules riding on one locator, as generated labels.
-
-    What is at stake if the cut is placed wrongly, or never placed at all — a locator carrying
-    nine rules costs nine regulations and one carrying none costs nothing, and until the rules
-    were typed there was no way to tell those apart.
-    """
+    """The typed rules riding on one locator. A locator carrying nine rules costs nine
+    regulations if its cut is wrong; one carrying none costs nothing."""
     if not _RULES_CACHE:
         from pipeline.regs.parsing.catalogue import CatalogueRule, label
-        feed_dir = GENERATED.regs.dfo_salmon / "typed"
+        feed = GENERATED.regs.dfo_salmon / "typed"
         by_fp: dict = {}
-        if feed_dir.exists():
-            for fd in sorted(feed_dir.glob("region-*.json")):
+        if feed.exists():
+            for fd in sorted(feed.glob("region-*.json")):
                 for l in json.loads(fd.read_text(encoding="utf-8"))["locators"]:
                     by_fp[l["fingerprint"]] = [label(CatalogueRule(**r)) for r in l["rules"]]
         for f in sorted(ENTRIES.glob("region-*.json")):
             for loc in json.loads(f.read_text(encoding="utf-8")).get("locations", []):
-                got = [x for fp in (loc.get("fingerprints") or []) for x in by_fp.get(fp, [])]
-                _RULES_CACHE[loc["location_id"]] = got
+                _RULES_CACHE[loc["location_id"]] = [
+                    x for fp in (loc.get("fingerprints") or []) for x in by_fp.get(fp, [])]
         _RULES_CACHE.setdefault("", [])
     return _RULES_CACHE.get(location_id, [])
 
 
-def _propose(r: dict, w: dict) -> str:
-    """The extent this locator would get, with cut-points it still needs marked `?`."""
-    op, arity = _OP_ARITY.get(r["op"] or "", (None, None))
-    if op is None:
-        return "op=%s — no extent shape for this one; a curator decides" % (r["op"] or "none")
-    if arity == 0:
-        return '{"op": "whole"}'
-    have = [c[0] for c in cover_candidates(r["text"], w["cuts"], w["water"])][:arity]
-    slots = have + ["?"] * (arity - len(have))
-    return '{"op": "%s", "splits": [%s]}' % (op, ", ".join(repr(x) for x in slots))
+def split_coords(item_ids) -> dict:
+    """`{split_id -> (lat, lon)}` for the cuts on these items.
+
+    The build resolves a split to `(blk, route_measure)` and stops — no coordinate, because
+    nothing downstream needed one. A curator does: a cut you cannot open on a map is a cut you
+    cannot check. Interpolated from the FWA line, once per water.
+    """
+    key = tuple(sorted(item_ids))
+    if key in _COORD_CACHE:
+        return _COORD_CACHE[key]
+    out: dict = {}
+    try:
+        import geopandas as gpd
+        from project_config import get_config
+
+        resolved = json.loads((GENERATED.build() / "splits.resolved.json").read_text())
+        blks = {str(r["blk"]) for r in resolved if r.get("blk")}
+        want = [r for r in resolved if str(r.get("blk")) in blks]
+        mine = {b for b in blks}
+        # only the lines these items actually sit on
+        from pipeline.atlas.registry import load_registry
+        reg = load_registry(GENERATED.build() / "registry.json")
+        item_blks = {str(getattr(n, "blk", "")) for i in item_ids if i in reg
+                     for n in [reg[i]] for _ in [0]}
+        lines = {str(r["blk"]) for r in want if r["split_id"] in
+                 {b.id for i in item_ids if i in reg for b in reg[i].boundaries}}
+        if not lines:
+            return out
+        st = gpd.read_file(str(get_config().fwa_data_gpkg), layer="streams",
+                           where="BLUE_LINE_KEY IN (%s)" % ",".join(sorted(lines)),
+                           engine="pyogrio").to_crs(4326).sort_values("DOWNSTREAM_ROUTE_MEASURE")
+        by_line = {b: g for b, g in st.groupby(st["BLUE_LINE_KEY"].astype(str))}
+        for r in want:
+            b = str(r["blk"])
+            if b not in by_line:
+                continue
+            g = by_line[b]
+            seg = g[g["DOWNSTREAM_ROUTE_MEASURE"] <= r["route_measure"]].tail(1)
+            if seg.empty:
+                seg = g.head(1)
+            row = seg.iloc[0]
+            geom = row.geometry.geoms[0] if hasattr(row.geometry, "geoms") else row.geometry
+            frac = (r["route_measure"] - row["DOWNSTREAM_ROUTE_MEASURE"]) / max(row["LENGTH_METRE"], 1)
+            p = geom.interpolate(max(0.0, min(1.0, frac)), normalized=True)
+            out[r["split_id"]] = (round(p.y, 5), round(p.x, 5))
+    except Exception:
+        return {}
+    _COORD_CACHE[key] = out
+    return out
+
+
+def _short(split_id: str, water: str) -> str:
+    """`skeena_river__cedarvale` -> `cedarvale`. The water is already the heading."""
+    pre = re.sub(r"[^a-z0-9]+", "_", water.lower()).strip("_") + "__"
+    s = split_id[len(pre):] if split_id.lower().startswith(pre) else split_id
+    return s.replace("_into_" + pre.rstrip("_"), "")
+
+
+def _wrap(text: str, width: int, indent: str) -> list:
+    import textwrap
+    return textwrap.wrap(text, width=width, initial_indent=indent, subsequent_indent=indent) or [indent]
 
 
 def render_solve(w: dict) -> str:
-    """One water, everything needed to finish it in a single sitting.
+    """One water, one screen. Every locator verbatim, its guessed extent, and what is missing.
 
-    The per-water loop exists because a river's locators reference each other — "from the signs
-    200 m above the bridge down to the cable car 200 m below it" — and its existing cuts are the
-    vocabulary the next one should reuse. Splitting that across sittings does the work twice, and
-    binding the extents in a second pass does it twice again.
+    Deliberately terse. The long card is for reading a river you do not know; this is for WORKING
+    one, and the thing a curator needs in front of them is the source text, the guess, and the
+    gap — not a re-explanation of the method each time.
 
-    **NOTHING HERE IS WRITTEN.** Every derived cut is printed with the evidence that derived it,
-    for a human to agree with or reject; every extent is a proposal with its unknown ends marked.
-    The watershed-code child test is the evidence that matters: a tributary's `wsc` starting with
-    `mainstem_wsc + "-"` PROVES the relationship where a name does not — "Cedar Creek" and
-    "Howson Creek" each exist several times over in this province.
+    Near-identical wordings are grouped, because the superset seeding keeps every version DFO ever
+    published and 9% of them are drift variants of another. Chilliwack/Vedder has four. Grouping
+    them is what stops the same reach being pinned twice.
     """
-    out = [render(w), "", "  " + "-" * 94,
-           "  SOLVE — proposed cuts and extents. NOTHING BELOW IS WRITTEN.",
-           "  " + "-" * 94]
+    items = [it.id for it in (w["items"] or [])]
+    coords = split_coords(items)
+    cuts = {cid: (label, kind) for cid, label, kind in w["cuts"]}
 
-    derive, pins, done = [], [], []
+    head = "%s   %s · %d cuts" % (
+        w["water"], ", ".join(items) or "UNMATCHED", len(w["cuts"]))
+    out = ["", "=" * 92, head, "=" * 92]
+
+    # group near-identical wordings so a dormant twin sits with its live version
+    groups: dict = {}
     for r in w["locators"]:
-        if r["kind"] == "satisfied":
-            done.append(r)
-        elif r["kind"] in ("confluence", "lake"):
-            derive.append(r)
+        key = _norm(r["text"])[:70]
+        groups.setdefault(key, []).append(r)
+
+    n = 0
+    waiting = 0
+    for key, rows in sorted(groups.items(), key=lambda kv: -max(len(_rules_for(r["loc"])) for r in kv[1])):
+        live = [r for r in rows if r["status"] == "active"]
+        r = (live or rows)[0]
+        n += 1
+        op, arity = _OP_ARITY.get(r["op"] or "", (None, None))
+        # A `cover_candidate` is a FUZZY match — "a rewording the strict label test cannot see" —
+        # so it is a GUESS TO CONFIRM, never an answer. Only `detail` on a satisfied locator is a
+        # strict hit: the cut's own label appears in the locator text.
+        fuzzy = [c[0] for c in cover_candidates(r["text"], w["cuts"], w["water"])]
+        strict = [r["detail"]] if (r["kind"] == "satisfied" and r["detail"]) else []
+        have = (strict + [h for h in fuzzy if h not in strict])[:arity or 0]
+        n_guessed = len([h for h in have if h not in strict])
+        missing = (arity or 0) - len(have)
+        rules = _rules_for(r["loc"])
+        if missing:
+            waiting += len(rules)
+
+        if op is None:
+            guess, mark = "op=%s — needs a curator's call" % (r["op"] or "none"), "--"
+        elif arity == 0:
+            guess, mark = "whole", "OK"
         else:
-            pins.append(r)
+            slots = [_short(h, w["water"]) for h in have] + ["????"] * missing
+            guess = "%s(%s)" % (op, ", ".join(slots))
+            mark = "??" if missing else ("?" if n_guessed else "OK")
+
+        tail = "%d rule%s" % (len(rules), "" if len(rules) == 1 else "s")
+        if not live:
+            tail += " · dormant only"
+        elif len(rows) > 1:
+            tail += " · +%d variant%s" % (len(rows) - 1, "" if len(rows) == 2 else "s")
+        out.append("")
+        out.append(" %2d %-2s %-58s %s" % (n, mark, guess, tail))
+        for line in _wrap(r["text"], 84, "      "):
+            out.append(line)
+        if missing:
+            out.append("      NEED %d more cut-point%s." % (missing, "" if missing == 1 else "s"))
+        for h in have:
+            if h in coords:
+                lat, lon = coords[h]
+                flag = "guess" if h not in strict else "exact"
+                out.append("      %-5s %-34s %s" % (flag, _short(h, w["water"]), osm_link(*coords[h])))
+        for lab in rules[:3]:
+            out.append("        · %s" % lab)
 
     out.append("")
-    out.append("  [1] DERIVABLE — no map needed. VERIFY each against its evidence, then write.")
-    if not derive:
-        out.append("      (none)")
-    for r in derive:
-        out.append("      [%s] %s" % (r["status"][:4], r["text"]))
-        out.append("           evidence : %s" % (r["detail"] or "—"))
-        out.append("           extent   : %s" % _propose(r, w))
-        for lab in _rules_for(r["loc"])[:4]:
-            out.append("           at stake : %s" % lab)
-
-    out.append("")
-    out.append("  [2] NEEDS A PIN — a human on a map. One list per water, not one per anchor.")
-    if not pins:
-        out.append("      (none)")
-    for r in pins:
-        out.append("      [%s] %s" % (r["status"][:4], r["text"]))
-        out.append("           anchors  : %s" % (r["anchors"] or "—"))
-        cands = cover_candidates(r["text"], w["cuts"], w["water"])
-        if cands:
-            out.append("           maybe?   : %s" % ", ".join(c[0] for c in cands[:3]))
-            out.append("                      ^ CHECK FIRST — a rewording of an existing cut is "
-                       "not a new one")
-        out.append("           extent   : %s" % _propose(r, w))
-        for lab in _rules_for(r["loc"])[:4]:
-            out.append("           at stake : %s" % lab)
-
-    out.append("")
-    out.append("  [3] ALREADY SATISFIED — reuse the id, do not mint a second one.")
-    if not done:
-        out.append("      (none)")
-    for r in done:
-        out.append("      %-68s -> %s" % (r["text"][:68], r["detail"]))
-
-    n_act = sum(1 for r in pins if r["status"] == "active")
-    waiting = sum(len(_rules_for(r["loc"])) for r in derive + pins)
-    out.append("")
-    out.append("  SUMMARY  %d derivable · %d need a pin (%d on the live page) · %d satisfied"
-               % (len(derive), len(pins), n_act, len(done)))
-    out.append("           %d rules are waiting on this water's cuts" % waiting)
+    out.append(" %d locator group%s · %d rules waiting on a missing cut-point" %
+               (n, "" if n == 1 else "s", waiting))
+    out.append(" OK = every end is an exact hit · ? = a GUESS to confirm · ?? = a cut is missing"
+               " · -- = no extent shape, a curator decides")
     return "\n".join(out)
 
 
