@@ -151,6 +151,38 @@ def present(d: dict) -> dict:
     return {"entries": out, "bands": bands}
 
 
+def _live(c: dict, on: tuple) -> bool:
+    """The page's own test, from the JSON fields alone: is this counter drawn as in force?"""
+    if c["somewhere"] or c["within_day"]:
+        return False
+    if not c["windows"]:
+        return True
+    def inside(w):
+        a, b = tuple(w["from"]), tuple(w["to"])
+        return a <= tuple(on) <= b if a <= b else (tuple(on) >= a or tuple(on) <= b)
+    ins = any(inside(w) for w in c["windows"])
+    return (not ins) if c["unless"] else ins
+
+
+def visible(d: dict, on: tuple) -> dict:
+    """{row key: the rule ids a reader sees on that row, on that date} — computed from the
+    emitted JSON the way the page computes it, not from the objects `rows()` built. A counter
+    drawn on the band above a row is visible on the row; a stopped line shows its stop and
+    its seasons, nothing else counts."""
+    out = {}
+    pr = d["present"]
+    for r in d["rows"]:
+        shown = {c["rule"] for c in r["counters"] if _live(c, on)}
+        shown |= {x["rule"] for x in r["size"] if x["rule"]}
+        out[r["key"]] = shown
+    for e in pr["entries"]:
+        b = pr["bands"].get(e["band"]) if e["band"] else None
+        for l in e["lines"]:
+            if b and l["in_band"]:
+                out[l["row"]] |= {b["id"]} | set(b["hoisted_all"])
+    return out
+
+
 def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
     """One row: the fish, the size statement, and every counter — the shape a page lays out
     as Fish · Size · Daily · Annual · Possession, and a text table prints the same way."""
@@ -170,10 +202,17 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
              "n": x["n"], "shared": x["shared"],
              "source": src_json(x["source"]) if x["source"] else None}
             for x in r.size(on, name)]
-    # A POOLED HEADLINE IS A GROUP. Rows whose number is one shared counter are one band on
-    # the page, so five rows never read as five fives.
-    group = (head.rule_id if head is not None and head.pooled
-             and len(head.scope.effective()) > len(r.fish) else None)
+    # THE WIDEST SHARED NUMBER THIS FISH COUNTS INSIDE IS ITS BAND — whether or not it is the
+    # headline. Kootenay's bull trout has its own 1 and still counts inside Region 4's shared
+    # 5, so it is drawn under the trout-and-char band with its 1 on its own line; five rows
+    # never read as five fives, and a fish inside a shared number is never drawn outside it.
+    o = r.origin if r.origin is not Origin.both else Origin.wild
+    shared = [a for a in r.counters if a.period == "daily" and a.outcome.kind == "quota"
+              and a.pooled and not a.within and a.scope.size.is_any
+              and len(a.scope.effective()) > len(r.fish)
+              and (a.applies.always or a.applies.unless)
+              and L.binds(a, r.species, o, None, None)]
+    group = max(shared, key=lambda a: len(a.scope.effective())).rule_id if shared else None
     return {
         "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish),
         "heading": r.heading(name), "qualifier": r.qualifier(), "origin": r.origin.value,

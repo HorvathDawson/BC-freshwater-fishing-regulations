@@ -227,17 +227,25 @@ def test_no_fish_is_in_two_rows(tables):
         assert not dupe, f"{w} stretch {run + 1}: {dupe[:3]} sit in two rows"
 
 
-def test_every_row_shows_every_counter_that_binds_it(tables):
-    """NOTHING IN FORCE IS HIDDEN. Every counter the ledger says binds a fish on some date is
-    on that fish's row — a cap inside the number, a bound, the annual clock, the possession
-    clock — because the row is derived from the counters and not the other way round."""
-    for w, run, _, _, L, t in tables:
-        for r in t:
-            o = r.origin if r.origin is not Origin.both else Origin.wild
-            for sp in r.fish:
-                for a in L.allowances:
-                    if L.reaches(a, sp, o):
-                        assert a in r.counters, (w, run + 1, r.heading(name), a.rule_id)
+def test_every_counter_the_oracle_decides_by_is_drawn_on_the_page(tables):
+    """THE TOTALITY CHECK, against something the rows did not build. `provenance.visible`
+    reads the emitted JSON the way the page does — windows, exclusions, bands — and the
+    oracle decides from the ledger. Every counter a verdict names, and every counter a
+    verdict consulted, must be drawn on that fish's line on that day. Its predecessor asked
+    `rows()` whether `rows()` had used `reaches`, which no ledger could ever fail."""
+    from pipeline.regs.table.provenance import section, visible
+    for w, run, _, _, L, _ in tables[::4]:
+        for on in ((2, 1), (7, 15)):
+            d = section(w, run, on)
+            seen = visible(d, on)
+            for r in d["rows"]:
+                o = Origin(r["origin"]) if r["origin"] != "both" else Origin.wild
+                for sp in r["fish"][:2]:
+                    for length in (25, 55):
+                        v = may_i_keep(L, Fish(sp, length, o), on, Creel(), name)
+                        for a in v.decided_by + [c.counter for c in v.checks]:
+                            assert a.rule_id in seen[r["key"]], (
+                                w, run + 1, r["heading"], sp, length, on, a.rule_id)
 
 
 def test_a_species_closure_does_not_shut_a_water_that_is_open(tables):
@@ -893,7 +901,8 @@ def test_every_row_carries_a_size_statement(tables):
                     if a.period == "daily" and not a.scope.size.is_any:
                         assert a.rule_id in shown, (w, run + 1, r.heading(name), a.rule_id)
     _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
-    assert [x["says"] for x in _row(t, "RB").size(None, name)] == ["any size"]
+    assert [x["says"] for x in _row(t, "RB").size(None, name)] == ["no more than 20 over 50 cm this licence year"]
+    assert [x["says"] for x in _row(t, "EB").size(None, name)] == ["any size"]
     assert [x["says"] for x in _row(t, "CT").size(None, name)] == ["no more than 1 over 50 cm"]
     _, _, _, _, _, t = _one(tables, "Fraser River", 0)
     # Steelhead is not among the fish sharing the "1 over 50 cm": Region 2's "2 hatchery
@@ -999,16 +1008,131 @@ def test_a_counter_binds_and_counts_the_same_fish(tables):
 
 def test_kootenay_char_is_the_same_answer_in_both_directions():
     """Keep a bull trout, ask about a Dolly Varden; keep a Dolly Varden, ask about a bull
-    trout. The water's "Bull trout daily quota = 1" took bull trout out of Region 4's shared
-    "1 bull trout (Dolly Varden)", so neither kept fish spends the other's counter."""
+    trout. The water's "Bull trout daily quota = 1" counts INSIDE Region 4's "1 bull trout
+    (Dolly Varden)" — a closer number on fewer fish nests, it does not add — so either kept
+    fish spends the shared cap, and the reason names both fish."""
     K = _ledger("Kootenay Lake", 0)
+    cap = "z4:trout_char_quota::trout_char_quota.r4"
     bt_then_dv = may_i_keep(K, Fish("DV", 45), (7, 15), Creel.of(Fish("BT", 60)), name)
     dv_then_bt = may_i_keep(K, Fish("BT", 62), (7, 15), Creel.of(Fish("DV", 45)), name)
-    assert bt_then_dv.keep is True and dv_then_bt.keep is True
-    assert not [c for c in bt_then_dv.checks if c.used], bt_then_dv.reasons
-    # ...and a second Dolly Varden is still refused by the region's cap, now "1 Dolly Varden".
-    v = may_i_keep(K, Fish("DV", 45), (7, 15), Creel.of(Fish("DV", 45)), name)
-    assert v.keep is False and v.decided_by[0].rule_id == "z4:trout_char_quota::trout_char_quota.r4"
+    assert bt_then_dv.keep is False and bt_then_dv.decided_by[0].rule_id == cap
+    assert dv_then_bt.keep is False and dv_then_bt.decided_by[0].rule_id == cap
+    assert "bull trout, dolly varden" in bt_then_dv.reasons[0]
+
+
+def test_a_closer_number_on_fewer_fish_counts_inside_the_wider_one():
+    """PROOF A1. Shuswap: Region 3's "Trout/char: 5" and the lake's "Rainbow trout = 1",
+    "Char = 1" are five trout in all, not seven. Five cutthroat in the creel refuse a rainbow
+    by the five; a rainbow kept refuses a second rainbow by the one."""
+    S = _ledger("Shuswap Lake", 0)
+    five = [Fish("CT", 40)] * 5
+    v = may_i_keep(S, Fish("RB", 55), (7, 15), Creel.of(*five), name)
+    assert v.keep is False and v.decided_by[0].rule_id == "z3:trout_char_quota::trout_char_quota.r1", v.reasons
+    v = may_i_keep(S, Fish("RB", 55), (7, 15), Creel.of(Fish("RB", 55)), name)
+    assert v.keep is False and v.decided_by[0].rule_id.endswith("shuswap_lake.r7")
+    v = may_i_keep(S, Fish("CT", 40), (7, 15), Creel.of(Fish("RB", 55), Fish("LT", 65)), name)
+    assert v.keep is True and any(c.counter.rule_id.endswith("trout_char_quota.r1") and c.used == 2 for c in v.checks)
+    # Kootenay Lake: the water's bull trout 1 counts inside the region's 5; its rainbow 10 —
+    # a number the 5 could never hold — stands outside it. The Main Body number is a question
+    # for the region; this is the reading, stated.
+    K = _ledger("Kootenay Lake", 0)
+    v = may_i_keep(K, Fish("CT", 40), (7, 15), Creel.of(*[Fish("CT", 40)] * 4, Fish("BT", 60)), name)
+    assert v.keep is False and v.decided_by[0].rule_id == "z4:trout_char_quota::trout_char_quota.r1"
+    v = may_i_keep(K, Fish("CT", 40), (7, 15), Creel.of(*[Fish("RB", 40)] * 10), name)
+    assert v.keep is True
+
+
+def test_the_possession_multiple_is_the_narrowest_that_covers_the_fish():
+    """PROOF A4. Region 7B: "possession quotas = 2 daily quotas" for all game fish, and
+    "lake trout: 1 daily quota" beside it, at the same authority. Lake trout doubled."""
+    from pipeline.regs.table.build import allowances
+    from pipeline.regs.table.corpus import rules
+    from pipeline.regs.table.authority import source_of
+    rs = [x for x in rules() if x["entry"].startswith(("z7b:", "zp:")) and source_of(x).is_base]
+    alw, lifted, fam, mults, duties, unresolved = allowances(rs, "lake")
+    L = Ledger(alw, lifted=lifted, family=fam, multiples=mults, duties=duties, water_kind="lake")
+    lt = [a for a in L.allowances if a.derived_from is not None and a.scope.fish == {"LT"}]
+    assert lt and all(a.multiplier == 1 and "possession_exceptions" in a.multiplied_by.rule_id
+                      for a in lt), [(a.multiplier, a.multiplied_by.rule_id) for a in lt]
+    gr = [a for a in L.allowances if a.derived_from is not None and a.scope.fish == {"GR"}]
+    assert gr and all(a.multiplier == 1 for a in gr)
+
+
+def test_an_exclusion_is_not_an_undrawable_inclusion():
+    """PROOF A5. "Bass: 20 — excluding Mill Lake" is true everywhere but one lake. Read as a
+    place the rule is true only inside, it bound nowhere."""
+    from pipeline.regs.table.applies import applies_of
+    a = applies_of(None, "excluding Mill Lake")
+    assert a.kind == "always" and a.excluded == "Mill Lake" and a.detail == "except Mill Lake"
+    a = applies_of(None, "except the Peace River")
+    assert a.can_bind and a.excluded == "the Peace River"
+    a = applies_of(None, "within 23 m downstream of any fishway")
+    assert a.kind == "somewhere"
+    from pipeline.regs.table.build import allowances
+    from pipeline.regs.table.corpus import rules
+    from pipeline.regs.table.authority import source_of
+    rs = [x for x in rules() if x["entry"].startswith(("z7b:", "zp:")) and source_of(x).is_base]
+    alw, lifted, fam, mults, duties, unresolved = allowances(rs, "stream")
+    L = Ledger(alw, lifted=lifted, family=fam, multiples=mults, duties=duties, water_kind="stream")
+    ko = _row(rows(L), "KO").headline()
+    assert ko is not None and ko.outcome == RELEASE and ko.applies.excluded
+
+
+def test_green_sturgeon_is_a_protected_species():
+    assert "GSG" in expand(frozenset({"PROTECTED_SPECIES"}))
+
+
+# --------------------------------------------------------------------------- #
+# The compliance check can fail. Each bucket is proved against an output.
+# --------------------------------------------------------------------------- #
+def _mutated(w, run, rule, **changes):
+    import copy
+    rs = copy.deepcopy(section_rules(w, run))
+    x = next(x for x in rs if x["entry"] == rule[0] and x["rule"] == rule[1])
+    x.update(changes)
+    return rs
+
+
+def test_comply_fails_on_a_retention_rule_typed_as_an_advisory():
+    """A rule the generator refuses to look at must not be accounted for by construction:
+    `type: advisory` on a rule that still carries a count is UNACCOUNTED, not `not-a-quota`."""
+    from pipeline.regs.table.comply import audit
+    w, run = "Kootenay Lake", 0
+    _, why, missing = audit(section_rules(w, run), "lake", section_regions(w, run), section_label(w, run))
+    assert not missing
+    # A water rule: the region's table is rebuilt from the corpus by id and cannot be mutated
+    # through a section's copy, which is itself the guarantee that a base is one thing.
+    e = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+    rs = _mutated(w, run, (e, "kootenay_lake_main_body.r4"), type="advisory")
+    _, why, missing = audit(rs, "lake", section_regions(w, run), section_label(w, run))
+    assert e + "::kootenay_lake_main_body.r4" in missing
+
+
+def test_comply_proves_not_here_against_the_other_kinds_ledger():
+    """A stream rule on a lake is accounted for only because it IS in the lake's stream
+    ledger — and a rule that is in neither is unaccounted."""
+    from pipeline.regs.table.comply import audit
+    w, run = "Kootenay Lake", 0
+    _, why, _ = audit(section_rules(w, run), "lake", section_regions(w, run), section_label(w, run))
+    assert why["z4:trout_char_quota::trout_char_quota.r3"] == "not-here"
+    e = "r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19"
+    rs = _mutated(w, run, (e, "kootenay_lake_main_body.r3"), water="stream")
+    _, why, missing = audit(rs, "lake", section_regions(w, run), section_label(w, run))
+    assert why[e + "::kootenay_lake_main_body.r3"] == "not-here", "present in the stream ledger"
+    rs = _mutated(w, run, (e, "kootenay_lake_main_body.r3"), water="stream", type="advisory")
+    _, why, missing = audit(rs, "lake", section_regions(w, run), section_label(w, run))
+    assert e + "::kootenay_lake_main_body.r3" in missing, "in neither ledger: unaccounted"
+
+
+def test_comply_marks_binds_only_for_a_counter_drawn_on_a_row(tables):
+    from pipeline.regs.table.comply import audit
+    for w, run, kind, rules, L, t in tables[::9]:
+        _, why, missing = audit(rules, kind, section_regions(w, run), section_label(w, run))
+        assert not missing, (w, run + 1, missing[:4])
+        on_rows = {a.rule_id for r in t for a in r.counters}
+        for rid_, how in why.items():
+            if how == "binds":
+                assert rid_ in on_rows, (w, run + 1, rid_)
 
 
 # --------------------------------------------------------------------------- #
