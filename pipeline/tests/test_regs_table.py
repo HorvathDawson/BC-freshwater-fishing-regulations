@@ -874,3 +874,64 @@ def test_every_verdict_names_a_rule_and_its_provenance(tables):
                            (7, 15), Creel(), name)
             for reason, a in zip(v.reasons, v.decided_by):
                 assert a.source.words() in reason and "“" in reason, reason
+
+
+# --------------------------------------------------------------------------- #
+# What the reader sees: size on every row, plain names, and the province alone.
+# --------------------------------------------------------------------------- #
+def test_every_row_carries_a_size_statement(tables):
+    """Silence is not an answer. 46 of 102 sections have no size gate at all; a reader there
+    could not tell "any size" from "we did not say". Every row says one or the other, and
+    every size the oracle can decide by is in that statement."""
+    for w, run, _, _, L, t in tables:
+        for r in t:
+            for on in (None, (7, 15), (1, 15)):
+                size = r.size(on, name)
+                h = r.headline(on)
+                if h is not None and h.is_zero:
+                    continue
+                assert size, (w, run + 1, r.heading(name), on)
+                shown = {x["rule"] for x in size}
+                o = r.origin if r.origin is not Origin.both else Origin.wild
+                for a in r.live(on):
+                    if a.period == "daily" and not a.scope.size.is_any:
+                        assert a.rule_id in shown, (w, run + 1, r.heading(name), a.rule_id)
+    _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
+    assert [x["says"] for x in _row(t, "RB").size(None, name)] == ["any size"]
+    assert [x["says"] for x in _row(t, "CT").size(None, name)] == ["no more than 1 over 50 cm"]
+    _, _, _, _, _, t = _one(tables, "Fraser River", 0)
+    # Steelhead is not among the fish sharing the "1 over 50 cm": Region 2's "2 hatchery
+    # steelhead over 50 cm allowed" took it out of that cap and gave it its own.
+    assert {x["says"] for x in _row(t, "BT", Origin.hatchery).size(None, name)} == {
+        "none under 60 cm", "none under 30 cm",
+        "no more than 1 over 50 cm — shared with " + ", ".join(sorted(
+            name(c).lower() for c in expand(frozenset({"TROUT_CHAR"})) - {"BT", "DV", "LT", "ST"}))}
+
+
+def test_the_rest_of_a_group_is_named_as_the_rest(tables):
+    """"Trout and char other than bull trout, cutthroat trout, dolly varden, rainbow trout,
+    steelhead" names ten fish by excluding five. Every excluded fish has a row of its own, so
+    the rest is "Other trout and char" — and no species code reaches the page."""
+    for w, run, _, _, _, t in tables:
+        for r in t:
+            h = r.heading(name)
+            assert "other than" not in h, (w, run + 1, h)
+            for code in r.fish:
+                assert code not in h.split(), (w, run + 1, h)
+    _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
+    assert _row(t, "EB").heading(name) == "Other trout and char"
+
+
+def test_a_fish_only_the_province_names_is_set_apart_not_dropped(tables):
+    """Region 4's printed table has no steelhead line — the Columbia above its dams has none —
+    yet "all wild steelhead must be released" reaches Kootenay Lake because it is province-
+    wide. The row stays (a protection is never dropped); it is flagged so the page can set it
+    apart. On the Skeena, whose region names steelhead, the flag is off."""
+    _, _, _, _, L, t = _one(tables, "Kootenay Lake", 0)
+    assert _row(t, "ST", Origin.wild).province_only and _row(t, "ST", Origin.hatchery).province_only
+    assert not _row(t, "RB").province_only and not _row(t, "EB").province_only
+    assert _row(t, "ST", Origin.wild).headline().outcome == RELEASE
+    v = may_i_keep(L, Fish("ST", 70, Origin.wild), (7, 15), Creel(), name)
+    assert v.keep is False and v.decided_by[0].rule_id == "zp:steelhead::steelhead.r2"
+    _, _, _, _, _, t = _one(tables, "Skeena River", 0)
+    assert not _row(t, "ST", Origin.wild).province_only
