@@ -1,17 +1,11 @@
-"""PROTOTYPE 7 — THE THREE GAPS: sub-limits, pooled quotas, and lifts.
-
-WHAT IT HANDLES
+"""CLAUSES AND POOLED QUOTAS — the two facts about a number that its own fields do not say.
 
   SUB-LIMITS (`within`, 103 rules). Region 2 writes "trout and char — 4 per day" and then,
   INSIDE that 4: "no more than 1 over 50 cm", "no more than 2 steelhead", "no more than 1 bull
   trout, Dolly Varden and lake trout combined". These are not four answers. There is ONE
-  allowance of 4, and three constraints on what it may be made of.
-
-  The page today has no way to say that, so each clause became its own ROW with no number of
-  its own — an em dash in a column of 0s and 5s, reading as "keep none". It patched that by
-  CARRYING the parent's number down into the child row, which then printed "4" twice and needed
-  a sentence explaining that the two 4s are one 4. Here a sub-limit is not a row at all: it is
-  a field on the row it belongs to, which is what the book says it is.
+  allowance of 4, and three counters nested inside it: a fish that is over 50 cm counts against
+  the 4 AND against the 1. `children_of` is the map of who is nested in whom; the ledger uses
+  it to keep a clause and its parent from carving each other.
 
   POOLED QUOTAS (`combined`, 31 rules). "Whitefish — 15 per day, ALL SPECIES COMBINED" is 15
   fish shared across every whitefish, not 15 of each. Same shape, opposite meaning, one boolean
@@ -25,35 +19,9 @@ WHAT IT HANDLES
   candidate list and stays in the chain, marked.
 """
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List
 
-from pipeline.regs.table.subject import Subject
 from pipeline.regs.table.corpus import rid
-
-
-@dataclass(frozen=True)
-class SubLimit:
-    """A constraint on the COMPOSITION of an allowance, not an allowance of its own."""
-    subject: Subject
-    n: Optional[int]      # None where the clause constrains WHICH fish, not how many
-    pooled: bool
-    verbatim: str
-    rule_id: str = ""     # so `comply` can ask whether it actually reached a row
-    when: str = ""        # a clause can be seasonal: "1 trout from streams, July 1 – Oct 31"
-
-    def sentence(self, name) -> str:
-        who, q = self.subject.words(name)
-        when = f", {self.when}" if self.when else ""
-        if self.n is None:
-            # A CLAUSE WITH NO COUNT CONSTRAINS WHICH FISH, NOT HOW MANY. "Bull trout (none
-            # under 75 cm)" inside a quota of five does not allow five of anything; it says
-            # which bull trout may be among them. Printed as "no more than None may be…" it
-            # was nonsense, so it was dropped instead — thirty-one of them.
-            return f"{who.lower()}: {q or 'no further limit'}{when}"
-        pool = " combined" if self.pooled else ""
-        tail = f" ({q})" if q else ""
-        return f"no more than {self.n}{pool} may be {who.lower()}{tail}{when}"
 
 
 def pooled_of(rule: dict, subject=None) -> bool:

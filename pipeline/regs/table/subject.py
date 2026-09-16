@@ -188,6 +188,22 @@ class Subject:
                 and (self.water.covers(o.water) or o.water.covers(self.water))
                 and (self.method is None or o.method is None or self.method == o.method))
 
+    def contains(self, species: str, origin: "Origin" = None, length_cm=None) -> bool:
+        """Is THIS fish — one species, of one origin, of one length — inside the subject?
+
+        `covers` and `meets` compare subjects; a person holding a fish is not holding a
+        subject. The water axis is not consulted: a ledger is built for one kind of water and
+        every subject in it has already had that axis decided (see `build`)."""
+        if species in expand(self._open_excepts() | self.excepts):
+            return False
+        if not self.is_everything and species not in self.effective():
+            return False
+        if origin is not None and not self.origin.covers(origin):
+            return False
+        # A length nobody gave is not tested: the fish MAY be in the class. The oracle says
+        # when it has declined to check a size rule for want of a length.
+        return length_cm is None or self.size.contains(length_cm)
+
     # `disjoint()` USED TO LIVE HERE. It had no callers anywhere in the repo, and all three of
     # its clauses were wrong — it read an open group's empty expansion as "no overlap", and
     # ignored `excepts`, `size` and `method` entirely. A loaded gun with the safety off is worse

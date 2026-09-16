@@ -57,6 +57,30 @@ class Size:
     def covers(self, s: "Size") -> bool:
         return self.is_any or self == s
 
+    def contains(self, length_cm) -> bool:
+        """Is a fish of this length INSIDE the class — the class a number counts, or the class
+        a gate forbids. One reading per kind, decided here and nowhere else:
+
+            counts_over lo    the number counts fish over lo
+            counts_under hi   `under_cm` is always a floor: the number counts fish over hi
+            none_over lo      the gate forbids fish over lo
+            none_under hi     the gate forbids fish under hi
+            slot lo, hi       keep only hi–lo: the gate forbids fish outside it
+            band lo, hi       the gate forbids fish between hi and lo
+
+        A length nobody gave (None) is inside no class: the caller decides what to say."""
+        if self.is_any:
+            return True
+        if length_cm is None:
+            return False
+        L, lo, hi = float(length_cm), self.lo, self.hi
+        return {"counts_over":  lambda: L > lo,
+                "counts_under": lambda: L > hi,
+                "none_over":    lambda: L > lo,
+                "none_under":   lambda: L < hi,
+                "slot":         lambda: L < hi or L > lo,
+                "band":         lambda: hi < L < lo}[self.kind]()
+
     def words(self) -> str:
         k, lo, hi = self.kind, self.lo, self.hi
         return {

@@ -26,16 +26,31 @@ WHAT IT HANDLES
 """
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 
 @dataclass(frozen=True)
 class Applies:
     kind: str                       # always | window | somewhere
     detail: str = ""
+    #: ((from_month, from_day), (to_month, to_day)) per window — the dates, as data, so that a
+    #: day can be tested here instead of by every consumer re-reading the rule.
+    windows: Tuple[Tuple[Tuple[int, int], Tuple[int, int]], ...] = ()
+    unless: bool = False            # the dates are when the rule does NOT apply
+    within_day: bool = False        # a time of day or a weekday: a date cannot settle it
+
+    def live(self, month: int, day: int) -> bool:
+        """Is the rule in force on this date? A place nobody can draw is never "in force";
+        a time-of-day window is live on every date — the date does not know the hour."""
+        if self.kind == "somewhere":
+            return False
+        if not self.windows:
+            return True
+        inside = any(_in_window(w, month, day) for w in self.windows)
+        return not inside if self.unless else inside
 
     @property
-    def can_win(self) -> bool:
+    def can_bind(self) -> bool:
         """A SEASON IS NOT A DISQUALIFICATION.
 
         This used to be `kind == "always"`, which made a windowed rule a caveat that could never
@@ -56,6 +71,10 @@ class Applies:
         return self.kind in ("always", "window")
 
     @property
+    def can_win(self) -> bool:
+        return self.can_bind
+
+    @property
     def always(self) -> bool:
         """True where the rule needs no date to be the answer — the year-round default the
         pipeline can safely precompute."""
@@ -68,6 +87,23 @@ class Applies:
 
 
 ALWAYS = Applies("always")
+
+
+def _in_window(win, month: int, day: int) -> bool:
+    (fm, fd), (tm, td) = win
+    here, lo, hi = (month, day), (fm, fd), (tm, td)
+    return lo <= here <= hi if lo <= hi else (here >= lo or here <= hi)
+
+
+def _dates(windows) -> tuple:
+    out = []
+    for o in (windows or []):
+        if not isinstance(o, dict):
+            continue
+        f, t = o.get("from") or {}, o.get("to") or {}
+        if all(isinstance(v, int) for v in (f.get("month"), f.get("day"), t.get("month"), t.get("day"))):
+            out.append(((f["month"], f["day"]), (t["month"], t["day"])))
+    return tuple(out)
 
 
 def applies_of(windows: List[str] | None, extent_text: str | None,
@@ -83,7 +119,7 @@ def applies_of(windows: List[str] | None, extent_text: str | None,
     with five days out of it; read as a window it became a five-day release, and the Upper
     West Arm of Kootenay Lake printed Region 4's fifteen kokanee the rest of the year."""
     if unless and windows:
-        return Applies("always", "except " + _w(windows))
+        return Applies("window", "except " + _w(windows), _dates(windows), unless=True)
     # AN EXTENT THE ATLAS ALREADY CUT IS NOT A CAVEAT. Where the section being drawn IS the
     # place the rule names, the rule is simply the answer here. Treating it as "true somewhere
     # in here" put the Kootenay's Main Body rules behind the regional quota and told a reader
@@ -104,11 +140,12 @@ def applies_of(windows: List[str] | None, extent_text: str | None,
         return Applies("somewhere", str(extent_text))
     if when:
         return Applies("window", " · ".join(when + ([_w(windows)] if windows and not all_year
-                                                     else [])))
+                                                     else [])),
+                       _dates(windows) if windows and not all_year else (), within_day=True)
     if windows and not all_year:
         # A window ships as {"from":..,"to":..} objects, not strings — one more field whose
         # shape every consumer has to already know. Absorbed here, once.
-        return Applies("window", _w(windows))
+        return Applies("window", _w(windows), _dates(windows))
     return ALWAYS
 
 

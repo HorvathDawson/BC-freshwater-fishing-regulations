@@ -13,8 +13,13 @@ from pipeline.regs.table.lifts import lifts_here
 from pipeline.regs.table.corpus import section_rules, rid
 # ONE LADDER. This module parsed the page a second time and kept its own copy of the authority
 # ladder, which did not know `authority: superior` and printed "Region 7" for 7A. The quota side
-# owns both; measured, the swap changes none of the 715 gear rows.
-from pipeline.regs.table.build import D, name as nm, _authority as _auth
+# owns it — typed, on two axes (see `authority.py`).
+from pipeline.regs.table.build import D, name as nm
+from pipeline.regs.table.authority import source_of
+
+def _auth(x):
+    s = source_of(x)
+    return s.rank, s.who
 
 #: Every way of fishing the corpus names, plus angling — which names itself only by omission.
 #: `other` is the schema's catch-all, and two real prohibitions live in it — chumming, and

@@ -1,27 +1,32 @@
-"""PROTOTYPE 8 — THE GENERATOR: rules in, table out, nothing left for the client.
+"""THE GENERATOR: rules in, a settled ledger out — in two stages, nothing left for the client.
 
-WHAT IT HANDLES
-  This is the function the pipeline would call once per interned ruleset (2,376 of them for
-  1,956,637 sections). It takes the raw rules of one section and returns the finished table.
-  Everything the page does today — three precedence ladders, a closure override, carrying a
-  parent's number into a child row, deciding what "release" covers — happens HERE, once, and
-  reaches the client as data.
+  STAGE 1  `base(rules, kind)` — the region's standing table. Every region-wide rule (the
+           province's and the region's; see `authority.Source.is_base`) for this kind of
+           water, settled on its own. It is a pure function of the rule set and the kind of
+           water, cached, and it is the thing the printed synopsis lets a person check.
+
+  STAGE 2  `ledger(rules, kind, here, label)` — the base, with the section's overrides laid on
+           top: the water's own rules, area rules, rules inherited by the tributary walk, and
+           the lifts among them. What a reader sees for one stretch.
+
+Everything the browser used to do — three precedence ladders, a closure override, carrying a
+parent's number into a child row — happens here, once, and reaches the client as data.
 """
 from __future__ import annotations
 import json, re
 from dataclasses import replace
-from typing import Dict, List
+from functools import lru_cache
+from typing import Dict, FrozenSet, List, Tuple
 
 from pipeline.regs.table.subject import Subject, Origin, Water, note_origin_split
 from pipeline.regs.table.size import size_of, ANY as SIZE_ANY
-from pipeline.regs.table.gates import Gate, attach as attach_gates
-from pipeline.regs.table.outcome import outcome_of
-from pipeline.regs.table.resolve import Rung, Row, table, applies_here, resolve, REPLACED_BY_CLAUSE
+from pipeline.regs.table.outcome import outcome_of, RELEASE
 from pipeline.regs.table.applies import applies_of
-from pipeline.regs.table.clauses import SubLimit, children_of, pooled_of
+from pipeline.regs.table.authority import source_of, Source
+from pipeline.regs.table.ledger import Allowance, Ledger, LIFTED, REPLACED_BY_CLAUSE
+from pipeline.regs.table.clauses import children_of, pooled_of
 from pipeline.regs.table.corpus import rid, section_rules as corpus_section
 from pipeline.regs.table.lifts import lifts_here
-from pipeline.regs.table.qualifiers import qualifier_of, attach
 
 H = open("app/design/regs-v3.html").read()
 D = json.loads(re.search(r'<script id="d" type="application/json">(.*?)</script>', H, re.S).group(1))
@@ -33,40 +38,22 @@ for _k in WATERS:
 
 def name(c): return NAME.get(c, c)
 
-def _authority(x):
-    """The ladder, closest first. Rank is a sort key: SMALLER WINS.
 
-    `authority: superior` is the catalogue's own mark for a rule no provincial table can write
-    over — the federal species-at-risk closures, the National Parks closure, the ecological
-    reserves. Six rules carry it and nothing read it, so on the Kootenay a park closure was
-    demoted under "wider rule (Provincial), replaced by one closer to this water" while the
-    same table offered burbot, bull trout, whitefish and crayfish to keep. Fishing in Kootenay
-    National Park is prohibited unless the National Parks regulations open it; a regional quota
-    does not open it.
-    """
-    if str(x.get("authority") or "") == "superior":
-        return -1, "Federal or Parks"
-    e = str(x.get("entry") or "")
-    if e.startswith("zp:"): return 3, "Provincial"
-    if e.startswith("z"):
-        r = e[1:].split(":")[0]
-        return 2, "Region " + (r.upper() if r and r[0].isdigit() else "?")
-    return (1, "inherited") if x.get("via") == "trib" else (0, "this water")
-
-def subject_of(x, lifted_out=None) -> Subject:
-    """`lifted_out` is whatever an exception takes out of this rule HERE — a lift is a
-    subtraction, so it joins what the rule already excepts (see lifts.py).
-
-    THE SUBJECT CARRIES NO GATE. A size that sends a fish back — "none under 30 cm" — is not
-    part of what the rule is ABOUT; it is a second thing the rule says, true beside the count,
-    and it is split off here (see `gate_of`). Left on the subject it made "trout and char, none
-    under 30 cm" a different subject from "trout and char", so the two never competed and the
-    bound printed on its own row or on none. A size a number COUNTS — "1 over 50 cm" inside a
-    4 — is what that number is about, and stays.
-    """
-    size = size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
+def _size(x: dict):
+    return size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
                    within=x.get("within"), band=bool(x.get("band")),
                    period=x.get("period") or "daily")
+
+
+def subject_of(x, lifted_out=None) -> Subject:
+    """What a rule is ABOUT. `lifted_out` is whatever an exception takes out of it here.
+
+    THE SUBJECT CARRIES NO GATE. A size that sends a fish back — "none under 30 cm" — is not
+    part of what the rule is about; it is a second thing the rule says, true beside the count,
+    and it becomes an allowance of its own (see `gate_of`). A size a number COUNTS — "1 over
+    50 cm" inside a 4 — is what that number is about, and stays.
+    """
+    size = _size(x)
     return Subject(frozenset(x.get("species") or []),
                    Origin(x["origin"]) if x.get("origin") else Origin.both,
                    SIZE_ANY if size.is_gate else size,
@@ -75,24 +62,19 @@ def subject_of(x, lifted_out=None) -> Subject:
                    frozenset(x.get("species_except") or []) | (lifted_out or frozenset()))
 
 
-def gate_of(x, subject: Subject, rank: int, who: str, when: str = "",
-            status: str = "") -> Gate | None:
+def gate_of(x, subject: Subject, source: Source, applies, within: str = "") -> Allowance | None:
     """The size bound a rule carries, if it is a bound and not a selector — from EVERY shape
-    the book writes one in. "No trout under 25 cm", "Trout/char daily quota = 1 (none under
-    30 cm)", "Hatchery trout/char under 30 cm from streams: 0" and a clause "none under 60 cm"
-    inside a 5 are one kind of statement, and they leave here as one kind of value."""
-    size = size_of(x.get("over_cm"), x.get("under_cm"), take=x.get("take"),
-                   within=x.get("within"), band=bool(x.get("band")),
-                   period=x.get("period") or "daily")
+    the book writes one in: "No trout under 25 cm", "quota = 1 (none under 30 cm)", "Hatchery
+    trout/char under 30 cm from streams: 0", and a clause "none under 60 cm" inside a 5. One
+    kind of statement, one kind of value: an allowance of zero on the forbidden size class."""
+    size = _size(x)
     if not size.is_gate:
         return None
-    return Gate(replace(subject, size=SIZE_ANY, water=Water.any), size, rid(x), who, rank,
-                x.get("verbatim") or "", when, status)
+    return Allowance(replace(subject, size=size, water=Water.any), RELEASE, source, applies, within)
+
 
 def _water_of(c: dict, by_key: Dict[str, dict]) -> str | None:
-    """The kind of water a clause is about: its own, or the nearest parent's that names one.
-    `children_of` flattens a grandchild onto the top of the chain, and the top is the one
-    parent that usually names NO water — "4 from streams" is the middle."""
+    """The kind of water a clause is about: its own, or the nearest parent's that names one."""
     seen = set()
     while c is not None and rid(c) not in seen:
         seen.add(rid(c))
@@ -103,243 +85,148 @@ def _water_of(c: dict, by_key: Dict[str, dict]) -> str | None:
 
 
 def section_rules(water: str, run: int) -> List[dict]:
-    """COMPLETE records for one stretch — see `corpus.py`.
-
-    This used to read the page's own embedded rule list, which made the comparison honest and
-    the result wrong: that copy drops `exempts`, so sixty-odd "Exempt from spring closure"
-    rules arrived carrying nothing at all, and the closure they lift stood on every one of
-    those waters. No work in the browser could have recovered it.
-    """
     return corpus_section(water, run)[0]
-
 
 def section_regions(water: str, run: int):
     return corpus_section(water, run)[1]
-
 
 def section_label(water: str, run: int) -> str:
     runs = D[water].get("runs") or []
     return (runs[run].get("label") or "") if run < len(runs) else ""
 
-def build(rules: List[dict], water_kind: str = "stream", here=frozenset(),
-          label: str = "") -> List[Row]:
-    """THE WHOLE GENERATOR. `here` is the section's region ids, which region-scoped rules and
-    region-scoped lifts are measured against."""
-    kid_rules = children_of(rules)                     # `within` -> clauses of an allowance
-    narrow, _drop, unresolved = lifts_here(rules, here)
-    lifted = {t: None for t in _drop}           # `exempts` -> narrowed / disapplied here
+def section_kind(water: str) -> str:
+    return "lake" if (D[water].get("kind") == "lake") else "stream"
 
-    # sub-limits become a FIELD on their parent, never a row
-    # A CLAUSE THAT NAMES THIS KIND OF WATER IS NOT A CLAUSE HERE — IT IS THE ANSWER.
-    #
-    # Region 3 writes "Trout/char: 5" and, inside it, "4 from streams". On a lake the 5 governs
-    # and the 4 is irrelevant; on a STREAM the 4 is the daily quota and the 5 is the number it
-    # replaces. Held as a sub-limit either way, 61 stream sections printed "keep up to 5 ... of
-    # which no more than 4 in streams" — the lake number as the headline on a river, with the
-    # real limit demoted to a condition on it.
-    #
-    # Promoting it to a rung at its parent's rank needs no new mechanism: the existing sort puts
-    # 4 ahead of 5 at equal authority, and `applies_here` drops it on a lake. `within` is a
-    # composition constraint only when the clause narrows the FISH; when it narrows the WATER,
-    # the context has already decided which one is speaking.
+
+def _applies(x: dict, label: str):
+    return applies_of(x.get("windows"), x.get("extent_text"), all_year=not x.get("windows"),
+                      section_label=label, from_time=x.get("from_time"),
+                      to_time=x.get("to_time"), weekdays=x.get("weekdays"),
+                      unless=str(x.get("windows_are") or "") == "excepts")
+
+
+def allowances(rules: List[dict], water_kind: str, here=frozenset(), label: str = ""):
+    """Raw rules -> (allowances, lifted, family, multiples, duties, unresolved) for ONE kind of
+    water. Nothing is settled here; that is the ledger's job."""
+    kid_rules = children_of(rules)
+    narrow, drop, unresolved = lifts_here(rules, here)
+    lifted = {t: LIFTED for t in drop}
     by_key = {rid(r): r for r in rules}
+
+    # A CLAUSE THAT NAMES THIS KIND OF WATER IS NOT A CLAUSE HERE — IT IS THE ANSWER. Region 3
+    # writes "Trout/char: 5" and, inside it, "4 from streams". On a lake the 5 governs and the
+    # 4 is irrelevant; on a STREAM the 4 is the daily quota and the 5 is the number it
+    # replaces. Promoted, it speaks with its parent's voice, and its parent retires — for this
+    # kind of water only, which the clause has to name.
     promoted, promoted_parent = set(), {}
     for parent, cs in kid_rules.items():
         for c in cs:
-            # THE IMMEDIATE PARENT, not the top of the chain. `children_of` flattens a grandchild
-            # onto the outermost allowance, so "only 2 over 30 cm" — a clause of "4 from streams",
-            # which is itself a clause — passed the "parent names no water" test and was promoted
-            # to a row of its own beside the 4 it is a part of.
             direct = by_key.get(f"{c.get('entry')}::{c.get('within')}")
             if (c.get("water") and not (direct or {}).get("water")
                     and c.get("take") is not None):
-                promoted.add(rid(c))
-                promoted_parent[rid(c)] = parent
-
-    kids: Dict[str, List[SubLimit]] = {}
-    gates: List[Gate] = []
-    for parent, cs in kid_rules.items():
-        for c in cs:
-            if rid(c) in promoted: continue
-            # A PROMOTED CLAUSE TAKES ITS SIBLINGS WITH IT. On a stream, "2 per day from streams"
-            # IS the allowance, and "no more than 1 rainbow over 50 cm" and "1 bull trout" are
-            # constraints on THAT two — they were written inside the same limit. Keyed only to
-            # the parent's id they became "clauses of a rule that is not the answer here", and
-            # the Fording told a reader to keep two rainbows over 50 cm where the book allows
-            # one. 63 rows, 130 clauses.
-            for pr, par in promoted_parent.items():
-                if par == parent:
-                    kids.setdefault(pr, [])
-            # A clause can be SEASONAL — "1 trout from streams, July 1 – Oct 31" printed
-            # year-round without its dates. And a clause of a seasonal allowance is seasonal
-            # with it.
-            top = by_key.get(parent) or {}
-            src = c if c.get("windows") else top
-            ap = applies_of(src.get("windows"), c.get("extent_text"),
-                            all_year=not src.get("windows"), section_label=label,
-                            from_time=c.get("from_time"), to_time=c.get("to_time"),
-                            weekdays=c.get("weekdays"),
-                            unless=str(src.get("windows_are") or "") == "excepts")
-            when = "" if ap.always else ap.detail
-            # A CLAUSE'S SIZE BOUND IS A GATE, like anyone else's. "none under 60 cm" inside
-            # "Trout/char: 5" sends a small char back whichever number ends up governing char
-            # here; as a sub-limit it rode on its parent alone, and went dormant with it.
-            # Its authority is its parent's, and so is its kind of water.
-            wk = _water_of(c, by_key)
-            if (not wk or wk == water_kind) and str(c.get("type") or "") == "retention_limit":
-                st = "lifted here — does not apply" if parent in _drop else ""
-                rank, who = _authority(top or c)
-                g = gate_of(c, subject_of(c), rank, who, when, st)
-                if g is not None:
-                    gates.append(g)
-            # A count-less clause that is not a gate constrains nothing the table can hold.
-            if c.get("take") is None:
-                continue
-            # A CLAUSE ABOUT THE OTHER KIND OF WATER IS NOT A CLAUSE HERE. Region 8's "only 2
-            # over 30 cm" sits inside "4 from streams"; flattened onto "Trout/char: 5" it rode
-            # on Okanagan LAKE as a condition on the five, wearing "in streams" as a label.
-            if wk and wk != water_kind:
-                continue
-            lim = SubLimit(subject_of(c), c.get("take"), pooled_of(c, subject_of(c)),
-                           c.get("verbatim") or "", rid(c), when)
-            kids.setdefault(parent, []).append(lim)
-            for pr, par in promoted_parent.items():
-                if par == parent:
-                    kids[pr].append(lim)
-
-    # A PARENT WHOSE OWN CLAUSE REPLACED IT LEAVES THE RUNNING — BUT NOT THE PAGE. "2 from
-    # streams (must be hatchery)" is promoted as a HATCHERY subject, which does not cover its
-    # parent's "either origin", so the lake number stood as the headline on a stream on 23 rows.
-    # Skipping the parent outright lost it from every table instead; it retires into the chain,
-    # where a reader can see the number that WOULD apply and why it does not. Only for an
-    # unconditional clause: where the clause is seasonal, the parent is the answer out of season.
-    #
-    # FOR THIS KIND OF WATER, WHICH THE CLAUSE HAS TO NAME. "2 from streams" retired its parent
-    # on every LAKE as well — the clause was dropped as not-here, the parent as replaced, and
-    # eight of nine lake sections had no trout and char row at all. Kootenay Lake's cutthroat
-    # and lake trout had no quota; Region 4's 5 is the answer there and it had simply gone.
+                promoted.add(rid(c)); promoted_parent[rid(c)] = parent
     for p in promoted:
-        par = promoted_parent.get(p)
-        c = by_key.get(p) or {}
-        if par and not c.get("windows") and c.get("water") == water_kind:
-            lifted[par] = REPLACED_BY_CLAUSE
+        c = by_key[p]
+        if promoted_parent.get(p) and not c.get("windows") and c.get("water") == water_kind:
+            lifted[promoted_parent[p]] = REPLACED_BY_CLAUSE
 
-    rungs, quals = [], []
+    # THE FAMILY: who counts inside whom. A clause is nested in every ancestor up the `within`
+    # chain, and in the promoted sibling that replaced their common parent — "1 over 50 cm"
+    # and "1 char" are constraints on "2 from streams" once that two is the allowance.
+    family: Dict[str, set] = {}
+    for parent, cs in kid_rules.items():
+        ids = {rid(c) for c in cs} | {parent}
+        for c in cs:
+            chain, key, seen = set(), rid(c), set()
+            while key in by_key and by_key[key].get("within") and key not in seen:
+                seen.add(key)
+                key = f"{by_key[key].get('entry')}::{by_key[key]['within']}"
+                chain.add(key)
+            family.setdefault(rid(c), set()).update(chain)
+            for pr, par in promoted_parent.items():
+                if par == parent and pr != rid(c):
+                    family.setdefault(rid(c), set()).add(pr)
+                    family.setdefault(pr, set()).add(rid(c))
+
+    out: List[Allowance] = []
+    multiples, duties = [], []
     for x in rules:
-        if x.get("within") and rid(x) not in promoted:
-            continue                                   # a clause, handled above
-        # A RULE THAT NAMES A METHOD IS ABOUT THE METHOD. "Only non-game fish may be speared" is
-        # a take of zero, so it walked into the quota table and said "Salmon · 0 · you may not
-        # fish for it" on a salmon river — off the spear-fishing rule. It belongs in the gear
-        # table, under the way of fishing it restricts (see method.py). 90 of 601 rungs.
-        if x.get("method"): continue
+        if str(x.get("type") or "") != "retention_limit" or x.get("method"):
+            continue
+        # A RULE ABOUT THE OTHER KIND OF WATER IS NOT HERE. Deciding this once, before anything
+        # is settled, is what keeps "2 from streams" off Kootenay Lake by construction.
+        wk = _water_of(x, by_key)
+        if wk and wk != water_kind:
+            continue
+        is_clause = bool(x.get("within")) and rid(x) not in promoted
+        top = by_key.get(f"{x.get('entry')}::{x.get('within')}") if x.get("within") else None
+        src = x if (x.get("windows") or not is_clause) else (top or x)
+        ap = _applies(src, label)
+        source = source_of(x)
         subj = subject_of(x, narrow.get(rid(x)))
+        within = f"{x.get('entry')}::{x.get('within')}" if is_clause else ""
+        g = gate_of(x, subj, source, ap, within)
+        if g is not None:
+            out.append(g)
         o = outcome_of(x.get("take"), x.get("may_target"), x.get("unlimited"),
                        x.get("period"), pooled_of(x, subj))
-        rank, who = _authority(x)
-        if rid(x) in promoted:
-            # It speaks with its parent's voice: the same table wrote both.
-            par = by_key.get(f"{x.get('entry')}::{x.get('within')}")
-            if par is not None:
-                rank, who = _authority(par)
-        ap = applies_of(x.get("windows"), x.get("extent_text"),
-                        all_year=not x.get("windows"), section_label=label,
-                        from_time=x.get("from_time"), to_time=x.get("to_time"),
-                        weekdays=x.get("weekdays"),
-                        unless=str(x.get("windows_are") or "") == "excepts")
-        # THE BOUND, SPLIT FROM THE COUNT. Whatever else the rule says, a size that sends a
-        # fish back rides as a gate on every row about that fish — including the rows this
-        # rule's own count loses on, because a number does not lift a take of zero.
-        # ONLY A RETENTION RULE GATES. "Conservation Surcharge Stamp required to catch and
-        # keep rainbow trout over 50 cm" carries `over_cm` too, and it is a licence rule: read
-        # as a bound it told the Shuswap "none over 50 cm" on a water where the stamp is
-        # exactly what lets you keep one.
-        if (subj.water in (Water.any, Water(water_kind))
-                and str(x.get("type") or "") == "retention_limit"):
-            g = gate_of(x, subj, rank, who, "" if ap.always else ap.detail,
-                        "" if rid(x) not in _drop else "lifted here — does not apply")
-            if g is not None:
-                gates.append(g)
-                if o is not None and o.kind in ("release", "closed"):
-                    # A TAKE OF ZERO ON A SIZE CLASS IS THE GATE, AND NOTHING ELSE. "Hatchery
-                    # trout/char under 30 cm from streams: 0" is not a release of hatchery
-                    # trout — it is the floor on the two you may keep. As a rung it was a
-                    # release for a subject nobody else wrote about, took a row of its own,
-                    # and the keep row beside it never showed the 30 cm.
-                    continue
+        if g is not None and o is not None and o.kind in ("release", "closed"):
+            # A TAKE OF ZERO ON A SIZE CLASS IS THE GATE, AND NOTHING ELSE. "Hatchery trout/char
+            # under 30 cm from streams: 0" is not a release of hatchery trout — it is the floor
+            # on the two you may keep.
+            continue
         if o is None:
-            # No count of its own — but a retention rule with no count is still ABOUT a count.
-            if str(x.get("type") or "") == "retention_limit":
-                q = qualifier_of(x, subject_of(x, narrow.get(rid(x))), rid(x))
-                if q is not None: quals.append(q)
+            if x.get("per_daily"):
+                multiples.append((replace(subj, water=Water.any), int(x["per_daily"]), source))
+            elif x.get("record_retention") or x.get("on_retention"):
+                duties.append((replace(subj, water=Water.any), source, x.get("label") or ""))
             continue
-        rungs.append(Rung(rid(x), who, rank, subj, o, x.get("verbatim") or "", ap))
-    rows = table(rungs, water_kind, kids, lifted)
+        out.append(Allowance(replace(subj, water=Water.any), o, source, ap, within))
+    fam = {k: frozenset(v) for k, v in family.items()}
+    return out, lifted, fam, multiples, duties, unresolved
 
-    # A CLAUSE WHOSE PARENT IS IN NO CHAIN. `dormant` picks up the clauses of rules that lost,
-    # but a parent can also leave the table entirely — beaten, then absorbed, its chain merged
-    # into a row that is about something broader. Its clauses then belong to no row at all.
-    # Sweeping for them is the difference between "carried" and "happened to be carried".
-    # A RUNG THAT LANDED IN NO CHAIN. `resolve` only ever sees one subject at a time, and a rule
-    # whose own subject produced no row — or whose row was absorbed by a host that already had a
-    # rung of the same id — leaves the table with nothing saying so. The Shuswap's "Lake trout —
-    # release all, Oct 15 – Jan 31" went that way. Sweeping is the difference between "carried"
-    # and "happened to be carried", and it is the same principle as the clause sweep below.
-    #
-    # ...BUT NOT A RUNG THAT IS ABOUT THE OTHER KIND OF WATER. `table` drops those before it
-    # resolves anything, and sweeping them back in undid that: Region 4's "Trout and char — 2
-    # per day, FROM STREAMS" landed in the chain on Kootenay LAKE, where the lake's answer is 5.
-    # It sat there labelled "also written here" — harmless until anything re-weighed the chain,
-    # and the date-aware pass does exactly that, so the lake read 2. A rule about streams is
-    # accounted for on a lake by NOT BEING THERE; `comply` files it under "not-here".
-    in_chain = {c.rule_id for r in rows
-                for c in r.chain + (r.caveats or []) + (r.ceilings or [])}
-    # A SUBJECT ONLY SEASONS SPEAK TO, AND NO ROW COVERS. `resolve` declines to head a row
-    # with a seasonal rule, rightly — but where no row covers the subject at all, that rule
-    # has nowhere to ride and leaves the table. It gets a row of its own, headed by its
-    # season (see `resolve(stranded=True)`).
-    stranded = {rg.subject for rg in rungs
-                if rg.rule_id not in in_chain and applies_here(rg, water_kind)
-                and rg.applies.can_win
-                and not any(r.subject.covers(rg.subject) or rg.subject.covers(r.subject)
-                            for r in rows)}
-    for subj in sorted(stranded, key=lambda x: sorted(x.fish)):
-        row = resolve([replace(r, subject=replace(r.subject, water=Water.any))
-                       for r in rungs if applies_here(r, water_kind)],
-                      replace(subj, water=Water.any), kids, lifted, stranded=True)
-        if row is not None:
-            row.exemptions = list(unresolved)
-            rows.append(row)
-            in_chain |= {c.rule_id for c in row.chain + (row.caveats or []) + (row.ceilings or [])}
-    for rg in rungs:
-        if rg.rule_id in in_chain or not applies_here(rg, water_kind):
-            continue
-        host = next((r for r in rows if r.subject.covers(rg.subject)
-                     or rg.subject.covers(r.subject)), None)
-        if host is not None:
-            note = ("instead, " + rg.applies.detail) if not rg.applies.always else "also written here"
-            host.chain = host.chain + [replace(rg, status=note)]
 
-    placed = {l.rule_id for r in rows for l in (r.limits or []) + (r.dormant or [])}
-    for parent, ls in kids.items():
-        for l in ls:
-            if l.rule_id in placed:
-                continue
-            host = next((r for r in rows if r.subject.covers(l.subject)
-                         or l.subject.covers(r.subject)), None)
-            if host is not None:
-                host.dormant = (host.dormant or []) + [l]
+def _key(rules: List[dict]) -> Tuple[str, ...]:
+    return tuple(sorted(rid(x) for x in rules))
 
-    # AN EXEMPTION NOBODY CAN PLACE STILL HAS TO REACH THE READER. `lifts_here` declines to
-    # apply one — applied blanket, Region 6's steelhead exemption deleted a closure from a river
-    # its own note does not name. The justification for holding it back was that it would ride
-    # beside the closure in the reader's own words, and that half was never built: `unresolved`
-    # was computed by four callers and read by none. It rides on every row now.
-    for r in rows:
-        r.exemptions = list(unresolved)
 
-    build.unattached = attach(rows, quals)     # see `attach`: told, never dropped
-    # A GATE THAT REACHED NO ROW IS A RULE THE READER NEVER SEES. It is not filed with the
-    # duties that have nothing to trigger them; it stays visible here and `comply` fails on it.
-    build.unattached_gates = attach_gates(rows, gates)
-    return rows
+@lru_cache(maxsize=None)
+def _base(key: Tuple[str, ...], water_kind: str) -> Ledger:
+    from pipeline.regs.table.corpus import rules as all_rules
+    want = set(key)
+    rs = [x for x in all_rules() if rid(x) in want]
+    alw, lifted, fam, mults, duties, unresolved = allowances(rs, water_kind)
+    return Ledger(alw, lifted=lifted, family=fam, multiples=mults, duties=duties,
+                  exemptions=unresolved, water_kind=water_kind)
+
+
+def base_rules(rules: List[dict]) -> List[dict]:
+    """The region-wide rules among a section's rules — the ones its base is made of."""
+    return [x for x in rules if source_of(x).is_base]
+
+
+def base(rules: List[dict], water_kind: str) -> Ledger:
+    """STAGE 1. The standing table for this kind of water, from the region-wide rules a
+    section carries. Cached on the rule set, so every section in a region shares one."""
+    return _base(_key(base_rules(rules)), water_kind)
+
+
+def ledger(rules: List[dict], water_kind: str = "stream", here=frozenset(),
+           label: str = "") -> Ledger:
+    """STAGE 2. The base, with this section's overrides on top.
+
+    `here` is the section's region ids, which region-scoped lifts are measured against; `label`
+    is the section's own name, which decides whether an extent the atlas already cut is this
+    very piece of water (see `where.cut_for_this`)."""
+    b = base(rules, water_kind)
+    alw, lifted, fam, mults, duties, unresolved = allowances(rules, water_kind, here, label)
+    over = [a for a in alw if not a.source.is_base]
+    fam_all = dict(b.family); fam_all.update(fam)
+    return b.overlay(over, lifted=lifted, family=fam_all, multiples=mults, duties=duties,
+                     exemptions=unresolved, water_kind=water_kind, label=label)
+
+
+def build(rules: List[dict], water_kind: str = "stream", here=frozenset(), label: str = ""):
+    """The finished table for one stretch: the derived rows (see `rows.py`)."""
+    from pipeline.regs.table.rows import rows
+    return rows(ledger(rules, water_kind, here, label))
