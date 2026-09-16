@@ -99,9 +99,10 @@ class Row:
         Each item: {"says", "kind" (bound|cap|any), "rule", "source", "n", "shared"}."""
         name = name or (lambda c: c)
         out = []
+        per = {"annual": " this licence year", "possession": " in possession"}
         for a in self.live(on):
-            if a.period != "daily" or a.scope.size.is_any:
-                continue
+            if a.scope.size.is_any or a.derived_from is not None:
+                continue                     # a possession multiple restates its daily cap
             who, _ = a.scope.words(name)
             if a.kind == "gate":
                 narrow = a.scope.fish and not a.scope.effective() >= self.fish
@@ -116,8 +117,9 @@ class Row:
                 o = self.origin if self.origin is not Origin.both else Origin.wild
                 others = [c for c in a.scope.effective() - self.fish if self.ledger.reaches(a, c, o)]
                 shared = ", ".join(sorted(name(c).lower() for c in others)) if a.pooled and others else ""
-                out.append({"says": f"no more than {a.n} {cls}" + (f" — shared with {shared}" if shared else ""),
-                            "plain": f"only {a.n} {a.scope.size.plain()}" + (" between them" if shared else ""),
+                when = per.get(a.period, "")
+                out.append({"says": f"no more than {a.n} {cls}{when}" + (f" — shared with {shared}" if shared else ""),
+                            "plain": f"only {a.n} {a.scope.size.plain()}" + (" between them" if shared else "") + when,
                             "kind": "cap", "rule": a.rule_id, "source": a.source, "n": a.n,
                             "shared": shared})
         if not out:
@@ -180,14 +182,20 @@ def rows(ledger: Ledger, name=None) -> List[Row]:
                         for a in ledger.allowances))
         # WHAT ELSE NAMES THESE FISH, AND WHY IT DOES NOT BIND. Replaced, lifted, only
         # somewhere — or in force for other fish and carved away for these.
+        # OVER EVERY FISH IN THE CLASS, not a representative: "any other game fish" under a
+        # whole-water closure holds whitefish and crayfish beside the char, and the replaced
+        # whitefish 15 must be listed beneath it or it is a rule the reader never sees.
         for a in ledger.allowances:
-            if a in key or not a.contains(sp, o):
+            if a in key:
+                continue
+            f = next((f for f in sorted(fish) if a.contains(f, o)), None)
+            if f is None:
                 continue
             st = ledger.status[a]
             if not st and not a.applies.can_bind:
                 st = ledger.status.get(a) or "only somewhere in here"
             if not st:
-                c = ledger.carved_out(a, sp, o, None, None)
+                c = ledger.carved_out(a, f, o, None, None)
                 st = f"replaced for these fish by {c.source.words()}" if c else ""
             if st:
                 row.behind.append((a, st))

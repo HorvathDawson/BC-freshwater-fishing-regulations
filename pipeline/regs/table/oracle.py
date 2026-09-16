@@ -112,7 +112,7 @@ def may_i_keep(ledger: Ledger, fish: Fish, on: Tuple[int, int], creel: Creel = N
         a = c.counter
         kept = _kept(ledger, a, creel, on, name)
         return Verdict(False, "spent", [a], checks,
-                       [f"No — the {_what(a, name)} of {a.n} per {_per(a)} is already spent"
+                       [f"No — the {_what(a, name, ledger, fish.origin)} of {a.n} per {_per(a)} is already spent"
                         f"{(' by the ' + kept + ' in your creel') if kept else ''}: {cite(a)}"], notes)
     if not checks:
         return Verdict(None, "unwritten", [], [],
@@ -124,7 +124,7 @@ def may_i_keep(ledger: Ledger, fish: Fish, on: Tuple[int, int], creel: Creel = N
             reasons.append(f"Yes — no limit on {_who(a, name)}: {cite(a)}")
         else:
             left = c.remaining - 1
-            reasons.append(f"Yes — {_what(a, name)}: {c.used} of {a.n} per {_per(a)} used, "
+            reasons.append(f"Yes — {_what(a, name, ledger, fish.origin)}: {c.used} of {a.n} per {_per(a)} used, "
                            f"{left} more after this one: {cite(a)}")
     kind = "unlimited" if all(c.n is None for c in checks) else "ok"
     return Verdict(True, kind, [c.counter for c in checks], checks, reasons, notes)
@@ -166,8 +166,15 @@ def _who(a: Allowance, name) -> str:
     return who.lower() + (f" ({q})" if q else "")
 
 
-def _what(a: Allowance, name) -> str:
+def _what(a: Allowance, name, ledger: Ledger = None, origin: Origin = None) -> str:
+    """The counter as it stands HERE: the fish it still reaches, not the fish its sentence
+    named. Region 4's "1 bull trout (Dolly Varden)" reaches only Dolly Varden where the water
+    gave bull trout its own number, and the reason must say so."""
     who, q = a.scope.words(name)
+    if ledger is not None and not a.scope.is_everything:
+        left = sorted(name(c) for c in a.scope.effective() if ledger.reaches(a, c, origin or Origin.wild))
+        if left and set(left) != {name(c) for c in a.scope.effective()}:
+            who = ", ".join(left)
     pool = " combined" if a.pooled else ""
     size = f", {a.scope.size.words()}" if not a.scope.size.is_any else ""
     origin = f" ({a.scope.origin.value} only)" if a.scope.origin is not Origin.both else ""

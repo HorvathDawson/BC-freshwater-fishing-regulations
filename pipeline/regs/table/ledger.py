@@ -167,7 +167,11 @@ class Ledger:
         The derived counter carries its PARENT's provenance — it is the region's 5, doubled,
         and it takes the region's place on the ladder — and names the rule that doubled it."""
         out = []
-        mults = sorted(self.multiples, key=lambda m: m[2].rank)
+        # THE NARROWEST MULTIPLE THAT COVERS THE FISH, then the closer authority. Sorted by
+        # authority alone, Region 7B's "possession quotas = 2 daily quotas" (all game fish)
+        # beat its own "lake trout: 1 daily quota" on list order, and lake trout doubled.
+        mults = sorted(self.multiples,
+                       key=lambda m: (len(m[0].effective()) or 10 ** 6, m[2].rank, m[2].rule_id))
         for a in raw:
             if a.outcome.kind != "quota" or a.period != "daily" or a.rule_id in lifted:
                 continue
@@ -240,6 +244,21 @@ class Ledger:
                 # "No Fishing" on the water.
                 return (not shuts_the_water(A.scope)
                         and _fish_scope(A.scope).covers(_fish_scope(B.scope)))
+            if narrower and not B.is_zero and A.outcome.kind == "quota":
+                # A CLOSER NUMBER ON FEWER FISH COUNTS INSIDE THE WIDER ONE — it does not add
+                # to it. Shuswap's "Rainbow trout daily quota = 1" and "Char daily quota = 1"
+                # are exceptions under Region 3's "Trout/char: 5"; no reading of a table headed
+                # EXCEPTIONS turns two tightenings into a rise from 5 to 7. Subtracting them
+                # (which the fold did whenever the two rules sat in different catalogue
+                # entries, while nesting them whenever they shared one) gave 7 there and 16
+                # on Kootenay Lake — the most permissive of every reading, chosen by nobody.
+                #
+                # The one exception is a closer number the wider one could never hold:
+                # Kootenay's "rainbow trout daily quota = 10" cannot count inside a 5, so it
+                # stands outside it, as Region 8's "20 brook trout" stands outside its 4. The
+                # book does not say which the Main Body means; this is the reading, and the
+                # number is a question for the region.
+                return B.outcome.kind == "unlimited" or B.outcome.n > A.outcome.n
             return True
         if B.rank > A.rank:
             return False

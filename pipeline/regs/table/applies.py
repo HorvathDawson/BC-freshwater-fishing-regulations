@@ -38,6 +38,7 @@ class Applies:
     windows: Tuple[Tuple[Tuple[int, int], Tuple[int, int]], ...] = ()
     unless: bool = False            # the dates are when the rule does NOT apply
     within_day: bool = False        # a time of day or a weekday: a date cannot settle it
+    excluded: str = ""              # a place the rule does NOT reach — "Mill Lake"
 
     def live(self, month: int, day: int) -> bool:
         """Is the rule in force on this date? A place nobody can draw is never "in force";
@@ -88,6 +89,11 @@ class Applies:
 
 ALWAYS = Applies("always")
 
+#: "excluding Mill Lake", "except the Peace River", "other than …" — the extent is what the
+#: rule does NOT reach.
+import re as _re
+_EXCLUSION = _re.compile(r"^\s*(?:excluding|except(?:ing)?|other than|but not)\b\s*", _re.I)
+
 
 def _in_window(win, month: int, day: int) -> bool:
     (fm, fd), (tm, td) = win
@@ -127,6 +133,14 @@ def applies_of(windows: List[str] | None, extent_text: str | None,
     from pipeline.regs.table.where import cut_for_this
     if extent_text and cut_for_this(extent_text, section_label):
         extent_text = None
+    # AN EXCLUSION HAS THE OPPOSITE POLARITY. "Bass: 20 — excluding Mill Lake" is true
+    # everywhere but one lake; read as a place the rule is true only inside, it bound nowhere
+    # and every Region 2 water lost its bass quota. The rule stands, and carries the exception
+    # in the reader's own words; the excluded water's own entry speaks for itself there.
+    excluded = ""
+    if extent_text and _EXCLUSION.match(extent_text):
+        excluded = _EXCLUSION.sub("", extent_text).strip()
+        extent_text = None
     # A TIME OF DAY IS A WINDOW, and going unread it made one absolute. "No Fishing from one
     # hour after sunset to one hour before sunrise" reached the fold as an unconditional
     # closure, `_shuts_the_water` was true, and it took every row on the Harrison — the whole
@@ -145,8 +159,9 @@ def applies_of(windows: List[str] | None, extent_text: str | None,
     if windows and not all_year:
         # A window ships as {"from":..,"to":..} objects, not strings — one more field whose
         # shape every consumer has to already know. Absorbed here, once.
-        return Applies("window", _w(windows), _dates(windows))
-    return ALWAYS
+        return Applies("window", _w(windows) + (f" · except {excluded}" if excluded else ""),
+                       _dates(windows), excluded=excluded)
+    return Applies("always", f"except {excluded}", excluded=excluded) if excluded else ALWAYS
 
 
 _MON = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
