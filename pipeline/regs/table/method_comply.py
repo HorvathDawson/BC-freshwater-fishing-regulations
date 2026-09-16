@@ -30,7 +30,7 @@ from pipeline.regs.table.authority import source_of
 from pipeline.regs.table.ledger import LIFTED, SAME, ONLY_SOMEWHERE
 from pipeline.regs.table.method import (METHODS, COVERED, MOOT, REPLACED, OPENED, CLOSED_BY,
                                         EXCEPTION, CONDITION, HOURS)
-from pipeline.regs.table.method_build import table, is_gear, _bites
+from pipeline.regs.table.method_build import table, region_base, is_gear, _bites
 
 
 _HOW = {LIFTED: "lifted", SAME: "folded", COVERED: "folded", EXCEPTION: "folded", CONDITION: "condition",
@@ -66,13 +66,37 @@ def audit(rules, here, water_kind="stream", label=""):
         if t.kind == "lift": mark(t.rule_id, "lift")
         if t.kind == "while_closed": mark(t.rule_id, "while-closed")
         if t.kind == "keep": mark(t.rule_id, "keep")
+    # A BUCKET DECIDED BY A FIELD ON THE INPUT PROVES NOTHING. "Written about the other kind
+    # of water" and "the book limits it to other regions" are the generator's own reasons for
+    # not looking at a rule, so accounting for it by the same test would account for a rule the
+    # generator wrongly refused. Each such rule must be FOUND in the table it belongs to instead:
+    # the same stretch's table for the other kind of water, or the standing table of a region
+    # the rule names.
+    other = {}
     for x in rules:
-        if not is_gear(x): continue
+        if not is_gear(x) or rid(x) in where: continue
         w = x.get("water")
-        if w and w != water_kind: mark(rid(x), "not-here")
-        if not _bites(source_of(x), here): mark(rid(x), "scoped-out")
+        if w and w != water_kind:
+            if "t" not in other:
+                other["t"] = _found_in(table(rules, w, here, label))
+            if rid(x) in other["t"]: mark(rid(x), "not-here")
+            continue
+        src = source_of(x)
+        if not _bites(src, here):
+            for r in sorted(src.regions):
+                if rid(x) in _found_in(region_base(r, water_kind)):
+                    mark(rid(x), "scoped-out"); break
     given = {rid(x) for x in rules if is_gear(x)}
     return where, sorted(given - set(where))
+
+
+def _found_in(T) -> set:
+    """Every rule a table shows somewhere — the output, not the input."""
+    ids = set()
+    for row in T.rows():
+        ids |= set(row.visible_ids())
+    ids |= {t.rule_id for t in T.terms if t.kind in ("lift", "keep", "while_closed")}
+    return ids
 
 
 if __name__ == "__main__":

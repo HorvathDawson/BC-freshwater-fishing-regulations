@@ -526,3 +526,69 @@ def test_the_provincial_base_matches_page_10():
         assert verdicts == {"angling": "allowed", "ice_fishing": "allowed", "set_lining": "not allowed",
                             "spear_fishing": "allowed", "crayfish_trapping": "allowed", "netting": "not allowed",
                             "snagging": "not allowed", "chumming": "not allowed"}, verdicts
+
+
+# --------------------------------------------------------------------------- #
+# THE CHECKS CAN FAIL. A totality test that compares a set against the set it was built
+# from passes for every possible table; these prove the two guarantees notice a loss.
+# --------------------------------------------------------------------------- #
+def test_the_totality_check_notices_a_condition_the_page_forgot_to_draw(sections):
+    """Drop one in-force condition from the rendered JSON of a Region 1 stream and the
+    decision still cites it — the check must fail on the mutated render."""
+    from pipeline.regs.table.method_provenance import section as section_json
+    w, run, kind, rules, here, label, T = next(s for s in sections if s[2] == "stream" and "1" in s[4])
+    d = section_json(w, run)
+    victim = "z1:bait_ban_streams::bait_ban_streams.r1"
+    assert any(t["rule"] == victim for ts in d["band"]["rig"].values() for t in ts)
+    for topic in list(d["band"]["rig"]):
+        d["band"]["rig"][topic] = [t for t in d["band"]["rig"][topic] if t["rule"] != victim]
+    for r in d["rows"]:
+        for topic in list(r["rig"]):
+            r["rig"][topic] = [t for t in r["rig"][topic] if t["rule"] != victim]
+        r["folded"] = [t for t in r["folded"] if t["rule"] != victim]
+    row = next(r for r in d["rows"] if r["method"] == "angling")
+    v = may_i_fish(T, "angling", (7, 15))
+    assert victim in v.cited()
+    assert victim not in _rendered_ids(row, d), "the mutation did not take"
+    assert v.cited() - _rendered_ids(row, d) == {victim}
+
+
+def test_the_compliance_check_notices_a_rule_the_generator_drops(sections, monkeypatch):
+    """Make the generator lose one rule on the way in and COMPLIES must not print."""
+    import pipeline.regs.table.method_build as mb
+    from pipeline.regs.table.method_comply import audit
+    w, run, kind, rules, here, label, T = next(s for s in sections if s[2] == "stream" and "1" in s[4])
+    victim = "z1:single_barbless_hook::single_barbless_hook.r1"
+    real = mb.terms_of
+    def lossy(rules_, water_kind, here_=frozenset(), label_=""):
+        terms, ledgers, lf, un = real(rules_, water_kind, here_, label_)
+        return [t for t in terms if t.rule_id != victim], ledgers, lf, un
+    monkeypatch.setattr(mb, "terms_of", lossy)
+    mb._base.cache_clear()
+    try:
+        _, gone = audit(rules, here, kind, label)
+    finally:
+        mb._base.cache_clear()
+    assert gone == [victim], gone
+
+
+def test_a_rule_filed_as_the_other_kind_of_water_must_be_found_there(sections, monkeypatch):
+    """`not-here` is proven by finding the rule in the other kind's table, not by reading the
+    field that sent it away. Flip a stream rule to `water: lake` and hide it from the lake
+    table too: the audit must report it."""
+    import pipeline.regs.table.method_build as mb
+    from pipeline.regs.table.method_comply import audit
+    w, run, kind, rules, here, label, T = next(s for s in sections if s[2] == "stream" and "1" in s[4])
+    victim = "z1:single_barbless_hook::single_barbless_hook.r1"
+    mutated = [dict(x, water="lake") if f"{x['entry']}::{x['rule']}" == victim else x for x in rules]
+    real = mb.terms_of
+    def lossy(rules_, water_kind, here_=frozenset(), label_=""):
+        terms, ledgers, lf, un = real(rules_, water_kind, here_, label_)
+        return [t for t in terms if t.rule_id != victim], ledgers, lf, un
+    monkeypatch.setattr(mb, "terms_of", lossy)
+    mb._base.cache_clear()
+    try:
+        _, gone = audit(mutated, here, kind, label)
+    finally:
+        mb._base.cache_clear()
+    assert gone == [victim], gone
