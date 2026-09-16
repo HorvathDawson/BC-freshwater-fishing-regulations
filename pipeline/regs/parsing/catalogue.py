@@ -262,6 +262,7 @@ SPECIES_GROUPS["ALL_FIN_FISH"] = ()
 #: for the SARA listing itself. The regional tables carry the qualifier the group cannot.
 SPECIES_GROUPS["PROTECTED_SPECIES"] = (
     "CCL", "ELS", "MLS", "NDC", "PLS", "RMS", "SHS", "SSU", "VCS", "VLA", "WBL",
+    "GSG",   # green sturgeon — Region 2 p.21 names it; a protection on no water without this
 )
 
 #: Salmon are federal, not on the provincial game-fish list, and so are NOT in ALL_GAME_FISH.
@@ -674,7 +675,7 @@ _MENU_FAMILIES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("Salmon",           SPECIES_GROUPS["SALMON"]),
     ("Other game fish",  ("KO", "GR", "BB", "WSG", "NP", "YP", "WP", "GE", "IN", "CRA")),
     ("Non-game",         ("CP",)),
-    ("Protected — never retainable", SPECIES_GROUPS["PROTECTED_SPECIES"] + ("GSG",)),
+    ("Protected — never retainable", SPECIES_GROUPS["PROTECTED_SPECIES"]),
 )
 
 
