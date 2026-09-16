@@ -151,7 +151,11 @@ class Term:
             if k not in a:
                 return False
             if k.startswith("max_") and a[k] and v:
-                if float(a[k]) > float(v): return False
+                # A ZERO IS NO LIMIT. "Unlimited rods" ships as max_lines 0; read as a number
+                # it was the strictest line rule in the province.
+                if float(a[k]) == 0 and float(v) != 0: return False
+                if float(v) != 0 and float(a[k]) > float(v): return False
+                if float(v) == 0 and float(a[k]) != 0: return False
             elif k.startswith("min_") and a[k] and v:
                 if float(a[k]) < float(v): return False
             elif a[k] != v:
@@ -164,6 +168,14 @@ class Term:
         if self.kind == "rig" and self.key == "bait:any" and not self.allows:
             return "No bait" + _when(self)
         return self.text + _when(self)
+
+
+_DUTY = re.compile(r"\bmust\b|responsib|offence|warning|marked", re.I)
+
+
+def _duty(t: Term) -> bool:
+    """Does a permit carry a duty of its own — a thing to DO, not just leave to do?"""
+    return bool(_DUTY.search(t.text))
 
 
 def _when(t: Term) -> str:
@@ -181,8 +193,9 @@ def default_term(method: str, elsewhere: Iterable[Term] = ()) -> Term:
         return Term(method, "permit", src, text="Allowed — nothing here says otherwise")
     where = sorted({w for t in elsewhere for w in _permit_places(t)})
     note = (" The book allows it only " + " and ".join(where) + ".") if where else ""
+    # The book's own sentence, page 10, after the list of what a licence entitles you to.
     src = Source(Authority.province, Scope.region, "", "", frozenset(), "",
-                 "You may fish only by angling, except as the book allows." + note)
+                 "All other methods of taking fin fish and crayfish are illegal." + note)
     return Term(method, "ban", src, text="Not allowed here — nothing in the book allows it here")
 
 
@@ -269,6 +282,17 @@ class MethodTable:
     def _year_round(self, t: Term) -> bool:
         return t.applies.can_bind and not t.applies.within_day and (t.applies.always or t.applies.unless)
 
+    @staticmethod
+    def _whenever(b: Term, a: Term) -> bool:
+        """Is `b` live on every day `a` is? A year-round rule folds a seasonal one; a seasonal
+        rule folds another whose dates sit inside its own (the Fording's own Jun 15 – Oct 31
+        bait ban and the Elk tributaries' Jun 15 – Aug 31 one, inherited). Date-aware, the way
+        the ledger's carves are, so the table never prints "No bait" twice for one season."""
+        if b.applies.always or b.applies.unless and not b.applies.windows:
+            return True
+        from pipeline.regs.table.rows import DAYS
+        return all(b.applies.live(*d) for d in DAYS if a.applies.live(*d))
+
     def _settle_standing(self, method: str) -> None:
         st = self.status[method]
         cands = [t for t in self._for(method, "permit") + self._for(method, "ban")
@@ -276,13 +300,24 @@ class MethodTable:
         if not cands:
             return
         gov = min(cands, key=lambda t: (t.rank, t.kind != "ban", t.rule_id))
+        permits = [t for t in cands if t.kind == "permit"]
         for t in cands:
             if t is gov:
                 continue
-            if t.kind == gov.kind:
-                st[t] = CONDITION if (t.rank == gov.rank and t.kind == "permit") else SAME
-            else:
+            if t.kind != gov.kind:
                 st[t] = OPENED if t.kind == "ban" else CLOSED_BY
+            elif t.kind == "ban":
+                st[t] = SAME
+            else:
+                # A PERMIT BEHIND A PERMIT IS A CONDITION, NOT A DUPLICATE. Region 5's "ice
+                # fishing huts: WARNING" outranks the province's "one line and one lure", and
+                # folding the province's as "says the same thing" lost the only line that says
+                # how to rig it. What a permit SAYS accumulates across ranks; only a permit whose
+                # content another permit already carries, and which adds no duty, folds.
+                richer = [p for p in permits if p is not t and set(p.says) >= set(t.says)
+                          and (len(p.says) > len(t.says) or p.rank < t.rank
+                               or (p.rank == t.rank and p.rule_id < t.rule_id))]
+                st[t] = SAME if (richer and not _duty(t)) else CONDITION
             self.behind[method][t] = gov
 
     def _settle_rig(self, method: str) -> None:
@@ -308,12 +343,12 @@ class MethodTable:
                 related = R.covers_rig(A) or A.key == R.key
                 if not related:
                     continue
-                if A.rank < R.rank and self._year_round(A):
+                if A.rank < R.rank and self._whenever(A, R):
                     if A.key == R.key and not A.only_when:
                         st[R] = REPLACED; behind[R] = A
                     else:
                         carves[R].append(A); st[A] = EXCEPTION; behind[A] = R
-                elif A.rank >= R.rank and R.covers_rig(A) and self._year_round(R):
+                elif A.rank >= R.rank and R.covers_rig(A) and self._whenever(R, A):
                     # An allowance the ban itself names as its exception is carved in at any
                     # rank; one the ban does not name is simply moot under it.
                     if A.rule_id in R.lifts or R.rule_id in A.lifts:
@@ -324,7 +359,7 @@ class MethodTable:
         rest = [t for t in live if not t.allows and not st[t]]
         for A in rest:
             for B in rest:
-                if A is B or st[A] or st[B] or B.rank > A.rank or not self._year_round(B):
+                if A is B or st[A] or st[B] or B.rank > A.rank or not self._whenever(B, A):
                     continue
                 if B.covers_rig(A) and (B.rank < A.rank or len(B.says) > len(A.says)
                                         or (len(B.says) == len(A.says) and B.rule_id < A.rule_id)):
@@ -369,8 +404,10 @@ class MethodTable:
             return []
         out = [gov] if not gov.is_default else []
         out += [t for t in self._for(method, "permit")
-                if self.status_of(method, t) == CONDITION and self.behind[method].get(t) is gov]
-        return out
+                if self.status_of(method, t) == CONDITION and self.behind[method].get(t) is gov
+                and (t.applies.live(*on) if on is not None else (t.applies.always or t.applies.unless))]
+        # What to DO with the tackle first, duties after — the reader rigs before he reads.
+        return sorted(out, key=lambda t: (_duty(t), -len(t.says), t.rank, t.rule_id))
 
     def calendar(self, method: str) -> List[dict]:
         from pipeline.regs.table.rows import DAYS
