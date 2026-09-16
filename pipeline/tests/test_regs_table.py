@@ -935,3 +935,81 @@ def test_a_fish_only_the_province_names_is_set_apart_not_dropped(tables):
     assert v.keep is False and v.decided_by[0].rule_id == "zp:steelhead::steelhead.r2"
     _, _, _, _, _, t = _one(tables, "Skeena River", 0)
     assert not _row(t, "ST", Origin.wild).province_only
+
+
+# --------------------------------------------------------------------------- #
+# A counter counts exactly the fish it binds — proved through the oracle, over real creels.
+# --------------------------------------------------------------------------- #
+def _used_counters(v):
+    return {c.counter for c in v.checks if c.used > 0}
+
+
+def test_a_shared_counter_is_symmetric_and_visible_on_both_rows(tables):
+    """For every fish X and every fish Y that shares a counter with it: keeping Y and asking
+    about X must consult the same counters as keeping X and asking about Y, and every counter
+    that a kept Y charges must be visible on BOTH rows. Driven from the oracle over real
+    creels, not from the rows — a check seeded from the rows cannot find a counter the rows
+    omit. Kootenay Lake's bull trout, given its own 1 by the water, was still being charged
+    against the region's "1 bull trout (Dolly Varden)" on the Dolly Varden's row."""
+    for w, run, _, _, L, t in tables:
+        row_of = {}
+        for r in t:
+            for sp in r.fish:
+                for o in ((Origin.wild, Origin.hatchery) if r.origin is Origin.both else (r.origin,)):
+                    row_of[(sp, o)] = r
+        for r in t:
+            x = r.species
+            o = r.origin if r.origin is not Origin.both else Origin.wild
+            partners = set()
+            for a in r.counters:
+                if a.period == "daily" and len(a.scope.effective()) > 1:
+                    partners |= {y for y in a.scope.effective() if y not in r.fish and (y, o) in row_of}
+            for y in sorted(partners)[:4]:
+                for length in (45, 65):
+                    xy = may_i_keep(L, Fish(x, length, o), (7, 15), Creel.of(Fish(y, length, o)), name)
+                    yx = may_i_keep(L, Fish(y, length, o), (7, 15), Creel.of(Fish(x, length, o)), name)
+                    shown_x = set(row_of[(x, o)].counters)
+                    shown_y = set(row_of[(y, o)].counters)
+                    for a in _used_counters(xy):
+                        assert a in shown_x and a in shown_y, (w, run + 1, x, y, length, a.rule_id)
+                    for a in _used_counters(yx):
+                        assert a in shown_x and a in shown_y, (w, run + 1, y, x, length, a.rule_id)
+                    # The same counters in both directions — where both fish reach the count.
+                    # A fish sent back by a bound or a release is refused before any counter
+                    # is consulted, and that answer has no counters to compare.
+                    if xy.checks and yx.checks:
+                        assert _used_counters(xy) == _used_counters(yx), (
+                            w, run + 1, x, y, length,
+                            sorted(a.rule_id for a in _used_counters(xy) ^ _used_counters(yx)))
+
+
+def test_a_counter_binds_and_counts_the_same_fish(tables):
+    """The symmetry, stated directly: for every shared counter in force, the fish it binds
+    (and so the rows it sits on) are exactly the fish a kept one is charged against."""
+    for w, run, _, _, L, t in tables:
+        on_rows = {}
+        for r in t:
+            for a in r.counters:
+                on_rows.setdefault(a, set()).update(r.fish)
+        for a in L.allowances:
+            if not L.in_force(a) or a.period != "daily" or len(a.scope.effective()) < 2:
+                continue
+            for o in (Origin.wild, Origin.hatchery):
+                for y in sorted(a.scope.effective()):
+                    charged = L.binds(a, y, o, 45, (7, 15))
+                    if charged:
+                        assert y in on_rows.get(a, set()), (w, run + 1, a.rule_id, y, o.value)
+
+
+def test_kootenay_char_is_the_same_answer_in_both_directions():
+    """Keep a bull trout, ask about a Dolly Varden; keep a Dolly Varden, ask about a bull
+    trout. The water's "Bull trout daily quota = 1" took bull trout out of Region 4's shared
+    "1 bull trout (Dolly Varden)", so neither kept fish spends the other's counter."""
+    K = _ledger("Kootenay Lake", 0)
+    bt_then_dv = may_i_keep(K, Fish("DV", 45), (7, 15), Creel.of(Fish("BT", 60)), name)
+    dv_then_bt = may_i_keep(K, Fish("BT", 62), (7, 15), Creel.of(Fish("DV", 45)), name)
+    assert bt_then_dv.keep is True and dv_then_bt.keep is True
+    assert not [c for c in bt_then_dv.checks if c.used], bt_then_dv.reasons
+    # ...and a second Dolly Varden is still refused by the region's cap, now "1 Dolly Varden".
+    v = may_i_keep(K, Fish("DV", 45), (7, 15), Creel.of(Fish("DV", 45)), name)
+    assert v.keep is False and v.decided_by[0].rule_id == "z4:trout_char_quota::trout_char_quota.r4"

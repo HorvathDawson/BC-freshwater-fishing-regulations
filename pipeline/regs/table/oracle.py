@@ -131,18 +131,28 @@ def may_i_keep(ledger: Ledger, fish: Fish, on: Tuple[int, int], creel: Creel = N
 
 
 def _used(ledger: Ledger, a: Allowance, creel: Creel, on) -> int:
-    """How many fish already kept count against this counter — those it contains."""
-    # A kept fish of unknown length counts against a size-class counter only if it is in the
-    # class, and nobody can say — so it does not. The daily number still counts it.
+    """How many fish already kept count against this counter — EXACTLY THE FISH IT BINDS.
+
+    A counter that no longer governs a fish does not count it. Kootenay Lake gives bull trout
+    its own 1, which takes bull trout out of Region 4's "1 bull trout (Dolly Varden)"; a kept
+    bull trout must not then be charged against the Dolly Varden who is still inside it, or
+    the two answers — keep a bull trout, then ask about a Dolly Varden; keep a Dolly Varden,
+    then ask about a bull trout — contradict each other. Counting through `binds` makes the
+    two directions one rule.
+
+    A kept fish of unknown length counts against a size-class counter only if it is in the
+    class, and nobody can say — so it does not. The daily number still counts it.
+    """
     return sum(1 for k in creel.for_period(a.period)
-               if a.contains(k.species, k.origin, k.length_cm)
+               if ledger.binds(a, k.species, k.origin, k.length_cm, on)
                and (k.length_cm is not None or a.scope.size.is_any))
 
 
 def _kept(ledger: Ledger, a: Allowance, creel: Creel, on, name) -> str:
     """"the bull trout (60 cm)" — or "the 10 rainbow trout", not ten of them listed."""
     from collections import Counter
-    ks = [k for k in creel.for_period(a.period) if a.contains(k.species, k.origin, k.length_cm)]
+    ks = [k for k in creel.for_period(a.period)
+          if ledger.binds(a, k.species, k.origin, k.length_cm, on)]
     tally = Counter((name(k.species).lower(), k.length_cm) for k in ks)
     parts = []
     for (nm, L), n in tally.items():
