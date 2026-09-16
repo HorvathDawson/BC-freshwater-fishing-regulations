@@ -32,6 +32,7 @@ def term_json(T: MethodTable, method: str, t: Term, status: str = "") -> dict:
         "rule": t.rule_id, "stage": "base" if t.is_base else "override",
         "kind": t.kind, "text": t.text, "plain": t.plain(), "topic": t.topic, "key": t.key,
         "allows": t.allows, "only_when": t.only_when, "default": t.is_default,
+        "adds": t.adds() if t.kind == "permit" else True,
         "source": src_json(t.source),
         "regions": sorted(t.regions),
         "when": t.applies.detail,

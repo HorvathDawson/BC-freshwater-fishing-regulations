@@ -162,6 +162,12 @@ class Term:
                 return False
         return True
 
+    def adds(self) -> bool:
+        """Does a permit say anything a reader must DO — a rigging content or a duty? "Spear
+        fishing is permitted" adds nothing beyond the verdict; "ice fish with one line and one
+        lure" does."""
+        return bool(self.says) or bool(self.only_when) or _duty(self)
+
     def plain(self) -> str:
         """The words a reader sees for this term. The label is already plain; the ones the
         page must not let anyone miss are said in the shortest possible form."""
@@ -191,7 +197,15 @@ def default_term(method: str, elsewhere: Iterable[Term] = ()) -> Term:
         src = Source(Authority.province, Scope.region, "", "", frozenset(), "",
                      "Angling is what a licence is for. Nothing here says otherwise.")
         return Term(method, "permit", src, text="Allowed — nothing here says otherwise")
-    where = sorted({w for t in elsewhere for w in _permit_places(t)})
+    # One place per region list: a permit typed for lakes and a companion typed for nothing
+    # (the same rule, missing its `water`) name one place, not two.
+    by_regions = {}
+    for t in elsewhere:
+        for w in _permit_places(t):
+            key = tuple(sorted(t.regions))
+            if key not in by_regions or w.startswith("in lakes") or w.startswith("in streams"):
+                by_regions[key] = w
+    where = sorted(by_regions.values())
     note = (" The book allows it only " + " and ".join(where) + ".") if where else ""
     # The book's own sentence, page 10, after the list of what a licence entitles you to.
     src = Source(Authority.province, Scope.region, "", "", frozenset(), "",
