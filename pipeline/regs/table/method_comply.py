@@ -1,77 +1,96 @@
-"""The gear table's guarantee, which it did not have.
+"""The gear table's guarantee: every gear rule handed in is findable in the table that comes out.
 
-`comply.py` proves every retention rule is findable in the quota table. Nothing proved the same
-of the gear table — and `build.py` now EXCLUDES 1,240 method-carrying rules from the quota side
-on the grounds that they belong here. A rule that leaves one table and never arrives in the
-other is the worst outcome available, and until this existed nothing could tell the difference.
+`comply.py` proves it of the quota ledger, and `build.py` EXCLUDES every method-carrying rule
+from that ledger on the grounds that it belongs here. A rule that leaves one table and never
+arrives in the other is the worst outcome available, so each gear rule of each section must
+land in exactly one of these honest places:
+
+      standing      it is the permit or ban that governs, or one behind it (same / opened / closed by)
+      condition     a duty the governing permit carries
+      rig           a condition printed on the row
+      folded        true here, printed inside another line (same / covered / an exception)
+      replaced      a closer rule about the same thing answered differently
+      lifted        disapplied here by something that says so
+      moot          an allowance under a ban that already covers it
+      keep          a counter in the per-method keep ledger (binding, or behind another)
+      lift          it lifts another rule, and the row shows what it freed
+      caveat        true only somewhere nobody can draw, or at certain hours
+      while-closed  the no-gear-in-the-water rule, shown on a closure
+      not-here      written about the other kind of water
+      scoped-out    the book limits it to regions this section is not in
+
+Anything left over is a rule the reader would never see, and the check fails on it.
 """
 from __future__ import annotations
 import collections
 
-from pipeline.regs.table.build import D, WATERS, section_rules, section_regions
+from pipeline.regs.table.build import D, WATERS, section_rules, section_regions, section_kind, section_label
 from pipeline.regs.table.corpus import rid
-from pipeline.regs.table.method import RIG_TYPES
-from pipeline.regs.table.method_build import rungs_for, METHODS
-from pipeline.regs.table.lifts import lifts_here
+from pipeline.regs.table.authority import source_of
+from pipeline.regs.table.ledger import LIFTED, SAME, ONLY_SOMEWHERE
+from pipeline.regs.table.method import (METHODS, COVERED, MOOT, REPLACED, OPENED, CLOSED_BY,
+                                        EXCEPTION, CONDITION, HOURS)
+from pipeline.regs.table.method_build import table, is_gear, _bites
 
-from pipeline.regs.table.method import resolve_method
+
+_HOW = {LIFTED: "lifted", SAME: "folded", COVERED: "folded", EXCEPTION: "folded", CONDITION: "condition",
+        MOOT: "moot", REPLACED: "replaced", OPENED: "standing", CLOSED_BY: "standing",
+        ONLY_SOMEWHERE: "caveat", HOURS: "caveat"}
 
 
-def audit(rules, here, water_kind="stream"):
-    """Where each gear rule of this section lands, across every method."""
+def audit(rules, here, water_kind="stream", label=""):
+    """Where each gear rule of this section lands. Returns (rule -> place, unaccounted)."""
+    T = table(rules, water_kind, here, label)
     where = {}
     def mark(k, how):
-        where.setdefault(k, how)
-    for m in METHODS:
-        rs = rungs_for(m, rules, here, water_kind)
-        if not rs:
-            continue
-        row = resolve_method(m, rs, here)
-        if row is None:
-            for r in rs:
-                mark(r.rule_id, "scoped out of this section")
-            continue
-        for c in row.chain:      mark(c.rule_id, "verdict")
-        for c in row.takes:      mark(c.rule_id, "what you may keep by it")
-        for c in row.constraints:mark(c.rule_id, "how you must rig it")
-        for c in row.unplaceable:mark(c.rule_id, "somewhere in here")
-        for r in rs:
-            if r.rule_id not in where and not row.permission.allowed and r.takes:
-                mark(r.rule_id, "moot — the method is not permitted here")
-            mark(r.rule_id, "scoped out of this section")
-    # A rule an exemption disapplies here never becomes a rung — that is the mechanism working,
-    # not a rule going missing, and the check has to be able to tell those apart.
-    _, dropped, _unresolved = lifts_here(rules, here)
-    for k in dropped:
-        mark(k, "lifted here by an exemption")
+        if k and k not in where: where[k] = how
+    for row in T.rows():
+        m = row.method
+        for t in row.candidates():
+            st = row.status_of(t)
+            mark(t.rule_id, _HOW.get(st, "standing") if st else "standing")
+        for ts in row.rig().values():
+            for t in ts:
+                mark(t.rule_id, "rig")
+                for c in row.carves(t): mark(c.rule_id, "folded")
+        for t, st in row.folded():
+            mark(t.rule_id, _HOW.get(st, "caveat"))
+        for t in T.within_day(m):
+            mark(t.rule_id, "caveat")
+        L = row.keep()
+        if L is not None:
+            for a in L.allowances: mark(a.rule_id, "keep")
+        for _, lifter in T.lifted_fish.get(m, []):
+            mark(lifter.rule_id, "lift")
+    for t in T.terms:
+        if t.kind == "lift": mark(t.rule_id, "lift")
+        if t.kind == "while_closed": mark(t.rule_id, "while-closed")
+        if t.kind == "keep": mark(t.rule_id, "keep")
     for x in rules:
+        if not is_gear(x): continue
         w = x.get("water")
-        if w and w != water_kind:
-            mark(rid(x), "written about the other kind of water")
-    given = {rid(x) for x in rules
-             if x.get("method") or str(x.get("type") or "") in RIG_TYPES}
+        if w and w != water_kind: mark(rid(x), "not-here")
+        if not _bites(source_of(x), here): mark(rid(x), "scoped-out")
+    given = {rid(x) for x in rules if is_gear(x)}
     return where, sorted(given - set(where))
 
 
 if __name__ == "__main__":
-    tally, missing, checked = collections.Counter(), 0, 0
-    shown = 0
+    tally, missing, checked, shown = collections.Counter(), 0, 0, 0
     for w in WATERS:
         for run in range(len(D[w].get("runs") or [])):
             rules = section_rules(w, run)
             if not rules:
                 continue
             checked += 1
-            kind = "lake" if (D[w].get("kind") == "lake") else "stream"
-            where, gone = audit(rules, section_regions(w, run), kind)
+            where, gone = audit(rules, section_regions(w, run), section_kind(w), section_label(w, run))
             tally.update(where.values())
             missing += len(gone)
             if gone and shown < 3:
                 shown += 1
-                print(f"UNACCOUNTED on {w} stretch {run + 1}: "
-                      f"{[g.split('::')[-1] for g in gone[:6]]}")
+                print(f"UNACCOUNTED on {w} stretch {run + 1}: {[g.split('::')[-1] for g in gone[:6]]}")
     print(f"\nchecked {checked} section gear tables across {len(WATERS)} waters")
     for k, v in tally.most_common():
-        print(f"   {k:34s} {v:6d}")
+        print(f"   {k:14s} {v:6d}")
     print(f"\ngear rules that reached no table: {missing}")
     print("\nCOMPLIES" if missing == 0 else "\nDOES NOT COMPLY")
