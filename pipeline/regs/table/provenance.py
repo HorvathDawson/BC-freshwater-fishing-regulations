@@ -39,9 +39,7 @@ def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str
         "kind": a.kind, "keep": a.word(), "n": a.n, "period": a.period, "pooled": a.pooled,
         "fish": who, "qualifier": qual, "size": a.scope.size.words(),
         "says": a.sentence(name),
-        "source": {"authority": a.source.authority.value, "scope": a.source.scope.value,
-                   "region": a.source.region, "place": a.source.place,
-                   "who": a.source.who, "words": a.source.words(), "rank": a.source.rank},
+        "source": src_json(a.source),
         "when": a.applies.detail, "windows": [{"from": list(f), "to": list(t)}
                                               for f, t in a.applies.windows],
         "unless": a.applies.unless, "within_day": a.applies.within_day,
@@ -54,6 +52,46 @@ def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str
                     "when": c.applies.detail} for c in L.carves.get(a, [])],
         "status": status or L.status.get(a, ""),
         "moot": bool(row and row.moot(a)),
+    }
+
+
+def src_json(s) -> dict:
+    return {"authority": s.authority.value, "scope": s.scope.value, "region": s.region,
+            "place": s.place, "who": s.who, "tag": s.tag, "words": s.words(), "rank": s.rank,
+            "rule": s.rule_id, "verbatim": s.verbatim.strip()}
+
+
+def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
+    """One row: the fish, the size statement, and every counter — the shape a page lays out
+    as Fish · Size · Daily · Annual · Possession, and a text table prints the same way."""
+    head = r.headline()
+    today = r.headline(on) if on else head
+    cal = r.calendar()
+    counters = [counter_json(L, a, r) for a in r.counters]
+    behind = [counter_json(L, a, r, st) for a, st in r.behind]
+    size = [{"says": x["says"], "kind": x["kind"], "rule": x["rule"], "n": x["n"],
+             "shared": x["shared"], "source": src_json(x["source"]) if x["source"] else None}
+            for x in r.size(on, name)]
+    # A POOLED HEADLINE IS A GROUP. Rows whose number is one shared counter are one band on
+    # the page, so five rows never read as five fives.
+    group = (head.rule_id if head is not None and head.pooled
+             and len(head.scope.effective()) > len(r.fish) else None)
+    return {
+        "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish),
+        "heading": r.heading(name), "qualifier": r.qualifier(), "origin": r.origin.value,
+        "key": r.heading(name) + "||" + r.qualifier(),
+        "keep": head.word() if head else None,
+        "set_by": head.rule_id if head else None,
+        "group": group,
+        "province_only": r.province_only,
+        "size": size,
+        "means": head.outcome.sentence() if head else "no standing number — see the calendar",
+        "answer_today": today.word() if today else None,
+        "today_by": today.rule_id if today else None,
+        "live_today": [a.rule_id for a in r.live(on)] if on else None,
+        "calendar": cal,
+        "year_round": any(seg["rule"] == (head.rule_id if head else None) for seg in cal),
+        "counters": counters, "behind": behind,
     }
 
 
@@ -77,31 +115,15 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
     out, used = [], set()
     for r in rows(L, name):
         head = r.headline()
-        today = r.headline(on) if on else head
-        cal = r.calendar()
-        counters = [counter_json(L, a, r) for a in r.counters]
-        behind = [counter_json(L, a, r, st) for a, st in r.behind]
-        for c in counters + behind:
+        d = row_json(L, r, on)
+        for c in d["counters"] + d["behind"]:
             used.add(c["rule"])
             if c["multiplied_by"]: used.add(c["multiplied_by"])
-        out.append({
-            "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish),
-            "heading": r.heading(name), "qualifier": r.qualifier(), "origin": r.origin.value,
-            "key": r.heading(name) + "||" + r.qualifier(),
-            "keep": head.word() if head else None,
-            "set_by": head.rule_id if head else None,
-            "means": head.outcome.sentence() if head else "no standing number — see the calendar",
-            "answer_today": today.word() if today else None,
-            "today_by": today.rule_id if today else None,
-            "live_today": [a.rule_id for a in r.live(on)] if on else None,
-            "calendar": cal,
-            "year_round": any(seg["rule"] == (head.rule_id if head else None) for seg in cal),
-            "counters": counters, "behind": behind,
-            "duties": [{"rule": s.rule_id, "says": text, "source": s.words()}
+        d["duties"] = [{"rule": s.rule_id, "says": text, "source": s.words(), "tag": s.tag}
                        for subj, s, text in L.duties
                        if head is not None and not head.is_zero
-                       and (subj.covers(r_subject(r)) or any(subj.contains(f, r.origin if r.origin.value != "both" else None) for f in r.fish))],
-        })
+                       and (subj.covers(r_subject(r)) or any(subj.contains(f, r.origin if r.origin.value != "both" else None) for f in r.fish))]
+        out.append(d)
     somewhere = [counter_json(L, a) for a in L.allowances if a.applies.kind == "somewhere"]
     used |= {c["rule"] for c in somewhere}
     while_closed = [rule_of(rid(x)) for x in rules
@@ -137,16 +159,7 @@ def base_table(water: str, run: int) -> dict:
     kind, rules = section_kind(water), section_rules(water, run)
     regions = section_regions(water, run)
     B = base(rules, kind)
-    out = []
-    for r in rows(B, name):
-        head = r.headline()
-        out.append({"fish": sorted(r.fish), "heading": r.heading(name),
-                    "qualifier": r.qualifier(), "origin": r.origin.value,
-                    "keep": head.word() if head else None,
-                    "set_by": head.rule_id if head else None,
-                    "calendar": r.calendar(),
-                    "counters": [counter_json(B, a, r) for a in r.counters],
-                    "behind": [counter_json(B, a, r, st) for a, st in r.behind]})
+    out = [row_json(B, r) for r in rows(B, name)]
     return {"regions": sorted(regions), "kind": kind,
             "label": f"{region_label(regions)} · {kind}s",
             "rules": sorted(a.rule_id for a in B.allowances if a.derived_from is None),

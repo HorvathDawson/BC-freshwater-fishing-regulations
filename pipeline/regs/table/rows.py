@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Dict, FrozenSet, List, Optional, Tuple
 
 from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+from pipeline.regs.table.authority import Authority
 from pipeline.regs.table.ledger import Allowance, Ledger
 from pipeline.regs.table.subject import Origin, expand
 
@@ -35,6 +36,13 @@ class Row:
     origin: Origin                   # wild | hatchery | both
     counters: List[Allowance]        # every counter that reaches these fish on some date
     behind: List[Tuple[Allowance, str]] = field(default_factory=list)   # not binding, and why
+    #: NAMED BY THE PROVINCE ALONE. A province-wide rule names this fish by name, and no
+    #: regional table and no water rule does — and province-wide rules bind everywhere,
+    #: whether or not the fish swims here. Region 4's printed table has no steelhead line, because the Columbia above its
+    #: dams has no steelhead; the province's "all wild steelhead must be released" reaches
+    #: Kootenay Lake all the same. The row is kept — a protection is never dropped — and the
+    #: page sets it apart and says why, instead of splitting the trout block around it.
+    province_only: bool = False
 
     @property
     def species(self) -> str:
@@ -82,6 +90,41 @@ class Row:
     def qualifier(self) -> str:
         return "" if self.origin is Origin.both else f"{self.origin.value} only"
 
+    def size(self, on: Optional[Tuple[int, int]] = None, name=None) -> List[dict]:
+        """THE SIZE STATEMENT, ALWAYS POPULATED. An angler holding a fish asks two things, in
+        this order: may I keep this species, and is this one big enough or too big. Every
+        bound and every size-class cap that binds today, in one place — and where nothing
+        restricts the size, the row says so, because silence is not an answer.
+
+        Each item: {"says", "kind" (bound|cap|any), "rule", "source", "n", "shared"}."""
+        name = name or (lambda c: c)
+        out = []
+        for a in self.live(on):
+            if a.period != "daily" or a.scope.size.is_any:
+                continue
+            who, _ = a.scope.words(name)
+            if a.kind == "gate":
+                narrow = a.scope.fish and not a.scope.effective() >= self.fish
+                out.append({"says": a.scope.size.words() + (f" ({who.lower()})" if narrow else ""),
+                            "kind": "bound", "rule": a.rule_id, "source": a.source, "n": 0,
+                            "shared": ""})
+            else:
+                cls = a.scope.size.words().replace("counting those ", "")
+                # Shared with the fish the cap STILL reaches — not one a closer rule took out
+                # of it (Kootenay Lake's rainbow has its own any-size 10).
+                o = self.origin if self.origin is not Origin.both else Origin.wild
+                others = [c for c in a.scope.effective() - self.fish if self.ledger.reaches(a, c, o)]
+                shared = ", ".join(sorted(name(c).lower() for c in others)) if a.pooled and others else ""
+                out.append({"says": f"no more than {a.n} {cls}" + (f" — shared with {shared}" if shared else ""),
+                            "kind": "cap", "rule": a.rule_id, "source": a.source, "n": a.n,
+                            "shared": shared})
+        if not out:
+            h = self.headline(on)
+            if h is None or not h.is_zero:
+                out.append({"says": "any size", "kind": "any", "rule": "", "source": None,
+                            "n": None, "shared": ""})
+        return out
+
 
 def heading(fish: FrozenSet[str], name) -> str:
     """The shortest honest name for a set of species: the group it is, the group it is all
@@ -97,9 +140,12 @@ def heading(fish: FrozenSet[str], name) -> str:
     if len(fish) <= 3 or (g and len(missing) >= len(fish)) or not g:
         if len(fish) <= 6:
             return ", ".join(sorted(name(f) for f in fish))
-    if g and len(missing) <= 6:
-        return f"{name(g)} other than " + ", ".join(sorted(name(m).lower() for m in missing))
-    return f"{len(fish)} kinds of " + (name(g).lower() if g else "fish")
+    # THE REST OF A GROUP IS NAMED AS THE REST, not by listing what it is not. Every fish
+    # missing from it has a row of its own (that is why it is missing), so "Other trout and
+    # char" beside "Rainbow trout" and "Bull trout" is what a reader expects to find.
+    if g:
+        return f"Other {name(g).lower()}"
+    return f"{len(fish)} kinds of fish"
 
 
 def rows(ledger: Ledger, name=None) -> List[Row]:
@@ -122,6 +168,13 @@ def rows(ledger: Ledger, name=None) -> List[Row]:
         counters = sorted(key, key=_order)
         row = Row(ledger, fish, origin, counters)
         sp, o = row.species, (origin if origin is not Origin.both else Origin.wild)
+        # Named explicitly by a province-wide rule, and explicitly by nothing closer: a group
+        # name ("trout and char") is not naming the fish.
+        named = lambda a: any(f in a.scope.fish for f in fish)
+        row.province_only = (
+            any(a.source.authority is Authority.province and named(a) for a in ledger.allowances)
+            and not any(a.source.authority is not Authority.province and named(a)
+                        for a in ledger.allowances))
         # WHAT ELSE NAMES THESE FISH, AND WHY IT DOES NOT BIND. Replaced, lifted, only
         # somewhere — or in force for other fish and carved away for these.
         for a in ledger.allowances:

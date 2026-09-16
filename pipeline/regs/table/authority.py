@@ -84,6 +84,16 @@ class Source:
         if self.authority is Authority.province: return "Provincial"
         return "Region " + self.region.upper()
 
+    @property
+    def tag(self) -> str:
+        """The two-to-ten-character form a table cell can afford: `Prov`, `R4`, `this water`,
+        `trib`, `area`, `Parks/Fed`. The full words and the sentence sit behind it."""
+        if self.authority is Authority.superior: return "Parks/Fed"
+        if self.scope is Scope.water:           return "this water"
+        if self.scope is Scope.inherited:       return "trib"
+        if self.scope is Scope.area:            return "area"
+        return "Prov" if self.authority is Authority.province else "R" + self.region.upper()
+
     def words(self) -> str:
         """Both axes, for a reader: "Region 2 · region-wide", "Region 2 · for this water"."""
         wrote = ("Federal or Parks" if self.authority is Authority.superior

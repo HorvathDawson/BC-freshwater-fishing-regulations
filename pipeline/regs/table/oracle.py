@@ -140,9 +140,15 @@ def _used(ledger: Ledger, a: Allowance, creel: Creel, on) -> int:
 
 
 def _kept(ledger: Ledger, a: Allowance, creel: Creel, on, name) -> str:
+    """"the bull trout (60 cm)" — or "the 10 rainbow trout", not ten of them listed."""
+    from collections import Counter
     ks = [k for k in creel.for_period(a.period) if a.contains(k.species, k.origin, k.length_cm)]
-    return ", ".join(f"{name(k.species).lower()}" + (f" ({k.length_cm:g} cm)" if k.length_cm else "")
-                     for k in ks)
+    tally = Counter((name(k.species).lower(), k.length_cm) for k in ks)
+    parts = []
+    for (nm, L), n in tally.items():
+        size = f" ({L:g} cm)" if L and n == 1 else ""
+        parts.append((f"{n} " if n > 1 else "") + nm + size)
+    return ", ".join(parts)
 
 
 def _who(a: Allowance, name) -> str:
