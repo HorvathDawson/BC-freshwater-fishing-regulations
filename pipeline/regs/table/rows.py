@@ -141,12 +141,13 @@ def heading(fish: FrozenSet[str], name) -> str:
         return name(g)
     if len(fish) <= 3 or (g and len(missing) >= len(fish)) or not g:
         if len(fish) <= 6:
-            return ", ".join(sorted(name(f) for f in fish))
+            names = sorted(name(f) for f in fish)
+            return ", ".join(names[:-1]) + " or " + names[-1]
     # THE REST OF A GROUP IS NAMED AS THE REST, not by listing what it is not. Every fish
-    # missing from it has a row of its own (that is why it is missing), so "Other trout and
-    # char" beside "Rainbow trout" and "Bull trout" is what a reader expects to find.
+    # missing from it has a row of its own (that is why it is missing), so "Any other trout
+    # or char" beside "Rainbow trout" and "Bull trout" is what a reader expects to find.
     if g:
-        return f"Other {name(g).lower()}"
+        return "Any other " + name(g).lower().replace(" and ", " or ")
     return f"{len(fish)} kinds of fish"
 
 

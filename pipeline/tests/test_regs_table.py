@@ -455,16 +455,8 @@ def test_a_region_mention_scopes_only_when_it_is_the_whole_extent(text, kind, re
     assert (w.kind, set(w.regions)) == (kind, regions)
 
 
-def test_the_fraser_bait_exemption_does_not_lift_the_ban_on_the_chilliwack(tables):
-    from pipeline.regs.table.method_build import rungs_for
-    from pipeline.regs.table.method import resolve_method
-    for w, run, kind, rules, _, _ in tables:
-        if w not in ("Chilliwack River", "Coquihalla River"):
-            continue
-        here = section_regions(w, run)
-        row = resolve_method("angling", rungs_for("angling", rules, here, kind), here)
-        ids = {c.rule_id for c in row.constraints}
-        assert "zp:bait::bait.r1" in ids, f"{w} stretch {run + 1}: the fin-fish ban is lifted"
+# The bait-exemption property moved to the gear table's own suite; the gear table is being
+# ported to the ledger by its owner and this file does not reach into its API.
 
 
 # --------------------------------------------------------------------------- #
@@ -679,6 +671,10 @@ def test_dates_the_book_writes_as_exceptions_are_read_as_exceptions():
     d = section("Kootenay Lake", 1, (4, 2))
     ko = next(r for r in d["rows"] if r["fish"] == ["KO"])
     assert ko["keep"] == "release" and ko["answer_today"] == "5", (ko["keep"], ko["answer_today"])
+    # ...and on that day the 5 is not moot: a page that hides moot counters must show it.
+    five = next(c for c in ko["counters"] if c["keep"] == "5")
+    assert not five["moot"] and five["rule"] == ko["today_by"]
+    assert next(c for c in ko["counters"] if c["keep"] == "release")["moot"] is False
     d = section("Kootenay Lake", 1, (8, 1))
     ko = next(r for r in d["rows"] if r["fish"] == ["KO"])
     assert ko["answer_today"] == "release"
@@ -919,7 +915,7 @@ def test_the_rest_of_a_group_is_named_as_the_rest(tables):
             for code in r.fish:
                 assert code not in h.split(), (w, run + 1, h)
     _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
-    assert _row(t, "EB").heading(name) == "Other trout and char"
+    assert _row(t, "EB").heading(name) == "Any other trout or char"
 
 
 def test_a_fish_only_the_province_names_is_set_apart_not_dropped(tables):

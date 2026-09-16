@@ -22,6 +22,7 @@ from pipeline.regs.table.build import (ledger, base, section_rules, section_regi
 from pipeline.regs.table.corpus import rid, rules as all_rules
 from pipeline.regs.table.ledger import Allowance, Ledger
 from pipeline.regs.table.rows import rows, Row
+from pipeline.regs.table.subject import Origin
 
 
 def _win(w) -> Optional[dict]:
@@ -31,8 +32,14 @@ def _win(w) -> Optional[dict]:
     return {"from": [f.get("month"), f.get("day")], "to": [t.get("month"), t.get("day")]}
 
 
-def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str = "") -> dict:
+def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str = "",
+                 on: Optional[tuple] = None) -> dict:
     who, qual = a.scope.words(name)
+    # THE FISH THIS COUNTER STILL REACHES, from where this row stands — not the fish its
+    # sentence names. Region 4's "1 bull trout (Dolly Varden)" no longer reaches bull trout
+    # on Kootenay Lake, and the Dolly Varden's line must not say the cap is shared with it.
+    o = (row.origin if row and row.origin is not Origin.both else Origin.wild)
+    reaches = sorted(name(sp) for sp in a.scope.effective() if L.reaches(a, sp, o)) if row else []
     return {
         "rule": a.rule_id,
         "stage": "base" if a.source.is_base else "override",
@@ -52,7 +59,9 @@ def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str
         "carves": [{"rule": c.rule_id, "words": c.source.words(), "fish": c.scope.words(name)[0],
                     "when": c.applies.detail} for c in L.carves.get(a, [])],
         "status": status or L.status.get(a, ""),
-        "moot": bool(row and row.moot(a)),
+        "moot": bool(row and row.moot(a, on)),
+        "reaches": reaches,
+        "bc_wide": a.source.scope.value == "region" and a.source.authority.value == "province",
     }
 
 
@@ -148,8 +157,15 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
     head = r.headline()
     today = r.headline(on) if on else head
     cal = r.calendar()
-    counters = [counter_json(L, a, r) for a in r.counters]
-    behind = [counter_json(L, a, r, st) for a, st in r.behind]
+    counters = [counter_json(L, a, r, on=on) for a in r.counters]
+    behind = [counter_json(L, a, r, st, on) for a, st in r.behind]
+    # A SHARED NUMBER THIS FISH WAS TAKEN OUT OF. Kootenay's bull trout has its own 1 and does
+    # not count against the trout-and-char 5; the row says so in words, since it is drawn
+    # beside a band it is not part of.
+    outside = [{"rule": a.rule_id, "fish": a.scope.words(name)[0], "keep": a.word()}
+               for a, st in r.behind if st.startswith("replaced for these fish") and a.pooled
+               and a.period == "daily" and a.derived_from is None and not a.within
+               and a.scope.size.is_any and head is not None and not head.is_zero]
     size = [{"says": x["says"], "plain": x["plain"], "kind": x["kind"], "rule": x["rule"],
              "n": x["n"], "shared": x["shared"],
              "source": src_json(x["source"]) if x["source"] else None}
@@ -167,6 +183,7 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
         "group": group,
         "province_only": r.province_only,
         "size": size,
+        "outside_of": outside,
         "means": head.outcome.sentence() if head else "no standing number — see the calendar",
         "answer_today": today.word() if today else None,
         "today_by": today.rule_id if today else None,
@@ -220,7 +237,9 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
                      "label": f"{region_label(section_regions(water, run))} · {kind}s"},
             "rows": out,
             "somewhere": somewhere,
-            "exemptions": list(L.exemptions),
+            "exemptions": [dict(e, says=(src.get(e.get("lifter")) or {}).get("label") or
+                                (src.get(e.get("lifter")) or {}).get("verbatim") or "")
+                           for e in L.exemptions],
             "while_closed": while_closed,
             "rules": {k: rule_of(k) for k in sorted(used)}}
     d["present"] = present(d)

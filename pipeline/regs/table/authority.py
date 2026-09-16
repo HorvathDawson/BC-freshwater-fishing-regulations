@@ -86,13 +86,14 @@ class Source:
 
     @property
     def tag(self) -> str:
-        """The two-to-ten-character form a table cell can afford: `Prov`, `R4`, `this water`,
-        `trib`, `area`, `Parks/Fed`. The full words and the sentence sit behind it."""
-        if self.authority is Authority.superior: return "Parks/Fed"
-        if self.scope is Scope.water:           return "this water"
-        if self.scope is Scope.inherited:       return "trib"
-        if self.scope is Scope.area:            return "area"
-        return "Prov" if self.authority is Authority.province else "R" + self.region.upper()
+        """The short form a table cell can afford, SPELLED OUT — "Region 4", "All of B.C.",
+        "This water", "From downstream", "This area", "Parks". An abbreviation a reader has
+        to decode is not a label. The full words and the sentence sit behind it."""
+        if self.authority is Authority.superior: return "Parks"
+        if self.scope is Scope.water:           return "This water"
+        if self.scope is Scope.inherited:       return "From downstream"
+        if self.scope is Scope.area:            return "This area"
+        return "All of B.C." if self.authority is Authority.province else "Region " + self.region.upper()
 
     def words(self) -> str:
         """Both axes, for a reader: "Region 2 · region-wide", "Region 2 · for this water"."""
