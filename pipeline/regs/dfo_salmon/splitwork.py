@@ -384,17 +384,17 @@ def render_solve(w: dict) -> str:
         w["water"], ", ".join(items) or "UNMATCHED", len(w["cuts"]))
     out = ["", "=" * 92, head, "=" * 92]
 
-    # group near-identical wordings so a dormant twin sits with its live version
-    groups: dict = {}
-    for r in w["locators"]:
-        key = _norm(r["text"])[:70]
-        groups.setdefault(key, []).append(r)
-
+    # ONE ROW PER LOCATOR. Near-identical wordings are NOT folded together: each is its own
+    # locator with its own id, its own extent and its own rules, and only a curator can say
+    # whether two of them are the same reach reworded. Folding them here would decide that
+    # silently — and it would hide the very pairs worth looking at, since the superset seeding
+    # keeps every version DFO ever published. Live first, then dormant; within each, the
+    # locators carrying the most rules first.
+    ordered = sorted(w["locators"],
+                     key=lambda r: (r["status"] != "active", -len(_rules_for(r["loc"])), r["text"]))
     n = 0
     waiting = 0
-    for key, rows in sorted(groups.items(), key=lambda kv: -max(len(_rules_for(r["loc"])) for r in kv[1])):
-        live = [r for r in rows if r["status"] == "active"]
-        r = (live or rows)[0]
+    for r in ordered:
         n += 1
         op, arity = _OP_ARITY.get(r["op"] or "", (None, None))
         # A `cover_candidate` is a FUZZY match — "a rewording the strict label test cannot see" —
@@ -419,10 +419,8 @@ def render_solve(w: dict) -> str:
             mark = "??" if missing else ("?" if n_guessed else "OK")
 
         tail = "%d rule%s" % (len(rules), "" if len(rules) == 1 else "s")
-        if not live:
-            tail += " · dormant only"
-        elif len(rows) > 1:
-            tail += " · +%d variant%s" % (len(rows) - 1, "" if len(rows) == 2 else "s")
+        if r["status"] != "active":
+            tail += " · DORMANT"
         out.append("")
         out.append(" %2d %-2s %-58s %s" % (n, mark, guess, tail))
         for line in _wrap(r["text"], 84, "      "):
@@ -438,7 +436,7 @@ def render_solve(w: dict) -> str:
             out.append("        · %s" % lab)
 
     out.append("")
-    out.append(" %d locator group%s · %d rules waiting on a missing cut-point" %
+    out.append(" %d locator%s · %d rules waiting on a missing cut-point" %
                (n, "" if n == 1 else "s", waiting))
     out.append(" OK = every end is an exact hit · ? = a GUESS to confirm · ?? = a cut is missing"
                " · -- = no extent shape, a curator decides")
