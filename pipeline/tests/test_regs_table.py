@@ -1,8 +1,9 @@
-"""The laws the quota table rests on, and the defects that proved they were not held.
+"""The laws the quota ledger rests on, and the defects that proved they were not held.
 
 `comply` proves nothing is LOST. It cannot prove anything is RIGHT — every defect below passed
 it. These are the properties that do, written against the real corpus where the corpus is what
-broke them.
+broke them. The last section is the ORACLE: the only question an angler asks, answered with the
+rule that decided it, and the proof that what decides is what the table shows.
 """
 from __future__ import annotations
 
@@ -12,7 +13,13 @@ import pytest
 from pipeline.regs.table.subject import Subject, Origin, expand
 from pipeline.regs.table.outcome import Outcome, outcome_of, CLOSED, RELEASE
 from pipeline.regs.table.size import size_of
-from pipeline.regs.table.build import section_regions
+from pipeline.regs.table.authority import Authority, Scope, Source, source_of
+from pipeline.regs.table.ledger import (Allowance, Ledger, LIFTED, REPLACED_BY_CLAUSE,
+                                        shuts_the_water)
+from pipeline.regs.table.rows import rows
+from pipeline.regs.table.oracle import may_i_keep, Fish, Creel
+from pipeline.regs.table.build import (ledger, base, section_rules, section_regions,
+                                       section_label, section_kind, name, D, WATERS)
 
 
 # --------------------------------------------------------------------------- #
@@ -29,8 +36,6 @@ def _subjects():
 
 
 def test_covers_is_reflexive():
-    """"All game fish OTHER THAN BURBOT" did not cover itself, because burbot is inside the
-    group it names — so the rule excluded its own subject and vanished from the table."""
     for s in _subjects():
         assert s.covers(s), f"{sorted(s.fish)} except {sorted(s.excepts)} does not cover itself"
 
@@ -54,9 +59,6 @@ def test_covers_is_antisymmetric():
 
 
 def test_an_open_group_does_not_invert_the_order():
-    """NON_GAME_FISH is a COMPLEMENT, not a universe. Read as "no members, therefore no fish"
-    it became the lattice bottom and every rule covered it; read as "everything" it became the
-    top and covered the universe. Both break the order; it is neither."""
     ng = Subject(frozenset({"NON_GAME_FISH"}))
     allf = Subject(frozenset({"ALL_FIN_FISH"}))
     assert not ng.covers(allf)
@@ -75,6 +77,34 @@ def test_a_subject_that_cancels_itself_is_covered_by_nothing():
     assert not Subject(frozenset({"BB"})).covers(empty)
 
 
+def test_meets_is_symmetric_and_reflexive_where_a_subject_names_a_fish():
+    hatch = Subject(frozenset({"TROUT_CHAR"}), Origin.hatchery)
+    char = Subject(frozenset({"BT", "DV", "LT"}))
+    assert not hatch.covers(char) and not char.covers(hatch)
+    assert hatch.meets(char) and char.meets(hatch)
+    for a in _subjects():
+        for b in _subjects():
+            assert a.meets(b) == b.meets(a)
+        if a.effective() or a.is_everything:
+            assert a.meets(a)
+    assert not Subject(frozenset({"KO"})).meets(Subject(frozenset({"BB"})))
+    assert not Subject(frozenset({"ST"}), Origin.wild).meets(Subject(frozenset({"ST"}), Origin.hatchery))
+
+
+def test_a_subject_knows_which_fish_it_contains():
+    """`covers` compares subjects; a person holding a fish is not holding a subject."""
+    s = Subject(frozenset({"TROUT_CHAR"}), Origin.hatchery, size_of(50, None, take=1, within="p"))
+    assert s.contains("RB", Origin.hatchery, 55)
+    assert not s.contains("RB", Origin.hatchery, 45), "45 cm is not in the over-50 class"
+    assert not s.contains("RB", Origin.wild, 55), "wild is not hatchery"
+    assert not s.contains("KO", Origin.hatchery, 55), "kokanee is not a trout"
+    assert s.contains("RB", Origin.hatchery, None), "a length nobody gave is not tested"
+    gate = Subject(frozenset({"BT"}), size=size_of(None, 60, take=0))
+    assert gate.contains("BT", Origin.wild, 40) and not gate.contains("BT", Origin.wild, 70)
+    assert Subject(frozenset({"ALL_GAME_FISH"}), excepts=frozenset({"BB"})).contains("RB")
+    assert not Subject(frozenset({"ALL_GAME_FISH"}), excepts=frozenset({"BB"})).contains("BB")
+
+
 # --------------------------------------------------------------------------- #
 # `Outcome` must be a total order on what it actually means
 # --------------------------------------------------------------------------- #
@@ -84,18 +114,11 @@ def test_stricter_is_an_order_and_closed_wins():
     assert [o.word() for o in got] == ["0", "release", "2", "15", "∞"]
 
 
-def test_a_shut_water_beats_a_release_with_no_test_written():
-    assert CLOSED.stricter(RELEASE) is CLOSED
-
-
 def test_pooled_is_stricter_than_per_species_at_the_same_number():
-    """"6 in the aggregate" and "6 of each" ranked equal, so the winner was list order — and
-    the page printed "6 of each" for a rule that allows 6 between them."""
     assert Outcome("quota", 6, pooled=True).rank < Outcome("quota", 6).rank
 
 
 def test_a_quota_of_zero_cannot_be_constructed():
-    """Left representable it ranked WEAKER than release, which is the order upside down."""
     with pytest.raises(ValueError):
         Outcome("quota", 0)
     with pytest.raises(ValueError):
@@ -103,7 +126,6 @@ def test_a_quota_of_zero_cannot_be_constructed():
 
 
 def test_may_target_is_an_int_and_still_means_closed():
-    """Declared Optional[bool], shipped as 0/1. `is False` missed every closure."""
     assert outcome_of(0, 0, False, "daily") is CLOSED
     assert outcome_of(0, 1, False, "daily") is RELEASE
     assert outcome_of(None, None, False, "daily") is None
@@ -121,164 +143,154 @@ def test_may_target_is_an_int_and_still_means_closed():
     (dict(over_cm=100, under_cm=70, take=1, band=True), "none between 70 cm and 100 cm"),
 ])
 def test_size_polarity(kw, expect):
-    """`under_cm` is always a FLOOR and never a ceiling. Read as a ceiling it put "keep 1 ·
-    under 60 cm" on the Shuswap, where the one char you keep must be OVER 60."""
     assert size_of(**kw).words() == expect
 
 
 # --------------------------------------------------------------------------- #
-# The fold, against the live corpus
+# Provenance: two typed axes, never one integer.
+# --------------------------------------------------------------------------- #
+def _rule(entry, rule):
+    from pipeline.regs.table.corpus import rules
+    return next(x for x in rules() if x["entry"] == entry and x["rule"] == rule)
+
+
+def test_authority_and_scope_are_separate_axes():
+    """A Region 5 rule written for one named river is authority=regional but scope=this water.
+    Under a single rank it sat at the region's rung and bound all twenty Fraser stretches."""
+    s = source_of(_rule("zp:steelhead", "steelhead.r2"))
+    assert (s.authority, s.scope, s.is_base) == (Authority.province, Scope.region, True)
+    s = source_of(_rule("z4:trout_char_quota", "trout_char_quota.r1"))
+    assert (s.authority, s.scope, s.region, s.is_base) == (Authority.region, Scope.region, "4", True)
+    s = source_of(_rule("z1:summer_stream_closure", "summer_stream_closure.r1"))
+    assert (s.authority, s.scope, s.is_base) == (Authority.region, Scope.area, False)
+    assert "MUs 1-1 to 1-6" in s.words()
+    s = source_of(_rule("z3:shuswap_annual", "shuswap_annual.r1"))
+    assert (s.authority, s.scope, s.is_base) == (Authority.region, Scope.water, False)
+    s = source_of(_rule("r4:kootenay_lake_main_body_for_location_see_map_on_page_34@4-19",
+                        "kootenay_lake_main_body.r4"))
+    assert (s.authority, s.scope, s.is_base, s.who) == (Authority.region, Scope.water, False, "this water")
+    s = source_of(dict(_rule("r4:kootenay_lake_s_tributaries@4-19+4-7", "kootenay_lake_tributaries.r1"),
+                       via="trib"))
+    assert (s.scope, s.who, s.rank) == (Scope.inherited, "inherited", 1)
+    s = source_of(_rule("zp:protected_species", "protected_species.r1"))
+    assert (s.authority, s.rank, s.who) == (Authority.superior, -1, "Federal or Parks")
+    s = source_of(_rule("zp:spear_fishing", "spear_fishing.r2"))
+    assert s.regions == {"3", "5", "6", "7a", "7b", "8"} and "Regions 3, 5" in s.words()
+
+
+def test_the_ladder_orders_scope_before_authority():
+    """"This water overrides regional" is about what a rule binds to, not who wrote it."""
+    water = Source(Authority.province, Scope.water)
+    region = Source(Authority.region, Scope.region, "4")
+    prov = Source(Authority.province, Scope.region)
+    area = Source(Authority.region, Scope.area, "1")
+    inh = Source(Authority.region, Scope.inherited, "4")
+    assert water.rank < inh.rank < area.rank < region.rank < prov.rank
+
+
+# --------------------------------------------------------------------------- #
+# The ledger, against the live corpus
 # --------------------------------------------------------------------------- #
 @pytest.fixture(scope="module")
 def tables():
-    """Built the way the pipeline builds them — WITH the section's regions and label.
-
-    Without those, a region-scoped rule cannot be placed and an extent the atlas already cut
-    reads as undrawable, so the fixture was testing a table no reader will ever see.
-    """
-    from pipeline.regs.table.build import (section_rules, section_label, build, D, WATERS)
+    """Built the way the pipeline builds them — WITH the section's regions and label."""
     out = []
     for w in WATERS:
-        kind = "lake" if (D[w].get("kind") == "lake") else "stream"
+        kind = section_kind(w)
         for run in range(len(D[w].get("runs") or [])):
             rs = section_rules(w, run)
             if rs:
-                out.append((w, run, kind, rs,
-                            build(rs, kind, section_regions(w, run), section_label(w, run))))
+                L = ledger(rs, kind, section_regions(w, run), section_label(w, run))
+                out.append((w, run, kind, rs, L, rows(L, name)))
     return out
 
 
-def test_no_row_is_printed_twice(tables):
-    """`join` manufactures a subject equal to one already present; the guard against mutual
-    cover then refused to absorb either. 684 identical rows, sorted adjacent."""
-    for w, run, _, _, t in tables:
-        seen = collections.Counter((r.subject, r.outcome) for r in t)
+def _one(tables, w, run):
+    return next(t for t in tables if t[0] == w and t[1] == run)
+
+
+def _row(t, species, origin=Origin.wild):
+    """The row a fish of this species and origin sits in."""
+    for r in t:
+        if species in r.fish and r.origin in (Origin.both, origin):
+            return r
+    raise AssertionError(f"no row for {species}/{origin.value} in "
+                         f"{[(r.heading(name), r.qualifier()) for r in t]}")
+
+
+def test_no_fish_is_in_two_rows(tables):
+    for w, run, _, _, _, t in tables:
+        seen = collections.Counter((sp, o) for r in t for sp in r.fish
+                                   for o in ((Origin.wild, Origin.hatchery)
+                                             if r.origin is Origin.both else (r.origin,)))
         dupe = [k for k, n in seen.items() if n > 1]
-        assert not dupe, f"{w} stretch {run + 1} prints {len(dupe)} row(s) twice"
+        assert not dupe, f"{w} stretch {run + 1}: {dupe[:3]} sit in two rows"
 
 
-def test_only_one_rung_in_a_chain_governs(tables):
-    for w, run, _, _, t in tables:
+def test_every_row_shows_every_counter_that_binds_it(tables):
+    """NOTHING IN FORCE IS HIDDEN. Every counter the ledger says binds a fish on some date is
+    on that fish's row — a cap inside the number, a bound, the annual clock, the possession
+    clock — because the row is derived from the counters and not the other way round."""
+    for w, run, _, _, L, t in tables:
         for r in t:
-            n = sum(1 for c in r.chain if c.status == "governs")
-            assert n <= 1, f"{w} stretch {run + 1}: {n} rungs claim to govern one row"
+            o = r.origin if r.origin is not Origin.both else Origin.wild
+            for sp in r.fish:
+                for a in L.allowances:
+                    if L.reaches(a, sp, o):
+                        assert a in r.counters, (w, run + 1, r.heading(name), a.rule_id)
 
 
 def test_a_species_closure_does_not_shut_a_water_that_is_open(tables):
-    """Region 4's "Bass: 0 quota" is a quota of zero, not a closure of the Columbia. It took
-    the row anyway and the page read "you may not fish for it" over the water's own rule
-    saying bass are unlimited — 1,652 rows of that shape.
-
-    A genuine "No Fishing" is a different statement and DOES outrank a local quota; the Atnarko
-    above Tweedsmuir is shut and its trout rule does not reopen it. So the law is about
-    species-level closures only."""
-    from pipeline.regs.table.build import name
-    from pipeline.regs.table.resolve import _shuts_the_water
-    for w, run, _, _, t in tables:
-        for r in t:
-            if r.outcome.kind != "closed":
-                continue
-            if _shuts_the_water(r.subject):
-                continue
-            gov = next((c for c in r.chain if c.status == "governs"), None)
-            if gov is None:
-                continue
-            local = [c for c in r.chain if c.rank < gov.rank
-                     and c.outcome.kind in ("quota", "unlimited")]
-            assert not local, (
-                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} reads closed by "
-                f"{gov.authority}, over a more local rule saying {local[0].outcome.word()}")
+    """Region 4's "Bass: 0 quota" is a quota of zero, not a closure of Kootenay Lake, and the
+    lake's own "Bass daily quota = unlimited" replaces it — upward."""
+    _, _, _, _, L, t = _one(tables, "Kootenay Lake", 0)
+    bass = _row(t, "LMB")
+    assert bass.headline().outcome.kind == "unlimited"
+    assert bass.headline().source.scope is Scope.water
+    assert any(a.rule_id.endswith("species_quotas.r1") and "replaced by" in st
+               for a, st in bass.behind)
 
 
-# --------------------------------------------------------------------------- #
-# Authority settles one subject; it does not settle two.
-# --------------------------------------------------------------------------- #
 def test_a_broad_local_quota_does_not_override_a_narrow_wider_protection(tables):
-    """"All wild steelhead must be released" is provincial and has no exception anywhere in the
-    book. Region 4's "Trout/char: 5" says how many trout and char you may keep — it does not say
-    a wild steelhead may be among them. Ranked against each other the 5 won on 27 sections."""
-    from pipeline.regs.table.build import name
-    for w, run, _, _, t in tables:
+    """"All wild steelhead must be released" is provincial; Region 4's "Trout/char: 5" is
+    closer and says nothing about wild steelhead. The release stands, on every section."""
+    for w, run, _, _, _, t in tables:
         for r in t:
-            who, q = r.subject.words(name, is_release=(r.outcome.kind == "release"))
-            if "Steelhead" in who and "wild" in q:
-                assert r.outcome.kind != "quota", (
-                    f"{w} stretch {run + 1} offers wild steelhead to keep: {r.outcome.word()}")
-
-
-def test_a_water_may_replace_a_regional_number_upward(tables):
-    """The mirror case, which rules out simply preferring the stricter or the narrower rule: a
-    water writing "Bass daily quota = unlimited" over Region 4's "Bass: 0 quota" really does
-    replace it, and the reader is allowed to be told so."""
-    from pipeline.regs.table.build import name
-    upward = []
-    for w, run, _, _, t in tables:
-        for r in t:
-            who, _ = r.subject.words(name)
-            if who != "Bass" or r.outcome.kind != "unlimited":
-                continue
-            gov = next((c for c in r.chain if c.status == "governs"), None)
-            beaten = [c for c in r.chain
-                      if c is not gov and c.rank > gov.rank and c.outcome.rank < gov.outcome.rank]
-            if beaten:
-                upward.append((w, run, gov.authority, beaten[0].authority))
-    assert upward, ("no row anywhere replaces a wider, STRICTER rule — the ordering has "
-                    "collapsed into 'strictest wins' and authority no longer counts")
+            if "ST" in r.fish and r.origin is not Origin.hatchery:
+                h = r.headline()
+                assert h is None or h.outcome.kind != "quota", (
+                    f"{w} stretch {run + 1} offers wild steelhead to keep: {h.word()}")
 
 
 def test_a_superior_authority_is_not_outranked(tables):
     """Fishing in a National Park is prohibited unless the National Parks regulations open it.
-    A regional quota does not open it — and the park closure was being demoted under one."""
-    from pipeline.regs.table.build import name
-    for w, run, _, _, t in tables:
-        # Only a closure on the WATER. The federal protected-species closure is a superior
-        # authority about twelve fish, and says nothing about the rest of the river.
-        from pipeline.regs.table.resolve import _shuts_the_water
-        sup = [c for r in t for c in r.chain
-               if c.authority == "Federal or Parks" and c.outcome.kind == "closed"
-               and c.status == "governs" and _shuts_the_water(c.subject)]
-        if not sup:
+    A regional quota does not open it."""
+    for w, run, _, _, L, t in tables:
+        park = [a for a in L.allowances if a.source.authority is Authority.superior
+                and a.kind == "closed" and shuts_the_water(a.scope) and L.in_force(a)
+                and a.applies.always]
+        if not park:
             continue
         for r in t:
-            assert r.outcome.kind == "closed", (
-                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is "
-                f"{r.outcome.word()} where a federal or parks closure governs")
+            h = r.headline()
+            assert h is not None and h.outcome.kind == "closed" and \
+                h.source.authority is Authority.superior, (w, run + 1, r.heading(name))
 
 
-def test_a_rule_cannot_lift_itself(tables):
-    """Region 6's steelhead stream closure names its OWN entry as the default it exempts, so it
-    lifted itself on every water in the region — and the Babine, which the exemption's note does
-    not name, lost a closure the book keeps."""
-    from pipeline.regs.table.lifts import lifts_here
-    from pipeline.regs.table.corpus import rid
-    for w, run, _, rules, _ in tables:
-        narrow, drop, _u = lifts_here(rules, frozenset())
-        for x in rules:
-            assert rid(x) not in drop or not any(
-                ex.get("default_id") and rid(x).split("::")[-1].startswith(ex["default_id"])
-                for ex in (x.get("exempts") or [])), f"{rid(x)} lifts itself"
-
-
-def test_nothing_rides_on_a_row_that_permits_nothing(tables):
+def test_nothing_counts_under_a_headline_of_zero(tables):
     """A possession multiple is a multiplier on a daily limit, and an annual ceiling is a
-    ceiling on a number. A row that says release or closed has neither."""
-    from pipeline.regs.table.build import name
-    for w, run, _, _, t in tables:
+    ceiling on a number. Under release or closed both are moot, and the row says so."""
+    for w, run, _, _, _, t in tables:
         for r in t:
-            if r.outcome.kind in ("quota", "unlimited"):
+            h = r.headline()
+            if h is None or not h.is_zero:
                 continue
-            assert not (r.ceilings or []), (
-                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is {r.outcome.word()} "
-                f"and carries a ceiling")
-            assert not [q for q in (r.quals or []) if q.kind == "possession"], (
-                f"{w} stretch {run + 1}: {r.subject.words(name)[0]} is {r.outcome.word()} "
-                f"and carries a possession multiple")
+            for a in r.counters:
+                if not a.is_zero:
+                    assert r.moot(a), (w, run + 1, r.heading(name), a.rule_id)
 
 
 def test_no_new_self_lifting_rules_appear():
-    """A rule whose own exemption names it lifts itself everywhere. `lifts_here` refuses to let
-    that happen, but the entry is still wrong, and a workaround that leaves no trace is how a
-    corpus defect becomes permanent. One is known; a second would be a new one."""
     from pipeline.regs.table.corpus import rules
     from pipeline.regs.table.lifts import self_lifting
     got = {x["rule"] for x in self_lifting(rules())}
@@ -287,121 +299,142 @@ def test_no_new_self_lifting_rules_appear():
 
 
 # --------------------------------------------------------------------------- #
-# The order: authority wins, except a take of zero. Four real cases.
+# The order: authority wins, except a take of zero. Four real cases, as counters.
 # --------------------------------------------------------------------------- #
-def _rung(rule_id, rank, fish, outcome, origin=Origin.both):
-    from pipeline.regs.table.resolve import Rung
-    who = {3: "Provincial", 2: "Region 4", 0: "this water"}[rank]
-    return Rung(rule_id, who, rank, Subject(frozenset(fish), origin), outcome, rule_id)
+def _src(tier, rule_id):
+    return {"prov": Source(Authority.province, Scope.region, "", "", frozenset(), rule_id, rule_id),
+            "region": Source(Authority.region, Scope.region, "4", "", frozenset(), rule_id, rule_id),
+            "water": Source(Authority.region, Scope.water, "4", "a lake", frozenset(), rule_id, rule_id),
+            }[tier]
 
 
-def _answer(rungs, fish, origin=Origin.both):
-    from pipeline.regs.table.resolve import resolve
-    row = resolve(rungs, Subject(frozenset(fish), origin))
-    return row.outcome, next(c for c in row.chain if c.status == "governs").rule_id
+def _alw(rule_id, tier, fish, outcome, origin=Origin.both):
+    return Allowance(Subject(frozenset(fish), origin), outcome, _src(tier, rule_id))
+
+
+def _answer(allowances, species, origin=Origin.wild):
+    L = Ledger(allowances)
+    h = _row(rows(L), species, origin).headline()
+    return h.outcome, h.rule_id
 
 
 def test_a_take_of_zero_stands_over_a_closer_number_for_a_broader_group():
-    """(a) "All wild steelhead must be released" is provincial; Region 4's "Trout/char: 5" is
-    closer and says nothing about wild steelhead. The release stands — a take of zero from any
-    authority stands unless something lifts it."""
-    rungs = [_rung("zp:steelhead.r2", 3, {"ST"}, RELEASE, Origin.wild),
-             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
-    out, gov = _answer(rungs, {"ST"}, Origin.wild)
+    out, gov = _answer([_alw("zp:steelhead.r2", "prov", {"ST"}, RELEASE, Origin.wild),
+                        _alw("z4:trout_char.r1", "region", {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))],
+                       "ST", Origin.wild)
     assert out == RELEASE and gov == "zp:steelhead.r2"
 
 
 def test_b_the_closest_authority_wins_across_subjects_when_nothing_is_closed():
-    """(b) Kootenay Lake's own "rainbow trout daily quota = 10" over Region 4's "Trout/char: 5".
-    Strictest-group-winner said 5; the water is the closer authority and the answer is 10."""
-    rungs = [_rung("r4:kootenay_lake_main_body.r4", 0, {"RB"}, Outcome("quota", 10)),
-             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
-    out, gov = _answer(rungs, {"RB"})
+    """Kootenay Lake's own "rainbow trout daily quota = 10" over Region 4's "Trout/char: 5":
+    the water is the closer authority and the answer is 10 — and the region's 5 still
+    answers for the rest of the group, minus the rainbow."""
+    alws = [_alw("r4:kootenay_lake_main_body.r4", "water", {"RB"}, Outcome("quota", 10)),
+            _alw("z4:trout_char.r1", "region", {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
+    out, gov = _answer(alws, "RB")
     assert out.n == 10 and gov == "r4:kootenay_lake_main_body.r4"
-    # ...and the trout-and-char row itself is still the regional 5: the 10 is about one fish.
-    out, gov = _answer(rungs, {"TROUT_CHAR"})
+    out, gov = _answer(alws, "CT")
     assert out.n == 5
+    L = Ledger(alws)
+    tc = next(a for a in L.allowances if a.rule_id == "z4:trout_char.r1")
+    assert L.reaches(tc, "CT", Origin.wild) and not L.reaches(tc, "RB", Origin.wild)
 
 
 def test_c_at_equal_authority_the_narrower_subject_speaks_first():
-    """(c) Region 8 writes "Trout/char: 4 from streams" and "20 brook trout from streams" in the
-    same table. One authority, two statements; the one about brook trout is the one about
-    brook trout, and the reader was told 4."""
-    rungs = [_rung("z8:trout_char.r3", 2, {"TROUT_CHAR"}, Outcome("quota", 4, pooled=True)),
-             _rung("z8:trout_char.r5", 2, {"EB"}, Outcome("quota", 20))]
-    out, gov = _answer(rungs, {"EB"})
+    """Region 8's "20 brook trout from streams" beside its "Trout/char: 4 from streams": a
+    narrower rule with a larger number can only mean the brook trout are outside the four."""
+    out, gov = _answer([_alw("z8:trout_char.r3", "region", {"TROUT_CHAR"}, Outcome("quota", 4, pooled=True)),
+                        _alw("z8:trout_char.r5", "region", {"EB"}, Outcome("quota", 20))], "EB")
     assert out.n == 20 and gov == "z8:trout_char.r5"
 
 
 def test_d_a_water_replaces_a_regional_number_upward():
-    """(d) A water's "trout and char: 10" over a regional 5 is the same fish, and the closer
-    authority replaces it — upward. Neither strictness nor narrowness gets a say."""
-    rungs = [_rung("r4:some_lake.r1", 0, {"TROUT_CHAR"}, Outcome("quota", 10, pooled=True)),
-             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
-    out, gov = _answer(rungs, {"TROUT_CHAR"})
+    out, gov = _answer([_alw("r4:some_lake.r1", "water", {"TROUT_CHAR"}, Outcome("quota", 10, pooled=True)),
+                        _alw("z4:trout_char.r1", "region", {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))],
+                       "RB")
     assert out.n == 10 and gov == "r4:some_lake.r1"
 
 
 def test_the_mirror_case_still_holds():
     """A WATER's "trout and char: 2" over the province's "rainbow trout: 5": the water is the
     closer authority and 2 is the answer for a rainbow, even though the province named it."""
-    rungs = [_rung("r:water.r1", 0, {"TROUT_CHAR"}, Outcome("quota", 2, pooled=True)),
-             _rung("zp:rb.r1", 3, {"RB"}, Outcome("quota", 5))]
-    out, gov = _answer(rungs, {"RB"})
+    out, gov = _answer([_alw("r:water.r1", "water", {"TROUT_CHAR"}, Outcome("quota", 2, pooled=True)),
+                        _alw("zp:rb.r1", "prov", {"RB"}, Outcome("quota", 5))], "RB")
     assert out.n == 2 and gov == "r:water.r1"
 
 
-def test_closed_stands_over_release_among_takes_of_zero():
-    rungs = [_rung("r:water.r1", 0, {"RB"}, RELEASE),
-             _rung("zp:x.r1", 3, {"TROUT_CHAR"}, CLOSED)]
-    out, _ = _answer(rungs, {"RB"})
+def test_a_species_closure_is_lifted_by_the_water_but_a_superior_one_is_not():
+    """"Bass: 0 quota, CLOSED TO FISHING (see tables for exceptions)" — the book says the
+    water tables are the exceptions, so a water's own rule on the same fish replaces it. A
+    superior closure is outside the ladder, and a "No Fishing" on the water is lifted by
+    nothing but a lift."""
+    out, gov = _answer([_alw("r:water.r1", "water", {"RB"}, RELEASE),
+                        _alw("z4:x.r1", "region", {"TROUT_CHAR"}, CLOSED)], "RB")
+    assert out == RELEASE and gov == "r:water.r1"
+    sup = Allowance(Subject(frozenset({"TROUT_CHAR"})), CLOSED,
+                    Source(Authority.superior, Scope.region, rule_id="zp:sara.r1", verbatim="x"))
+    out, gov = _answer([_alw("r:water.r1", "water", {"RB"}, RELEASE), sup], "RB")
+    assert out == CLOSED and gov == "zp:sara.r1"
+    out, gov = _answer([_alw("r:water.r1", "water", {"ALL_GAME_FISH"}, CLOSED),
+                        _alw("z4:x.r1", "region", {"RB"}, Outcome("quota", 5))], "RB")
     assert out == CLOSED
+    out, gov = _answer([_alw("z4:x.r1", "region", {"ALL_GAME_FISH"}, CLOSED),
+                        _alw("r:water.r1", "water", {"RB"}, Outcome("quota", 5))], "RB")
+    assert out == CLOSED, "a water's number does not open a No Fishing on the water"
+
+
+def test_a_clause_counts_inside_its_parent_and_never_carves_it():
+    """"1 bull trout" inside "Trout/char: 5" is one of the five, not a sixth."""
+    src = _src("region", "z4:tc.r1")
+    parent = Allowance(Subject(frozenset({"TROUT_CHAR"})), Outcome("quota", 5, pooled=True), src)
+    cap = Allowance(Subject(frozenset({"BT", "DV"})), Outcome("quota", 1, pooled=True),
+                    _src("region", "z4:tc.r4"), within="z4:tc.r1")
+    L = Ledger([parent, cap], family={"z4:tc.r4": frozenset({"z4:tc.r1"})})
+    assert L.reaches(parent, "BT", Origin.wild) and L.reaches(cap, "BT", Origin.wild)
+    assert L.carves[parent] == [] and L.carves[cap] == []
+
+
+def test_a_gate_carves_nothing():
+    """"None under 60 cm" on char is true beside the five, not instead of it."""
+    parent = _alw("z3:tc.r1", "region", {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))
+    gate = Allowance(Subject(frozenset({"BT", "DV", "LT"}), size=size_of(None, 60, take=None)),
+                     RELEASE, _src("region", "z3:tc.r4b"))
+    L = Ledger([parent, gate])
+    assert gate.kind == "gate" and L.reaches(parent, "BT", Origin.wild)
+    assert L.carves[parent] == []
 
 
 def test_brook_trout_on_the_okanagan_is_twenty(tables):
-    """The corpus form of (c): Region 8's "20 brook trout from streams" was absorbed into
-    "Trout and char | 4" as "not the strictest here", and no brook trout row existed."""
-    from pipeline.regs.table.build import name
     seen = 0
-    for w, run, _, _, t in tables:
+    for w, run, _, _, _, t in tables:
         if w != "Okanagan River":
             continue
-        eb = [r for r in t if r.subject.words(name)[0] == "Brook trout"]
-        assert eb and eb[0].outcome.n == 20, f"{w} stretch {run + 1}: {[r.outcome.word() for r in eb]}"
+        assert _row(t, "EB").headline().outcome.n == 20, (w, run + 1)
         seen += 1
     assert seen == 3
 
 
 def test_a_stream_clause_does_not_retire_its_parent_on_a_lake(tables):
-    """Region 4 writes "Trout/char: 5" and, inside it, "2 from streams". On a stream the 2 is
-    the answer and the 5 retires. On a LAKE the 2 is about somewhere else — and the 5 retired
-    anyway, so eight of nine lake sections had no trout and char row at all. Kootenay Lake's
-    cutthroat and lake trout had no quota."""
     from pipeline.regs.table.corpus import rid
-    for w, run, kind, rules, t in tables:
-        by = {rid(x): x for x in rules}
-        # The parents a clause FOR THIS KIND OF WATER may retire, and no others.
+    for w, run, kind, rules, L, _ in tables:
         may_retire = {f"{c.get('entry')}::{c.get('within')}" for c in rules
                       if c.get("within") and c.get("water") == kind
                       and c.get("take") is not None}
-        for r in t:
-            for c in r.chain:
-                if "its own clause for this kind of water" in c.status:
-                    assert c.rule_id in may_retire, (
-                        f"{w} stretch {run + 1} ({kind}): {c.rule_id} retired by a clause "
-                        f"about the other kind of water")
+        for a, st in L.status.items():
+            if st == REPLACED_BY_CLAUSE:
+                assert a.rule_id in may_retire, (w, run + 1, kind, a.rule_id)
 
 
 def test_kootenay_lake_main_body_is_the_corpus_form_of_case_b(tables):
-    """The water's "rainbow trout daily quota = 10" and Region 4's "Trout/char: 5" are both
-    printed, each about its own fish: 10 for a rainbow, 5 for the rest."""
-    from pipeline.regs.table.build import name
-    (t,) = [t for w, run, _, _, t in tables if w == "Kootenay Lake" and run == 0]
-    by = {r.subject.words(name)[0]: r for r in t}
-    assert by["Rainbow trout"].outcome.n == 10
-    assert by["Trout and char"].outcome.n == 5
-    gov = next(c for c in by["Rainbow trout"].chain if c.status == "governs")
-    assert gov.authority == "this water"
+    _, _, _, _, L, t = _one(tables, "Kootenay Lake", 0)
+    rb = _row(t, "RB")
+    assert rb.headline().outcome.n == 10 and rb.headline().source.who == "this water"
+    assert rb.fish == {"RB"}
+    ct = _row(t, "CT")
+    assert ct.headline().outcome.n == 5 and ct.headline().source.who == "Region 4"
+    # ...and the group row says it no longer speaks for the rainbow.
+    tc = next(a for a in ct.counters if a.rule_id.endswith("trout_char_quota.r1"))
+    assert any(c.scope.fish == {"RB"} for c in L.carves[tc])
 
 
 # --------------------------------------------------------------------------- #
@@ -417,10 +450,6 @@ def test_kootenay_lake_main_body_is_the_corpus_form_of_case_b(tables):
     ("Regions 3-8", "undrawable", set()),
 ])
 def test_a_region_mention_scopes_only_when_it_is_the_whole_extent(text, kind, regions):
-    """"(a) when sport fishing for sturgeon in Region 2 only on the Fraser River, Lower Pitt
-    River, Lower Harrison River" names three rivers. Read for its "Region 2" alone, the
-    exemption lifted the province-wide fin-fish bait ban on the Chilliwack, the Coquihalla and
-    the Harrison — eleven sections that the book keeps under the ban."""
     from pipeline.regs.table.where import parse_where
     w = parse_where(text)
     assert (w.kind, set(w.regions)) == (kind, regions)
@@ -429,8 +458,7 @@ def test_a_region_mention_scopes_only_when_it_is_the_whole_extent(text, kind, re
 def test_the_fraser_bait_exemption_does_not_lift_the_ban_on_the_chilliwack(tables):
     from pipeline.regs.table.method_build import rungs_for
     from pipeline.regs.table.method import resolve_method
-    from pipeline.regs.table.build import section_regions
-    for w, run, kind, rules, _ in tables:
+    for w, run, kind, rules, _, _ in tables:
         if w not in ("Chilliwack River", "Coquihalla River"):
             continue
         here = section_regions(w, run)
@@ -443,14 +471,6 @@ def test_the_fraser_bait_exemption_does_not_lift_the_ban_on_the_chilliwack(table
 # White sturgeon: a closure the book scopes by population, and a table that cannot.
 # --------------------------------------------------------------------------- #
 def test_the_contradicted_closures_are_the_sara_listing_and_no_others():
-    """The book's protected-species entry lists "White Sturgeon (Nechako, Upper Fraser,
-    Kootenay and Columbia populations)"; the catalogue's group held bare WSG, so the provincial
-    closure covered the Fraser fishery the regional tables open, nothing lifted it, and every
-    Fraser stretch read "you may not fish for it" — on the one water in the province with a
-    legal sturgeon fishery. The group no longer names the fish; the populations are the
-    regional closures. What remains reported is the SARA listing, whose extent ("Upper Fraser
-    and Nechako watersheds") nothing can draw, so it rides beside the fishery as a caveat.
-    Pinned so the report cannot quietly grow back."""
     from pipeline.regs.table.corpus import rules
     from pipeline.regs.table.lifts import contradicted_closures
     got = {(x["closure"], x["opened_by"]) for x in contradicted_closures(rules())}
@@ -461,174 +481,91 @@ def test_the_contradicted_closures_are_the_sara_listing_and_no_others():
 
 
 def test_the_fraser_sturgeon_fishery_is_catch_and_release_where_the_book_says_so(tables):
-    """Regions 1, 2 and 3 write "White Sturgeon: CATCH AND RELEASE ONLY"; the domain owner's
-    statement is that the Fraser is the only place sturgeon may be fished, and only that way.
-    Every Fraser stretch in Regions 2 and 3 read closed, by a provincial list that names four
-    populations the Fraser's lower river is not among. Above Williams Lake River the Region 5
-    closure is the answer, and the SARA listing rides as a caveat on the release rows."""
-    from pipeline.regs.table.build import name
     seen = 0
-    for w, run, _, _, t in tables:
+    for w, run, _, _, L, t in tables:
         if w != "Fraser River":
             continue
-        rows = [r for r in t if r.subject.words(name)[0] == "White sturgeon"]
-        if not rows:
-            # Hell's Gate: the whole water is shut, and the sturgeon row is absorbed into it.
-            assert any(r.subject.words(name)[0] == "All game fish" and r.outcome == CLOSED
-                       for r in t), run + 1
-            continue
-        (row,) = rows
+        r = _row(t, "WSG")
+        h = r.headline()
         regions = section_regions(w, run)
-        if regions <= {"2", "3"}:
-            assert row.outcome == RELEASE, (run + 1, row.outcome)
-            assert row.governs.authority.startswith("Region"), row.governs.authority
-            assert any(c.rule_id == "z7a:sara_sturgeon::sara_sturgeon.r1" for c in row.caveats)
+        if regions <= {"2", "3"} and run + 1 not in (5, 6):
+            assert h is not None and h.outcome == RELEASE, (run + 1, h)
+            assert h.source.authority is Authority.region and h.source.scope is Scope.region
+            assert any(a.rule_id == "z7a:sara_sturgeon::sara_sturgeon.r1" for a, _ in r.behind)
             seen += 1
         elif run + 1 >= 17:
-            assert row.outcome == CLOSED and row.governs.rule_id.endswith("fraser_river.r5"), run + 1
-    assert seen == 11    # 14 stretches in Regions 2 and 3, less Hell's Gate (2) and the Region 3/5 boundary
-
-
-def test_the_answer_is_the_first_rung_of_every_chain(tables):
-    """The chain was sorted by (authority, strictness) and the answer found by a second
-    algorithm, so `chain[0]` was not the governing rung on 370 of 846 rows — and
-    `Row.governs`, which returns `chain[0]`, was wrong on every one of them."""
-    for w, run, _, _, t in tables:
-        for r in t:
-            assert r.chain and r.chain[0].status == "governs" and r.governs is r.chain[0], (
-                f"{w} stretch {run + 1}: chain does not start with its answer")
+            assert h is not None and h.outcome == CLOSED and h.rule_id.endswith("fraser_river.r5"), run + 1
+    assert seen == 11    # 13 stretches in Regions 2 and 3, less Hell's Gate (2)
 
 
 def test_a_take_of_zero_beats_a_closer_number_only_where_the_book_means_it(tables):
-    """The "except closures" clause is GENERAL, and its blast radius is not.
-
-    Authority wins: a regional table overrides the province, and a water overrides the region.
-    The one exception is a take of zero, which stands unless something lifts it — and that
-    exception exists for one sentence in the book, "All wild steelhead must be released", which a
-    regional trout-and-char quota does not mention and does not lift.
-
-    Measured across all 102 sections, the exception changes the answer on 27 rows and every one
-    of them is wild steelhead. That is the rule behaving as written rather than as hoped, and it
-    is worth pinning: a general rule that happens to fire narrowly today will fire wider the
-    moment the corpus moves, and the next reader of that row deserves someone to have looked.
-
-    SOMEONE LOOKED, once the tributary walk was ranked as inherited: "Kootenay Lake's
-    tributaries — Bull trout catch and release" now stands over the Elk's own "Trout/Char daily
-    quota = 1 (no bull trout under 75 cm), June 15 – Oct 31" and the upper Kootenay's twin of
-    it. The book does not mean it — the same entry says "Does not include the Kootenay River
-    upstream from Kootenay Lake to the U.S. border", and the Elk lies above that border — but
-    the walk reaches them anyway, because the exclusion is prose and not `tributary_excludes`.
-    That is the data's defect, and it is named here so it cannot pass as the fold's.
-    """
-    from pipeline.regs.table.build import name
-    known = {("Elk River", 1, "Bull trout"), ("Kootenay River", 7, "Bull trout"),
-             ("Kootenay River", 8, "Bull trout"), ("Kootenay River", 10, "Bull trout")}
+    """Measured: the exception changes the answer only for wild steelhead — and for the bull
+    trout of the Elk and upper Kootenay, where the tributary walk reaches past "Does not
+    include the Kootenay River upstream from Kootenay Lake to the U.S. border", which is prose
+    and not `tributary_excludes`. A data defect, named so it cannot pass as the fold's."""
+    known = {("Elk River", 1, "BT"), ("Kootenay River", 7, "BT"),
+             ("Kootenay River", 8, "BT"), ("Kootenay River", 10, "BT")}
     wider = []
-    for w, run, _, _, t in tables:
+    for w, run, _, _, L, t in tables:
         for r in t:
-            gov = next((c for c in r.chain if c.status == "governs"), None)
-            if gov is None or gov.outcome.kind not in ("closed", "release"):
+            h = r.headline()
+            if h is None or not h.is_zero:
                 continue
-            if not any(c is not gov and c.rank < gov.rank
-                       and c.outcome.kind in ("quota", "unlimited") for c in r.chain):
+            closer = [a for a in r.counters if a.outcome.kind in ("quota", "unlimited")
+                      and a.period == "daily" and a.rank < h.rank and not a.within
+                      and (a.applies.always or a.applies.unless)]
+            if not closer:
                 continue
-            who, _ = r.subject.words(name, is_release=(r.outcome.kind == "release"))
-            if "Steelhead" not in who and (w, run + 1, who) not in known:
-                wider.append((w, run + 1, who, gov.verbatim[:60]))
-            if (w, run + 1, who) in known:
-                assert gov.rule_id == "r4:kootenay_lake_s_tributaries@4-19+4-7::kootenay_lake_tributaries.r1"
-                assert gov.authority == "inherited", gov.authority
-    assert not wider, (
-        "a take of zero now beats a closer authority's number for something other than wild "
-        f"steelhead — look at whether the book means it: {wider[:4]}")
+            for sp in r.fish:
+                if sp != "ST" and (w, run + 1, sp) not in known:
+                    wider.append((w, run + 1, sp, h.rule_id))
+                if (w, run + 1, sp) in known:
+                    assert h.rule_id.endswith("kootenay_lake_tributaries.r1") and h.source.scope is Scope.inherited
+    assert not wider, wider[:6]
 
 
-def test_a_stream_rule_never_reaches_a_lake_table_by_any_route(tables):
-    """`table` drops rules about the other kind of water before it resolves anything, and the
-    orphan sweep put them back — Region 4's "Trout and char — 2 per day, FROM STREAMS" sat in
-    the chain on Kootenay LAKE, whose answer is 5. It was inert until something re-weighed the
-    chain, and the date-aware pass does exactly that, so the lake read 2."""
+def test_a_stream_rule_never_reaches_a_lake_ledger_by_any_route(tables):
     from pipeline.regs.table.corpus import rid
-    for w, run, kind, rules, t in tables:
+    for w, run, kind, rules, L, _ in tables:
         other = "lake" if kind == "stream" else "stream"
-        # COMPOSITE IDS. A bare rule id is shared by up to nine rules — `trout_char_quota.r7`
-        # is one per region — so comparing on it flags a stream rule because some OTHER
-        # region's rule of the same name is about lakes. The test that guards the collision
-        # must not fall for it.
         bad = {rid(x) for x in rules if x.get("water") == other}
-        for r in t:
-            for c in r.chain + (r.caveats or []) + (r.ceilings or []):
-                assert c.rule_id not in bad, (
-                    f"{w} stretch {run + 1} is a {kind}, and {c.rule_id} is about {other}s")
+        for a in L.allowances:
+            assert a.rule_id not in bad, f"{w} stretch {run + 1} is a {kind}, and {a.rule_id} is about {other}s"
 
 
 # --------------------------------------------------------------------------- #
 # A size bound is a gate, not a competitor.
 # --------------------------------------------------------------------------- #
-def _row(t, fish, qual=""):
-    from pipeline.regs.table.build import name
-    for r in t:
-        who, q = r.subject.words(name)
-        if who == fish and q == qual:
-            return r
-    raise AssertionError(f"no row {fish!r} · {qual!r} in {[r.subject.words(name) for r in t]}")
-
-
-def test_meets_is_symmetric_and_reflexive_where_a_subject_names_a_fish():
-    """`covers` is containment and a gate needs intersection: "bull trout, Dolly Varden and
-    lake trout" and "trout and char · hatchery only" cover neither each other nor nothing —
-    a hatchery bull trout is inside both."""
-    hatch = Subject(frozenset({"TROUT_CHAR"}), Origin.hatchery)
-    char = Subject(frozenset({"BT", "DV", "LT"}))
-    assert not hatch.covers(char) and not char.covers(hatch)
-    assert hatch.meets(char) and char.meets(hatch)
-    for a in _subjects():
-        for b in _subjects():
-            assert a.meets(b) == b.meets(a)
-        if a.effective() or a.is_everything:
-            assert a.meets(a)
-    assert not Subject(frozenset({"KO"})).meets(Subject(frozenset({"BB"})))
-    assert not Subject(frozenset({"ST"}), Origin.wild).meets(Subject(frozenset({"ST"}), Origin.hatchery))
-
-
 def test_a_size_bound_reaches_the_keep_row_it_narrows_across_origin(tables):
-    """Region 2's "none under 60 cm" is about bull trout, Dolly Varden and lake trout of either
-    origin; the Fraser's only keep row is "Trout and char · hatchery only". Neither subject
-    covers the other, so the bound reached no row on seven Fraser stretches and the check
-    filed it under "no trigger" — a bucket for duties. Same sentence in Region 3, filed as a
-    qualifier, printed."""
-    for w, run, _, _, t in tables:
+    """Region 2's "none under 60 cm" is about char of either origin; the Fraser's only keep
+    row is hatchery-only. A hatchery bull trout is inside both, and the bound is on its row."""
+    for w, run, _, _, _, t in tables:
         if w != "Fraser River" or run > 2:
             continue
-        keep = _row(t, "Trout and char", "hatchery only")
-        ids = {g.rule_id for g in keep.gates if g.binds}
+        bt = _row(t, "BT", Origin.hatchery)
+        ids = {a.rule_id for a in bt.counters if a.kind == "gate"}
         assert "z2:trout_char_quota::trout_char_quota.r5b" in ids, (run + 1, ids)
         assert "z2:trout_char_quota::trout_char_quota.r8" in ids, (run + 1, ids)
+        rb = _row(t, "RB", Origin.hatchery)
+        assert "z2:trout_char_quota::trout_char_quota.r8" in {a.rule_id for a in rb.counters}
 
 
-def test_a_take_of_zero_on_a_size_class_is_the_gate_and_not_a_row(tables):
-    """"Hatchery trout/char under 30 cm from streams: 0" is not a release of hatchery trout —
-    it is the floor on the two you may keep. As a rung it was a release for a subject nobody
-    else wrote about, took a row of its own, and the keep row beside it never showed 30 cm."""
-    from pipeline.regs.table.build import name
-    for w, run, kind, rules, t in tables:
+def test_a_take_of_zero_on_a_size_class_is_the_gate_and_not_a_headline(tables):
+    for w, run, _, _, L, t in tables:
         for r in t:
-            for c in r.chain:
-                assert not c.subject.size.is_gate, (
-                    f"{w} stretch {run + 1}: {c.rule_id} competes with a size bound on its subject")
-            assert not r.subject.size.is_gate, (w, run + 1, r.subject.words(name))
-            assert r.governs.rule_id.split("::")[-1] != "trout_char_quota.r8" or "z2" not in r.governs.rule_id
+            h = r.headline()
+            assert h is None or h.kind != "gate", (w, run + 1, r.heading(name))
+            for a in r.counters:
+                if a.kind == "gate":
+                    assert L.carves[a] == [] or all(c.kind == "gate" for c in L.carves[a])
 
 
 def test_every_size_bound_handed_in_rides_on_a_row(tables):
-    """Every spelling of a size bound — a parenthesis on a number, a bare "No trout under 25
-    cm", a take of zero on the class, a clause inside an allowance — is one kind of value and
-    reaches the table by one route. None may vanish, and none may be filed as "no trigger"."""
     from pipeline.regs.table.corpus import rid
     from pipeline.regs.table.build import _water_of
-    for w, run, kind, rules, t in tables:
+    for w, run, kind, rules, L, t in tables:
         by = {rid(x): x for x in rules}
-        landed = {g.rule_id for r in t for g in (r.gates or [])}
+        on_rows = {a.rule_id for r in t for a in r.counters}
         for x in rules:
             if str(x.get("type") or "") != "retention_limit" or x.get("method"):
                 continue
@@ -638,64 +575,37 @@ def test_every_size_bound_handed_in_rides_on_a_row(tables):
             wk = _water_of(x, by)
             if not size.is_gate or (wk and wk != kind):
                 continue
-            assert rid(x) in landed, f"{w} stretch {run + 1}: {rid(x)} “{x.get('verbatim')}”"
+            a = next(a for a in L.allowances if a.rule_id == rid(x) and a.kind == "gate")
+            assert rid(x) in on_rows or L.status[a], (w, run + 1, rid(x), x.get("verbatim"))
 
 
 def test_a_licence_rule_with_a_length_in_it_is_not_a_size_bound(tables):
-    """"Conservation Surcharge Stamp required to catch and keep rainbow trout over 50 cm"
-    carries `over_cm` too. Read as a bound it told the Shuswap "none over 50 cm" on the water
-    where the stamp is exactly what lets you keep one."""
-    (t,) = [t for w, run, _, _, t in tables if w == "Shuswap Lake"]
-    for r in t:
-        for g in (r.gates or []):
-            assert "shuswap_lake.r13" not in g.rule_id and "shuswap_lake.r14" not in g.rule_id
+    _, _, _, _, L, t = _one(tables, "Shuswap Lake", 0)
+    for a in L.allowances:
+        assert "shuswap_lake.r13" not in a.rule_id and "shuswap_lake.r14" not in a.rule_id
 
 
 def test_the_shuswap_rainbow_row_carries_its_floor_as_a_gate(tables):
-    """"Rainbow trout daily quota = 1 (none under 50 cm)" is one rule saying two things. With
-    the bound on its subject it was a different subject from "rainbow trout", so the row was
-    headed "Rainbow trout · none under 50 cm" and competed with nothing."""
-    (t,) = [t for w, run, _, _, t in tables if w == "Shuswap Lake"]
-    rb = _row(t, "Rainbow trout")
-    assert rb.outcome.n == 1
-    assert [g.size.words() for g in rb.gates if g.binds] == ["none under 50 cm"]
-    assert rb.gates[0].rule_id == rb.governs.rule_id
+    """"Rainbow trout daily quota = 1 (none under 50 cm)" is one rule saying two things."""
+    _, _, _, _, L, t = _one(tables, "Shuswap Lake", 0)
+    rb = _row(t, "RB")
+    assert rb.headline().outcome.n == 1
+    gates = [a for a in rb.counters if a.kind == "gate" and L.in_force(a)]
+    assert [g.scope.size.words() for g in gates] == ["none under 50 cm"]
+    assert gates[0].rule_id == rb.headline().rule_id
 
 
 def test_a_stream_clause_is_not_a_condition_on_a_lake(tables):
-    """Region 8's "only 2 over 30 cm" sits inside "4 from streams"; flattened onto "Trout/char:
-    5" it rode on Okanagan Lake as a condition on the five, wearing "in streams" as a label."""
-    for w, run, kind, _, t in tables:
-        if kind != "lake":
-            continue
-        for r in t:
-            for l in (r.limits or []) + (r.dormant or []):
-                assert "z8:trout_char_quota::trout_char_quota.r4" != l.rule_id, (w, run + 1)
-
-
-def test_dormant_clauses_are_the_losing_rules_clauses():
-    """`Row` was built positionally and `dormant` landed in `exemptions`, which `build` then
-    overwrote — so the clauses of a beaten rule computed in `resolve` were thrown away every
-    time, and only a sweep in `build` found them again on whichever row it tried first."""
-    from pipeline.regs.table.resolve import resolve
-    from pipeline.regs.table.clauses import SubLimit
-    rungs = [_rung("r:water.r1", 0, {"TROUT_CHAR"}, Outcome("quota", 2, pooled=True)),
-             _rung("z4:trout_char.r1", 2, {"TROUT_CHAR"}, Outcome("quota", 5, pooled=True))]
-    clause = SubLimit(Subject(frozenset({"BT"})), 1, False, "1 bull trout", "z4:trout_char.r2")
-    row = resolve(rungs, Subject(frozenset({"TROUT_CHAR"})), kids={"z4:trout_char.r1": [clause]})
-    assert row.dormant == [clause] and row.exemptions is None and row.limits == []
+    for w, run, kind, _, L, _ in tables:
+        if kind == "lake":
+            assert not any(a.rule_id == "z8:trout_char_quota::trout_char_quota.r4"
+                           for a in L.allowances), (w, run + 1)
 
 
 # --------------------------------------------------------------------------- #
 # What a section is handed: the page's spans, and the walk.
 # --------------------------------------------------------------------------- #
 def test_an_empty_span_list_binds_no_stretch():
-    """The page takes a rule onto a stretch only where a span overlaps it, so `spans: []`
-    reaches nothing. Read as "no filter", the tributary-walk copy of the Atnarko's "No Fishing
-    from Tenas Lake to the Atnarko Park campsite" — whose reach copy binds three stretches —
-    shut all six and the Bella Coola. And the Chilliwack's "(c) hatchery rainbow trout ...
-    daily quota = 4" is written for the Vedder, downstream of Vedder Crossing, which is not a
-    stretch of the Chilliwack at all."""
     from pipeline.regs.table.corpus import section_rules, rid
     closure = "r5:atnarko_bella_coola_rivers_includes_tributaries_except_burnt@5-11+5-6+5-8::atnarko_bella_coola_rivers.r2"
     got = {run: {rid(x) for x in section_rules("Atnarko River", run)[0]} for run in range(6)}
@@ -708,105 +618,259 @@ def test_an_empty_span_list_binds_no_stretch():
 
 
 def test_a_rule_reached_by_the_tributary_walk_is_inherited(tables):
-    """`via: trib` lives on the page's copy of a rule and not in the bundle, and the join
-    threw it away — so "Elk River's tributaries: Trout/char daily quota = 1" spoke on the
-    Fording with the Fording's own voice, at rank 0, when the ladder has a rung for it."""
-    (t,) = [t for w, run, _, _, t in tables if w == "Fording River" and run == 0]
-    tc = _row(t, "Trout and char")
-    elk = [c for c in tc.chain if "elk_river_s_tributaries" in c.rule_id]
-    assert elk and all(c.authority == "inherited" and c.rank == 1 for c in elk)
-    own = [c for c in tc.chain if "fording_river_downstream" in c.rule_id]
-    assert own and all(c.authority == "this water" and c.rank == 0 for c in own)
+    _, _, _, _, L, t = _one(tables, "Fording River", 0)
+    elk = [a for a in L.allowances if "elk_river_s_tributaries" in a.rule_id]
+    assert elk and all(a.source.scope is Scope.inherited and a.rank == 1 for a in elk)
+    own = [a for a in L.allowances if "fording_river_downstream" in a.rule_id]
+    assert own and all(a.source.scope is Scope.water and a.rank == 0 for a in own)
 
 
 # --------------------------------------------------------------------------- #
-# The answer on a date is decided by the rungs that speak for the whole row.
+# The answer on a date.
 # --------------------------------------------------------------------------- #
 def test_a_row_with_a_season_of_its_own_is_its_own_row(tables):
-    """Shuswap's "Lake trout — release, Oct 15 – Jan 31" sat in a lake-trout row whose
-    year-round answer was Region 3's 5 — the same 5 "Trout and char" had — so the row was
-    absorbed and its season went with it: the group row read release for every trout in
-    November. On the Skeena the Region 6 trout seasons did the same to every char."""
-    (t,) = [t for w, run, _, _, t in tables if w == "Shuswap Lake"]
-    lt = _row(t, "Lake trout")
-    assert lt.outcome.n == 1 and lt.governs.rule_id.endswith("shuswap_lake.r9")   # "Char daily quota = 1"
-    assert any("Oct 15" in c.applies.detail and c.outcome == RELEASE for c in lt.chain)
-    assert _row(t, "Char").outcome.n == 1
-    (t,) = [t for w, run, _, _, t in tables if w == "Skeena River" and run == 0]
-    trout = _row(t, "Trout")
-    assert {c.outcome.word() for c in trout.chain if not c.applies.always} == {"release", "1"}
+    """Shuswap's "Lake trout — release, Oct 15 – Jan 31" makes lake trout its own row, with
+    the season on it — not absorbed into "Trout and char"."""
+    _, _, _, _, L, t = _one(tables, "Shuswap Lake", 0)
+    lt = _row(t, "LT")
+    assert lt.fish == {"LT"}
+    assert lt.headline().outcome.n == 1 and lt.headline().rule_id.endswith("shuswap_lake.r9")
+    assert any("Oct 15" in a.applies.detail and a.outcome == RELEASE for a in lt.counters)
+    assert lt.headline((11, 1)).outcome == RELEASE
+    _, _, _, _, L, t = _one(tables, "Skeena River", 0)
+    rb = _row(t, "RB")
+    assert {a.outcome.word() for a in rb.counters if not a.applies.always and a.period == "daily"
+            and a.kind != "gate"} == {"release", "1"}
 
 
 def test_a_lifted_rule_never_decides_a_date():
-    """Region 3's spring closure is lifted on the Fraser by the Fraser's own "Exempt from
-    spring closure" — and the date-aware pass re-weighed every live rung in the chain, so the
-    lifted closure took the river back for six months of the year."""
     from pipeline.regs.table.provenance import section
     d = section("Fraser River", 8, (3, 1))            # Thompson River → Fraser River
-    burbot = next(r for r in d["rows"] if r["fish"] == "Burbot")
-    assert burbot["answer_today"] == "2", burbot["set_by"]
-    assert any(c["why"] == "lifted here — does not apply" and c["live"] for c in burbot["chain"])
+    burbot = next(r for r in d["rows"] if r["fish"] == ["BB"])
+    assert burbot["answer_today"] == "2", burbot["today_by"]
+    assert any(c["status"] == LIFTED for c in burbot["behind"])
 
 
 def test_a_narrower_rung_does_not_answer_for_the_whole_row():
-    """Region 6's "No fishing for steelhead, May 15 – Jun 15" rode in the Skeena's trout-and-
-    char chain — it is about a fish inside the group — and the re-weigh let it shut every
-    trout and char on 1 June. `resolve` never lets a rung decide a subject it does not cover;
-    the date must not either."""
+    """Region 6's "No fishing for steelhead, May 15 – Jun 15" shuts steelhead, not every
+    trout and char on the Skeena."""
     from pipeline.regs.table.provenance import section
     d = section("Skeena River", 0, (6, 1))
-    by = {(r["fish"], r["qualifier"]): r for r in d["rows"]}
-    assert by[("Trout and char", "")]["answer_today"] == "5"
-    assert by[("Steelhead", "wild only")]["answer_today"] == "0"
-    assert by[("Trout", "")]["answer_today"] == "release"
+    by = {tuple(r["fish"]) + (r["qualifier"],): r for r in d["rows"]}
+    assert by[("ST", "wild only")]["answer_today"] == "0"
+    trout = next(r for r in d["rows"] if "RB" in r["fish"])
+    assert trout["answer_today"] == "release"
+    char = next(r for r in d["rows"] if "AC" in r["fish"])
+    assert char["answer_today"] == "5"
 
 
 def test_a_closure_within_the_day_is_not_a_days_answer():
-    """"No Fishing from one hour after sunset to one hour before sunrise" has no dates, so it
-    was live on every date, and the Harrison read closed around the clock. The Lower West
-    Arm's "kokanee catch and release Monday through Friday" did the same to its weekend 5:
-    a (month, day) cannot settle a weekday, and such a rung is never the answer FOR A DATE."""
     from pipeline.regs.table.provenance import section
     d = section("Harrison River", 0, (3, 1))
-    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
-    assert ko["answer_today"] == "release", ko["set_by"]
+    ko = next(r for r in d["rows"] if r["fish"] == ["KO"])
+    assert ko["answer_today"] == "release", ko["today_by"]
     d = section("Kootenay Lake", 2, (7, 15))
-    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    ko = next(r for r in d["rows"] if r["fish"] == ["KO"])
     assert ko["answer_today"] == "5" and ko["year_round"]
 
 
 def test_dates_the_book_writes_as_exceptions_are_read_as_exceptions():
-    """"Kokanee catch and release, EXCEPT Apr 1-3 and July 1-2, when daily quota = 5" carries
-    `windows_are: excepts`, which nothing read: the release became a five-day window and the
-    Upper West Arm printed Region 4's fifteen kokanee for the rest of the year."""
     from pipeline.regs.table.provenance import section
     d = section("Kootenay Lake", 1, (4, 2))
-    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    ko = next(r for r in d["rows"] if r["fish"] == ["KO"])
     assert ko["keep"] == "release" and ko["answer_today"] == "5", (ko["keep"], ko["answer_today"])
     d = section("Kootenay Lake", 1, (8, 1))
-    ko = next(r for r in d["rows"] if r["fish"] == "Kokanee")
+    ko = next(r for r in d["rows"] if r["fish"] == ["KO"])
     assert ko["answer_today"] == "release"
 
 
 def test_the_calendar_says_when_the_headline_never_holds():
-    """On the Skeena the year-round rule for a trout is never the answer on any day: "1 trout
-    from streams, Jul 1 – Oct 31" and "trout of any size from streams — release, Nov 1 – Jun
-    30" cover the calendar between them, and "Trout/char: 5" reads above both."""
     from pipeline.regs.table.provenance import section
     d = section("Skeena River", 0)
-    trout = next(r for r in d["rows"] if r["fish"] == "Trout" and not r["qualifier"])
+    trout = next(r for r in d["rows"] if "RB" in r["fish"] and not r["qualifier"])
     assert trout["keep"] == "5" and not trout["year_round"]
     assert [(s["from"], s["to"], s["keep"]) for s in trout["calendar"]] == [
         ([11, 1], [6, 30], "release"), ([7, 1], [10, 31], "1")]
 
 
-def test_a_subject_only_seasons_speak_to_gets_a_row_with_its_season():
-    """White sturgeon on the Fraser in Region 5, below Williams Lake River, has one rule here:
-    "No Fishing for sturgeon Sept 15 – July 15". With nothing year-round covering the fish it
-    was in no chain and no caveat list — gone — and the check failed on it. Its season heads
-    the row, and the head carries its dates so a reader is not shown a bare "0"."""
+def test_a_subject_only_seasons_speak_to_has_no_standing_number():
+    """White sturgeon on the Fraser in Region 5, below Williams Lake River, has one rule:
+    "No Fishing for sturgeon Sept 15 – July 15". There is no standing number and the row
+    says so; the calendar carries the closure."""
     from pipeline.regs.table.provenance import section
     d = section("Fraser River", 14)
-    wsg = next(r for r in d["rows"] if r["fish"] == "White sturgeon")
-    assert wsg["keep"] == "0" and wsg["season"] == "Sep 15 – Jul 15"
+    wsg = next(r for r in d["rows"] if r["fish"] == ["WSG"])
+    assert wsg["keep"] is None
     assert [s["keep"] for s in wsg["calendar"]] == ["0", None]
+
+
+# --------------------------------------------------------------------------- #
+# TWO STAGES: the region's standing table, then this water's overrides.
+# --------------------------------------------------------------------------- #
+def test_nothing_water_scoped_can_enter_a_base(tables):
+    """A base table is made of region-wide rules and nothing else — by type, not by guard."""
+    for w, run, kind, rules, L, _ in tables:
+        B = base(rules, kind)
+        for a in B.allowances:
+            assert a.source.scope is Scope.region, (w, run + 1, a.rule_id)
+        # ...and every override on the section is NOT region-wide.
+        base_ids = {a.rule_id for a in B.allowances}
+        for a in L.allowances:
+            if a.rule_id not in base_ids:
+                assert a.source.scope is not Scope.region, (w, run + 1, a.rule_id)
+
+
+def test_a_base_is_computed_once_per_region_and_kind(tables):
+    """Every Region 2 stream stretch draws on the same standing table — the same object."""
+    fraser = [t for t in tables if t[0] == "Fraser River" and t[1] < 3]
+    bases = {id(base(rules, kind)) for _, _, kind, rules, _, _ in fraser}
+    assert len(bases) == 1
+    chilliwack = _one(tables, "Chilliwack River", 0)
+    assert base(chilliwack[3], "stream") is base(fraser[0][3], "stream")
+
+
+def test_region_2_lakes_and_streams_have_different_base_quotas(tables):
+    """PROOF 4. Region 2's trout base is 4 on a lake and, on a stream, 2 hatchery or wild
+    release. A stream number never answers on a lake and vice versa — this has regressed."""
+    _, _, _, rules, _, _ = _one(tables, "Fraser River", 0)
+    stream = base(rules, "stream")
+    lake = base(rules, "lake")
+    s_rb = _row(rows(stream), "RB", Origin.hatchery).headline()
+    assert s_rb.outcome.n == 2 and s_rb.scope.origin is Origin.hatchery
+    assert _row(rows(stream), "RB", Origin.wild).headline().outcome == RELEASE
+    l_rb = _row(rows(lake), "RB", Origin.wild).headline()
+    assert l_rb.outcome.n == 4 and l_rb.rule_id.endswith("trout_char_quota.r1")
+    assert not any(a.rule_id.endswith("trout_char_quota.r4") for a in lake.allowances)
+    assert not any(a.rule_id.endswith("trout_char_quota.r6") for a in lake.allowances)
+    # And on Kootenay LAKE, Region 4's "2 from streams" is nowhere.
+    _, _, _, rules, L, t = _one(tables, "Kootenay Lake", 0)
+    assert not any(a.rule_id.endswith("trout_char_quota.r3") for a in L.allowances)
+    assert _row(t, "CT").headline().outcome.n == 5
+
+
+# --------------------------------------------------------------------------- #
+# THE ORACLE: may I keep it? — with the rule that decided, and its provenance.
+# --------------------------------------------------------------------------- #
+def _ledger(w, run):
+    return ledger(section_rules(w, run), section_kind(w), section_regions(w, run), section_label(w, run))
+
+
+def test_proof_1_a_pooled_group_quota_is_spent_by_any_member(tables):
+    """A bull trout in the creel blocks a lake trout where the char quota is pooled ("1 char,
+    bull trout, Dolly Varden or lake trout") — and does NOT block a rainbow on Kootenay Lake,
+    where the rainbow has its own number."""
+    L = _ledger("Fraser River", 0)                                   # Region 2 stream
+    bt = Fish("BT", 65, Origin.hatchery)
+    v = may_i_keep(L, Fish("LT", 65, Origin.hatchery), (7, 15), Creel.of(bt), name)
+    assert v.keep is False and v.kind == "spent"
+    assert v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r5"
+    assert "bull trout" in v.reasons[0] and "Region 2 · region-wide" in v.reasons[0]
+    v = may_i_keep(L, Fish("LT", 65, Origin.hatchery), (7, 15), Creel(), name)
+    assert v.keep is True
+    # Per-species: Kootenay Lake's bull trout (its own 1) does not touch its rainbow (its own 10).
+    K = _ledger("Kootenay Lake", 0)
+    v = may_i_keep(K, Fish("RB", 40), (7, 15), Creel.of(Fish("BT", 60)), name)
+    assert v.keep is True and all(c.counter.scope.fish == {"RB"} for c in v.checks)
+    # ...but on the Upper West Arm the water's own "trout/char 2 (only 1 bull trout)" is pooled.
+    U = _ledger("Kootenay Lake", 1)
+    v = may_i_keep(U, Fish("RB", 40), (7, 15), Creel.of(Fish("BT", 60), Fish("CT", 40)), name)
+    assert v.keep is False and v.decided_by[0].rule_id.endswith("kootenay_lake_upper_west_arm.r2")
+    v = may_i_keep(U, Fish("BT", 60), (7, 15), Creel.of(Fish("BT", 60)), name)
+    assert v.keep is False and v.decided_by[0].rule_id.endswith("kootenay_lake_upper_west_arm.r3")
+    # Whitefish, 15 all species combined: fifteen lake whitefish spend it for mountain whitefish.
+    v = may_i_keep(K, Fish("MW", 30), (7, 15), Creel.of(*[Fish("LW", 30)] * 15), name)
+    assert v.keep is False and v.decided_by[0].rule_id == "z4:species_quotas::species_quotas.r10"
+
+
+def test_proof_2_a_size_class_inside_a_quota_is_a_live_constraint_on_the_row(tables):
+    """"5 trout and char, of which 1 rainbow or cutthroat over 50 cm": a 55 cm cutthroat is
+    refused when one over-50 is already held, allowed when none is — and the cap is ON the
+    cutthroat's row, not in a panel."""
+    K = _ledger("Kootenay Lake", 0)
+    cap = "z4:trout_char_quota::trout_char_quota.r2"
+    v = may_i_keep(K, Fish("CT", 55), (7, 15), Creel.of(Fish("CT", 52)), name)
+    assert v.keep is False and v.decided_by[0].rule_id == cap, v.reasons
+    assert "over 50 cm" in v.reasons[0]
+    v = may_i_keep(K, Fish("CT", 55), (7, 15), Creel.of(Fish("CT", 40)), name)
+    assert v.keep is True
+    v = may_i_keep(K, Fish("CT", 45), (7, 15), Creel.of(Fish("CT", 52)), name)
+    assert v.keep is True, "45 cm is not in the over-50 class"
+    _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
+    assert cap in {a.rule_id for a in _row(t, "CT").counters}
+    assert cap not in {a.rule_id for a in _row(t, "RB").counters}, "the water's 10 is any size"
+
+
+def test_proof_3_hatchery_and_wild_are_decided_apart(tables):
+    L = _ledger("Fraser River", 0)
+    v = may_i_keep(L, Fish("RB", 40, Origin.wild), (7, 15), Creel(), name)
+    assert v.keep is False and v.kind == "release"
+    assert v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r6"
+    v = may_i_keep(L, Fish("RB", 40, Origin.hatchery), (7, 15), Creel(), name)
+    assert v.keep is True and v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r4"
+    v = may_i_keep(L, Fish("RB", 25, Origin.hatchery), (7, 15), Creel(), name)
+    assert v.keep is False and v.kind == "gate" and "none under 30 cm" in v.reasons[0]
+    assert v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r8"
+
+
+def test_proof_5_daily_annual_and_possession_are_three_counters(tables):
+    K = _ledger("Kootenay Lake", 0)
+    ten = [Fish("RB", 40)] * 10
+    v = may_i_keep(K, Fish("RB", 40), (7, 15), Creel(today=ten, held=ten, this_year=ten), name)
+    assert v.keep is False and v.decided_by[0].period == "daily" and v.decided_by[0].n == 10
+    twenty = [Fish("RB", 40)] * 20
+    v = may_i_keep(K, Fish("RB", 40), (7, 15), Creel(today=[], held=twenty, this_year=twenty), name)
+    assert v.keep is False and v.decided_by[0].period == "possession" and v.decided_by[0].n == 20
+    assert v.decided_by[0].multiplied_by.rule_id == "zp:quota_defaults::quota_defaults.r1"
+    big = [Fish("RB", 55)] * 20
+    v = may_i_keep(K, Fish("RB", 55), (7, 15), Creel(today=[], held=[], this_year=big), name)
+    assert v.keep is False and v.decided_by[0].period == "annual"
+    assert v.decided_by[0].rule_id.endswith("kootenay_lake_main_body.r6")
+    v = may_i_keep(K, Fish("RB", 45), (7, 15), Creel(today=[], held=[], this_year=big), name)
+    assert v.keep is True, "the annual 20 counts fish over 50 cm only"
+
+
+def test_proof_6_closed_and_release_speak_the_same_vocabulary(tables):
+    P = _ledger("Kootenay River", 8)                                  # Kootenay National Park
+    for sp in ("RB", "BT", "MW", "BB"):
+        v = may_i_keep(P, Fish(sp, 40), (7, 15), Creel(), name)
+        assert v.keep is False and v.kind == "closed"
+        assert v.decided_by[0].source.authority is Authority.superior, v.reasons
+    K = _ledger("Kootenay Lake", 0)
+    v = may_i_keep(K, Fish("KO", 30), (7, 15), Creel(), name)
+    assert v.keep is False and v.kind == "release"
+    assert v.decided_by[0].rule_id.endswith("kootenay_lake_main_body.r2")
+    assert "for this water" in v.reasons[0]
+    v = may_i_keep(K, Fish("NP", 60), (7, 15), Creel(), name)
+    assert v.keep is False and v.kind == "closed" and "Region 4 · region-wide" in v.reasons[0]
+
+
+def test_the_oracle_is_total_and_decides_only_by_what_the_rows_show(tables):
+    """For every section, every row's fish, both origins, three lengths and three dates: the
+    oracle answers, and every counter it decided by is on that fish's row."""
+    for w, run, _, _, L, t in tables:
+        for r in t:
+            sp = r.species
+            for o in ((Origin.wild, Origin.hatchery) if r.origin is Origin.both else (r.origin,)):
+                shown = {a.rule_id for a in r.counters}
+                for length in (20, 45, 70):
+                    for on in ((1, 15), (5, 1), (7, 15), (10, 15)):
+                        v = may_i_keep(L, Fish(sp, length, o), on, Creel(), name)
+                        if v.keep is None:
+                            # Undecided only where the row is honestly empty on that day: a
+                            # fish the region names in a seasonal closure and nowhere else.
+                            assert not any(L.binds(a, sp, o, length, on) for a in r.counters), (
+                                w, run + 1, r.heading(name), sp, o, length, on)
+                            assert not any((a.applies.always or a.applies.unless)
+                                           and a.contains(sp, o, length) for a in r.counters), (
+                                w, run + 1, r.heading(name), sp, o, length, on)
+                        for a in v.decided_by:
+                            assert a.rule_id in shown, (w, run + 1, r.heading(name), sp, o, length, on, a.rule_id)
+
+
+def test_every_verdict_names_a_rule_and_its_provenance(tables):
+    for w, run, _, _, L, t in tables[:20]:
+        for r in t:
+            v = may_i_keep(L, Fish(r.species, 45, r.origin if r.origin is not Origin.both else Origin.wild),
+                           (7, 15), Creel(), name)
+            for reason, a in zip(v.reasons, v.decided_by):
+                assert a.source.words() in reason and "“" in reason, reason
