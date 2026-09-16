@@ -1013,3 +1013,31 @@ def test_kootenay_char_is_the_same_answer_in_both_directions():
     # ...and a second Dolly Varden is still refused by the region's cap, now "1 Dolly Varden".
     v = may_i_keep(K, Fish("DV", 45), (7, 15), Creel.of(Fish("DV", 45)), name)
     assert v.keep is False and v.decided_by[0].rule_id == "z4:trout_char_quota::trout_char_quota.r4"
+
+
+# --------------------------------------------------------------------------- #
+# The presented table: one entry per fish, and a band statement true of every member.
+# --------------------------------------------------------------------------- #
+def test_the_presented_table_names_each_fish_once_and_hoists_only_what_holds_for_all(tables):
+    """A constraint stated on a band is visible for every member — and it must BE true of
+    every member, or hoisting it would print a fact on a fish it does not bind. Every
+    counter on a row is visible either on its line or on its band, none is lost."""
+    from pipeline.regs.table.provenance import section
+    for w, run, _, _, _, _ in tables[:30]:
+        d = section(w, run)
+        pr = d["present"]
+        by_key = {r["key"]: r for r in d["rows"]}
+        seen = collections.Counter(sp for e in pr["entries"] for sp in e["fish"])
+        assert all(n == 1 for n in seen.values()), (w, run + 1, [k for k, n in seen.items() if n > 1])
+        for e in pr["entries"]:
+            assert "other than" not in e["heading"]
+            for l in e["lines"]:
+                r = by_key[l["row"]]
+                shown = {c["rule"] for c in r["counters"]}
+                if l["in_band"]:
+                    b = pr["bands"][e["band"]]
+                    for h in b["hoisted_all"]:
+                        assert h in shown, (w, run + 1, e["heading"], h)
+                    assert b["id"] in shown
+                    if b["origin"]:
+                        assert r["qualifier"] == b["origin"]

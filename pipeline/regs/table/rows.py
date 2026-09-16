@@ -106,6 +106,7 @@ class Row:
             if a.kind == "gate":
                 narrow = a.scope.fish and not a.scope.effective() >= self.fish
                 out.append({"says": a.scope.size.words() + (f" ({who.lower()})" if narrow else ""),
+                            "plain": a.scope.size.plain() + (f" ({who.lower()})" if narrow else ""),
                             "kind": "bound", "rule": a.rule_id, "source": a.source, "n": 0,
                             "shared": ""})
             else:
@@ -116,13 +117,14 @@ class Row:
                 others = [c for c in a.scope.effective() - self.fish if self.ledger.reaches(a, c, o)]
                 shared = ", ".join(sorted(name(c).lower() for c in others)) if a.pooled and others else ""
                 out.append({"says": f"no more than {a.n} {cls}" + (f" — shared with {shared}" if shared else ""),
+                            "plain": f"only {a.n} {a.scope.size.plain()}" + (" between them" if shared else ""),
                             "kind": "cap", "rule": a.rule_id, "source": a.source, "n": a.n,
                             "shared": shared})
         if not out:
             h = self.headline(on)
             if h is None or not h.is_zero:
-                out.append({"says": "any size", "kind": "any", "rule": "", "source": None,
-                            "n": None, "shared": ""})
+                out.append({"says": "any size", "plain": "any size", "kind": "any", "rule": "",
+                            "source": None, "n": None, "shared": ""})
         return out
 
 

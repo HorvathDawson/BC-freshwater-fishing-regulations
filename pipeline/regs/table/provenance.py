@@ -39,6 +39,7 @@ def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str
         "kind": a.kind, "keep": a.word(), "n": a.n, "period": a.period, "pooled": a.pooled,
         "fish": who, "qualifier": qual, "size": a.scope.size.words(),
         "says": a.sentence(name),
+        "plain": plain_words(a),
         "source": src_json(a.source),
         "when": a.applies.detail, "windows": [{"from": list(f), "to": list(t)}
                                               for f, t in a.applies.windows],
@@ -61,6 +62,86 @@ def src_json(s) -> dict:
             "rule": s.rule_id, "verbatim": s.verbatim.strip()}
 
 
+def plain_words(a: Allowance) -> str:
+    """What a counter says, for a person at the water. Not notation."""
+    if a.kind == "gate":
+        return a.scope.size.plain()
+    if a.kind == "closed":
+        return "closed — no fishing for it"
+    if a.kind == "release":
+        return "release — let it go"
+    if a.kind == "unlimited":
+        return "no limit"
+    if a.within and a.scope.size.is_any:
+        return f"only {a.n} of those"
+    if not a.scope.size.is_any:
+        return f"only {a.n} {a.scope.size.plain()}"
+    return f"up to {a.n}" + (" between them" if a.pooled else "")
+
+
+def present(d: dict) -> dict:
+    """THE TABLE A READER SEES, from the rows: one entry per kind of fish, never two rows for
+    one species — where wild and hatchery differ they are two LINES under the one name — and
+    a shared number as a BAND above its members, carrying once whatever is true of every
+    member (a bound, a cap, an origin). Only what differs stays on the member's line.
+
+    Pure structure: which rows make up which entry, which entries sit under which band, and
+    which counters are hoisted. Cells are still computed from the counters by whoever draws
+    them, so a date can be applied. A test proves a hoisted statement is true of every line.
+    """
+    rows_ = d["rows"]
+    by_key = {r["key"]: r for r in rows_}
+    species = sorted({sp for r in rows_ for sp in r["fish"]})
+    def row_for(sp, origin):
+        for r in rows_:
+            if sp in r["fish"] and r["origin"] in ("both", origin):
+                return r
+        return None
+    entries, order = {}, []
+    for sp in species:
+        w, h = row_for(sp, "wild"), row_for(sp, "hatchery")
+        key = (w["key"] if w else None, h["key"] if h else None)
+        if key not in entries:
+            entries[key] = {"fish": [], "wild": w, "hatchery": h}; order.append(key)
+        entries[key]["fish"].append(sp)
+    from pipeline.regs.table.rows import heading
+    out, bands = [], {}
+    for key in order:
+        e = entries[key]
+        w, h = e["wild"], e["hatchery"]
+        fish = sorted(e["fish"])
+        lines = ([{"origin": "either", "row": w["key"]}] if w is h or (w and h and w["key"] == h["key"])
+                 else [x for x in ({"origin": "wild", "row": w["key"]} if w else None,
+                                   {"origin": "hatchery", "row": h["key"]} if h else None) if x])
+        band = next((by_key[l["row"]]["group"] for l in lines if by_key[l["row"]]["group"]), None)
+        for l in lines:
+            l["in_band"] = bool(band) and by_key[l["row"]]["group"] == band
+        entry = {"fish": fish, "heading": heading(frozenset(fish), name),
+                 "members": sorted(name(c) for c in fish), "lines": lines, "band": band,
+                 "province_only": all(by_key[l["row"]]["province_only"] for l in lines)}
+        out.append(entry)
+        if band:
+            bands.setdefault(band, {"id": band, "entries": []})["entries"].append(entry)
+    # HOIST WHAT IS TRUE OF THE WHOLE BAND. A counter every in-band line carries is stated
+    # once on the band; the band's own number and its possession are the band itself.
+    for bid, b in bands.items():
+        in_band = [by_key[l["row"]] for e in b["entries"] for l in e["lines"] if l["in_band"]]
+        counter = next(c for c in in_band[0]["counters"] if c["rule"] == bid)
+        poss = next((c for c in in_band[0]["counters"] if c["derived_from"] == bid), None)
+        common = set.intersection(*[{c["rule"] for c in r["counters"]} for r in in_band]) if in_band else set()
+        common -= {bid}
+        if poss: common.discard(poss["rule"])
+        # a derived possession of a hoisted daily counter is hoisted with it, silently
+        b["counter"] = counter; b["possession"] = poss
+        b["hoisted"] = sorted(c["rule"] for c in in_band[0]["counters"]
+                              if c["rule"] in common and c["derived_from"] is None)
+        b["hoisted_all"] = sorted(common)
+        quals = {r["qualifier"] for r in in_band}
+        b["origin"] = quals.pop() if len(quals) == 1 else ""
+        b["province_only"] = all(e["province_only"] for e in b["entries"])
+    return {"entries": out, "bands": bands}
+
+
 def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
     """One row: the fish, the size statement, and every counter — the shape a page lays out
     as Fish · Size · Daily · Annual · Possession, and a text table prints the same way."""
@@ -69,8 +150,9 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
     cal = r.calendar()
     counters = [counter_json(L, a, r) for a in r.counters]
     behind = [counter_json(L, a, r, st) for a, st in r.behind]
-    size = [{"says": x["says"], "kind": x["kind"], "rule": x["rule"], "n": x["n"],
-             "shared": x["shared"], "source": src_json(x["source"]) if x["source"] else None}
+    size = [{"says": x["says"], "plain": x["plain"], "kind": x["kind"], "rule": x["rule"],
+             "n": x["n"], "shared": x["shared"],
+             "source": src_json(x["source"]) if x["source"] else None}
             for x in r.size(on, name)]
     # A POOLED HEADLINE IS A GROUP. Rows whose number is one shared counter are one band on
     # the page, so five rows never read as five fives.
@@ -129,7 +211,7 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
     while_closed = [rule_of(rid(x)) for x in rules
                     if x.get("permitted") is False
                     and "no fishing period" in (x.get("verbatim") or "").lower()]
-    return {"water": water, "stretch": run + 1,
+    d = {"water": water, "stretch": run + 1,
             "label": section_label(water, run) or f"stretch {run + 1}",
             "kind": kind, "regions": sorted(section_regions(water, run)),
             "on": list(on) if on else None,
@@ -141,6 +223,8 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
             "exemptions": list(L.exemptions),
             "while_closed": while_closed,
             "rules": {k: rule_of(k) for k in sorted(used)}}
+    d["present"] = present(d)
+    return d
 
 
 def r_subject(r: Row):
@@ -160,10 +244,29 @@ def base_table(water: str, run: int) -> dict:
     regions = section_regions(water, run)
     B = base(rules, kind)
     out = [row_json(B, r) for r in rows(B, name)]
-    return {"regions": sorted(regions), "kind": kind,
-            "label": f"{region_label(regions)} · {kind}s",
-            "rules": sorted(a.rule_id for a in B.allowances if a.derived_from is None),
-            "rows": out, "from": (water, run)}
+    d = {"regions": sorted(regions), "kind": kind,
+         "label": f"{region_label(regions)} · {kind}s",
+         "rules": sorted(a.rule_id for a in B.allowances if a.derived_from is None),
+         "rows": out, "from": (water, run)}
+    d["present"] = present(d)
+    return d
+
+
+def provincial_table(kind: str) -> dict:
+    """The province's own table for a kind of water — the rules every region inherits."""
+    from pipeline.regs.table.build import allowances
+    from pipeline.regs.table.corpus import rules as all_rules
+    from pipeline.regs.table.authority import source_of
+    rs = [x for x in all_rules() if x["entry"].startswith("zp:") and source_of(x).is_base]
+    alw, lifted, fam, mults, duties, unresolved = allowances(rs, kind)
+    P = Ledger(alw, lifted=lifted, family=fam, multiples=mults, duties=duties,
+               exemptions=unresolved, water_kind=kind)
+    out = [row_json(P, r) for r in rows(P, name)]
+    d = {"regions": [], "kind": kind, "label": f"Provincial · {kind}s",
+         "rules": sorted(a.rule_id for a in P.allowances if a.derived_from is None),
+         "rows": out, "from": ("Provincial", 0), "sections": 102}
+    d["present"] = present(d)
+    return d
 
 
 def base_tables() -> list:
@@ -186,7 +289,8 @@ def base_tables() -> list:
                                 if section_rules(w2, r2) and section_kind(w2) == key[1]
                                 and frozenset(a.rule_id for a in base(section_rules(w2, r2), key[1]).allowances) == key[0])
             out.append(t)
-    return sorted(out, key=lambda t: (t["regions"], t["kind"], t["from"]))
+    out.sort(key=lambda t: (t["regions"], t["kind"], t["from"]))
+    return [provincial_table("lake"), provincial_table("stream")] + out
 
 
 if __name__ == "__main__":

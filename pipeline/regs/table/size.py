@@ -81,6 +81,18 @@ class Size:
                 "slot":         lambda: L < hi or L > lo,
                 "band":         lambda: hi < L < lo}[self.kind]()
 
+    def plain(self) -> str:
+        """The same bound in the words a person at the water uses — "must be at least 30 cm",
+        not "none under 30 cm", which is a double negative about a measurement."""
+        k, lo, hi = self.kind, self.lo, self.hi
+        return {"any": "any size",
+                "none_over": f"must be {lo} cm or shorter",
+                "none_under": f"must be at least {hi} cm",
+                "counts_over": f"over {lo} cm",
+                "counts_under": f"over {hi} cm",
+                "slot": f"must be {hi} to {lo} cm",
+                "band": f"must not be {hi} to {lo} cm"}[k]
+
     def words(self) -> str:
         k, lo, hi = self.kind, self.lo, self.hi
         return {
