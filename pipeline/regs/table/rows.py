@@ -130,27 +130,29 @@ class Row:
         return out
 
 
-def heading(fish: FrozenSet[str], name) -> str:
-    """The shortest honest name for a set of species: the group it is, the group it is all
-    but a few of, or the members themselves."""
-    if len(fish) == 1:
-        return name(next(iter(fish)))
+#: Not shown to a reader. The anadromous forms of brook trout and Dolly Varden are in the
+#: group codes and in no rule of their own; the one anadromous form that matters is steelhead,
+#: which has its own name. Hidden on the page only — the ledger still carries them.
+HIDDEN = frozenset({"ADV", "AEB"})
+
+
+def heading(fish: FrozenSet[str], name, hide: FrozenSet[str] = HIDDEN) -> str:
+    """The name a reader finds a set of species under: the group it is, or the members
+    themselves. NEVER A GROUP NAMED BY EXCLUSION — "any other trout" tells the reader what a
+    thing is not. Up to eight fish are named; beyond that the count and the group, with the
+    members listed beneath."""
+    shown = frozenset(fish) - hide or frozenset(fish)
+    if len(shown) == 1:
+        return name(next(iter(shown)))
     groups = [(len(expand(frozenset({g}))), g) for g in SPECIES_GROUPS
               if expand(frozenset({g})) and expand(frozenset({g})) >= fish]
     g = min(groups)[1] if groups else None
-    missing = (expand(frozenset({g})) - fish) if g else None
-    if g and not missing:
+    if g and not (expand(frozenset({g})) - fish - hide):
         return name(g)
-    if len(fish) <= 3 or (g and len(missing) >= len(fish)) or not g:
-        if len(fish) <= 6:
-            names = sorted(name(f) for f in fish)
-            return ", ".join(names[:-1]) + " or " + names[-1]
-    # THE REST OF A GROUP IS NAMED AS THE REST, not by listing what it is not. Every fish
-    # missing from it has a row of its own (that is why it is missing), so "Any other trout
-    # or char" beside "Rainbow trout" and "Bull trout" is what a reader expects to find.
-    if g:
-        return "Any other " + name(g).lower().replace(" and ", " or ")
-    return f"{len(fish)} kinds of fish"
+    names = sorted(name(f) for f in shown)
+    if len(names) <= 8:
+        return ", ".join(names[:-1]) + " or " + names[-1]
+    return f"{len(names)} kinds of " + (name(g).lower() if g else "fish")
 
 
 def rows(ledger: Ledger, name=None) -> List[Row]:

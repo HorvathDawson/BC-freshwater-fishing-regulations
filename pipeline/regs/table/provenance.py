@@ -21,7 +21,7 @@ from pipeline.regs.table.build import (ledger, base, section_rules, section_regi
                                        section_label, section_kind, name, D)
 from pipeline.regs.table.corpus import rid, rules as all_rules
 from pipeline.regs.table.ledger import Allowance, Ledger
-from pipeline.regs.table.rows import rows, Row
+from pipeline.regs.table.rows import rows, Row, HIDDEN
 from pipeline.regs.table.subject import Origin
 
 
@@ -125,16 +125,29 @@ def present(d: dict) -> dict:
         band = next((by_key[l["row"]]["group"] for l in lines if by_key[l["row"]]["group"]), None)
         for l in lines:
             l["in_band"] = bool(band) and by_key[l["row"]]["group"] == band
+        # A FISH THAT STANDS OUTSIDE THE SHARED NUMBER IS STILL DRAWN UNDER ITS GROUP. Kootenay's
+        # rainbow (10, on top of the 5) is a trout, and a reader scanning TROUT AND CHAR must
+        # find it there — with a line saying it does not come out of the shared number.
+        outside = None
+        if band is None:
+            for l in lines:
+                for o in by_key[l["row"]].get("outside_of") or []:
+                    if o["rule"] in {r["group"] for r in rows_ if r["group"]}:
+                        outside = o["rule"]; break
+                if outside: break
         entry = {"fish": fish, "heading": heading(frozenset(fish), name),
-                 "members": sorted(name(c) for c in fish), "lines": lines, "band": band,
+                 "members": sorted(name(c) for c in fish if c not in HIDDEN), "lines": lines,
+                 "band": band or outside, "outside": bool(outside and not band),
                  "province_only": all(by_key[l["row"]]["province_only"] for l in lines)}
         out.append(entry)
-        if band:
-            bands.setdefault(band, {"id": band, "entries": []})["entries"].append(entry)
+        if band or outside:
+            bands.setdefault(band or outside, {"id": band or outside, "entries": []})["entries"].append(entry)
     # HOIST WHAT IS TRUE OF THE WHOLE BAND. A counter every in-band line carries is stated
     # once on the band; the band's own number and its possession are the band itself.
     for bid, b in bands.items():
         in_band = [by_key[l["row"]] for e in b["entries"] for l in e["lines"] if l["in_band"]]
+        if not in_band:
+            continue
         counter = next(c for c in in_band[0]["counters"] if c["rule"] == bid)
         poss = next((c for c in in_band[0]["counters"] if c["derived_from"] == bid), None)
         common = set.intersection(*[{c["rule"] for c in r["counters"]} for r in in_band]) if in_band else set()
@@ -214,7 +227,7 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
               and L.binds(a, r.species, o, None, None)]
     group = max(shared, key=lambda a: len(a.scope.effective())).rule_id if shared else None
     return {
-        "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish),
+        "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish if c not in HIDDEN),
         "heading": r.heading(name), "qualifier": r.qualifier(), "origin": r.origin.value,
         "key": r.heading(name) + "||" + r.qualifier(),
         "keep": head.word() if head else None,

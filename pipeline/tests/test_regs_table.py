@@ -924,7 +924,28 @@ def test_the_rest_of_a_group_is_named_as_the_rest(tables):
             for code in r.fish:
                 assert code not in h.split(), (w, run + 1, h)
     _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
-    assert _row(t, "EB").heading(name) == "Any other trout or char"
+    h = _row(t, "EB").heading(name)
+    assert "other" not in h.lower() and "Brook trout" in h and "(anadromous)" not in h, h
+
+
+def test_a_fish_outside_the_shared_number_is_still_drawn_under_its_group():
+    """Kootenay's rainbow (10, on top of the region's 5) is a trout; the reader finds it under
+    TROUT AND CHAR with a line saying it does not come out of the shared number. Anadromous
+    variant codes reach no member list."""
+    from pipeline.regs.table.provenance import section
+    d = section("Kootenay Lake", 0)
+    pr = d["present"]
+    rb = next(e for e in pr["entries"] if e["fish"] == ["RB"])
+    assert rb["outside"] and rb["band"] == "z4:trout_char_quota::trout_char_quota.r1"
+    assert rb in pr["bands"][rb["band"]]["entries"]
+    assert not any(l["in_band"] for l in rb["lines"])
+    for e in pr["entries"]:
+        assert not any("(anadromous)" in m for m in e["members"]), e["members"]
+    from pipeline.regs.table.build import section_kind
+    from pipeline.regs.table.comply import audit
+    _, _, missing = audit(section_rules("Kootenay Lake", 0), section_kind("Kootenay Lake"),
+                          section_regions("Kootenay Lake", 0), section_label("Kootenay Lake", 0))
+    assert not missing, "hiding a name must drop no rule"
 
 
 def test_a_fish_only_the_province_names_is_set_apart_not_dropped(tables):
@@ -1150,7 +1171,7 @@ def test_the_presented_table_names_each_fish_once_and_hoists_only_what_holds_for
         seen = collections.Counter(sp for e in pr["entries"] for sp in e["fish"])
         assert all(n == 1 for n in seen.values()), (w, run + 1, [k for k, n in seen.items() if n > 1])
         for e in pr["entries"]:
-            assert "other than" not in e["heading"]
+            assert "other than" not in e["heading"] and not e["heading"].startswith("Any other")
             for l in e["lines"]:
                 r = by_key[l["row"]]
                 shown = {c["rule"] for c in r["counters"]}
