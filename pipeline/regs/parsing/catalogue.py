@@ -270,6 +270,11 @@ SPECIES_GROUPS["PROTECTED_SPECIES"] = (
 #: Region 1/3 notices) and because the DFO corpus moves to this format next.
 SPECIES_GROUPS["SALMON"] = ("CH", "CO", "SK", "PK", "CM")
 
+#: "SA" IS THE CSV'S NAME FOR THE SAME GROUP, NOT A FISH. Held as a leaf it named nobody, so
+#: "No spear fishing of Pacific salmon" (zp:spear_fishing.r4) reached neither coho nor chinook
+#: — a closure that protected none of the fish it is written about.
+SPECIES_GROUPS["SA"] = SPECIES_GROUPS["SALMON"]
+
 #: Every code a rule may name: the groups above, their members, and the individuals that appear
 #: alone. A rule naming anything else is refused at validation rather than printing a raw code.
 KNOWN_SPECIES = frozenset(
