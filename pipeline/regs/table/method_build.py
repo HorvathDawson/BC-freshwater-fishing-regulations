@@ -43,6 +43,20 @@ def is_gear(x: dict) -> bool:
     return bool(x.get("method")) or str(x.get("type") or "") in RIG_TYPES
 
 
+def reaches_kind(x: dict, water_kind: str) -> bool:
+    """Does this rule speak about this kind of water? TWO SPELLINGS OF ONE FACT: the rule's
+    `water` field, and `feature_types` on its typed extents — which the atlas resolver reads
+    (`pipeline/atlas/reach/extent.py`) and the page builder honours. Reading only `water` put
+    the province's three set-line companion rules (typed `feature_types: [lake]`, no `water`)
+    on every stream of Regions 6 and 7A, and the reference base disagreed with every shipped
+    section on the Skeena — a fault in the reference, not the data."""
+    wk = x.get("water")
+    if wk and wk != water_kind:
+        return False
+    kinds = {str(t).lower() for e in (x.get("extents") or []) for t in (e.get("feature_types") or [])}
+    return not kinds or water_kind in kinds
+
+
 def method_of(x: dict) -> str:
     """The schema's `other` holds two real prohibitions: chumming, and the no-gear-while-closed
     rule. Neither is a way of fishing called "other"."""
@@ -144,8 +158,7 @@ def terms_of(rules: List[dict], water_kind: str, here: FrozenSet[str] = frozense
     for x in rules:
         if not is_gear(x):
             continue
-        wk = x.get("water")
-        if wk and wk != water_kind:
+        if not reaches_kind(x, water_kind):
             continue
         src = source_of(x)
         if not _bites(src, here):

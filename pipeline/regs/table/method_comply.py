@@ -30,7 +30,7 @@ from pipeline.regs.table.authority import source_of
 from pipeline.regs.table.ledger import LIFTED, SAME, ONLY_SOMEWHERE
 from pipeline.regs.table.method import (METHODS, COVERED, MOOT, REPLACED, OPENED, CLOSED_BY,
                                         EXCEPTION, CONDITION, HOURS)
-from pipeline.regs.table.method_build import table, region_base, is_gear, _bites
+from pipeline.regs.table.method_build import table, region_base, is_gear, reaches_kind, _bites
 
 
 _HOW = {LIFTED: "lifted", SAME: "folded", COVERED: "folded", EXCEPTION: "folded", CONDITION: "condition",
@@ -75,8 +75,8 @@ def audit(rules, here, water_kind="stream", label=""):
     other = {}
     for x in rules:
         if not is_gear(x) or rid(x) in where: continue
-        w = x.get("water")
-        if w and w != water_kind:
+        if not reaches_kind(x, water_kind):
+            w = "lake" if water_kind == "stream" else "stream"
             if "t" not in other:
                 other["t"] = _found_in(table(rules, w, here, label))
             if rid(x) in other["t"]: mark(rid(x), "not-here")
