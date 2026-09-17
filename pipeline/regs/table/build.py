@@ -73,13 +73,23 @@ def gate_of(x, subject: Subject, source: Source, applies, within: str = "") -> A
     return Allowance(replace(subject, size=size, water=Water.any), RELEASE, source, applies, within)
 
 
+def _kind_of(x: dict) -> str | None:
+    """A rule's kind of water, in BOTH spellings the catalogue uses: the `water` field, or
+    `feature_types` on its typed extents ("lakes of Region 6" carries the latter alone).
+    The atlas reads both; a kind test that read only `water` let a lake rule reach streams."""
+    if x.get("water"):
+        return x["water"]
+    kinds = {t for e in (x.get("extents") or []) for t in (e.get("feature_types") or [])}
+    return next(iter(kinds)) if len(kinds) == 1 else None
+
+
 def _water_of(c: dict, by_key: Dict[str, dict]) -> str | None:
     """The kind of water a clause is about: its own, or the nearest parent's that names one."""
     seen = set()
     while c is not None and rid(c) not in seen:
         seen.add(rid(c))
-        if c.get("water"):
-            return c["water"]
+        if _kind_of(c):
+            return _kind_of(c)
         c = by_key.get(f"{c.get('entry')}::{c.get('within')}") if c.get("within") else None
     return None
 
