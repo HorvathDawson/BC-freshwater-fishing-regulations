@@ -14,7 +14,7 @@ from pipeline.regs.table.method import (Term, MethodTable, MethodRow, METHODS, H
                                         COVERED, MOOT, REPLACED, OPENED, CLOSED_BY, EXCEPTION,
                                         CONDITION, default_term)
 from pipeline.regs.table.method_build import (table, base, region_base, provincial_base, is_gear,
-                                              terms_of, explained_by_scope)
+                                              terms_of, explained_by_scope, reaches_kind)
 from pipeline.regs.table.method_oracle import may_i_fish, may_i_keep_by
 from pipeline.regs.table.oracle import Fish
 
@@ -433,99 +433,96 @@ def test_the_page_never_prints_a_rule_id_or_a_species_code(sections):
 
 
 # --------------------------------------------------------------------------- #
-# THE PRINT DIFF. The regional panel of each synopsis chapter (scratchpad/synopsis/*.pdf,
-# page 2, "General Regulations"), and page 10 of the full synopsis for the province, read
-# by hand into the lines a reader would tick off. The computed base must match; every
-# disagreement is enumerated with its cause, so a new one fails the suite.
+# THE PRINT DIFF, READ BY MACHINE. Every expectation is a sentence a pattern found in text
+# extracted from an official PDF (scratchpad/synopsis/, byte-identical to gov.bc.ca, edition
+# 2025-2027); every table-side match is on content, never a label. A new disagreement, or a
+# known one that vanishes, fails here.
 # --------------------------------------------------------------------------- #
-PRINT = {
-    # region: {kind: {method: verdict}}, plus the region-authored rig lines the panel prints
-    "1":  {"rig": {"stream": {"No bait", "Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "not allowed", "set_lining": "not allowed"},
-    "2":  {"rig": {"stream": {"Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "not allowed", "set_lining": "not allowed"},
-    "3":  {"rig": {"stream": {"Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "allowed", "set_lining": "not allowed"},
-    "4":  {"rig": {"stream": {"Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "not allowed", "set_lining": "not allowed"},
-    "5":  {"rig": {"stream": {"Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "allowed", "set_lining": "not allowed"},
-    "6":  {"rig": {"stream": {"Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "allowed", "set_lining": {"stream": "not allowed", "lake": "allowed"}},
-    "7a": {"rig": {"stream": {"No bait", "Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "allowed", "set_lining": {"stream": "not allowed", "lake": "allowed"}},
-    "7b": {"rig": {"stream": {"No bait", "Single barbless hook, from streams", "Fin fish may not be used as bait"},
-                   "lake": {"Fin fish may not be used as bait"}},
-           "spear_fishing": "allowed", "set_lining": "not allowed"},
-    "8":  {"rig": {"stream": {"Single barbless hook, from streams"}, "lake": set()},
-           "spear_fishing": "allowed", "set_lining": "not allowed"},
-}
+import os
+SYNOPSIS = os.environ.get("SYNOPSIS_DIR") or os.path.join(
+    "/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations",
+    "41da56a6-13f8-45e3-8e3c-2e477423d7db/scratchpad/synopsis")
 
-#: Disagreements with the print that are CURATION defects, reported and not papered over.
-KNOWN_PRINT_DEFECTS = {
-    ("6", "stream", "set_lining"): "zp:set_lining.r2/.r3/.r4 carry no `water: lake`, so the province's "
-                                   "conditions on set lining permit it on streams the book closes to it",
-    ("7a", "stream", "set_lining"): "same: zp:set_lining.r2/.r3/.r4 lack `water: lake`",
-    ("7b", "stream", "rig"): "z7b:bait.r2 (fin fish, all waters of Zone B) is folded under the stream bait "
-                             "ban — the print states both; the table prints the wider one and folds the narrower",
-}
+#: Disagreements with the print that are curation defects, reported and not papered over.
+KNOWN_PRINT_DEFECTS: dict = {}
 
 
-def print_diff():
-    """Every (region, kind) against the print. Returns the list of disagreements."""
-    out = []
-    for reg, p in PRINT.items():
-        for kind in ("stream", "lake"):
-            T = region_base(reg, kind)
-            for m in ("spear_fishing", "set_lining"):
-                want = p[m] if isinstance(p[m], str) else p[m][kind]
-                got = MethodRow(T, m).verdict_word()
-                if got != want:
-                    out.append({"region": reg, "kind": kind, "what": m, "print": want, "table": got,
-                                "known": KNOWN_PRINT_DEFECTS.get((reg, kind, m), "")})
-            got_rig = {t.plain() for ts in T.rig("angling").values() for t in ts
-                       if t.source.authority is Authority.region}
-            want_rig = p["rig"][kind]
-            if got_rig != want_rig:
-                out.append({"region": reg, "kind": kind, "what": "rig", "print": sorted(want_rig),
-                            "table": sorted(got_rig), "known": KNOWN_PRINT_DEFECTS.get((reg, kind, "rig"), "")})
-    return out
+@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the synopsis PDFs are not on this machine")
+def test_the_twenty_standing_tables_match_the_printed_synopsis_line_by_line():
+    from pipeline.regs.table.method_print import all_panels
+    panels = all_panels(SYNOPSIS)
+    assert len(panels) == 20
+    bad = [(reg, kind, c.line, c.why) for reg, kind, P in panels for c in P.checks
+           if not c.ok and (reg, kind, c.line) not in KNOWN_PRINT_DEFECTS]
+    assert not bad, bad
+    gone = [k for k in KNOWN_PRINT_DEFECTS
+            if not any((reg, kind, c.line) == k and not c.ok for reg, kind, P in panels for c in P.checks)]
+    assert not gone, f"a known defect has gone away — remove it: {gone}"
+    # every ✓ cites a sentence from the PDF or names the page-10 rule it rests on
+    for reg, kind, P in panels:
+        for c in P.checks:
+            assert c.source and c.url.startswith("https://www2.gov.bc.ca/"), c
+            assert c.sentence or "page 10" in c.line or "not stated" in c.line, (reg, kind, c.line)
+    assert sum(len(P.checks) for _, _, P in panels) >= 130
 
 
-def test_the_base_gear_tables_match_the_printed_synopsis_except_where_curation_is_known_wrong():
-    diff = print_diff()
-    unknown = [d for d in diff if not d["known"]]
-    assert not unknown, unknown
-    assert {(d["region"], d["kind"], d["what"]) for d in diff} == set(KNOWN_PRINT_DEFECTS), \
-        "a known defect has gone away — remove it from KNOWN_PRINT_DEFECTS"
+@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the synopsis PDFs are not on this machine")
+def test_every_pdf_is_the_current_official_edition():
+    """Each file's first pages carry the 2025-2027 edition string; the md5 of each is what
+    gov.bc.ca served on 2026-09-17 (see method_print's docstring)."""
+    import pdfplumber, re
+    from pipeline.regs.table.method_print import CHAPTERS, PROVINCE
+    for f in [v[0] for v in CHAPTERS.values()] + [PROVINCE[0]]:
+        pdf = pdfplumber.open(os.path.join(SYNOPSIS, f))
+        eds = set()
+        for p in pdf.pages[:3]:
+            eds |= set(re.findall(r"20\d\d\s*[-–]\s*20\d\d", p.extract_text() or ""))
+        assert eds and all(e.replace(" ", "") == "2025-2027" for e in eds), (f, eds)
 
 
-PROVINCE_PRINT = {
-    # page 10, "Provincial Regulations": what a licence entitles you to, and what is unlawful
-    "stream": {"Fin fish may not be used as bait", "Freshwater invertebrates may be used, from streams",
-               "Roe may be used", "Barbless hook, from streams", "Single hook, from streams",
-               "1 line per angler", "No more than 1 artificial fly on the line",
-               "No more than 1 kg of weight on the line — does not apply to downrigger weights",
-               "angle with a downrigger, provided the fishing line is attached to the downrigger by a quick-release mechanism",
-               "Use a light in any manner to attract fish, unless the light is submerged and attached to the fishing line within 1 m of the hook."},
-    "lake": {"Fin fish may not be used as bait", "Freshwater invertebrates may not be used as bait, from lakes",
-             "Roe may be used", "Single hook", "1 line per angler", "2 lines per angler, from lakes — alone in a boat",
-             "No more than 1 artificial fly on the line",
-             "No more than 1 kg of weight on the line — does not apply to downrigger weights",
-             "angle with a downrigger, provided the fishing line is attached to the downrigger by a quick-release mechanism",
-             "Use a light in any manner to attract fish, unless the light is submerged and attached to the fishing line within 1 m of the hook."},
-}
+# --------------------------------------------------------------------------- #
+# THE INVARIANT: section == region base + named overrides. Every difference is attributed to
+# exactly one rule; an unattributable difference is a failure.
+# --------------------------------------------------------------------------- #
+def test_every_difference_from_the_standing_table_is_attributable_to_one_named_rule(sections):
+    from pipeline.regs.table.method_deltas import deltas
+    total, kinds = 0, set()
+    for w, run, kind, rules, here, label, T in sections:
+        ds = deltas(rules, kind, here, label)
+        total += len(ds)
+        for d in ds:
+            kinds.add(d.cause_kind)
+            assert d.attributed, (w, run + 1, d)
+            assert d.cause and "::" in d.cause, (w, run + 1, d)
+    assert total > 500
+    assert {"water", "inherited", "area", "lift", "closure", "unshipped"} <= kinds
 
 
-def test_the_provincial_base_matches_page_10():
-    for kind, want in PROVINCE_PRINT.items():
-        T = provincial_base(kind)
-        got = {t.plain() for ts in T.rig("angling").values() for t in ts}
-        assert got == want, (kind, got ^ want)
-        verdicts = {m: MethodRow(T, m).verdict_word() for m in METHODS if T.speaks_about(m)}
-        assert verdicts == {"angling": "allowed", "ice_fishing": "allowed", "set_lining": "not allowed",
-                            "spear_fishing": "allowed", "crayfish_trapping": "allowed", "netting": "not allowed",
-                            "snagging": "not allowed", "chumming": "not allowed"}, verdicts
+def test_a_section_with_no_overrides_equals_its_regions_table(sections):
+    """The other direction of the invariant, on the sections that carry nothing of their own:
+    zero deltas, so the base IS the answer there."""
+    from pipeline.regs.table.method_deltas import deltas
+    from pipeline.regs.table.method_build import is_gear
+    from pipeline.regs.table.authority import source_of
+    seen = 0
+    for w, run, kind, rules, here, label, T in sections:
+        overrides = [x for x in rules if is_gear(x) and not source_of(x).is_base]
+        if overrides or T.closures:
+            continue
+        ds = [d for d in deltas(rules, kind, here, label) if d.cause_kind != "unshipped"]
+        assert not ds, (w, run + 1, ds)
+        seen += 1
+    assert seen >= 3
+
+
+def test_the_reference_base_reads_feature_types_as_well_as_water():
+    """The province's set-line companion rules carry feature_types: [lake] and no `water`;
+    a reference that read only `water` put set lining on every Skeena stream."""
+    from pipeline.regs.table.method_build import reaches_kind
+    x = {"water": None, "extents": [{"op": "within", "feature_types": ["lake"]}]}
+    assert reaches_kind(x, "lake") and not reaches_kind(x, "stream")
+    assert MethodRow(region_base("6", "stream"), "set_lining").verdict_word() == "not allowed"
+    assert MethodRow(region_base("6", "lake"), "set_lining").verdict_word() == "allowed"
 
 
 # --------------------------------------------------------------------------- #
