@@ -1591,7 +1591,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     elif args.page:
         # Single page extraction (for testing)
         p = FishingSynopsisParser()
-        PDF_PATH = os.path.join("data", "fishing_synopsis.pdf")
+        PDF_PATH = os.path.join("data", "source", "fishing_synopsis.pdf")
 
         with pdfplumber.open(PDF_PATH) as pdf:
             page_result = p.extract_rows(

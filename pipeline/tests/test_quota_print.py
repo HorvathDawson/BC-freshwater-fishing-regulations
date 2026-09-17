@@ -37,15 +37,38 @@ KNOWN_PRINT_DEFECTS = {
 }
 
 
-@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the synopsis PDFs are not on this machine")
+def test_the_source_is_the_edition_it_claims():
+    """The repo's synopsis is edition 2025-2027, 88 pages, and the file this check was
+    written against — a silently swapped PDF must fail here, not pass by luck."""
+    from pipeline.regs.table.quota_print import PDF, PDF_MD5, EDITION, edition, _md5
+    assert os.path.exists(PDF)
+    assert edition(PDF) == EDITION
+    assert _md5(os.path.dirname(PDF), os.path.basename(PDF)) == PDF_MD5
+
+
+@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the gov.bc.ca chapters are not on this machine")
+def test_every_box_in_the_repo_synopsis_is_the_box_gov_bc_ca_serves():
+    """The repo copy is not byte-identical to today's download; what makes it a source is that
+    every quota box in it reads, line for line, as the box in the chapter that is."""
+    from pipeline.regs.table.quota_print import cross_check
+    same = cross_check(SYNOPSIS)
+    assert same and all(same.values()), same
+
+
 def test_every_standing_quota_table_matches_the_printed_box_line_by_line():
     from pipeline.regs.table.quota_print import all_panels, CHAPTERS
-    panels = all_panels(SYNOPSIS, name)
+    panels = all_panels(name)
     assert len(panels) == 1 + 2 * len(CHAPTERS)
     checked = sum(len(P.checks) for P in panels)
     assert checked >= 350, f"only {checked} lines were read — an empty extraction cannot pass"
     unread = [(P.region, P.kind, c.line) for P in panels for c in P.checks if c.label == "unread"]
     assert not unread, f"printed lines nobody could read: {unread[:6]}"
+    # every ✓ shows what it rests on: a matched rule carries the table's words AND the
+    # catalogue sentence; a ✓ by argument (an override, a line of the other kind) says why
+    bare = [(P.region, P.kind, c.line) for P in panels for c in P.checks if c.ok and not (c.found if c.rule else c.why)]
+    assert not bare, f"a ✓ with nothing to show for it: {bare[:6]}"
+    with_rule = [c for P in panels for c in P.checks if c.ok and c.rule]
+    assert len(with_rule) >= 300 and all(" — “" in c.found for c in with_rule), "a ✓ without the sentence it was read from"
     new = [(P.region, P.kind, c.line) for P in panels for c in P.checks
            if not c.ok and (P.region, P.kind, c.line) not in KNOWN_PRINT_DEFECTS]
     assert not new, f"NEW disagreements with the printed synopsis: {new[:8]}"
@@ -57,16 +80,15 @@ def test_every_standing_quota_table_matches_the_printed_box_line_by_line():
         assert "2025-2027" in P.source and "page" in P.source and len(P.md5) == 8 and P.url.startswith("https://www2.gov.bc.ca/")
 
 
-@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the synopsis PDFs are not on this machine")
 def test_the_extracted_text_is_from_the_pdf_not_from_the_catalogue():
     """A ✓ against our own transcription would be a tautology. The printed lines carry the
     print's spellings ("Trout/char: 5, but not more than", "0 quota, CLOSED TO FISHING"),
     which the catalogue's `verbatim` fields do not all share."""
-    from pipeline.regs.table.quota_print import check_region
-    P = check_region(SYNOPSIS, "4", "lake", name)
+    from pipeline.regs.table.quota_print import check_region, PDF_MD5
+    P = check_region("4", "lake", name)
     assert any(l.startswith("Trout/char: 5, but not more than") for l in P.lines)
     assert any("Kokanee: 15 (none from streams), no more than 5 over 30 cm" in l for l in P.lines)
-    assert P.md5 == "01dac4c5"        # region_4_kootenay.pdf as served by gov.bc.ca on 2026-09-17
+    assert P.md5 == PDF_MD5 and "page 36" in P.source
 
 
 def test_every_section_table_is_its_base_plus_named_overrides():

@@ -14,11 +14,12 @@ WHY
   print does not carry. A line the parser cannot read is a failure too — an unread line is a
   line nobody checked.
 
-SOURCES  scratchpad/synopsis/*.pdf — the nine regional chapters and the full synopsis, each
-         byte-identical (md5) to the file served at gov.bc.ca on 2026-09-17, edition
-         2025-2027. Regional chapters: page 2, the "Daily Quotas" box (and the possession and
-         annual lines beside it). The province: the full synopsis, page 8 (steelhead) and
-         page 11 (possession, protected species).
+SOURCES  data/source/fishing_synopsis.pdf — the full synopsis in the repository, edition
+         2025-2027, 88 pages, md5 6eb14ec7. Its bytes differ from the file gov.bc.ca serves
+         today, so every box read from it is proved identical, line for line, to the same box in
+         the regional chapter that IS byte-identical to gov.bc.ca on 2026-09-17 (`cross_check`).
+         Regional boxes: one page each — 15, 23, 30, 36, 48, 55, 64, 70, 74. The province:
+         pages 8–12.
 """
 from __future__ import annotations
 import hashlib, os, re
@@ -33,29 +34,40 @@ from pipeline.regs.table.subject import expand, Origin
 GOV = ("https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/"
        "fishing-and-hunting/freshwater-fishing/")
 EDITION = "2025-2027"
-FULL = "full_synopsis_2025_2027.pdf"
-FULL_URL = GOV + "2025-2027_freshwater_fishing_regulations_synopsis.pdf"
+#: THE SOURCE: the full synopsis in the repository. Edition 2025-2027, 88 pages. Its bytes are
+#: not those gov.bc.ca serves today (a different save of the same edition), so every box read
+#: from it is proved identical, line for line, to the same box in the regional chapter that IS
+#: byte-identical to gov.bc.ca — see `cross_check`.
+PDF = os.path.join("data", "source", "fishing_synopsis.pdf")
+PDF_MD5 = "6eb14ec7"
+FULL_URL = GOV + "fishing_synopsis.pdf"
 
-#: region -> (file, page index, [ (x0, x1, y0, y1) windows holding the Daily Quotas box and the
-#: possession/annual lines ]). Measured on the PDF; the page is 576 pt wide, three columns.
-#: A window's fifth field: "box" reads every line; "general" reads only the closure
-#: sentences of the General Regulations paragraph (the gear rules there belong to the gear
-#: table's own check).
-CHAPTERS: Dict[str, Tuple[str, int, list]] = {
-    "1":  ("region_1_vancouver_island.pdf", 1, [(0, 205, 85, 130, "general"), (0, 205, 240, 505, "box"), (205, 380, 212, 295, "box")]),
-    "1hg": ("region_1_vancouver_island.pdf", 1, [(205, 380, 70, 205, "box"), (205, 380, 212, 295, "box")]),
-    "2":  ("region_2_lower_mainland.pdf", 1, [(205, 380, 70, 232, "box"), (205, 380, 260, 368, "box"), (205, 380, 438, 515, "box")]),
-    "3":  ("region_3_thompson.pdf", 1, [(0, 205, 88, 130, "general"), (0, 205, 258, 525, "box"), (205, 380, 70, 100, "box")]),
-    "4":  ("region_4_kootenay.pdf", 1, [(0, 205, 84, 152, "general"), (0, 205, 283, 590, "box"), (205, 380, 68, 100, "box")]),
-    "5":  ("region_5_cariboo.pdf", 1, [(0, 205, 88, 160, "general"), (0, 205, 224, 600, "box")]),
-    "6":  ("region_6_skeena.pdf", 1, [(0, 205, 85, 330, "general"), (205, 380, 70, 445, "box"), (205, 380, 496, 540, "box")]),
-    "7a": ("region_7a_omineca.pdf", 1, [(0, 205, 190, 222, "general"), (0, 205, 300, 440, "box"), (205, 380, 70, 240, "box"), (205, 380, 295, 378, "box")]),
-    "7b": ("region_7b_peace.pdf", 1, [(205, 380, 208, 525, "box"), (380, 576, 70, 320, "box")]),
-    "8":  ("region_8_okanagan.pdf", 1, [(0, 205, 84, 125, "general"), (0, 205, 160, 440, "box"), (205, 380, 68, 100, "box")]),
+#: region -> (page index in the full synopsis, [ (x0, x1, y0, y1, mode) windows ]). Measured on
+#: the PDF; every page is 576 pt wide, three columns. "box" reads every line; "general" reads
+#: only the closure sentences of the General Regulations paragraph (the gear rules there are
+#: the gear table's own check).
+CHAPTERS: Dict[str, Tuple[int, list]] = {
+    "1":  (14, [(0, 205, 85, 130, "general"), (0, 205, 240, 505, "box"), (205, 380, 212, 295, "box")]),
+    "1hg": (14, [(205, 380, 70, 205, "box"), (205, 380, 212, 295, "box")]),
+    "2":  (22, [(205, 380, 70, 232, "box"), (205, 380, 260, 368, "box"), (205, 380, 438, 515, "box")]),
+    "3":  (29, [(0, 205, 88, 130, "general"), (0, 205, 258, 525, "box"), (205, 380, 70, 100, "box")]),
+    "4":  (35, [(0, 205, 84, 152, "general"), (0, 205, 283, 590, "box"), (205, 380, 68, 100, "box")]),
+    "5":  (47, [(0, 205, 88, 160, "general"), (0, 205, 224, 600, "box")]),
+    "6":  (54, [(0, 205, 85, 330, "general"), (205, 380, 70, 445, "box"), (205, 380, 496, 540, "box")]),
+    "7a": (63, [(0, 205, 190, 222, "general"), (0, 205, 300, 440, "box"), (205, 380, 70, 240, "box"), (205, 380, 295, 378, "box")]),
+    "7b": (69, [(205, 380, 208, 525, "box"), (380, 576, 70, 320, "box")]),
+    "8":  (73, [(0, 205, 84, 125, "general"), (0, 205, 160, 440, "box"), (205, 380, 68, 100, "box")]),
 }
+#: The same chapters as gov.bc.ca serves them one region at a time — byte-identical to the
+#: site on 2026-09-17 (md5 as recorded) — each holding the box on its page 2.
+GOV_CHAPTERS = {"1": ("region_1_vancouver_island.pdf", "9b8c35eb"), "1hg": ("region_1_vancouver_island.pdf", "9b8c35eb"),
+                "2": ("region_2_lower_mainland.pdf", "b5828afe"), "3": ("region_3_thompson.pdf", "c63be622"),
+                "4": ("region_4_kootenay.pdf", "01dac4c5"), "5": ("region_5_cariboo.pdf", "8a771eb5"),
+                "6": ("region_6_skeena.pdf", "aa18c81c"), "7a": ("region_7a_omineca.pdf", "47763e79"),
+                "7b": ("region_7b_peace.pdf", "c62ffadb"), "8": ("region_8_okanagan.pdf", "a92a4156")}
 REGION_OF = {"1hg": "1"}
-#: The province's own lines, found by pattern anywhere on the page.
-PROVINCE_PAGES = [7, 10]
+#: The province's own lines: pages 8–12 of the full synopsis, found by pattern per column.
+PROVINCE_PAGES = [7, 8, 9, 10, 11]
 
 # ----------------------------------------------------------------------------------------
 # reading the PDF
@@ -111,12 +123,28 @@ def _logical_lines(raw: List[Tuple[float, float, str]], col_x0: float) -> List[s
     return out
 
 
-def box_lines(folder: str, reg: str) -> List[Tuple[str, str]]:
-    """(mode, line) for every logical line in the region's windows."""
-    file, page, windows = CHAPTERS[reg]
+def box_lines(reg: str, pdf: str = PDF, page: Optional[int] = None) -> List[Tuple[str, str]]:
+    """(mode, line) for every logical line in the region's windows — from the repo synopsis
+    by default, or from any file holding the same page at `page`."""
+    pidx, windows = CHAPTERS[reg]
+    if page is not None:
+        pidx = page
     out: List[Tuple[str, str]] = []
     for x0, x1, y0, y1, mode in windows:
-        out += [(mode, t) for t in _logical_lines(_raw_lines(folder, file, page, x0, x1, y0, y1), x0 + 36)]
+        out += [(mode, t) for t in _logical_lines(_raw_lines(os.path.dirname(pdf), os.path.basename(pdf), pidx, x0, x1, y0, y1), x0 + 36)]
+    return out
+
+
+def cross_check(folder: str) -> Dict[str, bool]:
+    """Is each box in the repo synopsis identical, line for line, to the same box in the
+    chapter gov.bc.ca serves (byte-identical to the site)? This is what makes the repo copy
+    a source: not its bytes, but its every line agreeing with the official file's."""
+    out = {}
+    for reg, (file, md5) in GOV_CHAPTERS.items():
+        path = os.path.join(folder, file)
+        if not os.path.exists(path) or _md5(folder, file) != md5:
+            out[reg] = False; continue
+        out[reg] = box_lines(reg) == box_lines(reg, path, 1)
     return out
 
 
@@ -449,6 +477,12 @@ class Check:
     why: str = ""
     rule: str = ""
     label: str = ""          # "" | "curation" | "bug" | "not-base" | "unread"
+    found: str = ""          # on a ✓: the table's words and the sentence they were read from
+
+
+def _proof(a: Allowance, name) -> str:
+    """What a ✓ rests on: the table's line, and the catalogue sentence behind it."""
+    return _words(a, name) + (f" — “{a.source.verbatim}”" if a.source.verbatim else "")
 
 
 @dataclass
@@ -461,6 +495,7 @@ class Panel:
     md5: str
     lines: List[str]
     checks: List[Check] = field(default_factory=list)
+    gov: str = ""            # the gov.bc.ca chapter this box was proved identical to
 
 
 def _words(a: Allowance, name) -> str:
@@ -468,12 +503,15 @@ def _words(a: Allowance, name) -> str:
     return f"{a.word()} {who}" + (f" · {q}" if q else "") + (f" · {a.applies.detail}" if a.applies.detail else "")
 
 
-def check_region(folder: str, reg: str, kind: str, name=lambda c: c) -> Panel:
-    file, page, _ = CHAPTERS[reg]
-    lines = box_lines(folder, reg)
-    src = f"{file} · {EDITION} · page {page + 1}"
+def check_region(reg: str, kind: str, name=lambda c: c, pdf: str = PDF) -> Panel:
+    page, _ = CHAPTERS[reg]
+    lines = box_lines(reg, pdf)
+    gov_file, gov_md5 = GOV_CHAPTERS[reg]
+    src = f"{os.path.basename(pdf)} · {EDITION} · page {page + 1}"
     P = Panel(reg, kind, f"Region {REGION_OF.get(reg, reg).upper()}{' — Haida Gwaii' if reg == '1hg' else ''} · {kind}s",
-              src, GOV + file, _md5(folder, file), [t for m, t in lines if m == "box" or _CLOSURE.match(t)])
+              src, GOV + gov_file, _md5(os.path.dirname(pdf), os.path.basename(pdf)),
+              [t for m, t in lines if m == "box" or _CLOSURE.match(t)])
+    P.gov = f"{gov_file} · md5 {gov_md5}"
     L = base_ledger(reg, kind)
     claimed = set()
     for c in parse(lines):
@@ -494,7 +532,7 @@ def check_region(folder: str, reg: str, kind: str, name=lambda c: c) -> Panel:
             for b in L.allowances:             # a second rule saying the same thing is claimed too
                 if b is not a and b.derived_from is None and satisfies(Ledger([b]), c, kind) is not None:
                     claimed.add(b.rule_id)
-            P.checks.append(Check(c.text, True, "", a.rule_id))
+            P.checks.append(Check(c.text, True, "", a.rule_id, found=_proof(a, name)))
         else:
             have = [_words(x, name) for x in L.allowances if x.derived_from is None and _fish_eq(x, c.species)]
             P.checks.append(Check(c.text, False, "the table has: " + ("; ".join(have) if have else "nothing for this fish"), "", "bug"))
@@ -510,15 +548,16 @@ def check_region(folder: str, reg: str, kind: str, name=lambda c: c) -> Panel:
     return P
 
 
-def check_province(folder: str, name=lambda c: c) -> Panel:
-    """The province's lines, found by pattern on the pages that carry them."""
+def check_province(name=lambda c: c, pdf: str = PDF) -> Panel:
+    """The province's lines, found by pattern on the pages that carry them — read column by
+    column, since the page's three columns interleave when read whole."""
     from pipeline.regs.table.corpus import rules
-    # page 8, right column: the steelhead note; page 11, left column: possession, protected
-    flat = " ".join(t for _, _, t in _raw_lines(folder, FULL, 7, 380, 576, 600, 650)
-                    + _raw_lines(folder, FULL, 10, 0, 205, 60, 720))
+    folder, file = os.path.dirname(pdf), os.path.basename(pdf)
+    flat = " ".join(t for p in PROVINCE_PAGES for col in ((0, 205), (205, 380), (380, 576))
+                    for _, _, t in _raw_lines(folder, file, p, col[0], col[1], 55, 725))
     flat = re.sub(r"\s+", " ", flat)
-    P = Panel("p", "any", "Provincial", f"{FULL} · {EDITION} · pages {', '.join(str(p + 1) for p in PROVINCE_PAGES)}",
-              FULL_URL, _md5(folder, FULL), [])
+    P = Panel("p", "any", "Provincial", f"{file} · {EDITION} · pages {PROVINCE_PAGES[0] + 1}–{PROVINCE_PAGES[-1] + 1}",
+              FULL_URL, _md5(folder, file), [])
     rs = [x for x in rules() if x["entry"].startswith("zp:") and source_of(x).is_base]
     alw, lifted, fam, mults, duties, unresolved = allowances(rs, "lake")
     L = Ledger(alw, lifted=lifted, family=fam, multiples=mults, duties=duties, water_kind="lake")
@@ -528,31 +567,38 @@ def check_province(folder: str, name=lambda c: c) -> Panel:
     s = find(r"The annual province-wide quota for hatchery steelhead is (\d+)\.")
     P.lines.append(s or "(not found: annual hatchery steelhead)")
     a = satisfies(L, Claim(s or "", frozenset({"ST"}), "annual", 10, origin="hatchery"), "lake")
-    P.checks.append(Check(s or "annual hatchery steelhead: 10", a is not None, "" if a else "no province-wide annual steelhead counter", a.rule_id if a else "", "" if a else "bug"))
+    P.checks.append(Check(s or "annual hatchery steelhead: 10", a is not None, "" if a else "no province-wide annual steelhead counter", a.rule_id if a else "", "" if a else "bug", found=_proof(a, name) if a else ""))
     s = find(r"All wild steelhead must be released\.")
     P.lines.append(s or "(not found: wild steelhead)")
     a = satisfies(L, Claim(s or "", frozenset({"ST"}), "release", 0, origin="wild"), "lake")
-    P.checks.append(Check(s or "All wild steelhead must be released", a is not None, "" if a else "no wild steelhead release", a.rule_id if a else "", "" if a else "bug"))
+    P.checks.append(Check(s or "All wild steelhead must be released", a is not None, "" if a else "no wild steelhead release", a.rule_id if a else "", "" if a else "bug", found=_proof(a, name) if a else ""))
     s = find(r"Possession quota[^.]*?twice the daily quota[^.]*?\.")
     P.lines.append(s or "(not found: possession quota)")
     a = satisfies(L, Claim(s or "", frozenset({"ALL_GAME_FISH"}), "multiple", 2), "lake")
-    P.checks.append(Check(s or "possession = twice the daily quota", a is not None, "" if a else "no province-wide possession multiple", a.rule_id if a else "", "" if a else "bug"))
+    P.checks.append(Check(s or "possession = twice the daily quota", a is not None, "" if a else "no province-wide possession multiple", a.rule_id if a else "", "" if a else "bug", found=_proof(a, name) if a else ""))
     s = find(r"It is illegal to fish for, or catch and retain[^.]*\.")
     P.lines.append(s or "(not found: protected species)")
     a = next((x for x in L.allowances if x.scope.fish == {"PROTECTED_SPECIES"} and x.kind == "closed"), None)
-    P.checks.append(Check(s or "protected species: closed", a is not None, "" if a else "no protected-species closure", a.rule_id if a else "", "" if a else "bug"))
+    P.checks.append(Check(s or "protected species: closed", a is not None, "" if a else "no protected-species closure", a.rule_id if a else "", "" if a else "bug", found=_proof(a, name) if a else ""))
     return P
 
 
-def all_panels(folder: str, name=lambda c: c) -> List[Panel]:
-    out = [check_province(folder, name)]
+def all_panels(name=lambda c: c, pdf: str = PDF) -> List[Panel]:
+    out = [check_province(name, pdf)]
     for reg in CHAPTERS:
         for kind in ("lake", "stream"):
-            out.append(check_region(folder, reg, kind, name))
+            out.append(check_region(reg, kind, name, pdf))
     return out
+
+
+def edition(pdf: str = PDF) -> str:
+    import pdfplumber
+    with pdfplumber.open(pdf) as doc:
+        m = re.search(r"20\d\d\s*[-–]\s*20\d\d", doc.pages[0].extract_text() or "")
+        return re.sub(r"\s+", "", m.group(0)) if m else ""
 
 
 def panel_json(P: Panel) -> dict:
     return {"region": P.region, "kind": P.kind, "title": P.title, "source": P.source, "url": P.url,
-            "md5": P.md5, "lines": P.lines,
-            "checks": [{"line": c.line, "ok": c.ok, "why": c.why, "rule": c.rule, "label": c.label} for c in P.checks]}
+            "md5": P.md5, "gov": P.gov, "lines": P.lines,
+            "checks": [{"line": c.line, "ok": c.ok, "why": c.why, "rule": c.rule, "label": c.label, "found": c.found} for c in P.checks]}
