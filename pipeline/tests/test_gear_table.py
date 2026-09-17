@@ -17,6 +17,7 @@ from pipeline.regs.table.method_build import (table, base, region_base, provinci
                                               terms_of, explained_by_scope, reaches_kind)
 from pipeline.regs.table.method_oracle import may_i_fish, may_i_keep_by
 from pipeline.regs.table.oracle import Fish
+from pipeline.regs.table.subject import Origin
 
 REGIONS = ["1", "2", "3", "4", "5", "6", "7a", "7b", "8"]
 
@@ -325,16 +326,21 @@ def test_a_water_closed_to_fishing_reads_closed_in_the_gear_table(sections):
     assert shut_somewhere > 50
 
 
-def test_what_you_may_keep_by_a_method_is_the_stricter_of_both_tables(sections):
+def test_what_you_may_keep_by_a_method_is_the_stricter_of_both_tables(sections, monkeypatch):
     from pipeline.regs.table.build import ledger, name
+    from pipeline.regs.parsing import catalogue
+    # coho is closed to the spear only once SA is a group (see the SA test below); the check
+    # holds before and after the catalogue line lands
+    if "SA" not in catalogue.SPECIES_GROUPS:
+        monkeypatch.setitem(catalogue.SPECIES_GROUPS, "SA", catalogue.SPECIES_GROUPS["SALMON"])
     checked = 0
     for w, run, kind, rules, here, label, T in sections:
         if T.keep("spear_fishing") is None or T.shut((7, 15)) is not None:
             continue
         L = ledger(rules, kind, here, label)
-        for sp in ("BB", "RB", "SA"):
+        for sp in ("BB", "RB", "CO"):
             v = may_i_keep_by(T, L, "spear_fishing", Fish(sp, 40), (7, 15), name=name)
-            if sp in ("RB", "SA"):
+            if sp in ("RB", "CO"):
                 assert v.keep is False, (w, run + 1, sp, v.reasons)
                 assert v.decided_by[0].rule_id.startswith("zp:spear_fishing::"), v.decided_by[0].rule_id
             elif any("BB" in fish for fish, _ in T.lifted_fish.get("spear_fishing", [])):
@@ -589,3 +595,21 @@ def test_a_rule_filed_as_the_other_kind_of_water_must_be_found_there(sections, m
     finally:
         mb._base.cache_clear()
     assert gone == [victim], gone
+
+
+def test_with_sa_as_a_group_the_spear_closure_reaches_coho_and_chinook(monkeypatch):
+    """The fix for the round-1 finding: "No spear fishing of Pacific salmon" names SA, and a
+    leaf SA contains no coho by code. With SA a group (catalogue.py, the quota agent's line)
+    the closure must reach every salmon — holds whether or not that line has landed."""
+    from pipeline.regs.parsing import catalogue
+    from pipeline.regs.table.subject import expand
+    if "SA" not in catalogue.SPECIES_GROUPS:
+        monkeypatch.setitem(catalogue.SPECIES_GROUPS, "SA", catalogue.SPECIES_GROUPS["SALMON"])
+    assert {"CO", "CH", "SK", "PK", "CM"} <= expand(frozenset({"SA"}))
+    T = region_base("6", "lake")
+    L = T.keep("spear_fishing")
+    r4 = next(a for a in L.allowances if a.rule_id == "zp:spear_fishing::spear_fishing.r4")
+    for sp in ("CO", "CH", "SK", "PK", "CM"):
+        assert r4.contains(sp), sp
+        assert any(a.rule_id == "zp:spear_fishing::spear_fishing.r4" for a in L.counters(sp, Origin.wild, None, (7, 15))), sp
+    assert not r4.contains("BB") and not r4.contains("RB")
