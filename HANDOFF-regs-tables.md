@@ -191,6 +191,36 @@ fails if any of them comes back.
   sample re-resolved here matches the page counter for counter (a stale `t` fails); the
   emitter leaves `d` alone.
 
+## The standing-tables page (artifact 17, 2026-09-21)
+
+`https://claude.ai/artifact/TzMSTVCayHe7zWNDbrs4k9`. **Its source is `head.html` + `body.html`
+in the session scratchpad, plus `base.json` from `pipeline.tools.emit_base_tables`** — the
+page is built by concatenating the three. Nothing of the renderer is in the repository; if
+that scratchpad goes, the page can no longer be edited. **This needs a home.**
+
+Four things changed on it, each of which was a defect:
+
+1. **A combined quota is the grouping** (`provenance.present` → `combine`). Region 3 drew
+   bull trout / Dolly Varden and lake trout as two rows identical to the last digit, sharing
+   cap and all, because the lake trout is released Oct 15 – Jan 31 and the bull trout is not.
+   They are one entry now, with each member's own season on its own line. Two entries merge
+   when their non-seasonal counters and sizes are equal AND they share a pooled combined
+   quota that names both and is not the band above them. **Counter equality alone is refused**
+   — 7A's lakes and 7B's streams each have two entries with identical numbers and no shared
+   pool, and they stay apart.
+2. **Seasons are drawn at all.** The page showed none: 68 of 246 standing rows carry a
+   seasonal counter and the only place any of them appeared was the print check beside the
+   table. A season a row's own counter carries is now a line under the fish; one carried by
+   every row that may keep anything is stated once above the table.
+3. **A cap that takes over the day takes over possession too.** `period()` skips `within`
+   counters, so a row reading "3, of the 5 shared" printed the family's 10 beside it — ten
+   Dolly Varden in the truck of a fish you may take three of. The cap's own possession twin
+   is the answer (Haida Gwaii 10 → 6, Region 3 8 → 2).
+4. **A number that is never in force is not an answer.** Three rows over the 22 tables have a
+   calendar with no day on which the headline holds — 7A's bull trout showed the trout-and-char
+   5 while the book gives it 1 for 303 days and release for 62. Those rows now say so and
+   point at their seasons.
+
 ## Open work
 
 1. Groups still named by exclusion — "Any other char" / "Any other trout". The readability
@@ -202,6 +232,13 @@ fails if any of them comes back.
    PDF was fetched (the full synopsis p.70 now covers the quota table).
 5. The page's species-group toggles (`st.fish_`, the where-view) do not filter the ledger;
    the ledger has its own finder. One filter would be better than two.
+6. **`app/design/regs-v3.html` is stale against `present()`.** Its `<script id="t">` block
+   predates `combined`, so Region 3's waters still draw the two split rows. `LEDGER` would
+   also need to learn `combined`: it renders a two-line entry with an origin badge, and a
+   merged group's two lines are both "either", so the members would be unlabelled. The owner
+   has accepted this — v4 is built from the structure, not from this page.
+7. The quota/custody artifact (`c16d220a…`) and the gear artifact (`56c5f7d1…`) were not
+   regenerated and show the pre-merge shape.
 
 ## Artifacts
 
