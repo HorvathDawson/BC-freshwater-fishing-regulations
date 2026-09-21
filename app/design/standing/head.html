@@ -1,0 +1,206 @@
+<title>Standing Tables</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--page:#EFEFEC;--card:#FFFFFF;--wash:#F7F7F5;--tint:#EEEFEB;--line:#E5E6E1;--line-2:#D3D5CF;
+--ink:#15181C;--sub:#6C737A;--faint:#99A0A6;--closed:#D81E1E;--limited:#C07200;--open:#0A8552;
+--unknown:#5F26E0;--accent:#5F26E0;--on-accent:#FFF;--quiet:#C3C8CD;
+--lift:0 1px 2px rgba(20,24,28,.05),0 6px 18px rgba(20,24,28,.06);
+--disp:"Bricolage Grotesque",Georgia,serif;--body:Archivo,system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0A0B0D;--card:#15181B;--wash:#101215;
+--tint:#1E2227;--line:#252A2F;--line-2:#333A41;--ink:#EEF1F4;--sub:#9AA3AB;--faint:#6B747C;--quiet:#3A424A;
+--closed:#FF6B6B;--limited:#E0A040;--open:#3FBF85;--unknown:#A98CFF;--accent:#A98CFF;--on-accent:#15181B;
+--lift:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}}
+:root[data-theme="dark"]{--page:#0A0B0D;--card:#15181B;--wash:#101215;--tint:#1E2227;--line:#252A2F;
+--line-2:#333A41;--ink:#EEF1F4;--sub:#9AA3AB;--faint:#6B747C;--quiet:#3A424A;--closed:#FF6B6B;
+--limited:#E0A040;--open:#3FBF85;--unknown:#A98CFF;--accent:#A98CFF;--on-accent:#15181B;
+--lift:0 1px 2px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+body{background:var(--page);color:var(--ink);font:400 15px/1.45 var(--body);margin:0;padding-block:28px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+h1{font:800 clamp(26px,4.4vw,38px)/1.06 var(--disp);margin:0 0 6px;letter-spacing:-.02em;text-wrap:balance}
+.lede{color:var(--sub);max-width:66ch;margin:0 0 4px}
+.lede b{color:var(--ink);font-weight:600}
+.meta{color:var(--faint);font:500 12px/1.5 var(--mono);margin:10px 0 22px}
+h2{font:700 19px/1.2 var(--disp);margin:0 0 2px;letter-spacing:-.01em}
+.eyebrow{font:700 10.5px/1 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.card{background:var(--card);border:1px solid var(--line-2);border-radius:16px;box-shadow:var(--lift);overflow:hidden;margin:0 0 20px}
+.card>header{padding:14px 18px;background:var(--wash);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.card>.body{padding:16px 18px}
+/* ---- region picker ---- */
+.picker{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.rbtn{font:600 13px/1 var(--body);padding:9px 13px;border-radius:999px;border:1px solid var(--line-2);
+background:var(--card);color:var(--ink);cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+.rbtn:hover{border-color:var(--accent)}
+.rbtn[aria-pressed="true"]{background:var(--ink);color:var(--page);border-color:var(--ink)}
+.rbtn .sc{font:500 11px/1 var(--mono);opacity:.75}
+.rbtn.bad .sc{color:var(--closed);opacity:1;font-weight:700}
+.rbtn[aria-pressed="true"].bad .sc{color:#FF9B9B}
+.kinds{display:flex;gap:6px;margin:0 0 20px}
+.kbtn{font:600 12.5px/1 var(--body);padding:8px 16px;border-radius:8px;border:1px solid var(--line-2);
+background:var(--card);color:var(--sub);cursor:pointer}
+.kbtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+/* ---- tables ---- */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font:700 10.5px/1 var(--body);letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+text-align:left;padding:0 10px 9px;border-bottom:1px solid var(--line)}
+th.n,td.n{text-align:right;font-variant-numeric:tabular-nums}
+td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.fish{font:600 15px/1.25 var(--body)}
+.mem{color:var(--faint);font-size:12px;margin-top:3px}
+.ans{font:700 19px/1 var(--disp);font-variant-numeric:tabular-nums}
+.ans.stop{color:var(--closed)}
+.ans.rel{color:var(--closed);font-size:15px}
+.ans.lim{color:var(--limited)}
+.ans.inf{color:var(--open);font-size:15px}
+.sz{font-size:13px;color:var(--ink)}
+.sz .none{color:var(--faint)}
+.cap{font-size:13px;color:var(--limited);margin-top:3px;font-weight:500}
+.defnote{font:500 12px/1.4 var(--body);color:var(--sub);margin-top:2px}
+.org{display:block;font:600 11px/1.5 var(--body);color:var(--sub);text-transform:uppercase;letter-spacing:.06em}
+.tag{font:600 10px/1 var(--mono);padding:3px 7px;border-radius:5px;background:var(--tint);color:var(--sub);
+white-space:nowrap;display:inline-block;margin-left:5px}
+.band{background:var(--tint)}
+.band td{font-weight:600}
+tr.fam td{background:var(--ink);color:var(--page);padding-top:10px;padding-bottom:10px}
+tr.fam .fish{font:700 15px/1.2 var(--disp);letter-spacing:.01em}
+tr.fam .mem{color:var(--quiet);opacity:.9}
+tr.band.sub td{background:var(--tint)}
+.bnote{font:500 12px/1.4 var(--body);color:var(--closed);margin-top:3px}
+/* NOTHING IS CLIPPED. Columns get room rather than squeezing text; the container scrolls. */
+table{min-width:780px;table-layout:auto}
+th:first-child,td:first-child{min-width:230px}
+td{overflow-wrap:anywhere;word-break:normal}
+th{overflow-wrap:normal;word-break:keep-all;text-wrap:balance}
+th.n{min-width:96px}
+/* The tiers widened Per day, and the Size column paid for it by breaking "any size" across
+   two lines. Give it a floor of its own. */
+table:not(.gear) th:nth-child(2),table:not(.gear) td:nth-child(2){min-width:122px}
+.sz,.mem,.pr,.ou{overflow-wrap:anywhere}
+.ans{white-space:nowrap}
+.ans.rel,.ans.stop,.ans.inf{white-space:normal}
+/* ---- size tiers: one fish, one number per size class ----
+   The label and the number live in the SAME cell so the pair survives the stacked phone
+   layout, where every cell becomes its own block and a label in the Size column could no
+   longer sit beside its number in Per day. */
+td.n.tiered{min-width:206px}
+/* The 2px the origin chip and its number share is measured, not decorative: inside a tier the
+   number is baseline-aligned against a 12.5px label instead of the cell's own text, which
+   drops it 2px and breaks the line every HATCHERY row is read along. Put it back. */
+.tiers{display:flex;flex-direction:column;gap:8px;margin-top:-2px}
+.tier{display:flex;gap:14px;align-items:baseline;justify-content:flex-end}
+.tlab{font:600 12.5px/1.3 var(--body);color:var(--sub);white-space:nowrap;text-align:left;
+ flex:1 1 auto;letter-spacing:.01em}
+.tnum{display:flex;flex-direction:column;align-items:flex-end;gap:1px;white-space:nowrap}
+.tnum .cap{margin-top:1px;font-size:11.5px;line-height:1.35}
+.tnum .tag{margin-left:0}
+.tier+.tier{border-top:1px dashed var(--line);padding-top:8px}
+
+/* a species whose wild and hatchery answers differ: one name, two lines under it */
+/* the name, then one aligned row per origin, joined by a rule down the left */
+tr.ename td{border-bottom:0;padding-bottom:4px}
+tr.oline td{border-bottom:1px dashed var(--line);padding-top:7px;padding-bottom:7px}
+tr.oline.last td{border-bottom:1px solid var(--line)}
+tr.oline td:first-child{position:relative}
+tr.oline td:first-child::after{content:"";position:absolute;left:10px;top:0;bottom:0;
+ border-left:2px solid var(--line)}
+tr.oline.last td:first-child::after{bottom:50%}
+.org.split{display:inline-block;margin-left:22px;padding:2px 8px;border-radius:5px;
+ background:var(--tint);color:var(--ink);letter-spacing:.04em}
+.org.split.wild{background:color-mix(in srgb,var(--open) 14%,transparent);color:var(--open)}
+.org.split.hatchery{background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
+/* ---- A COMBINED QUOTA IS ONE GROUP, AND A SEASON SITS ON THE MEMBER IT NAMES ----
+   Region 3's bull trout, Dolly Varden and lake trout share one number and have DIFFERENT
+   seasons: on streams the first two go back Aug 1 - Oct 31 and the lake trout Oct 15 - Jan
+   31. One row each printed the shared cap twice as if it were two caps; one row for all
+   three, with the seasons collapsed into it, would say a closure covers a fish it does not
+   name. So: one row of numbers, and beneath it a line per member that carries only WHEN and
+   WHAT, never a number of its own — a number there could be read as a second allowance. */
+tr.cgroup td{border-bottom:0;padding-bottom:7px}
+tr.cline td{border-bottom:1px dashed var(--line);padding-top:4px;padding-bottom:8px}
+tr.cline.last td{border-bottom:1px solid var(--line)}
+tr.cline td:first-child{position:relative}
+tr.cline td:first-child::after{content:"";position:absolute;left:10px;top:0;bottom:0;
+ border-left:2px solid var(--line)}
+tr.cline.last td:first-child::after{bottom:50%}
+.seas{display:flex;flex-wrap:wrap;align-items:baseline;gap:9px;margin-left:22px}
+.seas+.seas{margin-top:5px}
+.seas .who{font:600 11px/1.5 var(--body);text-transform:uppercase;letter-spacing:.04em;
+ padding:2px 8px;border-radius:5px;background:var(--tint);color:var(--ink);
+ display:inline-block}
+.seas .when{font:500 12.5px/1.45 var(--mono);color:var(--sub)}
+.seas .sverd{font:700 13px/1.4 var(--body)}
+.seas .sverd.stop,.seas .sverd.rel{color:var(--closed)}
+.seas .sverd.inf{color:var(--open)}
+.gseas{margin-top:7px}
+.gseas .seas{margin-left:0}
+@media (max-width:620px){.seas,.gseas .seas{margin-left:0}}
+.tseas{background:var(--wash);border:1px solid var(--line);border-radius:10px;
+ padding:11px 13px;margin:0 0 14px}
+.tseas .eyebrow{display:block;margin-bottom:7px}
+.tseas .seas{margin-left:0}
+/* ---- print check ---- */
+.chk{border-bottom:1px solid var(--line);padding:11px 0;display:grid;grid-template-columns:22px 1fr;gap:10px}
+.chk:last-child{border-bottom:0}
+.mark{font:700 14px/1.3 var(--body)}
+.yes{color:var(--open)}
+.no{color:var(--closed)}
+.pr{font:500 13.5px/1.45 var(--body);color:var(--ink)}
+.ou{font:400 12.5px/1.45 var(--mono);color:var(--sub);margin-top:3px}
+.no-row{background:color-mix(in srgb,var(--closed) 9%,transparent);margin:0 -10px;padding:11px 10px;border-radius:8px}
+.why{font-size:12px;color:var(--faint);margin-top:3px;font-style:italic}
+.rid{font:400 10.5px/1.4 var(--mono);color:var(--quiet);margin-top:3px}
+.src{font:500 11.5px/1.5 var(--mono);color:var(--faint)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.scroll{overflow-x:auto}
+.note{font-size:13px;color:var(--sub);background:var(--wash);border-left:2px solid var(--accent);
+padding:10px 13px;border-radius:0 8px 8px 0;margin:0 0 14px}
+.pill{font:700 11px/1 var(--body);padding:4px 9px;border-radius:999px;letter-spacing:.04em}
+.pill.ok{background:color-mix(in srgb,var(--open) 15%,transparent);color:var(--open)}
+.pill.bad{background:color-mix(in srgb,var(--closed) 15%,transparent);color:var(--closed)}
+.empty{color:var(--faint);font-style:italic;padding:14px 0}
+/* gear */
+.vw{font:700 16px/1.2 var(--disp)}
+.vw.ok{color:var(--open)}
+.vw.stop{color:var(--closed)}
+.vnote{font:500 12px/1.4 var(--body);color:var(--limited);margin-top:3px}
+ul.bits{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.bits li{font-size:13.5px;line-height:1.45}
+.rtag{font:600 10px/1 var(--mono);padding:3px 7px;border-radius:4px;
+ background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent);
+ margin-right:6px;white-space:nowrap;display:inline-block}
+.rtag.bad{background:color-mix(in srgb,var(--closed) 13%,transparent);color:var(--closed)}
+.rtag.good{background:color-mix(in srgb,var(--open) 13%,transparent);color:var(--open)}
+.krule{color:var(--sub)}
+.gband{padding:14px 18px;background:var(--tint);border-bottom:1px solid var(--line)}
+.gbhead{font:700 13px/1.3 var(--body);margin-bottom:9px}
+.gbcols{display:flex;gap:26px;flex-wrap:wrap}
+.gbcol{min-width:190px;flex:1 1 190px}
+.card.always{border-color:color-mix(in srgb,var(--closed) 40%,var(--line-2))}
+.card.always>header{background:color-mix(in srgb,var(--closed) 9%,transparent)}
+ul.alist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px}
+ul.alist li{font-size:13.5px;line-height:1.45}
+ul.alist b{font-weight:600}
+.wgroup{margin:2px 0}
+ul.winner{margin:5px 0 0;padding:0 0 0 16px;list-style:disc;display:flex;
+ flex-direction:column;gap:4px}
+ul.winner li{font-size:13.5px;line-height:1.45;color:var(--ink)}
+table.gear th:nth-child(2),table.gear td:nth-child(2){min-width:140px}
+table.gear th:last-child,table.gear td:last-child{min-width:330px}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+@media (max-width:620px){
+ body{padding-block:18px}.wrap{padding:0 16px}
+ table{min-width:0}
+ table,thead,tbody,tr,td,th{display:block}
+ td:first-child{min-width:0}
+ thead{display:none}
+ tr{border-bottom:1px solid var(--line);padding:10px 0}
+ td{border:0;padding:3px 0;display:flex;gap:10px;justify-content:space-between}
+ /* The stacked label is a label, not a column: it never wraps, or a long Size cell breaks
+    "SIZE" into "SIZ / E". */
+ td::before{content:attr(data-th);font:700 10.5px/1.6 var(--body);letter-spacing:.14em;
+  text-transform:uppercase;color:var(--faint);white-space:nowrap;flex:0 0 auto}
+ td.fishcell{display:block}td.fishcell::before{display:none}
+ .ans{font-size:17px}
+}
+</style>

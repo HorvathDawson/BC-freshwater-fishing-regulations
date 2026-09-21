@@ -1,0 +1,876 @@
+<div class="wrap">
+  <h1>Standing Tables</h1>
+  <p class="lede">The regulations for a whole region, <b>before any particular water changes them</b>.
+  Every water's table is this plus a named list of overrides &mdash; so if a line here is wrong,
+  it is wrong on every water in the region at once. Each line sits beside the sentence in the
+  printed synopsis it was read from.</p>
+  <p class="meta" id="meta"></p>
+
+  <p class="eyebrow" style="margin-bottom:8px">Region</p>
+  <div class="picker" id="picker"></div>
+  <div class="kinds" id="kinds">
+    <button class="kbtn" data-kind="lake" aria-pressed="false">Lakes</button>
+    <button class="kbtn" data-kind="stream" aria-pressed="false">Streams</button>
+  </div>
+
+  <div id="panel"></div>
+</div>
+
+<script>
+const D = window.__BASE__;
+let REG = "province", KIND = "lake";
+
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const at = (r, k) => D.regions.find(x => x.region === r && x.kind === k);
+
+function label(r) {
+  if (r === "province") return "All of B.C.";
+  if (r === "1hg") return "Haida Gwaii";
+  return "Region " + r.toUpperCase();
+}
+
+/* ---------- the picker ---------- */
+function drawPicker() {
+  const regs = [...new Set(D.regions.map(r => r.region))];
+  regs.sort((a, b) => a === "province" ? -1 : b === "province" ? 1 : a.localeCompare(b));
+  document.getElementById("picker").innerHTML = regs.map(r => {
+    // worst of the two kinds, so a region with one bad table never looks clean
+    let ok = 0, n = 0;
+    for (const k of ["lake", "stream"]) {
+      const e = at(r, k); if (!e) continue;
+      for (const side of ["quota", "gear"]) {
+        const p = e[side].print; if (!p) continue;
+        ok += p.ok; n += p.n;
+      }
+    }
+    const bad = n && ok < n;
+    return `<button class="rbtn${bad ? " bad" : ""}" data-r="${esc(r)}" aria-pressed="${r === REG}">
+      ${esc(label(r))} <span class="sc">${ok}/${n}</span></button>`;
+  }).join("");
+  document.querySelectorAll(".rbtn").forEach(b =>
+    b.onclick = () => { REG = b.dataset.r; draw(); });
+  document.querySelectorAll(".kbtn").forEach(b =>
+    b.onclick = () => { KIND = b.dataset.kind; draw(); });
+}
+
+/* ---------- quota rows ---------- */
+function ansCell(row) {
+  const k = String(row.keep == null ? "" : row.keep);
+  if (k === "release") return `<span class="ans rel">Put it back</span>`;
+  if (k === "0" || k === "closed") return `<span class="ans stop">No fishing</span>`;
+  if (k === "∞" || k === "unlimited") return `<span class="ans inf">No limit</span>`;
+  if (k === "") return `<span class="sz none">no daily limit set at this level</span>`;
+  const n = parseInt(k, 10);
+  return `<span class="ans${!isNaN(n) && n <= 2 ? " lim" : ""}">${esc(k)}</span>`;
+}
+
+/* A SIZE ON A FISH THAT GOES BACK IS A CONTRADICTION. Region 2's wild steelhead read
+   "must be at least 30 cm · Put it back" — the 30 cm comes from a band shared with the
+   hatchery line, and on a released fish it is worse than noise: a reader measures, sees
+   30 cm, and keeps a fish that may never be kept. When nothing may be kept, no length,
+   no cap and no slot can change that, so the cell says only that. */
+/* TWO SIZE STATEMENTS ARE OFTEN ONE — BUT A CAP IS NEVER DELETED.
+
+     · FLOORS SUBSUME. "at least 60 cm" implies "at least 30 cm", so only the strictest prints.
+
+     · A CAP BELOW THE FLOOR IS RESTATED AT THE FLOOR, NOT DROPPED. When nothing under 60 cm
+       may be kept, "only 1 over 50 cm" bites on every fish that may be kept, so it reads
+       "only 1 over 60 cm". An earlier pass DELETED it, and that was wrong: the cap is shared
+       with the whole group ("between them") and `rowCap` only adopts caps naming this row's
+       own fish, so nothing else was carrying it. Keeping one char over 60 spends the group's
+       single over-50 fish, and a rainbow over 50 then cannot be kept — a coupling the reader
+       could no longer see. Restate it; never remove it. */
+function sizeSimplify(items, defMin) {
+  // A definitional minimum subsumes a written floor the same way a written one does: every
+  // steelhead is over 50 cm, so "must be at least 30 cm" on a steelhead row says nothing.
+  const parsed = items.map(t => ({
+    t,
+    floor: (t.match(/at least (\d+)\s*cm/) || [])[1],
+    capAt: (t.match(/only \d+ over (\d+)\s*cm/) || [])[1]
+  }));
+  const floors = parsed.filter(x => x.floor).map(x => +x.floor);
+  if (defMin != null) floors.push(defMin);
+  const top = floors.length ? Math.max.apply(null, floors) : null;
+  const out = [];
+  parsed.forEach(x => {
+    if (x.floor) { if (+x.floor === top && (defMin == null || +x.floor > defMin)) out.push(x.t); return; }
+    if (x.capAt && top !== null && top > +x.capAt) {
+      out.push(x.t.replace(/over \d+\s*cm/, "over " + top + " cm"));
+      return;
+    }
+    out.push(x.t);
+  });
+  return out;
+}
+
+function goesBack(row) {
+  const k = String(row.keep == null ? "" : row.keep);
+  return k === "release" || k === "0" || k === "closed";
+}
+
+function sizeText(kept) {
+  if (!kept.length) return `<span class="sz none">any size</span>`;
+  return `<span class="sz">${kept.map(esc).join(" &middot; ")}</span>`;
+}
+
+/* ---------- SIZE TIERS: ONE FISH WITH TWO NUMBERS IS TWO LINES ----------
+   "Hatchery steelhead: 2, but only 1 over 50 cm" is two answers about one fish. Printed as a
+   number in one column and prose in another, the reader has to do the arithmetic themselves,
+   and the prose wraps to four lines beside a bare figure. It becomes
+
+        up to 50 cm   2
+        over 50 cm    1   of the 2
+
+   THE TIER IS NOT A THIRD LEVEL OF INDENTATION, AND NOT A SIXTH COLUMN. Family -> band ->
+   entry -> origin already nests four deep, and a row per size class would (a) push the fish's
+   name away from its number and (b) leave "This licence year" and "May have" empty on the
+   extra rows, which reads as "no annual limit for the big ones" when the truth is that those
+   limits belong to the fish, not the size class. A size class qualifies the DAILY count and
+   nothing else, so it stays inside that one cell as a label/number pair. A column of its own
+   would be empty on nine rows in ten and, on the phone layout where every cell becomes its
+   own block, a label stranded in the Size column could no longer sit beside its number.
+
+   THE COUPLING IS NEVER LOST. The smaller class carries the whole number and the larger one
+   says "of the N" beneath it, so the two can never be read as N + n fish; a pooled cap still
+   says "between them", for the same reason.
+
+   WHEN A CAP IS NOT A TIER (it keeps its old rendering; a cap is never dropped):
+     - nothing may be kept: the row is a dash and no length can change that;
+     - the floor is at or above the cap: every keepable fish is over the cap, so there is no
+       class below it. `sizeSimplify` restates the cap at the floor and it stays text
+       (Region 2 streams: "only 1 over 50 cm" + "at least 60 cm" -> "only 1 over 60 cm");
+     - the cap is not stricter than the number it sits inside: Regions 1 and 2 print
+       "Steelhead (hatchery): 2 ... only 2 over 50 cm" on streams, a cap that can never bite,
+       and splitting it would offer "up to 50 cm: 2" and "over 50 cm: 2". Same test as
+       `rowCap(row, true)`. */
+const CAP_RE = /^only (\d+) over (\d+)\s*cm/;
+
+/* TWO CAPS AT ONE THRESHOLD, AND ONE OF THEM CARRIES THE OTHER. Region 6 writes "only 1 over
+   50 cm" twice on hatchery steelhead: once for every trout and char together ("between them")
+   and once for steelhead alone. A shared single fish over 50 already forbids a second over-50
+   steelhead, so the pooled line is the whole answer and printing both is the same sentence
+   twice. Nothing is dropped that is not said by a line still on the page — the same test the
+   floors use. A different threshold, or a smaller number, always keeps its own line. */
+function narrowCaps(caps) {
+  const by = {};
+  caps.forEach(c => { c.absorbed = false; (by[c.at] = by[c.at] || []).push(c); });
+  const out = [];
+  Object.keys(by).forEach(at => {
+    const g = by[at];
+    const best = g.slice().sort((a, b) => (a.capN - b.capN) || ((b.pooled ? 1 : 0) - (a.pooled ? 1 : 0)))[0];
+    g.forEach(c => {
+      if (c === best || !(best.pooled && best.capN <= c.capN)) out.push(c);
+      else c.absorbed = true;   // said by a line still on the page; not sent back to the text
+    });
+  });
+  return out;
+}
+
+/* Split a row's size statements into what stays in the Size column and what becomes a tier.
+   `head` is the number the tiers sit inside — the row's own, or a `rowCap` that already took
+   it over. */
+/* The definitional minimum for this row's fish, when every one of them has the same one. */
+function defFloorFish(fish) {
+  const defs = (D.meta || {}).definitions || {};
+  if (!fish || !fish.length) return null;
+  let v = null;
+  for (const f of fish) {
+    const d = defs[f];
+    if (!d || d.min_cm == null) return null;
+    if (v === null) v = d.min_cm; else if (v !== d.min_cm) return null;
+  }
+  return v;
+}
+
+function defFloor(row) {
+  const defs = (D.meta || {}).definitions || {};
+  const fish = row.fish || [];
+  if (!fish.length) return null;
+  let v = null;
+  for (const f of fish) {
+    const d = defs[f];
+    if (!d || d.min_cm == null) return null;
+    if (v === null) v = d.min_cm; else if (v !== d.min_cm) return null;
+  }
+  return v;
+}
+
+function sizePlan(row, head) {
+  const seen = {}, items = [];
+  (row.size || []).forEach(g => {
+    const t = String(g.plain || g.says || "").trim();
+    if (!t || seen[t]) return; seen[t] = 1;
+    const m = CAP_RE.exec(t);
+    items.push({
+      t, at: m ? +m[2] : null, capN: m ? +m[1] : null,
+      floor: +((t.match(/at least (\d+)\s*cm/) || [])[1] || 0) || null,
+      pooled: !!g.shared || / between them$/.test(t)
+    });
+  });
+  const floors = items.filter(x => x.floor).map(x => x.floor);
+  const own = floors.length ? Math.max.apply(null, floors) : null;
+  // A SIZE THE BOOK PUTS IN THE DEFINITION COUNTS AS A FLOOR. Page 86: "steelhead: a rainbow
+  // trout longer than 50 cm". So "up to 50 cm: 4 / over 50 cm: 2" on a steelhead row offers a
+  // number for a fish that cannot exist, and only the 2 is real. No regional table states
+  // this — it is what the word means — so it arrives as `meta.definitions`.
+  const def = defFloor(row);
+  const top = (own === null && def === null) ? null
+            : Math.max(own === null ? 0 : own, def === null ? 0 : def);
+  const h = parseInt(String(head), 10);
+  let tiers = items.filter(x => x.at !== null
+    && (top === null || top < x.at)              // a size class exists below the cap
+    && (isNaN(h) || x.capN < h));                // and the cap is stricter than its number
+  tiers = narrowCaps(tiers).sort((a, b) => a.at - b.at);
+  // A cap no fish of this kind can fall below governs the whole row: every steelhead is over
+  // 50 cm, so "only 2 over 50 cm" is simply "2".
+  const governs = items.find(x => x.at !== null && tiers.indexOf(x) < 0
+    && top !== null && top >= x.at && (isNaN(h) || x.capN < h)) || null;
+  // An absorbed cap is not handed back to the Size column: it would print the sentence the
+  // tier above it already makes, which is exactly the duplication this replaces.
+  const rest = items.filter(x => tiers.indexOf(x) < 0 && !x.absorbed && x !== governs).map(x => x.t);
+  return { tiers: tiers, text: sizeSimplify(rest, def), governs: governs, def: def };
+}
+
+/* The daily cell for a row that has tiers: the number it already showed, now labelled with
+   the class it belongs to, and one line per cap beneath it. */
+function tierCell(headHtml, head, tiers) {
+  const line = (lab, num) =>
+    `<div class="tier"><span class="tlab">${lab}</span><span class="tnum">${num}</span></div>`;
+  let prev = String(head), out = line(`up to ${tiers[0].at} cm`, headHtml);
+  tiers.forEach(c => {
+    out += line(`over ${c.at} cm`,
+      `<span class="ans${c.capN <= 2 ? " lim" : ""}">${esc(String(c.capN))}</span>` +
+      `<span class="cap">of the ${esc(prev)}${c.pooled ? " &middot; between them" : ""}</span>`);
+    prev = String(c.capN);
+  });
+  return `<div class="tiers">${out}</div>`;
+}
+
+function period(row, p) {
+  const c = (row.counters || []).filter(x => x.period === p && !x.moot && !x.within);
+  if (!c.length) return "";
+  const seen = {}, out = [];
+  c.forEach(x => {
+    const n = x.n == null ? x.keep : x.n;
+    const key = String(n) + "|" + (x.pooled ? "p" : "");
+    if (seen[key]) return; seen[key] = 1;
+    out.push(`${esc(String(n))}${x.pooled ? ' <span class="tag">between them</span>' : ""}`);
+  });
+  return out.join("<br>");
+}
+
+/* A CAP INSIDE A NUMBER, WITH NO SIZE, FELL THROUGH EVERY COLUMN. Haida Gwaii's "3 Dolly
+   Varden" is a cap on what the 5 may be made of; `period` skips `within` counters and the
+   size cell only takes counters that carry a size, so a count-cap on a subset of the fish was
+   invisible — the exact shape of defect that started this table's rewrite. */
+function capsOf(row) {
+  const seen = {}, out = [];
+  (row.counters || []).forEach(c => {
+    if (!c.within || c.moot || c.period !== "daily" || c.size || c.n == null) return;
+    const key = c.n + "|" + (c.fish || "");
+    if (seen[key]) return; seen[key] = 1;
+    out.push({ n: c.n, who: String(c.fish || "").toLowerCase(), rule: c.rule,
+               pooled: !!c.pooled });
+  });
+  return out;
+}
+
+/* A CAP INSIDE A NUMBER IS THIS ROW'S NUMBER WHEN IT NAMES THIS ROW'S FISH.
+   Haida Gwaii writes "Trout/char: 5, but not more than … 3 Dolly Varden". The 5 is the
+   family's number; for a Dolly Varden the operative limit is 3, and printing 5 on that row
+   tells a reader they may keep five of a fish they may keep three of. A cap only takes over
+   when it carries no size — "1 over 50 cm" limits a size class inside the 5, it is not the
+   row's number — and when it speaks for every fish on the row. */
+function rowCap(row, bindingOnly) {
+  const mine = (row.members || []).map(m => m.toLowerCase()).sort().join(", ");
+  if (!mine) return null;
+  const head = parseInt(String(row.keep), 10);
+  const hit = capsOf(row).find(c => {
+    const his = c.who.split(/,\s*/).map(x => x.trim()).filter(Boolean).sort().join(", ");
+    return his && his === mine;
+  }) || null;
+  if (!hit) return null;
+  if (bindingOnly && !isNaN(head) && hit.n >= head) return null;   // it can never bite
+  return hit;
+}
+
+function cells(row) {
+  // NOTHING MAY BE KEPT, SO NO LENGTH CAN MATTER. Region 2's wild steelhead once read
+  // "must be at least 30 cm - Put it back": the 30 cm came from a band shared with the
+  // hatchery line, and on a released fish it is worse than noise. A tier would be the same
+  // mistake in a louder typeface, so a released fish never gets one either.
+  if (goesBack(row)) return `<td data-th="Size">${DASH}</td>\n    <td class="n" data-th="Per day">${ansCell(row)}</td>\n    <td class="n" data-th="This licence year">${DASH}</td>\n    <td class="n" data-th="May have">${DASH}</td>`;
+  // A CAP ONLY BINDS WHEN IT IS STRICTER THAN THE NUMBER IT SITS INSIDE. Haida Gwaii allows
+  // 3 Dolly Varden inside a family 5 — but on streams the family number is 2 ("2 from
+  // streams"), and a cap of 3 inside a 2 can never bite. Taking the cap unconditionally
+  // printed "3, of the 2 shared", which offers one more fish than the rule allows.
+  // A NUMBER THAT IS NEVER IN FORCE IS NOT AN ANSWER. Region 7A's bull trout carries the
+  // trout-and-char 5, and its calendar has no day on which 5 is the answer: 1 for 303 days,
+  // released for 62. Printing the 5 offers five fish that may never be kept. Three rows over
+  // the 22 tables are like this, and each one now points at the seasons beside it.
+  if (row.keep != null && row.year_round === false) {
+    // No number is printed here, so a cap that would have BECOME the number stays as text —
+    // a cap is restated, never deleted.
+    const pl = sizePlan(row, row.keep);
+    return `<td data-th="Size">${sizeText(pl.text.concat(pl.governs ? [pl.governs.t] : []))}</td>
+    <td class="n" data-th="Per day"><span class="sz none">no number that stands all year
+      &mdash; the seasons are the answer</span></td>
+    <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
+    <td class="n" data-th="May have">${DASH}</td>`;
+  }
+  const cap = rowCap(row, true);
+  // `capsOf` builds fresh objects each call, so identity never matched and the cap that
+  // became the row's number also printed again as a constraint. Compare the rule.
+  const bound = rowCap(row);
+  const others = capsOf(row).filter(x => !bound || x.rule !== bound.rule);
+  // A POOLED FIGURE NEVER RENDERS WITHOUT "BETWEEN THEM". Region 3's "only 1 of these may be
+  // bull trout, Dolly Varden, lake trout" becomes this row's number once the three are one
+  // group, and a bare 1 beside three fish reads as one each — three times the book's limit.
+  const many = (row.members || []).length > 1;
+  const day = cap
+    ? `<span class="ans${cap.n <= 2 ? " lim" : ""}">${esc(String(cap.n))}</span>` +
+      (cap.pooled && many ? ' <span class="tag">between them</span>' : "") +
+      `<div class="cap">of the ${esc(String(row.keep))} shared</div>`
+    : ansCell(row);
+  // The size classes sit inside whichever number is this row's answer — its own, or the cap
+  // that already took it over — so a class can never be shown against a number it does not
+  // come out of.
+  let head = cap ? cap.n : row.keep;
+  let plan = sizePlan(row, head);
+  let dayHtml = day;
+  if (plan.governs) {
+    head = plan.governs.capN;
+    dayHtml = `<span class="ans${head <= 2 ? " lim" : ""}">${esc(String(head))}</span>` +
+      (plan.def !== null ? "" : `<div class="cap">of the ${esc(String(row.keep))}</div>`);
+    plan = sizePlan(row, head);
+  }
+  const tiered = plan.tiers.length > 0;
+  return `<td data-th="Size">${sizeText(plan.text)}${others.length
+      ? `<div class="cap">${others.map(x => esc(`only ${x.n} of these may be ${x.who}`)).join("<br>")}</div>` : ""}</td>
+    <td class="n${tiered ? " tiered" : ""}" data-th="Per day">${
+      tiered ? tierCell(dayHtml, head, plan.tiers) : dayHtml}</td>
+    <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
+    <td class="n" data-th="May have">${possCell(row, cap) || DASH}</td>`;
+}
+
+/* WHEN A CAP TAKES OVER THE DAY, ITS OWN POSSESSION TAKES OVER MAY HAVE. `period` skips
+   `within` counters, so a row whose day number is "1, of the 5 shared" still printed the
+   family's 10 beside it — ten in the truck of a fish you may take one of. The cap carries a
+   possession twin of its own (2 x the daily 1); that is this row's answer. */
+function possCell(row, cap) {
+  if (cap) {
+    const t = (row.counters || []).find(c => c.period === "possession" && !c.moot
+      && c.derived_from === cap.rule);
+    if (t && t.n != null) {
+      const many = (row.members || []).length > 1;
+      return `${esc(String(t.n))}${t.pooled && many ? ' <span class="tag">between them</span>' : ""}`;
+    }
+  }
+  return period(row, "possession");
+}
+const DASH = '<span style="color:var(--faint)">&mdash;</span>';
+
+/* One entry: the species name once, and a LINE per origin beneath it where wild and hatchery
+   differ. The name used to share a cell with the first origin's chip, so the chip sat at the
+   bottom of a tall cell while its numbers sat at the top of the row and the two never lined
+   up. The name now gets a row of its own and each origin is a row whose cells all start on
+   the same baseline, separated by a rule. */
+/* ---------- A COMBINED QUOTA, AND THE SEASONS THAT DIFFER INSIDE IT ----------
+   The book gives bull trout, Dolly Varden and lake trout ONE number in Region 3 — "only 1 of
+   these" inside the trout-and-char total — and gives them different seasons: on streams the
+   first two go back Aug 1 - Oct 31 and the lake trout Oct 15 - Jan 31. The table drew two
+   rows, identical to the last digit, and printed the shared cap twice as if it were two.
+
+   One row of numbers, then a line per member carrying ONLY when and what. The member lines
+   never carry a number: a number there would read as a second allowance beside the shared
+   one. And the chip on a member line names the fish that season's own counter reaches, never
+   the group — "released Oct 15 - Jan 31" over bull trout closes a legal fishery on the page. */
+const MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function md(x) { return (MON[x[0]] || "?") + " " + x[1]; }
+
+function whenWords(s) {
+  const ws = (s.windows || []).map(w => md(w.from) + " \u2013 " + md(w.to));
+  if (!ws.length) return "";
+  const j = ws.length > 1 ? ws.slice(0, -1).join(", ") + " and " + ws[ws.length - 1] : ws[0];
+  return (s.unless ? "every day but " : "") + j;
+}
+
+function seasonVerdict(s) {
+  const k = String(s.keep == null ? "" : s.keep);
+  if (s.kind === "closed" || k === "closed" || (k === "0" && s.kind !== "quota"))
+    return { w: "No fishing", cls: "stop" };
+  if (s.kind === "release" || k === "release") return { w: "Put it back", cls: "rel" };
+  if (s.kind === "unlimited" || k === "∞") return { w: "No limit", cls: "inf" };
+  if (s.kind === "gate") return { w: String(s.plain || ""), cls: "" };
+  if (s.n != null) return { w: `Up to ${s.n}${s.pooled ? " between them" : ""}`, cls: "" };
+  return { w: String(s.plain || s.says || ""), cls: "" };
+}
+
+/* `s.fish` is what this season's own counter reaches INSIDE the line it is drawn on — the
+   only safe label. Where that is the whole group the group's name is already above it, and
+   the chip falls back to the rule's own subject, so a line that comes from "all game fish"
+   says so rather than looking like a rule written for these three. */
+function seasonLine(s, whole) {
+  const who = (s.fish || []).join(", ");
+  const chip = who && who !== whole ? who : (s.subject && s.subject !== whole ? s.subject : "");
+  const v = seasonVerdict(s);
+  return `<div class="seas">${chip ? `<span class="who">${esc(chip)}</span>` : ""}
+    <span class="sverd ${v.cls}">${esc(v.w)}</span>
+    <span class="when">${esc(whenWords(s))}</span></div>`;
+}
+
+/* EVERY SEASON A ROW CARRIES, AS LINES. The table used to print none of them: a row read
+   "Lake trout 3 of the 5 shared" while the book releases it Sep 15 - Oct 31, and the only
+   place a season appeared was the print check beside the table. Half a page of seasons is
+   worse than none, because a row with no line then reads as a row with no season.
+
+   Only the DAILY counters, and never a possession twin — "2 in possession, Oct 15 - Jan 31"
+   restates its own daily line. A weekday or time-of-day rule is not a season and has no
+   window to state; those still reach the reader only through the rule text. */
+function rowSeasons(row, skip) {
+  const out = [], seen = {};
+  (row.counters || []).forEach(c => {
+    if (c.moot || c.period !== "daily" || c.derived_from) return;
+    if (!(c.windows || []).length) return;
+    if (skip && skip.has(c.rule)) return;
+    if (seen[c.rule]) return; seen[c.rule] = 1;
+    const mine = row.members || [];
+    const who = (c.reaches || []).filter(x => mine.indexOf(x) >= 0);
+    out.push({ rule: c.rule, kind: c.kind, keep: c.keep, n: c.n, pooled: c.pooled,
+               plain: c.plain, says: c.says, windows: c.windows, unless: c.unless,
+               subject: c.fish, fish: who.length ? who : mine });
+  });
+  return out;
+}
+
+function seasonBlock(ss, whole) {
+  return ss.length ? `<div class="gseas">${ss.map(x => seasonLine(x, whole)).join("")}</div>` : "";
+}
+
+function combinedRows(e, byKey, indent, onBand) {
+  const c = e.combined;
+  const pad = indent ? ' style="padding-left:22px"' : "";
+  const base = byKey[c.cells] || {};
+  // The numbers belong to the GROUP, so the row they are computed from carries the group's
+  // whole membership — that is what lets "only 1 of these may be bull trout, Dolly Varden,
+  // lake trout" be recognised as this row's own number instead of a note in the Size column.
+  const row = Object.assign({}, base, { members: e.members, fish: e.fish });
+  const dm = defFloorFish(e.fish);
+  const whole = (e.members || []).join(", ");
+  const extra = (e.members || []).filter(m => m && e.heading.indexOf(m) < 0);
+  // A season the band above already states is not restated here — the band is where it is
+  // true of every fish below, and printing it twice reads as two different closures.
+  const shared = (c.seasons || []).filter(s => !(onBand && onBand.has(s.rule)))
+    .map(s => seasonLine(s, whole)).join("");
+  const head = `<div class="fish">${esc(e.heading)}</div>
+    ${dm !== null ? `<div class="defnote">every one is over ${dm} cm</div>` : ""}
+    ${extra.length ? `<div class="mem">${esc(extra.join(", "))}</div>` : ""}
+    <div class="mem">one number for all of them, together</div>
+    ${shared ? `<div class="gseas">${shared}</div>` : ""}`;
+  const lines = (c.members || []).filter(m => (m.seasons || []).length);
+  let out = `<tr class="${lines.length ? "cgroup" : ""}">
+    <td class="fishcell"${pad}>${head}</td>${cells(row)}</tr>`;
+  lines.forEach((m, i) => {
+    out += `<tr class="cline${i === lines.length - 1 ? " last" : ""}">
+      <td class="fishcell" colspan="5"${pad}>
+        ${m.seasons.map(s => seasonLine(s, null)).join("")}</td></tr>`;
+  });
+  return out;
+}
+
+function entryRows(e, byKey, indent, onBand) {
+  if (e.combined) return combinedRows(e, byKey, indent, onBand);
+  const mem = (e.members || []).filter(m => m && m !== e.heading);
+  const pad = indent ? ' style="padding-left:22px"' : "";
+  const dm = defFloorFish(e.fish);
+  const head = `<div class="fish">${esc(e.heading)}</div>
+    ${dm !== null ? `<div class="defnote">every one is over ${dm} cm</div>` : ""}
+    ${mem.length ? `<div class="mem">${esc(mem.join(", "))}</div>` : ""}`;
+  const whole = (e.members || []).join(", ");
+
+  // Both origins saying the same thing is one row, not two — seasons included, or a fish
+  // released for half the year in one origin and not the other would collapse into one line.
+  if (e.lines.length > 1) {
+    const same = e.lines.map(l => cells(byKey[l.row] || {}) +
+      seasonBlock(rowSeasons(byKey[l.row] || {}, onBand), whole));
+    if (same.every(x => x === same[0])) e = Object.assign({}, e, { lines: [e.lines[0]] });
+  }
+  if (e.lines.length === 1) {
+    const row = byKey[e.lines[0].row] || {};
+    return `<tr><td class="fishcell"${pad}>${head}
+      ${row.qualifier ? `<span class="org">${esc(row.qualifier)}</span>` : ""}
+      ${seasonBlock(rowSeasons(row, onBand), whole)}</td>
+      ${cells(row)}</tr>`;
+  }
+  const name = `<tr class="ename"><td class="fishcell" colspan="5"${pad}>${head}</td></tr>`;
+  const lines = e.lines.map((l, i) => {
+    const row = byKey[l.row] || {};
+    const word = l.origin === "wild" ? "Wild" : l.origin === "hatchery" ? "Hatchery" : "Either";
+    return `<tr class="oline${i === e.lines.length - 1 ? " last" : ""}">
+      <td class="fishcell"${pad}><span class="org split ${esc(l.origin)}">${esc(word)}</span>
+      ${seasonBlock(rowSeasons(row, onBand), whole)}</td>
+      ${cells(row)}</tr>`;
+  }).join("");
+  return name + lines;
+}
+
+function quotaTable(pr, rows) {
+  const entries = (pr && pr.entries) || [];
+  if (!entries.length) return `<p class="empty">No standing quota rules for this kind of water.</p>`;
+  const byKey = {}; (rows || []).forEach(r => byKey[r.key] = r);
+  const bands = (pr && pr.bands) || {};
+  /* A SEASON EVERY KEEPABLE FISH CARRIES IS THE TABLE'S, NOT A ROW'S. Region 3's streams are
+     shut to every game fish Jan 1 - Jun 30; printed per row that is the same sentence twelve
+     times, and it buries the seasons that belong to ONE fish — which is the whole point of
+     showing seasons at all.
+
+     The test is not "every row": the rows it misses are the ones where nothing may be kept
+     anyway (the protected species list), so hoisting it takes nothing off them. A season a
+     row with a real number does NOT carry stays on the rows that do carry it — Region 6's
+     "release all trout Nov 1 - Jun 30" is not true of its burbot, and must never read as if
+     it were. */
+  const keepable = r => { const k = String(r.keep == null ? "" : r.keep);
+    return !(k === "0" || k === "closed" || k === "release"); };
+  const tally = {};
+  (rows || []).forEach(r => rowSeasons(r).forEach(x => {
+    (tally[x.rule] = tally[x.rule] || { on: new Set(), s: x }).on.add(r.key); }));
+  const everyRow = new Set(Object.keys(tally).filter(k =>
+    (rows || []).every(r => tally[k].on.has(r.key) || !keepable(r))));
+  const banner = [...everyRow].map(k => seasonLine(
+    Object.assign({}, tally[k].s, { fish: [] }), null)).join("");
+  const done = new Set();
+  const idOf = e => (e.fish || []).join(",");
+  const FAM = ((D.meta || {}).families || {}).TROUT_CHAR || [];
+  const FAM_NAME = "Trout and char";
+  const inFamily = e => (e.fish || []).length && (e.fish || []).every(f => FAM.indexOf(f) >= 0);
+
+  /* A band, or a lone entry, drawn in place. */
+  function block(e, depth) {
+    if (done.has(idOf(e))) return "";
+    const b = e.band ? bands[e.band] : null;
+    if (b && !e.outside) {
+      const c = b.counter || {}, poss = b.possession || {};
+      // A HOISTED STATEMENT IS NOT AUTOMATICALLY A SIZE. Region 8's band carries a closure,
+      // and rendering every hoisted counter into the Size column printed "closed — no fishing
+      // for it" where a length belongs. Sizes go in the size cell; anything else is a note.
+      // A HOISTED RULE HAS A DAILY COUNTER AND A POSSESSION TWIN, AND THIS TOOK WHICHEVER CAME
+      // FIRST. Region 8's "only 1 over 50 cm" is carried twice — daily 1, possession 2 — and
+      // an unfiltered `find` returned the daily one only because of the order the rows happen
+      // to be built in. One reordering upstream and the band would print "only 2 over 50 cm"
+      // as a daily size rule, twice the fish the book allows. Say which period.
+      const sizes = [], notes = [], bcaps = [], bseas = [];
+      (b.hoisted || []).forEach(rid => {
+        const src = (rows || []).flatMap(r => r.counters || [])
+          .find(x => x.rule === rid && x.period === "daily");
+        if (!src) return;
+        const raw = String(src.plain || src.says || "");
+        if (!raw) return;
+        // The band owns the shared number, so a size class inside it is tiered here, where it
+        // is stated once for every fish below, rather than left as prose in the Size column.
+        const m = src.within && src.size ? CAP_RE.exec(raw) : null;
+        // The band's own counter carries `pooled`; its `plain` does not spell out "between them"
+        // the way a row's size line does, and a pooled figure never renders without it.
+        if (m) { bcaps.push({ t: raw, at: +m[2], capN: +m[1],
+                              pooled: !!src.pooled || / between them$/.test(raw) }); return; }
+        // A HOISTED COUNTER WITH A WINDOW IS A SEASON, NOT A STANDING FACT. Region 3's spring
+        // closure printed here as a bare "closed — no fishing for it" over the whole trout and
+        // char band, with the dates gone: a six-month closure rendered as a year-round one.
+        if ((src.windows || []).length) {
+          if (everyRow.has(src.rule)) return;        // the banner above already says it
+          bseas.push(seasonLine({ kind: src.kind, keep: src.keep, n: src.n, pooled: src.pooled,
+                                  plain: src.plain, says: src.says, windows: src.windows,
+                                  unless: src.unless, fish: [], subject: src.fish }, null));
+          return;
+        }
+        const txt = esc(raw);
+        (src.size || src.kind === "gate" ? sizes : notes).push(txt);
+      });
+      const bfloor = Math.max.apply(null, [0].concat(
+        sizes.map(t => +((t.match(/at least (\d+)\s*cm/) || [])[1] || 0))));
+      const btiers = narrowCaps(bcaps.filter(x =>
+        bfloor < x.at && (c.n == null || x.capN < c.n))).sort((a, b) => a.at - b.at);
+      bcaps.forEach(x => { if (btiers.indexOf(x) < 0 && !x.absorbed) sizes.push(esc(x.t)); });
+      // Inside a family that already says "Trout and char", a band of the same name is the
+      // heading twice; what it actually means there is "all of them, counted together".
+      let head = headingOf(b);
+      if (depth && head === FAM_NAME) head = "All of them, counted together";
+      let out = `<tr class="band${depth ? " sub" : ""}"><td class="fishcell"${depth ? ' style="padding-left:20px"' : ""}>
+          <div class="fish">${esc(head)}</div>
+          <div class="mem">one shared number for every fish below</div>
+          ${notes.length ? `<div class="bnote">${notes.join(" &middot; ")}</div>` : ""}
+          ${bseas.length ? `<div class="gseas">${bseas.join("")}</div>` : ""}
+          ${b.origin ? `<span class="org">${esc(b.origin)}</span>` : ""}</td>
+        <td data-th="Size">${sizes.length ? `<span class="sz">${sizes.join(" &middot; ")}</span>`
+          : `<span class="sz none">&mdash;</span>`}</td>
+        <td class="n${btiers.length ? " tiered" : ""}" data-th="Per day">${(() => {
+          const h = c.n != null
+            ? `<span class="ans">${esc(String(c.n))}</span> <span class="tag">between them</span>` : DASH;
+          return btiers.length ? tierCell(h, c.n, btiers) : h;
+        })()}</td>
+        <td class="n" data-th="This licence year">${DASH}</td>
+        <td class="n" data-th="May have">${poss.n != null
+          ? `<span class="ans">${esc(String(poss.n))}</span> <span class="tag">between them</span>` : DASH}</td>
+      </tr>`;
+      const said = new Set([b.id].concat(b.hoisted_all || [], [...everyRow]));
+      (b.entries || []).forEach(me => { out += entryRows(me, byKey, true, said); done.add(idOf(me)); });
+      done.add(idOf(e));
+      return out;
+    }
+    done.add(idOf(e));
+    return entryRows(e, byKey, !!depth, everyRow);
+  }
+
+  /* TROUT AND CHAR IS ONE PLACE ON EVERY TABLE. Region 2 writes one number for the family;
+     Region 1 writes "Trout: 4" and releases all char. Both belong under one heading, with
+     whatever shared numbers each region does have as sub-sections inside it — so a reader
+     holding a char looks in the same place either way. */
+  const fam = entries.filter(inFamily), rest = entries.filter(e => !inFamily(e));
+
+  // THE FAMILY HEADING EARNS ITS PLACE ONLY WHEN THERE IS MORE THAN ONE GROUP UNDER IT.
+  // Count GROUPS, not entries: Region 2's three entries all count inside one shared number,
+  // so a "Trout and char" family above a "Trout and char" band is the same heading twice.
+  // Region 1 has two — char released, trout counted 4 — and there the heading is the thing
+  // that puts them in one place.
+  const groups = new Set(fam.map(e => (e.band && !e.outside) ? e.band : "solo:" + idOf(e)));
+  let body = "";
+  if (groups.size > 1) {
+    body += `<tr class="fam"><td class="fishcell" colspan="5">
+      <div class="fish">${FAM_NAME}</div>
+      <div class="mem">every trout and every char &mdash; counted ${groups.size} ways here</div>
+    </td></tr>`;
+    fam.forEach(e => { body += block(e, 1); });
+  } else {
+    fam.forEach(e => { body += block(e, 0); });
+  }
+  rest.forEach(e => { body += block(e, 0); });
+
+  return (banner ? `<div class="tseas">
+      <span class="eyebrow">True of every fish you may keep here</span>${banner}</div>` : "")
+    + `<div class="scroll"><table>
+    <thead><tr><th>Fish</th><th>Size</th><th class="n">Per day</th>
+      <th class="n">This licence year</th><th class="n">May have</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+
+/* A BAND IS NAMED BY THE COUNTER THAT MAKES IT, NOT BY A GUESS AT ITS MEMBERS. This read the
+   member names and returned "Trout and char" whenever any of them matched /trout|char/ — so
+   Region 1, whose printed box says "Trout: 4" and releases all char separately, showed a
+   TROUT AND CHAR band with char sitting outside it, which looks like a filing error and is
+   really a mislabel. The counter carries its own subject; use it. */
+function headingOf(b) {
+  const c = b.counter || {};
+  if (c.fish) return c.fish;
+  const names = (b.entries || []).map(e => e.heading);
+  return names.length ? names.slice(0, 3).join(", ") : "Shared limit";
+}
+
+/* ---------- gear rows ---------- */
+/* The verdict vocabulary is exactly three words — `allowed`, `not allowed`, `closed`. An
+   earlier pass here tested for "banned", which never occurs, so every restricted method fell
+   through to a placeholder reading "Only with…" — an ellipsis where the answer belongs. */
+const VERDICT = {
+  "allowed":     { word: "Allowed",     cls: "ok"   },
+  "not allowed": { word: "Not allowed", cls: "stop" },
+  "closed":      { word: "No fishing",  cls: "stop" }
+};
+
+function regionWords(rs) {
+  const ns = (rs || []).map(r => String(r).toUpperCase());
+  if (!ns.length) return "";
+  if (ns.length === 1) return "Region " + ns[0];
+  return "Regions " + ns.slice(0, -1).join(", ") + " and " + ns[ns.length - 1];
+}
+
+function termText(t) {
+  return esc(t.plain || t.text || (t.source && t.source.verbatim) || "");
+}
+
+/* `hoist` computes the band but does NOT strip what it hoisted from the rows — the rows still
+   carry every rule. Drawing both printed the whole tackle section twice, once on the band and
+   again on every method under it, which is what "a lot of regs leaked in" looks like. Rows
+   keep only what the band does not already say. */
+function rigBits(rig, skip) {
+  const out = [];
+  Object.keys(rig || {}).forEach(topic => {
+    const items = (rig[topic] || [])
+      .filter(x => !(skip && x.rule && skip.has(x.rule)))
+      .map(x => esc(x.plain || x.text || "")).filter(Boolean);
+    const seen = {}, uniq = items.filter(x => seen[x] ? false : (seen[x] = 1));
+    if (uniq.length) out.push({ topic, items: uniq });
+  });
+  return out;
+}
+
+function bandRules(t) {
+  const out = new Set();
+  Object.values(((t || {}).band || {}).rig || {}).forEach(ts =>
+    (ts || []).forEach(x => { if (x.rule) out.add(x.rule); }));
+  return out;
+}
+
+/* THE BAIT BAN AND THE HOOK RULE ARE THE GEAR TABLE. They are hoisted onto a band because
+   they are true of every hook-and-line method, and this page drew only the per-method rows —
+   so Region 1 showed no bait ban and no single barbless hook, which is most of what its
+   chapter says about gear. */
+function gearBand(t) {
+  const bits = rigBits((t.band || {}).rig);
+  if (!bits.length) return "";
+  // NAME THE METHODS. "true of every rod-and-line method" is a claim the reader cannot check,
+  // and it is doing real damage here: the band reaches set lining, so "2 lines per angler when
+  // alone in a boat" and the downrigger rule are hoisted onto an unattended line. Saying which
+  // methods it covers is the difference between a reader spotting that and trusting it.
+  const NM = { angling: "rod and line", ice_fishing: "ice fishing", set_lining: "set lines" };
+  const who = ((t.band || {}).rows || []).map(m => NM[m] || m.replace(/_/g, " "));
+  const list = who.length > 1
+    ? who.slice(0, -1).join(", ") + " and " + who[who.length - 1] : who[0] || "";
+  return `<div class="gband">
+    <div class="gbhead">How you must rig it${list ? ` <span class="mem">&mdash; applies to ${esc(list)}</span>` : ""}</div>
+    <div class="gbcols">${bits.map(b => `<div class="gbcol">
+      <span class="eyebrow">${esc(b.topic)}</span>
+      <ul class="winner">${b.items.map(x => `<li>${x}</li>`).join("")}</ul></div>`).join("")}</div>
+  </div>`;
+}
+
+function gearTable(t) {
+  if (!t || !(t.rows || []).length)
+    return `<p class="empty">No standing gear rules for this kind of water.</p>`;
+
+  const onBand = bandRules(t);
+  const body = (t.rows || []).map(r => {
+    const v = VERDICT[String(r.verdict)] || { word: esc(String(r.verdict || "")), cls: "" };
+    const where = r.where || [];
+    const permits = where.filter(w => w.kind === "permit");
+    const bans = where.filter(w => w.kind === "ban");
+
+    // where a method is allowed is part of the answer, not a footnote
+    let note = "";
+    if (permits.length) note = `<div class="vnote">but allowed in ${esc(regionWords(permits[0].regions))}</div>`;
+    else if (bans.length) note = `<div class="vnote">never in ${esc(regionWords(bans[0].regions))}</div>`;
+
+    const bits = [];
+    const govRule = (r.by || {}).rule || "";
+    (r.conditions || []).forEach(c => {
+      if (c.rule && c.rule === govRule && !c.adds) return;   // restates the verdict, nothing more
+      const x = termText(c); if (x) bits.push(x);
+    });
+    // THE REGION IS SAID ONCE. Five conditions each tagged "Region 6 and Region 7A" is the
+    // same sentence five times; the tag belongs above the group it qualifies.
+    // Group by what the region list DOES, then by the list itself. A ban and an allowance
+    // are opposite facts and must never sit under one undifferentiated heading.
+    const groups = [];
+    const put = (head, cls, text) => {
+      let g = groups.find(x => x.head === head);
+      if (!g) groups.push(g = { head, cls, items: [] });
+      if (text && g.items.indexOf(text) < 0) g.items.push(text);
+    };
+    const liftRegions = {};
+    where.forEach(w => {
+      const rs = regionWords(w.regions) || "Everywhere";
+      if (w.kind === "lift") { if (w.rule) liftRegions[w.rule] = rs; return; }
+      const head = w.kind === "ban" ? "Never in " + rs : "Only in " + rs;
+      put(head, w.kind === "ban" ? "bad" : "good", w.kind === "ban" ? "" : termText(w));
+    });
+    groups.forEach(g => {
+      bits.push(`<div class="wgroup"><span class="rtag ${g.cls}">${esc(g.head)}</span>
+        ${g.items.length ? `<ul class="winner">${g.items.map(x => `<li>${x}</li>`).join("")}</ul>` : ""}</div>`);
+    });
+    (r.keep || []).forEach(k => {
+      if (!k.fish || !k.word) return;
+      const rs = k.rule && liftRegions[k.rule];
+      bits.push(`<span class="krule">${esc(k.fish)} &mdash; ${esc(k.word.toLowerCase())}` +
+                (rs ? `, in ${esc(rs)}` : "") + `</span>`);
+    });
+
+    rigBits(r.rig, onBand).forEach(b => {
+      bits.push(`<div class="wgroup"><span class="rtag">${esc(b.topic)}</span>
+        <ul class="winner">${b.items.map(x => `<li>${x}</li>`).join("")}</ul></div>`);
+    });
+    return `<tr>
+      <td class="fishcell"><div class="fish">${esc(r.name || r.method)}</div></td>
+      <td data-th="Verdict"><span class="vw ${v.cls}">${v.word}</span>${note}</td>
+      <td data-th="What applies">${bits.length
+        ? `<ul class="bits">${bits.map(b => `<li>${b}</li>`).join("")}</ul>`
+        : `<span class="sz none">nothing further</span>`}</td>
+    </tr>`;
+  }).join("");
+
+  return gearBand(t) + `<div class="scroll"><table class="gear">
+    <thead><tr><th>Method</th><th>Verdict</th><th>What applies</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+
+/* ---------- the print diff ---------- */
+function checks(p) {
+  if (!p) return `<p class="empty">No printed panel for this table &mdash; see the note above.</p>`;
+  const rows = p.checks.map(c => `
+    <div class="chk${c.ok ? "" : " no-row"}">
+      <div class="mark ${c.ok ? "yes" : "no"}">${c.ok ? "✓" : "✗"}</div>
+      <div>
+        <div class="pr">${esc(c.printed) || '<i style="color:var(--faint)">(no printed line)</i>'}</div>
+        ${c.ours ? `<div class="ou">${esc(c.ours)}</div>` : ""}
+        ${c.why ? `<div class="why">${esc(c.why)}</div>` : ""}
+        ${c.rule ? `<div class="rid">${esc(c.rule)}</div>` : ""}
+      </div>
+    </div>`).join("");
+  return `<p class="src">${esc(p.source)}${p.md5 ? " &middot; md5 " + esc(p.md5) : ""}</p>
+    ${p.gov ? `<p class="src">cross-checked against ${esc(p.gov)}</p>` : ""}
+    <div style="margin-top:10px">${rows}</div>`;
+}
+
+function score(p) {
+  if (!p) return "";
+  const bad = p.ok < p.n;
+  return `<span class="pill ${bad ? "bad" : "ok"}">${p.ok}/${p.n} agree</span>`;
+}
+
+/* ---------- draw ---------- */
+function draw() {
+  drawPicker();
+  document.querySelectorAll(".kbtn").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.kind === KIND)));
+
+  const e = at(REG, KIND);
+  const host = document.getElementById("panel");
+  if (!e) {
+    host.innerHTML = `<p class="empty">No ${esc(KIND)} table for ${esc(label(REG))}.</p>`;
+    return;
+  }
+  const gearMissing = !e.gear.print;
+  const always = (e.always || []).map(a =>
+    `<li><b>${esc(a.where || "")}</b>${a.verbatim ? ` &mdash; ${esc(a.verbatim)}` : ""}</li>`).join("");
+  host.innerHTML = `
+    ${always ? `<div class="card always"><header><span class="eyebrow">True everywhere, on every water</span></header>
+      <div class="body"><p class="mem" style="margin:0 0 8px">These bind on every water in this
+      region. Nothing can draw them on a map, so no table can show you where they apply &mdash;
+      you have to know them.</p><ul class="alist">${always}</ul></div></div>` : ""}
+    <div class="card">
+      <header><h2>${esc(e.title)} &mdash; what you may keep</h2>${score(e.quota.print)}</header>
+      <div class="body">${quotaTable(e.quota.present, e.quota.rows)}</div>
+    </div>
+    <div class="card">
+      <header><h2>${esc(e.title)} &mdash; how you may fish</h2>${score(e.gear.print)}</header>
+      <div class="body">
+        ${gearMissing ? `<p class="note">Haida Gwaii's gear rules are an <b>area</b> rule inside
+          Region 1 rather than a standing table of their own, so there is no separate printed
+          panel to check them against. They are verified on the water instead.</p>` : ""}
+        ${gearTable(e.gear.table)}
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <header><span class="eyebrow">Against the book</span></header>
+        <div class="body">${checks(e.quota.print)}</div>
+      </div>
+      <div class="card">
+        <header><span class="eyebrow">Against the book &mdash; gear</span></header>
+        <div class="body">${checks(e.gear.print)}</div>
+      </div>
+    </div>`;
+}
+
+document.getElementById("meta").innerHTML =
+  `${D.regions.length} tables &middot; quota ${D.meta.quota.ok}/${D.meta.quota.n} lines agree &middot; ` +
+  `gear ${D.meta.gear.ok}/${D.meta.gear.n}`;
+draw();
+</script>
