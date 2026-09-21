@@ -190,12 +190,13 @@ def collect() -> dict:
     # A READER LOOKS FOR A FAMILY FIRST. "My fish is a char" should find one place on every
     # region's table, whether that region writes "Trout/char: 5" as one number (Region 2) or
     # writes "Trout: 4" and releases char separately (Region 1). The page groups by this.
-    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS, DEFINITIONAL_SIZE
     fams = {"TROUT_CHAR": sorted(SPECIES_GROUPS["TROUT_CHAR"]),
             "TROUT": sorted(SPECIES_GROUPS["TROUT"]),
             "CHAR": sorted(SPECIES_GROUPS["CHAR"])}
     return {"regions": out,
-            "meta": {"quota": tally("quota"), "gear": tally("gear"), "families": fams}}
+            "meta": {"quota": tally("quota"), "gear": tally("gear"), "families": fams,
+                     "definitions": DEFINITIONAL_SIZE}}
 
 
 def main() -> int:

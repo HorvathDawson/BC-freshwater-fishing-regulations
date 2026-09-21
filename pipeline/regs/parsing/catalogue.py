@@ -270,6 +270,20 @@ SPECIES_GROUPS["PROTECTED_SPECIES"] = (
 #: Region 1/3 notices) and because the DFO corpus moves to this format next.
 SPECIES_GROUPS["SALMON"] = ("CH", "CO", "SK", "PK", "CM")
 
+
+#: A SIZE THE BOOK PUTS IN THE DEFINITION, NOT IN A QUOTA. Page 86: "steelhead: a rainbow
+#: trout longer than 50 cm in waters where anadromous rainbow trout are found." So a steelhead
+#: under 50 cm does not exist, and a table that offers a number for one is describing a fish
+#: nobody can catch — Region 2 printed "up to 50 cm: 4 / over 50 cm: 2" where only the 2 is
+#: real. Held here rather than as a curated rule because no regional table states it: it is
+#: what the word MEANS, everywhere in the book.
+DEFINITIONAL_SIZE = {
+    "ST": {"min_cm": 50,
+           "says": "a steelhead is a rainbow trout longer than 50 cm, so there is no "
+                   "such thing as a smaller one",
+           "source": "fishing_synopsis.pdf \u00b7 2025-2027 \u00b7 page 86, Definitions"},
+}
+
 #: "SA" IS THE CSV'S NAME FOR THE SAME GROUP, NOT A FISH. Held as a leaf it named nobody, so
 #: "No spear fishing of Pacific salmon" (zp:spear_fishing.r4) reached neither coho nor chinook
 #: — a closure that protected none of the fish it is written about.
