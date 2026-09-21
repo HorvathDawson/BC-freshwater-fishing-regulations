@@ -6,11 +6,13 @@ test). Every line reports the file, the edition, the page and the sentence it ma
 auditor can put a finger on it. The table side is matched on CONTENT — the content a term sets,
 its water kind, who authored it, a verdict — never on the words of a label.
 
-SOURCES  scratchpad/synopsis/*.pdf, each byte-identical (md5) to the file at
-         https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/
-         fishing-and-hunting/freshwater-fishing/<name>.pdf on 2026-09-17, edition 2025-2027.
-         Regional chapters: page 2, the "General Regulations" panel. The province: the full
-         synopsis, page 10, "Provincial Regulations".
+SOURCES  data/source/fishing_synopsis.pdf — the full synopsis in the repository, edition
+         2025-2027, git-tracked (see quota_print for its md5 and why it is the source).
+         Regional chapters: the "General Regulations" panel on each region's second page —
+         15, 23, 30, 36, 48, 55, 64, 70, 74. The province: page 10, "Provincial Regulations".
+         gov.bc.ca's own chapter files, when fetched into data/source/official/, are the
+         cross-check: the panel text read from the repo copy must equal the text read from
+         the byte-identical chapter (`cross_check`).
 """
 from __future__ import annotations
 import hashlib, os, re
@@ -21,16 +23,15 @@ from pipeline.regs.table.authority import Authority
 from pipeline.regs.table.method import MethodTable, MethodRow, Term, METHODS, NAMES
 from pipeline.regs.table.method_build import region_base, provincial_base
 
-GOV = ("https://www2.gov.bc.ca/assets/gov/sports-recreation-arts-and-culture/outdoor-recreation/"
-       "fishing-and-hunting/freshwater-fishing/")
-EDITION = "2025-2027"
-#: region -> (file, page index, the column of the regional-regulations panel as a width fraction)
-CHAPTERS = {"1": ("region_1_vancouver_island.pdf", 1, (0, .36)), "2": ("region_2_lower_mainland.pdf", 1, (0, .36)),
-            "3": ("region_3_thompson.pdf", 1, (0, .36)), "4": ("region_4_kootenay.pdf", 1, (0, .36)),
-            "5": ("region_5_cariboo.pdf", 1, (0, .36)), "6": ("region_6_skeena.pdf", 1, (0, .36)),
-            "7a": ("region_7a_omineca.pdf", 1, (0, .36)), "7b": ("region_7b_peace.pdf", 1, (.34, .655)),
-            "8": ("region_8_okanagan.pdf", 1, (0, .36))}
-PROVINCE = ("2025-2027_freshwater_fishing_regulations_synopsis.pdf", 9)
+from pipeline.regs.table.quota_print import (PDF, PDF_MD5, EDITION, GOV, GOV_CHAPTERS, OFFICIAL_DIR,
+                                             FULL_URL)
+#: region -> (page index in the full synopsis, the column of the regional-regulations panel as
+#: a width fraction). The regional chapter files carry the same page as their page 2.
+CHAPTERS = {"1": (14, (0, .36)), "2": (22, (0, .36)), "3": (29, (0, .36)), "4": (35, (0, .36)),
+            "5": (47, (0, .36)), "6": (54, (0, .36)), "7a": (63, (0, .36)), "7b": (69, (.34, .655)),
+            "8": (73, (0, .36))}
+PROVINCE_PAGE = 9
+PROVINCE_URL = GOV + "2025-2027_freshwater_fishing_regulations_synopsis.pdf"
 #: the R5 chapter prints its ice-hut warning in the middle column
 EXTRA_COLUMNS = {"5": (.34, .68)}
 
@@ -56,9 +57,9 @@ class Panel:
     checks: List[Check] = field(default_factory=list)
 
 
-def _pdf_text(folder: str, file: str, page: int, col: Tuple[float, float]) -> str:
+def _pdf_text(pdf: str, page: int, col: Tuple[float, float]) -> str:
     import pdfplumber
-    p = pdfplumber.open(os.path.join(folder, file)).pages[page]
+    p = pdfplumber.open(pdf).pages[page]
     w, h = p.width, p.height
     t = p.crop((w * col[0], 0, w * col[1], h)).extract_text() or ""
     # A column crop catches the first letters of the next column ("Ru", "“B", "us"); a line of
@@ -66,8 +67,8 @@ def _pdf_text(folder: str, file: str, page: int, col: Tuple[float, float]) -> st
     return "\n".join(l for l in t.splitlines() if len(l.strip()) > 3)
 
 
-def _md5(folder: str, file: str) -> str:
-    return hashlib.md5(open(os.path.join(folder, file), "rb").read()).hexdigest()[:8]
+def _md5(pdf: str) -> str:
+    return hashlib.md5(open(pdf, "rb").read()).hexdigest()[:8]
 
 
 def _sentences(text: str) -> List[str]:
@@ -110,17 +111,37 @@ def _condition_with(T: MethodTable, method: str, word: str) -> Optional[Term]:
 
 
 # -- the regional chapters ---------------------------------------------------------------
-def region_panel(folder: str, reg: str) -> Panel:
-    file, page, col = CHAPTERS[reg]
-    text = _pdf_text(folder, file, page, col)
+def region_panel(reg: str, pdf: str = PDF, page: Optional[int] = None) -> Panel:
+    """The General Regulations panel of a region — from the repo synopsis by default, or
+    from any file that holds the same page at `page` (a gov.bc.ca chapter's page 2)."""
+    pidx, col = CHAPTERS[reg]
+    if page is not None:
+        pidx = page
+    text = _pdf_text(pdf, pidx, col)
     if reg in EXTRA_COLUMNS:
-        text += "\n" + _pdf_text(folder, file, page, EXTRA_COLUMNS[reg])
-    src = f"{file} · {EDITION} · page {page + 1}"
-    return Panel(f"Region {reg.upper()} — General Regulations", src, GOV + file, _md5(folder, file), text)
+        text += "\n" + _pdf_text(pdf, pidx, EXTRA_COLUMNS[reg])
+    src = f"{os.path.basename(pdf)} · {EDITION} · page {pidx + 1}"
+    return Panel(f"Region {reg.upper()} — General Regulations", src, GOV + GOV_CHAPTERS[reg][0], _md5(pdf), text)
 
 
-def check_region(folder: str, reg: str, kind: str) -> Panel:
-    P = region_panel(folder, reg)
+def cross_check(folder: str = OFFICIAL_DIR) -> Dict[str, str]:
+    """Does each region's panel text read from the repo synopsis equal the text read from
+    the chapter gov.bc.ca serves? Per region: "same", "differs", "md5 changed: …" or
+    "missing: <path>" — a missing file is not a disagreement."""
+    out = {}
+    for reg, (pidx, _) in CHAPTERS.items():
+        file, md5 = GOV_CHAPTERS[reg]
+        path = os.path.join(folder, file)
+        if not os.path.exists(path):
+            out[reg] = f"missing: {path}"; continue
+        if _md5(path) != md5:
+            out[reg] = f"md5 changed: {file} is {_md5(path)}, the site served {md5}"; continue
+        out[reg] = "same" if region_panel(reg).text == region_panel(reg, path, 1).text else "differs"
+    return out
+
+
+def check_region(reg: str, kind: str, pdf: str = PDF) -> Panel:
+    P = region_panel(reg, pdf)
     S = _sentences(P.text)
     T = region_base(reg, kind)
     zone = {"7a": "Zone A", "7b": "Zone B"}.get(reg, f"Region {reg}")
@@ -199,26 +220,26 @@ def check_region(folder: str, reg: str, kind: str) -> Panel:
     spear = MethodRow(T, "spear_fishing").verdict_word()
     want = "not allowed" if reg in ("1", "2", "4") else "allowed"
     P.checks.append(Check(f"Spear fishing {want} (page 10: “No spear fishing of any kind is permitted in Region 1, 2, and 4”)",
-                          spear == want, "", f"{PROVINCE[0]} · {EDITION} · page 10", GOV + PROVINCE[0],
+                          spear == want, "", f"{os.path.basename(pdf)} · {EDITION} · page {PROVINCE_PAGE + 1}", PROVINCE_URL,
                           "" if spear == want else f"the table says “{spear}”", "" if spear == want else "bug"))
     freed = {f for fish, _ in T.lifted_fish.get("spear_fishing", []) for f in fish}
     want_free = {"BB"} if reg in ("3", "5", "6", "7a", "7b", "8") else set()
     P.checks.append(Check(("Burbot may be speared here" if want_free else "Burbot may not be speared here")
                           + " (page 10: “except burbot, which may also be speared in Regions 3, 5, 6, 7 and 8”)",
-                          freed == want_free, "", f"{PROVINCE[0]} · {EDITION} · page 10", GOV + PROVINCE[0],
+                          freed == want_free, "", f"{os.path.basename(pdf)} · {EDITION} · page {PROVINCE_PAGE + 1}", PROVINCE_URL,
                           "" if freed == want_free else f"the table frees {sorted(freed)}", "" if freed == want_free else "bug"))
     return P
 
 
 # -- the province, page 10 ------------------------------------------------------------------
-def province_panel(folder: str) -> Panel:
-    file, page = PROVINCE
-    text = "\n\n".join(_pdf_text(folder, file, page, c) for c in ((0, .335), (.335, .655), (.655, 1.0)))
-    return Panel("Provincial Regulations", f"{file} · {EDITION} · page {page + 1}", GOV + file, _md5(folder, file), text)
+def province_panel(pdf: str = PDF) -> Panel:
+    page = PROVINCE_PAGE
+    text = "\n\n".join(_pdf_text(pdf, page, c) for c in ((0, .335), (.335, .655), (.655, 1.0)))
+    return Panel("Provincial Regulations", f"{os.path.basename(pdf)} · {EDITION} · page {page + 1}", PROVINCE_URL, _md5(pdf), text)
 
 
-def check_province(folder: str, kind: str) -> Panel:
-    P = province_panel(folder)
+def check_province(kind: str, pdf: str = PDF) -> Panel:
+    P = province_panel(pdf)
     S = _sentences(P.text)
     T = provincial_base(kind)
     printed = {t.key: t for ts in T.rig("angling").values() for t in ts}
@@ -302,24 +323,22 @@ def check_province(folder: str, kind: str) -> Panel:
     return P
 
 
-def all_panels(folder: str) -> List[Tuple[str, str, Panel]]:
+def all_panels(pdf: str = PDF) -> List[Tuple[str, str, Panel]]:
     out = []
     for kind in ("stream", "lake"):
-        out.append(("province", kind, check_province(folder, kind)))
+        out.append(("province", kind, check_province(kind, pdf)))
     for reg in CHAPTERS:
         for kind in ("stream", "lake"):
-            out.append((reg, kind, check_region(folder, reg, kind)))
+            out.append((reg, kind, check_region(reg, kind, pdf)))
     return out
 
 
-def failures(folder: str) -> List[Tuple[str, str, Check]]:
-    return [(reg, kind, c) for reg, kind, P in all_panels(folder) for c in P.checks if not c.ok]
+def failures(pdf: str = PDF) -> List[Tuple[str, str, Check]]:
+    return [(reg, kind, c) for reg, kind, P in all_panels(pdf) for c in P.checks if not c.ok]
 
 
 if __name__ == "__main__":
-    import sys
-    folder = sys.argv[1]
-    for reg, kind, P in all_panels(folder):
+    for reg, kind, P in all_panels():
         print(f"\n== {reg} · {kind}s   [{P.source}  md5 {P.md5}]")
         for c in P.checks:
             print(f"   {'✓' if c.ok else '✗'} {c.line}" + (f"   — {c.why}" if c.why else ""))

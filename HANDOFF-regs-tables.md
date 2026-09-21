@@ -1,12 +1,12 @@
 # Handoff — quota & gear regulation tables
 
-State as of 2026-09-17, branch `redesign/stream-sections`, head `8b95fe0b`.
+State as of 2026-09-21, branch `redesign/stream-sections`.
 
-**Gates (all green, verified unfiltered):**
+**Gates (all green, verified unfiltered, 2026-09-21):**
 
 ```
 .venv/bin/python -m pytest -q          # no path argument — testpaths covers both suites
-  -> 1403 passed, 171 deselected
+  -> 1403 passed, 171 deselected   (2 skipped by name when data/source/official/ is absent)
 .venv/bin/python -m pipeline.regs.table.comply         -> COMPLIES, 0 unaccounted
 .venv/bin/python -m pipeline.regs.table.method_comply  -> COMPLIES, 0 reaching no table
 ```
@@ -95,11 +95,25 @@ extractor's `SYNOPSIS_URL` served `930d743a` on 09-16 and `33ba0893` on 09-17 (i
 day to day); the long-named official file `c76f6851` (stable across both fetches).
 
 **Do not claim byte identity for the repo copy.** What is claimed instead, and tested:
-`quota_print.cross_check` proves every quota box in the repo copy reads line for line as
-the same box in the regional chapter that *is* byte-identical to gov.bc.ca (10/10 boxes).
+`quota_print.cross_check` and `method_print.cross_check` prove every quota box and every
+General Regulations panel in the repo copy reads line for line as the same box in the
+regional chapter that *is* byte-identical to gov.bc.ca (10/10 and 9/9).
 `test_the_source_is_the_edition_it_claims` pins path, edition string read from page 1, and
 md5 — a swapped PDF fails there.
 
+### Nothing the gates need lives outside the repository (2026-09-21)
+
+The print tests once read gov.bc.ca's chapter files from the session scratchpad, which is
+ephemeral: four days later the suite was red with `FileNotFoundError`, and the quota
+cross-check asserted all-False instead of skipping. Both print diffs now read
+`data/source/fishing_synopsis.pdf` (git-tracked) and nothing else.
+
+The gov.bc.ca copies are a **cross-check**, not a dependency: `quota_print.OFFICIAL_DIR`
+(`$SYNOPSIS_DIR`, else `data/source/official/`, git-ignored) is where they live when
+fetched. A missing chapter makes the two cross-check tests **skip, naming the file**; a
+chapter whose md5 is not the one recorded, or whose box differs, fails. They are 6.8 MB
+(nine chapters) or 11.6 MB (the long-named full file, `c76f6851`); whether one of those
+belongs in git is the owner's call — the suite is green without them.
 ### Validation rules that must not be relaxed
 
 - **Never compare against a curated `verbatim` field.** A curated verbatim is itself the

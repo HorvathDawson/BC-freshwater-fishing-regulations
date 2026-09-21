@@ -440,23 +440,19 @@ def test_the_page_never_prints_a_rule_id_or_a_species_code(sections):
 
 # --------------------------------------------------------------------------- #
 # THE PRINT DIFF, READ BY MACHINE. Every expectation is a sentence a pattern found in text
-# extracted from an official PDF (scratchpad/synopsis/, byte-identical to gov.bc.ca, edition
-# 2025-2027); every table-side match is on content, never a label. A new disagreement, or a
-# known one that vanishes, fails here.
+# extracted from data/source/fishing_synopsis.pdf (git-tracked, edition 2025-2027); every
+# table-side match is on content, never a label. A new disagreement, or a known one that
+# vanishes, fails here. Nothing the gate needs lives outside the repository.
 # --------------------------------------------------------------------------- #
 import os
-SYNOPSIS = os.environ.get("SYNOPSIS_DIR") or os.path.join(
-    "/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations",
-    "41da56a6-13f8-45e3-8e3c-2e477423d7db/scratchpad/synopsis")
 
 #: Disagreements with the print that are curation defects, reported and not papered over.
 KNOWN_PRINT_DEFECTS: dict = {}
 
 
-@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the synopsis PDFs are not on this machine")
 def test_the_twenty_standing_tables_match_the_printed_synopsis_line_by_line():
-    from pipeline.regs.table.method_print import all_panels
-    panels = all_panels(SYNOPSIS)
+    from pipeline.regs.table.method_print import all_panels, PDF_MD5
+    panels = all_panels()
     assert len(panels) == 20
     bad = [(reg, kind, c.line, c.why) for reg, kind, P in panels for c in P.checks
            if not c.ok and (reg, kind, c.line) not in KNOWN_PRINT_DEFECTS]
@@ -464,29 +460,32 @@ def test_the_twenty_standing_tables_match_the_printed_synopsis_line_by_line():
     gone = [k for k in KNOWN_PRINT_DEFECTS
             if not any((reg, kind, c.line) == k and not c.ok for reg, kind, P in panels for c in P.checks)]
     assert not gone, f"a known defect has gone away — remove it: {gone}"
-    # every ✓ cites a sentence from the PDF or names the page-10 rule it rests on
+    # every ✓ cites a sentence from the PDF or names the page-10 rule it rests on; every
+    # panel names the tracked file, its edition and page
     for reg, kind, P in panels:
+        assert P.md5 == PDF_MD5 and "fishing_synopsis.pdf · 2025-2027 · page" in P.source, P.source
         for c in P.checks:
             assert c.source and c.url.startswith("https://www2.gov.bc.ca/"), c
             assert c.sentence or "page 10" in c.line or "not stated" in c.line, (reg, kind, c.line)
     assert sum(len(P.checks) for _, _, P in panels) >= 130
 
 
-@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the synopsis PDFs are not on this machine")
-def test_every_pdf_is_the_current_official_edition():
-    """Each file's first pages carry the 2025-2027 edition string; the md5 of each is what
-    gov.bc.ca served on 2026-09-17 (see method_print's docstring)."""
-    import pdfplumber, re
-    from pipeline.regs.table.method_print import CHAPTERS, PROVINCE
-    for f in [v[0] for v in CHAPTERS.values()] + [PROVINCE[0]]:
-        pdf = pdfplumber.open(os.path.join(SYNOPSIS, f))
-        eds = set()
-        for p in pdf.pages[:3]:
-            eds |= set(re.findall(r"20\d\d\s*[-–]\s*20\d\d", p.extract_text() or ""))
-        assert eds and all(e.replace(" ", "") == "2025-2027" for e in eds), (f, eds)
+def test_every_general_regulations_panel_in_the_repo_synopsis_is_the_panel_gov_bc_ca_serves():
+    """The repo copy is not byte-identical to today's download; what makes it a source is that
+    each region's panel reads, word for word, as the panel in the chapter that is. A chapter
+    that is absent from data/source/official/ (or $SYNOPSIS_DIR) SKIPS this test by name."""
+    import pytest
+    from pipeline.regs.table.method_print import cross_check, OFFICIAL_DIR
+    same = cross_check(OFFICIAL_DIR)
+    assert same
+    wrong = {k: v for k, v in same.items() if v == "differs" or v.startswith("md5 changed")}
+    assert not wrong, wrong
+    missing = sorted(v for v in same.values() if v.startswith("missing"))
+    if missing:
+        pytest.skip("the gov.bc.ca chapter(s) are not on this machine — " + "; ".join(missing))
+    assert all(v == "same" for v in same.values()), same
 
 
-# --------------------------------------------------------------------------- #
 # THE INVARIANT: section == region base + named overrides. Every difference is attributed to
 # exactly one rule; an unattributable difference is a failure.
 # --------------------------------------------------------------------------- #

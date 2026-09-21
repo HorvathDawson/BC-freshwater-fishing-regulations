@@ -24,9 +24,6 @@ from pipeline.regs.table.build import (ledger, base, section_rules, section_regi
 from pipeline.regs.table.rows import rows
 from pipeline.regs.table.subject import Origin
 
-SYNOPSIS = ("/private/tmp/claude-502/-Users-dawson-horvath-dev-personal-BC-freshwater-fishing-regulations/"
-            "41da56a6-13f8-45e3-8e3c-2e477423d7db/scratchpad/synopsis")
-
 #: (region, kind, printed line) -> why. Every one is a finding on the curation list.
 KNOWN_PRINT_DEFECTS = {
     # Haida Gwaii's box prints "3 Dolly Varden"; z1:hg_quota.r3 carries bull trout as well.
@@ -46,13 +43,21 @@ def test_the_source_is_the_edition_it_claims():
     assert _md5(os.path.dirname(PDF), os.path.basename(PDF)) == PDF_MD5
 
 
-@pytest.mark.skipif(not os.path.isdir(SYNOPSIS), reason="the gov.bc.ca chapters are not on this machine")
 def test_every_box_in_the_repo_synopsis_is_the_box_gov_bc_ca_serves():
     """The repo copy is not byte-identical to today's download; what makes it a source is that
-    every quota box in it reads, line for line, as the box in the chapter that is."""
-    from pipeline.regs.table.quota_print import cross_check
-    same = cross_check(SYNOPSIS)
-    assert same and all(same.values()), same
+    every quota box in it reads, line for line, as the box in the chapter that is. The
+    chapters are gov.bc.ca's own files (data/source/official/, or $SYNOPSIS_DIR); a chapter
+    that is absent SKIPS this test by name — it never fails for a file nobody has fetched,
+    and never passes for a comparison that did not happen."""
+    from pipeline.regs.table.quota_print import cross_check, OFFICIAL_DIR
+    same = cross_check(OFFICIAL_DIR)
+    assert same
+    wrong = {k: v for k, v in same.items() if v in ("differs",) or v.startswith("md5 changed")}
+    assert not wrong, wrong
+    missing = sorted({v for v in same.values() if v.startswith("missing")})
+    if missing:
+        pytest.skip("the gov.bc.ca chapter(s) are not on this machine — " + "; ".join(missing))
+    assert all(v == "same" for v in same.values()), same
 
 
 def test_every_standing_quota_table_matches_the_printed_box_line_by_line():

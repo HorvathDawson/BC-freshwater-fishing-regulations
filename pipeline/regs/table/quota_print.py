@@ -65,6 +65,10 @@ GOV_CHAPTERS = {"1": ("region_1_vancouver_island.pdf", "9b8c35eb"), "1hg": ("reg
                 "4": ("region_4_kootenay.pdf", "01dac4c5"), "5": ("region_5_cariboo.pdf", "8a771eb5"),
                 "6": ("region_6_skeena.pdf", "aa18c81c"), "7a": ("region_7a_omineca.pdf", "47763e79"),
                 "7b": ("region_7b_peace.pdf", "c62ffadb"), "8": ("region_8_okanagan.pdf", "a92a4156")}
+#: Where gov.bc.ca's own copies live when they have been fetched: `SYNOPSIS_DIR`, else
+#: data/source/official/ (untracked). Nothing the suite GATES on may live anywhere ephemeral;
+#: what needs these files skips, naming the file, when they are absent.
+OFFICIAL_DIR = os.environ.get("SYNOPSIS_DIR") or os.path.join("data", "source", "official")
 REGION_OF = {"1hg": "1"}
 #: The province's own lines: pages 8–12 of the full synopsis, found by pattern per column.
 PROVINCE_PAGES = [7, 8, 9, 10, 11]
@@ -135,16 +139,20 @@ def box_lines(reg: str, pdf: str = PDF, page: Optional[int] = None) -> List[Tupl
     return out
 
 
-def cross_check(folder: str) -> Dict[str, bool]:
+def cross_check(folder: str = OFFICIAL_DIR) -> Dict[str, str]:
     """Is each box in the repo synopsis identical, line for line, to the same box in the
     chapter gov.bc.ca serves (byte-identical to the site)? This is what makes the repo copy
-    a source: not its bytes, but its every line agreeing with the official file's."""
+    a source: not its bytes, but its every line agreeing with the official file's.
+    Per region: "same", "differs", "md5 changed: <file>" (the local copy is not the file
+    recorded from the site), or "missing: <path>" — a missing file is not a disagreement."""
     out = {}
     for reg, (file, md5) in GOV_CHAPTERS.items():
         path = os.path.join(folder, file)
-        if not os.path.exists(path) or _md5(folder, file) != md5:
-            out[reg] = False; continue
-        out[reg] = box_lines(reg) == box_lines(reg, path, 1)
+        if not os.path.exists(path):
+            out[reg] = f"missing: {path}"; continue
+        if _md5(folder, file) != md5:
+            out[reg] = f"md5 changed: {file} is {_md5(folder, file)}, the site served {md5}"; continue
+        out[reg] = "same" if box_lines(reg) == box_lines(reg, path, 1) else "differs"
     return out
 
 
