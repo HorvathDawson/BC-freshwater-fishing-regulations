@@ -88,13 +88,30 @@ def plain_words(a: Allowance) -> str:
     return f"up to {a.n}" + (" between them" if a.pooled else "")
 
 
+def in_force(c: dict, on: Optional[tuple] = None) -> bool:
+    """A counter this table may state as its answer.
+
+    WITH NO DATE — the standing table — a counter is in force only if it is in force EVERY day
+    of the year: a window, a time of day, or a place nobody can draw all make it seasonal, true
+    sometimes and not always, so it may not be folded into a number that claims to stand.
+
+    WITH A DATE, it is in force if it is in force that day. The two readings are one function
+    because a table for a date and a table for the year are the same table asked a different
+    question — a second rule for dates would be the fourth ladder this model exists to delete.
+    """
+    if c["within_day"] or c["somewhere"]:
+        return False
+    if on is None:
+        return not c["windows"]
+    return _live(c, on)
+
+
 def steady(c: dict) -> bool:
-    """A counter in force EVERY DAY OF THE YEAR. A window, a time of day or a place nobody can
-    draw all make a counter seasonal — true sometimes, not always."""
-    return not c["windows"] and not c["within_day"] and not c["somewhere"]
+    """A counter in force every day of the year."""
+    return in_force(c, None)
 
 
-def combine(out: list, by_key: dict) -> list:
+def combine(out: list, by_key: dict, on: Optional[tuple] = None) -> list:
     """A COMBINED QUOTA IS THE GROUPING; A SEASON IS NOT A FISH OF ITS OWN.
 
     Region 3 prints ONE line for bull trout, Dolly Varden and lake trout — "only 1 of these"
@@ -128,7 +145,7 @@ def combine(out: list, by_key: dict) -> list:
     def key(e, r):
         return (e["band"], e["outside"], r["keep"],
                 frozenset((c["rule"], c["period"], c["n"], c["kind"], c["within"])
-                          for c in r["counters"] if steady(c)),
+                          for c in r["counters"] if in_force(c, on)),
                 frozenset((x["rule"], x["kind"], x["n"], x["plain"]) for x in r["size"]))
 
     groups, order = {}, []
@@ -146,13 +163,13 @@ def combine(out: list, by_key: dict) -> list:
             res.extend(g); continue
         r0 = by_key[g[0]["lines"][0]["row"]]
         pooled = next((c for c in r0["counters"]
-                       if steady(c) and c["pooled"] and c["kind"] == "quota"
+                       if in_force(c, on) and c["pooled"] and c["kind"] == "quota"
                        and c["period"] == "daily" and not c["size"]
                        and c["rule"] != g[0]["band"]
                        and all(set(c["reaches"]) & set(e["members"]) for e in g)), None)
         if pooled is None:
             res.extend(g); continue           # same numbers, no shared pool: not one group
-        res.append(one_entry(g, by_key, pooled))
+        res.append(one_entry(g, by_key, pooled, on))
     return res
 
 
@@ -173,12 +190,12 @@ def season_json(c: dict, within: list) -> dict:
             "subject": c["fish"], "fish": here or sorted(within)}
 
 
-def one_entry(g: list, by_key: dict, pooled: dict) -> dict:
+def one_entry(g: list, by_key: dict, pooled: dict, on: Optional[tuple] = None) -> dict:
     """The merged entry: the group's name and its ONE set of numbers, with each member's own
     seasons kept beside the member that owns them."""
     from pipeline.regs.table.rows import heading
     rs = [by_key[e["lines"][0]["row"]] for e in g]
-    seasonal = [[c for c in r["counters"] if not steady(c) and not c["moot"]] for r in rs]
+    seasonal = [[c for c in r["counters"] if not in_force(c, on) and not c["moot"]] for r in rs]
     everywhere = set.intersection(*[{c["rule"] for c in s} for s in seasonal])
     fish = sorted({f for e in g for f in e["fish"]})
     all_members = sorted({m for e in g for m in e["members"]})
@@ -202,7 +219,7 @@ def one_entry(g: list, by_key: dict, pooled: dict) -> dict:
     }
 
 
-def present(d: dict) -> dict:
+def present(d: dict, on: Optional[tuple] = None) -> dict:
     """THE TABLE A READER SEES, from the rows: one entry per kind of fish, never two rows for
     one species — where wild and hatchery differ they are two LINES under the one name — and
     a shared number as a BAND above its members, carrying once whatever is true of every
@@ -214,7 +231,14 @@ def present(d: dict) -> dict:
 
     Pure structure: which rows make up which entry, which entries sit under which band, and
     which counters are hoisted. Cells are still computed from the counters by whoever draws
-    them, so a date can be applied. A test proves a hoisted statement is true of every line.
+    them. A test proves a hoisted statement is true of every line.
+
+    `on` ASKS THE SAME QUESTION OF ONE DAY. With no date this is the table of the year, and a
+    seasonal counter can never be folded into it. With a date it is the table of that day, and
+    a season IS the answer: Region 3's bull trout and lake trout share one number and stop
+    sharing it on Oct 15, when the lake trout goes back and the char does not, so on that day
+    they are two entries and on Nov 5 the lake trout stands alone. The grouping is settled
+    here, from counters in force, rather than annotated onto a table built for another day.
     """
     rows_ = d["rows"]
     by_key = {r["key"]: r for r in rows_}
@@ -260,17 +284,29 @@ def present(d: dict) -> dict:
         out.append(entry)
     # FISH THAT SHARE ONE COMBINED NUMBER ARE ONE ENTRY, whatever their seasons. This runs
     # before the bands are assembled so a band holds the merged entry, once, not its halves.
-    out = combine(out, by_key)
+    out = combine(out, by_key, on)
     for entry in out:
         if entry["band"]:
             bands.setdefault(entry["band"], {"id": entry["band"], "entries": []})["entries"].append(entry)
     # HOIST WHAT IS TRUE OF THE WHOLE BAND. A counter every in-band line carries is stated
     # once on the band; the band's own number and its possession are the band itself.
-    for bid, b in bands.items():
+    for bid, b in list(bands.items()):
         in_band = [by_key[l["row"]] for e in b["entries"] for l in e["lines"] if l["in_band"]]
         if not in_band:
             continue
-        counter = next(c for c in in_band[0]["counters"] if c["rule"] == bid)
+        # A BAND WHOSE OWN NUMBER IS NOT IN FORCE IS NOT A BAND. On a date, the shared quota
+        # may be carved away — a closure, a seasonal release — and the rows underneath no
+        # longer count against anything. Drawing the band anyway prints a heading that says
+        # "one shared number for every fish below" above no number at all. The entries stand
+        # on their own for that stretch of the year.
+        counter = next((c for c in in_band[0]["counters"] if c["rule"] == bid), None)
+        if counter is None:
+            del bands[bid]
+            for e in b["entries"]:
+                e["band"], e["outside"] = None, False
+                for l in e["lines"]:
+                    l["in_band"] = False
+            continue
         poss = next((c for c in in_band[0]["counters"] if c["derived_from"] == bid), None)
         common = set.intersection(*[{c["rule"] for c in r["counters"]} for r in in_band]) if in_band else set()
         common -= {bid}
@@ -366,6 +402,42 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
         "year_round": any(seg["rule"] == (head.rule_id if head else None) for seg in cal),
         "counters": counters, "behind": behind,
     }
+
+
+def as_of(L: Ledger, r: Row, on: tuple) -> dict:
+    """ONE ROW AS A DAY FINDS IT — the answer on that date, not the year-round one.
+
+    `row_json` answers for the YEAR: `keep` is the number that stands all twelve months, and a
+    season rides beside it as a line the reader has to apply themselves. That is the right
+    answer to "what does this region say", and the wrong one to "what may I keep today". Here
+    the season IS the number: a counter not in force on this day is not on the row at all, so
+    nothing downstream — the grouping, the bands, the size classes, the possession twin — can
+    read a rule that is not in force today as if it were.
+
+    Everything is still settled by the ledger. This only chooses WHICH settled counters the
+    day can see, and re-reads the headline from them; there is no second resolution here.
+    """
+    d = row_json(L, r, on)
+    live = set(r.live(on))
+    d["counters"] = [c for a, c in zip(r.counters, d["counters"]) if a in live]
+    shown = {c["rule"] for c in d["counters"]}
+    h = r.headline(on)
+    d["dated"] = list(on)
+    d["keep"] = h.word() if h is not None else None
+    d["set_by"] = h.rule_id if h is not None else None
+    d["means"] = (h.outcome.sentence() if h is not None
+                  else "no number reaches this fish on this date")
+    # A BAND IS A NUMBER THIS FISH COUNTS INSIDE, and on a day the number may not be there.
+    if d["group"] not in shown:
+        d["group"] = None
+    # ...AND SO MAY THE NUMBER A FISH WAS TAKEN OUT OF. "Does not come out of the shared 5"
+    # says nothing on a day when there is no shared 5. That rule sits in `behind`, never in
+    # `counters`, so its own dates are what decide it.
+    back = {a.rule_id: a for a, _ in r.behind}
+    d["outside_of"] = [o for o in d["outside_of"]
+                       if h is not None and not h.is_zero
+                       and back[o["rule"]].applies.live(*on)]
+    return d
 
 
 def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:

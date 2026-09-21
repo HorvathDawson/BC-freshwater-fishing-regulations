@@ -30,6 +30,7 @@ import sys
 
 from pipeline.regs.table import provenance, method_provenance
 from pipeline.regs.table import quota_print as QP, method_print as MP
+from pipeline.regs.table.rows import schedule
 
 
 def log(*a):
@@ -72,10 +73,43 @@ def _quota_table(region: str, kind: str) -> dict:
     shared number still drawn under its group. Rendering the raw rows instead loses every one
     of those and splits a species across the table.
     """
-    rows = _quota_rows(region, kind)
+    L = QP.base_ledger(region, kind)
+    rs = rows_of(L)
+    rows = [provenance.row_json(L, r) for r in rs]
     d = {"rows": rows}
     return {"rows": rows, "present": provenance.present(d) if rows else {"entries": [], "bands": {}},
-            "always": _always(region, kind)}
+            "always": _always(region, kind), "views": _views(L, rs)}
+
+
+def _views(L, rs) -> list:
+    """THE YEAR, AS TABLES A READER CAN PICK FROM.
+
+    A standing table is the table of a year: where a rule is seasonal it can state no number,
+    and the season rides beside the row as a line the reader applies themselves. That is honest
+    and it is not usable — the question at the water is "what may I keep TODAY", and answering
+    it from a year-round table plus four date ranges is arithmetic we are asking a man in
+    waders to do.
+
+    So the year is cut into the stretches over which one table holds (`rows.schedule`), and
+    each one is emitted as a whole table settled for a day inside it. The numbers themselves
+    change: on Oct 20 Region 3's lake trout is not "1 between them, released Oct 15 – Jan 31",
+    it is Put it back, and it has left the number the bull trout shares.
+
+    A table with no seasons has one stretch and carries no rows of its own — it IS the standing
+    table, and duplicating it would be a second copy to keep true.
+    """
+    out = []
+    for seg in schedule(rs):
+        v = dict(seg)
+        if seg["whole_year"]:
+            v["same"] = True
+        else:
+            on = tuple(seg["from"])
+            vr = [_slim(provenance.as_of(L, r, on)) for r in rs]
+            v["rows"] = vr
+            v["present"] = provenance.present({"rows": vr}, on)
+        out.append(v)
+    return out
 
 
 def _always(region: str, kind: str) -> list:
@@ -140,6 +174,23 @@ def rows_of(L):
     return R.rows(L)
 
 
+def _slim(row: dict) -> dict:
+    """A dated row without its chain of custody.
+
+    `behind` — what else names these fish and why it does not bind — and each counter's own
+    source sentence are how a line is traced back to the book, and they are 1.8 MB of the 52
+    dated tables. They are not dropped from the page: the STANDING table carries all of it,
+    unchanged, and it is the table the printed synopsis is checked against. A dated view
+    answers "what may I keep on Oct 20"; the custody of every one of its numbers is one click
+    away on the year-round table, where the check itself lives.
+    """
+    row.pop("behind", None)
+    for c in row["counters"]:
+        c.pop("carves", None)
+        c.pop("source", None)
+    return row
+
+
 def collect() -> dict:
     # -- the print diffs, keyed (region, kind) -------------------------------------------
     # THE TWO SIDES NAME THE PROVINCE DIFFERENTLY — quota's panel is region "p", kind "any"
@@ -177,7 +228,7 @@ def collect() -> dict:
             "kind": kind,
             "title": (q_panel or m_panel or {}).get("title") or f"{region} · {kind}",
             "quota": {"rows": q.get("rows") or [], "present": q.get("present") or {},
-                      "print": q_panel},
+                      "views": q.get("views") or [], "print": q_panel},
             "gear": {"table": g_table, "print": m_panel},
             "always": (q.get("always") or []),
         })

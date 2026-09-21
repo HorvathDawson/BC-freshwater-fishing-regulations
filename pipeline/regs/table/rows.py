@@ -215,3 +215,47 @@ def _order(a: Allowance):
             + (2 if a.kind == "gate" else 1 if cap else 0),
             not (a.applies.always or a.applies.unless),       # the standing rule before a season's
             a.outcome.rank, a.rank, a.rule_id)
+
+
+#: "Jan", "Feb", … — a segment names its own dates, and a reader picks a table by them.
+MONTHS = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def schedule(rs: List[Row]) -> List[dict]:
+    """THE YEAR AS THE WHOLE TABLE CHANGES — every stretch of days over which one table is
+    the answer.
+
+    `Row.calendar` is this for one row and one number. A reader does not pick a row, they pick
+    a DAY: "Aug 1 – Oct 31" is a whole table, not a footnote under one fish, and a season that
+    releases the lake trout also empties the number the char shared with it. So the signature
+    is every counter IN FORCE on the day, on every row — not just the headline, because a cap
+    or a size bound coming into force changes the table without changing a single number.
+
+    Wraps at the year's end the way `Row.calendar` does: Region 3's lake trout is released
+    Oct 15 – Jan 31, which is ONE stretch of the reader's year, not a December one and a
+    January one.
+    """
+    def sig(day):
+        return tuple(tuple(sorted(a.rule_id for a in r.live(day))) for r in rs)
+
+    segs = []
+    for day in DAYS:
+        k = sig(day)
+        if segs and segs[-1][0] == k:
+            segs[-1][2] = day
+        else:
+            segs.append([k, day, day])
+    if len(segs) > 1 and segs[0][0] == segs[-1][0]:
+        segs[0][1] = segs[-1][1]; segs.pop()
+    out = []
+    for _, a, b in segs:
+        days = sum(1 for d in DAYS if _between(d, a, b))
+        out.append({"from": list(a), "to": list(b), "days": days,
+                    "label": f"{MONTHS[a[0]]} {a[1]} – {MONTHS[b[0]]} {b[1]}",
+                    "whole_year": len(segs) == 1})
+    return out
+
+
+def _between(day, a, b) -> bool:
+    return a <= day <= b if a <= b else (day >= a or day <= b)

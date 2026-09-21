@@ -8,6 +8,7 @@ rule that decided it, and the proof that what decides is what the table shows.
 from __future__ import annotations
 
 import collections
+import json
 import pytest
 
 from pipeline.regs.table.subject import Subject, Origin, expand
@@ -1189,6 +1190,157 @@ def _base_present(region, kind):
     from pipeline.tools.emit_base_tables import _quota_rows
     rows_ = _quota_rows(region, kind)
     return rows_, provenance.present({"rows": rows_})
+
+
+def _base_rows(region, kind):
+    from pipeline.regs.table import quota_print as QP
+    from pipeline.regs.table.rows import rows as ROWS
+    L = QP.base_ledger(region, kind)
+    return L, ROWS(L)
+
+
+def _base_view(region, kind, on):
+    """The standing table of ONE DAY — the shape the page draws when a date is picked."""
+    from pipeline.regs.table import provenance
+    L, rs = _base_rows(region, kind)
+    rows_ = [provenance.as_of(L, r, on) for r in rs]
+    return rows_, provenance.present({"rows": rows_}, on)
+
+
+REGION_KINDS = [(r, k) for r in ("province", "1", "1hg", "2", "3", "4", "5", "6", "7a", "7b", "8")
+                for k in ("lake", "stream")]
+
+
+def test_the_year_is_cut_into_stretches_that_cover_it_exactly_once():
+    """A reader picks a DAY, so every day must land in exactly one stretch — a gap is a day
+    with no table and an overlap is a day with two. The stretches must also really differ:
+    a boundary where nothing changes is a second table to keep true for no reason."""
+    from pipeline.regs.table.rows import schedule, DAYS, _between
+    for region, kind in REGION_KINDS:
+        L, rs = _base_rows(region, kind)
+        segs = schedule(rs)
+        hits = [sum(1 for s in segs if _between(day, tuple(s["from"]), tuple(s["to"])))
+                for day in DAYS]
+        assert set(hits) == {1}, (region, kind, [d for d, h in zip(DAYS, hits) if h != 1][:5])
+        assert sum(s["days"] for s in segs) == len(DAYS), (region, kind)
+        # ADJACENT stretches must differ — a boundary where nothing changes is a second
+        # table to keep true for no reason. Two stretches far apart may of course be the
+        # same table: Region 6's streams read the same in May as in October with a closure
+        # between them, which is four stretches over three distinct tables.
+        sig = lambda day: tuple(tuple(sorted(a.rule_id for a in r.live(day))) for r in rs)
+        for i, seg in enumerate(segs):
+            nxt = segs[(i + 1) % len(segs)]
+            if nxt is seg:
+                continue
+            assert sig(tuple(seg["from"])) != sig(tuple(nxt["from"])), (region, kind, seg["label"])
+        assert all(s["whole_year"] for s in segs) == (len(segs) == 1), (region, kind)
+
+
+def test_every_day_a_row_changes_its_answer_is_a_day_the_table_changes():
+    """`Row.calendar` is one row's year and `schedule` is the table's. A boundary the calendar
+    has and the schedule does not is a day on which the reader's table silently becomes wrong
+    — the stretch keeps its number while the fish it is about has gone back in the water."""
+    from pipeline.regs.table.rows import schedule
+    for region, kind in REGION_KINDS:
+        L, rs = _base_rows(region, kind)
+        starts = {tuple(s["from"]) for s in schedule(rs)}
+        for r in rs:
+            cal = r.calendar()
+            if len(cal) == 1:
+                continue      # a row whose answer never changes starts where the year does
+            for seg in cal:
+                assert tuple(seg["from"]) in starts, (region, kind, r.heading(str), seg)
+
+
+def test_a_dated_row_carries_only_what_is_in_force_that_day():
+    """The whole point of a dated table is that a rule which is not in force is NOT ON IT.
+    Left on, it reaches the grouping, the bands and the size classes, and a released fish
+    keeps the number it has in July."""
+    from pipeline.regs.table.rows import schedule
+    for region, kind in REGION_KINDS:
+        L, rs = _base_rows(region, kind)
+        for seg in schedule(rs):
+            on = tuple(seg["from"])
+            rows_, _ = _base_view(region, kind, on)
+            for r, d in zip(rs, rows_):
+                live = {a.rule_id for a in r.live(on)}
+                got = {c["rule"] for c in d["counters"]}
+                assert got <= live, (region, kind, seg["label"], d["heading"], got - live)
+                h = r.headline(on)
+                assert d["keep"] == (h.word() if h is not None else None), \
+                    (region, kind, seg["label"], d["heading"])
+                if d["group"]:
+                    assert d["group"] in got, (region, kind, seg["label"], d["heading"])
+
+
+def test_a_season_becomes_the_number_and_breaks_the_group_it_is_not_true_of():
+    """REGION 3'S STREAMS, THE WHOLE POINT IN ONE TABLE. Bull trout, Dolly Varden and lake
+    trout share one number and do NOT share a season: the first two go back Aug 1 – Oct 31,
+    the lake trout Oct 15 – Jan 31. On the year-round table they are one line with both
+    seasons written beneath it. On a day they are whatever that day makes them — and a day in
+    August must not show a number for a fish that has to go back, nor put a released fish and
+    a keepable one on one line."""
+    want = {
+        (7, 1):   {"Bull trout, Dolly Varden or Lake trout": ("4", True)},
+        (8, 20):  {"Bull trout or Dolly Varden": ("release", False), "Lake trout": ("4", False)},
+        (10, 20): {"Bull trout or Dolly Varden": ("release", False), "Lake trout": ("release", False)},
+        (11, 5):  {"Bull trout or Dolly Varden": ("4", False), "Lake trout": ("release", False)},
+    }
+    for on, expect in want.items():
+        rows_, pr = _base_view("3", "stream", on)
+        by = {x["key"]: x for x in rows_}
+        got = {}
+        for e in pr["entries"]:
+            if not ({"Bull trout", "Dolly Varden", "Lake trout"} & set(e["members"])):
+                continue
+            got[e["heading"]] = (by[e["lines"][0]["row"]]["keep"], "combined" in e)
+        assert got == expect, (on, got)
+    # ...and the year-round table still says all three together, with both seasons on it
+    _, pr = _base_present("3", "stream")
+    e = next(x for x in pr["entries"] if "Lake trout" in x["members"])
+    assert e["heading"] == "Bull trout, Dolly Varden or Lake trout" and "combined" in e
+
+
+def test_a_dated_table_never_leaves_a_band_without_its_number():
+    """A band says "one shared number for every fish below". On a day the shared number may be
+    carved away — and a band drawn over no number is a heading that promises one."""
+    from pipeline.regs.table.rows import schedule
+    for region, kind in REGION_KINDS:
+        L, rs = _base_rows(region, kind)
+        for seg in schedule(rs):
+            rows_, pr = _base_view(region, kind, tuple(seg["from"]))
+            by = {x["key"]: x for x in rows_}
+            for bid, b in pr["bands"].items():
+                in_band = [by[l["row"]] for e in b["entries"] for l in e["lines"] if l["in_band"]]
+                for r in in_band:
+                    assert bid in {c["rule"] for c in r["counters"]}, \
+                        (region, kind, seg["label"], r["heading"], bid)
+
+
+def test_the_year_round_table_is_what_it_always_was():
+    """The date machinery must not move the standing table one line: it is the table the
+    printed synopsis is checked against, 386 lines of it."""
+    from pipeline.regs.table import provenance
+    for region, kind in REGION_KINDS:
+        rows_ = _base_present(region, kind)[0]
+        a = provenance.present({"rows": rows_})
+        b = provenance.present({"rows": rows_}, None)
+        assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True), (region, kind)
+
+
+def test_region_6_streams_cap_the_lake_trout_at_three():
+    """"3 Dolly Varden/bull trout and/or lake trout combined" — the cap reaches the lake trout
+    and it is what a lake trout angler is held to, not the trout-and-char 5 it sits inside.
+    The table printed the 5 and left the cap as prose in the size column, which is five lake
+    trout where the book allows three. The row has to carry the cap, and the cap has to say
+    which fish it still reaches, or no renderer can put it in the right column."""
+    rows_, _ = _base_present("6", "stream")
+    r = next(x for x in rows_ if x["members"] == ["Lake trout"])
+    assert r["keep"] == "5"
+    cap = next(c for c in r["counters"] if c["within"] and c["period"] == "daily"
+               and not c["size"] and c["n"] == 3)
+    assert "Lake trout" in cap["reaches"], cap["reaches"]
+    assert cap["source"]["verbatim"].startswith("3 Dolly Varden/bull trout")
 
 
 def test_a_combined_quota_is_one_group_and_each_season_rides_on_the_member_it_names():
