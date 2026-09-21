@@ -1184,6 +1184,91 @@ def test_the_presented_table_names_each_fish_once_and_hoists_only_what_holds_for
                         assert r["qualifier"] == b["origin"]
 
 
+def _base_present(region, kind):
+    from pipeline.regs.table import provenance
+    from pipeline.tools.emit_base_tables import _quota_rows
+    rows_ = _quota_rows(region, kind)
+    return rows_, provenance.present({"rows": rows_})
+
+
+def test_a_combined_quota_is_one_group_and_each_season_rides_on_the_member_it_names():
+    """Region 3 prints ONE line for bull trout, Dolly Varden and lake trout — "only 1 of
+    these" inside the trout-and-char number — and the table drew two, identical to the last
+    digit, because the lake trout carries a release from Oct 15 and the bull trout does not.
+    An entry was keyed by its whole counter set, so a single seasonal counter split a group
+    the book treats as one and printed its shared cap twice.
+
+    On streams the two members' seasons genuinely DIFFER — bull trout and Dolly Varden are
+    released Aug 1 – Oct 31, lake trout Oct 15 – Jan 31 — and both must show, each against
+    the fish it names. Showing the lake trout's release as if it covered bull trout would
+    close a legal fishery on the page."""
+    for kind, mine in (("lake", {"z3:trout_char_quota::trout_char_quota.r7": ["Lake trout"]}),
+                       ("stream", {"z3:trout_char_quota::trout_char_quota.r7": ["Lake trout"],
+                                   "z3:trout_char_quota::trout_char_quota.r6":
+                                       ["Bull trout", "Dolly Varden"]})):
+        _, pr = _base_present("3", kind)
+        e = next(x for x in pr["entries"] if "Lake trout" in x["members"])
+        assert e["heading"] == "Bull trout, Dolly Varden or Lake trout", (kind, e["heading"])
+        assert e["members"] == ["Bull trout", "Dolly Varden", "Lake trout"], kind
+        c = e["combined"]
+        assert c["pooled"] == "z3:trout_char_quota::trout_char_quota.r4", kind
+        # every season the book writes for a member is on that member's line, and names it
+        got = {x["rule"]: x["fish"] for m in c["members"] for x in m["seasons"]}
+        assert got == mine, (kind, got)
+        # nothing is shown twice: a season on a member is not also on the group
+        assert not ({x["rule"] for x in c["seasons"]} & set(got)), kind
+        # and the three of them are one line under the region's trout-and-char band
+        assert e["band"] and e in pr["bands"][e["band"]]["entries"], kind
+        assert sum(1 for x in pr["entries"] if "Lake trout" in x["members"]) == 1, kind
+    # the shared spring closure is stated once, on the group, not once per member
+    _, pr = _base_present("3", "stream")
+    e = next(x for x in pr["entries"] if "Lake trout" in x["members"])
+    assert [x["rule"] for x in e["combined"]["seasons"]] == \
+        ["z3:spring_stream_closure::spring_stream_closure.r1"]
+
+
+def test_two_fish_with_the_same_numbers_but_no_shared_pool_are_not_one_group():
+    """Counter equality alone is NOT a group. Region 7A's lakes give the trout-and-char nine
+    and the bull trout the same standing numbers, and Region 7B's streams do the same for the
+    ten and the rainbow; in neither case does one pooled quota name both, so merging them
+    would invent a combined limit the book never wrote."""
+    for region, kind, a, b in (("7a", "lake", "Bull trout", "Rainbow trout"),
+                               ("7b", "stream", "Rainbow trout", "Brown trout")):
+        _, pr = _base_present(region, kind)
+        ea = next(x for x in pr["entries"] if a in x["members"])
+        assert b not in ea["members"], (region, kind, ea["heading"])
+        assert "combined" not in ea, (region, kind, ea["heading"])
+
+
+def test_a_merged_group_loses_no_season_and_widens_none(tables):
+    """Across every standing table and every section: a merged group's seasons, group and
+    member together, are EXACTLY the seasonal counters its member rows carry, and each one
+    names only fish that member has. A dropped season and a widened one are the two ways this
+    pass can lie, and they point in opposite directions."""
+    from pipeline.regs.table.provenance import section, steady
+    seen = 0
+    tabs = [("Fraser River", 18)] + [(w, run) for w, run, _, _, _, _ in tables[:30]]
+    for w, run in tabs:
+        d = section(w, run)
+        by_key = {r["key"]: r for r in d["rows"]}
+        for e in d["present"]["entries"]:
+            c = e.get("combined")
+            if not c:
+                continue
+            seen += 1
+            shown = {x["rule"] for x in c["seasons"]}
+            for m in c["members"]:
+                r = by_key[m["row"]]
+                want = {x["rule"] for x in r["counters"] if not steady(x) and not x["moot"]}
+                shown |= {x["rule"] for x in m["seasons"]}
+                assert want <= shown, (w, run + 1, m["name"], sorted(want - shown))
+                for x in m["seasons"]:
+                    assert set(x["fish"]) <= set(m["members"]), (w, run + 1, x["rule"], x["fish"])
+            for x in c["seasons"]:
+                assert set(x["fish"]) <= set(e["members"]), (w, run + 1, x["rule"], x["fish"])
+    assert seen, "no merged group reached this test"
+
+
 def test_the_definitional_size_is_recorded_but_never_chains():
     """Page 86: "steelhead: a rainbow trout longer than 50 cm in waters where anadromous
     rainbow trout are found." The standing tables use this to drop a size class that cannot
