@@ -62,6 +62,21 @@ def _panel(p, printed_attr: str, ours_attr: str) -> dict:
     }
 
 
+def _quota_table(region: str, kind: str) -> dict:
+    """The rows AND the presentation pass over them.
+
+    `provenance.present` is what makes the table a reader's table rather than a dump: one
+    entry per kind of fish, **never two rows for one species** — where wild and hatchery
+    differ they become two LINES under the one name — a shared number as a BAND above its
+    members carrying once whatever is true of all of them, and a fish that stands outside the
+    shared number still drawn under its group. Rendering the raw rows instead loses every one
+    of those and splits a species across the table.
+    """
+    rows = _quota_rows(region, kind)
+    d = {"rows": rows}
+    return {"rows": rows, "present": provenance.present(d) if rows else {"entries": [], "bands": {}}}
+
+
 def _quota_rows(region: str, kind: str) -> list:
     """The base table's own rows.
 
@@ -102,10 +117,10 @@ def collect() -> dict:
         q_panel = qp.get((region, kind)) or qp.get((region, "any"))
         m_panel = mp.get((region, kind)) or mp.get((region, "any"))
         try:
-            q_rows = _quota_rows(region, kind) if kind in ("lake", "stream") else []
+            q = _quota_table(region, kind) if kind in ("lake", "stream") else {}
         except Exception as e:                      # a region with no base of that kind
             log(f"  no quota base for {region}·{kind}: {e}")
-            q_rows = []
+            q = {}
         try:
             g_table = method_provenance.base_table(region, kind) if kind in ("lake", "stream") else None
         except Exception as e:
@@ -116,7 +131,8 @@ def collect() -> dict:
             "region": region,
             "kind": kind,
             "title": (q_panel or m_panel or {}).get("title") or f"{region} · {kind}",
-            "quota": {"rows": q_rows, "print": q_panel},
+            "quota": {"rows": q.get("rows") or [], "present": q.get("present") or {},
+                      "print": q_panel},
             "gear": {"table": g_table, "print": m_panel},
         })
 
