@@ -470,20 +470,96 @@ def test_a_displaced_lake_edge_keeps_the_name_a_rule_BINDS_not_just_its_wbk():
 
 
 def test_a_displaced_split_carries_no_label_because_its_ref_is_already_the_name():
-    """`split:elk_river__elko_dam` already contains the bindable id, and the lookup tries both
-    spellings. A `label:` alias on top would be a second name for one place — the collision the
-    registry disambiguates with `_2` suffixes — for no gain."""
-    from pipeline.common.models import BoundaryKind, SectionBoundary
+    """`split:spuzzum_creek_into_fraser_river` already contains the bindable id, and the lookup
+    tries both spellings. A `label:` alias on top would be a second name for one place — the
+    collision the registry disambiguates with `_2` suffixes — for no gain.
+
+    The Fraser case: the Region 2/3 MU boundary lands at exactly the Spuzzum confluence because the
+    region boundary follows the creek, so one curated cut relabels another."""
+    from pipeline.common.models import (BoundaryKind, NodeKind, SectionBoundary, StreamGraph,
+                                        StreamNode)
     from pipeline.atlas.splits.sectionizer import _pickup
-    dam = SectionBoundary(boundary_id="split:elk_river__elko_dam", kind=BoundaryKind.split,
-                          route_measure=500.0, label="Elko Dam")
-    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    creek = SectionBoundary("split:fraser_river__spuzzum_creek_into_fraser_river",
+                            BoundaryKind.confluence, 500.0, "Spuzzum Creek → Fraser River")
     g = StreamGraph()
     g.nodes = {
         "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
-                          down_m=0.0, up_m=500.0, upper_bound=dam),
+                          down_m=0.0, up_m=500.0, upper_bound=creek),
         "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
-                            down_m=500.0, up_m=1000.0, lower_bound=dam),
+                            down_m=500.0, up_m=1000.0, lower_bound=creek),
     }
-    assert _pickup(g, "1", _sp("gauge__08NK031", m=500.0), {"1": ["1:0", "1:500"]}) is True
-    assert g.nodes["1:0"].upper_bound.aliases == ("split:elk_river__elko_dam",)
+    assert _pickup(g, "1", _sp("fraser_river__region_2_3_boundary", m=500.0),
+                   {"1": ["1:0", "1:500"]}) is True
+    assert g.nodes["1:0"].upper_bound.aliases == (
+        "split:fraser_river__spuzzum_creek_into_fraser_river",)
+
+
+def test_an_auto_split_defers_to_an_authored_boundary_instead_of_renaming_it():
+    """**`build.py` already promised this and the pickup broke it.**
+
+    Gauge cuts are applied after the curated ones, and the comment there says why: "authored
+    geometry is the primary boundary; a gauge defers to it." But a pickup handed the id AND the
+    label to the incoming split, so running second is exactly what made the gauge win. 25
+    boundaries province-wide displayed a station code in place of the thing the page names —
+    "signs 80 m downstream of adult fish counting fence" became `08EC013 · Babine River At Outlet
+    Of Nilkitkw`.
+
+    Nothing failed, which is why it lasted: the displaced id survives as an alias and still
+    resolves. Only the name was wrong. An auto split is a position, so it takes the position.
+    """
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.atlas.splits.sectionizer import _pickup
+    signs = SectionBoundary("split:babine_river__signs_80_m_downstream_of_fence",
+                            BoundaryKind.split, 500.0, "signs 80 m downstream of the fence")
+    g = StreamGraph()
+    g.nodes = {
+        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
+                          down_m=0.0, up_m=500.0, upper_bound=signs),
+        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
+                            down_m=500.0, up_m=1000.0, lower_bound=signs),
+    }
+    assert _pickup(g, "1", _sp("gauge__08EC013", m=500.0), {"1": ["1:0", "1:500"]}) is True
+    got = g.nodes["1:0"].upper_bound
+    assert got.boundary_id == "split:babine_river__signs_80_m_downstream_of_fence"
+    assert got.label == "signs 80 m downstream of the fence", "the authored NAME survives"
+    assert "split:gauge__08EC013" in got.aliases, "the station still binds, as an alias"
+
+
+def test_an_auto_split_defers_to_an_interior_lake_edge_too():
+    """The gap the old comment admitted: the auto-split rule ran only in the natural-end branch, so
+    an interior lake edge was fair game. `08ED001 · Nanika River At Outlet Of Kidprice` is what that
+    looks like — the lake is the thing with a name, and the station took it."""
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.atlas.splits.sectionizer import _pickup
+    lake = SectionBoundary("lake:329385415", BoundaryKind.lake, 500.0, "Kidprice Lake")
+    g = StreamGraph()
+    g.nodes = {
+        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
+                          down_m=0.0, up_m=500.0, upper_bound=lake),
+        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
+                            down_m=500.0, up_m=1000.0, lower_bound=lake),
+    }
+    assert _pickup(g, "1", _sp("gauge__08ED001", m=500.0), {"1": ["1:0", "1:500"]}) is True
+    got = g.nodes["1:0"].upper_bound
+    assert got.boundary_id == "lake:329385415" and got.label == "Kidprice Lake"
+    assert "split:gauge__08ED001" in got.aliases
+
+
+def test_a_curated_split_still_relabels_an_auto_one():
+    """The deferral is one-directional. A curator authoring a name AT a minted position is the
+    whole point of authoring it — that is how `gauge__08EB005` became "above Babine River"."""
+    from pipeline.common.models import BoundaryKind, NodeKind, SectionBoundary, StreamGraph, StreamNode
+    from pipeline.atlas.splits.sectionizer import _pickup
+    gauge = SectionBoundary("split:gauge__08EB005", BoundaryKind.split, 500.0, "08EB005 · Skeena")
+    g = StreamGraph()
+    g.nodes = {
+        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
+                          down_m=0.0, up_m=500.0, upper_bound=gauge),
+        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
+                            down_m=500.0, up_m=1000.0, lower_bound=gauge),
+    }
+    assert _pickup(g, "1", _sp("skeena_river__above_babine_river", m=500.0),
+                   {"1": ["1:0", "1:500"]}) is True
+    got = g.nodes["1:0"].upper_bound
+    assert got.boundary_id == "split:skeena_river__above_babine_river"
+    assert "split:gauge__08EB005" in got.aliases

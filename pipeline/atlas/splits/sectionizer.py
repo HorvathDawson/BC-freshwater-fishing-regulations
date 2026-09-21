@@ -179,6 +179,7 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
     # creek — so whichever was cut second silently erased the other, and the rule bound to the loser
     # ("between Spuzzum Creek and Hell's Gate") resolved to nothing with no indication why.
     prior: set[str] = set()
+    incumbent = None
     for nid in blk_nids:
         n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
@@ -187,6 +188,8 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
             if b is not None and abs(b.route_measure - best_m) < 1e-6:
                 prior.add(b.boundary_id)
                 prior.update(b.aliases or ())
+                if incumbent is None and _is_authored(b.boundary_id):
+                    incumbent = b
                 # CARRYING THE REF IS NOT CARRYING THE NAME.
                 #
                 # A split's ref is literally `split:` + the id a rule binds, so carrying the ref
@@ -202,10 +205,31 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
                 if b.label and not str(b.boundary_id).startswith("split:"):
                     prior.add(f"label:{b.label}")
     mine = f"split:{sp.split_id}"
-    bnd = SectionBoundary(boundary_id=mine,
-                          kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
-                          route_measure=best_m, label=(sp.label or sp.split_id),
-                          aliases=tuple(sorted(prior - {mine})))
+    if _auto_split(sp.split_id) and incumbent is not None:
+        # DEFERRING MEANS KEEPING THE NAME, NOT JUST THE POSITION.
+        #
+        # `build.py` orders gauge cuts after the curated ones and says why: "authored geometry is
+        # the primary boundary; a gauge defers to it." The pickup did the opposite. It always
+        # handed the id AND the label to the INCOMING split, so running second is what made the
+        # gauge win — 25 boundaries province-wide were displaying a station code in place of the
+        # thing the regulation names: "signs 80 m downstream of adult fish counting fence" on the
+        # Babine, "tidal boundary at papermill dam" on the Somass, "signs 50 m downstream of Likely
+        # Bridge" on the Quesnel. Each one still RESOLVED — the displaced id is an alias — so
+        # nothing failed; the water was just labelled with a number nobody writes on a page.
+        #
+        # An auto split is a position, not a name (`_AUTO_SPLIT_PREFIXES`). So it takes the
+        # position and leaves the name alone: the incumbent keeps id, kind and label, and the
+        # minted id joins as an alias. Both still bind — `parse_context` prints an alias as "also
+        # written", and ingest rewrites it to the canonical id — so this only changes WHICH of the
+        # pair is canonical, in favour of the one a person authored.
+        #
+        # This is the interior half of the rule the natural-end branch above already enforces.
+        bnd = replace(incumbent, aliases=tuple(sorted((prior | {mine}) - {incumbent.boundary_id})))
+    else:
+        bnd = SectionBoundary(boundary_id=mine,
+                              kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),
+                              route_measure=best_m, label=(sp.label or sp.split_id),
+                              aliases=tuple(sorted(prior - {mine})))
     for nid in blk_nids:
         n = graph.nodes[nid]
         if n.kind != NodeKind.stream or n.blk != blk:
@@ -231,6 +255,18 @@ def _auto_split(split_id: str) -> bool:
     """
     head = split_id.split("__")[0] if "__" in split_id else split_id.split(":")[0]
     return head in _AUTO_SPLIT_PREFIXES
+
+
+def _is_authored(boundary_id: str) -> bool:
+    """Is this boundary a NAME (something a page could say), rather than a minted position?
+
+    A curated split and a lake edge are both names — "McIntyre Dam", "Great Central Lake" — and a
+    rule can bind either. `gauge__08NM247`, `area:6`, `border:…` and `length:…` are positions the
+    pipeline invented. The distinction is what lets an auto split defer instead of relabel.
+    """
+    bid = str(boundary_id or "")
+    return bool(bid) and not _auto_split(bid[len("split:"):] if bid.startswith("split:") else bid)
+
 
 _ALIAS_MAX_FROM_EDGE_M = 3000.0   # how far into the lake a split may sit and still mean its edge
 
