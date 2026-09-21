@@ -157,18 +157,51 @@ quota ledgers.
 
 ---
 
+## The app page (`app/design/regs-v3.html`) — ported 2026-09-21
+
+The page renders what the pipeline hands it and computes nothing. The four browser-side
+ladders (`kindBeaten`, `authBeaten`, `tribBeaten`, `shutAll`), `retentionTable`,
+`gearTable`, the closure calendar and their helpers are deleted (~1,700 lines); a test
+fails if any of them comes back.
+
+- **`pipeline/tools/emit_regs_v3_tables.py`** writes a second JSON block, `<script id="t">`,
+  after the `d` block: `provenance.section` and `method_provenance.section` for every
+  stretch of every water, in the shape the artifacts render. Every counter, term and gear
+  row is written ONCE into `pool` by content (22 MB naive → 6 MB); the page rehydrates on
+  load. Run it **after** `build_regs_v3_data`, never instead of it — the `d` block is what
+  `corpus.section_rules`, `comply` and the delta invariant read, and the emitter never
+  touches it (tested).
+- **`LEDGER`** (a `<style>` + `<script>` before the page's own script) is the artifacts'
+  renderer, scoped under `.ledger`: bands with "between them", a size on every row, wild and
+  hatchery as two lines under one species, a stop as loud as a permission, possession never
+  a naked number ("4 in possession — twice the daily 2"), a tag that opens the sentence.
+  Inputs: water, stretch, `[TODAY.month, TODAY.day]`, the word for the water. A fish finder
+  filters rows in place and survives a repaint (`LEDGER.after(screen)`).
+- The page's `whatView` calls `LEDGER.quota(...)` and `LEDGER.gear(...)`; `bucket.gear`
+  (conduct notices the old gear table printed underneath) still rides beneath the gear
+  table as plain lines. The `eaten` routing at `whatView` remains — it only decides which
+  zone rules are *tables* and which are *notices*; it resolves nothing.
+- Two collisions bit during the port, both from the page attaching handlers by attribute:
+  `screen.querySelectorAll("[data-fish]")` folds species and `[data-prov]` toggles the
+  working — a tag carrying either repainted the screen on tap. The ledger uses
+  `data-lfish` and `data-sentence`. Do not reuse the page's `data-*` names.
+- The screen is a phone-width frame whatever the window, so the stacked row layout is the
+  layout, not a breakpoint.
+- `pipeline/tests/test_regs_v3_page.py`: ladders gone; every stretch has both tables; a
+  sample re-resolved here matches the page counter for counter (a stale `t` fails); the
+  emitter leaves `d` alone.
+
 ## Open work
 
-1. **`regs-v3.html` still resolves in the browser.** The app page has not been switched to
-   the ledger. The artifacts are the only surfaces consuming it. This is the largest
-   remaining piece.
-2. Groups still named by exclusion — "Any other char" / "Any other trout". The readability
+1. Groups still named by exclusion — "Any other char" / "Any other trout". The readability
    review ruled this out; member names beneath are a partial fix.
-3. Duplicate answers from two authorities print twice (Shuswap wild steelhead:
+2. Duplicate answers from two authorities print twice (Shuswap wild steelhead:
    `release [Region 3] · release [All of B.C.]`) — dedupe to the closest authority.
-4. Weekday and time-of-day rules never decide a `(month, day)`; the client must apply them.
-5. Region 7B possession exceptions are verified against curated text only — no 7B chapter
+3. Weekday and time-of-day rules never decide a `(month, day)`; the client must apply them.
+4. Region 7B possession exceptions are verified against curated text only — no 7B chapter
    PDF was fetched (the full synopsis p.70 now covers the quota table).
+5. The page's species-group toggles (`st.fish_`, the where-view) do not filter the ledger;
+   the ledger has its own finder. One filter would be better than two.
 
 ## Artifacts
 
