@@ -87,7 +87,24 @@ def _always(region: str, kind: str) -> list:
     page, under a collapsed disclosure. A man standing below a fishway reads the big number and
     never sees the rule that governs him. They are general rules and belong at the top.
     """
+    from pipeline.regs.table import rows as R
     L = QP.base_ledger(region, kind)
+
+    # WHAT A ROW ALREADY ANSWERS DOES NOT BELONG UP HERE. Three rules reach this list only
+    # because their `extent_text` is prose rather than a place — Region 4's "illegal to fish
+    # for bass, perch, pike or walleye in the Kootenay Region", Region 5's bass notice, and
+    # Region 2's protected-species list. Each of those fish already has its own row saying 0,
+    # so repeating the notice at the top is the same answer twice, and it crowds out the two
+    # rules that genuinely cannot be drawn: the 23 m and 100 m buffers, which say 0 in a spot
+    # nobody can map while the rows say 5.
+    answered = {}
+    for r in R.rows(L):
+        h = r.headline()
+        if h is None:
+            continue
+        for sp in r.fish:
+            answered[sp] = h.word()
+
     out, seen = [], set()
     for a in L.allowances:
         if getattr(a.applies, "kind", "") != "somewhere":
@@ -95,10 +112,13 @@ def _always(region: str, kind: str) -> list:
         rid_ = a.source.rule_id
         if rid_ in seen:
             continue
+        fish = a.scope.effective()
+        word = a.word()
+        if fish and all(answered.get(sp) == word for sp in fish):
+            continue                      # every fish it names already reads this on its row
         seen.add(rid_)
         out.append({"rule": rid_, "where": a.applies.detail or a.source.place,
-                    "verbatim": a.source.verbatim, "who": a.source.who,
-                    "says": a.word() if hasattr(a, "word") else ""})
+                    "verbatim": a.source.verbatim, "who": a.source.who, "says": word})
     return out
 
 
