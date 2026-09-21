@@ -61,7 +61,10 @@ def keep_json(T: MethodTable, method: str) -> List[dict]:
             h = r.headline()
             if h is None:
                 continue
-            words = {"closed": "No fishing for this", "release": "Put it back",
+            # THE ROW ALREADY NAMES THE METHOD, so these words are about the method, not the
+            # water. "Game fish — No fishing for this" on the spear row read as a closure on
+            # game fish everywhere, when what the book says is that you may not SPEAR them.
+            words = {"closed": "May not be taken this way", "release": "Put it back",
                      "unlimited": "Keep as many as you like"}.get(h.kind, f"Keep up to {h.n} a day")
             fish = _keep_heading(r, L)
             out.append({"fish": fish, "members": sorted(name(c) for c in r.fish), "word": words,
