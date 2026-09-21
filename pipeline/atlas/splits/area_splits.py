@@ -3,7 +3,8 @@ at first-enter/last-exit, then flag the inside reaches (in_areas). Unlike splits
 anchors (scoped to ONE system via applies_to), these apply to every stream in the polygon.
 
 Consumed by the graph build; a `within(area)` reg binds to the inside sections at match time.
-Selector per area: layer + name_field + either which:"all" or a SQL `where`.
+Selector per area: name_field, plus EITHER a fetched gpkg `layer` (with which:"all" or a SQL
+`where`) OR a curated `file` of hand-drawn polygons — see `load_area_polys`.
 """
 
 from __future__ import annotations
@@ -85,6 +86,37 @@ def mu_region_table(bbox=None) -> dict[str, str]:
             if str(k) and str(k) != "None"}
 
 
+def _resolve_area_file(name: str) -> Path:
+    """A curated area file, by the key it is declared under (`added_areas`) or by a path.
+
+    Going through `CURATED` rather than joining a directory is what keeps the file in the
+    manifest: a declared path is checked to exist at load and cannot be deleted by a dead-file
+    sweep, which is exactly the protection `ungazetted.json` is documented as needing."""
+    got = getattr(CURATED.waters, name, None)
+    return Path(got) if got is not None else Path(name)
+
+
+def load_area_attrs(area_def: dict) -> dict:
+    """`{name -> {attr: value}}` for the extra per-feature properties a def asks to `carry`.
+
+    `load_area_polys` returns geometry keyed by name and drops every other column, which is
+    right for cutting — the cutter needs a shape and an id and nothing else. A drawn polygon
+    needs more: a closure zone that cannot say WHICH WATER it closes is a shape on a map with
+    no way back to the regulation. `carry` names the columns that survive to the tile.
+
+    Curated files only; a fetched layer would need the same treatment per source and none of
+    them ask for it yet."""
+    import geopandas as gpd
+
+    fields = list(area_def.get("carry") or ())
+    if not fields or not area_def.get("file"):
+        return {}
+    g = gpd.read_file(_resolve_area_file(area_def["file"]), engine="pyogrio")
+    nf = area_def["name_field"]
+    return {str(r[nf]): {f: r[f] for f in fields if f in g.columns}
+            for _, r in g.iterrows() if r.get(nf)}
+
+
 def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     """{key -> (Multi)Polygon} for one area def. `where` filters the layer (e.g. ecological reserves
     within parks_bc); absent `where` = the whole layer.
@@ -102,9 +134,33 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     kw: dict = {"engine": "pyogrio"}
     if area_def.get("where"):
         kw["where"] = area_def["where"]
-    if bbox is not None:
-        kw["bbox"] = tuple(bbox)
-    g = gpd.read_file(_GPKG, layer=area_def["layer"], **kw)
+    if area_def.get("file"):
+        # A CURATOR'S POLYGON, not a fetched layer.
+        #
+        # Every other area here selects from a layer somebody downloaded — a park, a WMA, an
+        # OSM parcel. Some closures have no such source: "the area bounded by a line from a
+        # sign at the eastern end of Landstrom Bar to a sign on the opposite bank, thence …"
+        # is a polygon that exists only in the regulation's own words, and until it is drawn
+        # the rule gets bound as a reach between two cut-points — which closes the whole
+        # width of the river instead of the area the signs enclose.
+        #
+        # Read straight from the curated file rather than routing it through `fetch_data`,
+        # which is a NETWORK pipeline: a curator moving a vertex must reach the next build by
+        # editing one file, not by re-running a fetch that needs the internet and rewrites
+        # unrelated layers. Everything past this point is identical to a gpkg layer, so the
+        # cutter, the catalog and the tile exporter need no idea where the polygon came from.
+        #
+        # The bbox is applied AFTER reprojection: it arrives in BC Albers, while the file is
+        # lon/lat, and handing a 3005 box to a 4326 read silently returns nothing.
+        g = gpd.read_file(_resolve_area_file(area_def["file"]), engine="pyogrio")
+        if g.crs is not None and g.crs.to_epsg() != 3005:
+            g = g.to_crs(3005)
+        if bbox is not None:
+            g = g.cx[bbox[0]:bbox[2], bbox[1]:bbox[3]]
+    else:
+        if bbox is not None:
+            kw["bbox"] = tuple(bbox)
+        g = gpd.read_file(_GPKG, layer=area_def["layer"], **kw)
     nf = area_def["name_field"]
     out: dict = {}
     if g.empty:
@@ -136,7 +192,7 @@ def load_area_polys(fwa, area_def: dict, bbox=None) -> dict:
     # layer, but the 2025-2027 synopsis administers it from Region 1: "Freshwater angling
     # regulations ... for Haida Gwaii ... are now within Region 1." Dissolving on the raw
     # field hands Haida Gwaii all 26 of Region 6's zone rules and none of Region 1's.
-    apply_remap(g, nf, area_def.get("remap"), area_def["layer"])
+    apply_remap(g, nf, area_def.get("remap"), area_def.get("layer", area_def.get("file", "")))
 
     for name, sub in g.groupby(nf):
         geom = sub.geometry.union_all()

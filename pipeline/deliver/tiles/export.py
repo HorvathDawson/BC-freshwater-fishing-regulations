@@ -300,7 +300,8 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
     import geopandas as gpd
     from pyproj import Transformer
 
-    from pipeline.atlas.splits.area_splits import load_area_polys, load_area_split_defs
+    from pipeline.atlas.splits.area_splits import (load_area_attrs, load_area_polys,
+                                                   load_area_split_defs)
 
     tf = Transformer.from_crs(3005, 4326, always_xy=True)
     writers: dict[str, tuple] = {}
@@ -330,6 +331,15 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
         spec = BY_NAME[lname]
         write = writer_for(lname)
         polys = load_area_polys(None, ad)
+        # Per-feature extras the def asked to `carry` — `cuts` on a closure zone. `_writer`
+        # drops anything not in `spec.attrs`, so a carried field that the layer does not
+        # declare is discarded silently; the check below turns that into a failure instead.
+        extra = load_area_attrs(ad)
+        for f in (ad.get("carry") or ()):
+            if f not in spec.attrs:
+                raise SystemExit(f"areas.json: '{ad['id']}' carries '{f}', which tile layer "
+                                 f"'{lname}' does not declare in attrs — it would be dropped "
+                                 f"at export and the tile would ship without it.")
         for name, geom in polys.items():
             if geom is None or geom.is_empty:
                 continue
@@ -340,6 +350,7 @@ def export_admin(gpkg: str, out_dir: Path) -> dict:
             # coloured, and nothing anywhere errored. Exactly the failure the tile
             # contract was created to stop, one seam further along.
             props = {"area_id": name, "name": display(name), "kind": ad.get("tile_kind")}
+            props.update({k: v for k, v in (extra.get(name) or {}).items() if v is not None})
             # A CLOSURE EARNS FEWER PIXELS BEFORE IT MUST BE SHOWN.
             #
             # The ladder draws a polygon once its side exceeds `visible_px` on screen, which

@@ -37,6 +37,7 @@ EXPORTERS = {
     "park": E.export_admin, "eco_reserve": E.export_admin, "wma": E.export_admin,
     "indigenous_land": E.export_admin, "no_access": E.export_admin,
     "watershed": E.export_admin, "mu": E.export_admin, "region": E.export_admin,
+    "closure_zone": E.export_admin,
     "parcel": E.export_admin,
     "place": E.export_places, "contour": E.export_contours,
     "outside": E.export_outside,

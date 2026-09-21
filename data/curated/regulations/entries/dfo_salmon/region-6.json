@@ -7578,11 +7578,9 @@
       "binding": {
         "extents": [
           {
-            "op": "between",
-            "splits": [
-              "skeena_river__kispiox_sign_zone_lower",
-              "skeena_river__kispiox_sign_zone_upper"
-            ]
+            "op": "whole",
+            "item_id": "gnis:2936",
+            "within_area": "area:closure_zone:skeena_river_kispiox_confluence_closure"
           }
         ],
         "tributaries": false,
@@ -7590,9 +7588,9 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE at the Kispiox confluence — the water within the triangular fishing boundary signs, not a reach between two landmarks. The page has carried this closure in THREE wordings (4 signs / 3 signs / three signs); they are ONE zone, curator-confirmed, see pipeline/docs/GOTCHAS.md. Bound as the 400 m above and below the confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). THE 400 m IS AN ASSUMPTION — DFO gives no distance and 400 m is the radius it uses for the comparable Region 6 mouth closures. Caveat stays set until the signs are surveyed: the drawn reach is an estimate, so the app must show this wording and must not draw it as a plain fill."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The closure is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
-        "spatial_caveat": true
+        "spatial_caveat": false
       }
     },
     {
@@ -11015,11 +11013,9 @@
       "binding": {
         "extents": [
           {
-            "op": "between",
-            "splits": [
-              "skeena_river__kispiox_sign_zone_lower",
-              "skeena_river__kispiox_sign_zone_upper"
-            ]
+            "op": "whole",
+            "item_id": "gnis:2936",
+            "within_area": "area:closure_zone:skeena_river_kispiox_confluence_closure"
           }
         ],
         "tributaries": false,
@@ -11027,9 +11023,9 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE at the Kispiox confluence — the water within the triangular fishing boundary signs, not a reach between two landmarks. The page has carried this closure in THREE wordings (4 signs / 3 signs / three signs); they are ONE zone, curator-confirmed, see pipeline/docs/GOTCHAS.md. Bound as the 400 m above and below the confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). THE 400 m IS AN ASSUMPTION — DFO gives no distance and 400 m is the radius it uses for the comparable Region 6 mouth closures. Caveat stays set until the signs are surveyed: the drawn reach is an estimate, so the app must show this wording and must not draw it as a plain fill."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The closure is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
-        "spatial_caveat": true
+        "spatial_caveat": false
       }
     },
     {
@@ -11142,11 +11138,9 @@
       "binding": {
         "extents": [
           {
-            "op": "between",
-            "splits": [
-              "skeena_river__kispiox_sign_zone_lower",
-              "skeena_river__kispiox_sign_zone_upper"
-            ]
+            "op": "whole",
+            "item_id": "gnis:2936",
+            "within_area": "area:closure_zone:skeena_river_kispiox_confluence_closure"
           }
         ],
         "tributaries": false,
@@ -11154,9 +11148,9 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE at the Kispiox confluence — the water within the triangular fishing boundary signs, not a reach between two landmarks. The page has carried this closure in THREE wordings (4 signs / 3 signs / three signs); they are ONE zone, curator-confirmed, see pipeline/docs/GOTCHAS.md. Bound as the 400 m above and below the confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). THE 400 m IS AN ASSUMPTION — DFO gives no distance and 400 m is the radius it uses for the comparable Region 6 mouth closures. Caveat stays set until the signs are surveyed: the drawn reach is an estimate, so the app must show this wording and must not draw it as a plain fill."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The closure is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
-        "spatial_caveat": true
+        "spatial_caveat": false
       }
     },
     {

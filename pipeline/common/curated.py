@@ -81,6 +81,9 @@ class Waters(BaseModel):
     splits: FilePath
     name_variants: FilePath
     areas: FilePath
+    #: Hand-drawn admin polygons — closure zones a regulation states as an AREA rather than a
+    #: reach. Selected by an `areas.json` def that names it in `file`; see `load_area_polys`.
+    added_areas: FilePath
     added_lakes: FilePath
     #: PROMOTED, not authored — 361 minted streams whose negative `blk` ids are a live ABI.
     added_streams: FilePath

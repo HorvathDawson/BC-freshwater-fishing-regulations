@@ -127,6 +127,22 @@ ADMIN: tuple[LayerSpec, ...] = (
             "drawn to look like one — never the same style as a park you may fish in.",
     ),
     LayerSpec(
+        name="closure_zone", geometry="polygon", ladder="area", minzoom=9,
+        attrs=("area_id", "name", "kind", "cuts"),
+        why="Sign-bounded closures — the area a regulation encloses with fishing boundary "
+            "signs, drawn by hand because no fetched layer has them.\n\n"
+            "ITS OWN LAYER BECAUSE IT IS NOT A PLACE, IT IS A RULE. A park is geography that "
+            "happens to carry regulations; this polygon has no existence apart from the "
+            "closure that describes it, and it is metres across where a park is kilometres. "
+            "Drawn as a park it would read as somewhere to go rather than somewhere you may "
+            "not fish.\n\n"
+            "`cuts` NAMES THE WATER, and without it the polygon is a shape with no way back "
+            "to the regulation: these rings sit ON a river, the rule is written about that "
+            "river, and a reader who taps the zone has to arrive at the Skeena rather than at "
+            "an anonymous quadrilateral. It is the registry item id, so the app can go "
+            "straight to the water the closure belongs to.",
+    ),
+    LayerSpec(
         name="wma", geometry="polygon", ladder="area", minzoom=7,
         attrs=("area_id", "name"),
         why="Wildlife management areas. Creston Valley carries its own quotas.",

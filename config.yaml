@@ -125,6 +125,9 @@ curated:
     splits: "data/curated/waters/splits.json"                      # authored
     name_variants: "data/curated/waters/name_variants.json"        # authored
     areas: "data/curated/waters/areas.json"                        # authored
+    # Hand-drawn ADMIN polygons: closure zones a regulation states as an area, not a reach.
+    # An areas.json def names this file in `file` instead of naming a fetched gpkg `layer`.
+    added_areas: "data/curated/waters/added_areas.geojson"         # authored — hand-drawn polygons
     added_lakes: "data/curated/waters/added_lakes.geojson"         # authored — hand-drawn polygons
     # PROMOTED, not authored. 361 minted streams whose negative blk ids are a live ABI;
     # re-running build_dataset.py remints them and strands every split bound to the old.

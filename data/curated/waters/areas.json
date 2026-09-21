@@ -1,167 +1,180 @@
 {
-  "_about": "Blanket area closures — cut ALL streams that cross the polygon (first-enter/last-exit) and flag the inside reaches (in_areas). Unlike splits.json area_boundary anchors (scoped to one system), these apply to every stream. Consumed by the graph build; a `within(area)` reg binds to the inside sections at match time. Selector: layer + name_field + either which:'all' or a SQL `where`.",
-  "areas": [
-    {
-      "id": "national_parks",
-      "layer": "parks_nat",
-      "name_field": "ENGLISH_NAME",
-      "which": "all",
-      "note": "All national parks (102) — closures apply to all waters within.",
-      "cut": true,
-      "tile_layer": "park",
-      "tile_kind": "national",
-      "tile_visible_px": 1.0
-    },
-    {
-      "id": "ecological_reserves",
-      "layer": "parks_bc",
-      "name_field": "PROTECTED_LANDS_NAME",
-      "where": "PROTECTED_LANDS_DESIGNATION = 'ECOLOGICAL RESERVE'",
-      "note": "All ecological reserves (a designation within parks_bc).",
-      "cut": true,
-      "tile_layer": "eco_reserve",
-      "tile_visible_px": 1.0
-    },
-    {
-      "id": "chilkoot_trail",
-      "layer": "historic_sites",
-      "name_field": "COMMON_SITE_NAME",
-      "where": "SITE_ID = '4af28ce2-bda0-47bf-8e64-664b1be54922'",
-      "note": "Chilkoot Trail National Historic Site (Region 6, MU 6-28). Single feature.",
-      "cut": true,
-      "tile_layer": "park",
-      "tile_kind": "historic",
-      "tile_visible_px": 1.0
-    },
-    {
-      "id": "restricted_land_access",
-      "layer": "land_access",
-      "name_field": "name",
-      "id_field": "osm_id",
-      "per_feature": true,
-      "label_default": "Restricted-access land",
-      "where": "restriction_level = 'closed'",
-      "note": "OSM land the public cannot enter — access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers).",
-      "cut": true,
-      "tile_layer": "no_access",
-      "tile_kind": "closed",
-      "tile_visible_px": 1.0
-    },
-    {
-      "id": "permit_land_access",
-      "layer": "land_access",
-      "name_field": "name",
-      "id_field": "osm_id",
-      "per_feature": true,
-      "label_default": "Permission-only land",
-      "where": "restriction_level = 'restricted'",
-      "note": "The other half of land_access: places you MAY enter, with permission — access=permit/permissive/customers. Four of them, and two hold real water: the UBC Malcolm Knapp Research Forest and Ten Mile Point Ecological Reserve. They were dropped entirely, because `restricted_land_access` takes only restriction_level='closed' and nothing else claimed the rest; v1 drew every level. NEVER cut: the cut policy is for blanket closures with a hard boundary, and 'ask first' is not a closure. Membership only, so an advisory can bind to the reaches inside.",
-      "cut": false,
-      "tile_layer": "no_access",
-      "tile_kind": "permit",
-      "tile_visible_px": 1.5
-    },
-    {
-      "id": "provincial_parks",
-      "kind": "park",
-      "layer": "parks_bc",
-      "name_field": "PROTECTED_LANDS_NAME",
-      "where": "PROTECTED_LANDS_DESIGNATION <> 'ECOLOGICAL RESERVE'",
-      "cut": false,
-      "note": "BC provincial parks, protected areas and recreation areas (782). Regs name these directly — STRATHCONA PARK WATERS, KIKOMUN CREEK PARK, BOWRON LAKE Park, Garibaldi, Hamber — and every one of those entries is currently no_registry because the area does not exist to bind to. Membership-only: a park boundary is not a drainage divide, but these are advisories and gear rules rather than the blanket closures that need an exact inside/outside edge.",
-      "tile_layer": "park",
-      "tile_kind": "provincial",
-      "tile_visible_px": 4.0
-    },
-    {
-      "id": "wildlife_management_areas",
-      "kind": "wma",
-      "layer": "wma",
-      "name_field": "WILDLIFE_MANAGEMENT_AREA_NAME",
-      "which": "all",
-      "cut": false,
-      "note": "35 WMAs. CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS is a Region 4 entry with unlimited bass and yellow perch quotas and no area to attach to; the archived base regs also targeted this layer for zone_r4_creston_valley_wma_permit.",
-      "tile_layer": "wma"
-    },
-    {
-      "id": "watersheds",
-      "kind": "watershed",
-      "layer": "watersheds",
-      "name_field": "GNIS_NAME",
-      "where": "GNIS_NAME = 'Liard River'",
-      "cut": false,
-      "note": "FWA named watersheds, filtered to the ones a regulation actually names. LIARD RIVER WATERSHED (bull trout catch-and-release, Aug 15 - Oct 15) is the entry; the polygon is 142,173 km2 and intersects 322,626 sections, 15.7% of the atlas. NEVER cut: a watershed boundary is a drainage divide, so water does not cross it, and cutting 322k sections would buy nothing. Add further watersheds to the `where` as regs name them.",
-      "tile_layer": "watershed"
-    },
-    {
-      "id": "aboriginal_lands",
-      "kind": "indigenous_land",
-      "layer": "aboriginal_lands",
-      "name_field": "name",
-      "which": "all",
-      "cut": false,
-      "note": "929 reserves and treaty lands. PROV_ABORIGINAL_LANDS_ADVISORY in the archived base regs targets this layer: an advisory about access and permission, not a fishing closure. Membership-only and never cut.",
-      "tile_layer": "indigenous_land"
-    },
-    {
-      "id": "regions",
-      "kind": "region",
-      "layer": "wmu",
-      "name_field": "REGION_RESPONSIBLE_ID",
-      "which": "all",
-      "cut": true,
-      "note": "The nine management regions the synopsis is written in, dissolved from the 225 wildlife management units by REGION_RESPONSIBLE_ID. CUT, because a regulation is written PER REGION and a water running through two of them needs a section boundary between the halves or a region's rules cannot be attached to its own half — the Fraser already carries three such boundaries, placed by hand at the Chilcotin, the Williams Lake River and the Cottonwood. Measured before adding: 62 of 11,957 streams cross a region boundary, 59 of them touching two regions, 2 touching three and 1 touching four. Dissolved on the ID and not the NAME, because 7A Omineca and 7B Omineca share a name and are two regions in the book with different rules; dissolving on the name would merge them and lose the boundary the synopsis prints.  HAIDA GWAII: MUs 6-12 and 6-13 carry REGION_RESPONSIBLE_ID=6 in the source layer, but the 2025-2027 synopsis administers them from Region 1 — `remap` reassigns them before the dissolve.",
-      "tile_layer": "region",
-      "label_term": "Region",
-      "remap": {
-        "field": "WILDLIFE_MGMT_UNIT_ID",
-        "values": {
-          "6-12": "1",
-          "6-13": "1"
-        }
-      }
-    },
-    {
-      "id": "mu_group_south_island",
-      "kind": "mu_group",
-      "layer": "wmu",
-      "name_field": "WILDLIFE_MGMT_UNIT_ID",
-      "where": "WILDLIFE_MGMT_UNIT_ID IN ('1-1', '1-2', '1-3', '1-4', '1-5', '1-6')",
-      "combine": "Management Units 1-1 to 1-6",
-      "label_term": "",
-      "cut": true,
-      "note": "Southern Vancouver Island. The regulation is written for the GROUP — 'No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions)' — so the area is the UNION and the boundaries between 1-2 and 1-3 are internal to it. Combined rather than cut per unit: six polygons would add five boundaries no regulation asks for, and a rule would have to name six areas instead of one.",
-      "tile_layer": null,
-      "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
-    },
-    {
-      "id": "mu_group_haida_gwaii",
-      "kind": "mu_group",
-      "layer": "wmu",
-      "name_field": "WILDLIFE_MGMT_UNIT_ID",
-      "where": "WILDLIFE_MGMT_UNIT_ID IN ('6-12', '6-13')",
-      "combine": "Management Units 6-12 and 6-13",
-      "label_term": "",
-      "cut": true,
-      "note": "HAIDA GWAII, which is MUs 6-12 and 6-13 — administratively in Region 6, but the Region 1 preamble governs it: 'all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)'. This def was first written as 'Lower Skeena', which is wrong, and it was caught three ways: the archived rule text names Haida Gwaii outright, a second reader flagged it, and the polygon's centroid is lon -131.5 lat 53.2 — the islands, not Terrace. The AREA ID slugs from `combine`, not from this id, so nothing downstream moved when the name was corrected. Combined because the bait ban and the Region 1 preamble are both written for the pair.",
-      "tile_layer": null,
-      "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
-    },
-    {
-      "id": "mu_group_cariboo_coastal",
-      "kind": "mu_group",
-      "layer": "wmu",
-      "name_field": "WILDLIFE_MGMT_UNIT_ID",
-      "where": "WILDLIFE_MGMT_UNIT_ID IN ('5-6', '5-7', '5-8', '5-9', '5-10', '5-11')",
-      "combine": "Management Units 5-6 to 5-11",
-      "label_term": "",
-      "cut": true,
-      "note": "REGION 5B, the Cariboo's coastal half. DFO splits Region 5 across two pages — 5a is the Fraser River Watershed, 5b the Coastal Watershed — and 5b's default is written for the GROUP: 'All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B'. Combined for the same reason as the other two: the regulation names the group, so the boundaries between 5-7 and 5-8 are internal to it.\n\nThe WATERSHED reading looks equivalent and is NOT. 'Region 5 minus the Fraser basin' tiles region 5 exactly (80,352 + 189,633 = 269,985, zero overlap) but is only 54% MUs 5-6 to 5-11: it also pulls in 5-12, 5-2 and 5-13, because MU boundaries do not follow the Fraser divide. The MU list is the operative text, so it is the one that binds. Measured before this def was written, which is the only reason it exists.",
-      "tile_layer": null,
-      "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
+ "_about": "Blanket area closures — cut ALL streams that cross the polygon (first-enter/last-exit) and flag the inside reaches (in_areas). Unlike splits.json area_boundary anchors (scoped to one system), these apply to every stream. Consumed by the graph build; a `within(area)` reg binds to the inside sections at match time. Selector: layer + name_field + either which:'all' or a SQL `where`.",
+ "areas": [
+  {
+   "id": "national_parks",
+   "layer": "parks_nat",
+   "name_field": "ENGLISH_NAME",
+   "which": "all",
+   "note": "All national parks (102) — closures apply to all waters within.",
+   "cut": true,
+   "tile_layer": "park",
+   "tile_kind": "national",
+   "tile_visible_px": 1.0
+  },
+  {
+   "id": "ecological_reserves",
+   "layer": "parks_bc",
+   "name_field": "PROTECTED_LANDS_NAME",
+   "where": "PROTECTED_LANDS_DESIGNATION = 'ECOLOGICAL RESERVE'",
+   "note": "All ecological reserves (a designation within parks_bc).",
+   "cut": true,
+   "tile_layer": "eco_reserve",
+   "tile_visible_px": 1.0
+  },
+  {
+   "id": "chilkoot_trail",
+   "layer": "historic_sites",
+   "name_field": "COMMON_SITE_NAME",
+   "where": "SITE_ID = '4af28ce2-bda0-47bf-8e64-664b1be54922'",
+   "note": "Chilkoot Trail National Historic Site (Region 6, MU 6-28). Single feature.",
+   "cut": true,
+   "tile_layer": "park",
+   "tile_kind": "historic",
+   "tile_visible_px": 1.0
+  },
+  {
+   "id": "restricted_land_access",
+   "layer": "land_access",
+   "name_field": "name",
+   "id_field": "osm_id",
+   "per_feature": true,
+   "label_default": "Restricted-access land",
+   "where": "restriction_level = 'closed'",
+   "note": "OSM land the public cannot enter — access=no/private or landuse=military (restriction_level='closed', set in data/fetch_data.py after pool/parking noise is already filtered out). Per-feature: each parcel is its own closure (most are nameless), so a stream reach crossing one is flagged in_areas and a land-access advisory can bind to it. Excludes merely 'restricted'/conditional access (permit/permissive/customers).",
+   "cut": true,
+   "tile_layer": "no_access",
+   "tile_kind": "closed",
+   "tile_visible_px": 1.0
+  },
+  {
+   "id": "permit_land_access",
+   "layer": "land_access",
+   "name_field": "name",
+   "id_field": "osm_id",
+   "per_feature": true,
+   "label_default": "Permission-only land",
+   "where": "restriction_level = 'restricted'",
+   "note": "The other half of land_access: places you MAY enter, with permission — access=permit/permissive/customers. Four of them, and two hold real water: the UBC Malcolm Knapp Research Forest and Ten Mile Point Ecological Reserve. They were dropped entirely, because `restricted_land_access` takes only restriction_level='closed' and nothing else claimed the rest; v1 drew every level. NEVER cut: the cut policy is for blanket closures with a hard boundary, and 'ask first' is not a closure. Membership only, so an advisory can bind to the reaches inside.",
+   "cut": false,
+   "tile_layer": "no_access",
+   "tile_kind": "permit",
+   "tile_visible_px": 1.5
+  },
+  {
+   "id": "provincial_parks",
+   "kind": "park",
+   "layer": "parks_bc",
+   "name_field": "PROTECTED_LANDS_NAME",
+   "where": "PROTECTED_LANDS_DESIGNATION <> 'ECOLOGICAL RESERVE'",
+   "cut": false,
+   "note": "BC provincial parks, protected areas and recreation areas (782). Regs name these directly — STRATHCONA PARK WATERS, KIKOMUN CREEK PARK, BOWRON LAKE Park, Garibaldi, Hamber — and every one of those entries is currently no_registry because the area does not exist to bind to. Membership-only: a park boundary is not a drainage divide, but these are advisories and gear rules rather than the blanket closures that need an exact inside/outside edge.",
+   "tile_layer": "park",
+   "tile_kind": "provincial",
+   "tile_visible_px": 4.0
+  },
+  {
+   "id": "wildlife_management_areas",
+   "kind": "wma",
+   "layer": "wma",
+   "name_field": "WILDLIFE_MANAGEMENT_AREA_NAME",
+   "which": "all",
+   "cut": false,
+   "note": "35 WMAs. CRESTON VALLEY WILDLIFE MANAGEMENT AREA (CVWMA) WATERS is a Region 4 entry with unlimited bass and yellow perch quotas and no area to attach to; the archived base regs also targeted this layer for zone_r4_creston_valley_wma_permit.",
+   "tile_layer": "wma"
+  },
+  {
+   "id": "watersheds",
+   "kind": "watershed",
+   "layer": "watersheds",
+   "name_field": "GNIS_NAME",
+   "where": "GNIS_NAME = 'Liard River'",
+   "cut": false,
+   "note": "FWA named watersheds, filtered to the ones a regulation actually names. LIARD RIVER WATERSHED (bull trout catch-and-release, Aug 15 - Oct 15) is the entry; the polygon is 142,173 km2 and intersects 322,626 sections, 15.7% of the atlas. NEVER cut: a watershed boundary is a drainage divide, so water does not cross it, and cutting 322k sections would buy nothing. Add further watersheds to the `where` as regs name them.",
+   "tile_layer": "watershed"
+  },
+  {
+   "id": "aboriginal_lands",
+   "kind": "indigenous_land",
+   "layer": "aboriginal_lands",
+   "name_field": "name",
+   "which": "all",
+   "cut": false,
+   "note": "929 reserves and treaty lands. PROV_ABORIGINAL_LANDS_ADVISORY in the archived base regs targets this layer: an advisory about access and permission, not a fishing closure. Membership-only and never cut.",
+   "tile_layer": "indigenous_land"
+  },
+  {
+   "id": "regions",
+   "kind": "region",
+   "layer": "wmu",
+   "name_field": "REGION_RESPONSIBLE_ID",
+   "which": "all",
+   "cut": true,
+   "note": "The nine management regions the synopsis is written in, dissolved from the 225 wildlife management units by REGION_RESPONSIBLE_ID. CUT, because a regulation is written PER REGION and a water running through two of them needs a section boundary between the halves or a region's rules cannot be attached to its own half — the Fraser already carries three such boundaries, placed by hand at the Chilcotin, the Williams Lake River and the Cottonwood. Measured before adding: 62 of 11,957 streams cross a region boundary, 59 of them touching two regions, 2 touching three and 1 touching four. Dissolved on the ID and not the NAME, because 7A Omineca and 7B Omineca share a name and are two regions in the book with different rules; dissolving on the name would merge them and lose the boundary the synopsis prints.  HAIDA GWAII: MUs 6-12 and 6-13 carry REGION_RESPONSIBLE_ID=6 in the source layer, but the 2025-2027 synopsis administers them from Region 1 — `remap` reassigns them before the dissolve.",
+   "tile_layer": "region",
+   "label_term": "Region",
+   "remap": {
+    "field": "WILDLIFE_MGMT_UNIT_ID",
+    "values": {
+     "6-12": "1",
+     "6-13": "1"
     }
-  ],
-  "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut. Regions and MU groups are also cut, for a different reason than a closure: a regulation written per region or per group of units needs a section boundary at that area's edge or it cannot be attached to its own half of a water that crosses it.",
-  "_tile_note": "`tile_layer` names the vector-tile layer this area's POLYGONS are drawn in (pipeline/deliver/tiles/layers.py). It is here, not in the tile exporter, so a selector is written once: the graph build uses it to stamp `in_areas` and the exporter uses the same def to draw the boundary. Two copies of a selector is two things that can disagree about what a park is.",
-  "_tile_visible_px": "How many screen pixels a polygon's side must reach before it is drawn. The ladder's default is 3. LOWER means it appears EARLIER (further zoomed out), and that is a policy knob, not a rendering one: a national park, an ecological reserve or land with no public access at 1.0 px survives two to three zooms further out than a provincial park at 4.0, because arriving somewhere you may not fish is a worse outcome than a tidy map. See export_admin."
+   }
+  },
+  {
+   "id": "mu_group_south_island",
+   "kind": "mu_group",
+   "layer": "wmu",
+   "name_field": "WILDLIFE_MGMT_UNIT_ID",
+   "where": "WILDLIFE_MGMT_UNIT_ID IN ('1-1', '1-2', '1-3', '1-4', '1-5', '1-6')",
+   "combine": "Management Units 1-1 to 1-6",
+   "label_term": "",
+   "cut": true,
+   "note": "Southern Vancouver Island. The regulation is written for the GROUP — 'No Fishing in any stream in Management Units 1-1 to 1-6 from July 15-Aug 31 (see water specific regulations table for exceptions)' — so the area is the UNION and the boundaries between 1-2 and 1-3 are internal to it. Combined rather than cut per unit: six polygons would add five boundaries no regulation asks for, and a rule would have to name six areas instead of one.",
+   "tile_layer": null,
+   "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
+  },
+  {
+   "id": "mu_group_haida_gwaii",
+   "kind": "mu_group",
+   "layer": "wmu",
+   "name_field": "WILDLIFE_MGMT_UNIT_ID",
+   "where": "WILDLIFE_MGMT_UNIT_ID IN ('6-12', '6-13')",
+   "combine": "Management Units 6-12 and 6-13",
+   "label_term": "",
+   "cut": true,
+   "note": "HAIDA GWAII, which is MUs 6-12 and 6-13 — administratively in Region 6, but the Region 1 preamble governs it: 'all streams of Region 1 and Haida Gwaii (MUs 6-12, 6-13)'. This def was first written as 'Lower Skeena', which is wrong, and it was caught three ways: the archived rule text names Haida Gwaii outright, a second reader flagged it, and the polygon's centroid is lon -131.5 lat 53.2 — the islands, not Terrace. The AREA ID slugs from `combine`, not from this id, so nothing downstream moved when the name was corrected. Combined because the bait ban and the Region 1 preamble are both written for the pair.",
+   "tile_layer": null,
+   "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
+  },
+  {
+   "id": "mu_group_cariboo_coastal",
+   "kind": "mu_group",
+   "layer": "wmu",
+   "name_field": "WILDLIFE_MGMT_UNIT_ID",
+   "where": "WILDLIFE_MGMT_UNIT_ID IN ('5-6', '5-7', '5-8', '5-9', '5-10', '5-11')",
+   "combine": "Management Units 5-6 to 5-11",
+   "label_term": "",
+   "cut": true,
+   "note": "REGION 5B, the Cariboo's coastal half. DFO splits Region 5 across two pages — 5a is the Fraser River Watershed, 5b the Coastal Watershed — and 5b's default is written for the GROUP: 'All lakes or streams or part thereof in the aggregate (combined total), in Management Units 5-6 to 5-11 in Region 5B'. Combined for the same reason as the other two: the regulation names the group, so the boundaries between 5-7 and 5-8 are internal to it.\n\nThe WATERSHED reading looks equivalent and is NOT. 'Region 5 minus the Fraser basin' tiles region 5 exactly (80,352 + 189,633 = 269,985, zero overlap) but is only 54% MUs 5-6 to 5-11: it also pulls in 5-12, 5-2 and 5-13, because MU boundaries do not follow the Fraser divide. The MU list is the operative text, so it is the one that binds. Measured before this def was written, which is the only reason it exists.",
+   "tile_layer": null,
+   "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
+  },
+  {
+   "id": "closure_zones",
+   "file": "added_areas",
+   "name_field": "name",
+   "kind": "closure_zone",
+   "carry": [
+    "cuts"
+   ],
+   "cut": true,
+   "tile_layer": "closure_zone",
+   "tile_visible_px": 0.6,
+   "note": "Sign-bounded closures a regulation states as an AREA, not a reach — 'all waters within the 4 triangular fishing boundary signs', 'the area bounded by a line commencing at a sign at the eastern end of Landstrom Bar ... thence following the bank'. Drawn by hand in added_areas.geojson because no fetched layer has them. `cut: true` so the stream is cut where it enters and leaves the ring, which is what makes the closure a reach the app can colour; `carry: [cuts]` puts the registry item on the tile so a drawn polygon can say which water it closes. tile_visible_px is low because these are small and they are CLOSURES — the same reason national parks and ecological reserves lower theirs."
+  }
+ ],
+ "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut. Regions and MU groups are also cut, for a different reason than a closure: a regulation written per region or per group of units needs a section boundary at that area's edge or it cannot be attached to its own half of a water that crosses it.",
+ "_tile_note": "`tile_layer` names the vector-tile layer this area's POLYGONS are drawn in (pipeline/deliver/tiles/layers.py). It is here, not in the tile exporter, so a selector is written once: the graph build uses it to stamp `in_areas` and the exporter uses the same def to draw the boundary. Two copies of a selector is two things that can disagree about what a park is.",
+ "_tile_visible_px": "How many screen pixels a polygon's side must reach before it is drawn. The ladder's default is 3. LOWER means it appears EARLIER (further zoomed out), and that is a policy knob, not a rendering one: a national park, an ecological reserve or land with no public access at 1.0 px survives two to three zooms further out than a provincial park at 4.0, because arriving somewhere you may not fish is a worse outcome than a tidy map. See export_admin."
 }

@@ -1,0 +1,80 @@
+{
+ "_about": "HAND-DRAWN ADMIN AREAS — closure zones a regulation describes as a POLYGON.\n\nA regulation that says 'the area bounded by a line from a sign at X to a sign on the opposite bank, thence ...' is not a reach between two cut-points. Binding it as one closes the full width of the river instead of the area the signs enclose. These are the polygons, digitised.\n\nEach feature becomes one admin area, exactly like a park or a WMA: an `areas.json` entry selects this layer with `cut: true`, so `area_splits` cuts every stream at first-enter/last-exit of the ring, the inside reaches are stamped `in_areas`, and `export_admin` draws the polygon into the tiles. Nothing new is needed in `load_area_polys` — the layer reaches the gpkg the same way `land_access` does.\n\nPROPERTIES\n  id     stable key; the area id is minted as area:{kind}:{slug(name)}\n  name   what the area is called; this is what the area id slugs from, so do not reword it casually\n  kind   the area family (closure_zone)\n  cuts   the registry item this ring is cutting — the link the tile carries so a viewer can get from the polygon back to the water\n  note   why the polygon exists and which vertices are authority vs estimate\n\nSTATUS: both rings reviewed by the curator against OSM + the FWA blue lines, 2026-09-21. Neither regulation states a distance and no source records the sign positions, so these rings are a reading, not a survey — but they are a curator's reading, which is the authority this repo uses everywhere else. Rings are EPSG:4326, lon/lat, first point repeated to close.",
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "skeena_kispiox_confluence",
+    "name": "Skeena River — Kispiox confluence closure",
+    "kind": "closure_zone",
+    "cuts": "gnis:2936",
+    "note": "REVIEWED 2026-09-21. The zone spans the Kispiox mouth, which sits INSIDE the ring — so the Skeena crosses the boundary twice (enter, exit) and the Kispiox once (it ends at the confluence). 14.2 ha. DFO carries this closure in three wordings (4 / 3 / three triangular signs) and the province in a fourth; they are one zone, see pipeline/docs/GOTCHAS.md. No authority states a distance, so the ring is the curator's reading of where the signs stand."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -127.68773,
+       55.34044
+      ],
+      [
+       -127.69326,
+       55.33976
+      ],
+      [
+       -127.69262,
+       55.34431
+      ],
+      [
+       -127.68763,
+       55.34351
+      ],
+      [
+       -127.68773,
+       55.34044
+      ]
+     ]
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "fraser_landstrom_bar",
+    "name": "Fraser River — Landstrom Bar closure",
+    "kind": "closure_zone",
+    "cuts": "gnis:39325",
+    "note": "REVIEWED 2026-09-21. 11.5 ha on the north side of the Fraser; the mainstem crosses the boundary twice. The regulation reads: sign at the E end of Landstrom Bar (Scale Bar) -> a sign on the opposite bank -> a sign at the S end of Croft Island -> a sign on the nearest bank westerly -> thence FOLLOWING THE BANK back to the point of commencement. The closing edge is a straight line here, not a traced bank. Supersedes the between(fraser_river__landstrom_bar, fraser_river__croft_island_southern_end) binding, which closed the whole width of the river."
+   },
+   "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -121.4646,
+       49.37448
+      ],
+      [
+       -121.46554,
+       49.37119
+      ],
+      [
+       -121.45726,
+       49.3761
+      ],
+      [
+       -121.45954,
+       49.37641
+      ],
+      [
+       -121.4646,
+       49.37448
+      ]
+     ]
+    ]
+   }
+  }
+ ]
+}

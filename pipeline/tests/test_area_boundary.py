@@ -155,3 +155,111 @@ def test_deterministic_across_two_builds():
     ga, gb = a[1], b[1]
     assert set(ga.nodes) == set(gb.nodes)
     assert {n: ga.nodes[n].in_areas for n in ga.nodes} == {n: gb.nodes[n].in_areas for n in gb.nodes}
+
+
+class TestCuratedClosureZones:
+    """Hand-drawn admin polygons — a closure a regulation states as an AREA, not a reach.
+
+    The mechanism is deliberately the SAME one parks use. A curated file is just another
+    selector for `load_area_polys`, so the cutter, the area catalog and the tile exporter never
+    learn where the polygon came from — which is the whole reason it was done this way rather
+    than by inventing a parallel path for hand-drawn shapes.
+    """
+
+    @staticmethod
+    def _def():
+        from pipeline.atlas.splits.area_splits import load_area_split_defs
+        d = [a for a in load_area_split_defs() if a["id"] == "closure_zones"]
+        assert d, "areas.json defines no `closure_zones`"
+        return d[0]
+
+    def test_a_curated_file_is_just_another_selector(self):
+        """`file` instead of `layer`, and everything downstream is identical."""
+        from pipeline.atlas.splits.area_splits import load_area_polys
+        ad = self._def()
+        assert ad.get("file") and not ad.get("layer"), "a curated area names a file, not a layer"
+        polys = load_area_polys(None, ad)
+        assert len(polys) == 2, f"expected the two closure rings, got {sorted(polys)}"
+        for name, g in polys.items():
+            assert g.is_valid and g.geom_type in ("Polygon", "MultiPolygon"), name
+
+    def test_the_rings_are_reprojected_to_the_graphs_crs(self):
+        """**The trap this walked past.** The file is lon/lat and every other area layer is BC
+        Albers. Left in 4326 the ring is a shape about 0.005 units across, it intersects nothing,
+        and the cut silently never happens — a closure that resolves to open water."""
+        from pipeline.atlas.splits.area_splits import load_area_polys
+        for name, g in load_area_polys(None, self._def()).items():
+            assert 1e4 < g.area < 1e7, (
+                f"{name}: area {g.area:,.0f} m² — not metres, so the file was not reprojected")
+
+    def test_the_ids_are_minted_from_kind_and_name(self):
+        """The area id is what a rule binds, so it is a function of `kind` + the feature's
+        `name` — renaming a ring in the geojson silently rebinds every rule that named it."""
+        from pipeline.atlas.splits.area_splits import load_area_polys
+        from pipeline.atlas.splits.area_catalog import catalog_entries
+        ad = self._def()
+        ids = {e.area_id for e in catalog_entries([ad], {ad["id"]: load_area_polys(None, ad)})}
+        assert ids == {"area:closure_zone:fraser_river_landstrom_bar_closure",
+                       "area:closure_zone:skeena_river_kispiox_confluence_closure"}, sorted(ids)
+
+    def test_each_ring_cuts_the_water_it_names(self):
+        """A closure zone that crosses no stream cuts nothing and the rule binds nowhere."""
+        import json
+        from shapely.geometry import shape, LineString
+        from pipeline.common.curated import CURATED
+
+        feats = json.loads(CURATED.waters.added_areas.read_text())["features"]
+        assert len(feats) == 2
+        for f in feats:
+            ring = shape(f["geometry"])
+            assert ring.is_valid and ring.exterior.is_simple, f["properties"]["id"]
+            assert f["properties"].get("cuts", "").startswith(("gnis:", "wbk:")), (
+                f"{f['properties']['id']}: `cuts` must name the registry item the ring closes, "
+                f"or the drawn polygon has no way back to the regulation")
+
+    def test_a_carried_field_the_tile_layer_does_not_declare_is_a_build_failure(self):
+        """`_writer` drops anything outside `spec.attrs`, silently. Six admin layers once
+        shipped with no feature id at all that way, so `carry` is checked against the spec."""
+        from pipeline.deliver.tiles.layers import BY_NAME
+        ad = self._def()
+        spec = BY_NAME[ad["tile_layer"]]
+        for f in ad.get("carry") or ():
+            assert f in spec.attrs, f"{f} carried but not declared by {ad['tile_layer']}"
+
+    def test_the_zone_is_bound_with_within_area_not_area_id(self):
+        """**Precedence, not geometry.** `_specificity` reads `area_id`/`area_kind` and files
+        any rule carrying one as an AREA rule — a zone default that a water-specific rule
+        outranks. That is backwards for a closure. `within_area` limits what the extent already
+        selects, so the rule stays a section rule about the river and the polygon only says
+        where."""
+        import json, glob
+        from pipeline.deliver.bundle.rules import _specificity
+
+        want = {"area:closure_zone:fraser_river_landstrom_bar_closure",
+                "area:closure_zone:skeena_river_kispiox_confluence_closure"}
+        seen = set()
+        for p in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
+            for e in json.load(open(p))["entries"]:
+                for r in e.get("rules", []):
+                    for x in r.get("extents") or []:
+                        if x.get("within_area") in want:
+                            seen.add(x["within_area"])
+                            assert _specificity(r) == "section", (
+                                f"{r['rule_id']} became an area rule — it would be outranked")
+        for p in glob.glob("data/curated/regulations/entries/dfo_salmon/region-*.json"):
+            for loc in json.load(open(p))["locations"]:
+                for x in (loc.get("binding") or {}).get("extents") or []:
+                    if x.get("within_area") in want:
+                        seen.add(x["within_area"])
+        assert seen == want, f"a closure zone nothing binds to: {sorted(want - seen)}"
+
+    def test_the_superseded_splits_are_gone(self):
+        """The ring replaces them. Leaving them behind means two cut-points sitting inside a
+        polygon that already cuts there, and a rule that could bind either."""
+        import json
+        from pipeline.common.curated import CURATED
+        d = json.loads(CURATED.waters.splits.read_text())
+        ids = {s["id"] for w in d["waterbodies"] for s in w["splits"]}
+        for gone in ("fraser_river__landstrom_bar", "fraser_river__croft_island_southern_end",
+                     "skeena_river__kispiox_sign_zone_lower", "skeena_river__kispiox_sign_zone_upper"):
+            assert gone not in ids, f"{gone} was superseded by a closure zone but still exists"

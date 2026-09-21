@@ -5272,12 +5272,9 @@
      "tributaries_only": false,
      "extents": [
       {
-       "op": "between",
-       "splits": [
-        "fraser_river__landstrom_bar",
-        "fraser_river__croft_island_southern_end"
-       ],
-       "item_id": "gnis:39325"
+       "op": "whole",
+       "item_id": "gnis:39325",
+       "within_area": "area:closure_zone:fraser_river_landstrom_bar_closure"
       }
      ],
      "exempts": [],

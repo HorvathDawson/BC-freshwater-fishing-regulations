@@ -2859,80 +2859,6 @@
       -122.30047,
       49.12606
      ]
-    },
-    {
-     "id": "fraser_river__landstrom_bar",
-     "label": "Landstrom Bar",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -121.4646,
-       49.37448
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] IN-RIVER POLYGON: Landstrom Bar closure (Fraser, MU 2-4, near Mission) — 4 fishing-boundary signs: (1) E end of Landstrom Bar (Scale Bar), (2) opposite bank, (3) S end of Croft Island, (4) nearest bank westerly, back to start. Digitize the polygon by hand (like a lake sub-region, docs/15). [curated 2026-08-07 manual-review batch=fraser-mission] [bounded-area split] [polygon P1/P3=signs; P2/P4=estimated bank signs, verify for display]",
-     "_coord": [
-      -121.4646,
-      49.37448
-     ],
-     "polygon": [
-      [
-       -121.4646,
-       49.37448
-      ],
-      [
-       -121.4646,
-       49.3763
-      ],
-      [
-       -121.45819,
-       49.3766
-      ],
-      [
-       -121.4607,
-       49.3758
-      ]
-     ]
-    },
-    {
-     "id": "fraser_river__croft_island_southern_end",
-     "label": "Croft Island southern end",
-     "kind": "point",
-     "anchor": {
-      "type": "point",
-      "coord": [
-       -121.45819,
-       49.3766
-      ],
-      "is_lonlat": true
-     },
-     "note": "",
-     "_note": "[deferred] 1_nonconfluence_boundary — [review · was:deferred] assume nothing — re-decide. — [human-review 2026-08-04 manual-find | Dawson to locate] IN-RIVER POLYGON: Landstrom Bar closure (Fraser, MU 2-4, near Mission) — 4 fishing-boundary signs: (1) E end of Landstrom Bar (Scale Bar), (2) opposite bank, (3) S end of Croft Island, (4) nearest bank westerly, back to start. Digitize the polygon by hand (like a lake sub-region, docs/15). [curated 2026-08-07 manual-review batch=fraser-mission] [bounded-area split] [polygon P1/P3=signs; P2/P4=estimated bank signs, verify for display]",
-     "_coord": [
-      -121.45819,
-      49.3766
-     ],
-     "polygon": [
-      [
-       -121.4646,
-       49.37448
-      ],
-      [
-       -121.4646,
-       49.3763
-      ],
-      [
-       -121.45819,
-       49.3766
-      ],
-      [
-       -121.4607,
-       49.3758
-      ]
-     ]
     }
    ]
   },
@@ -7603,34 +7529,6 @@
      },
      "note": "The upstream end of 'upstream of the CNR bridge at Terrace ... to a point above the confluence with the Babine River'. The regulation names no landmark, so the WSC gauge stands in for the point — it sits 2.34 km above the Babine confluence (gauge 337,743 m, confluence 335,328 m on blk 360887278).",
      "_note": "[authored 2026-09-21] A NAME for a position that already existed. The point is coincident with the minted `gauge__08EB005` boundary, so the pickup relabels it and carries `split:gauge__08EB005` forward as an alias — both ids resolve. Authored precisely because `gauge__08EB005` is not a name anybody can read off the page. The Elk (gauge__08NK031 / elk_river__elko_dam) is the same arrangement, already live. If a curator later pins the actual signs or landmark, MOVE this coord; do not add a second split beside it."
-    },
-    {
-     "id": "skeena_river__kispiox_sign_zone_lower",
-     "label": "lower fishing boundary sign, Kispiox confluence",
-     "kind": "confluence",
-     "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-      "offset_m": 400,
-      "offset_dir": "downstream",
-      "_name": "Kispiox River"
-     },
-     "note": "Downstream sign of the triangular-sign closure at the Kispiox confluence. THE 400 m IS AN ASSUMPTION, not a pin — the regulation gives no distance, and 400 m is the radius DFO uses for the comparable Region 6 mouth closures (Babine Lake, Pinkut Creek). Move both signs when the real positions are surveyed.",
-     "_note": "[authored 2026-09-21] Pairs with skeena_river__kispiox_sign_zone_upper to give the sign zone a REACH instead of the whole Skeena. Clear of its neighbours: the Glen Vowell gauge is 5.0 km below and the Shegunia confluence 1.0 km above, so neither offset can be picked up by mistake. Both Kispiox-confluence locators (three-sign and four-sign wordings) bind to this pair — they are one zone re-worded across years, see pipeline/docs/GOTCHAS.md."
-    },
-    {
-     "id": "skeena_river__kispiox_sign_zone_upper",
-     "label": "upper fishing boundary sign, Kispiox confluence",
-     "kind": "confluence",
-     "anchor": {
-      "type": "confluence",
-      "tributary_wsc": "400-454855-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000-000000",
-      "offset_m": 400,
-      "offset_dir": "upstream",
-      "_name": "Kispiox River"
-     },
-     "note": "Upstream sign of the triangular-sign closure at the Kispiox confluence. THE 400 m IS AN ASSUMPTION, not a pin — see the lower sign.",
-     "_note": "[authored 2026-09-21] Pairs with skeena_river__kispiox_sign_zone_lower."
     }
    ]
   },

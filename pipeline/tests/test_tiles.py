@@ -150,6 +150,21 @@ def test_only_hard_closures_and_regulatory_zones_cut_the_streams_that_cross_them
         "national_parks", "ecological_reserves", "chilkoot_trail", "restricted_land_access",
         # regulatory zones — the synopsis is written per zone
         "regions", "mu_group_south_island", "mu_group_haida_gwaii", "mu_group_cariboo_coastal",
+        # SIGN-BOUNDED CLOSURES, which are the purest case the rule admits: the polygon IS the
+        # regulation. "All waters within the 4 triangular fishing boundary signs at the
+        # confluence of the Kispiox with the Skeena" and "the area bounded by a line commencing
+        # at a sign at the eastern end of Landstrom Bar ... thence following the bank" describe
+        # a shape, and the edge of that shape is exactly where fishing stops.
+        #
+        # Without the cut the rule has to be bound as a reach between two cut-points, which
+        # closes the FULL WIDTH of the river rather than the area the signs enclose — the
+        # Landstrom closure shipped that way, and the Kispiox one was bound to an assumed
+        # 400 m either side because no distance is stated anywhere.
+        #
+        # Cheap by the same measure as the rest: two rings, 14.2 ha and 11.5 ha, crossed by
+        # three blue lines in total. The Skeena crosses one boundary twice and the Kispiox
+        # once (it ENDS inside the ring, at the confluence) — five cuts province-wide.
+        "closure_zones",
     }
 
 

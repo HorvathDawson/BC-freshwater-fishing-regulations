@@ -92,6 +92,20 @@
       "maxzoom": 14,
       "ladder": "area"
     },
+    "closure_zone": {
+      "geometry": "polygon",
+      "attrs": [
+        "area_id",
+        "name",
+        "kind",
+        "cuts"
+      ],
+      "featureId": "area_id",
+      "decorative": false,
+      "minzoom": 9,
+      "maxzoom": 14,
+      "ladder": "area"
+    },
     "wma": {
       "geometry": "polygon",
       "attrs": [
