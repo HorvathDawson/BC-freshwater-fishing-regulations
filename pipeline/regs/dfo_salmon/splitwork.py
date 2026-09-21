@@ -206,6 +206,7 @@ def waters(reg) -> list[dict]:
                 rows.append({"op": st.get("op"), "anchors": st.get("anchor_types") or [],
                              "text": text, "kind": kind, "detail": detail,
                              "status": loc.get("status") or "active",
+                             "section": loc.get("section") or "",
                              "loc": loc["location_id"],
                              "rules": weights.get(loc["location_id"], 0)})
             out.append({"slug": p.stem.split("region-")[1], "water": w["name"],
@@ -353,6 +354,39 @@ def split_coords(item_ids) -> dict:
     return out
 
 
+_PAGE_ORDER: dict = {}
+
+
+def page_order() -> dict:
+    """`{fingerprint -> position}` in the order the DFO page prints them.
+
+    A curator reads the card beside the webpage, so the card must be in the PAGE's order — its
+    sections in order, and the rows inside each section in the order they are printed. Sorting by
+    anything else (rules at stake, say) scrambles that and makes the two impossible to follow
+    together. `locations/region-N.json` already holds the current scrape in page order; the entry
+    file does not, because superset seeding appends every archived version as it finds them.
+    """
+    if not _PAGE_ORDER:
+        src = GENERATED.regs.dfo_salmon / "locations"
+        if src.exists():
+            for f in sorted(src.glob("region-*.json")):
+                for i, l in enumerate(json.loads(f.read_text(encoding="utf-8")).get("locations", [])):
+                    _PAGE_ORDER.setdefault(l["fingerprint"], i)
+        _PAGE_ORDER.setdefault("", 10 ** 6)
+    return _PAGE_ORDER
+
+
+def _page_pos(loc_id: str) -> int:
+    """Where this locator sits on the live page, or a large number if it is not on it."""
+    order = page_order()
+    for f in sorted(ENTRIES.glob("region-*.json")):
+        for loc in json.loads(f.read_text(encoding="utf-8")).get("locations", []):
+            if loc["location_id"] == loc_id:
+                hits = [order[fp] for fp in (loc.get("fingerprints") or []) if fp in order]
+                return min(hits) if hits else 10 ** 6
+    return 10 ** 6
+
+
 def _short(split_id: str, water: str) -> str:
     """`skeena_river__cedarvale` -> `cedarvale`. The water is already the heading."""
     pre = re.sub(r"[^a-z0-9]+", "_", water.lower()).strip("_") + "__"
@@ -384,14 +418,14 @@ def render_solve(w: dict) -> str:
         w["water"], ", ".join(items) or "UNMATCHED", len(w["cuts"]))
     out = ["", "=" * 92, head, "=" * 92]
 
-    # ONE ROW PER LOCATOR. Near-identical wordings are NOT folded together: each is its own
-    # locator with its own id, its own extent and its own rules, and only a curator can say
-    # whether two of them are the same reach reworded. Folding them here would decide that
-    # silently — and it would hide the very pairs worth looking at, since the superset seeding
-    # keeps every version DFO ever published. Live first, then dormant; within each, the
-    # locators carrying the most rules first.
+    # ONE ROW PER LOCATOR, IN THE PAGE'S OWN ORDER. Near-identical wordings are NOT folded
+    # together: each is its own locator with its own id, its own extent and its own rules, and only
+    # a curator can say whether two of them are the same reach reworded.
+    #
+    # The order is the DFO page's, because the card is read beside it. Live rows first, in the
+    # order printed; then the dormant ones, which are on no page today.
     ordered = sorted(w["locators"],
-                     key=lambda r: (r["status"] != "active", -len(_rules_for(r["loc"])), r["text"]))
+                     key=lambda r: (r["status"] != "active", _page_pos(r["loc"]), r["text"]))
     n = 0
     waiting = 0
     for r in ordered:
@@ -419,6 +453,8 @@ def render_solve(w: dict) -> str:
             mark = "??" if missing else ("?" if n_guessed else "OK")
 
         tail = "%d rule%s" % (len(rules), "" if len(rules) == 1 else "s")
+        if r.get("section"):
+            tail = "%-7s %s" % (r["section"], tail)
         if r["status"] != "active":
             tail += " · DORMANT"
         out.append("")
