@@ -19,6 +19,7 @@ in-season) versioned apart from the bundle, bathymetry, and ordered steps with a
 | [03-graph-design](03-graph-design.md) | Inverted graph, lakes as nodes, the two flow guards |
 | [04-section-split-design](04-section-split-design.md) | Sectionizer, anchor types, curated cuts |
 | [05-name-variations](05-name-variations.md) | Name tuples, variants, the display flag |
+| **[GOTCHAS](GOTCHAS.md)** | **Data that looks like a bug, a change or a duplicate, and is not** |
 | **[NEXT](NEXT.md)** | **Parked work with the thinking done — PMTiles, tributary walk, open bugs** |
 | **[REACH-BUILDER](REACH-BUILDER.md)** | **Structure sketch of the next thing to build** |
 | [RESOLVER-HANDOFF](RESOLVER-HANDOFF.md) | Everything found about `resolve_extent`, for whoever is in it |

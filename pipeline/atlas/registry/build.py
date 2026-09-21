@@ -164,6 +164,29 @@ def _boundary(b) -> RegistryBoundary | None:
                             aliases=tuple(b.aliases or ()))
 
 
+def _expand(aliases, item_slug: str) -> tuple[str, ...]:
+    """Alias refs -> the ids a rule can actually bind.
+
+    A pickup relabels the boundary it reuses and carries the displaced ids forward (`sectionizer.
+    _pickup`), but a ref is not always a name. `split:x` is `x` with a prefix, so the lookup's
+    `{bid, "split:"+bid}` finds it. `lake:329016195` is a wbk, and the id a rule binds is the
+    readable one minted right below — item slug + slug(label). Nothing recorded that spelling, so
+    every displaced lake edge came back unbindable: `stamp_river__great_central_lake` resolved to
+    nothing while the boundary sat there answering to a number.
+
+    `_pickup` hands over the raw `label:<text>` and this expands it, so the readable-id rule lives
+    in exactly one place. A `label:` alias is consumed here and never reaches registry.json."""
+    out: list[str] = []
+    for a in aliases:
+        if a.startswith("label:"):
+            rid = _slug(a[len("label:"):])
+            if rid:
+                out.append(f"{item_slug}__{rid}")
+        else:
+            out.append(a)
+    return tuple(dict.fromkeys(out))
+
+
 
 def pinned_by_override(overrides_path=None) -> dict[str, str]:
     """`{item_id: name}` for waterbodies an OVERRIDE names by key, and FWA does not name at all.
@@ -301,6 +324,7 @@ def build_registry(graph: StreamGraph, prof=None, pinned: dict[str, str] | None 
                 rb = _boundary(end)
                 if rb is None:
                     continue
+                rb = replace(rb, aliases=_expand(rb.aliases, item_slug))
                 if rb.ref in seen_refs:
                     # One boundary, two instances: a lake is the UPPER bound of the piece below it and
                     # the LOWER bound of the piece above, and an alias is recorded on just one of those

@@ -342,3 +342,28 @@ def test_a_pin_never_overrides_a_real_name():
                          tuples=(NameTuple("Bar Lake", NameSource.gazette),))
     reg = build_registry(g, pinned={"wbk:W1": "SOMETHING ELSE"})
     assert reg["wbk:W1"].name == "Bar Lake"
+
+
+def test_a_displaced_lake_edge_is_still_bindable_by_the_name_rules_use():
+    """**The other half of the Sproat bug.** A pickup relabels the boundary it reuses and carries
+    the displaced ids forward. For a split that is enough — `split:x` is `x` with a prefix and the
+    lookup tries both spellings. For a lake it was not: the ref is `lake:W1`, a wbk nobody writes,
+    while every rule binds `river_x__bar_lake` — the id THIS function derives from the label.
+
+    So a kept lake edge came back unbindable. `_pickup` now sends the label along and `_expand`
+    spells it here, where the readable-id rule already lives.
+    """
+    from pipeline.atlas.reach.classify import _cut_exists
+    g = StreamGraph()
+    tx = (NameTuple("River X", NameSource.gazette, gnis_id="1"),)
+    # the dam won the pickup at the lake edge; the lake survives only as an alias
+    dam = SectionBoundary("split:river_x__bar_lake_dam", BoundaryKind.split, 200.0, "Bar Lake dam",
+                          aliases=("lake:W1", "label:Bar Lake"))
+    g.nodes["m1"] = _node("m1", blk="M", wsc="100", gnis="1", name="River X", tuples=tx, hi=dam)
+    reg = build_registry(g)
+
+    aliases = {b.id: b.aliases for b in reg["gnis:1"].boundaries}["river_x__bar_lake_dam"]
+    assert "river_x__bar_lake" in aliases, "the id a rule binds must survive the relabel"
+    assert not [a for a in aliases if a.startswith("label:")], "label: is consumed, never shipped"
+    assert _cut_exists("river_x__bar_lake", ["gnis:1"], reg, set()) is True
+    assert _cut_exists("river_x__bar_lake_dam", ["gnis:1"], reg, set()) is True

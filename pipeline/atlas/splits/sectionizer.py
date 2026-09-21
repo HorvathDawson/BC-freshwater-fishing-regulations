@@ -153,8 +153,10 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
                 # sat half a metre from the Sproat Lake edge — inside any radius, so distance was
                 # never going to catch it — and taking that edge cost `sproat_river__sproat_lake`
                 # the boundary it resolves through, collapsing "No Fishing from Sproat Lake to the
-                # Hwy 4 signs" to an empty reach. The displaced id IS carried forward as an alias;
-                # it did not save the reach, because alias coverage leaks (docs/04).
+                # Hwy 4 signs" to an empty reach. The displaced id IS carried forward as an alias,
+                # and it did not save the reach because the alias was the wbk ref rather than the
+                # bindable name — fixed below, see the `label:` note in the `prior` loop. The
+                # naming rule stands anyway: a minted id is not worth a relabel.
                 #
                 # So this is a naming rule, not a geometric one, and the radius cannot stand in
                 # for it. Two known gaps, both deliberate to leave until the alias path is sound:
@@ -185,6 +187,20 @@ def _pickup(graph, blk, sp, by_blk=None) -> bool:
             if b is not None and abs(b.route_measure - best_m) < 1e-6:
                 prior.add(b.boundary_id)
                 prior.update(b.aliases or ())
+                # CARRYING THE REF IS NOT CARRYING THE NAME.
+                #
+                # A split's ref is literally `split:` + the id a rule binds, so carrying the ref
+                # carries the name with it. A lake's is `lake:329016195` — a wbk nobody writes. The
+                # id a rule actually binds is the one the REGISTRY derives from the label
+                # (`stamp_river__great_central_lake`), and that spelling existed nowhere in the
+                # alias, so a displaced lake edge came back unbindable even though it was "kept".
+                # That is why the Sproat alias did not save the reach.
+                #
+                # The label travels instead of a slug: this module must not own a second copy of
+                # the readable-id rule, or the two spellings drift and the alias silently stops
+                # matching again. `registry.build` owns it and expands `label:` — see `_expand`.
+                if b.label and not str(b.boundary_id).startswith("split:"):
+                    prior.add(f"label:{b.label}")
     mine = f"split:{sp.split_id}"
     bnd = SectionBoundary(boundary_id=mine,
                           kind=_ANCHOR_KIND.get(sp.anchor_type.value, BoundaryKind.split),

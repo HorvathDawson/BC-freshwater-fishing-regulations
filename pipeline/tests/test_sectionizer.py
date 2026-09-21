@@ -447,3 +447,43 @@ def test_pickup_at_an_end_still_obeys_the_radius():
     g, by_blk = _one_block(head_bound=None)
     assert _pickup(g, "1", _sp("bella_coola__talchako_river", proximity_m=0.0), by_blk) is False
     assert g.nodes["1:0"].upper_bound is None, "nothing authored -> nothing snapped"
+
+
+def test_a_displaced_lake_edge_keeps_the_name_a_rule_BINDS_not_just_its_wbk():
+    """**The half of the Sproat bug the alias never covered.**
+
+    "The displaced id is carried forward" was true and not enough. A split's ref is `split:` + the
+    id a rule binds, so carrying the ref carries the name. A lake's is `lake:329016195` — a wbk
+    nobody writes. What a rule binds is the readable id the registry derives from the LABEL, and
+    that spelling was recorded nowhere, so a kept lake edge came back unbindable.
+
+    The label travels; `registry.build._expand` spells it, so there is one readable-id rule."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    from pipeline.atlas.splits.sectionizer import _pickup
+    lake = SectionBoundary(boundary_id="lake:329016195", kind=BoundaryKind.lake,
+                           route_measure=1000.0, label="Great Central Lake")
+    g, by_blk = _one_block(head_bound=lake)
+    assert _pickup(g, "1", _sp("stamp_river__great_central_lake_dam"), by_blk) is True
+    aliases = g.nodes["1:0"].upper_bound.aliases or ()
+    assert "lake:329016195" in aliases, "the ref still travels"
+    assert "label:Great Central Lake" in aliases, "and so does the name the registry spells from"
+
+
+def test_a_displaced_split_carries_no_label_because_its_ref_is_already_the_name():
+    """`split:elk_river__elko_dam` already contains the bindable id, and the lookup tries both
+    spellings. A `label:` alias on top would be a second name for one place — the collision the
+    registry disambiguates with `_2` suffixes — for no gain."""
+    from pipeline.common.models import BoundaryKind, SectionBoundary
+    from pipeline.atlas.splits.sectionizer import _pickup
+    dam = SectionBoundary(boundary_id="split:elk_river__elko_dam", kind=BoundaryKind.split,
+                          route_measure=500.0, label="Elko Dam")
+    from pipeline.common.models import NodeKind, StreamGraph, StreamNode
+    g = StreamGraph()
+    g.nodes = {
+        "1:0": StreamNode(node_id="1:0", kind=NodeKind.stream, blk="1",
+                          down_m=0.0, up_m=500.0, upper_bound=dam),
+        "1:500": StreamNode(node_id="1:500", kind=NodeKind.stream, blk="1",
+                            down_m=500.0, up_m=1000.0, lower_bound=dam),
+    }
+    assert _pickup(g, "1", _sp("gauge__08NK031", m=500.0), {"1": ["1:0", "1:500"]}) is True
+    assert g.nodes["1:0"].upper_bound.aliases == ("split:elk_river__elko_dam",)

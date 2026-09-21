@@ -7570,19 +7570,29 @@
       "status": "dormant",
       "duplicate_of": "6:skeena-river:all-waters-within-the-4-triangular",
       "duplicate_score": 0.934,
-      "duplicate_confirmed": null,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__kispiox_sign_zone_lower",
+              "skeena_river__kispiox_sign_zone_upper"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
+        "notes": [
+          "SIGN-BOUNDED ZONE at the Kispiox confluence — the water within the triangular fishing boundary signs, not a reach between two landmarks. The page has carried this closure in THREE wordings (4 signs / 3 signs / three signs); they are ONE zone, curator-confirmed, see pipeline/docs/GOTCHAS.md. Bound as the 400 m above and below the confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). THE 400 m IS AN ASSUMPTION — DFO gives no distance and 400 m is the radius it uses for the comparable Region 6 mouth closures. Caveat stays set until the signs are surveyed: the drawn reach is an estimate, so the app must show this wording and must not draw it as a plain fill."
+        ],
+        "spatial_caveat": true
       }
     },
     {
@@ -11005,16 +11015,19 @@
       "binding": {
         "extents": [
           {
-            "op": "whole",
-            "item_id": "gnis:2936"
+            "op": "between",
+            "splits": [
+              "skeena_river__kispiox_sign_zone_lower",
+              "skeena_river__kispiox_sign_zone_upper"
+            ]
           }
         ],
-        "tributaries": null,
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE — not a reach between two cuts. The curated split block says so: 'this rule is a signs-closure AT that confluence, not a separate split'. The zone is the water within four triangular signs at the Kispiox confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). Carried as a caveat so the app shows the wording and does NOT draw it as a plain fill."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence — the water within the triangular fishing boundary signs, not a reach between two landmarks. The page has carried this closure in THREE wordings (4 signs / 3 signs / three signs); they are ONE zone, curator-confirmed, see pipeline/docs/GOTCHAS.md. Bound as the 400 m above and below the confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). THE 400 m IS AN ASSUMPTION — DFO gives no distance and 400 m is the radius it uses for the comparable Region 6 mouth closures. Caveat stays set until the signs are surveyed: the drawn reach is an estimate, so the app must show this wording and must not draw it as a plain fill."
         ],
         "spatial_caveat": true
       }
@@ -11119,21 +11132,31 @@
         "areas": []
       },
       "status": "dormant",
-      "duplicate_of": null,
+      "duplicate_of": "6:skeena-river:all-waters-within-the-4-triangular",
       "duplicate_score": null,
-      "duplicate_confirmed": null,
+      "duplicate_confirmed": true,
       "locked": false,
       "reviewed_by": "",
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__kispiox_sign_zone_lower",
+              "skeena_river__kispiox_sign_zone_upper"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
+        "notes": [
+          "SIGN-BOUNDED ZONE at the Kispiox confluence — the water within the triangular fishing boundary signs, not a reach between two landmarks. The page has carried this closure in THREE wordings (4 signs / 3 signs / three signs); they are ONE zone, curator-confirmed, see pipeline/docs/GOTCHAS.md. Bound as the 400 m above and below the confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). THE 400 m IS AN ASSUMPTION — DFO gives no distance and 400 m is the radius it uses for the comparable Region 6 mouth closures. Caveat stays set until the signs are surveyed: the drawn reach is an estimate, so the app must show this wording and must not draw it as a plain fill."
+        ],
+        "spatial_caveat": true
       }
     },
     {
