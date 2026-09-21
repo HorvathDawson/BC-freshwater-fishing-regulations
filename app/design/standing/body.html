@@ -20,6 +20,40 @@
 const D = window.__BASE__;
 let REG = "province", KIND = "lake";
 
+/* ---------- THE DAY BEING ASKED ABOUT ----------
+   `ON` is null for the standing table — the rules that hold every day of the year, which is
+   what the printed synopsis prints and what the checks below compare against — or [month, day]
+   for one day, and then the table is the table of THAT day: a season is not a note beside a
+   number, it IS the number.
+
+   A stretch of the year is stored as a day inside it rather than as an index, because the
+   stretches are different in every region and on lakes and streams. Picking Oct 20 and then
+   flipping from Region 3 to Region 5 has to keep asking about Oct 20, not about "the fourth
+   stretch", which in Region 5 is a different part of the year. */
+let ON = null;
+const MLEN = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const YEAR = new Date().getFullYear();
+function doy(m, d) { let n = 0; for (let i = 0; i < m - 1; i++) n += MLEN[i]; return n + d; }
+function within(day, a, b) {
+  const x = doy(day[0], day[1]), lo = doy(a[0], a[1]), hi = doy(b[0], b[1]);
+  return lo <= hi ? (x >= lo && x <= hi) : (x >= lo || x <= hi);
+}
+function viewsOf(e) { return (e && e.quota && e.quota.views) || []; }
+function viewAt(e, on) {
+  if (!on) return null;
+  const vs = viewsOf(e);
+  for (let i = 0; i < vs.length; i++) if (within(on, vs[i].from, vs[i].to)) return vs[i];
+  return null;
+}
+/* The table to draw: the stretch the day falls in, or — for a region whose rules never change
+   through the year, and for the standing view — the year-round table itself. A stretch marked
+   `same` carries no rows of its own precisely because it IS that table. */
+function tableFor(e) {
+  const v = viewAt(e, ON);
+  if (!v || v.same) return { present: e.quota.present, rows: e.quota.rows, view: v };
+  return { present: v.present, rows: v.rows, view: v };
+}
+
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const at = (r, k) => D.regions.find(x => x.region === r && x.kind === k);
@@ -52,6 +86,21 @@ function drawPicker() {
     b.onclick = () => { REG = b.dataset.r; draw(); });
   document.querySelectorAll(".kbtn").forEach(b =>
     b.onclick = () => { KIND = b.dataset.kind; draw(); });
+}
+
+function bindDate() {
+  const pick = el => {
+    const v = el.dataset.on;
+    ON = v ? v.split("-").map(Number) : null;
+    draw();
+  };
+  document.querySelectorAll(".ypc,.chip").forEach(b => b.onclick = () => pick(b));
+  const inp = document.getElementById("dateIn");
+  if (inp) inp.onchange = () => {
+    const p = (inp.value || "").split("-").map(Number);
+    ON = (p.length === 3 && p[1]) ? [p[1], p[2]] : null;
+    draw();
+  };
 }
 
 /* ---------- quota rows ---------- */
@@ -271,31 +320,44 @@ function capsOf(row) {
     const key = c.n + "|" + (c.fish || "");
     if (seen[key]) return; seen[key] = 1;
     out.push({ n: c.n, who: String(c.fish || "").toLowerCase(), rule: c.rule,
-               pooled: !!c.pooled });
+               pooled: !!c.pooled, reaches: (c.reaches || []).slice() });
   });
   return out;
 }
 
-/* A CAP INSIDE A NUMBER IS THIS ROW'S NUMBER WHEN IT NAMES THIS ROW'S FISH.
+/* A CAP INSIDE A NUMBER IS THIS ROW'S NUMBER WHEN IT COVERS THIS ROW'S FISH.
    Haida Gwaii writes "Trout/char: 5, but not more than … 3 Dolly Varden". The 5 is the
    family's number; for a Dolly Varden the operative limit is 3, and printing 5 on that row
    tells a reader they may keep five of a fish they may keep three of. A cap only takes over
    when it carries no size — "1 over 50 cm" limits a size class inside the 5, it is not the
-   row's number — and when it speaks for every fish on the row. */
+   row's number.
+
+   COVERS, NOT EQUALS. This used to demand that the cap name exactly this row's fish, which
+   held while a combined quota always kept its members in one row. A DATE BREAKS THAT: on
+   Aug 1 Region 3 releases the bull trout and the Dolly Varden, the lake trout leaves the
+   group and stands alone — and "only 1 of these may be bull trout, Dolly Varden, lake trout"
+   stopped matching the row, which then printed the family's 4. Four lake trout where the
+   book allows one. A cap that reaches every fish on the row binds every fish on the row,
+   whoever else it also names; a cap naming FEWER fish than the row (Region 4's "1 bull trout"
+   under a trout-and-char 5) still does not, because the row's other fish are not capped. */
 function rowCap(row, bindingOnly) {
-  const mine = (row.members || []).map(m => m.toLowerCase()).sort().join(", ");
-  if (!mine) return null;
+  const mine = (row.members || []).map(m => m.toLowerCase()).sort();
+  if (!mine.length) return null;
   const head = parseInt(String(row.keep), 10);
-  const hit = capsOf(row).find(c => {
-    const his = c.who.split(/,\s*/).map(x => x.trim()).filter(Boolean).sort().join(", ");
-    return his && his === mine;
-  }) || null;
+  const covers = c => {
+    const his = (c.reaches && c.reaches.length ? c.reaches : c.who.split(/,\s*/))
+      .map(x => String(x).trim().toLowerCase()).filter(Boolean);
+    return mine.every(m => his.indexOf(m) >= 0);
+  };
+  // the strictest such cap — two that both cover this row are both binding, and the reader
+  // is held to the smaller.
+  const hit = capsOf(row).filter(covers).sort((a, b) => a.n - b.n)[0] || null;
   if (!hit) return null;
   if (bindingOnly && !isNaN(head) && hit.n >= head) return null;   // it can never bite
   return hit;
 }
 
-function cells(row) {
+function cells(row, ctx) {
   // NOTHING MAY BE KEPT, SO NO LENGTH CAN MATTER. Region 2's wild steelhead once read
   // "must be at least 30 cm - Put it back": the 30 cm came from a band shared with the
   // hatchery line, and on a released fish it is worse than noise. A tier would be the same
@@ -309,7 +371,7 @@ function cells(row) {
   // trout-and-char 5, and its calendar has no day on which 5 is the answer: 1 for 303 days,
   // released for 62. Printing the 5 offers five fish that may never be kept. Three rows over
   // the 22 tables are like this, and each one now points at the seasons beside it.
-  if (row.keep != null && row.year_round === false) {
+  if (row.keep != null && row.year_round === false && !row.dated) {
     // No number is printed here, so a cap that would have BECOME the number stays as text —
     // a cap is restated, never deleted.
     const pl = sizePlan(row, row.keep);
@@ -328,10 +390,30 @@ function cells(row) {
   // bull trout, Dolly Varden, lake trout" becomes this row's number once the three are one
   // group, and a bare 1 beside three fish reads as one each — three times the book's limit.
   const many = (row.members || []).length > 1;
+  // WHO ELSE SPENDS THIS NUMBER. A cap that covers this row may also name fish that are not
+  // on it — Region 3's "only 1 of these may be bull trout, Dolly Varden, lake trout", on a
+  // day when the first two are released and the lake trout stands alone. "1 between them"
+  // beside one fish is a sentence about nobody; the reader has to be told whom the 1 is
+  // shared with, or they will read it as one lake trout AND one of each of the others.
+  const mineL = (row.members || []).map(m => m.toLowerCase());
+  const withOthers = cap ? (cap.reaches || []).filter(x => mineL.indexOf(String(x).toLowerCase()) < 0) : [];
+  const sharedChip = cap && cap.pooled
+    ? (withOthers.length ? ` <span class="tag">shared with ${esc(withOthers.join(", ").toLowerCase())}</span>`
+       : many ? ' <span class="tag">between them</span>' : "")
+    : "";
+  // THE ROW'S NUMBER IS THE GROUP'S NUMBER, AND SAYING IT TWICE MAKES IT TWO NUMBERS.
+  // Region 1 draws "Trout — one shared number for every fish below — 4" and then prints 4
+  // again on the trout beneath it and 4 again on the hatchery steelhead: a reader adds them
+  // and comes away with eight. Where the row's answer is set by the band's own rule, the
+  // number is the band's, and the cell says so instead of restating it as if it were this
+  // fish's own allowance.
+  const fromBand = !cap && ctx && ctx.id && row.set_by === ctx.id;
   const day = cap
-    ? `<span class="ans${cap.n <= 2 ? " lim" : ""}">${esc(String(cap.n))}</span>` +
-      (cap.pooled && many ? ' <span class="tag">between them</span>' : "") +
+    ? `<span class="ans${cap.n <= 2 ? " lim" : ""}">${esc(String(cap.n))}</span>` + sharedChip +
       `<div class="cap">of the ${esc(String(row.keep))} shared</div>`
+    : fromBand
+    ? `<span class="ans shared">${esc(String(row.keep))}</span>` +
+      `<div class="cap into">the same ${esc(String(row.keep))} as above</div>`
     : ansCell(row);
   // The size classes sit inside whichever number is this row's answer — its own, or the cap
   // that already took it over — so a class can never be shown against a number it does not
@@ -351,20 +433,36 @@ function cells(row) {
     <td class="n${tiered ? " tiered" : ""}" data-th="Per day">${
       tiered ? tierCell(dayHtml, head, plan.tiers) : dayHtml}</td>
     <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
-    <td class="n" data-th="May have">${possCell(row, cap) || DASH}</td>`;
+    <td class="n" data-th="May have">${possCell(row, cap, ctx) || DASH}</td>`;
 }
 
 /* WHEN A CAP TAKES OVER THE DAY, ITS OWN POSSESSION TAKES OVER MAY HAVE. `period` skips
    `within` counters, so a row whose day number is "1, of the 5 shared" still printed the
    family's 10 beside it — ten in the truck of a fish you may take one of. The cap carries a
    possession twin of its own (2 x the daily 1); that is this row's answer. */
-function possCell(row, cap) {
+function possCell(row, cap, ctx) {
+  // THE SAME DOUBLE-COUNTING ONE COLUMN OVER. A band carries a possession twin of its shared
+  // number, so every row under it printed the band's "10 between them" again. Say once that
+  // it is the same ten.
+  if (!cap && ctx && ctx.poss) {
+    const t = (row.counters || []).find(c => c.period === "possession" && !c.moot
+      && c.rule === ctx.poss);
+    if (t && t.n != null)
+      return `<span class="ans shared">${esc(String(t.n))}</span>` +
+             `<div class="cap into">the same ${esc(String(t.n))} as above</div>`;
+  }
   if (cap) {
     const t = (row.counters || []).find(c => c.period === "possession" && !c.moot
       && c.derived_from === cap.rule);
     if (t && t.n != null) {
-      const many = (row.members || []).length > 1;
-      return `${esc(String(t.n))}${t.pooled && many ? ' <span class="tag">between them</span>' : ""}`;
+      const mineL = (row.members || []).map(m => m.toLowerCase());
+      const others = (cap.reaches || []).filter(x => mineL.indexOf(String(x).toLowerCase()) < 0);
+      // named, for the same reason the day cell names them: a pooled figure beside one fish
+      // reads as that fish's own unless it says whom it is shared with.
+      return `${esc(String(t.n))}` + (t.pooled
+        ? (others.length ? ` <span class="tag">shared with ${esc(others.join(", ").toLowerCase())}</span>`
+           : mineL.length > 1 ? ' <span class="tag">between them</span>' : "")
+        : "");
     }
   }
   return period(row, "possession");
@@ -448,7 +546,7 @@ function seasonBlock(ss, whole) {
   return ss.length ? `<div class="gseas">${ss.map(x => seasonLine(x, whole)).join("")}</div>` : "";
 }
 
-function combinedRows(e, byKey, indent, onBand) {
+function combinedRows(e, byKey, indent, onBand, ctx) {
   const c = e.combined;
   const pad = indent ? ' style="padding-left:22px"' : "";
   const base = byKey[c.cells] || {};
@@ -469,8 +567,8 @@ function combinedRows(e, byKey, indent, onBand) {
     <div class="mem">one number for all of them, together</div>
     ${shared ? `<div class="gseas">${shared}</div>` : ""}`;
   const lines = (c.members || []).filter(m => (m.seasons || []).length);
-  let out = `<tr class="${lines.length ? "cgroup" : ""}">
-    <td class="fishcell"${pad}>${head}</td>${cells(row)}</tr>`;
+  let out = `<tr class="${lines.length ? "cgroup" : ""}${ctx && ctx.id ? " inband" : ""}">
+    <td class="fishcell"${pad}>${head}</td>${cells(row, ctx)}</tr>`;
   lines.forEach((m, i) => {
     out += `<tr class="cline${i === lines.length - 1 ? " last" : ""}">
       <td class="fishcell" colspan="5"${pad}>
@@ -479,38 +577,51 @@ function combinedRows(e, byKey, indent, onBand) {
   return out;
 }
 
-function entryRows(e, byKey, indent, onBand) {
-  if (e.combined) return combinedRows(e, byKey, indent, onBand);
+function entryRows(e, byKey, indent, onBand, ctx) {
+  if (e.combined) return combinedRows(e, byKey, indent, onBand, ctx);
   const mem = (e.members || []).filter(m => m && m !== e.heading);
   const pad = indent ? ' style="padding-left:22px"' : "";
   const dm = defFloorFish(e.fish);
+  // A FISH DRAWN BESIDE A SHARED NUMBER IT IS NOT PART OF MUST SAY SO. Kootenay Lake's
+  // rainbow has its own 10 ON TOP OF the region's shared 5 and is filed under the same
+  // family heading, so without this line it reads as ten out of the five above it. The
+  // pipeline has always emitted `outside_of`; nothing drew it.
+  const out_ = ((byKey[(e.lines[0] || {}).row] || {}).outside_of) || [];
   const head = `<div class="fish">${esc(e.heading)}</div>
     ${dm !== null ? `<div class="defnote">every one is over ${dm} cm</div>` : ""}
-    ${mem.length ? `<div class="mem">${esc(mem.join(", "))}</div>` : ""}`;
+    ${mem.length ? `<div class="mem">${esc(mem.join(", "))}</div>` : ""}
+    ${out_.map(o => `<div class="notin">on top of the ${esc(String(o.keep))} shared by
+      ${esc(String(o.fish || "").toLowerCase())} &mdash; these do not come out of it</div>`).join("")}`;
   const whole = (e.members || []).join(", ");
 
   // Both origins saying the same thing is one row, not two — seasons included, or a fish
   // released for half the year in one origin and not the other would collapse into one line.
+  let merged = false;
   if (e.lines.length > 1) {
-    const same = e.lines.map(l => cells(byKey[l.row] || {}) +
+    const same = e.lines.map(l => cells(byKey[l.row] || {}, ctx) +
       seasonBlock(rowSeasons(byKey[l.row] || {}, onBand), whole));
-    if (same.every(x => x === same[0])) e = Object.assign({}, e, { lines: [e.lines[0]] });
+    // COLLAPSING TWO ORIGINS MUST NOT LEAVE ONE OF THEM IN THE LABEL. Where the wild and the
+    // hatchery steelhead both go back, one line is right — but it was drawn from the WILD row
+    // and kept that row's "wild only", so a rule true of every steelhead in the river read as
+    // one about wild fish, and a hatchery fish looked keepable by omission. The qualifier is
+    // exactly what stopped being true when the two lines became one.
+    if (same.every(x => x === same[0])) { e = Object.assign({}, e, { lines: [e.lines[0]] }); merged = true; }
   }
   if (e.lines.length === 1) {
     const row = byKey[e.lines[0].row] || {};
-    return `<tr><td class="fishcell"${pad}>${head}
-      ${row.qualifier ? `<span class="org">${esc(row.qualifier)}</span>` : ""}
+    return `<tr class="${ctx && ctx.id ? "inband" : ""}"><td class="fishcell"${pad}>${head}
+      ${row.qualifier && !merged ? `<span class="org">${esc(row.qualifier)}</span>` : ""}
       ${seasonBlock(rowSeasons(row, onBand), whole)}</td>
-      ${cells(row)}</tr>`;
+      ${cells(row, ctx)}</tr>`;
   }
   const name = `<tr class="ename"><td class="fishcell" colspan="5"${pad}>${head}</td></tr>`;
   const lines = e.lines.map((l, i) => {
     const row = byKey[l.row] || {};
     const word = l.origin === "wild" ? "Wild" : l.origin === "hatchery" ? "Hatchery" : "Either";
-    return `<tr class="oline${i === e.lines.length - 1 ? " last" : ""}">
+    return `<tr class="oline${i === e.lines.length - 1 ? " last" : ""}${ctx && ctx.id ? " inband" : ""}">
       <td class="fishcell"${pad}><span class="org split ${esc(l.origin)}">${esc(word)}</span>
       ${seasonBlock(rowSeasons(row, onBand), whole)}</td>
-      ${cells(row)}</tr>`;
+      ${cells(row, ctx)}</tr>`;
   }).join("");
   return name + lines;
 }
@@ -597,7 +708,7 @@ function quotaTable(pr, rows) {
       if (depth && head === FAM_NAME) head = "All of them, counted together";
       let out = `<tr class="band${depth ? " sub" : ""}"><td class="fishcell"${depth ? ' style="padding-left:20px"' : ""}>
           <div class="fish">${esc(head)}</div>
-          <div class="mem">one shared number for every fish below</div>
+          <div class="mem">one shared number for every fish below &mdash; not one each</div>
           ${notes.length ? `<div class="bnote">${notes.join(" &middot; ")}</div>` : ""}
           ${bseas.length ? `<div class="gseas">${bseas.join("")}</div>` : ""}
           ${b.origin ? `<span class="org">${esc(b.origin)}</span>` : ""}</td>
@@ -613,7 +724,8 @@ function quotaTable(pr, rows) {
           ? `<span class="ans">${esc(String(poss.n))}</span> <span class="tag">between them</span>` : DASH}</td>
       </tr>`;
       const said = new Set([b.id].concat(b.hoisted_all || [], [...everyRow]));
-      (b.entries || []).forEach(me => { out += entryRows(me, byKey, true, said); done.add(idOf(me)); });
+      const ctx = { id: b.id, n: c.n, poss: (poss || {}).rule || null, name: head };
+      (b.entries || []).forEach(me => { out += entryRows(me, byKey, true, said, ctx); done.add(idOf(me)); });
       done.add(idOf(e));
       return out;
     }
@@ -824,6 +936,73 @@ function score(p) {
   return `<span class="pill ${bad ? "bad" : "ok"}">${p.ok}/${p.n} agree</span>`;
 }
 
+/* ---------- THE YEAR, AS SOMETHING TO PICK FROM ----------
+   Every stretch of the year over which one table holds, drawn to scale and clickable. A
+   region whose rules never change says so and offers nothing to click; Region 3's streams
+   have six stretches, and the difference between them is a river that is shut for six months
+   and a bull trout that must go back for three.
+
+   The bar is the picture and the chips are the control. A 17-day stretch is three pixels
+   wide and cannot carry a label, so the bar orients and the chips are what a thumb hits. */
+function scheduleCard(e) {
+  const vs = viewsOf(e);
+  const cur = viewAt(e, ON);
+  const one = vs.length <= 1;
+  const pad2 = n => (n < 10 ? "0" : "") + n;
+  const dv = ON ? `${YEAR}-${pad2(ON[0])}-${pad2(ON[1])}` : "";
+  const pieces = [];
+  vs.forEach((v, i) => {
+    const a = doy(v.from[0], v.from[1]), b = doy(v.to[0], v.to[1]);
+    if (a <= b) pieces.push({ i: i, a: a, b: b });
+    else { pieces.push({ i: i, a: 1, b: b }); pieces.push({ i: i, a: a, b: 366 }); }
+  });
+  pieces.sort((x, y) => x.a - y.a);
+  const bar = pieces.map(p => `<button class="ypc" data-on="${vs[p.i].from.join("-")}"
+      style="flex:${p.b - p.a + 1} 1 0" aria-pressed="${cur === vs[p.i]}"
+      title="${esc(vs[p.i].label)}"><span class="vh">${esc(vs[p.i].label)}</span></button>`).join("");
+  const months = MLEN.map((n, i) =>
+    `<span style="flex:${n} 1 0">${MON[i + 1].charAt(0)}</span>`).join("");
+  const chips = `<button class="chip" data-on="" aria-pressed="${!ON}">All year<small>the
+      rules that stand every day</small></button>` + (one ? "" : vs.map(v =>
+    `<button class="chip" data-on="${v.from.join("-")}" aria-pressed="${cur === v}">${esc(v.label)}
+      <small>${v.days} days</small></button>`).join(""));
+  return `<div class="card sched">
+    <header><span class="eyebrow">The year here</span>
+      <span class="mem">${one ? "the same rules every day of the year"
+        : vs.length + " stretches of the year have different rules"}</span>
+      <label class="dpick">Show a date
+        <input type="date" id="dateIn" value="${dv}" min="${YEAR}-01-01" max="${YEAR}-12-31"></label>
+    </header>
+    <div class="body">
+      <div class="ybar">${bar}</div>
+      <div class="ymon">${months}</div>
+      <div class="chips">${chips}</div>
+    </div></div>`;
+}
+
+function asOfBanner(t) {
+  if (!ON || !t.view) return "";
+  // A REGION WITH NO SEASONS MUST NOT BE TOLD IT HAS ONE. "The seasons are inside these
+  // numbers" over the province's table, which is the same on all 366 days, teaches the reader
+  // to distrust the sentence where it matters.
+  if (t.view.whole_year)
+    return `<div class="asof">${esc(md(ON))}: nothing here changes through the year &mdash;
+      these are the rules on every day of it.</div>`;
+  return `<div class="asof">${esc(md(ON))}: the rules in force <b>${esc(t.view.label)}</b>
+    &mdash; ${t.view.days} days of the year. The seasons are inside these numbers, not beside
+    them.</div>`;
+}
+
+/* Whether anything in the gear table turns on the date at all. Nothing does at this level in
+   the current corpus, and saying so is the difference between a reader trusting the date
+   control and wondering which half of the page it moved. */
+function gearSeasonal(t) {
+  if (!t) return false;
+  const any = ts => (ts || []).some(x => (x.windows || []).length);
+  return (t.rows || []).some(r => any(r.candidates) || any(r.conditions) || any(r.folded) ||
+    Object.keys(r.rig || {}).some(k => any(r.rig[k])));
+}
+
 /* ---------- draw ---------- */
 function draw() {
   drawPicker();
@@ -836,21 +1015,25 @@ function draw() {
     host.innerHTML = `<p class="empty">No ${esc(KIND)} table for ${esc(label(REG))}.</p>`;
     return;
   }
+  const t = tableFor(e);
   const gearMissing = !e.gear.print;
   const always = (e.always || []).map(a =>
     `<li><b>${esc(a.where || "")}</b>${a.verbatim ? ` &mdash; ${esc(a.verbatim)}` : ""}</li>`).join("");
   host.innerHTML = `
+    ${scheduleCard(e)}
     ${always ? `<div class="card always"><header><span class="eyebrow">True everywhere, on every water</span></header>
       <div class="body"><p class="mem" style="margin:0 0 8px">These bind on every water in this
       region. Nothing can draw them on a map, so no table can show you where they apply &mdash;
       you have to know them.</p><ul class="alist">${always}</ul></div></div>` : ""}
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; what you may keep</h2>${score(e.quota.print)}</header>
-      <div class="body">${quotaTable(e.quota.present, e.quota.rows)}</div>
+      <div class="body">${asOfBanner(t)}${quotaTable(t.present, t.rows)}</div>
     </div>
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; how you may fish</h2>${score(e.gear.print)}</header>
       <div class="body">
+        ${ON && !gearSeasonal(e.gear.table) ? `<p class="note">Nothing in this region's standing
+          gear rules turns on the date &mdash; these are the same every day of the year.</p>` : ""}
         ${gearMissing ? `<p class="note">Haida Gwaii's gear rules are an <b>area</b> rule inside
           Region 1 rather than a standing table of their own, so there is no separate printed
           panel to check them against. They are verified on the water instead.</p>` : ""}
@@ -860,13 +1043,16 @@ function draw() {
     <div class="grid2">
       <div class="card">
         <header><span class="eyebrow">Against the book</span></header>
-        <div class="body">${checks(e.quota.print)}</div>
+        <div class="body">${ON ? `<p class="note">The synopsis prints the year-round table, so
+          these lines are checked against <b>All year</b> &mdash; not the stretch shown
+          above.</p>` : ""}${checks(e.quota.print)}</div>
       </div>
       <div class="card">
         <header><span class="eyebrow">Against the book &mdash; gear</span></header>
         <div class="body">${checks(e.gear.print)}</div>
       </div>
     </div>`;
+  bindDate();
 }
 
 document.getElementById("meta").innerHTML =

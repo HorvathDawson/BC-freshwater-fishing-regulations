@@ -92,6 +92,8 @@ td.n.tiered{min-width:206px}
 .tlab{font:600 12.5px/1.3 var(--body);color:var(--sub);white-space:nowrap;text-align:left;
  flex:1 1 auto;letter-spacing:.01em}
 .tnum{display:flex;flex-direction:column;align-items:flex-end;gap:1px;white-space:nowrap}
+/* the number stays on one line; the sentence under it is a sentence and may wrap */
+.tnum .cap{white-space:normal;text-align:right}
 .tnum .cap{margin-top:1px;font-size:11.5px;line-height:1.35}
 .tnum .tag{margin-left:0}
 .tier+.tier{border-top:1px dashed var(--line);padding-top:8px}
@@ -187,6 +189,43 @@ ul.winner{margin:5px 0 0;padding:0 0 0 16px;list-style:disc;display:flex;
 ul.winner li{font-size:13.5px;line-height:1.45;color:var(--ink)}
 table.gear th:nth-child(2),table.gear td:nth-child(2){min-width:140px}
 table.gear th:last-child,table.gear td:last-child{min-width:330px}
+/* ---- A QUOTA INSIDE A QUOTA LOOKS LIKE ONE ----
+   A band and the rows under it used to print the same figure in the same weight, so "Trout 4"
+   above "Rainbow trout 4" read as eight fish. The band keeps the number; a row that is only
+   spending it shows it quiet, with the words, and every in-band row carries a rail back up to
+   the band it counts inside. */
+.ans.shared{color:var(--sub);font-weight:600;font-size:16px}
+.cap.into{color:var(--sub);font-weight:500}
+.notin{font:600 12px/1.4 var(--body);color:var(--limited);margin-top:3px}
+tr.inband td:first-child{position:relative}
+tr.inband td:first-child::before{content:"";position:absolute;left:9px;top:0;bottom:0;
+ border-left:2px solid var(--line-2)}
+tr.inband.oline td:first-child::after{left:20px}
+tr.band td:first-child{position:relative}
+/* ---- the year, and the stretch of it being shown ---- */
+.sched .body{padding-top:14px}
+.ybar{display:flex;gap:3px;height:16px;border-radius:5px;overflow:hidden;margin:0 0 12px}
+.ypc{border:0;padding:0;cursor:pointer;background:var(--quiet);min-width:3px}
+.ypc:hover{filter:brightness(1.15)}
+.ypc[aria-pressed="true"]{background:var(--accent)}
+.ymon{display:flex;font:500 10px/1 var(--mono);color:var(--faint);margin:-8px 0 14px}
+.ymon span{text-align:center;min-width:0}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:600 12.5px/1.25 var(--body);padding:8px 12px;border-radius:9px;border:1px solid var(--line-2);
+ background:var(--card);color:var(--ink);cursor:pointer;text-align:left;display:flex;
+ flex-direction:column;gap:2px}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--page);border-color:var(--ink)}
+.chip small{font:500 11px/1 var(--mono);opacity:.7}
+.dpick{margin-left:auto;font:600 12px/1 var(--body);color:var(--sub);display:flex;gap:8px;
+ align-items:center}
+.dpick input{font:500 13px/1 var(--mono);padding:7px 9px;border-radius:8px;
+ border:1px solid var(--line-2);background:var(--card);color:var(--ink)}
+.asof{font:600 13px/1.45 var(--body);color:var(--on-accent);background:var(--accent);
+ padding:9px 13px;border-radius:9px;margin:0 0 14px}
+.asof b{font-weight:800}
+@media (max-width:620px){.dpick{margin-left:0;width:100%}}
 @media (max-width:860px){.grid2{grid-template-columns:1fr}}
 @media (max-width:620px){
  body{padding-block:18px}.wrap{padding:0 16px}
@@ -202,5 +241,10 @@ table.gear th:last-child,table.gear td:last-child{min-width:330px}
   text-transform:uppercase;color:var(--faint);white-space:nowrap;flex:0 0 auto}
  td.fishcell{display:block}td.fishcell::before{display:none}
  .ans{font-size:17px}
+ /* "shared with bull trout, Dolly Varden" is longer than a phone column; a tag that cannot
+    wrap pushes the cell past the screen edge. */
+ .tag{white-space:normal}
+ .tier{flex-wrap:wrap}
+ .tlab{white-space:normal}
 }
 </style>

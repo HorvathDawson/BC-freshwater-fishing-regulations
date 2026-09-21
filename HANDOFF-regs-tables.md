@@ -193,10 +193,10 @@ fails if any of them comes back.
 
 ## The standing-tables page (artifact 17, 2026-09-21)
 
-`https://claude.ai/artifact/TzMSTVCayHe7zWNDbrs4k9`. **Its source is `head.html` + `body.html`
-in the session scratchpad, plus `base.json` from `pipeline.tools.emit_base_tables`** — the
-page is built by concatenating the three. Nothing of the renderer is in the repository; if
-that scratchpad goes, the page can no longer be edited. **This needs a home.**
+`https://claude.ai/artifact/TzMSTVCayHe7zWNDbrs4k9`. Its source is **`app/design/standing/`**
+(`head.html`, `body.html`, `README.md`, committed `72cf9124`) plus `base.json` from
+`pipeline.tools.emit_base_tables`; the page is the three concatenated — see that README for
+the build command. It lived only in a session scratchpad until then, which is ephemeral.
 
 Four things changed on it, each of which was a defect:
 
@@ -221,6 +221,60 @@ Four things changed on it, each of which was a defect:
    5 while the book gives it 1 for 303 days and release for 62. Those rows now say so and
    point at their seasons.
 
+## The year, as tables you can pick from (2026-09-21)
+
+The standing table is the table of a YEAR: where a rule is seasonal it can state no number,
+and the season rides beside the row as a line the reader has to apply themselves. Three rows
+over the 22 tables had no number at all for that reason. That is honest and unusable — the
+question at the water is *what may I keep today*.
+
+- **`rows.schedule(rows)`** cuts the year into the stretches over which one table holds. The
+  signature is every counter **in force** on the day, on every row — not the headline, because
+  a cap coming into force changes the table without changing a number. It wraps at the year's
+  end the way `Row.calendar` does. **52 stretches over the 22 tables**; eleven tables have
+  exactly one and never change.
+- **`provenance.as_of(L, row, on)`** is one row as a day finds it: counters not in force are
+  not on it, and the headline is re-read from what is left. Nothing is resolved a second time
+  — it only chooses which settled counters the day can see.
+- **`provenance.present(d, on)`** groups for that day. `steady()` became **`in_force(c, on)`**:
+  with no date, in force every day; with a date, in force that day. One function, because a
+  table for a day and a table for the year are the same table asked a different question.
+  Region 3's streams are the proof — bull trout, Dolly Varden and lake trout are one line
+  Feb–Jul, the lake trout alone in August, both released Oct 15–31, and the lake trout alone
+  again in November.
+- **`emit_base_tables`** emits `quota.views`, one per stretch. A single-stretch table carries
+  `same: true` and no rows — it *is* the standing table. Dated rows drop `behind` and their
+  counters' `source` (1.8 MB); the year-round table keeps all of it and is what the print
+  check compares against. `base.json` 3.6 MB → 5.3 MB.
+- The page gained a **year bar + chips + date input**. The standing table is still the
+  default and still what the 386/390 print checks are read against; a note says so whenever a
+  stretch is selected. Gear carries no windows at base level and the page says so.
+
+### A quota inside a quota now looks like one
+
+- A band and the rows under it printed the same figure in the same weight — "Trout 4" over
+  "Rainbow trout 4" reads as eight. An in-band row whose answer *is* the band's rule now shows
+  the number quiet with **"the same 4 as above"**, the band says **"not one each"**, and every
+  in-band row carries a rail back to it.
+- **`rowCap` covers rather than equals.** It demanded the cap name exactly the row's fish,
+  which held only while a combined quota kept its members in one row; a date breaks that. It
+  also fixed a live defect on the year-round table: **Region 6 streams printed 5 lake trout
+  where the book says "3 Dolly Varden/bull trout and/or lake trout combined"** — one row
+  changed out of 260.
+- A pooled cap or possession shared with fish that are not on the row now **names them**
+  ("shared with bull trout, Dolly Varden"), instead of a bare "between them" beside one fish.
+- `outside_of` was emitted and never drawn: a fish sitting *beside* a shared number it is not
+  part of now says **"on top of the 5 shared by … — these do not come out of it"**.
+- **Collapsing two origins no longer keeps one of their labels.** Where wild and hatchery both
+  go back, the one line was drawn from the wild row and kept its "wild only" — a rule true of
+  every steelhead reading as one about wild fish.
+
+Pinned by seven tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
+exactly once and adjacent ones differ; every `Row.calendar` boundary is a schedule boundary;
+a dated row carries only what is in force; Region 3's streams split and rejoin on the right
+days; no dated band is left without its number; **the year-round table is byte-identical
+with and without the date machinery**; and Region 6's lake trout cap.
+
 ## Open work
 
 1. Groups still named by exclusion — "Any other char" / "Any other trout". The readability
@@ -232,13 +286,19 @@ Four things changed on it, each of which was a defect:
    PDF was fetched (the full synopsis p.70 now covers the quota table).
 5. The page's species-group toggles (`st.fish_`, the where-view) do not filter the ledger;
    the ledger has its own finder. One filter would be better than two.
-6. **`app/design/regs-v3.html` is stale against `present()`.** Its `<script id="t">` block
+6. Dated views are **base tables only** — `provenance.section(water, run, on)` takes a date
+   but the section emitters do not yet emit views, so "this water" overrides have no
+   schedule. That is the next thing v4 needs.
+7. **`app/design/regs-v3.html` is stale against `present()`.** Its `<script id="t">` block
    predates `combined`, so Region 3's waters still draw the two split rows. `LEDGER` would
    also need to learn `combined`: it renders a two-line entry with an origin badge, and a
    merged group's two lines are both "either", so the members would be unlabelled. The owner
    has accepted this — v4 is built from the structure, not from this page.
-7. The quota/custody artifact (`c16d220a…`) and the gear artifact (`56c5f7d1…`) were not
+8. The quota/custody artifact (`c16d220a…`) and the gear artifact (`56c5f7d1…`) were not
    regenerated and show the pre-merge shape.
+9. Region 6's hatchery steelhead prints "only 1 over 50 cm · only 1 over 50 cm between them"
+   — `narrowCaps` absorbs a duplicate threshold only when the row tiers, and this row has no
+   standing number to tier inside.
 
 ## Artifacts
 
