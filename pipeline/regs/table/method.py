@@ -255,8 +255,16 @@ class MethodTable:
     def __init__(self, terms: Iterable[Term], *, water_kind: str = "", here: FrozenSet[str] = frozenset(),
                  label: str = "", closures: Iterable[Allowance] = (), lifted: Dict[str, str] = None,
                  keep_ledgers: Dict[str, Ledger] = None, elsewhere: Dict[str, List[Term]] = None,
-                 lifted_fish: Dict[str, List[Tuple[FrozenSet[str], Term]]] = None):
+                 lifted_fish: Dict[str, List[Tuple[FrozenSet[str], Term]]] = None,
+                 province: bool = False):
         self.water_kind, self.here, self.label = water_kind, frozenset(here), label
+        # THIS TABLE STANDS FOR ALL OF B.C., NOT FOR A PLACE IN IT. A provincial rule the book
+        # limits to some regions is still a provincial rule — the region list is part of what it
+        # SAYS, not a narrowing of who wrote it — so it belongs on this table. But it must not
+        # decide the province's verdict: "no spear fishing in Regions 1, 2 and 4" is not a
+        # province-wide ban, and "set lining in lakes of Regions 6 and 7A" is not a province-wide
+        # permit. Held here, shown with its regions, and kept out of `standing`.
+        self.province = bool(province)
         self.closures = tuple(closures)          # "No Fishing" on the water, from the quota ledger
         self.elsewhere = dict(elsewhere or {})   # permits the book writes for other places
         self.keep_ledgers = dict(keep_ledgers or {})
@@ -405,6 +413,7 @@ class MethodTable:
         cands = [t for t in self._for(method, "permit") + self._for(method, "ban")
                  if self.status_of(method, t) not in (LIFTED, ONLY_SOMEWHERE)
                  and t.applies.can_bind and not t.applies.within_day
+                 and not (self.province and t.regions)
                  and (t.applies.live(*on) if on is not None else (t.applies.always or t.applies.unless))]
         if not cands:
             return default_term(method, self.elsewhere.get(method, ()))
@@ -487,7 +496,28 @@ class MethodTable:
         """Stage 2: this base, with a section's own terms laid on top."""
         kw.setdefault("water_kind", self.water_kind)
         kw.setdefault("elsewhere", self.elsewhere)
+        kw.setdefault("province", self.province)
         return MethodTable(list(self.terms) + list(overrides), **kw)
+
+    def region_limited(self, method: str) -> List[Term]:
+        """On the provincial table: the terms the book limits to named regions, which `standing`
+        deliberately does not let govern. They are the answer to "where may I do this?" and
+        without them the province's row for spear fishing reads as a blanket permission."""
+        if not self.province:
+            return []
+        seen, out = set(), []
+        for t in self.terms:
+            # ONLY TERMS THAT NAME THIS METHOD. A bait lift naming no method reaches every
+            # hook-and-line method by design, and listing it here put "dead fin fish when
+            # fishing for white sturgeon — Region 2" under chumming, nets and snagging. Where
+            # it belongs is the rig section, which already carries it.
+            if not t.regions or t.method != method:
+                continue
+            if t.rule_id in seen:
+                continue
+            seen.add(t.rule_id)
+            out.append(t)
+        return sorted(out, key=lambda t: (t.kind != "ban", t.rank, t.rule_id))
 
 
 @dataclass

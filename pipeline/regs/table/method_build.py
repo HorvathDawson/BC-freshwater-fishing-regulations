@@ -282,12 +282,14 @@ def _key(rules: List[dict]) -> Tuple[str, ...]:
 
 
 @lru_cache(maxsize=None)
-def _base(key: Tuple[str, ...], water_kind: str, here: FrozenSet[str]) -> MethodTable:
+def _base(key: Tuple[str, ...], water_kind: str, here: FrozenSet[str],
+          province: bool = False) -> MethodTable:
     want = set(key)
     rs = [x for x in all_rules() if rid(x) in want]
     terms, ledgers, lifted_fish, unplaceable = terms_of(rs, water_kind, here)
     return MethodTable(terms, water_kind=water_kind, here=here, keep_ledgers=ledgers,
-                       elsewhere=provincial_permits(), lifted_fish=lifted_fish)
+                       elsewhere=provincial_permits(), lifted_fish=lifted_fish,
+                       province=province)
 
 
 def base(rules: List[dict], water_kind: str, here: FrozenSet[str] = frozenset()) -> MethodTable:
@@ -306,9 +308,21 @@ def region_base(region: str, water_kind: str) -> MethodTable:
 
 
 def provincial_base(water_kind: str) -> MethodTable:
-    rs = [x for x in all_rules() if is_gear(x) and source_of(x).is_base and x["entry"].startswith("zp:")
-          and not source_of(x).regions]
-    return _base(_key(rs), water_kind, frozenset())
+    """Every province-wide gear rule — INCLUDING the ones the book limits to named regions.
+
+    Those used to be dropped here (`not source_of(x).regions`), and the cost was severe: every
+    rule restricting the spear carries a region extent — only non-game fish, burbot in Regions
+    3/5/6/7/8, none at all in Regions 1/2/4 — so the only survivor was the rule that merely
+    DESCRIBES the method ("propelled by a spring, an elastic band, compressed air, a bow, or by
+    hand"), and the province's row read "Spear fishing is permitted", with nothing further, for
+    the most restricted method in the book. Set lining lost all four of its conditions the same
+    way and read as simply not allowed.
+
+    They are kept out of `standing` instead (see `MethodTable.province`), so a rule for Regions
+    6 and 7A neither vanishes nor speaks for the whole province: it is shown, with its regions.
+    """
+    rs = [x for x in all_rules() if is_gear(x) and source_of(x).is_base and x["entry"].startswith("zp:")]
+    return _base(_key(rs), water_kind, frozenset(), province=True)
 
 
 def table(rules: List[dict], water_kind: str = "stream", here: FrozenSet[str] = frozenset(),
