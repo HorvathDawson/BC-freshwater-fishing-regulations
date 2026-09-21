@@ -7338,8 +7338,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "skeena_river__cedarvale"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7390,8 +7398,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "skeena_river__cedarvale"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7441,8 +7456,12 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "whole"
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -7611,7 +7630,14 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "upstream_of",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
@@ -9092,8 +9118,15 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "downstream_of",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9756,8 +9789,16 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__mill_creek_into_skeena_river",
+              "skeena_river__highway_37_bridge"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
@@ -9929,12 +9970,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__zymagotitz_river_into_skeena_river",
+              "skeena_river__kitsumkalum_river_into_skeena_river_u1500m"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "The Classified Waters boundary at the top of Hell's Gate IS 1.5 km upstream of the Kitsumkalum: the Class II definition reads 'from Exchamsiks River to 1.5 km upstream of Kitsumkalum River (known as \"Skeena River 2\")'. The Kitsumkalum is named in the locator as a LOCALITY, 'near the Kitsumkalum River mouth' — it is the boundary that is the end."
+        ],
         "spatial_caveat": false
       }
     },
@@ -10952,13 +11003,20 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "whole",
+            "item_id": "gnis:2936"
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
-        "spatial_caveat": false
+        "notes": [
+          "SIGN-BOUNDED ZONE — not a reach between two cuts. The curated split block says so: 'this rule is a signs-closure AT that confluence, not a separate split'. The zone is the water within four triangular signs at the Kispiox confluence (https://www.openstreetmap.org/?mlat=55.34260&mlon=-127.69129). Carried as a caveat so the app shows the wording and does NOT draw it as a plain fill."
+        ],
+        "spatial_caveat": true
       }
     },
     {
@@ -11277,12 +11335,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "gauge__08EB005"
+            ]
+          }
+        ],
         "tributaries": null,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "'a point above the confluence with the Babine River' is bound to gauge 08EB005, 'Skeena River Above Babine River' — the only named point there. 'excluding the areas below' is a RESIDUAL: the carve-outs are the sibling locators and precedence resolves the overlap."
+        ],
         "spatial_caveat": false
       }
     },
@@ -11337,12 +11405,22 @@
       "reviewed_at": "",
       "review_note": "",
       "binding": {
-        "extents": [],
-        "tributaries": null,
+        "extents": [
+          {
+            "op": "between",
+            "splits": [
+              "skeena_river__cnr_railway_bridge_terrace",
+              "gauge__08EB005"
+            ]
+          }
+        ],
+        "tributaries": false,
         "tributaries_only": false,
         "tributary_excludes": [],
         "sections_cached": null,
-        "notes": [],
+        "notes": [
+          "'a point above the confluence with the Babine River' is bound to gauge 08EB005."
+        ],
         "spatial_caveat": false
       }
     }

@@ -7557,6 +7557,37 @@
       -128.56104,
       54.51568
      ]
+    },
+    {
+     "id": "skeena_river__highway_37_bridge",
+     "label": "Highway 37 Bridge",
+     "kind": "point",
+     "anchor": {
+      "type": "point",
+      "coord": [
+       -128.07632,
+       55.09787
+      ],
+      "is_lonlat": true
+     },
+     "note": "The upstream end of 'mainstem waters near the Kitwanga River mouth, from Mill Creek upstream to the Highway 37 Bridge'. Highway 37 crosses the Skeena at Kitwanga; Mill Creek is the other end.",
+     "_note": "[human-located 2026-09-21] user-supplied coord (55.09787460787504, -128.07631508484008), rounded to 5 dp. Verified 14.7 m from the Skeena mainstem blue line (BLUE_LINE_KEY 360887278) at downstream route measure ~229,465 m.",
+     "_coord": [
+      -128.07632,
+      55.09787
+     ]
+    },
+    {
+     "id": "skeena_river__mill_creek_into_skeena_river",
+     "label": "Mill Creek → Skeena River",
+     "kind": "confluence",
+     "anchor": {
+      "type": "confluence",
+      "tributary_wsc": "400-362851",
+      "_name": "Mill Creek"
+     },
+     "note": "The downstream end of 'from Mill Creek upstream to the Highway 37 Bridge'. Derivable with no pin: the watershed-code child test proves the relationship.",
+     "_note": "[derived 2026-09-21] gnis:36435, wsc 400-362851 — a DIRECT child of the Skeena's 400. The registry holds FOUR waters named Mill Creek and the other three sit on 300-, 920-, 900- and 200-, so a name match picks the wrong one; the child test is what names the right one."
     }
    ]
   },
