@@ -1182,3 +1182,24 @@ def test_the_presented_table_names_each_fish_once_and_hoists_only_what_holds_for
                     assert b["id"] in shown
                     if b["origin"]:
                         assert r["qualifier"] == b["origin"]
+
+
+def test_the_definitional_size_is_recorded_but_never_chains():
+    """Page 86: "steelhead: a rainbow trout longer than 50 cm in waters where anadromous
+    rainbow trout are found." The standing tables use this to drop a size class that cannot
+    exist — a steelhead row never offers a number for a fish under 50 cm.
+
+    The ORACLE deliberately does not substitute. Steelhead are sea-going, so the boundary
+    holds only where they occur, and a water whose table says trout and not steelhead is
+    describing a landlocked rainbow. Applied globally it also broke totality: a verdict about
+    steelhead became decided by a trout/char counter absent from the steelhead row. Deciding
+    it properly needs a per-water presence fact the corpus does not carry."""
+    from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
+
+    for code, d in DEFINITIONAL_SIZE.items():
+        assert d["min_cm"] > 0 and d.get("says") and d.get("source")
+        # a fallback must never itself be defined by size, or a substitution could chain
+        assert d.get("below") not in DEFINITIONAL_SIZE, \
+            f"{code} falls back to {d.get('below')}, which is itself defined by size"
+        # and it must record the condition that stops it being applied everywhere
+        assert d.get("applies_where"), f"{code} does not say where its definition holds"

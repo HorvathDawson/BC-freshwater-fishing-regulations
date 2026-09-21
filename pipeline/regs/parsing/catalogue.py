@@ -279,6 +279,15 @@ SPECIES_GROUPS["SALMON"] = ("CH", "CO", "SK", "PK", "CM")
 #: what the word MEANS, everywhere in the book.
 DEFINITIONAL_SIZE = {
     "ST": {"min_cm": 50,
+           #: WHAT IT IS INSTEAD — recorded, but NOT applied by the oracle. The definition
+           #: holds only "in waters where anadromous rainbow trout are found": steelhead are
+           #: sea-going, so a table naming trout and not steelhead is describing a landlocked
+           #: rainbow the 50 cm boundary says nothing about. Substituting globally also broke
+           #: the invariant the table rests on — a verdict about steelhead came to be decided
+           #: by a trout/char counter that is not on the steelhead row. Applying this needs a
+           #: per-water "are there steelhead here" fact the corpus does not carry.
+           "below": "RB",
+           "applies_where": "anadromous rainbow trout are found",
            "says": "a steelhead is a rainbow trout longer than 50 cm, so there is no "
                    "such thing as a smaller one",
            "source": "fishing_synopsis.pdf \u00b7 2025-2027 \u00b7 page 86, Definitions"},
