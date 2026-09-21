@@ -74,7 +74,32 @@ def _quota_table(region: str, kind: str) -> dict:
     """
     rows = _quota_rows(region, kind)
     d = {"rows": rows}
-    return {"rows": rows, "present": provenance.present(d) if rows else {"entries": [], "bands": {}}}
+    return {"rows": rows, "present": provenance.present(d) if rows else {"entries": [], "bands": {}},
+            "always": _always(region, kind)}
+
+
+def _always(region: str, kind: str) -> list:
+    """The rules that are true on every water and can never be drawn on a map.
+
+    "Within 23 m downstream of any fishway, canal, obstacle or leap" and "within 100 m of any
+    government counting, passing or rearing facility" bind everywhere, but because nothing can
+    place them they were filed as "somewhere" caveats and rendered as the faintest text on the
+    page, under a collapsed disclosure. A man standing below a fishway reads the big number and
+    never sees the rule that governs him. They are general rules and belong at the top.
+    """
+    L = QP.base_ledger(region, kind)
+    out, seen = [], set()
+    for a in L.allowances:
+        if getattr(a.applies, "kind", "") != "somewhere":
+            continue
+        rid_ = a.source.rule_id
+        if rid_ in seen:
+            continue
+        seen.add(rid_)
+        out.append({"rule": rid_, "where": a.applies.detail or a.source.place,
+                    "verbatim": a.source.verbatim, "who": a.source.who,
+                    "says": a.word() if hasattr(a, "word") else ""})
+    return out
 
 
 def _quota_rows(region: str, kind: str) -> list:
@@ -134,6 +159,7 @@ def collect() -> dict:
             "quota": {"rows": q.get("rows") or [], "present": q.get("present") or {},
                       "print": q_panel},
             "gear": {"table": g_table, "print": m_panel},
+            "always": (q.get("always") or []),
         })
 
     def tally(side):
@@ -141,7 +167,15 @@ def collect() -> dict:
         n = sum(r[side]["print"]["n"] for r in out if r[side]["print"])
         return {"ok": ok, "n": n}
 
-    return {"regions": out, "meta": {"quota": tally("quota"), "gear": tally("gear")}}
+    # A READER LOOKS FOR A FAMILY FIRST. "My fish is a char" should find one place on every
+    # region's table, whether that region writes "Trout/char: 5" as one number (Region 2) or
+    # writes "Trout: 4" and releases char separately (Region 1). The page groups by this.
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    fams = {"TROUT_CHAR": sorted(SPECIES_GROUPS["TROUT_CHAR"]),
+            "TROUT": sorted(SPECIES_GROUPS["TROUT"]),
+            "CHAR": sorted(SPECIES_GROUPS["CHAR"])}
+    return {"regions": out,
+            "meta": {"quota": tally("quota"), "gear": tally("gear"), "families": fams}}
 
 
 def main() -> int:
