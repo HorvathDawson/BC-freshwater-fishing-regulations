@@ -127,7 +127,7 @@ ADMIN: tuple[LayerSpec, ...] = (
             "drawn to look like one — never the same style as a park you may fish in.",
     ),
     LayerSpec(
-        name="closure_zone", geometry="polygon", ladder="area", minzoom=9,
+        name="sign_zone", geometry="polygon", ladder="area", minzoom=9,
         attrs=("area_id", "name", "kind", "cuts"),
         why="Sign-bounded closures — the area a regulation encloses with fishing boundary "
             "signs, drawn by hand because no fetched layer has them.\n\n"

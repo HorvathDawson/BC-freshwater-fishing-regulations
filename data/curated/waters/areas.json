@@ -161,17 +161,17 @@
    "not_drawn": "the group is a UNION of management units whose own boundaries already draw on the `mu` layer, so drawing it again would stack a second outline on top of them. It is cut and stamped, not drawn: a zone rule resolves off the `mus` attribute the tile already carries on every feature."
   },
   {
-   "id": "closure_zones",
+   "id": "sign_zones",
    "file": "added_areas",
    "name_field": "name",
-   "kind": "closure_zone",
+   "kind": "sign_zone",
    "carry": [
     "cuts"
    ],
    "cut": true,
-   "tile_layer": "closure_zone",
+   "tile_layer": "sign_zone",
    "tile_visible_px": 0.6,
-   "note": "Sign-bounded closures a regulation states as an AREA, not a reach — 'all waters within the 4 triangular fishing boundary signs', 'the area bounded by a line commencing at a sign at the eastern end of Landstrom Bar ... thence following the bank'. Drawn by hand in added_areas.geojson because no fetched layer has them. `cut: true` so the stream is cut where it enters and leaves the ring, which is what makes the closure a reach the app can colour; `carry: [cuts]` puts the registry item on the tile so a drawn polygon can say which water it closes. tile_visible_px is low because these are small and they are CLOSURES — the same reason national parks and ecological reserves lower theirs."
+   "note": "Areas bounded by fishing boundary signs — a PLACE a regulation states as a polygon rather than a reach: 'all waters within the 4 triangular fishing boundary signs at the confluence of the Kispiox with the Skeena', 'the area bounded by a line commencing at a sign at the eastern end of Landstrom Bar ... thence following the bank'. Drawn by hand in added_areas.geojson because no fetched layer has them.\n\nNOT NAMED FOR A RULE TYPE. The rules that bind here are not all closures — the Kispiox zone carries the province's no-angling-from-a-vessel rule alongside DFO salmon rules. The ring says where; each rule says what.\n\n`cut: true` so the stream is cut where it enters and leaves the ring, which is what makes the zone a reach an extent can bind to. `carry: [cuts]` puts the registry item on the tile so a drawn polygon can say which water it sits on. tile_visible_px is low because these are small and they matter."
   }
  ],
  "_cut_policy": "`cut: true` splits every stream at the polygon edge so inside/outside is exact; it is reserved for blanket CLOSURES with a hard boundary — national parks, ecological reserves, the Chilkoot Trail, and no-access land. Everything else is membership-only: mark_inside_areas covers both cases (covers + intersects), so membership never needed the cut. Regions and MU groups are also cut, for a different reason than a closure: a regulation written per region or per group of units needs a section boundary at that area's edge or it cannot be attached to its own half of a water that crosses it.",

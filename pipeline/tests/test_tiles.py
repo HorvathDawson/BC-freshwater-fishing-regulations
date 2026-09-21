@@ -164,7 +164,7 @@ def test_only_hard_closures_and_regulatory_zones_cut_the_streams_that_cross_them
         # Cheap by the same measure as the rest: two rings, 14.2 ha and 11.5 ha, crossed by
         # three blue lines in total. The Skeena crosses one boundary twice and the Kispiox
         # once (it ENDS inside the ring, at the confluence) — five cuts province-wide.
-        "closure_zones",
+        "sign_zones",
     }
 
 

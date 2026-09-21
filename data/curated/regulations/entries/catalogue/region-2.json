@@ -5274,7 +5274,7 @@
       {
        "op": "whole",
        "item_id": "gnis:39325",
-       "within_area": "area:closure_zone:fraser_river_landstrom_bar_closure"
+       "within_area": "area:sign_zone:fraser_river_landstrom_bar_sign_zone"
       }
      ],
      "exempts": [],

@@ -92,7 +92,7 @@
       "maxzoom": 14,
       "ladder": "area"
     },
-    "closure_zone": {
+    "sign_zone": {
       "geometry": "polygon",
       "attrs": [
         "area_id",

@@ -11581,8 +11581,16 @@
    "regs_verbatim": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers: no angling from boats",
    "source_pages": [],
    "symbols": [],
-   "matched": [],
-   "extents": [],
+   "matched": [
+    "gnis:2936"
+   ],
+   "extents": [
+    {
+     "op": "whole",
+     "item_id": "gnis:2936",
+     "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
+    }
+   ],
    "rules": [
     {
      "rule_id": "skeena_river_kispiox_river_confluence.r1",
@@ -11604,14 +11612,20 @@
      "required": true,
      "on_retention": false,
      "tributaries_only": false,
-     "extents": [],
+     "extents": [
+      {
+       "op": "whole",
+       "item_id": "gnis:2936",
+       "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
+      }
+     ],
      "exempts": [],
      "standing": false,
      "reason": "",
      "extent_text": "Waters within 3 white fishing boundary signs located at the confluence of the Skeena and Kispiox rivers",
      "unresolved_locators": [],
-     "needs_review": true,
-     "review_reason": "no registry match — attach an item and bind extents"
+     "needs_review": false,
+     "review_reason": ""
     }
    ]
   },

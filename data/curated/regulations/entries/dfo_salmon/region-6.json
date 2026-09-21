@@ -7580,7 +7580,7 @@
           {
             "op": "whole",
             "item_id": "gnis:2936",
-            "within_area": "area:closure_zone:skeena_river_kispiox_confluence_closure"
+            "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
           }
         ],
         "tributaries": false,
@@ -7588,7 +7588,7 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The closure is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The zone is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
         "spatial_caveat": false
       }
@@ -11015,7 +11015,7 @@
           {
             "op": "whole",
             "item_id": "gnis:2936",
-            "within_area": "area:closure_zone:skeena_river_kispiox_confluence_closure"
+            "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
           }
         ],
         "tributaries": false,
@@ -11023,7 +11023,7 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The closure is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The zone is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
         "spatial_caveat": false
       }
@@ -11140,7 +11140,7 @@
           {
             "op": "whole",
             "item_id": "gnis:2936",
-            "within_area": "area:closure_zone:skeena_river_kispiox_confluence_closure"
+            "within_area": "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"
           }
         ],
         "tributaries": false,
@@ -11148,7 +11148,7 @@
         "tributary_excludes": [],
         "sections_cached": null,
         "notes": [
-          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The closure is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
+          "SIGN-BOUNDED ZONE at the Kispiox confluence, now a drawn polygon rather than an assumed reach. The zone is an AREA in both corpora's own words — DFO in three wordings (4 / 3 / three triangular signs), the province in a fourth; one zone, see pipeline/docs/GOTCHAS.md. It is bound as the whole Skeena LIMITED TO the ring in data/curated/waters/added_areas.geojson: `within_area`, not `area_id`, because the rule is about the Skeena and the polygon only says where — an area-scoped extent would be filed as a zone default that any water-specific rule outranks. The ring supersedes the 400 m guess and the two splits it needed."
         ],
         "spatial_caveat": false
       }

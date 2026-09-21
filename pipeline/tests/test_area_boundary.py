@@ -169,8 +169,8 @@ class TestCuratedClosureZones:
     @staticmethod
     def _def():
         from pipeline.atlas.splits.area_splits import load_area_split_defs
-        d = [a for a in load_area_split_defs() if a["id"] == "closure_zones"]
-        assert d, "areas.json defines no `closure_zones`"
+        d = [a for a in load_area_split_defs() if a["id"] == "sign_zones"]
+        assert d, "areas.json defines no `sign_zones`"
         return d[0]
 
     def test_a_curated_file_is_just_another_selector(self):
@@ -199,8 +199,8 @@ class TestCuratedClosureZones:
         from pipeline.atlas.splits.area_catalog import catalog_entries
         ad = self._def()
         ids = {e.area_id for e in catalog_entries([ad], {ad["id"]: load_area_polys(None, ad)})}
-        assert ids == {"area:closure_zone:fraser_river_landstrom_bar_closure",
-                       "area:closure_zone:skeena_river_kispiox_confluence_closure"}, sorted(ids)
+        assert ids == {"area:sign_zone:fraser_river_landstrom_bar_sign_zone",
+                       "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"}, sorted(ids)
 
     def test_each_ring_cuts_the_water_it_names(self):
         """A closure zone that crosses no stream cuts nothing and the rule binds nowhere."""
@@ -235,8 +235,8 @@ class TestCuratedClosureZones:
         import json, glob
         from pipeline.deliver.bundle.rules import _specificity
 
-        want = {"area:closure_zone:fraser_river_landstrom_bar_closure",
-                "area:closure_zone:skeena_river_kispiox_confluence_closure"}
+        want = {"area:sign_zone:fraser_river_landstrom_bar_sign_zone",
+                "area:sign_zone:skeena_river_kispiox_confluence_sign_zone"}
         seen = set()
         for p in glob.glob("data/curated/regulations/entries/catalogue/region-*.json"):
             for e in json.load(open(p))["entries"]:
