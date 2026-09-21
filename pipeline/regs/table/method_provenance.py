@@ -104,6 +104,12 @@ def row_json(T: MethodTable, m: str, on: Optional[tuple] = None) -> dict:
         "folded": [term_json(T, m, t, st) for t, st in row.folded()],
         "hours": [term_json(T, m, t) for t in T.within_day(m)],
         "keep": keep_json(T, m),
+        # ON THE PROVINCE'S TABLE ONLY: the terms the book limits to named regions. They do not
+        # govern (a ban for Regions 1, 2 and 4 is not a province-wide ban) but they are the
+        # answer to "where may I do this?", and without them the province's spear row reads as
+        # a blanket permission. Empty on every regional and section table, where such a rule
+        # either bites or is not there at all.
+        "where": [term_json(T, m, t) for t in T.region_limited(m)],
         "visible": sorted(row.visible_ids()),
     }
 
@@ -172,6 +178,11 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
 
 
 def base_table(region: str, kind: str) -> dict:
+    # "province" IS NOT A REGION. Asked for it by name this built `region_base("province")` —
+    # a region whose entry prefix is `zprovince`, which nothing matches — so the caller got a
+    # table made of the province's region-less rules only, with no `where` and no set lining.
+    if str(region) in ("p", "province"):
+        return provincial_table(kind)
     T = region_base(region, kind)
     d = {"regions": [region], "kind": kind, "label": f"Region {region.upper()} · {kind}s",
          "rules": sorted(T.universe()), "from": ("region", region)}
