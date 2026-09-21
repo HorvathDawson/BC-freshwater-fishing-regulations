@@ -235,7 +235,8 @@ def _neighbour_label(polys_by_name: dict, line, m: float, here: str, term: str) 
 
 
 def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
-                        term: str | None = None) -> list[SplitPoint]:
+                        term: str | None = None,
+                        scope: dict | None = None) -> list[SplitPoint]:
     """Cut every chain crossing each polygon at first-enter/last-exit (transition cutting).
 
     `term` has three states, because there are three kinds of name:
@@ -248,6 +249,16 @@ def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
 
     In the last two the cut is labelled by what it SEPARATES rather than by whichever polygon
     it happened to belong to; see `_neighbour_label`.
+
+    `scope` — `{area name: item id}` — NARROWS AN AREA TO THE WATER IT IS ABOUT. Blanket is right
+    for a park: everything inside it is closed, whatever stream it is. It is wrong for a sign zone
+    drawn across a confluence. The Kispiox ring spans the mouth, so a blanket cut also cuts the
+    Kispiox and an unnamed side channel — but the regulation says "MAINSTEM waters within 3 white
+    triangular fishing boundary signs", and the other cuts are stubs no rule will ever bind.
+
+    The scope is not a new thing to maintain: it is the `cuts` property the ring already carries to
+    say which water it sits on, so the tile link and the cut scope cannot disagree. An area with no
+    scope stays blanket, which is every area that existed before this.
     """
     from shapely.strtree import STRtree
 
@@ -258,8 +269,11 @@ def resolve_area_splits(polys_by_name: dict, chains: list[BlkChain],
     out: list[SplitPoint] = []
     for name, poly in polys_by_name.items():
         boundary = poly.boundary
+        want = (scope or {}).get(name)
         for i in tree.query(poly):                 # bbox candidates; transition cutter filters non-crossers
             c = keep[i]
+            if want and f"gnis:{c.gnis_id}" != want and f"wbk:{getattr(c, 'wbk', '')}" != want:
+                continue                           # a water this area is not about — see `scope`
             for m in _area_transition_measures(c.geometry, poly, boundary):
                 label = (name if term is None
                          else _neighbour_label(polys_by_name, c.geometry, m, name, term))

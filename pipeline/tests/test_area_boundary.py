@@ -263,3 +263,79 @@ class TestCuratedClosureZones:
         for gone in ("fraser_river__landstrom_bar", "fraser_river__croft_island_southern_end",
                      "skeena_river__kispiox_sign_zone_lower", "skeena_river__kispiox_sign_zone_upper"):
             assert gone not in ids, f"{gone} was superseded by a closure zone but still exists"
+
+
+class TestSmallAreasAndScopedCuts:
+    """Two defects the sign zones exposed, both invisible in the build log.
+
+    The build printed `2 polygon(s), 6 transition cut(s)` and exited 0. Three of those six were
+    on the wrong streams and the one river that mattered was never cut at all.
+    """
+
+    @staticmethod
+    def _ring(w, h, cx=0.0, cy=0.0):
+        from shapely.geometry import Polygon
+        return Polygon([(cx - w / 2, cy - h / 2), (cx + w / 2, cy - h / 2),
+                        (cx + w / 2, cy + h / 2), (cx - w / 2, cy + h / 2)])
+
+    def test_a_polygon_crossed_between_two_vertices_is_still_cut(self):
+        """**The Landstrom bug.** Containment was tested per VERTEX, which is exact for a park —
+        kilometres wide, far wider than the spacing of points describing a river. It failed
+        silently for an 11.5 ha ring: the Fraser's chain is 1,407 km long and has no vertex inside
+        the 138 m the ring clips, so every vertex read as outside and the mainstem was never cut.
+
+        The rule then bound the whole 10.6 km gauge-to-gauge section it sits in — a closure spread
+        over ten times the water it covers, and WIDER than the two cut-points it replaced.
+        """
+        from shapely.geometry import LineString
+        from pipeline.atlas.splits.anchors import _area_transition_measures
+        line = LineString([(-1000, 0), (1000, 0)])       # one 2 km span, no vertex in the middle
+        ring = self._ring(100, 100)                      # 100 m box the line crosses
+        assert not any(ring.contains(__import__("shapely").geometry.Point(c)) for c in line.coords)
+        ms = _area_transition_measures(line, ring, ring.boundary)
+        assert len(ms) == 2, "a line crossing between vertices must still enter and exit"
+        assert abs(ms[0] - 950) < 1 and abs(ms[1] - 1050) < 1, ms
+
+    def test_the_fallback_cannot_move_or_remove_an_existing_cut(self):
+        """Why the fix is safe to run province-wide: it lives in the branch that used to return
+        `[]`. A polygon with a vertex inside never reaches it, so every cut that existed before
+        is bit-for-bit the same and the only change is crossings that were being missed."""
+        from shapely.geometry import LineString
+        from pipeline.atlas.splits.anchors import _area_transition_measures
+        line = LineString([(-1000, 0), (-10, 0), (0, 0), (10, 0), (1000, 0)])
+        ring = self._ring(100, 100)
+        ms = _area_transition_measures(line, ring, ring.boundary)
+        assert len(ms) == 2 and abs(ms[0] - 950) < 1 and abs(ms[1] - 1050) < 1, ms
+
+    def test_a_scoped_area_cuts_only_the_water_it_is_about(self):
+        """**The Kispiox bug.** Blanket is right for a park — everything inside is closed, whatever
+        stream it is. It is wrong for a ring drawn across a confluence: the zone spans the Kispiox
+        mouth, so a blanket cut also chopped the Kispiox and an unnamed channel, while the
+        regulation says "MAINSTEM waters within 3 white triangular fishing boundary signs".
+
+        The scope is the `cuts` property the ring already carries, so the tile link and the cut
+        scope cannot disagree. No scope = blanket, which is every area that existed before.
+        """
+        from shapely.geometry import LineString
+        from pipeline.common.models import BlkChain
+        from pipeline.atlas.splits.area_splits import resolve_area_splits
+
+        def chain(blk, gnis):
+            return BlkChain(blk=blk, fwa_watershed_code="", fids=(),
+                            geometry=LineString([(-1000, 0), (1000, 0)]),
+                            mouth_measure=0.0, length_m=2000.0, name_tuples=(), gnis_id=gnis)
+
+        chains = [chain("main", "2936"), chain("trib", "2308"), chain("unnamed", "")]
+        polys = {"zone": self._ring(100, 100)}
+        assert len(resolve_area_splits(polys, chains)) == 6, "unscoped stays blanket"
+        scoped = resolve_area_splits(polys, chains, scope={"zone": "gnis:2936"})
+        assert {p.blk for p in scoped} == {"main"}, sorted(p.blk for p in scoped)
+        assert len(scoped) == 2, "enter and exit on the one water the zone is about"
+
+    def test_every_sign_zone_declares_the_water_it_cuts(self):
+        """A ring with no `cuts` would silently fall back to blanket — which is exactly the bug
+        it would be reintroducing."""
+        import json
+        from pipeline.common.curated import CURATED
+        for f in json.loads(CURATED.waters.added_areas.read_text())["features"]:
+            assert f["properties"].get("cuts"), f"{f['properties']['id']} declares no `cuts`"

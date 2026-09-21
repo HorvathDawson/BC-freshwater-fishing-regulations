@@ -105,7 +105,31 @@ def _area_transition_measures(g, poly, boundary) -> list[float]:
     pp = prep(poly)
     inside = [pp.contains(Point(xy)) for xy in coords]
     if not any(inside):
-        return []
+        # A SMALL POLYGON CAN BE CROSSED BETWEEN TWO VERTICES.
+        #
+        # Containment is tested per VERTEX, which is exact for a park — kilometres across, far
+        # wider than the spacing of the points describing a river. It fails silently for a small
+        # one. The Landstrom Bar sign zone is 11.5 ha and clips the Fraser mainstem for 138 m; the
+        # Fraser's chain is 1,407 km long and simply has no vertex in that 138 m, so every vertex
+        # read as outside and the stream was never cut. The rule then bound the whole 10.6 km
+        # gauge-to-gauge section it sits in — a closure spread over ten times the water it covers.
+        #
+        # The side channel beside it cut correctly, which is what makes this the dangerous kind of
+        # bug: the area reports cuts, the membership flag is stamped, and only the one line that
+        # matters is missing.
+        #
+        # So when no vertex is inside but the LINE still meets the polygon, take the enter/exit
+        # straight off the intersection. Same first-enter/last-exit semantics as below.
+        seg = g.intersection(poly)
+        if seg.is_empty:
+            return []
+        parts = [q for q in (seg.geoms if hasattr(seg, "geoms") else [seg])
+                 if not q.is_empty and getattr(q, "length", 0) > 0]
+        ms = [g.project(Point(c)) for q in parts for c in (q.coords[0], q.coords[-1])]
+        if not ms:
+            return []
+        lo, hi = min(ms), max(ms)
+        return ([lo] if lo > 0 else []) + ([hi] if hi < g.length else [])
     first_in = inside.index(True)
     last_in = len(inside) - 1 - inside[::-1].index(True)
     out: list[float] = []

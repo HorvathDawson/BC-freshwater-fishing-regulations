@@ -710,7 +710,8 @@ def main() -> None:
     # (national parks, ecological reserves, the Chilkoot trail) at first-enter/last-exit + flag
     # inside reaches. Runs BEFORE name variants (so cut pieces get named); a no-op where the bbox
     # hits no such area.
-    from pipeline.atlas.splits.area_splits import load_area_split_defs, load_area_polys, resolve_area_splits
+    from pipeline.atlas.splits.area_splits import (load_area_attrs, load_area_split_defs,
+                                                   load_area_polys, resolve_area_splits)
     area_defs = load_area_split_defs()
     catalog_polys: dict[str, dict] = {}                # {area_def id: {name: polygon}} for the lazy catalog
     if area_defs:
@@ -725,7 +726,10 @@ def main() -> None:
                 # SEPARATES — "Region 2 – Region 3 boundary" rather than "2". An area whose
                 # name already reads as a place ("Garibaldi Provincial Park") sets no term
                 # and keeps its name.
-                apts = resolve_area_splits(polys, chains, term=ad.get("label_term"))
+                # `cuts` on each feature narrows the cut to the water the area is about —
+                # blanket for a park, one river for a sign zone drawn across a confluence.
+                scope = {n: a["cuts"] for n, a in load_area_attrs(ad).items() if a.get("cuts")}
+                apts = resolve_area_splits(polys, chains, term=ad.get("label_term"), scope=scope)
                 split_graph_at(graph, geoms, apts, fid_index, proximity_pickup=False, applied=applied_splits)
                 print(f"  area '{ad['id']}': {len(polys)} polygon(s), {len(apts)} transition cut(s)")
             else:
