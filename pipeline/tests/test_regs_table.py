@@ -1364,6 +1364,89 @@ def test_a_shared_number_nothing_may_be_kept_against_is_not_a_number():
             assert not b["moot"], (region, kind, bid)
 
 
+def test_every_condition_a_region_has_builds_a_settled_table():
+    """WHERE and WHEN are inputs to one generator, so every combination of them is reachable
+    by the same path — which is the point: a reviewer reads all of them and this walks all of
+    them. Before, the date was a parameter and the area was nothing at all, so "Region 1
+    streams, inside Management Units 1-1 to 1-6, on July 20" was a question with no way to
+    ask it and no way to test it."""
+    from pipeline.regs.table import state as ST
+    seen = 0
+    for region in ST.REGIONS:
+        for kind in ST.KINDS:
+            for area, seg in ST.conditions(region, kind):
+                seen += 1
+                st = ST.state(region, kind, area)
+                on = tuple(seg["from"])
+                assert st.rows, (region, kind, area and area.name)
+                for r in st.rows:
+                    # a settled row answers for the day, and answers with rules in force on it
+                    live = {a.rule_id for a in r.live(on)}
+                    h = r.headline(on)
+                    assert h is None or h.rule_id in live, (region, kind, seg["label"], r.fish)
+    assert seen > 200, seen
+
+
+def test_an_area_is_the_region_plus_exactly_its_own_rules():
+    """The same invariant the sections have, one level up: an area's table is the region's
+    base with that area's rules laid on it, and NOTHING else. A difference that is not
+    attributable to a named rule is how a page starts lying."""
+    from pipeline.regs.table import state as ST
+    checked = 0
+    for region in ST.REGIONS:
+        for kind in ST.KINDS:
+            base = {a.rule_id for a in ST.state(region, kind).ledger.allowances}
+            for area in ST.areas(region, kind):
+                got = {a.rule_id for a in ST.state(region, kind, area).ledger.allowances}
+                assert got - base <= set(area.rules), \
+                    (region, kind, area.name, sorted(got - base - set(area.rules)))
+                checked += 1
+    assert checked >= 40, checked
+
+
+def test_the_summer_closure_reaches_its_units_and_its_dates_and_no_further():
+    """"Summer closure: No Fishing in any stream in Management Units 1-1 to 1-6 from July 15 –
+    Aug 31." It is area-scoped, so by construction it cannot enter Region 1's standing table —
+    that is the rule that stops one river's regulation binding a whole region — and the cost
+    was that it appeared on NO table on this page. As a condition it is exactly itself: inside
+    those units, on those days, and nowhere and nowhen else."""
+    from pipeline.regs.table import state as ST
+    mu = next(a for a in ST.areas("1", "stream") if a.name == "MUs 1-1 to 1-6")
+    inside = ST.state("1", "stream", mu)
+    outside = ST.state("1", "stream")
+    assert [s["label"] for s in inside.schedule()] == ["Sep 1 – Jul 14", "Jul 15 – Aug 31"]
+    assert [s["label"] for s in outside.schedule()] == ["Jan 1 – Dec 31"]
+    for on, shut in (((7, 20), True), ((7, 14), False), ((9, 1), False)):
+        heads = [r.headline(on) for r in inside.rows]
+        assert all(h is not None and h.kind == "closed" for h in heads) == shut, (on, shut)
+    # and it is on no lake, and in no other region
+    assert not any(a.name == "MUs 1-1 to 1-6" for a in ST.areas("1", "lake"))
+    for region in ST.REGIONS:
+        if region == "1":
+            continue
+        assert not any(a.name == "MUs 1-1 to 1-6" for a in ST.areas(region, "stream")), region
+
+
+def test_haida_gwaii_carries_its_own_bait_ban():
+    """HAIDA GWAII IS AN AREA, NOT A CHAPTER. Its rules live in Region 1's chapter under `hg_`
+    and are area-scoped, so the gear base missed them twice over: `is_base` is false and
+    `"z" + region` is "z1hg", a prefix no entry has. Its gear table was the province's rules
+    and nothing else, and the page told a reader "Roe may be used" for the half of the year
+    the book bans bait in every stream there."""
+    from pipeline.regs.table import state as ST
+    rule = "z1:hg_bait_ban_streams::hg_bait_ban_streams.r1"
+    st = ST.state("1hg", "stream")
+    assert rule in st.gear.universe()
+    term = next(t for t in st.gear.terms if t.rule_id == rule)
+    assert term.applies.live(12, 1) and term.applies.live(3, 1)
+    assert not term.applies.live(7, 1)
+    # ...so the year has two stretches there, and one of them is the bait ban's
+    assert [s["label"] for s in st.schedule()] == ["Nov 1 – Apr 30", "May 1 – Oct 31"]
+    # and it is Haida Gwaii's alone — Region 1 proper does not carry it
+    assert rule not in ST.state("1", "stream").gear.universe()
+    assert not any("hg_" in r for a in ST.areas("1", "stream") for r in a.rules)
+
+
 def test_region_6_streams_cap_the_lake_trout_at_three():
     """"3 Dolly Varden/bull trout and/or lake trout combined" — the cap reaches the lake trout
     and it is what a lake trout angler is held to, not the trout-and-char 5 it sits inside.

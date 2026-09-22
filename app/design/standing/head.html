@@ -197,6 +197,8 @@ ul.alist b{font-weight:600}
 ul.winner{margin:5px 0 0;padding:0 0 0 16px;list-style:disc;display:flex;
  flex-direction:column;gap:4px}
 ul.winner li{font-size:13.5px;line-height:1.45;color:var(--ink)}
+ul.winner li .when,.gbcol .when{font:500 11.5px/1.4 var(--mono);color:var(--limited);
+ display:inline-block;margin-left:4px}
 table.gear th:nth-child(2),table.gear td:nth-child(2){min-width:140px}
 table.gear th:last-child,table.gear td:last-child{min-width:330px}
 /* ---- A QUOTA INSIDE A QUOTA LOOKS LIKE ONE ----
@@ -234,6 +236,11 @@ tr.band td:first-child{position:relative}
  border:1px solid var(--line-2);background:var(--card);color:var(--ink)}
 .asof{font:600 13px/1.45 var(--body);color:var(--on-accent);background:var(--accent);
  padding:9px 13px;border-radius:9px;margin:0 0 14px}
+.asof.stop{background:var(--closed)}
+.asof.quiet{background:var(--tint);color:var(--sub)}
+.why{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.wline{display:flex;gap:9px;align-items:baseline;font-size:13.5px;line-height:1.45}
+.wline .rtag{flex:0 0 auto}
 .asof b{font-weight:800}
 @media (max-width:620px){.dpick{margin-left:0;width:100%}}
 @media (max-width:860px){.grid2{grid-template-columns:1fr}}

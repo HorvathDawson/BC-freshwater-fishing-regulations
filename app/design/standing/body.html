@@ -31,6 +31,12 @@ let REG = "province", KIND = "lake";
    flipping from Region 3 to Region 5 has to keep asking about Oct 20, not about "the fourth
    stretch", which in Region 5 is a different part of the year. */
 let ON = null;
+/* WHERE, the other condition. `null` is anywhere in the region no area rule reaches; a name
+   is one of the areas the book writes rules for inside it — Management Units 1-1 to 1-6, a
+   National Park, a wildlife management area. The pipeline builds those the same way it builds
+   the plain region table, with the area's rules as one more input, so what is on screen here
+   is a real settled table and not the region's with a note pinned to it. */
+let WHERE = null;
 const MLEN = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 const YEAR = new Date().getFullYear();
 function doy(m, d) { let n = 0; for (let i = 0; i < m - 1; i++) n += MLEN[i]; return n + d; }
@@ -38,7 +44,18 @@ function within(day, a, b) {
   const x = doy(day[0], day[1]), lo = doy(a[0], a[1]), hi = doy(b[0], b[1]);
   return lo <= hi ? (x >= lo && x <= hi) : (x >= lo || x <= hi);
 }
-function viewsOf(e) { return (e && e.quota && e.quota.views) || []; }
+/* The area picked, if this region has one by that name — it is kept across a region change
+   the way the date is, and simply falls away where the next region has no such place. */
+function areaOf(e) {
+  return WHERE ? ((e && e.places) || []).find(p => p.name === WHERE) || null : null;
+}
+/* The half of the payload the current WHERE selects. An area that draws no table of its own
+   (it shuts everything, or it changes no line a reader reads) falls back to the region's. */
+function sideOf(e) {
+  const a = areaOf(e);
+  return (a && a.quota) ? a.quota : (e && e.quota) || {};
+}
+function viewsOf(e) { return (sideOf(e).views) || []; }
 function viewAt(e, on) {
   if (!on) return null;
   const vs = viewsOf(e);
@@ -49,9 +66,22 @@ function viewAt(e, on) {
    through the year, and for the standing view — the year-round table itself. A stretch marked
    `same` carries no rows of its own precisely because it IS that table. */
 function tableFor(e) {
+  const q = sideOf(e);
   const v = viewAt(e, ON);
-  if (!v || v.same) return { present: e.quota.present, rows: e.quota.rows, view: v };
-  return { present: v.present, rows: v.rows, view: v };
+  const area = areaOf(e);
+  const base = { present: q.present, rows: q.rows, view: v, area: area };
+  if (!v || v.same) return base;
+  return { present: v.present, rows: v.rows, view: v, area: area };
+}
+
+/* The gear table under the same conditions: the area's where it has one of its own, and the
+   stretch's where some gear rule turns on the date (Haida Gwaii's bait ban, Nov 1 – Apr 30). */
+function gearFor(e) {
+  const a = areaOf(e);
+  const v = viewAt(e, ON);
+  if (v && v.gear) return v.gear;
+  if (a && a.gear) return a.gear.table;
+  return e.gear.table;
 }
 
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c =>
@@ -90,6 +120,7 @@ function drawPicker() {
 
 function bindDate() {
   const pick = el => {
+    if (el.dataset.where !== undefined) { WHERE = el.dataset.where || null; draw(); return; }
     const v = el.dataset.on;
     ON = v ? v.split("-").map(Number) : null;
     draw();
@@ -923,7 +954,17 @@ function rigBits(rig, skip) {
   Object.keys(rig || {}).forEach(topic => {
     const items = (rig[topic] || [])
       .filter(x => !(skip && x.rule && skip.has(x.rule)))
-      .map(x => esc(x.plain || x.text || "")).filter(Boolean);
+      // A GEAR RULE WITH DATES MUST CARRY THEM. Haida Gwaii bans bait in its streams from Nov
+      // 1 to Apr 30, and the year-round table printed "No bait" in the same weight as the
+      // province's "Roe may be used" directly above it — two lines that contradict each other
+      // with nothing to say when each is true. On a dated table the rule is simply not there
+      // out of season, so this only ever shows on the table of the year, where it belongs.
+      .map(x => {
+        const t = esc(x.plain || x.text || "");
+        if (!t) return "";
+        const w = whenWords(x);
+        return w ? `${t} <span class="when">${esc(w)}</span>` : t;
+      }).filter(Boolean);
     const seen = {}, uniq = items.filter(x => seen[x] ? false : (seen[x] = 1));
     if (uniq.length) out.push({ topic, items: uniq });
   });
@@ -1096,6 +1137,43 @@ function scheduleCard(e) {
     </div></div>`;
 }
 
+/* WHERE YOU ARE INSIDE THE REGION. The book writes rules for places that are not waters —
+   management units, parks, a wildlife area — and they are area-scoped, so by construction
+   they can never enter a region's standing table. That is the rule that stops a river's
+   regulation binding a whole region, and the cost was that Region 1's summer closure of
+   every stream in six management units was on no table on this page at all.
+
+   Each is a STATE of the region, built by the same generator with the area's rules as one
+   more input. A place that shuts everything says so instead of printing twelve rows of "No
+   fishing"; a place that changes no line a reader reads says that, so the reviewer knows it
+   was checked rather than forgotten. */
+function whereCard(e) {
+  const ps = e.places || [];
+  if (!ps.length) return "";
+  const cur = WHERE;
+  const btn = (name, label, sub, on) =>
+    `<button class="chip" data-where="${esc(name)}" aria-pressed="${on}">${esc(label)}
+      <small>${esc(sub)}</small></button>`;
+  const chips = btn("", "Anywhere in the region", "where no area rule reaches", !cur) +
+    ps.map(p => btn(p.name, p.name,
+      p.shut ? "everything is closed" : p.quota ? "its own table" : "no change to the numbers",
+      cur === p.name)).join("");
+  const here = areaOf(e);
+  return `<div class="card sched">
+    <header><span class="eyebrow">Where</span>
+      <span class="mem">${ps.length} named place${ps.length > 1 ? "s" : ""} inside this region
+        ${ps.length > 1 ? "have" : "has"} rules of their own</span></header>
+    <div class="body"><div class="chips">${chips}</div>
+      ${here ? `<div class="why">${here.why.map(w =>
+        `<div class="wline"><span class="rtag">${esc(w.who || "")}</span>
+          <span>${esc(w.verbatim)}</span></div>`).join("")}</div>` : ""}
+      ${here && here.shut ? `<div class="asof stop">Nothing may be taken here at all &mdash;
+        the rules above close it. There is no table to show.</div>` : ""}
+      ${here && here.same ? `<div class="asof quiet">These rules change nothing about what you
+        may keep or how you may fish; the region's table below is the answer here too.</div>` : ""}
+    </div></div>`;
+}
+
 function asOfBanner(t) {
   if (!ON || !t.view) return "";
   // A REGION WITH NO SEASONS MUST NOT BE TOLD IT HAS ONE. "The seasons are inside these
@@ -1136,6 +1214,7 @@ function draw() {
   const always = (e.always || []).map(a =>
     `<li><b>${esc(a.where || "")}</b>${a.verbatim ? ` &mdash; ${esc(a.verbatim)}` : ""}</li>`).join("");
   host.innerHTML = `
+    ${whereCard(e)}
     ${scheduleCard(e)}
     ${always ? `<div class="card always"><header><span class="eyebrow">True everywhere, on every water</span></header>
       <div class="body"><p class="mem" style="margin:0 0 8px">These bind on every water in this
@@ -1143,17 +1222,19 @@ function draw() {
       you have to know them.</p><ul class="alist">${always}</ul></div></div>` : ""}
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; what you may keep</h2>${score(e.quota.print)}</header>
-      <div class="body">${asOfBanner(t)}${quotaTable(t.present, t.rows)}</div>
+      <div class="body">${asOfBanner(t)}${t.area && t.area.shut
+        ? `<p class="empty">Closed &mdash; see the rules above.</p>`
+        : quotaTable(t.present, t.rows)}</div>
     </div>
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; how you may fish</h2>${score(e.gear.print)}</header>
       <div class="body">
-        ${ON && !gearSeasonal(e.gear.table) ? `<p class="note">Nothing in this region's standing
+        ${ON && !gearSeasonal(gearFor(e)) ? `<p class="note">Nothing in this region's standing
           gear rules turns on the date &mdash; these are the same every day of the year.</p>` : ""}
         ${gearMissing ? `<p class="note">Haida Gwaii's gear rules are an <b>area</b> rule inside
           Region 1 rather than a standing table of their own, so there is no separate printed
           panel to check them against. They are verified on the water instead.</p>` : ""}
-        ${gearTable(e.gear.table)}
+        ${gearTable(gearFor(e))}
       </div>
     </div>
     <div class="grid2">

@@ -30,7 +30,9 @@ import sys
 
 from pipeline.regs.table import provenance, method_provenance
 from pipeline.regs.table import quota_print as QP, method_print as MP
-from pipeline.regs.table.rows import schedule
+from pipeline.regs.table import state as ST
+from pipeline.regs.table.corpus import rid
+from pipeline.regs.table.authority import source_of
 
 
 def log(*a):
@@ -73,43 +75,92 @@ def _quota_table(region: str, kind: str) -> dict:
     shared number still drawn under its group. Rendering the raw rows instead loses every one
     of those and splits a species across the table.
     """
-    L = QP.base_ledger(region, kind)
-    rs = rows_of(L)
-    rows = [provenance.row_json(L, r) for r in rs]
-    d = {"rows": rows}
-    return {"rows": rows, "present": provenance.present(d) if rows else {"entries": [], "bands": {}},
-            "always": _always(region, kind), "views": _views(L, rs)}
+    d = _table(region, kind)
+    d["always"] = _always(region, kind)
+    return d
 
 
-def _views(L, rs) -> list:
+def _table(region: str, kind: str, area=None) -> dict:
+    """ONE TABLE, UNDER ONE SET OF CONDITIONS — rendered from `state.state`, which is the only
+    thing in this file that decides what a table is made of. `area=None` is anywhere in the
+    region no area rule reaches; each named area is the same builder with that area's rules
+    as an extra input, so a reviewer reading the page and a test walking the conditions are
+    looking at the same function."""
+    st = ST.state(region, kind, area)
+    rows = [provenance.row_json(st.ledger, r) for r in st.rows]
+    segs = st.schedule()
+    terms = list(getattr(st.gear, "terms", ()) or ())
+    return {"rows": rows,
+            "present": provenance.present({"rows": rows}) if rows else {"entries": [], "bands": {}},
+            "views": _views(st, segs, any(t.applies.windows for t in terms))}
+
+
+def _views(st, segs, seasonal_gear: bool) -> list:
     """THE YEAR, AS TABLES A READER CAN PICK FROM.
 
     A standing table is the table of a year: where a rule is seasonal it can state no number,
     and the season rides beside the row as a line the reader applies themselves. That is honest
-    and it is not usable — the question at the water is "what may I keep TODAY", and answering
-    it from a year-round table plus four date ranges is arithmetic we are asking a man in
-    waders to do.
+    and it is not usable — the question at the water is "what may I keep TODAY".
 
-    So the year is cut into the stretches over which one table holds (`rows.schedule`), and
-    each one is emitted as a whole table settled for a day inside it. The numbers themselves
-    change: on Oct 20 Region 3's lake trout is not "1 between them, released Oct 15 – Jan 31",
-    it is Put it back, and it has left the number the bull trout shares.
-
-    A table with no seasons has one stretch and carries no rows of its own — it IS the standing
-    table, and duplicating it would be a second copy to keep true.
+    So the year is cut into the stretches over which one table holds and each is emitted as a
+    whole table settled for a day inside it. A table with no seasons has one stretch and
+    carries no rows of its own — it IS the year-round table, and a copy would be a second
+    thing to keep true. A per-stretch GEAR table is emitted only where a gear term really
+    carries a window, because everywhere else it would be the same table repeated.
     """
+    extra = list(st.area.rule_dicts) if st.area is not None else []
     out = []
-    for seg in schedule(rs):
+    for seg in segs:
         v = dict(seg)
-        if seg["whole_year"]:
-            v["same"] = True
-        else:
-            on = tuple(seg["from"])
-            vr = [_slim(provenance.as_of(L, r, on)) for r in rs]
+        on = tuple(seg["from"])
+        if not seg["whole_year"]:
+            vr = [_slim(provenance.as_of(st.ledger, r, on)) for r in st.rows]
             v["rows"] = vr
             v["present"] = provenance.present({"rows": vr}, on)
+        else:
+            v["same"] = True
+        if seasonal_gear:
+            v["gear"] = method_provenance.base_table(st.region, st.kind, on, extra)
         out.append(v)
     return out
+
+
+def _seen(d: dict) -> str:
+    """WHAT A READER ACTUALLY SEES, as one string. Two states are the same state when this is
+    the same — not when their JSON is. The park-reserve rule binds nothing and shows up only
+    as one more line in `behind`, the chain of custody; by raw JSON that is a different table,
+    and it would put twenty identical copies of every region on the page, each claiming to be
+    a state of its own."""
+    rows = [(r["key"], r["keep"], [x["plain"] for x in r["size"]], r["group"],
+             sorted((c["rule"], c["n"], c["kind"], c["period"], c["moot"])
+                    for c in r["counters"]))
+            for r in d["rows"]]
+    return json.dumps([rows, d["present"], [v.get("label") for v in d["views"]]],
+                      sort_keys=True, separators=(",", ":"))
+
+
+def _shut(d: dict) -> bool:
+    """A place where nothing may be taken at all. It needs no table — twelve rows all reading
+    "No fishing" is the same sentence twelve times — and the rules that shut it are the whole
+    answer."""
+    return bool(d["rows"]) and all(r["keep"] in ("0", "closed") for r in d["rows"])
+
+
+def _slim(row: dict) -> dict:
+    """A dated row without its chain of custody.
+
+    `behind` — what else names these fish and why it does not bind — and each counter's own
+    source sentence are how a line is traced back to the book, and they are 1.8 MB of the 52
+    dated tables. They are not dropped from the page: the STANDING table carries all of it,
+    unchanged, and it is the table the printed synopsis is checked against. A dated view
+    answers "what may I keep on Oct 20"; the custody of every one of its numbers is one click
+    away on the year-round table, where the check itself lives.
+    """
+    row.pop("behind", None)
+    for c in row["counters"]:
+        c.pop("carves", None)
+        c.pop("source", None)
+    return row
 
 
 def _always(region: str, kind: str) -> list:
@@ -174,23 +225,6 @@ def rows_of(L):
     return R.rows(L)
 
 
-def _slim(row: dict) -> dict:
-    """A dated row without its chain of custody.
-
-    `behind` — what else names these fish and why it does not bind — and each counter's own
-    source sentence are how a line is traced back to the book, and they are 1.8 MB of the 52
-    dated tables. They are not dropped from the page: the STANDING table carries all of it,
-    unchanged, and it is the table the printed synopsis is checked against. A dated view
-    answers "what may I keep on Oct 20"; the custody of every one of its numbers is one click
-    away on the year-round table, where the check itself lives.
-    """
-    row.pop("behind", None)
-    for c in row["counters"]:
-        c.pop("carves", None)
-        c.pop("source", None)
-    return row
-
-
 def collect() -> dict:
     # -- the print diffs, keyed (region, kind) -------------------------------------------
     # THE TWO SIDES NAME THE PROVINCE DIFFERENTLY — quota's panel is region "p", kind "any"
@@ -222,7 +256,43 @@ def collect() -> dict:
         except Exception as e:
             log(f"  no gear base for {region}·{kind}: {e}")
             g_table = None
+        # EVERY OTHER STATE THIS REGION HAS. One entry per named area inside it, each a whole
+        # table — its own year schedule included, because an area rule can carry dates of its
+        # own (Region 1's summer closure runs Jul 15 – Aug 31 inside six management units).
+        pl = []
+        if kind in ("lake", "stream") and region not in ("province", "p") and q and g_table:
+            base_state = {"rows": q["rows"], "present": q["present"], "views": q["views"]}
+            g_base = g_table
+            for area in ST.areas(region, kind):
+                try:
+                    st = _table(region, kind, area)
+                except Exception as e:
+                    log(f"  no state for {region}·{kind}·{area.name}: {e}")
+                    continue
+                entry = {
+                    "name": area.name,
+                    "why": [{"rule": rid(x), "verbatim": (x.get("verbatim") or "").strip(),
+                             "type": x.get("type") or "", "who": source_of(x).who}
+                            for x in area.rule_dicts],
+                }
+                # A STATE THAT IS NOT DIFFERENT IS NOT A STATE. Three of the five areas change
+                # no line a reader reads — the park-reserve rule binds nothing, the Creston
+                # permit is a duty and not a limit — and a place that shuts everything needs
+                # its rules, not twelve rows saying "No fishing". Only a place that really
+                # draws a different table carries one; the rest carry why they are listed.
+                if _shut(st):
+                    entry["shut"] = True
+                elif _seen(st) == _seen(base_state):
+                    entry["same"] = True
+                else:
+                    entry["quota"] = {"rows": [_slim(r) for r in st["rows"]],
+                                      "present": st["present"], "views": st["views"]}
+                g = method_provenance.base_table(region, kind, None, area.rule_dicts)
+                if json.dumps(g, sort_keys=True) != json.dumps(g_base, sort_keys=True):
+                    entry["gear"] = {"table": g}
+                pl.append(entry)
         out.append({
+            "places": pl,
             "key": f"{region}:{kind}",
             "region": region,
             "kind": kind,

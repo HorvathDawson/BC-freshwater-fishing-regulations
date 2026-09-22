@@ -297,13 +297,54 @@ question at the water is *what may I keep today*.
 - Rows are **13% shorter** on every one of the 22 tables (20,300 px → 17,608 px), mostly from
   origin lines that were sized like full rows.
 
-Pinned by eight tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
+Pinned by twelve tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
 exactly once and adjacent ones differ; every `Row.calendar` boundary is a schedule boundary;
 a dated row carries only what is in force; Region 3's streams split and rejoin on the right
 days; no dated band is left without its number; **the year-round table is byte-identical
 with and without the date machinery**; Region 6's lake trout cap; and a moot band agrees with
-every row under it. The renderer is checked by diffing all 818 rendered rows against the
-previous build — every difference has to be one of the named changes above.
+every row under it; every condition a region has builds a settled table; an area's table is
+the region's plus exactly that area's rules; the summer closure reaches its units and its dates
+and no further; and Haida Gwaii carries its own bait ban. The renderer is checked by diffing
+all 818 rendered rows against the previous build — every difference has to be one of the named
+changes above.
+
+## Where and when are inputs to one generator (`pipeline/regs/table/state.py`)
+
+A region does not have a table. It has a table **per condition**, and there are two:
+
+- **WHERE** — a named area inside the region: Management Units 1-1 to 1-6, a National Park,
+  a wildlife management area. These are area-scoped, and an area-scoped rule **cannot enter a
+  region's base by construction** — that is the rule that stops one river's regulation binding
+  a whole region. The cost was that they were on **no table at all**: Region 1's summer closure
+  of every stream in six management units is printed in bold in the synopsis and appeared
+  nowhere on this page.
+- **WHEN** — a day.
+
+`state.state(region, kind, area, on)` is the only thing that decides what a table is made of;
+`state.conditions(region, kind)` enumerates every (area, stretch) pair. **218 distinct
+conditions** over the 22 region/kind tables, and the page renders 262 selectable states. The
+emitter and the tests call the same function, so a combination a reviewer can reach is one a
+test walks.
+
+- `quota_print.base_rules_for(reg)` is now the single definition of what a region's base is
+  made of, and `base_ledger(reg, kind, extra)` lays an area on top of it.
+- `method_build.region_base(region, kind, extra)` does the same for gear — and gained a
+  **`1hg` branch, which is a defect fix**: Haida Gwaii's rules live in Region 1's chapter under
+  `hg_` and are area-scoped, so both halves of the old filter missed them (`is_base` is false,
+  and `"z" + region` is `"z1hg"`, a prefix no entry has). **Haida Gwaii's gear table was the
+  province's rules and nothing else**, and the page said "Roe may be used" for the half-year
+  the book bans bait in every stream there.
+- `method_provenance.row_json` now passes the date into `MethodRow.rig(on)`. It never did, so a
+  gear table asked about a day answered with every seasonal condition in the book.
+- `rows.schedule(rs, also)` takes the gear terms too — a bait ban that touches no number still
+  changes what a reader may do, and without it Haida Gwaii had one stretch.
+
+**What the page emits per area**: a full table only where the area really draws one. An area
+that shuts everything says so and carries its rules (twelve rows of "No fishing" is the same
+sentence twelve times); an area that changes no line a reader reads says *that*, so a reviewer
+knows it was checked rather than forgotten. Without those two rules the payload was 19.8 MB,
+over the 16 MB artifact ceiling; with them it is 5.6 MB. Of the five areas, only **MUs 1-1 to
+1-6** draws a table of its own.
 
 ## Open work
 

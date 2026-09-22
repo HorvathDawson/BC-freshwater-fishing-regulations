@@ -406,16 +406,29 @@ def _release(raw: str, b: str, ctx) -> List[Claim]:
 # ----------------------------------------------------------------------------------------
 # the base, by content
 # ----------------------------------------------------------------------------------------
-def base_ledger(reg: str, kind: str) -> Ledger:
-    """The standing table for a region from the corpus — the same rules `build.base` uses,
-    without going through a section, so a region with no shipped water is still checked."""
+def base_rules_for(reg: str) -> list:
+    """The rules a region's standing table is made of. One definition, so a caller that wants
+    to lay something on top of it cannot pick a different set by accident."""
     from pipeline.regs.table.corpus import rules
     if reg == "1hg":
-        rs = [x for x in rules() if x["entry"].startswith("z1:hg_") or
-              (x["entry"].startswith("zp:") and source_of(x).is_base)]
-    else:
-        rs = [x for x in rules() if (x["entry"].startswith(f"z{reg}:") or x["entry"].startswith("zp:"))
-              and source_of(x).is_base]
+        return [x for x in rules() if x["entry"].startswith("z1:hg_") or
+                (x["entry"].startswith("zp:") and source_of(x).is_base)]
+    return [x for x in rules() if (x["entry"].startswith(f"z{reg}:") or x["entry"].startswith("zp:"))
+            and source_of(x).is_base]
+
+
+def base_ledger(reg: str, kind: str, extra=()) -> Ledger:
+    """The standing table for a region from the corpus — the same rules `build.base` uses,
+    without going through a section, so a region with no shipped water is still checked.
+
+    `extra` lays one named AREA's rules on top: the region's table as it reads inside
+    Management Units 1-1 to 1-6, or inside a National Park. They settle against the base by
+    the same ladder as any override — an area is closer than a region, so it wins where the
+    two speak about the same fish."""
+    from pipeline.regs.table.corpus import rid
+    base = base_rules_for(reg)
+    have = {rid(y) for y in base}
+    rs = base + [x for x in extra if rid(x) not in have]
     alw, lifted, fam, mults, duties, unresolved = allowances(rs, kind)
     return Ledger(alw, lifted=lifted, family=fam, multiples=mults, duties=duties, water_kind=kind)
 

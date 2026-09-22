@@ -297,13 +297,31 @@ def base(rules: List[dict], water_kind: str, here: FrozenSet[str] = frozenset())
     return _base(_key(base_rules(rules)), water_kind, frozenset(here))
 
 
-def region_base(region: str, water_kind: str) -> MethodTable:
+def region_base(region: str, water_kind: str, extra: List[dict] = ()) -> MethodTable:
     """STAGE 1 for a REGION, from the whole corpus: the province's region-wide gear rules that
-    reach this region, and the region's own. What the printed synopsis lets a person check."""
+    reach this region, and the region's own. What the printed synopsis lets a person check.
+
+    HAIDA GWAII IS AN AREA, NOT A CHAPTER. Its rules live in Region 1's chapter under `hg_`
+    and are area-scoped, so both halves of the old filter missed them: `is_base` is false and
+    `"z" + region` is `"z1hg"`, a prefix no entry has. Haida Gwaii's gear table was therefore
+    the province's rules and nothing else, and its own bait ban — all streams in Management
+    Units 6-12 and 6-13, Nov 1 – Apr 30 — was on no table in the corpus. The page told a
+    reader "Roe may be used" for the half of the year the book bans bait there. The quota side
+    has always read `z1:hg_` specially; this now does the same.
+
+    `extra` lays one named AREA's gear rules on top of the region's. They settle by rank like
+    any other term, and an area is closer than a region, so a bait ban inside it wins."""
     here = frozenset({region})
-    rs = [x for x in all_rules() if is_gear(x) and source_of(x).is_base
-          and (x["entry"].startswith("zp:") or x["entry"].split(":")[0] == "z" + region)
-          and _bites(source_of(x), here)]
+    if region == "1hg":
+        rs = [x for x in all_rules() if is_gear(x) and
+              (x["entry"].startswith("z1:hg_") or
+               (x["entry"].startswith("zp:") and source_of(x).is_base and _bites(source_of(x), here)))]
+    else:
+        rs = [x for x in all_rules() if is_gear(x) and source_of(x).is_base
+              and (x["entry"].startswith("zp:") or x["entry"].split(":")[0] == "z" + region)
+              and _bites(source_of(x), here)]
+    have = {rid(x) for x in rs}
+    rs = rs + [x for x in extra if is_gear(x) and rid(x) not in have]
     return _base(_key(rs), water_kind, here)
 
 

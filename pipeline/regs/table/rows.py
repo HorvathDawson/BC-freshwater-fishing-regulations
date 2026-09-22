@@ -222,7 +222,7 @@ MONTHS = ("", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 
-def schedule(rs: List[Row]) -> List[dict]:
+def schedule(rs: List[Row], also=()) -> List[dict]:
     """THE YEAR AS THE WHOLE TABLE CHANGES — every stretch of days over which one table is
     the answer.
 
@@ -236,8 +236,13 @@ def schedule(rs: List[Row]) -> List[dict]:
     Oct 15 – Jan 31, which is ONE stretch of the reader's year, not a December one and a
     January one.
     """
+    # `also` IS ANYTHING ELSE THE DAY CHANGES. The quota rows are not the whole table: Haida
+    # Gwaii's bait ban runs Nov 1 – Apr 30 and touches no number at all, so a schedule built
+    # from the rows alone gives that region one stretch and the bait ban is never shown in
+    # force. Anything with `applies` and a `rule_id` can be passed in — gear terms are.
     def sig(day):
-        return tuple(tuple(sorted(a.rule_id for a in r.live(day))) for r in rs)
+        return (tuple(tuple(sorted(a.rule_id for a in r.live(day))) for r in rs),
+                tuple(sorted(t.rule_id for t in also if t.applies.live(*day))))
 
     segs = []
     for day in DAYS:

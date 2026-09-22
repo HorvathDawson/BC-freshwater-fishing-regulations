@@ -95,7 +95,10 @@ def row_json(T: MethodTable, m: str, on: Optional[tuple] = None) -> dict:
     row = MethodRow(T, m)
     gov = row.standing()
     today = row.standing(on) if on else gov
-    rig = {topic: [term_json(T, m, t) for t in ts] for topic, ts in row.rig().items()}
+    # THE RIG A DATE SEES. `MethodRow.rig` has always taken a date and this never passed one,
+    # so a gear table asked about Oct 20 answered with every seasonal condition in the book —
+    # a bait ban that runs Nov 1 – Apr 30 printed as if it were in force in July.
+    rig = {topic: [term_json(T, m, t) for t in ts] for topic, ts in row.rig(on).items()}
     return {
         "method": m, "name": row.name, "uses_hook": row.uses_hook(),
         "verdict": row.verdict_word(), "verdict_today": row.verdict_word(on) if on else row.verdict_word(),
@@ -180,16 +183,18 @@ def section(water: str, run: int = 0, on: Optional[tuple] = None) -> dict:
     return _finish(T, d, on)
 
 
-def base_table(region: str, kind: str) -> dict:
+def base_table(region: str, kind: str, on: Optional[tuple] = None,
+               extra: Optional[List[dict]] = None) -> dict:
     # "province" IS NOT A REGION. Asked for it by name this built `region_base("province")` —
     # a region whose entry prefix is `zprovince`, which nothing matches — so the caller got a
     # table made of the province's region-less rules only, with no `where` and no set lining.
     if str(region) in ("p", "province"):
         return provincial_table(kind)
-    T = region_base(region, kind)
+    T = region_base(region, kind, extra or ())
     d = {"regions": [region], "kind": kind, "label": f"Region {region.upper()} · {kind}s",
-         "rules": sorted(T.universe()), "from": ("region", region)}
-    return _finish(T, d, None)
+         "rules": sorted(T.universe()), "from": ("region", region),
+         "on": list(on) if on else None}
+    return _finish(T, d, on)
 
 
 def provincial_table(kind: str) -> dict:
