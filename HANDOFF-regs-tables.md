@@ -386,6 +386,45 @@ knows it was checked rather than forgotten. Without those two rules the payload 
 over the 16 MB artifact ceiling; with them it is 5.6 MB. Of the five areas, only **MUs 1-1 to
 1-6** draws a table of its own.
 
+## Origin splits the entry, not the family (2026-09-21)
+
+The idea was origin ABOVE "Trout and char", so the synopsis's *"And you must release: • Wild
+trout/char from streams • All wild steelhead"* falls out of the structure. Measured first:
+
+- **14 of the 20 bands hold entries of more than one origin.** Only Region 2's two tables are
+  hatchery-only — which is the table the idea was formed on. A WILD / HATCHERY heading above
+  the family would either duplicate the shared-number row into both sections or tear rows out
+  of the number they count inside. **Not done.**
+- **27 trout-and-char entries split by origin; all 148 entries outside that family split by
+  nothing.** Origin is a level of one family, in every region, and of nothing else anywhere.
+
+So origin splits the ENTRY. A species whose wild and hatchery answers differ is two entries,
+and the band grouping that already exists sorts them out: a released wild row has no shared
+number to belong to, so it lands outside the band by construction rather than by a rule
+written for it. The defect this fixes is real — Region 2's streams drew a **"Trout and char —
+HATCHERY ONLY"** band with a **WILD** line beneath it, inside a number that does not apply to
+wild fish at all.
+
+**This reverses "we should never have 2 rows for same species"** (the owner asked for it). A
+split species now appears twice; the wild ones are ordered together under a *"Wild fish — you
+must release every one of these"* heading. In Region 2 that reads as the book does; in Region
+1 lakes the hatchery steelhead sits inside the trout band and the wild one is further down, so
+the two are further apart than they were as stacked lines. That is the trade.
+
+Every entry is now ONE row, so the table has one row shape throughout.
+
+- `test_the_presented_table_names_each_fish_once…` demanded a species appear in exactly one
+  entry — the constraint that forced the stacked-line shape. It is now the stronger rule it
+  was standing in for: a fish is answered **exactly once per origin**, and **never both** as
+  `either` and as a single origin, which would be two answers to one question.
+- **A bug the split caused, caught by the sweep**: `done` was keyed by fish alone, so Region 2
+  streams silently lost its entire hatchery band — three rows and the shared number — because
+  the wild rows claimed the id first. The sweep now asserts no entry goes undrawn.
+- `only 1 between all trout and char` → **`only 1 of all trout and char may be over 50 cm`**.
+  It is NOT redundant with the per-day 1: they are different rules that happen to both be 1
+  (the row's own combined cap, and the family's single over-50 fish). Restating it at the
+  row's 60 cm floor made them look like one sentence printed twice.
+
 ## Open work
 
 1. Groups still named by exclusion — "Any other char" / "Any other trout". The readability

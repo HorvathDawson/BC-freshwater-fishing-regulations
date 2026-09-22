@@ -224,6 +224,19 @@ function sizeSimplify(items, defMin, head) {
     // "over 60 cm" describes every keepable fish and the cap is simply a count: one, between
     // whoever shares it. The COUPLING IS NOT DROPPED — that one fish still spends the group's
     // single big one, which is why the pool is named rather than left as "them".
+    // SAY WHOSE NUMBER IT IS, AT ITS OWN THRESHOLD. "must be at least 60 cm · only 1 between
+    // all trout and char" sits beside a Per day cell already reading "1 · of the 2 shared",
+    // and the two ones are DIFFERENT rules — the row's own combined cap, and the family's
+    // single fish over 50 cm. Restating the family's at 60 made them look like one sentence
+    // printed twice. At its own 50, naming the family, it reads as what it is: a second
+    // constraint, on everything, that this fish also spends.
+    if (x.capAt && top !== null && top > +x.capAt && x.pooled && x.who
+            && x.who.toLowerCase() !== (x.mineWords || "")) {
+      const h0 = parseInt(String(head), 10);
+      if (isNaN(h0) || x.capN <= h0)
+        caps.push(`only ${x.capN} of all ${x.who.toLowerCase()} may be over ${x.capAt} cm`);
+      return;
+    }
     if (x.capAt && top !== null && top >= +x.capAt) {
       // A CAP ON THIS ROW'S OWN FISH, AT OR ABOVE THIS ROW'S OWN NUMBER, OVER A CLASS THAT IS
       // EVERY FISH YOU MAY KEEP, SAYS NOTHING. Region 1's streams: "hatchery steelhead 2",
@@ -791,7 +804,11 @@ function quotaTable(pr, rows) {
   const banner = [...everyRow].map(k => seasonLine(
     Object.assign({}, tally[k].s, { fish: [] }), null)).join("");
   const done = new Set();
-  const idOf = e => (e.fish || []).join(",");
+  // ONE SPECIES CAN NOW BE TWO ENTRIES — a wild one and a hatchery one — so an id made of the
+  // fish alone marks both drawn when the first is. Region 2's streams lost their whole
+  // hatchery band this way: three rows and the shared number, silently, because the wild
+  // rows were drawn first and claimed the same id.
+  const idOf = e => (e.fish || []).join(",") + "\u0000" + (e.origin || "");
   const FAM = ((D.meta || {}).families || {}).TROUT_CHAR || [];
   const FAM_NAME = "Trout and char";
   const inFamily = e => (e.fish || []).length && (e.fish || []).every(f => FAM.indexOf(f) >= 0);
@@ -898,15 +915,43 @@ function quotaTable(pr, rows) {
   // Region 1 has two — char released, trout counted 4 — and there the heading is the thing
   // that puts them in one place.
   const groups = new Set(fam.map(e => (e.band && !e.outside) ? e.band : "solo:" + idOf(e)));
+  /* ORIGIN GROUPS THE FAMILY, EVEN THOUGH IT CANNOT SIT ABOVE IT. Measured before trying:
+     14 of the 20 bands hold entries of MORE THAN ONE origin, so a WILD / HATCHERY heading
+     above "Trout and char" would either duplicate the shared-number row into both sections or
+     tear rows out of the number they count inside. What it can do is order them — the fish you
+     may keep first, then the ones that go back, together, which is the list the synopsis
+     prints as "And you must release: …". */
+  const ORANK = { either: 0, hatchery: 1, wild: 2 };
+  const rank = e => {
+    const b = e.band && !e.outside ? bands[e.band] : null;
+    const es = b ? b.entries : [e];
+    return Math.min.apply(null, es.map(x => ORANK[x.origin] == null ? 0 : ORANK[x.origin]));
+  };
+  const famSorted = fam.map((e, i) => [rank(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1])
+    .map(x => x[2]);
   let body = "";
+  const wildHead = () => {
+    const ws = famSorted.filter(e => e.origin === "wild");
+    if (!ws.length) return "";
+    const all = ws.every(e => goesBack(byKey[e.lines[0].row] || {}));
+    return `<tr class="band sub owild"><td class="fishcell" colspan="5" style="padding-left:20px">
+      <div class="fish">Wild fish</div>
+      <div class="mem">${all ? "you must release every one of these" : "these differ from their hatchery kin"}</div></td></tr>`;
+  };
+  let wroteWild = false;
+  const draw = (e, depth) => {
+    let pre = "";
+    if (e.origin === "wild" && !wroteWild && depth) { pre = wildHead(); wroteWild = true; }
+    return pre + block(e, depth);
+  };
   if (groups.size > 1) {
     body += `<tr class="fam"><td class="fishcell" colspan="5">
       <div class="fish">${FAM_NAME}</div>
       <div class="mem">every trout and every char &mdash; counted ${groups.size} ways here</div>
     </td></tr>`;
-    fam.forEach(e => { body += block(e, 1); });
+    famSorted.forEach(e => { body += draw(e, 1); });
   } else {
-    fam.forEach(e => { body += block(e, 0); });
+    famSorted.forEach(e => { body += block(e, 0); });
   }
   rest.forEach(e => { body += block(e, 0); });
 

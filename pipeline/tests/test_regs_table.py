@@ -1163,14 +1163,29 @@ def test_comply_marks_binds_only_for_a_counter_drawn_on_a_row(tables):
 def test_the_presented_table_names_each_fish_once_and_hoists_only_what_holds_for_all(tables):
     """A constraint stated on a band is visible for every member — and it must BE true of
     every member, or hoisting it would print a fact on a fish it does not bind. Every
-    counter on a row is visible either on its line or on its band, none is lost."""
+    counter on a row is visible either on its line or on its band, none is lost.
+
+    ONCE PER ORIGIN, not once. This used to demand that a species appear in exactly one entry,
+    which is what made a species with two answers into one entry with a wild line and a
+    hatchery line under it. That reads well alone and not at all under a band: Region 2's
+    streams draw a "Trout and char — HATCHERY ONLY" band and hung a WILD line beneath it,
+    inside a number that does not apply to wild fish. The entries are split by origin now, so
+    the rule becomes the stronger one it was standing in for — a fish is answered EXACTLY ONCE
+    FOR EACH ORIGIN it has an answer for, and never both as "either" and as one origin, which
+    would be two answers to one question."""
     from pipeline.regs.table.provenance import section
     for w, run, _, _, _, _ in tables[:30]:
         d = section(w, run)
         pr = d["present"]
         by_key = {r["key"]: r for r in d["rows"]}
-        seen = collections.Counter(sp for e in pr["entries"] for sp in e["fish"])
+        seen = collections.Counter((sp, e["origin"]) for e in pr["entries"] for sp in e["fish"])
         assert all(n == 1 for n in seen.values()), (w, run + 1, [k for k, n in seen.items() if n > 1])
+        origins = collections.defaultdict(set)
+        for e in pr["entries"]:
+            for sp in e["fish"]:
+                origins[sp].add(e["origin"])
+        for sp, os_ in origins.items():
+            assert os_ == {"either"} or os_ <= {"wild", "hatchery"}, (w, run + 1, sp, sorted(os_))
         for e in pr["entries"]:
             assert "other than" not in e["heading"] and not e["heading"].startswith("Any other")
             for l in e["lines"]:

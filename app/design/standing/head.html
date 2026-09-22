@@ -66,6 +66,10 @@ tr.fam td{background:var(--ink);color:var(--page);padding-top:10px;padding-botto
 tr.fam .fish{font:700 15px/1.2 var(--disp);letter-spacing:.01em}
 tr.fam .mem{color:var(--quiet);opacity:.9}
 tr.band.sub td{background:var(--tint)}
+/* The wild block carries no numbers — it is a heading over the fish that go back, so it
+   reads quieter than a band that owns a shared limit. */
+tr.band.owild td{background:transparent;border-top:1px solid var(--line-2);font-weight:600}
+tr.band.owild .fish{color:var(--closed)}
 .bnote{font:500 12px/1.4 var(--body);color:var(--closed);margin-top:3px}
 /* NOTHING IS CLIPPED. Columns get room rather than squeezing text; the container scrolls. */
 table{min-width:780px;table-layout:auto}

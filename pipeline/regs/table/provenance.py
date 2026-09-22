@@ -138,12 +138,13 @@ def combine(out: list, by_key: dict, on: Optional[tuple] = None) -> list:
     season shown against a fish it does not name would close a legal fishery on the page.
     """
     def lone(e):
-        if len(e["lines"]) != 1 or e["lines"][0]["origin"] != "either":
-            return None                      # wild and hatchery already split it; leave it
         return by_key[e["lines"][0]["row"]]
 
     def key(e, r):
-        return (e["band"], e["outside"], r["keep"],
+        # ORIGIN IS PART OF THE KEY: a wild fish and a hatchery fish that happen to carry the
+        # same numbers are still two answers, and one line for both would be a rule the book
+        # does not write.
+        return (e["origin"], e["band"], e["outside"], r["keep"],
                 frozenset((c["rule"], c["period"], c["n"], c["kind"], c["within"])
                           for c in r["counters"] if in_force(c, on)),
                 frozenset((x["rule"], x["kind"], x["n"], x["plain"]) for x in r["size"]))
@@ -202,6 +203,7 @@ def one_entry(g: list, by_key: dict, pooled: dict, on: Optional[tuple] = None) -
     return {
         "fish": fish, "heading": heading(frozenset(fish), name),
         "members": all_members,
+        "origin": g[0]["origin"],
         "lines": [l for e in g for l in e["lines"]],
         "band": g[0]["band"], "outside": g[0]["outside"],
         "province_only": all(e["province_only"] for e in g),
@@ -261,27 +263,36 @@ def present(d: dict, on: Optional[tuple] = None) -> dict:
         e = entries[key]
         w, h = e["wild"], e["hatchery"]
         fish = sorted(e["fish"])
-        lines = ([{"origin": "either", "row": w["key"]}] if w is h or (w and h and w["key"] == h["key"])
-                 else [x for x in ({"origin": "wild", "row": w["key"]} if w else None,
-                                   {"origin": "hatchery", "row": h["key"]} if h else None) if x])
-        band = next((by_key[l["row"]]["group"] for l in lines if by_key[l["row"]]["group"]), None)
-        for l in lines:
-            l["in_band"] = bool(band) and by_key[l["row"]]["group"] == band
-        # A FISH THAT STANDS OUTSIDE THE SHARED NUMBER IS STILL DRAWN UNDER ITS GROUP. Kootenay's
-        # rainbow (10, on top of the 5) is a trout, and a reader scanning TROUT AND CHAR must
-        # find it there — with a line saying it does not come out of the shared number.
-        outside = None
-        if band is None:
-            for l in lines:
-                for o in by_key[l["row"]].get("outside_of") or []:
-                    if o["rule"] in {r["group"] for r in rows_ if r["group"]}:
+        # ORIGIN IS A LEVEL, NOT A PROPERTY OF A ROW. A species whose wild and hatchery answers
+        # differ used to be ONE entry with two lines under it, which read well on its own and
+        # not at all under a band: Region 2's streams draw a "Trout and char — HATCHERY ONLY"
+        # band and hung a WILD line beneath it, inside a number that does not apply to wild
+        # fish at all. Split here, and the grouping that already exists sorts them out — a
+        # released wild row has no shared number to belong to, so it lands outside the band by
+        # construction rather than by a rule written for it.
+        #
+        # Measured before doing it: across the 22 standing tables, 27 trout-and-char entries
+        # split by origin and 148 entries outside that family split by NOTHING. Origin is a
+        # level of one family, in every region, and of nothing else anywhere.
+        same = (w is h) or bool(w and h and w["key"] == h["key"])
+        pieces = ([("either", w)] if same
+                  else [(o, r) for o, r in (("wild", w), ("hatchery", h)) if r])
+        for origin, r in pieces:
+            band = r["group"]
+            # A FISH THAT STANDS OUTSIDE THE SHARED NUMBER IS STILL DRAWN UNDER ITS GROUP.
+            # Kootenay's rainbow (10, on top of the 5) is a trout, and a reader scanning TROUT
+            # AND CHAR must find it there — with a line saying it is not in the shared number.
+            outside = None
+            if band is None:
+                for o in r.get("outside_of") or []:
+                    if o["rule"] in {x["group"] for x in rows_ if x["group"]}:
                         outside = o["rule"]; break
-                if outside: break
-        entry = {"fish": fish, "heading": heading(frozenset(fish), name),
-                 "members": sorted(name(c) for c in fish if c not in HIDDEN), "lines": lines,
-                 "band": band or outside, "outside": bool(outside and not band),
-                 "province_only": all(by_key[l["row"]]["province_only"] for l in lines)}
-        out.append(entry)
+            out.append({"fish": fish, "heading": heading(frozenset(fish), name),
+                        "members": sorted(name(c) for c in fish if c not in HIDDEN),
+                        "origin": origin,
+                        "lines": [{"origin": origin, "row": r["key"], "in_band": bool(band)}],
+                        "band": band or outside, "outside": bool(outside and not band),
+                        "province_only": r["province_only"]})
     # FISH THAT SHARE ONE COMBINED NUMBER ARE ONE ENTRY, whatever their seasons. This runs
     # before the bands are assembled so a band holds the merged entry, once, not its halves.
     out = combine(out, by_key, on)
