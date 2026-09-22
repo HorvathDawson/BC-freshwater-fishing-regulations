@@ -837,6 +837,74 @@ nothing changes — not a year. A year view is a union of days, and a union of d
 contradictory tables. The book already says what to do: `zp:bait::bait.r4` ends *"…as bait unless
 a bait ban applies."*
 
+### The display tree, reviewed — and found unsafe
+
+`pipeline/regs/table/display.py` was written to this design and then reviewed by three
+independent passes (regulatory correctness, architecture, test adequacy). **It is not safe to
+wire up as written.** Every finding below was reproduced against the module before being
+recorded. It has no importer and no test, so none of it shipped.
+
+**It prints a bigger number than the ledger allows — 10 rows over 5 tables.**
+
+| table | the book | the tree said |
+|---|---|---|
+| R3 streams, Aug 1 – Sep 15 | `"1 bull trout (Dolly Varden) or lake trout"` | **4** |
+| R5 lakes | `"2 lake trout"` inside `"Trout/char: 5"` | **5** |
+| R7A lakes | `"3 lake trout"` inside the 5 | **5** |
+| R7B lakes | `"2 lake trout"` inside the 5 | **5** |
+| R6 streams | `"3 Dolly Varden/bull trout and/or lake trout combined"` | **5** |
+
+Two causes, and the second was introduced by the closed-member fix itself:
+
+- **A member's own number has no slot.** `_headline` excludes clauses and `pools()` requires
+  `pooled`, so a single-species clause is neither the answer nor a budget — it is nowhere.
+- **Narrowing a pool DELETES it.** `pools()` drops a pool with fewer than two spenders. When
+  Region 3's char cap narrows to lake trout alone in August — exactly the case this design is
+  for — the cap vanishes and the leaf falls back to the family's 4. *"The cap is only for the
+  remaining fish"* was implemented as *"the cap is gone"*.
+
+**It takes half of the definitional size.** Region 1 lakes, hatchery steelhead: the tree raises
+the floor to 50 cm by definition and then prints **4**, because the cap that sets the real
+number — `"2 hatchery steelhead over 50 cm allowed"` — is *non-pooled*, so `pools()` never draws
+it. The truth is 2. Four tables are wrong this way.
+
+**A live maximum size disappears.** `_floor` reads only `none_under`, so Region 7A's slot gate
+*"only 30-50 cm in length"* renders as **no size statement at all** — 76 occurrences. A 55 cm
+bull trout reads as legal.
+
+**The origin mode is inverted.** The doc measures 2 hoist / 16 split / 4 none; the module
+produces **16 / 2 / 4**, because it keys the comparison on the spender set — which is precisely
+what origin changes. Sixteen tables would wrongly split in two. Keying on the rule id reproduces
+the doc exactly.
+
+**Collapsing two views deletes a limit.** `_shape` omits `annual`, so Regions 3 and 5 collapse to
+one view and steelhead's **10 a licence year vanishes**.
+
+**A seasonal pool is drawn out of season.** `pools()` never date-filters, so Region 6's year view
+prints *"1 trout from streams July 1-Oct 31"* beside those same six trout answering **5** — two
+printed lines contradicting each other, which is the gate below.
+
+**The laminar claim is true of this corpus but not "by construction".** No pair of pools
+partially overlaps today (440 instances checked), but nothing in the model forbids it, and a
+three-rule ledger breaks it. `_nest` also uses *strict* containment, so a clause with its
+parent's own species set gets no parent at all — 52 pairs at region level — and Region 8's three
+budgets come out as coequal roots when two of them are clauses of the third. The data already
+carries the answer in `Allowance.within`, which `_nest` never reads.
+
+### What was cleared
+
+| change | verdict |
+|---|---|
+| `Ledger.keepable` | safe — its permissive default can only lengthen a sharer list |
+| `spenders` in `rows.py` / `provenance.py` | **safe, strictly more restrictive** — 160 "between them" gained, 0 lost; 73 names removed, every one released that day |
+| removing `ADV` / `AEB` | **safe and proven inert** — 22 tables × 25 dates, 102 sections × 5 dates, zero change to any headline, deciding rule or counter set |
+| `Row.moot` dropping `and not a.is_zero` | needs a period guard — no live hazard today |
+| `display.py` | **unsafe** |
+
+`Row.moot` is the one to watch: it asks about the **daily** headline and suppresses counters of
+every period, so a daily release can suppress an annual ceiling or a possession limit — and you
+may lawfully hold fish taken on other days. No row has that shape today.
+
 ### The gate to build against
 
 > **No two printed lines may contradict each other.**
