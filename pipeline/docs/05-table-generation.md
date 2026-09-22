@@ -37,15 +37,31 @@ verbatim : "2 from streams (must be hatchery)"
 **② Bundle** — `data/generated/bundle/bundle.sqlite`. The atlas works out which stretches of
 which rivers this reaches, and stores the sentence once with a list of sections pointing at it.
 
-**③ Rule** — what `corpus.rules()` hands the table layer:
+**③ Rule** — what `corpus.rules()` hands the table layer. It is a flat dict; **sizes are
+fields on it like any other**, so nothing downstream parses prose:
 
-```
-id       : z2:trout_char_quota::trout_char_quota.r4
-species  : ["TROUT_CHAR"]        ← all 15 trout and char
-origin   : hatchery              ← this is the ONLY reason wild and hatchery differ here
-water    : stream                ← does not apply on lakes
-take     : 2
-```
+| field | our rule `r4` | a sized sibling `r2` | a floor `r8` |
+|---|---|---|---|
+| `verbatim` | "2 from streams (must be hatchery)" | "1 over 50 cm" | "Hatchery trout/char under 30 cm from streams" |
+| `species` | `["TROUT_CHAR"]` | `["TROUT_CHAR"]` | `["TROUT_CHAR"]` |
+| `origin` | `hatchery` | — | `hatchery` |
+| `water` | `stream` | — | `stream` |
+| `take` | `2` | `1` | `0` |
+| `over_cm` | — | **`50`** | — |
+| `under_cm` | — | — | **`30`** |
+
+Read the last three rows together and every kind of size statement in the book is one pair:
+
+| `take` | `over_cm` | `under_cm` | means |
+|---|---|---|---|
+| 2 | — | — | keep 2, any size |
+| 1 | 50 | — | of those, only 1 may be **over 50 cm** — a *cap on a size class* |
+| 0 | — | 30 | you may keep **none under 30 cm** — a *floor* |
+| 0 | 50 | — | none **over** 50 cm — a ceiling |
+
+A floor is just an allowance of **zero** on a size class. That is why closures, releases and
+size limits all travel as one kind of object: they are all "you may keep N of this class", and
+for a floor N is nought.
 
 **④ Allowance** — the same fact as a counter you spend:
 
@@ -67,8 +83,37 @@ source   : Region 2 · region-wide
 | `r5` "1 char (bull trout, Dolly Varden, or lake trout)" | 1 of those three | a cap inside `r4` |
 | `r3` "2 hatchery steelhead over 50 cm allowed" | 2 big steelhead | **carves steelhead out of `r2`** |
 
-Nobody wrote that table. It falls out of `Source.rank`, which is derived from two axes —
-**who wrote it** (province / region) × **what it binds to** (region / area / water).
+Nobody wrote that table. It falls out of **`Source.rank`**, and rank is not stored anywhere —
+it is computed from two independent facts about every rule.
+
+**Axis 1 — who wrote it** (`Authority`): `superior` (federal, national parks, ecological
+reserves) · `province` · `region`.
+
+**Axis 2 — what it binds to** (`Scope`): `region` (the whole region or province) · `area` (a
+named place inside it) · `water` (one named water or a cut piece) · `inherited` (reached from a
+downstream water by the tributary walk).
+
+The rank is a single number, and **smaller speaks first**:
+
+| rank | rule is… | example |
+|---|---|---|
+| **−1** | any `superior` authority | "Fishing is prohibited in Ecological Reserves" |
+| **0** | scope = `water` | a rule written for the Chilliwack |
+| **1** | scope = `inherited` | a rule reaching here from the river downstream |
+| **2** | scope = `area` | "MUs 1-1 to 1-6, no fishing Jul 15 – Aug 31" |
+| **3** | scope = `region`, written by a **region** | "Trout/char: 4" in Region 2's chapter |
+| **4** | scope = `region`, written by the **province** | "All wild steelhead must be released" |
+
+Two consequences worth stating out loud:
+
+- **Scope beats authority.** A province-authored rule written for one lake (rank 0) speaks on
+  that lake before the region's standing table (rank 3). "This water overrides regional" is a
+  statement about *what a rule binds to*, not who wrote it.
+- **A superior authority is outside the ladder.** At −1 nothing below can open what it closed —
+  which is why a national park closure cannot be lifted by a regional quota.
+
+This replaced a single hand-set `rank` integer. Conflating the two axes was the root of a whole
+family of bugs where a rule written for one named river bound every water in the region.
 
 **⑥ Row → table** — the reader sees:
 
@@ -93,15 +138,52 @@ Wild trout and char        Put it back
 
 A region does not have *a* table. It has one per **condition**, and there are two conditions.
 
-**WHERE** — one of:
+**WHERE** — and it is a **two-step lookup, not three alternatives**:
 
-```
-a region                Region 2
-an area inside it       Region 1 → Management Units 1-1 to 1-6
-a water and stretch     Fraser River, stretch 19
-```
+| step | you get | how many there are |
+|---|---|---|
+| 1. the **base** — a region, and an area inside it if you are in one | a whole settled table | 22 regions × kind, plus 5 areas |
+| 2. the **amendments** — the rules written for this water and stretch | a short named list | 599 water rules + 62 inherited, over 102 stretches |
+
+> **A stretch is its base table plus its own amendments, and nothing else.**
+> So the verification order is: get the region and area tables perfect — there are only 22 of
+> them and they are checked line by line against the printed synopsis — and then a stretch can
+> only be wrong in its own short list of amendments, each attributable to one named rule.
 
 **WHEN** — a day.
+
+### 2.1 This is a correctness fix, not just tidier
+
+The code does not do this today. `build.base()` re-derives the base **from whatever rules the
+atlas happened to bind to that stretch**, rather than looking it up by region. Measured over the
+100 single-region stretches that ship:
+
+| | |
+|---|---|
+| stretches whose base matches their region's standing base | **37** |
+| stretches whose base **differs** | **63** |
+| distinct region-wide rules missing from some stretch's base | **18** (98 omissions) |
+| rules in a stretch's base that its region does *not* have | **0** |
+
+The difference is entirely one-directional: a stretch can only **lose** region-wide rules,
+never gain them. Most often missing:
+
+| times | rule |
+|---|---|
+| 23 | `z4:invasive_species_notice::invasive_species_notice.r1` |
+| 16 | `z6:trout_char_quota::trout_char_quota.r11` |
+| 11 | `z2:species_quotas::species_quotas.r1` |
+| 11 | `z2:protected_species::protected_species.r1` |
+| 11 | `z5:bass_illegal::bass_illegal.r1` |
+
+Building each stretch the proposed way — region base **+** that stretch's own overrides —
+**changes the answer on 23 of the 100 stretches**. The Fraser's Region 2 stretches gain a bass
+row (20 a day) they do not have today.
+
+Not every omission is visible: the Fraser keeps a *Protected species* row because the
+**provincial** protected-species rule still binds, even though Region 2's own is missing. That
+is the point — today the table is right by luck of a second rule, and nothing tells you which
+lines are standing on their own base and which are not.
 
 `state.conditions(region, kind)` lists every combination: **218** across the 22 region/kind
 tables. The year is cut into **53 stretches** total — a stretch is a run of days over which
@@ -265,88 +347,61 @@ on the group — a season shown against a fish it does not name closes a legal f
 
 ---
 
-## Part 5 — Four layouts to choose between
+## Part 5 — Five layouts to choose between
 
-All four show the **same table**: Region 2 · streams. It is the hardest one for display because
+All five show the **same table**: Region 2 · streams. It is the hardest one to display because
 it has everything — a wild/hatchery split across the whole family, a shared number, a size
 floor, a shared big-fish cap, a tighter cap on three chars, a steelhead exception to that cap,
-and an annual limit. All figures are real.
+and an annual limit. **Every figure is real.**
 
 ---
 
 ### Option 1 — Two columns: wild and hatchery side by side
 
-```
-REGION 2 · STREAMS                       1 July – 31 Dec
+**REGION 2 · STREAMS** — 1 July – 31 Dec
 
-                              WILD          HATCHERY
- ─────────────────────────────────────────────────────
- TROUT AND CHAR            Put it back      2 a day
- all 15 kinds                            between them
-                                          4 in possession
-                                     ≥ 30 cm · only 1
-                                          over 50 cm
-   ├ 9 kinds of trout      Put it back      ↳ the shared 2
-   │  and char
-   ├ bull trout, Dolly     Put it back      only 1 of
-   │  Varden, lake trout                    these three
-   │                                        ≥ 60 cm
-   └ steelhead             Put it back      ↳ the shared 2
-                                            2 may be over
-                                            50 cm · 10 a
-                                            year
- ─────────────────────────────────────────────────────
- Whitefish                    15 a day between them
- Bass                         20 a day between them
- Black crappie                20 a day
- Crayfish                     25 a day
- Kokanee                      Put it back
- White sturgeon               Put it back
- Protected species (12)       You may not fish for them
-```
+| I am fishing for | Wild | Hatchery |
+|---|---|---|
+| **Trout and char** — all 15 kinds | **Put it back** | **2 a day** between them · 4 in possession · at least 30 cm · only 1 over 50 cm |
+| ↳ 9 kinds of trout and char | Put it back | the shared 2 |
+| ↳ bull trout, Dolly Varden, lake trout | Put it back | only **1** of these three · at least 60 cm |
+| ↳ steelhead | Put it back | the shared 2 · **2** may be over 50 cm · 10 a licence year |
+| Whitefish | 15 a day between them | 15 a day between them |
+| Bass | 20 a day between them | 20 a day between them |
+| Black crappie | 20 a day | 20 a day |
+| Crayfish | 25 a day | 25 a day |
+| Kokanee | Put it back | Put it back |
+| White sturgeon | Put it back | Put it back |
+| Protected species (12 kinds) | You may not fish for them | You may not fish for them |
 
-**For:** one screen, nothing hidden, the wild/hatchery difference is the most visible thing on
-the page. **Against:** two number columns at 400px is tight; and on the 16 tables where only
-steelhead differs, one column is a near-duplicate of the other.
+**For** — one screen, nothing hidden, and the wild/hatchery difference is the most visible thing
+on the page. **Against** — two number columns is tight at 400px, and on the 16 tables where only
+steelhead differs the two columns are near-duplicates of each other.
 
 ---
 
 ### Option 2 — Origin asked once, up front
 
-```
-REGION 2 · STREAMS                       1 July – 31 Dec
+> **Is your fish wild or hatchery?** Look for a clipped adipose fin.  **[ WILD ] [ HATCHERY ]**
 
- ┌───────────────────────────────────────────────┐
- │  Is your fish wild or hatchery?               │
- │  Look for a clipped adipose fin.              │
- │                                               │
- │     [ WILD ]            [ HATCHERY ]          │
- └───────────────────────────────────────────────┘
+*you picked* **HATCHERY** —
 
- ── you picked HATCHERY ──────────────────────────
+| I am fishing for | Size | Per day | A year | In possession |
+|---|---|---|---|---|
+| **Trout and char** — all 15 kinds | at least 30 cm · only 1 over 50 cm | **2** between them | — | 4 |
+| ↳ 9 kinds of trout and char | — | the shared 2 | — | — |
+| ↳ bull trout, Dolly Varden, lake trout | at least 60 cm | only **1** of these three | — | — |
+| ↳ steelhead | **2** may be over 50 cm | the shared 2 | 10 | — |
+| Whitefish | any size | 15 between them | — | 30 |
+| Bass | any size | 20 between them | — | 40 |
+| Black crappie | any size | 20 | — | 40 |
+| Crayfish | any size | 25 | — | 50 |
+| Kokanee · White sturgeon | — | Put it back | — | — |
+| Protected species (12 kinds) | — | You may not fish for them | — | — |
 
- TROUT AND CHAR                          2 a day
- all 15 kinds                       between them
-                                  4 in possession
- every one at least 30 cm
- only 1 of them over 50 cm
-
-   9 kinds of trout and char        the shared 2
-   bull trout, Dolly Varden,        only 1 of these
-     lake trout                     three · ≥ 60 cm
-   steelhead                        the shared 2
-                                    2 may be over 50 cm
-                                    10 a licence year
-
- ─────────────────────────────────────────────────
- Whitefish 15 · Bass 20 · Black crappie 20
- Crayfish 25 · Kokanee and white sturgeon go back
- Protected species — you may not fish for them
-```
-
-**For:** widest layout for the detail; matches how the book is written ("and you must release:
-wild trout/char from streams"). **Against:** it hides half the answer behind a choice. A reader
-who mis-taps reads *"2 a day"* for a fish that must be released — so this can only be a
+**For** — the widest layout for detail, and it matches how the book is written ("and you must
+release: wild trout/char from streams"). **Against** — it hides half the answer behind a choice.
+A reader who mis-taps reads *"2 a day"* for a fish that must be released. Only safe as a
 **required** choice, never a silent tab, and only on the 2 tables where the family number itself
 depends on origin.
 
@@ -354,84 +409,107 @@ depends on origin.
 
 ### Option 3 — One table, origin only on the lines that need it
 
-```
-REGION 2 · STREAMS                       1 July – 31 Dec
+**REGION 2 · STREAMS** — 1 July – 31 Dec
 
- TROUT AND CHAR
- ┌─ hatchery ─── 2 a day between them · 4 in possession
- │               at least 30 cm · only 1 over 50 cm
- │
- │   9 kinds of trout and char            the shared 2
- │   bull trout, Dolly Varden,       only 1 of these three
- │     lake trout                              ≥ 60 cm
- │   steelhead            the shared 2 · 2 may be over
- │                        50 cm · 10 a licence year
- └─ wild ────── Put them all back
-                all 15 kinds, every size
+| I am fishing for | Size | Per day | A year | In possession |
+|---|---|---|---|---|
+| **TROUT AND CHAR · hatchery** | at least 30 cm · only 1 over 50 cm | **2** between them | — | 4 |
+| ↳ 9 kinds of trout and char | — | the shared 2 | — | — |
+| ↳ bull trout, Dolly Varden, lake trout | at least 60 cm | only **1** of these three | — | — |
+| ↳ steelhead | **2** may be over 50 cm | the shared 2 | 10 | — |
+| **TROUT AND CHAR · wild** — all 15 kinds, every size | — | **Put it back** | — | — |
+| Whitefish | any size | 15 between them | — | 30 |
+| Bass | any size | 20 between them | — | 40 |
+| Black crappie | any size | 20 | — | 40 |
+| Crayfish | any size | 25 | — | 50 |
+| Kokanee | — | Put it back | — | — |
+| White sturgeon | — | Put it back | — | — |
+| Protected species (12 kinds) | — | You may not fish for them | — | — |
 
- Whitefish                     15 a day between them
- Bass                          20 a day between them
- Black crappie                 20 a day
- Crayfish                      25 a day
- Kokanee                       Put it back
- White sturgeon                Put it back
- Protected species (12)        You may not fish for them
-```
-
-**For:** nothing hidden and nothing duplicated; the origin appears exactly where it changes the
-answer, and reads as the book's own "you must release" block. Scales down cleanly — on the 16
-steelhead-only tables the `wild`/`hatchery` pair appears on one line and the rest of the table is
-untouched. **Against:** the wild answer sits below the hatchery block, so a wild-fish angler
-reads past detail that does not apply to them.
+**For** — nothing hidden and nothing duplicated; origin appears exactly where it changes the
+answer, and the wild block reads as the book's own "you must release" list. It scales down: on
+the 16 steelhead-only tables the pair appears on one line and the rest is untouched.
+**Against** — the wild answer sits below the hatchery block, so a wild-fish angler reads past
+detail that does not apply to them.
 
 ---
 
 ### Option 4 — Look up one fish
 
-```
-REGION 2 · STREAMS                       1 July – 31 Dec
+🔍 `bull trout`
 
-   🔍  [ bull trout                            ]
+| **BULL TROUT** | |
+|---|---|
+| **Wild** | **Put it back** — *"Wild trout/char from streams"* |
+| **Hatchery** | **keep 1** · at least 60 cm |
+| That 1 also counts against | 1 of only **3 chars** — shared with Dolly Varden and lake trout |
+| | **2** trout and char a day — shared with all 15 kinds |
+| | **1** fish over 50 cm a day — shared with all 15 kinds |
+| In possession | 4 trout and char |
 
- ┌───────────────────────────────────────────────┐
- │  BULL TROUT                                   │
- │                                               │
- │  WILD        Put it back                      │
- │              "Wild trout/char from streams"   │
- │                                               │
- │  HATCHERY    keep 1                           │
- │              at least 60 cm                   │
- │                                               │
- │  That 1 also counts against:                  │
- │   · 1 of only 3 chars — shared with Dolly     │
- │     Varden and lake trout                     │
- │   · 2 trout and char a day — shared with      │
- │     all 15 kinds                              │
- │   · 1 fish over 50 cm a day — shared with     │
- │     all 15 kinds                              │
- │                                               │
- │  In possession   4 trout and char             │
- │                                               │
- │  ▸ show the whole table                       │
- └───────────────────────────────────────────────┘
-```
-
-**For:** answers the actual question ("I am fishing for X") in one screen, with the shared
-budgets spelled out instead of implied by indentation — the thing nesting communicates worst.
-**Against:** you must know what you are looking for, and it is poor for browsing or for checking
-a whole chapter against the book. Best as a *companion* to one of the other three, not a
-replacement.
+**For** — answers the actual question ("I am fishing for X") in one screen, and spells out the
+shared budgets instead of implying them by indentation, which is the thing nesting communicates
+worst. **Against** — you must know what you are looking for; poor for browsing or for checking a
+chapter against the book. Best as a companion, not a replacement.
 
 ---
 
-### My recommendation
+### Option 5 — Flat, with a "counts against" column  *(new)*
 
-**Option 3 as the table, Option 4 as the tap-through.** Option 3 keeps everything visible and
-duplicates nothing, degrades gracefully from the 2 hard tables to the 16 easy ones, and never
-hides an answer behind a control. Option 4 then answers the angler's real question without
-making them read a hierarchy. Option 1 is the best of the "everything at once" family if you
-want no interaction at all; Option 2 I would not ship except on Region 1 and 2 streams, and only
-as a required choice.
+No nesting at all. **Every row has exactly the same shape**, which is what you asked for, and
+the shared budgets become a column instead of an indent — so the 400px problem disappears.
+
+**REGION 2 · STREAMS** — 1 July – 31 Dec
+
+| I am fishing for | Origin | Size | Per day | Counts against |
+|---|---|---|---|---|
+| 9 kinds of trout and char | hatchery | at least 30 cm | 2 | — |
+| | wild | — | Put it back | — |
+| Bull trout, Dolly Varden, lake trout | hatchery | at least 60 cm | 1 | the trout-and-char **2** |
+| | wild | — | Put it back | — |
+| Steelhead | hatchery | 2 may be over 50 cm · 10 a year | 2 | the trout-and-char **2** |
+| | wild | — | Put it back | — |
+| Whitefish | either | any size | 15 between them | — |
+| Bass | either | any size | 20 between them | — |
+| Black crappie | either | any size | 20 | — |
+| Crayfish | either | any size | 25 | — |
+| Kokanee | either | — | Put it back | — |
+| White sturgeon | either | — | Put it back | — |
+| Protected species (12 kinds) | either | — | You may not fish for them | — |
+
+**Shared budgets** — spend one and you spend all of them:
+
+| budget | how many | shared by |
+|---|---|---|
+| trout and char, per day | 2 | all 15 kinds, hatchery |
+| trout and char over 50 cm | 1 | all 15 kinds **except steelhead**, which has its own 2 |
+| chars, per day | 1 | bull trout, Dolly Varden, lake trout |
+| trout and char, in possession | 4 | all 15 kinds |
+
+**For** — one shape for every row at any width; the budgets are stated as budgets rather than
+guessed from indentation; the steelhead exception is visible *in the budget table* where it
+belongs, instead of as a footnote on a nested line. **Against** — the reader has to look in two
+places to get the whole answer for one fish, and "1 per day" on the char line is only the whole
+truth once you have read the budget table.
+
+---
+
+### Recommendation
+
+| | as the table | as the tap-through |
+|---|---|---|
+| **best overall** | **Option 3** | **Option 4** |
+| if you want zero interaction | Option 1 | — |
+| if rows must be identical in shape | **Option 5** | Option 4 |
+| only on Region 1 & 2 streams | Option 2 (as a *required* choice) | — |
+
+Option 3 hides nothing, duplicates nothing, and degrades gracefully from the 2 hard tables to
+the 16 where only steelhead differs. Option 4 then answers the angler's real question without
+making them read a hierarchy.
+
+**Option 5 is the one to take seriously if "every entry the same formatting" is the priority** —
+it is the only layout with no nesting at all, and the budget table is a more honest rendering of
+a pooled quota than an indent has ever been.
 
 ---
 
