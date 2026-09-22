@@ -193,6 +193,93 @@ Region 3's streams have six:
 `state.conditions(region, kind)` multiplies the two questions together — every (area, stretch)
 pair a region has. **218** across the 22 tables.
 
+### 2.4 Base + amendments, worked
+
+Measured, not designed: **60 stretches** across **12 of the 22 base tables** really change their
+region's standing table. Both sides of every example below come out of `state.build` — the base
+from `rules_for(region, kind)`, the water from `rules_for(kind=…, water=…, run=…)` — and the
+difference is read off the two display trees. Nothing resolves twice.
+
+| base table | stretches that amend it | base table | stretches that amend it |
+|---|---|---|---|
+| Region 1 · lakes | 1 | Region 4 · streams | **19** |
+| Region 1 · streams | 4 | Region 5 · streams | 9 |
+| Region 2 · streams | 11 | Region 6 · lakes | 1 |
+| Region 3 · lakes | 1 | Region 6 · streams | 3 |
+| Region 3 · streams | 2 | Region 8 · lakes | 3 |
+| Region 4 · lakes | 3 | Region 8 · streams | 3 |
+
+The ten tables not listed have no named water that changes them — every water in them reads its
+region's table unaltered, which is the invariant this whole arrangement exists to make checkable.
+
+#### A. Fording River at Josephine Falls — Region 4 streams — **the inherited case**
+
+The only stretch in the corpus where a rank-0 rule and six rank-1 rules speak at once, and the
+one that shows why rank is not a tie-breaker but the whole ladder:
+
+| rank | scope | via | what it says |
+|---|---|---|---|
+| **0** | water | reach | **No Fishing** |
+| 1 | inherited | trib | No Fishing, Sept 1 – Oct 31 |
+| 1 | inherited | trib | Trout/char daily quota = 1 (none under 30 cm) |
+| 1 | inherited | trib | bait ban, June 15 – Aug 31 |
+| 1 | inherited | trib | Bull trout catch and release *(twice — Elk River's tributaries and Kootenay Lake's)* |
+| 1 | inherited | trib | Class II water when open, including tributaries |
+
+`via: trib` is the Fording answering to **Elk River's tributaries** — a rule written about
+another water that reaches this one by the walk, and it sits at rank 1 rather than rank 0
+precisely so the Fording's own voice speaks first.
+
+| | base (Region 4 streams) | the Fording at Josephine Falls |
+|---|---|---|
+| bull trout, Dolly Varden | 1 | **0** |
+| rainbow, cutthroat, westslope cutthroat | 2 | **0** |
+| the trout-and-char budget | 2 across 13 | **gone** |
+| the whitefish budget | 15 across 2 | **gone** |
+
+The amendment is **one rule** and the whole table goes. The six inherited rules are still in the
+ledger and still settled — they are simply behind a closure, and if the closure lifted they
+would speak. That is the difference between a table that is shut and a table that is empty.
+
+#### B. Okanagan Lake — Region 8 lakes — **narrows, opens, and reshapes a budget, at once**
+
+Four water rules at rank 0, doing three different things:
+
+| | base (Region 8 lakes) | Okanagan Lake | what the rule says |
+|---|---|---|---|
+| rainbow trout | 5 | **2** | `"Rainbow trout daily quota = 2 (only one over 50 cm)"` — a water **narrowing** the region |
+| largemouth bass, smallmouth bass | 0 | **8** | `"bass daily quota = 8"` — a water **opening** what the region closed |
+| yellow perch | 0 | **20** | `"yellow perch daily quota = 20"` |
+
+And the budget is **reshaped**, which is the part a member-row layout cannot show:
+
+- region: `1 over 50 cm` shared across **13** fish
+- Okanagan Lake: `1 over 50 cm` shared across **12** — the rainbow left it for its own — plus a
+  **new** budget of `8` across the two bass
+
+A layout where a shared number is a numeral repeated on each member row has no way to say "this
+fish is no longer in that number". The budget block does it by name.
+
+#### C. Atlin Lake — Region 6 lakes — **a member's own cap, three times over**
+
+Eight water rules, and the interesting ones are caps rather than answers:
+
+| fish | per day | its own cap |
+|---|---|---|
+| lake trout | 3 *(inside the region's 5)* | `at most 1 over 60 cm` |
+| Arctic grayling | 3 | `at most 1 over 35 cm` |
+| northern pike | 5 | `at most 1 over 70 cm` |
+| whitefish | **5** *(the region's 15, replaced)* | — |
+
+Every one of those caps is a **pooled quota on a size class**, not a size gate — the difference
+`Size.is_gate` draws. A gate sends a fish back; a cap says how many of your day's fish may be
+that big. They are printed in different places for that reason, and reading the second as the
+first is what put "only 1 over 50 cm" in a size column where a length belongs.
+
+Atlin also carries the corpus's most awkward sentence — *"EITHER none over 60 cm, OR only 1 over
+60 cm and the other 2 must be 60 cm or less"* — and it resolves to exactly the cap above,
+because the two branches have the same effect on a creel of three.
+
 ---
 
 ## Part 3 — Closures
@@ -363,6 +450,41 @@ Each was forced by a real defect, listed in Part 7.
    name disappears from every sharer list on that date.
 5. **Nothing may be kept ⇒ no size is printed.** "must be at least 60 cm" beside "Put it back"
    reads as permission to keep a 61 cm fish.
+
+Building it added four more, each from a defect the build itself produced:
+
+6. **Every counter that binds is drawn somewhere.** Not "a headline and the budgets" with the
+   rest falling through — a fish's counters are **partitioned**, and a counter in none of the
+   three parts raises. A counter the reader never sees always reads as *more* fish.
+7. **A size has two ends.** A floor, a ceiling, or both — one statement per bound, because
+   "at least 30 cm · only 1 over 50 cm" is one muddled sentence and two rows are two facts.
+8. **The definition reaches the number, not only the words.** A steelhead *is* a rainbow over
+   50 cm. Printing "must be at least 50 cm" from that definition and then printing **5** beside
+   a cap of "1 over 50 cm" is two halves of one fact with the half that matters missing.
+9. **The cooler follows the day.** A possession limit is N × a **daily** one, and the daily one
+   it multiplies is the family's, not this fish's.
+
+### 5.1b What the tree actually carries
+
+One `table` per (ledger, kind, date, label). `views` is `{"both": …}` or `{"wild": …,
+"hatchery": …}`, decided by `origin_mode`; `names` maps every species code to its name, once,
+so nothing downstream has to zip two differently-sorted lists.
+
+| on a **leaf** (a fish, or fish a reader cannot tell apart) | |
+|---|---|
+| `answer` | the sentence the **book** writes, with `source` |
+| **`most`** | **the number you may actually keep** — the answer with every budget it sits inside, every cap of its own, and the definition already applied |
+| `sizes` | one statement per bound: `floor`, `ceiling`, `band`; `definition: true` where the word itself set it |
+| `spends` | the budgets it counts against, innermost first |
+| `own` | limits that are this fish's alone today — mostly a pooled cap the season narrowed to one survivor |
+| `annual`, `possession`, **`may_have`** | the licence year, the cooler as written, and the cooler after `most` |
+| `members`, `handle` | every member named — never a count |
+
+| on a **budget** (a shared number two or more fish spend) | |
+|---|---|
+| `n`, `size`, `sized` | the number, and the size class it counts |
+| `spends` | who spends it **on this date** — a released fish is not in it |
+| `parent`, `clause_of` | the budget this one sits inside, by `Allowance.within` first |
 
 ---
 
@@ -837,59 +959,62 @@ nothing changes — not a year. A year view is a union of days, and a union of d
 contradictory tables. The book already says what to do: `zp:bait::bait.r4` ends *"…as bait unless
 a bait ban applies."*
 
-### The display tree, reviewed — and found unsafe
+### The display tree, reviewed, found unsafe — and fixed
 
-`pipeline/regs/table/display.py` was written to this design and then reviewed by three
-independent passes (regulatory correctness, architecture, test adequacy). **It is not safe to
-wire up as written.** Every finding below was reproduced against the module before being
-recorded. It has no importer and no test, so none of it shipped.
+`pipeline/regs/table/display.py` was written to this design and reviewed by three independent
+passes (regulatory correctness, architecture, test adequacy). **Every finding was real**, every
+one was reproduced against the module before being recorded, and every one is now closed.
+`pipeline/tests/test_regs_display.py` holds them shut. The history is kept here because the
+shape of the fix came out of the shape of the failure.
 
-**It prints a bigger number than the ledger allows — 10 rows over 5 tables.**
+**Seven of them were three.** Three separate reviewers wrote up seven defects, and rewriting the
+module showed that three of the seven were one defect wearing three hats:
 
-| table | the book | the tree said |
+> The tree drew a **headline** (a plain daily number) and a **shared budget** (a pooled number
+> with two or more spenders). A counter that was neither simply vanished.
+
+| what vanished | what the reader got | where |
 |---|---|---|
-| R3 streams, Aug 1 – Sep 15 | `"1 bull trout (Dolly Varden) or lake trout"` | **4** |
-| R5 lakes | `"2 lake trout"` inside `"Trout/char: 5"` | **5** |
-| R7A lakes | `"3 lake trout"` inside the 5 | **5** |
-| R7B lakes | `"2 lake trout"` inside the 5 | **5** |
-| R6 streams | `"3 Dolly Varden/bull trout and/or lake trout combined"` | **5** |
+| a pooled cap the season narrowed to **one** fish | R3 streams, 20 Aug: **4** lake trout where the book allows **1** | `pools()` dropped a budget with one spender |
+| a **non-pooled sized** cap | R1 lakes, hatchery steelhead: **4** where the book allows **2** | `"2 hatchery steelhead over 50 cm"` is neither plain nor pooled |
+| a **clause** | Region 8's three budgets came out as coequal roots | `within` was read only for nesting |
 
-Two causes, and the second was introduced by the closed-member fix itself:
+So the fix is not three patches. A fish's counters are now **partitioned** — exactly one is the
+answer, the shared ones become budgets, and everything left is drawn on the fish as its own
+limit — and `display._check` **raises** when a counter lands in none of the three. It ran clean
+over 22 tables × 11 dates. A dropped counter always reads as *more* fish than the book allows,
+so it is a crash and not a log line.
 
-- **A member's own number has no slot.** `_headline` excludes clauses and `pools()` requires
-  `pooled`, so a single-species clause is neither the answer nor a budget — it is nowhere.
-- **Narrowing a pool DELETES it.** `pools()` drops a pool with fewer than two spenders. When
-  Region 3's char cap narrows to lake trout alone in August — exactly the case this design is
-  for — the cap vanishes and the leaf falls back to the family's 4. *"The cap is only for the
-  remaining fish"* was implemented as *"the cap is gone"*.
+| finding | fix | evidence |
+|---|---|---|
+| prints a bigger number than the ledger allows | `leaf["most"]` — the answer with every budget it sits inside already applied | **0 over-statements in 19,360 species-slots** (22 tables × 11 dates × 2 origins × species) |
+| takes half the definitional size | `_whole_fish` — a steelhead **is** a rainbow over 50 cm, so `"1 over 50 cm"` on a steelhead row is simply 1 | R6 hatchery steelhead 5 → **1**; R1 lakes 4 → **2** |
+| a live maximum size disappears | `sizes()` reads every `Size.kind`, and a slot gives **both** ends | R7A lakes: *"must be at least 30 cm"* **and** *"must be 50 cm or shorter"* |
+| origin mode inverted | keyed on the pool's **identity** (rule, size class, clause), not on its spender set | 22 split / 0 hoist / 0 none — and every table's difference is steelhead, 4 of them wider |
+| `_shape` omits `annual` | `_shape` carries every visible field | R3 and R5, whose only origin difference **is** the annual ten, no longer collapse |
+| a seasonal pool drawn out of season | `binds` on both ends of pool membership, not `reaches` | **0** seasonal budgets in any standing view |
+| nesting by strict containment | `Allowance.within` first, then a **narrowness** order | 222 clauses parented, **0 orphans, 0 cycles** (was 52 unparented) |
 
-**It takes half of the definitional size.** Region 1 lakes, hatchery steelhead: the tree raises
-the floor to 50 cm by definition and then prints **4**, because the cap that sets the real
-number — `"2 hatchery steelhead over 50 cm allowed"` — is *non-pooled*, so `pools()` never draws
-it. The truth is 2. Four tables are wrong this way.
+**Three more defects the rewrite introduced, and the tests caught.** Worth recording because all
+three are under-statements, which no sweep for over-statements can find:
 
-**A live maximum size disappears.** `_floor` reads only `none_under`, so Region 7A's slot gate
-*"only 30-50 cm in length"* renders as **no size statement at all** — 76 occurrences. A 55 cm
-bull trout reads as legal.
+- **A sized budget clamped every member.** `by_definition` was computed per *budget*, so
+  steelhead's definition put its 1 onto the Arctic char sharing the same number — 5 → 1.
+  It is a question about the fish, not the budget.
+- **The sharer lists named the wrong fish.** `leaf["fish"]` is sorted by species code and
+  `leaf["members"]` by name; zipping them — the obvious thing, and what the page did — listed a
+  Dolly Varden among the fish spending Region 6's five, and the Dolly Varden is released. The
+  table now carries a `names` map, which cannot be zipped wrong.
+- **The cooler ignored the day.** A possession counter is N × a **daily** one, and the daily one
+  it multiplies is the family's. R6 hatchery steelhead may keep one a day and the row offered
+  **ten**, explaining itself as *"2 × the daily 5"*. On a closed water it offered ten beside
+  twelve rows reading *"No fishing"*.
 
-**The origin mode is inverted.** The doc measures 2 hoist / 16 split / 4 none; the module
-produces **16 / 2 / 4**, because it keys the comparison on the spender set — which is precisely
-what origin changes. Sixteen tables would wrongly split in two. Keying on the rule id reproduces
-the doc exactly.
-
-**Collapsing two views deletes a limit.** `_shape` omits `annual`, so Regions 3 and 5 collapse to
-one view and steelhead's **10 a licence year vanishes**.
-
-**A seasonal pool is drawn out of season.** `pools()` never date-filters, so Region 6's year view
-prints *"1 trout from streams July 1-Oct 31"* beside those same six trout answering **5** — two
-printed lines contradicting each other, which is the gate below.
-
-**The laminar claim is true of this corpus but not "by construction".** No pair of pools
-partially overlaps today (440 instances checked), but nothing in the model forbids it, and a
-three-rule ledger breaks it. `_nest` also uses *strict* containment, so a clause with its
-parent's own species set gets no parent at all — 52 pairs at region level — and Region 8's three
-budgets come out as coequal roots when two of them are clauses of the third. The data already
-carries the answer in `Allowance.within`, which `_nest` never reads.
+**Mutation-tested, and one survivor reported honestly.** Each defect was re-introduced and the
+suite re-run: **11 of 12 mutants caught**. Two further mutants (dropping `own` or `most` from
+`_shape`) **survive and are equivalent on this corpus** — every table already differs between
+origins on `annual`, so those fields cannot change an output here. That is a property of the
+data, not a hole in the tests, and it is written down rather than rounded up.
 
 ### What was cleared
 
@@ -898,19 +1023,45 @@ carries the answer in `Allowance.within`, which `_nest` never reads.
 | `Ledger.keepable` | safe — its permissive default can only lengthen a sharer list |
 | `spenders` in `rows.py` / `provenance.py` | **safe, strictly more restrictive** — 160 "between them" gained, 0 lost; 73 names removed, every one released that day |
 | removing `ADV` / `AEB` | **safe and proven inert** — 22 tables × 25 dates, 102 sections × 5 dates, zero change to any headline, deciding rule or counter set |
-| `Row.moot` dropping `and not a.is_zero` | needs a period guard — no live hazard today |
-| `display.py` | **unsafe** |
+| `Row.moot` dropping `and not a.is_zero` | **fixed, and the blunt guard was wrong too** — see below |
+| `display.py` | **safe** — 16 tests, 11/12 mutants caught, 2 equivalent |
 
-`Row.moot` is the one to watch: it asks about the **daily** headline and suppresses counters of
-every period, so a daily release can suppress an annual ceiling or a possession limit — and you
-may lawfully hold fish taken on other days. No row has that shape today.
+#### `Row.moot` — and why "daily only" was not the fix
+
+A size gate under "Put it back" reads as permission, so `moot` had to stop ending
+`and not a.is_zero`. A reviewer then found the opposite hazard: `moot` asks about the **daily**
+headline and was suppressing counters of *every* period, so a daily release could hide an annual
+ceiling you may lawfully be spending on fish taken elsewhere. The guard added for that —
+`and a.period == "daily"` — broke two real tests, and both were right to break:
+
+| shape | the blunt guard | `daily`-only guard | what is true |
+|---|---|---|---|
+| **a possession multiple** — the Fraser's bull trout, "twice the daily quota" over a release | moot ✓ | **live: 2 beside "Put it back"** | twice nothing is nothing |
+| **an independent annual ceiling** — the province's ten hatchery steelhead a year, on a water that releases them all year | moot ✓ | live ✗ | none can be spent *from here* |
+| the same ceiling on a water closed only **Aug 15 – Dec 31** | **hidden all year** ✗ | live ✓ | it is exactly what a reader needs on the open days |
+
+So the rule is neither "everything" nor "daily only". A **derived** counter is moot whenever the
+counter it derives from is; an **independent** clock is moot only where the zero is year-round.
+The three columns above are three different answers and the model now gives each of them.
 
 ### The gate to build against
 
 > **No two printed lines may contradict each other.**
 
 Checked against the **rendered output**, not the rules going in — an input-seeded check has
-laundered failures three times in this project already.
+laundered failures three times in this project already. Every test in
+`pipeline/tests/test_regs_display.py` compares the tree against a number derived independently
+from `Ledger`, never against the tree itself.
+
+### What the page stopped doing
+
+The renderer in `app/design/standing/body.html` went from **1,353 lines to 714**. The 655 lines
+that went were the browser re-deriving, in JavaScript, what the ledger had already settled in
+Python: which fish shared which number, which size bound survived, which counter was moot, which
+name belonged in a sharer list. Every one of those existed twice, and the two drifted — the
+emitter learned who could really spend a number (`spends`) and the page went on reading the old
+field (`reaches`), so that fix never reached a reader at all. The page now draws `quota` and
+decides nothing.
 
 ---
 

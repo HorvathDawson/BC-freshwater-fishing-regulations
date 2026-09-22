@@ -20,7 +20,7 @@ from typing import Dict, FrozenSet, List, Optional, Tuple
 
 from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
 from pipeline.regs.table.authority import Authority
-from pipeline.regs.table.ledger import Allowance, Ledger
+from pipeline.regs.table.ledger import _year_round, Allowance, Ledger
 from pipeline.regs.table.subject import Origin, expand
 
 
@@ -62,8 +62,33 @@ class Row:
         allowance of zero — so "must be at least 60 cm" went on printing beside "Put it back",
         which reads as permission to keep a 61 cm fish. Nothing may be kept, so nothing can be
         measured."""
+        # ...AND IT IS ABOUT THE DAY, EXCEPT WHERE THE OTHER CLOCK IS BUILT FROM THE DAY.
+        #
+        # The headline is the strictest DAILY counter, and a daily release does not make an
+        # ANNUAL ceiling or an INDEPENDENT possession limit irrelevant: you may lawfully be
+        # holding fish taken on other days, and suppressing every clock off a daily zero is an
+        # under-restriction waiting for one seasonal release to land on a row that also carries
+        # an annual sized ceiling.
+        #
+        # But a possession multiple IS the daily number, times two. "Twice the daily quota" over
+        # a release is twice nothing, and printing it as a live limit of 2 beside "Put it back"
+        # is the contradiction this whole pass exists to stop — the Fraser's bull trout, Dolly
+        # Varden and lake trout are exactly that shape. So: a derived counter is moot whenever
+        # the counter it derives from is.
         h = self.headline(on)
-        return h is not None and h.is_zero and a is not h
+        if h is None or not h.is_zero or a is h:
+            return False
+        if a.period == "daily":
+            return True
+        if a.derived_from is not None:
+            return a.derived_from is h or self.moot(a.derived_from, on)
+        # An INDEPENDENT clock — an annual province-wide ceiling, a possession limit that is not
+        # a multiple of anything here — is moot only where the zero holds EVERY day. Region 2's
+        # Fraser releases hatchery steelhead all year, so the province's ten a year can never be
+        # spent from this water and saying so beside "Put it back" reads as ten. But a SEASONAL
+        # zero leaves days on which that ten is exactly what a reader needs, and suppressing it
+        # off one closed day would be an under-restriction on all the others.
+        return _year_round(h)
 
     def headline(self, on: Optional[Tuple[int, int]] = None) -> Optional[Allowance]:
         """THE number: the strictest daily counter on the whole fish, not a cap inside it and
@@ -124,7 +149,7 @@ class Row:
                 # the family pool; and never a hidden anadromous form, whose name appears in no
                 # heading on any table.
                 o = None if self.origin is Origin.both else self.origin
-                spend = self.ledger.spenders(a, o, on) - HIDDEN
+                spend = self.ledger.spenders(a, o, on)
                 others = spend - self.fish
                 shared = ", ".join(sorted(name(c).lower() for c in others)) if a.pooled and others else ""
                 # "BETWEEN THEM" IS ABOUT THE POOL, NOT ABOUT WHO IS OFF THIS ROW. Region 4's
@@ -149,10 +174,15 @@ class Row:
 #: Not shown to a reader. The anadromous forms of brook trout and Dolly Varden are in the
 #: group codes and in no rule of their own; the one anadromous form that matters is steelhead,
 #: which has its own name. Hidden on the page only — the ledger still carries them.
-HIDDEN = frozenset({"ADV", "AEB"})
+#: THE ANADROMOUS FORMS ARE GONE FROM THE MODEL, not filtered out of the page. `ADV` (Dolly
+#: Varden, anadromous) and `AEB` (brook trout, anadromous) were species codes with no name and
+#: no heading, kept out of the reader's way by a set like this one — and they leaked anyway, 74
+#: size statements deep. A filter is a promise every call site has to keep; `catalogue` now
+#: simply does not produce them, which is a promise nobody can forget. `test_regs_table` holds
+#: the door shut.
 
 
-def heading(fish: FrozenSet[str], name, hide: FrozenSet[str] = HIDDEN) -> str:
+def heading(fish: FrozenSet[str], name, hide: FrozenSet[str] = frozenset()) -> str:
     """The name a reader finds a set of species under: the group it is, or the members
     themselves. NEVER A GROUP NAMED BY EXCLUSION — "any other trout" tells the reader what a
     thing is not. Up to eight fish are named; beyond that the count and the group, with the

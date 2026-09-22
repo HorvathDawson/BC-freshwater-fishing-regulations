@@ -289,4 +289,59 @@ ul.cond li:last-child{border-bottom:0;padding-bottom:0}
  .tier{flex-wrap:wrap}
  .tlab{white-space:normal}
 }
+
+/* ---------- WHAT YOU MAY KEEP — the Option 3 table ----------
+   A SHARED NUMBER HAS TO LOOK LIKE ONE THING. The number, the fish that spend it and the rule
+   it comes from sit in one tinted block with a rail down its left edge; the fish under it are
+   quieter rows indented past that rail. A reader who takes in nothing else takes in "these
+   fish, this number, between them". */
+table.qt{width:100%;border-collapse:collapse;font-size:13.5px}
+table.qt th{text-align:left;font:600 11px/1.4 var(--body);letter-spacing:.06em;
+  text-transform:uppercase;color:var(--faint);padding:0 10px 6px;border-bottom:1px solid var(--line)}
+table.qt th.n,table.qt td.n{text-align:right;font-variant-numeric:tabular-nums}
+table.qt td{padding:7px 10px;vertical-align:top;border-bottom:1px solid var(--line)}
+
+tr.pool>td{background:var(--tint);border-bottom:1px solid var(--line-2)}
+tr.pool>td.fish{border-left:3px solid var(--accent)}
+tr.pool.clause>td.fish{border-left-color:var(--quiet)}
+tr.pool .phead{font:500 13.5px/1.45 var(--body);color:var(--ink)}
+tr.pool .phead b{font:700 15px/1 var(--disp)}
+tr.pool .pwho{margin-top:3px;font:400 12px/1.5 var(--body);color:var(--sub)}
+
+tr.leaf>td{background:var(--card)}
+tr.leaf>td.fish{border-left:3px solid var(--line);font:400 13.5px/1.45 var(--body)}
+tr.leaf.d0>td.fish{border-left-color:transparent}
+.d1>td.fish{padding-left:24px}.d2>td.fish{padding-left:38px}.d3>td.fish{padding-left:52px}
+
+.ans.big{font:700 17px/1 var(--disp);color:var(--ink)}
+.sz.sub{font:400 11px/1.4 var(--body);color:var(--faint);margin-top:2px}
+.sz.def .why{margin-left:6px;font:400 11px/1 var(--body);color:var(--unknown)}
+.ann{margin-left:6px;padding:1px 6px;border-radius:9px;background:var(--wash);
+  border:1px solid var(--line);font:500 11px/1.5 var(--body);color:var(--sub);white-space:nowrap}
+/* A limit of this fish's own is a SENTENCE under its name, not a panel. Inheriting the page's
+   `.note` box gave it a rail and a fill, which made it read as a third block in a layout whose
+   whole point is that a block means a shared number. */
+.note.own,.note.cap{margin:3px 0 0;padding:0;border:0;background:none;border-radius:0;
+  font:400 12px/1.45 var(--body)}
+.note.own{color:var(--sub)}
+.note.cap{color:var(--limited)}
+.note.own::before{content:"\21B3";margin-right:5px;color:var(--faint)}
+td.size .sz{margin-bottom:2px}
+.src{display:inline-block;margin-left:6px;font:400 11px/1.4 var(--body);color:var(--faint)}
+
+/* Two origins. A split draws both side by side and a hoist makes the reader pick, because a
+   hoist means a number they share is itself different and no one table can state it. */
+/* STACKED, NOT SIDE BY SIDE. Four columns of fish names in half a card is a table that
+   scrolls sideways to be read, and the two sides are compared line for line, not at a glance —
+   which stacking supports and a horizontal scrollbar destroys. */
+.osplit{display:flex;flex-direction:column;gap:22px}
+.oside .eyebrow{display:block;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.otabs{display:flex;gap:6px;margin-bottom:10px}
+.obtn{padding:5px 12px;border:1px solid var(--line-2);border-radius:999px;background:var(--card);
+  color:var(--sub);font:500 12px/1.5 var(--body);cursor:pointer}
+.obtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+.shut{border-left:3px solid var(--closed);padding:10px 14px;background:var(--wash);border-radius:0 8px 8px 0}
+.shut .shutline{margin:0;font:500 15px/1.5 var(--body);color:var(--ink)}
+.shut .shutline b{color:var(--closed)}
 </style>

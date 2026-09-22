@@ -69,9 +69,9 @@ function tableFor(e) {
   const q = sideOf(e);
   const v = viewAt(e, ON);
   const area = areaOf(e);
-  const base = { present: q.present, rows: q.rows, view: v, area: area };
+  const base = { present: q.present, rows: q.rows, quota: q.quota, view: v, area: area };
   if (!v || v.same) return base;
-  return { present: v.present, rows: v.rows, view: v, area: area };
+  return { present: v.present, rows: v.rows, quota: v.quota || q.quota, view: v, area: area };
 }
 
 /* The gear table under the same conditions: the area's where it has one of its own, and the
@@ -140,827 +140,177 @@ function bindDate() {
   };
 }
 
-/* ---------- quota rows ---------- */
-function ansCell(row) {
-  const k = String(row.keep == null ? "" : row.keep);
-  if (k === "release") return `<span class="ans rel">Put it back</span>`;
-  if (k === "0" || k === "closed") return `<span class="ans stop">No fishing</span>`;
-  if (k === "∞" || k === "unlimited") return `<span class="ans inf">No limit</span>`;
-  if (k === "") return `<span class="sz none">no daily limit set at this level</span>`;
-  const n = parseInt(k, 10);
-  return `<span class="ans${!isNaN(n) && n <= 2 ? " lim" : ""}">${esc(k)}</span>`;
-}
+/* ---------- WHAT YOU MAY KEEP ----------
+   THIS FILE NO LONGER WORKS ANYTHING OUT. It used to: eight hundred lines that took the
+   ledger's rows and re-derived, in the browser, which fish shared which number, which size
+   bound survived, which counter was moot and which name belonged in a sharer list. Every one
+   of those derivations existed a second time in Python, and the two drifted — the emitter
+   learned who could really spend a number and the page went on reading the old field, so the
+   fix never reached a reader.
 
-/* A SIZE ON A FISH THAT GOES BACK IS A CONTRADICTION. Region 2's wild steelhead read
-   "must be at least 30 cm · Put it back" — the 30 cm comes from a band shared with the
-   hatchery line, and on a released fish it is worse than noise: a reader measures, sees
-   30 cm, and keeps a fish that may never be kept. When nothing may be kept, no length,
-   no cap and no slot can change that, so the cell says only that. */
-/* TWO SIZE STATEMENTS ARE OFTEN ONE — BUT A CAP IS NEVER DELETED.
+   `pipeline/regs/table/display.py` now settles the whole table and `base.json` carries it.
+   What is left here is the markup: a budget block owns its number, the fish under it say what
+   they spend, and nothing on this page decides anything a test could not have caught. */
 
-     · FLOORS SUBSUME. "at least 60 cm" implies "at least 30 cm", so only the strictest prints.
-
-     · A CAP BELOW THE FLOOR IS RESTATED AT THE FLOOR, NOT DROPPED. When nothing under 60 cm
-       may be kept, "only 1 over 50 cm" bites on every fish that may be kept, so it reads
-       "only 1 over 60 cm". An earlier pass DELETED it, and that was wrong: the cap is shared
-       with the whole group ("between them") and `rowCap` only adopts caps naming this row's
-       own fish, so nothing else was carrying it. Keeping one char over 60 spends the group's
-       single over-50 fish, and a rainbow over 50 then cannot be kept — a coupling the reader
-       could no longer see. Restate it; never remove it. */
-/* WHO ELSE SPENDS THIS NUMBER — ONE ANSWER, EVERYWHERE IT IS ASKED.
-   A pooled figure was worded three different ways on one table: the row's own number took
-   the counter's `pooled` flag and said "between them"; a size tier took `size[].shared`,
-   which is only set when the cap reaches fish OUTSIDE this row, so Haida Gwaii's "1 over 50
-   cm" — pooled across all fourteen trout and char, and drawn on the row that holds ten of
-   them — said nothing at all, right beside a "3 between them" that did. Both are one fish
-   shared among many; a reader comparing the two can only conclude the silent one is per
-   species, which is ten times the book's limit.
-
-   One rule: a pooled number shared by more than one fish always says so. Where the row is a
-   single fish, "between them" is a sentence about nobody, so the others are NAMED instead —
-   that is the only case where naming fits, and the only case where it is needed. */
-function poolWords(pooled, reaches, members, subject) {
-  if (!pooled) return "";
-  const mine = (members || []).map(x => String(x).toLowerCase());
-  const others = (reaches || []).filter(x => mine.indexOf(String(x).toLowerCase()) < 0);
-  if (!others.length) return mine.length > 1 ? "between them" : "";
-  // NAME THE POOL, NOT ITS MEMBERS. Haida Gwaii's single over-50 fish is shared across every
-  // trout and char, and listing them printed twelve species — "brook trout (anadromous)"
-  // included — inside one table cell. The rule has a subject and the book uses it; a group
-  // name is the readable form of the same fact. A subject with commas in it is a list of
-  // species, not a group, and then the short list of the others reads better than "all".
-  //
-  // "BETWEEN THEM" ALONE IS NOT ENOUGH WHEN THE POOL REACHES FURTHER. On Region 3's lakes
-  // from Oct 15 the bull trout and Dolly Varden share their 1 with the lake trout, which is
-  // released and sits on its own row; "between them" beside the two of them says the pool
-  // stops there, and a reader could keep one of each.
-  const who = String(subject || "");
-  const head = mine.length > 1 ? "between them and " : "shared with ";
-  if (who && who.indexOf(",") < 0 && who.toLowerCase() !== mine.join(", "))
-    return (mine.length > 1 ? "between all " : "shared with all ") + who.toLowerCase();
-  if (others.length <= 3) return head + others.join(", ").toLowerCase();
-  return head + others.length + " other fish";
-}
-
-/* `items` are the objects `sizePlan` built, not strings: a restated cap has to know whose
-   pool it is to say so, and whether it can still bite the number it sits inside. */
-function sizeSimplify(items, defMin, head) {
-  // A definitional minimum subsumes a written floor the same way a written one does: every
-  // steelhead is over 50 cm, so "must be at least 30 cm" on a steelhead row says nothing.
-  const parsed = items.map(x => Object.assign({}, x, {
-    fl: (x.t.match(/at least (\d+)\s*cm/) || [])[1],
-    capAt: (x.t.match(/only \d+ over (\d+)\s*cm/) || [])[1]
-  }));
-  const floors = parsed.filter(x => x.fl).map(x => +x.fl);
-  if (defMin != null) floors.push(defMin);
-  const top = floors.length ? Math.max.apply(null, floors) : null;
-  const bounds = [], caps = [];
-  parsed.forEach(x => {
-    if (x.fl) { if (+x.fl === top && (defMin == null || +x.fl > defMin)) bounds.push(x.t); return; }
-    // A SIZE CLASS THAT IS EVERY FISH YOU MAY KEEP IS NOT A SIZE CLASS. Region 2's streams
-    // say "at least 60 cm" and "only 1 over 50 cm between them", and restating the cap at the
-    // floor gave "only 1 over 60 cm between them · must be at least 60 cm" — the same 60 cm
-    // twice, the second time dressed as a different rule. Nothing under 60 may be kept, so
-    // "over 60 cm" describes every keepable fish and the cap is simply a count: one, between
-    // whoever shares it. The COUPLING IS NOT DROPPED — that one fish still spends the group's
-    // single big one, which is why the pool is named rather than left as "them".
-    // SAY WHOSE NUMBER IT IS, AT ITS OWN THRESHOLD. "must be at least 60 cm · only 1 between
-    // all trout and char" sits beside a Per day cell already reading "1 · of the 2 shared",
-    // and the two ones are DIFFERENT rules — the row's own combined cap, and the family's
-    // single fish over 50 cm. Restating the family's at 60 made them look like one sentence
-    // printed twice. At its own 50, naming the family, it reads as what it is: a second
-    // constraint, on everything, that this fish also spends.
-    if (x.capAt && top !== null && top > +x.capAt && x.pooled && x.who
-            && x.who.toLowerCase() !== (x.mineWords || "")) {
-      const h0 = parseInt(String(head), 10);
-      if (isNaN(h0) || x.capN <= h0)
-        caps.push(`only ${x.capN} of all ${x.who.toLowerCase()} may be over ${x.capAt} cm`);
-      return;
-    }
-    if (x.capAt && top !== null && top >= +x.capAt) {
-      // A CAP ON THIS ROW'S OWN FISH, AT OR ABOVE THIS ROW'S OWN NUMBER, OVER A CLASS THAT IS
-      // EVERY FISH YOU MAY KEEP, SAYS NOTHING. Region 1's streams: "hatchery steelhead 2",
-      // "2 hatchery steelhead over 50 cm allowed", and every steelhead is over 50 cm by
-      // definition — so the second sentence is the first one again. It goes only because it
-      // is NOT pooled: its whole scope is this row, so no other row is carrying it, which is
-      // the test that kept the shared 1-over-50 on the page.
-      const h = parseInt(String(head), 10);
-      if (!x.pooled && !isNaN(h) && x.capN >= h) return;
-      const who = x.pooled
-        ? (x.who && x.who.toLowerCase() !== (x.mineWords || "") ? "between all " + x.who.toLowerCase()
-           : "between them")
-        : "of them";
-      caps.push("only " + x.capN + " " + who);
-      return;
-    }
-    caps.push(x.t);
-  });
-  // THE LENGTH FIRST. A reader holding a fish measures it before counting it.
-  return bounds.concat(caps);
-}
-
-function goesBack(row) {
-  const k = String(row.keep == null ? "" : row.keep);
-  return k === "release" || k === "0" || k === "closed";
-}
-
-function sizeText(kept, moved) {
-  // "ANY SIZE" IS AN ANSWER, AND IT MUST NOT BE GIVEN BY ACCIDENT. Once the floor folds into
-  // the first tier this cell can be empty on a row that has a 30 cm minimum; printing "any
-  // size" there would say the opposite of the rule.
-  if (!kept.length) return moved ? DASH : `<span class="sz none">any size</span>`;
-  return `<span class="sz">${kept.map(esc).join(" &middot; ")}</span>`;
-}
-
-/* ---------- SIZE TIERS: ONE FISH WITH TWO NUMBERS IS TWO LINES ----------
-   "Hatchery steelhead: 2, but only 1 over 50 cm" is two answers about one fish. Printed as a
-   number in one column and prose in another, the reader has to do the arithmetic themselves,
-   and the prose wraps to four lines beside a bare figure. It becomes
-
-        up to 50 cm   2
-        over 50 cm    1   of the 2
-
-   THE TIER IS NOT A THIRD LEVEL OF INDENTATION, AND NOT A SIXTH COLUMN. Family -> band ->
-   entry -> origin already nests four deep, and a row per size class would (a) push the fish's
-   name away from its number and (b) leave "This licence year" and "May have" empty on the
-   extra rows, which reads as "no annual limit for the big ones" when the truth is that those
-   limits belong to the fish, not the size class. A size class qualifies the DAILY count and
-   nothing else, so it stays inside that one cell as a label/number pair. A column of its own
-   would be empty on nine rows in ten and, on the phone layout where every cell becomes its
-   own block, a label stranded in the Size column could no longer sit beside its number.
-
-   THE COUPLING IS NEVER LOST. The smaller class carries the whole number and the larger one
-   says "of the N" beneath it, so the two can never be read as N + n fish; a pooled cap still
-   says "between them", for the same reason.
-
-   WHEN A CAP IS NOT A TIER (it keeps its old rendering; a cap is never dropped):
-     - nothing may be kept: the row is a dash and no length can change that;
-     - the floor is at or above the cap: every keepable fish is over the cap, so there is no
-       class below it. `sizeSimplify` restates the cap at the floor and it stays text
-       (Region 2 streams: "only 1 over 50 cm" + "at least 60 cm" -> "only 1 over 60 cm");
-     - the cap is not stricter than the number it sits inside: Regions 1 and 2 print
-       "Steelhead (hatchery): 2 ... only 2 over 50 cm" on streams, a cap that can never bite,
-       and splitting it would offer "up to 50 cm: 2" and "over 50 cm: 2". Same test as
-       `rowCap(row, true)`. */
-const CAP_RE = /^only (\d+) over (\d+)\s*cm/;
-
-/* TWO CAPS AT ONE THRESHOLD, AND ONE OF THEM CARRIES THE OTHER. Region 6 writes "only 1 over
-   50 cm" twice on hatchery steelhead: once for every trout and char together ("between them")
-   and once for steelhead alone. A shared single fish over 50 already forbids a second over-50
-   steelhead, so the pooled line is the whole answer and printing both is the same sentence
-   twice. Nothing is dropped that is not said by a line still on the page — the same test the
-   floors use. A different threshold, or a smaller number, always keeps its own line. */
-function narrowCaps(caps) {
-  const by = {};
-  caps.forEach(c => { c.absorbed = false; (by[c.at] = by[c.at] || []).push(c); });
-  const out = [];
-  Object.keys(by).forEach(at => {
-    const g = by[at];
-    const best = g.slice().sort((a, b) => (a.capN - b.capN) || ((b.pooled ? 1 : 0) - (a.pooled ? 1 : 0)))[0];
-    g.forEach(c => {
-      if (c === best || !(best.pooled && best.capN <= c.capN)) out.push(c);
-      else c.absorbed = true;   // said by a line still on the page; not sent back to the text
-    });
-  });
-  return out;
-}
-
-/* Split a row's size statements into what stays in the Size column and what becomes a tier.
-   `head` is the number the tiers sit inside — the row's own, or a `rowCap` that already took
-   it over. */
-/* The definitional minimum for this row's fish, when every one of them has the same one. */
-function defFloorFish(fish) {
-  const defs = (D.meta || {}).definitions || {};
-  if (!fish || !fish.length) return null;
-  let v = null;
-  for (const f of fish) {
-    const d = defs[f];
-    if (!d || d.min_cm == null) return null;
-    if (v === null) v = d.min_cm; else if (v !== d.min_cm) return null;
-  }
-  return v;
-}
-
-function defFloor(row) {
-  const defs = (D.meta || {}).definitions || {};
-  const fish = row.fish || [];
-  if (!fish.length) return null;
-  let v = null;
-  for (const f of fish) {
-    const d = defs[f];
-    if (!d || d.min_cm == null) return null;
-    if (v === null) v = d.min_cm; else if (v !== d.min_cm) return null;
-  }
-  return v;
-}
-
-function sizePlan(row, head, opts) {
-  opts = opts || {};
-  const seen = {}, items = [];
-  // THE SIZE LIST AND THE COUNTERS ARE THE SAME RULES, and only the counters carry `pooled`
-  // and the fish the rule still reaches. Joining them here is what lets one pooled cap be
-  // worded the same way whether it prints as a tier, as the row's number, or as text.
-  const cmap = {};
-  (row.counters || []).forEach(c => {
-    if (!c.rule) return;
-    if (c.period === "daily" || !cmap[c.rule]) cmap[c.rule] = cmap[c.rule] || c;
-    if (c.period === "daily") cmap[c.rule] = c;
-  });
-  const mineWords = (row.members || []).join(", ").toLowerCase();
-  (row.size || []).forEach(g => {
-    const t = String(g.plain || g.says || "").trim();
-    if (!t || seen[t]) return; seen[t] = 1;
-    const m = CAP_RE.exec(t);
-    const src = cmap[g.rule] || {};
-    items.push({
-      t, at: m ? +m[2] : null, capN: m ? +m[1] : null,
-      floor: +((t.match(/at least (\d+)\s*cm/) || [])[1] || 0) || null,
-      pooled: !!src.pooled || !!g.shared || / between them$/.test(t),
-      reaches: src.reaches || [], who: src.fish || "", mineWords: mineWords,
-      rule: g.rule || ""
-    });
-  });
-  const floors = items.filter(x => x.floor).map(x => x.floor);
-  const own = floors.length ? Math.max.apply(null, floors) : null;
-  // A SIZE THE BOOK PUTS IN THE DEFINITION COUNTS AS A FLOOR. Page 86: "steelhead: a rainbow
-  // trout longer than 50 cm". So "up to 50 cm: 4 / over 50 cm: 2" on a steelhead row offers a
-  // number for a fish that cannot exist, and only the 2 is real. No regional table states
-  // this — it is what the word means — so it arrives as `meta.definitions`.
-  const def = defFloor(row);
-  const top = (own === null && def === null) ? null
-            : Math.max(own === null ? 0 : own, def === null ? 0 : def);
-  const h = parseInt(String(head), 10);
-  let tiers = items.filter(x => x.at !== null
-    && (top === null || top < x.at)              // a size class exists below the cap
-    && (isNaN(h) || x.capN < h));                // and the cap is stricter than its number
-  tiers = narrowCaps(tiers).sort((a, b) => a.at - b.at);
-  // A cap no fish of this kind can fall below governs the whole row: every steelhead is over
-  // 50 cm, so "only 2 over 50 cm" is simply "2".
-  const governs = items.find(x => x.at !== null && tiers.indexOf(x) < 0
-    && top !== null && top >= x.at && (isNaN(h) || x.capN < h)) || null;
-  // THE FLOOR IS THE BOTTOM OF THE FIRST TIER, NOT A SEPARATE SENTENCE. "must be at least
-  // 30 cm" in the Size column beside "up to 50 cm: 2" in the next one is one band of fish
-  // described in two places, and the reader has to put 30 and 50 together themselves. Where
-  // a row tiers and has a written floor, the first tier says "30 – 50 cm" and the floor
-  // leaves the Size column — every length is then in one cell.
-  const folded = tiers.length > 0 && own !== null;
-  const dropped = items.some(x => tiers.indexOf(x) < 0 && !x.absorbed && x !== governs
-    && ((folded && x.floor) || x.rule === opts.exclude
-        || (opts.hoisted && opts.hoisted.has(x.rule))));
-  // An absorbed cap is not handed back to the Size column: it would print the sentence the
-  // tier above it already makes, which is exactly the duplication this replaces.
-  // A CAP IS WEIGHED AGAINST THE NUMBER THAT ACTUALLY GOVERNS, which may be a cap that just
-  // took the row over: Region 6's hatchery steelhead carries the band's 5, is really held to
-  // 1 by "1 over 50 cm", and its own "1 over 50 cm" was kept because 1 is less than 5.
-  const eff = governs ? governs.capN : head;
-  const rest = items.filter(x => tiers.indexOf(x) < 0 && !x.absorbed && x !== governs
-                                 && !(folded && x.floor)
-    // A CAP THAT BECAME THIS ROW'S NUMBER IS NOT ALSO A SENTENCE ABOUT SIZE. `governs` is
-    // recomputed against the number it just set, where it no longer qualifies, so the item
-    // fell straight back into the Size column — "1" in Per day beside "only 1 between all
-    // trout and char" in Size, the same fact twice.
-    && x.rule !== opts.exclude
-    // NOR IS A BOUND THE BAND ABOVE ALREADY STATES. "must be at least 30 cm" on the band and
-    // again on each of the four rows under it is the same line five times. A row with a
-    // STRICTER bound of its own keeps it — this drops the rule itself, not the subject.
-    && !(opts.hoisted && opts.hoisted.has(x.rule)));
-  // "ANY SIZE" IS ONLY TRUE WHEN NOTHING WAS TAKEN OUT OF THIS CELL. A bound moved into the
-  // first tier's range, or left to the band above, or turned into the row's own number, is
-  // still a bound — printing "any size" in the space it left says the opposite of the rule.
-  // The definitional 50 cm counts too: "any size" over "every one is over 50 cm" is a
-  // contradiction inside one entry.
-  return { tiers: tiers, text: sizeSimplify(rest, def, eff), governs: governs, def: def,
-           floor: own, folded: folded, moved: dropped || def !== null };
-}
-
-/* The daily cell for a row that has tiers: the number it already showed, now labelled with
-   the class it belongs to, and one line per cap beneath it. */
-function tierCell(headHtml, head, tiers, floor, members) {
-  const line = (lab, num) =>
-    `<div class="tier"><span class="tlab">${lab}</span><span class="tnum">${num}</span></div>`;
-  const first = floor != null ? `${floor} &ndash; ${tiers[0].at} cm` : `up to ${tiers[0].at} cm`;
-  let prev = String(head), out = line(first, headHtml);
-  tiers.forEach(c => {
-    const pw = poolWords(c.pooled, c.reaches, members, c.who);
-    out += line(`over ${c.at} cm`,
-      `<span class="ans${c.capN <= 2 ? " lim" : ""}">${esc(String(c.capN))}</span>` +
-      `<span class="cap">of the ${esc(prev)}${pw ? " &middot; " + esc(pw) : ""}</span>`);
-    prev = String(c.capN);
-  });
-  return `<div class="tiers">${out}</div>`;
-}
-
-function period(row, p) {
-  const c = (row.counters || []).filter(x => x.period === p && !x.moot && !x.within);
-  if (!c.length) return "";
-  const seen = {}, out = [];
-  c.forEach(x => {
-    const n = x.n == null ? x.keep : x.n;
-    const key = String(n) + "|" + (x.pooled ? "p" : "");
-    if (seen[key]) return; seen[key] = 1;
-    out.push(`${esc(String(n))}${x.pooled ? ' <span class="tag">between them</span>' : ""}`);
-  });
-  return out.join("<br>");
-}
-
-/* A CAP INSIDE A NUMBER, WITH NO SIZE, FELL THROUGH EVERY COLUMN. Haida Gwaii's "3 Dolly
-   Varden" is a cap on what the 5 may be made of; `period` skips `within` counters and the
-   size cell only takes counters that carry a size, so a count-cap on a subset of the fish was
-   invisible — the exact shape of defect that started this table's rewrite. */
-function capsOf(row) {
-  const seen = {}, out = [];
-  (row.counters || []).forEach(c => {
-    if (!c.within || c.moot || c.period !== "daily" || c.size || c.n == null) return;
-    const key = c.n + "|" + (c.fish || "");
-    if (seen[key]) return; seen[key] = 1;
-    out.push({ n: c.n, who: String(c.fish || "").toLowerCase(), rule: c.rule,
-               pooled: !!c.pooled, reaches: (c.reaches || []).slice() });
-  });
-  return out;
-}
-
-/* A CAP INSIDE A NUMBER IS THIS ROW'S NUMBER WHEN IT COVERS THIS ROW'S FISH.
-   Haida Gwaii writes "Trout/char: 5, but not more than … 3 Dolly Varden". The 5 is the
-   family's number; for a Dolly Varden the operative limit is 3, and printing 5 on that row
-   tells a reader they may keep five of a fish they may keep three of. A cap only takes over
-   when it carries no size — "1 over 50 cm" limits a size class inside the 5, it is not the
-   row's number.
-
-   COVERS, NOT EQUALS. This used to demand that the cap name exactly this row's fish, which
-   held while a combined quota always kept its members in one row. A DATE BREAKS THAT: on
-   Aug 1 Region 3 releases the bull trout and the Dolly Varden, the lake trout leaves the
-   group and stands alone — and "only 1 of these may be bull trout, Dolly Varden, lake trout"
-   stopped matching the row, which then printed the family's 4. Four lake trout where the
-   book allows one. A cap that reaches every fish on the row binds every fish on the row,
-   whoever else it also names; a cap naming FEWER fish than the row (Region 4's "1 bull trout"
-   under a trout-and-char 5) still does not, because the row's other fish are not capped. */
-function rowCap(row, bindingOnly) {
-  const mine = (row.members || []).map(m => m.toLowerCase()).sort();
-  if (!mine.length) return null;
-  const head = parseInt(String(row.keep), 10);
-  const covers = c => {
-    const his = (c.reaches && c.reaches.length ? c.reaches : c.who.split(/,\s*/))
-      .map(x => String(x).trim().toLowerCase()).filter(Boolean);
-    return mine.every(m => his.indexOf(m) >= 0);
-  };
-  // the strictest such cap — two that both cover this row are both binding, and the reader
-  // is held to the smaller.
-  const hit = capsOf(row).filter(covers).sort((a, b) => a.n - b.n)[0] || null;
-  if (!hit) return null;
-  if (bindingOnly && !isNaN(head) && hit.n >= head) return null;   // it can never bite
-  return hit;
-}
-
-function cells(row, ctx) {
-  // NOTHING MAY BE KEPT, SO NO LENGTH CAN MATTER. Region 2's wild steelhead once read
-  // "must be at least 30 cm - Put it back": the 30 cm came from a band shared with the
-  // hatchery line, and on a released fish it is worse than noise. A tier would be the same
-  // mistake in a louder typeface, so a released fish never gets one either.
-  if (goesBack(row)) return `<td data-th="Size">${DASH}</td>\n    <td class="n" data-th="Per day">${ansCell(row)}</td>\n    <td class="n" data-th="This licence year">${DASH}</td>\n    <td class="n" data-th="May have">${DASH}</td>`;
-  // A CAP ONLY BINDS WHEN IT IS STRICTER THAN THE NUMBER IT SITS INSIDE. Haida Gwaii allows
-  // 3 Dolly Varden inside a family 5 — but on streams the family number is 2 ("2 from
-  // streams"), and a cap of 3 inside a 2 can never bite. Taking the cap unconditionally
-  // printed "3, of the 2 shared", which offers one more fish than the rule allows.
-  // A NUMBER THAT IS NEVER IN FORCE IS NOT AN ANSWER. Region 7A's bull trout carries the
-  // trout-and-char 5, and its calendar has no day on which 5 is the answer: 1 for 303 days,
-  // released for 62. Printing the 5 offers five fish that may never be kept. Three rows over
-  // the 22 tables are like this, and each one now points at the seasons beside it.
-  if (row.keep != null && row.year_round === false && !row.dated) {
-    // No number is printed here, so a cap that would have BECOME the number stays as text —
-    // a cap is restated, never deleted. Re-planning against it is what lets it be restated in
-    // the same words as everywhere else instead of pasted in raw beside its own duplicate.
-    let pl = sizePlan(row, row.keep, { hoisted: ctx && ctx.hoisted });
-    if (pl.governs) pl = sizePlan(row, pl.governs.capN, { hoisted: ctx && ctx.hoisted });
-    return `<td data-th="Size">${sizeText(pl.text, pl.moved)}</td>
-    <td class="n" data-th="Per day"><span class="sz none">no number that stands all year
-      &mdash; the seasons are the answer</span></td>
-    <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
-    <td class="n" data-th="May have">${DASH}</td>`;
-  }
-  const cap = rowCap(row, true);
-  // `capsOf` builds fresh objects each call, so identity never matched and the cap that
-  // became the row's number also printed again as a constraint. Compare the rule.
-  const bound = rowCap(row);
-  const others = capsOf(row).filter(x => !bound || x.rule !== bound.rule);
-  // A POOLED FIGURE NEVER RENDERS WITHOUT "BETWEEN THEM". Region 3's "only 1 of these may be
-  // bull trout, Dolly Varden, lake trout" becomes this row's number once the three are one
-  // group, and a bare 1 beside three fish reads as one each — three times the book's limit.
-  const many = (row.members || []).length > 1;
-  // WHO ELSE SPENDS THIS NUMBER. A cap that covers this row may also name fish that are not
-  // on it — Region 3's "only 1 of these may be bull trout, Dolly Varden, lake trout", on a
-  // day when the first two are released and the lake trout stands alone. "1 between them"
-  // beside one fish is a sentence about nobody; the reader has to be told whom the 1 is
-  // shared with, or they will read it as one lake trout AND one of each of the others.
-  const pw = cap ? poolWords(cap.pooled, cap.reaches, row.members, cap.who) : "";
-  const sharedChip = pw ? ` <span class="tag">${esc(pw)}</span>` : "";
-  // THE ROW'S NUMBER IS THE GROUP'S NUMBER, AND SAYING IT TWICE MAKES IT TWO NUMBERS.
-  // Region 1 draws "Trout — one shared number for every fish below — 4" and then prints 4
-  // again on the trout beneath it and 4 again on the hatchery steelhead: a reader adds them
-  // and comes away with eight. Where the row's answer is set by the band's own rule, the
-  // number is the band's, and the cell says so instead of restating it as if it were this
-  // fish's own allowance.
-  const fromBand = !cap && ctx && ctx.id && row.set_by === ctx.id;
-  const day = cap
-    ? `<span class="ans${cap.n <= 2 ? " lim" : ""}">${esc(String(cap.n))}</span>` + sharedChip +
-      `<div class="cap">of the ${esc(String(row.keep))} shared</div>`
-    : fromBand
-    ? `<span class="ans shared">${esc(String(row.keep))}</span>` +
-      `<div class="cap into">the same ${esc(String(row.keep))} as above</div>`
-    : ansCell(row);
-  // The size classes sit inside whichever number is this row's answer — its own, or the cap
-  // that already took it over — so a class can never be shown against a number it does not
-  // come out of.
-  let head = cap ? cap.n : row.keep;
-  const hoisted = ctx && ctx.hoisted;
-  let plan = sizePlan(row, head, { hoisted: hoisted });
-  let dayHtml = day;
-  if (plan.governs) {
-    const g = plan.governs;
-    head = g.capN;
-    // it is a shared number and says so, like every other shared number on the page
-    const gw = poolWords(g.pooled, g.reaches, row.members, g.who);
-    dayHtml = `<span class="ans${head <= 2 ? " lim" : ""}">${esc(String(head))}</span>` +
-      (gw ? ` <span class="tag">${esc(gw)}</span>` : "") +
-      (plan.def !== null ? "" : `<div class="cap">of the ${esc(String(row.keep))}</div>`);
-    plan = sizePlan(row, head, { exclude: g.rule, hoisted: hoisted });
-  }
-  const tiered = plan.tiers.length > 0;
-  return `<td data-th="Size">${sizeText(plan.text, plan.moved)}${others.length
-      ? `<div class="cap">${others.map(x => esc(`only ${x.n} of these may be ${x.who}`)).join("<br>")}</div>` : ""}</td>
-    <td class="n${tiered ? " tiered" : ""}" data-th="Per day">${
-      tiered ? tierCell(dayHtml, head, plan.tiers, plan.folded ? plan.floor : null, row.members)
-             : dayHtml}</td>
-    <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
-    <td class="n" data-th="May have">${possCell(row, cap, ctx) || DASH}</td>`;
-}
-
-/* WHEN A CAP TAKES OVER THE DAY, ITS OWN POSSESSION TAKES OVER MAY HAVE. `period` skips
-   `within` counters, so a row whose day number is "1, of the 5 shared" still printed the
-   family's 10 beside it — ten in the truck of a fish you may take one of. The cap carries a
-   possession twin of its own (2 x the daily 1); that is this row's answer. */
-function possCell(row, cap, ctx) {
-  // THE SAME DOUBLE-COUNTING ONE COLUMN OVER. A band carries a possession twin of its shared
-  // number, so every row under it printed the band's "10 between them" again. Say once that
-  // it is the same ten.
-  if (!cap && ctx && ctx.poss) {
-    const t = (row.counters || []).find(c => c.period === "possession" && !c.moot
-      && c.rule === ctx.poss);
-    if (t && t.n != null)
-      return `<span class="ans shared">${esc(String(t.n))}</span>` +
-             `<div class="cap into">the same ${esc(String(t.n))} as above</div>`;
-  }
-  if (cap) {
-    const t = (row.counters || []).find(c => c.period === "possession" && !c.moot
-      && c.derived_from === cap.rule);
-    if (t && t.n != null) {
-      // the same wording as the day cell, from the same function
-      const pw = poolWords(t.pooled, cap.reaches, row.members, cap.who);
-      return `${esc(String(t.n))}` + (pw ? ` <span class="tag">${esc(pw)}</span>` : "");
-    }
-  }
-  return period(row, "possession");
-}
-const DASH = '<span style="color:var(--faint)">&mdash;</span>';
-
-/* One entry: the species name once, and a LINE per origin beneath it where wild and hatchery
-   differ. The name used to share a cell with the first origin's chip, so the chip sat at the
-   bottom of a tall cell while its numbers sat at the top of the row and the two never lined
-   up. The name now gets a row of its own and each origin is a row whose cells all start on
-   the same baseline, separated by a rule. */
-/* ---------- A COMBINED QUOTA, AND THE SEASONS THAT DIFFER INSIDE IT ----------
-   The book gives bull trout, Dolly Varden and lake trout ONE number in Region 3 — "only 1 of
-   these" inside the trout-and-char total — and gives them different seasons: on streams the
-   first two go back Aug 1 - Oct 31 and the lake trout Oct 15 - Jan 31. The table drew two
-   rows, identical to the last digit, and printed the shared cap twice as if it were two.
-
-   One row of numbers, then a line per member carrying ONLY when and what. The member lines
-   never carry a number: a number there would read as a second allowance beside the shared
-   one. And the chip on a member line names the fish that season's own counter reaches, never
-   the group — "released Oct 15 - Jan 31" over bull trout closes a legal fishery on the page. */
 const MON = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function md(x) { return (MON[x[0]] || "?") + " " + x[1]; }
 
 function whenWords(s) {
-  const ws = (s.windows || []).map(w => md(w.from) + " \u2013 " + md(w.to));
+  const ws = (s.windows || []).map(w => md(w.from) + " – " + md(w.to));
   if (!ws.length) return "";
   const j = ws.length > 1 ? ws.slice(0, -1).join(", ") + " and " + ws[ws.length - 1] : ws[0];
   return (s.unless ? "every day but " : "") + j;
 }
 
-function seasonVerdict(s) {
-  const k = String(s.keep == null ? "" : s.keep);
-  if (s.kind === "closed" || k === "closed" || (k === "0" && s.kind !== "quota"))
-    return { w: "No fishing", cls: "stop" };
-  if (s.kind === "release" || k === "release") return { w: "Put it back", cls: "rel" };
-  if (s.kind === "unlimited" || k === "∞") return { w: "No limit", cls: "inf" };
-  if (s.kind === "gate") return { w: String(s.plain || ""), cls: "" };
-  if (s.n != null) return { w: `Up to ${s.n}${s.pooled ? " between them" : ""}`, cls: "" };
-  return { w: String(s.plain || s.says || ""), cls: "" };
+/* The rule a line came from, on hover and in the drawer below it. */
+function srcChip(s) {
+  if (!s) return "";
+  return `<span class="src" title="${esc(s.verbatim || "")}">${esc(s.who || "")}${
+    s.season ? ` &middot; ${esc(s.season)}` : ""}</span>`;
 }
 
-/* `s.fish` is what this season's own counter reaches INSIDE the line it is drawn on — the
-   only safe label. Where that is the whole group the group's name is already above it, and
-   the chip falls back to the rule's own subject, so a line that comes from "all game fish"
-   says so rather than looking like a rule written for these three. */
-function seasonLine(s, whole) {
-  const who = (s.fish || []).join(", ");
-  const chip = who && who !== whole ? who : (s.subject && s.subject !== whole ? s.subject : "");
-  const v = seasonVerdict(s);
-  return `<div class="seas">${chip ? `<span class="who">${esc(chip)}</span>` : ""}
-    <span class="sverd ${v.cls}">${esc(v.w)}</span>
-    <span class="when">${esc(whenWords(s))}</span></div>`;
+/* THE NUMBER, IN WORDS. `most` is what the ledger allows this fish today, with every budget
+   it sits inside already taken into account; `answer` is the sentence the book itself writes.
+   Where they differ the reader is told why, because "5" with a "1" somewhere below it is how
+   a person ends up three fish over. */
+function keepCell(lf) {
+  if (lf.unwritten) return `<span class="sz none">no daily limit set at this level</span>`;
+  if (lf.zero) return `<span class="ans ${lf.answer === "release" ? "rel" : "stop"}">${
+    lf.answer === "release" ? "Put it back" : "No fishing"}</span>`;
+  if (lf.answer === "∞" || lf.answer === "unlimited")
+    return `<span class="ans inf">No limit</span>`;
+  const n = lf.most;
+  if (n == null) return `<span class="ans">${esc(lf.answer)}</span>`;
+  return `<span class="ans big">${n}</span>`;
 }
 
-/* EVERY SEASON A ROW CARRIES, AS LINES. The table used to print none of them: a row read
-   "Lake trout 3 of the 5 shared" while the book releases it Sep 15 - Oct 31, and the only
-   place a season appeared was the print check beside the table. Half a page of seasons is
-   worse than none, because a row with no line then reads as a row with no season.
+/* One statement per line. "at least 30 cm &middot; only 1 over 50 cm" is one muddled sentence;
+   two lines are two facts, and the reader checks the fish against each in turn. */
+function sizeCell(lf) {
+  const out = (lf.sizes || []).map(s =>
+    `<div class="sz${s.definition ? " def" : ""}">${esc(s.words)}${
+      s.definition ? `<span class="why">by definition</span>` : srcChip(s.source)}</div>`);
+  return out.length ? out.join("") : `<span class="sz none">any size</span>`;
+}
 
-   Only the DAILY counters, and never a possession twin — "2 in possession, Oct 15 - Jan 31"
-   restates its own daily line. A weekday or time-of-day rule is not a season and has no
-   window to state; those still reach the reader only through the rule text. */
-function rowSeasons(row, skip) {
-  const out = [], seen = {};
-  (row.counters || []).forEach(c => {
-    if (c.moot || c.period !== "daily" || c.derived_from) return;
-    if (!(c.windows || []).length) return;
-    if (skip && skip.has(c.rule)) return;
-    if (seen[c.rule]) return; seen[c.rule] = 1;
-    const mine = row.members || [];
-    const who = (c.reaches || []).filter(x => mine.indexOf(x) >= 0);
-    out.push({ rule: c.rule, kind: c.kind, keep: c.keep, n: c.n, pooled: c.pooled,
-               plain: c.plain, says: c.says, windows: c.windows, unless: c.unless,
-               subject: c.fish, fish: who.length ? who : mine });
+/* `may_have` is the cooler once this fish's own day is taken into account. The rule says two
+   times the family's five; a steelhead's day is one, so its cooler is two. Saying "10, which is
+   2 x the daily 5" beside an answer of 1 is three numbers and no limit a reader can act on. */
+function possCell(lf) {
+  const p = lf.possession;
+  if (!p) return `<span class="sz none">&mdash;</span>`;
+  const n = lf.may_have != null ? lf.may_have : p.n;
+  return `<span class="ans">${n == null ? esc(p.word) : n}</span>${
+    p.times && lf.most != null
+      ? `<div class="sz sub">${p.times} &times; the daily ${lf.most}</div>` : ""}`;
+}
+
+/* WHAT THIS FISH SPENDS, and anything true of it alone. Never the budget's number again —
+   the block above already owns that, and printing it a second time on each member is the same
+   figure two or three times. */
+function underCell(lf, v) {
+  const bits = [];
+  if (lf.own_number != null)
+    bits.push(`<div class="note own">its own ${lf.own_number} a day, inside the number above</div>`);
+  (lf.own || []).forEach(c => bits.push(
+    `<div class="note own">${esc(c.words)}${srcChip(c.source)}</div>`));
+  /* ...and only where nothing above has already said it. The own-limit line and this note
+     were both printing "3", one under the other, which is the duplication this whole layout
+     exists to stop. */
+  const said = (lf.own || []).some(c => c.n === lf.most);
+  if (!said && lf.capped_to != null && lf.most != null && String(lf.answer) !== String(lf.most))
+    bits.push(`<div class="note cap">the book writes ${esc(lf.answer)} for this fish; ${
+      lf.most} is what is left after the line above</div>`);
+  return bits.join("");
+}
+
+/* The fish's name carries its annual limit, because steelhead is the only fish in the province
+   that has one and a whole column stood empty for it on every other row. */
+/* ...and NAMES, NEVER A COUNT. `heading` gives up the names past eight fish and returns
+   "9 kinds of trout and char", which tells a reader holding a bull trout nothing at all and on
+   two regions invites them to assume they are in it when they are not. Where the handle does
+   not spell every member out, the members go underneath it. */
+function leafName(lf) {
+  const spelled = (lf.members || []).every(m => lf.handle.indexOf(m) >= 0);
+  return `<b>${esc(lf.handle)}</b>${lf.annual
+    ? `<span class="ann" title="${esc((lf.annual.source || {}).verbatim || "")}">${
+        lf.annual.n} a year</span>` : ""}${
+    spelled ? "" : `<div class="pwho">${(lf.members || []).map(esc).join(", ")}</div>`}`;
+}
+
+function leafRow(lf, v, depth) {
+  return `<tr class="leaf d${depth}">
+    <td class="fish">${leafName(lf)}${underCell(lf, v)}</td>
+    <td class="size">${sizeCell(lf)}</td>
+    <td class="n">${keepCell(lf)}</td>
+    <td class="n">${possCell(lf)}</td></tr>`;
+}
+
+/* A SHARED NUMBER, DRAWN ONCE, WITH EVERY FISH THAT SPENDS IT NAMED. "9 kinds of trout and
+   char" tells a reader holding a bull trout nothing at all, and on two regions invites them to
+   assume they are in it when they are not. */
+function poolRow(p, depth, clause, names) {
+  const who = p.spends.map(f => esc(names[f] || f)).join(", ");
+  return `<tr class="pool d${depth}${clause ? " clause" : ""}">
+    <td class="fish" colspan="2">
+      <div class="phead">${clause
+        ? `of those, only <b>${p.n}</b> may be ${p.sized
+            ? esc(p.size.replace(/^counting those /, "")) : "kept"}, between them`
+        : `<b>${p.n}</b> a day between them${p.sized
+            ? ", " + esc(p.size.replace(/^counting those /, "counting ")) : ""}`}</div>
+      <div class="pwho">${who}</div>${srcChip(p.source)}</td>
+    <td class="n"><span class="ans big">${p.n}</span><div class="sz sub">shared</div></td>
+    <td class="n"><span class="sz none">&mdash;</span></td></tr>`;
+}
+
+/* THE TABLE. Budgets nest; a fish hangs off the innermost budget it spends, or off nothing.
+   The order is the order a reader needs: the widest number first, then what narrows it. */
+function viewTable(v, names) {
+  const kids = {};             // pool id -> child pools
+  (v.pools || []).forEach(p => (kids[p.parent || ""] = kids[p.parent || ""] || []).push(p));
+  const under = {};            // pool id -> leaves whose innermost budget it is
+  const loose = [];
+  (v.leaves || []).forEach(lf => {
+    const home = (lf.spends || [])[0];
+    if (home) (under[home] = under[home] || []).push(lf); else loose.push(lf);
   });
-  return out;
+
+  let html = "";
+  (function walk(parent, depth) {
+    (kids[parent] || []).sort((a, b) => b.spends.length - a.spends.length).forEach(p => {
+      html += poolRow(p, depth, !!p.clause_of, names);
+      walk(p.id, depth + 1);
+      (under[p.id] || []).forEach(lf => { html += leafRow(lf, v, depth + 1); });
+    });
+  })("", 0);
+  loose.forEach(lf => { html += leafRow(lf, v, 0); });
+
+  return `<div class="scroll"><table class="qt">
+    <thead><tr><th>Fish</th><th>Size</th><th class="n">Per day</th><th class="n">May have</th></tr></thead>
+    <tbody>${html}</tbody></table></div>`;
 }
 
-function seasonBlock(ss, whole) {
-  return ss.length ? `<div class="gseas">${ss.map(x => seasonLine(x, whole)).join("")}</div>` : "";
-}
-
-function combinedRows(e, byKey, indent, onBand, ctx) {
-  const c = e.combined;
-  const pad = indent ? ' style="padding-left:22px"' : "";
-  const base = byKey[c.cells] || {};
-  // The numbers belong to the GROUP, so the row they are computed from carries the group's
-  // whole membership — that is what lets "only 1 of these may be bull trout, Dolly Varden,
-  // lake trout" be recognised as this row's own number instead of a note in the Size column.
-  const row = Object.assign({}, base, { members: e.members, fish: e.fish });
-  const dm = defFloorFish(e.fish);
-  const whole = (e.members || []).join(", ");
-  const extra = (e.members || []).filter(m => m && e.heading.indexOf(m) < 0);
-  // A season the band above already states is not restated here — the band is where it is
-  // true of every fish below, and printing it twice reads as two different closures.
-  const shared = (c.seasons || []).filter(s => !(onBand && onBand.has(s.rule)))
-    .map(s => seasonLine(s, whole)).join("");
-  const head = `<div class="fish">${esc(e.heading)}</div>
-    ${dm !== null ? `<div class="defnote">every one is over ${dm} cm</div>` : ""}
-    ${extra.length ? `<div class="mem">${esc(extra.join(", "))}</div>` : ""}
-    <div class="mem">one number for all of them, together</div>
-    ${shared ? `<div class="gseas">${shared}</div>` : ""}`;
-  const lines = (c.members || []).filter(m => (m.seasons || []).length);
-  let out = `<tr class="${lines.length ? "cgroup" : ""}${ctx && ctx.id ? " inband" : ""}">
-    <td class="fishcell"${pad}>${head}</td>${cells(row, ctx)}</tr>`;
-  lines.forEach((m, i) => {
-    out += `<tr class="cline${i === lines.length - 1 ? " last" : ""}">
-      <td class="fishcell" colspan="5"${pad}>
-        ${m.seasons.map(s => seasonLine(s, null)).join("")}</td></tr>`;
-  });
-  return out;
-}
-
-function entryRows(e, byKey, indent, onBand, ctx) {
-  if (e.combined) return combinedRows(e, byKey, indent, onBand, ctx);
-  const mem = (e.members || []).filter(m => m && m !== e.heading);
-  const pad = indent ? ' style="padding-left:22px"' : "";
-  const dm = defFloorFish(e.fish);
-  // A FISH DRAWN BESIDE A SHARED NUMBER IT IS NOT PART OF MUST SAY SO. Kootenay Lake's
-  // rainbow has its own 10 ON TOP OF the region's shared 5 and is filed under the same
-  // family heading, so without this line it reads as ten out of the five above it. The
-  // pipeline has always emitted `outside_of`; nothing drew it.
-  const out_ = ((byKey[(e.lines[0] || {}).row] || {}).outside_of) || [];
-  const head = `<div class="fish">${esc(e.heading)}</div>
-    ${dm !== null ? `<div class="defnote">every one is over ${dm} cm</div>` : ""}
-    ${mem.length ? `<div class="mem">${esc(mem.join(", "))}</div>` : ""}
-    ${out_.map(o => `<div class="notin">on top of the ${esc(String(o.keep))} shared by
-      ${esc(String(o.fish || "").toLowerCase())} &mdash; these do not come out of it</div>`).join("")}`;
-  const whole = (e.members || []).join(", ");
-
-  // Both origins saying the same thing is one row, not two — seasons included, or a fish
-  // released for half the year in one origin and not the other would collapse into one line.
-  let merged = false;
-  if (e.lines.length > 1) {
-    const same = e.lines.map(l => cells(byKey[l.row] || {}, ctx) +
-      seasonBlock(rowSeasons(byKey[l.row] || {}, onBand), whole));
-    // COLLAPSING TWO ORIGINS MUST NOT LEAVE ONE OF THEM IN THE LABEL. Where the wild and the
-    // hatchery steelhead both go back, one line is right — but it was drawn from the WILD row
-    // and kept that row's "wild only", so a rule true of every steelhead in the river read as
-    // one about wild fish, and a hatchery fish looked keepable by omission. The qualifier is
-    // exactly what stopped being true when the two lines became one.
-    if (same.every(x => x === same[0])) { e = Object.assign({}, e, { lines: [e.lines[0]] }); merged = true; }
+/* WILD AND HATCHERY. `origin_mode` is settled upstream, from everything a reader can see:
+   `none` is one table, `split` is one table whose steelhead line differs, `hoist` is two
+   tables and a choice. The page does not decide which — it only draws what it is handed. */
+let ORIGIN = "wild";
+function quotaTable(q) {
+  if (!q) return `<p class="empty">No standing quota rules for this kind of water.</p>`;
+  const vs = q.views || {};
+  const names = q.names || {};
+  if (vs.both) return viewTable(vs.both, names);
+  if (q.origin_mode === "hoist") {
+    const pick = vs[ORIGIN] ? ORIGIN : Object.keys(vs)[0];
+    return `<div class="otabs">${Object.keys(vs).map(k =>
+      `<button class="obtn" data-origin="${k}" aria-pressed="${String(k === pick)}">${
+        k === "wild" ? "Wild" : "Hatchery"}</button>`).join("")}</div>
+      <p class="note">A number these two fish share is itself different &mdash; these are two
+      tables, and which one you are reading depends on the fish in your hand.</p>
+      ${viewTable(vs[pick], names)}`;
   }
-  if (e.lines.length === 1) {
-    const row = byKey[e.lines[0].row] || {};
-    return `<tr class="${ctx && ctx.id ? "inband" : ""}"><td class="fishcell"${pad}>${head}
-      ${row.qualifier && !merged ? `<span class="org">${esc(row.qualifier)}</span>` : ""}
-      ${seasonBlock(rowSeasons(row, onBand), whole)}</td>
-      ${cells(row, ctx)}</tr>`;
-  }
-  const name = `<tr class="ename"><td class="fishcell" colspan="5"${pad}>${head}</td></tr>`;
-  const lines = e.lines.map((l, i) => {
-    const row = byKey[l.row] || {};
-    const word = l.origin === "wild" ? "Wild" : l.origin === "hatchery" ? "Hatchery" : "Either";
-    return `<tr class="oline${i === e.lines.length - 1 ? " last" : ""}${ctx && ctx.id ? " inband" : ""}">
-      <td class="fishcell"${pad}><span class="org split ${esc(l.origin)}">${esc(word)}</span>
-      ${seasonBlock(rowSeasons(row, onBand), whole)}</td>
-      ${cells(row, ctx)}</tr>`;
-  }).join("");
-  return name + lines;
-}
-
-function quotaTable(pr, rows) {
-  const entries = (pr && pr.entries) || [];
-  if (!entries.length) return `<p class="empty">No standing quota rules for this kind of water.</p>`;
-  const byKey = {}; (rows || []).forEach(r => byKey[r.key] = r);
-  const bands = (pr && pr.bands) || {};
-  /* A SEASON EVERY KEEPABLE FISH CARRIES IS THE TABLE'S, NOT A ROW'S. Region 3's streams are
-     shut to every game fish Jan 1 - Jun 30; printed per row that is the same sentence twelve
-     times, and it buries the seasons that belong to ONE fish — which is the whole point of
-     showing seasons at all.
-
-     The test is not "every row": the rows it misses are the ones where nothing may be kept
-     anyway (the protected species list), so hoisting it takes nothing off them. A season a
-     row with a real number does NOT carry stays on the rows that do carry it — Region 6's
-     "release all trout Nov 1 - Jun 30" is not true of its burbot, and must never read as if
-     it were. */
-  const keepable = r => { const k = String(r.keep == null ? "" : r.keep);
-    return !(k === "0" || k === "closed" || k === "release"); };
-  const tally = {};
-  (rows || []).forEach(r => rowSeasons(r).forEach(x => {
-    (tally[x.rule] = tally[x.rule] || { on: new Set(), s: x }).on.add(r.key); }));
-  const everyRow = new Set(Object.keys(tally).filter(k =>
-    (rows || []).every(r => tally[k].on.has(r.key) || !keepable(r))));
-  const banner = [...everyRow].map(k => seasonLine(
-    Object.assign({}, tally[k].s, { fish: [] }), null)).join("");
-  const done = new Set();
-  // ONE SPECIES CAN NOW BE TWO ENTRIES — a wild one and a hatchery one — so an id made of the
-  // fish alone marks both drawn when the first is. Region 2's streams lost their whole
-  // hatchery band this way: three rows and the shared number, silently, because the wild
-  // rows were drawn first and claimed the same id.
-  const idOf = e => (e.fish || []).join(",") + "\u0000" + (e.origin || "");
-  const FAM = ((D.meta || {}).families || {}).TROUT_CHAR || [];
-  const FAM_NAME = "Trout and char";
-  const inFamily = e => (e.fish || []).length && (e.fish || []).every(f => FAM.indexOf(f) >= 0);
-
-  /* A band, or a lone entry, drawn in place. */
-  function block(e, depth) {
-    if (done.has(idOf(e))) return "";
-    const b = e.band ? bands[e.band] : null;
-    if (b && !e.outside) {
-      const c = b.counter || {}, poss = b.possession || {};
-      // A HOISTED STATEMENT IS NOT AUTOMATICALLY A SIZE. Region 8's band carries a closure,
-      // and rendering every hoisted counter into the Size column printed "closed — no fishing
-      // for it" where a length belongs. Sizes go in the size cell; anything else is a note.
-      // A HOISTED RULE HAS A DAILY COUNTER AND A POSSESSION TWIN, AND THIS TOOK WHICHEVER CAME
-      // FIRST. Region 8's "only 1 over 50 cm" is carried twice — daily 1, possession 2 — and
-      // an unfiltered `find` returned the daily one only because of the order the rows happen
-      // to be built in. One reordering upstream and the band would print "only 2 over 50 cm"
-      // as a daily size rule, twice the fish the book allows. Say which period.
-      const sizes = [], notes = [], bcaps = [], bseas = [];
-      (b.hoisted || []).forEach(rid => {
-        const src = (rows || []).flatMap(r => r.counters || [])
-          .find(x => x.rule === rid && x.period === "daily");
-        if (!src) return;
-        const raw = String(src.plain || src.says || "");
-        if (!raw) return;
-        // The band owns the shared number, so a size class inside it is tiered here, where it
-        // is stated once for every fish below, rather than left as prose in the Size column.
-        const m = src.within && src.size ? CAP_RE.exec(raw) : null;
-        // The band's own counter carries `pooled`; its `plain` does not spell out "between them"
-        // the way a row's size line does, and a pooled figure never renders without it.
-        if (m) { bcaps.push({ t: raw, at: +m[2], capN: +m[1], reaches: src.reaches || [],
-                              who: src.fish || "",
-                              pooled: !!src.pooled || / between them$/.test(raw) }); return; }
-        // A HOISTED COUNTER WITH A WINDOW IS A SEASON, NOT A STANDING FACT. Region 3's spring
-        // closure printed here as a bare "closed — no fishing for it" over the whole trout and
-        // char band, with the dates gone: a six-month closure rendered as a year-round one.
-        if ((src.windows || []).length) {
-          if (everyRow.has(src.rule)) return;        // the banner above already says it
-          bseas.push(seasonLine({ kind: src.kind, keep: src.keep, n: src.n, pooled: src.pooled,
-                                  plain: src.plain, says: src.says, windows: src.windows,
-                                  unless: src.unless, fish: [], subject: src.fish }, null));
-          return;
-        }
-        const txt = esc(raw);
-        (src.size || src.kind === "gate" ? sizes : notes).push(txt);
-      });
-      const bfloor = Math.max.apply(null, [0].concat(
-        sizes.map(t => +((t.match(/at least (\d+)\s*cm/) || [])[1] || 0))));
-      const btiers = narrowCaps(bcaps.filter(x =>
-        bfloor < x.at && (c.n == null || x.capN < c.n))).sort((a, b) => a.at - b.at);
-      bcaps.forEach(x => { if (btiers.indexOf(x) < 0 && !x.absorbed) sizes.push(esc(x.t)); });
-      // the band's floor is the bottom of its first tier too, for the same reason
-      const bfolded = btiers.length > 0 && bfloor > 0;
-      const bsizes = bfolded ? sizes.filter(t => !/at least \d+\s*cm/.test(t)) : sizes;
-      // A SHARED NUMBER NOTHING MAY BE KEPT AGAINST IS NOT A NUMBER. Every row under Region
-      // 3's trout-and-char band reads "No fishing" from Jan through June and the band went on
-      // printing four a day and eight in possession. `present` marks the band moot when its
-      // counter is moot on every row beneath it; here it says what they all say instead.
-      const shut = !!b.moot;
-      const mem = (b.entries || []).flatMap(e => e.members || []);
-      // Inside a family that already says "Trout and char", a band of the same name is the
-      // heading twice; what it actually means there is "all of them, counted together".
-      let head = headingOf(b);
-      if (depth && head === FAM_NAME) head = "All of them, counted together";
-      let out = `<tr class="band${depth ? " sub" : ""}"><td class="fishcell"${depth ? ' style="padding-left:20px"' : ""}>
-          <div class="fish">${esc(head)}</div>
-          <div class="mem">one shared number for every fish below &mdash; not one each</div>
-          ${notes.length ? `<div class="bnote">${notes.join(" &middot; ")}</div>` : ""}
-          ${bseas.length ? `<div class="gseas">${bseas.join("")}</div>` : ""}
-          ${b.origin ? `<span class="org">${esc(b.origin)}</span>` : ""}</td>
-        <td data-th="Size">${shut ? DASH : (bsizes.length
-          ? `<span class="sz">${bsizes.join(" &middot; ")}</span>`
-          : `<span class="sz none">&mdash;</span>`)}</td>
-        <td class="n${!shut && btiers.length ? " tiered" : ""}" data-th="Per day">${(() => {
-          if (shut) return ansCell({ keep: b.answer });
-          const h = c.n != null
-            ? `<span class="ans">${esc(String(c.n))}</span> <span class="tag">between them</span>` : DASH;
-          return btiers.length ? tierCell(h, c.n, btiers, bfolded ? bfloor : null, mem) : h;
-        })()}</td>
-        <td class="n" data-th="This licence year">${DASH}</td>
-        <td class="n" data-th="May have">${!shut && poss.n != null
-          ? `<span class="ans">${esc(String(poss.n))}</span> <span class="tag">between them</span>` : DASH}</td>
-      </tr>`;
-      const said = new Set([b.id].concat(b.hoisted_all || [], [...everyRow]));
-      const ctx = { id: b.id, n: c.n, poss: (poss || {}).rule || null, name: head,
-                    hoisted: new Set(b.hoisted_all || []) };
-      (b.entries || []).forEach(me => { out += entryRows(me, byKey, true, said, ctx); done.add(idOf(me)); });
-      done.add(idOf(e));
-      return out;
-    }
-    done.add(idOf(e));
-    return entryRows(e, byKey, !!depth, everyRow);
-  }
-
-  /* TROUT AND CHAR IS ONE PLACE ON EVERY TABLE. Region 2 writes one number for the family;
-     Region 1 writes "Trout: 4" and releases all char. Both belong under one heading, with
-     whatever shared numbers each region does have as sub-sections inside it — so a reader
-     holding a char looks in the same place either way. */
-  const fam = entries.filter(inFamily), rest = entries.filter(e => !inFamily(e));
-
-  // THE FAMILY HEADING EARNS ITS PLACE ONLY WHEN THERE IS MORE THAN ONE GROUP UNDER IT.
-  // Count GROUPS, not entries: Region 2's three entries all count inside one shared number,
-  // so a "Trout and char" family above a "Trout and char" band is the same heading twice.
-  // Region 1 has two — char released, trout counted 4 — and there the heading is the thing
-  // that puts them in one place.
-  const groups = new Set(fam.map(e => (e.band && !e.outside) ? e.band : "solo:" + idOf(e)));
-  /* ORIGIN GROUPS THE FAMILY, EVEN THOUGH IT CANNOT SIT ABOVE IT. Measured before trying:
-     14 of the 20 bands hold entries of MORE THAN ONE origin, so a WILD / HATCHERY heading
-     above "Trout and char" would either duplicate the shared-number row into both sections or
-     tear rows out of the number they count inside. What it can do is order them — the fish you
-     may keep first, then the ones that go back, together, which is the list the synopsis
-     prints as "And you must release: …". */
-  const ORANK = { either: 0, hatchery: 1, wild: 2 };
-  const rank = e => {
-    const b = e.band && !e.outside ? bands[e.band] : null;
-    const es = b ? b.entries : [e];
-    return Math.min.apply(null, es.map(x => ORANK[x.origin] == null ? 0 : ORANK[x.origin]));
-  };
-  const famSorted = fam.map((e, i) => [rank(e), i, e]).sort((a, b) => a[0] - b[0] || a[1] - b[1])
-    .map(x => x[2]);
-  let body = "";
-  const wildHead = () => {
-    const ws = famSorted.filter(e => e.origin === "wild");
-    if (!ws.length) return "";
-    const all = ws.every(e => goesBack(byKey[e.lines[0].row] || {}));
-    return `<tr class="band sub owild"><td class="fishcell" colspan="5" style="padding-left:20px">
-      <div class="fish">Wild fish</div>
-      <div class="mem">${all ? "you must release every one of these" : "these differ from their hatchery kin"}</div></td></tr>`;
-  };
-  let wroteWild = false;
-  const draw = (e, depth) => {
-    let pre = "";
-    if (e.origin === "wild" && !wroteWild && depth) { pre = wildHead(); wroteWild = true; }
-    return pre + block(e, depth);
-  };
-  if (groups.size > 1) {
-    body += `<tr class="fam"><td class="fishcell" colspan="5">
-      <div class="fish">${FAM_NAME}</div>
-      <div class="mem">every trout and every char &mdash; counted ${groups.size} ways here</div>
-    </td></tr>`;
-    famSorted.forEach(e => { body += draw(e, 1); });
-  } else {
-    famSorted.forEach(e => { body += block(e, 0); });
-  }
-  rest.forEach(e => { body += block(e, 0); });
-
-  return (banner ? `<div class="tseas">
-      <span class="eyebrow">True of every fish you may keep here</span>${banner}</div>` : "")
-    + `<div class="scroll"><table>
-    <thead><tr><th>Fish</th><th>Size</th><th class="n">Per day</th>
-      <th class="n">This licence year</th><th class="n">May have</th></tr></thead>
-    <tbody>${body}</tbody></table></div>`;
+  return `<div class="osplit">${Object.keys(vs).map(k =>
+    `<div class="oside"><span class="eyebrow">${k === "wild" ? "Wild" : "Hatchery"}</span>${
+      viewTable(vs[k], names)}</div>`).join("")}</div>`;
 }
 
 /* A BAND IS NAMED BY THE COUNTER THAT MAKES IT, NOT BY A GUESS AT ITS MEMBERS. This read the
@@ -1289,6 +639,66 @@ function gearSeasonal(t) {
 }
 
 /* ---------- draw ---------- */
+/* A WATER THAT IS SHUT DOES NOT NEED A TABLE OF NOUGHTS. Twelve rows all reading "No fishing"
+   is a table a reader has to parse to learn one thing. Say the one thing, say when it lifts,
+   and say who shut it.
+
+   IT STAYS LIFTABLE. This is a statement about the table as drawn, on this date and in this
+   place — not a short circuit around the ledger. An exemption that reopens the water reopens
+   it upstream, the leaves stop being zero, and the table comes back on its own. */
+function allShut(q) {
+  if (!q) return false;
+  const vs = Object.values(q.views || {});
+  return vs.length > 0 && vs.every(v => (v.leaves || []).length &&
+    v.leaves.every(lf => lf.zero || lf.unwritten)) &&
+    vs.some(v => v.leaves.some(lf => lf.zero && lf.answer !== "release"));
+}
+
+/* WHO SHUT THE WATER — and only that. Listing every rule behind every zero row puts "white
+   sturgeon is a protected species" beside "No Fishing in any stream in Region 3", as though the
+   sturgeon were why nobody may fish. A rule that closes one fish is a fact about that fish; the
+   water is closed by the rule that reaches nearly all of them. Below half, nothing qualifies
+   and the full list is shown rather than an empty "Because". */
+function shutWhy(e, t) {
+  const area = ((t.area || {}).why || []).map(w => ({ rule: w.rule, who: w.who, verbatim: w.verbatim }));
+  const tally = {};
+  let leaves = 0;
+  Object.values((t.quota || {}).views || {}).forEach(v => (v.leaves || []).forEach(lf => {
+    if (!lf.zero || !lf.source) return;
+    leaves++;
+    const k = lf.source.rule;
+    (tally[k] = tally[k] || { n: 0, s: lf.source }).n++;
+  }));
+  const all = Object.values(tally).sort((a, b) => b.n - a.n);
+  const wide = all.filter(x => x.n * 2 >= leaves);
+  return area.concat((wide.length ? wide : all).map(x => x.s));
+}
+
+function shutBlock(e, t) {
+  const why = shutWhy(e, t).map(w =>
+    `<li><b>${esc(w.who || "")}</b>${w.verbatim ? ` &mdash; ${esc(w.verbatim)}` : ""}</li>`).join("");
+  /* When it lifts: the next stretch of the year whose own table is not shut. A region with one
+     stretch has nothing to promise, and says nothing rather than guessing. */
+  const vs = viewsOf(e) || [];
+  /* ADJACENT STRETCHES ARE ONE SEASON. The year is cut wherever ANY rule changes, so a water
+     that reopens on 1 July and stays open reads as four separate openings — which is four
+     dates to hold in your head instead of one. */
+  const open = [];
+  vs.forEach(v => {
+    if (allShut(v.quota) || (v.same && allShut((sideOf(e) || {}).quota))) return;
+    const last = open[open.length - 1];
+    if (last && doy(v.from[0], v.from[1]) === doy(last.to[0], last.to[1]) + 1) last.to = v.to;
+    else open.push({ from: v.from, to: v.to });
+  });
+  const spans = open.map(o => `${md(o.from)} \u2013 ${md(o.to)}`);
+  return `<div class="shut">
+    <p class="shutline"><b>Closed.</b> Nothing may be kept here${ON ? " on this date" : ""}.</p>
+    ${spans.length ? `<p class="note">Open again ${esc(spans.join(", "))}.</p>`
+      : `<p class="note">Nothing in this region's standing rules reopens it &mdash; a water of
+         its own may.</p>`}
+    ${why ? `<p class="eyebrow">Because</p><ul class="alist">${why}</ul>` : ""}</div>`;
+}
+
 function draw() {
   drawPicker();
   document.querySelectorAll(".kbtn").forEach(b =>
@@ -1315,9 +725,9 @@ function draw() {
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; what you may keep</h2>${score(e.quota.print)}</header>
       <div class="body">${asOfBanner(t)}${deltaBlock(
-        (t.view && t.view.delta) || (t.area && t.area.delta))}${t.area && t.area.shut
-        ? `<p class="empty">Closed &mdash; see the rules above.</p>`
-        : quotaTable(t.present, t.rows)}</div>
+        (t.view && t.view.delta) || (t.area && t.area.delta))}${(t.area && t.area.shut) || allShut(t.quota)
+        ? shutBlock(e, t)
+        : quotaTable(t.quota)}</div>
     </div>
     <div class="card">
       <header><h2>${esc(e.title)} &mdash; how you may fish</h2>${score(e.gear.print)}</header>
@@ -1343,6 +753,9 @@ function draw() {
       </div>
     </div>`;
   bindDate();
+  document.querySelectorAll(".obtn").forEach(b => b.onclick = () => {
+    ORIGIN = b.dataset.origin; draw();
+  });
 }
 
 document.getElementById("meta").innerHTML =

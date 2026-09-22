@@ -28,7 +28,7 @@ import argparse
 import json
 import sys
 
-from pipeline.regs.table import provenance, method_provenance
+from pipeline.regs.table import display, provenance, method_provenance
 from pipeline.regs.table import quota_print as QP, method_print as MP
 from pipeline.regs.table import state as ST
 from pipeline.regs.table.corpus import rid
@@ -92,6 +92,12 @@ def _table(region: str, kind: str, area=None) -> dict:
     terms = list(getattr(st.gear, "terms", ()) or ())
     against = {"rows": rows, "gear": None}
     return {"rows": rows,
+            # WHAT A READER SEES, beside the rows the checks are made against. `rows` is the
+            # ledger flattened one fish at a time; `quota` is the same ledger as a table — the
+            # shared numbers drawn once, with the fish that spend them hanging off them. Both
+            # come from `st.ledger`, so the page cannot show one thing and the checks pass on
+            # another.
+            "quota": display.table(st.ledger, kind, None, st.label),
             "present": provenance.present({"rows": rows}) if rows else {"entries": [], "bands": {}},
             "views": _views(st, segs, any(t.applies.windows for t in terms), against)}
 
@@ -123,6 +129,7 @@ def _views(st, segs, seasonal_gear: bool, against=None) -> list:
         if not seg["whole_year"]:
             vr = [_slim(provenance.as_of(st.ledger, r, on)) for r in st.rows]
             v["rows"] = vr
+            v["quota"] = display.table(st.ledger, st.kind, on, st.label)
             v["present"] = provenance.present({"rows": vr}, on)
         else:
             v["same"] = True
@@ -241,9 +248,8 @@ def _delta(base: dict, now: dict) -> dict:
             continue
         by.setdefault((was, is_), []).append(sp)
     from pipeline.regs.table.build import name as fish_name
-    from pipeline.regs.table.rows import HIDDEN
     fish = [{"was": k[0], "now": k[1],
-             "fish": sorted(fish_name(c) for c in v if c not in HIDDEN)}
+             "fish": sorted(fish_name(c) for c in v)}
             for k, v in by.items()]
     fish = [f for f in fish if f["fish"]]
 
@@ -407,7 +413,8 @@ def collect() -> dict:
         # own (Region 1's summer closure runs Jul 15 – Aug 31 inside six management units).
         pl = []
         if kind in ("lake", "stream") and region not in ("province", "p") and q and g_table:
-            base_state = {"rows": q["rows"], "present": q["present"], "views": q["views"]}
+            base_state = {"rows": q["rows"], "present": q["present"], "views": q["views"],
+                          "quota": q["quota"]}
             g_base = g_table
             for area in ST.areas(region, kind):
                 try:
@@ -432,7 +439,8 @@ def collect() -> dict:
                     entry["same"] = True
                 else:
                     entry["quota"] = {"rows": [_slim(r) for r in st["rows"]],
-                                      "present": st["present"], "views": st["views"]}
+                                      "present": st["present"], "views": st["views"],
+                                      "quota": st["quota"]}
                 g = method_provenance.base_table(region, kind, None, area.rule_dicts)
                 if json.dumps(g, sort_keys=True) != json.dumps(g_base, sort_keys=True):
                     entry["gear"] = {"table": g}
@@ -449,7 +457,7 @@ def collect() -> dict:
             "kind": kind,
             "title": (q_panel or m_panel or {}).get("title") or f"{region} · {kind}",
             "quota": {"rows": q.get("rows") or [], "present": q.get("present") or {},
-                      "views": q.get("views") or [], "print": q_panel},
+                      "views": q.get("views") or [], "quota": q.get("quota"), "print": q_panel},
             "gear": {"table": g_table, "print": m_panel},
             "always": (q.get("always") or []),
         })

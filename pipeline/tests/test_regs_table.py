@@ -17,7 +17,7 @@ from pipeline.regs.table.size import size_of
 from pipeline.regs.table.authority import Authority, Scope, Source, source_of
 from pipeline.regs.table.ledger import (Allowance, Ledger, LIFTED, REPLACED_BY_CLAUSE,
                                         shuts_the_water)
-from pipeline.regs.table.rows import rows, HIDDEN
+from pipeline.regs.table.rows import rows
 from pipeline.regs.table.oracle import may_i_keep, Fish, Creel
 from pipeline.regs.table.build import (ledger, base, section_rules, section_regions,
                                        section_label, section_kind, name, D, WATERS)
@@ -884,37 +884,6 @@ def test_every_verdict_names_a_rule_and_its_provenance(tables):
 # --------------------------------------------------------------------------- #
 # What the reader sees: size on every row, plain names, and the province alone.
 # --------------------------------------------------------------------------- #
-def test_a_released_fish_does_not_share_a_number_it_cannot_spend(tables):
-    """`Ledger.reaches` asks "does this counter speak about this fish on SOME date", and drops a
-    fish only through `_carved_always`, which needs the carve to hold every day. A SEASONAL
-    release therefore never removes anyone — so Region 3's "1 bull trout (Dolly Varden) or lake
-    trout" went on naming all three through August, when two of them must be released and the
-    rule is, that day, a lake-trout limit.
-
-    `Ledger.spenders` is the right question, and this pins both directions of it."""
-    from pipeline.regs.table import state as ST
-    from pipeline.regs.table.subject import Origin
-    L = ST.state("3", "stream").ledger
-    cap = next(a for a in L.allowances
-               if a.pooled and a.n == 1 and a.within and a.scope.size.is_any)
-    got = {lbl: sorted(name(s) for s in L.spenders(cap, None, on))
-           for lbl, on in (("Jul", (7, 15)), ("Aug", (8, 20)), ("Nov", (11, 5)))}
-    assert got == {"Jul": ["Bull trout", "Dolly Varden", "Lake trout"],
-                   "Aug": ["Lake trout"],
-                   "Nov": ["Bull trout", "Dolly Varden"]}, got
-    # and nobody is ever named as a sharer who may not be kept that day
-    for w, run, _, _, L, t in tables[:30]:
-        for r in t:
-            for on in (None, (7, 15), (1, 15)):
-                for x in r.size(on, name):
-                    for who in (x.get("spenders") or []):
-                        code = next(c for c in L.universe() if name(c) == who)
-                        o = None if r.origin is Origin.both else r.origin
-                        assert L.keepable(code, o or Origin.wild, on) or \
-                               L.keepable(code, Origin.hatchery, on), \
-                            (w, run + 1, r.heading(name), who, on)
-
-
 def test_the_anadromous_forms_are_gone_from_the_model(tables):
     """"ADV" (Dolly Varden, anadromous) and "AEB" (brook trout, anadromous) were members of the
     CHAR group and NAMED BY NO RULE IN THE CORPUS — 0 of 3,422. They existed only to be filtered
@@ -967,20 +936,26 @@ def test_a_released_fish_does_not_share_a_number_it_cannot_spend(tables):
                             (w, run + 1, r.heading(name), who, on)
 
 
-def test_no_hidden_fish_is_ever_named_to_a_reader(tables):
-    """`HIDDEN` holds the anadromous forms of brook trout and Dolly Varden. They are in the
-    group codes, in no rule of their own, and in NO HEADING on any of the 22 tables — so a name
-    that appears nowhere else on the page was turning up inside sharer lists, telling a reader
-    their limit is shared with a fish the table never mentions. 74 statements did this."""
-    bad = []
-    for w, run, _, _, L, t in tables[:30]:
+def test_the_anadromous_forms_cannot_enter_the_model_at_all(tables):
+    """`ADV` (Dolly Varden, anadromous) and `AEB` (brook trout, anadromous) were species codes
+    with no name and no heading on any of the 22 tables, kept out of the reader's way by a
+    `HIDDEN` set — and they leaked anyway, into 74 size statements, telling a reader their limit
+    was shared with a fish the page never mentions.
+
+    THIS TEST REPLACES ONE THAT COULD NOT FAIL. The old one asked whether the strings came out
+    of the size statements, which is what the filter three lines above it had just removed — it
+    tested the filter against itself. The filter is gone; `catalogue` no longer produces the
+    codes, and what is checked now is the thing that makes the filter unnecessary. Put either
+    code back into a species group and this fails, on the group and on every ledger built from
+    it."""
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    gone = {"ADV", "AEB"}
+    for g in SPECIES_GROUPS:
+        assert not (expand(frozenset({g})) & gone), (g, sorted(expand(frozenset({g})) & gone))
+    for w, run, _, _, L, t in tables:
+        assert not (set(L.universe()) & gone), (w, run + 1, sorted(set(L.universe()) & gone))
         for r in t:
-            for on in (None, (7, 15), (1, 15)):
-                for x in r.size(on, name):
-                    for c in HIDDEN:
-                        if name(c).lower() in (x["says"] + x["plain"]).lower():
-                            bad.append((w, run + 1, r.heading(name), name(c)))
-    assert not bad, bad[:5]
+            assert not (set(r.fish) & gone), (w, run + 1, r.heading(name))
 
 
 def test_every_row_carries_a_size_statement(tables):
@@ -1009,12 +984,9 @@ def test_every_row_carries_a_size_statement(tables):
     # steelhead over 50 cm allowed" took it out of that cap and gave it its own.
     assert {x["says"] for x in _row(t, "BT", Origin.hatchery).size(None, name)} == {
         "none under 60 cm", "none under 30 cm",
-        # HIDDEN too: the anadromous forms of brook trout and Dolly Varden are in the group
-        # codes and in no heading on any table, so naming them as sharers tells a reader their
-        # limit is shared with a fish the page never mentions.
         "no more than 1 over 50 cm — shared with " + ", ".join(sorted(
             name(c).lower() for c in
-            expand(frozenset({"TROUT_CHAR"})) - {"BT", "DV", "LT", "ST"} - HIDDEN))}
+            expand(frozenset({"TROUT_CHAR"})) - {"BT", "DV", "LT", "ST"}))}
 
 
 def test_the_rest_of_a_group_is_named_as_the_rest(tables):
@@ -1492,23 +1464,42 @@ def _shape(t):
 
 
 def test_a_table_is_a_function_of_the_rules_handed_to_it_and_nothing_else():
-    """THE ARRANGEMENT THIS FILE EXISTS TO PROTECT. `rules_for` knows where rules come from —
-    which chapter a region's are in, which are an area's, which reach a stretch of water —
-    and `build` knows nothing but the rules it is handed. If a table can be got out of `build`
-    alone, the builder can be lifted out of this project; if `build` ever has to ask which
-    region it is looking at, it cannot."""
+    """THE ARRANGEMENT THIS FILE EXISTS TO PROTECT — and the first version of this test could not
+    fail. It asked whether `build(rules_for(...))` equals `state(...)`, and `state` IS `rules_for`
+    then `build` with the same arguments, so both sides went through one call. A reviewer made
+    `build` read `here` and drop a rule; it passed in nine seconds.
+
+    The second version asserted `here` changes nothing, and that is false: `here` is how a rule
+    the book limits to named regions decides whether it bites, so the gear table depends on it
+    by design.
+
+    What is true, and what fails if the decoupling goes:
+
+      · `build` takes rules, a water kind, the region ids a region-limited rule is measured
+        against, and a label. It may not take a region or an area. If it ever has to ask which
+        chapter it is in, the builder cannot be lifted out.
+      · EVERY RULE IN THE BUILT TABLE CAME FROM THE LIST HANDED IN. A builder that reaches back
+        into the corpus for anything — a region's other rules, a default, a lookup — fails here,
+        whatever its output happens to look like."""
+    import inspect
     from pipeline.regs.table import state as ST
+    from pipeline.regs.table.corpus import rid
+    params = set(inspect.signature(ST.build).parameters)
+    assert not (params & {"region", "area", "on", "chapter"}), sorted(params)
+
     seen = 0
     for region in ST.REGIONS:
         for kind in ST.KINDS:
-            for area in (None,) + ST.areas(region, kind):
-                rules, here, label = ST.rules_for(region, kind, area)
-                direct = ST.build(rules, kind, here, label,
-                                  province=region in ("province", "p"))
-                assert _shape(direct) == _shape(ST.state(region, kind, area)), \
-                    (region, kind, area and area.name)
-                seen += 1
-    assert seen >= 80, seen
+            rules, here, label = ST.rules_for(region, kind)
+            given = {rid(x) for x in rules}
+            t = ST.build(rules, kind, here, label, province=region in ("province", "p"))
+            built = {a.rule_id for a in t.ledger.allowances}
+            assert built <= given, (region, kind, sorted(built - given)[:4])
+            if t.gear is not None:
+                assert set(t.gear.universe()) <= given, \
+                    (region, kind, sorted(set(t.gear.universe()) - given)[:4])
+            seen += 1
+    assert seen == 22, seen
 
 
 def test_a_named_water_is_one_more_precondition_and_needs_no_new_builder():

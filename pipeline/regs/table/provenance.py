@@ -21,7 +21,7 @@ from pipeline.regs.table.build import (ledger, base, section_rules, section_regi
                                        section_label, section_kind, name, D)
 from pipeline.regs.table.corpus import rid, rules as all_rules
 from pipeline.regs.table.ledger import Allowance, Ledger
-from pipeline.regs.table.rows import rows, Row, HIDDEN
+from pipeline.regs.table.rows import rows, Row
 from pipeline.regs.table.subject import Origin
 
 
@@ -63,7 +63,7 @@ def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str
         "reaches": reaches,
         # WHO CAN ACTUALLY SPEND IT TODAY — `reaches` answers a different question (does this
         # counter speak about this fish on SOME date) and cannot see a seasonal release.
-        "spends": (sorted(name(sp) for sp in L.spenders(a, None, on) if sp not in HIDDEN)
+        "spends": (sorted(name(sp) for sp in L.spenders(a, None, on))
                    if row else []),
         "bc_wide": a.source.scope.value == "region" and a.source.authority.value == "province",
     }
@@ -292,7 +292,7 @@ def present(d: dict, on: Optional[tuple] = None) -> dict:
                     if o["rule"] in {x["group"] for x in rows_ if x["group"]}:
                         outside = o["rule"]; break
             out.append({"fish": fish, "heading": heading(frozenset(fish), name),
-                        "members": sorted(name(c) for c in fish if c not in HIDDEN),
+                        "members": sorted(name(c) for c in fish),
                         "origin": origin,
                         "lines": [{"origin": origin, "row": r["key"], "in_band": bool(band)}],
                         "band": band or outside, "outside": bool(outside and not band),
@@ -411,7 +411,7 @@ def row_json(L: Ledger, r: Row, on: Optional[tuple] = None) -> dict:
               and L.binds(a, r.species, o, None, None)]
     group = max(shared, key=lambda a: len(a.scope.effective())).rule_id if shared else None
     return {
-        "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish if c not in HIDDEN),
+        "fish": sorted(r.fish), "members": sorted(name(c) for c in r.fish),
         "heading": r.heading(name), "qualifier": r.qualifier(), "origin": r.origin.value,
         "key": r.heading(name) + "||" + r.qualifier(),
         "keep": head.word() if head else None,
