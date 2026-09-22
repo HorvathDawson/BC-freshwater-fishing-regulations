@@ -51,12 +51,14 @@ what a reader is shown and in what order.
 """
 from __future__ import annotations
 
+import json
 from typing import Dict, List, Optional, Tuple
 
-from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE
+from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE, SPECIES_GROUPS
 from pipeline.regs.table.build import name as fish_name
 from pipeline.regs.table.ledger import Allowance, Ledger
 from pipeline.regs.table.rows import heading as group_heading
+from pipeline.regs.table.subject import expand
 from pipeline.regs.table.subject import Origin
 
 ORIGINS = (Origin.wild, Origin.hatchery)
@@ -483,6 +485,118 @@ def table(L: Ledger, kind: str = "", on=None, label: str = "") -> dict:
     # Varden that is in fact released. A map cannot be zipped wrong.
     names = {c: fish_name(c) for v in vs.values() for lf in v["leaves"] for c in lf["fish"]}
     return {"label": label, "kind": kind, "on": list(on) if on else None, "names": names,
+            "merged": merged(L, on),
             "origin_mode": "none" if same else "hoist" if hoist else "split",
             "views": ({"both": vs[Origin.wild]} if same
                       else {o.value: vs[o] for o in ORIGINS})}
+
+
+# ----------------------------------------------------------------------------------------
+# ONE TABLE — both origins, and the complex fish apart from the simple ones
+# ----------------------------------------------------------------------------------------
+#: The fish whose regulation is a structure rather than a number: they share budgets, the
+#: budgets have clauses, the clauses have size classes, and half of them go back. Everything
+#: else is one fish and one figure. Printing the two kinds in one list makes the simple fish
+#: look complicated and buries the structure the complicated ones need.
+COMPLEX = frozenset(SPECIES_GROUPS["TROUT_CHAR"]) | frozenset(SPECIES_GROUPS["SALMON"])
+
+#: What a reader can see on a fish's line. Two origins agreeing on all of it is ONE line.
+SEEN = ("answer", "most", "sizes", "own", "own_number", "capped_to", "annual", "possession",
+        "may_have", "zero", "unwritten", "spends")
+
+
+def _handle(fish) -> str:
+    """The name a reader finds this line under — and NEVER A COUNT.
+
+    `rows.heading` gives up past eight fish and returns "9 kinds of all game fish". Two things
+    are wrong with that on a table. A count is not a name: a reader holding a burbot cannot tell
+    whether they are in it. And the umbrella is one the set does not fill — nine of the twenty-
+    eight game fish are not "all game fish", they are nine fish that happen to share an answer.
+
+    So: the group's name only where the set IS the group, and otherwise the fish, all of them,
+    however many. A long cell is a solvable layout problem; a wrong name is not."""
+    fish = frozenset(fish)
+    if len(fish) == 1:
+        return fish_name(next(iter(fish)))
+    exact = [g for g in SPECIES_GROUPS
+             if expand(frozenset({g})) and expand(frozenset({g})) == fish]
+    if exact:
+        return fish_name(min(exact, key=lambda g: len(g)))
+    names = sorted(fish_name(f) for f in fish)
+    return ", ".join(names[:-1]) + " or " + names[-1]
+
+
+def merged(L: Ledger, on=None) -> dict:
+    """BOTH ORIGINS, ONE TABLE.
+
+    Drawing wild and hatchery as two whole tables was a misreading of what the split is. In
+    every region the wild difference is the SAME small fact — the wild trout go back — and
+    printing it as a second table of fourteen rows makes a reader compare two pages to find
+    one sentence. Worse, the wild page has no budgets on it at all (nothing may be kept, so
+    nothing shares a number), so the two tables do not even have the same shape: Region 1's
+    streams showed a bare list beside a nested one and nothing said they were the same water.
+
+    So the table is one table, and the origin lives on the LINE that differs. A fish both
+    origins treat alike is one row with no origin on it at all — which is most of them.
+
+    Leaves are grouped by BOTH origins' answers at once, not by one origin's and then matched
+    up: the grouping itself differs between origins (wild releases every trout, so they are one
+    leaf; hatchery keeps six of them apart), and pairing two different groupings after the fact
+    cannot be done without guessing."""
+    vs = {o: view(L, o, on) for o in ORIGINS}
+    per = {o: {sp: lf for lf in v["leaves"] for sp in lf["fish"]} for o, v in vs.items()}
+    pool = {o: v["by_id"] for o, v in vs.items()}
+
+    def words(sp, o):
+        lf = per[o][sp]
+        return tuple(json.dumps(lf[k], sort_keys=True, default=str) for k in SEEN)
+
+    def rule(sp, o):
+        return (per[o][sp]["source"] or {}).get("rule", "")
+
+    # GROUPED BY WHAT IS SAID **AND WHO SAID IT**. Grouping on the words alone put the kokanee
+    # and the white sturgeon in with the char, because all three read "Put it back" — three
+    # different rules collapsed under one of their names, and the line could then cite only one
+    # of them. `same` below still compares the words only, so two origins saying the same thing
+    # are one line even where different rules got them there.
+    # ...AND A LINE NEVER STRADDLES THE TWO TABLES. On the province's own tables every fish has
+    # the same answer, so all twenty-eight fall into one class — which would be drawn under
+    # "Trout, char and salmon" with the burbot and the crayfish inside it. Which table a fish
+    # belongs to is part of what tells two lines apart, so it belongs in the key.
+    classes: Dict[tuple, List[str]] = {}
+    for sp in sorted(L.universe()):
+        key = (tuple(words(sp, o) for o in ORIGINS) + tuple(rule(sp, o) for o in ORIGINS)
+               + (sp in COMPLEX,))
+        classes.setdefault(key, []).append(sp)
+
+    leaves = []
+    for _, fish in classes.items():
+        rep = min(fish)
+        sides = {o.value: {k: per[o][rep][k] for k in SEEN} for o in ORIGINS}
+        same = sides["wild"] == sides["hatchery"]
+        leaves.append({
+            "fish": sorted(fish), "members": _named(frozenset(fish)),
+            "handle": _handle(fish),
+            "complex": all(f in COMPLEX for f in fish),
+            #: one line, or two — and when two, WHICH half is the exception. Every region's
+            #: wild trout go back, so "wild" is the word that carries the information.
+            "same": same,
+            "both": sides["wild"] if same else None,
+            "sides": None if same else sides,
+            "source": per[Origin.hatchery][rep]["source"] or per[Origin.wild][rep]["source"],
+        })
+
+    # -- the budgets, said once, with the origins they are live for ------------------------
+    ids = {p for o in ORIGINS for p in pool[o]}
+    out = []
+    for pid in sorted(ids):
+        live = [o.value for o in ORIGINS if pid in pool[o]]
+        any_ = pool[Origin.hatchery].get(pid) or pool[Origin.wild].get(pid)
+        out.append(dict(any_, origins=live,
+                        spends_by={o.value: pool[o][pid]["spends"] for o in ORIGINS
+                                   if pid in pool[o]},
+                        only=None if len(live) == 2 else live[0]))
+    order = {p["id"]: i for i, p in enumerate(vs[Origin.hatchery]["pools"])}
+    out.sort(key=lambda p: (order.get(p["id"], 99), -len(p["spends"])))
+    return {"pools": out, "by_id": {p["id"]: p for p in out},
+            "leaves": sorted(leaves, key=lambda x: (not x["complex"], x["fish"]))}

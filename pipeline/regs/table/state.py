@@ -106,7 +106,52 @@ def areas(region: str, kind: str) -> Tuple[Area, ...]:
         if w and w != kind:
             continue
         out.setdefault(s.place, []).append(rid(x))
-    return tuple(Area(name, tuple(sorted(ids))) for name, ids in sorted(out.items()))
+    return _fold(out)
+
+
+def _ground(ids) -> Tuple[frozenset, frozenset]:
+    """The ground an area's rules stand on: the area KINDS they name wholesale, and the
+    individual area IDS they name one by one."""
+    want = set(ids)
+    kinds, spots = set(), set()
+    for x in all_rules():
+        if rid(x) not in want:
+            continue
+        for e in (x.get("extents") or []):
+            if e.get("area_kind"):
+                kinds.add(e["area_kind"])
+            if e.get("area_id"):
+                spots.add(e["area_id"])
+    return frozenset(kinds), frozenset(spots)
+
+
+def _fold(out: Dict[str, List[str]]) -> Tuple[Area, ...]:
+    """TWO NAMES FOR ONE PLACE ARE ONE PLACE.
+
+    The book closes the National Parks in one sentence and then closes Pacific Rim, Gwaii
+    Haanas and the Gulf Islands in another — and those three ARE National Park Reserves, so the
+    second sentence is the first one again with the places spelled out. Offered as two entries
+    in a Where picker they read as two different states of the table, and a reader has to open
+    both to find they are the same water shut by the same authority twice.
+
+    The test is not "the tables match" — Ecological Reserves produce an identical table and are
+    a genuinely different place. It is that one area's ground is INSIDE the other's: every area
+    id it names belongs to a kind the other claims wholesale. Then the narrower name is not a
+    separate place, and its rule joins the wider one, where it is still shown and still cited."""
+    ground = {name: _ground(ids) for name, ids in out.items()}
+    folded, gone = dict(out), set()
+    for a, (ka, sa) in ground.items():
+        if ka or not sa:
+            continue                     # names no individual places: nothing to fold in
+        for b, (kb, _) in ground.items():
+            if a == b or not kb:
+                continue
+            if all(any(spot.startswith(f"area:{k}:") for k in kb) for spot in sa):
+                folded[b] = sorted(set(folded[b]) | set(out[a]))
+                gone.add(a)
+                break
+    return tuple(Area(name, tuple(sorted(ids))) for name, ids in sorted(folded.items())
+                 if name not in gone)
 
 
 def rules_for(region: str = "", kind: str = "stream", area: Optional[Area] = None,
@@ -123,8 +168,25 @@ def rules_for(region: str = "", kind: str = "stream", area: Optional[Area] = Non
     rs = region_rules(region)
     if area is not None:
         have = {rid(x) for x in rs}
-        rs = rs + [x for x in area.rule_dicts if rid(x) not in have]
+        rs = rs + [_here(x) for x in area.rule_dicts if rid(x) not in have]
     return rs, frozenset({region}), ""
+
+
+def _here(x: dict) -> dict:
+    """AN AREA'S OWN RULE IS NOT "SOMEWHERE" ONCE YOU ARE STANDING IN IT.
+
+    A rule whose extent is prose nothing can draw becomes a caveat rather than a counter —
+    `Applies("somewhere")` — because no map can say where inside the region it bites. That is
+    right when the question is "Region 1's lakes", and wrong the moment the question is "the
+    Pacific Rim National Park Reserve", because THAT AREA WAS BUILT FROM THIS RULE'S OWN
+    EXTENTS. The place has been drawn; it is the one selected.
+
+    Left unhandled it printed a flat contradiction: the reserve's only rule reads "All fresh
+    waters within Pacific Rim National Park Reserve … are closed to fishing" and the page said
+    the place changes nothing about what you may keep, because the closure was in force
+    nowhere. The National Parks closure beside it, identical in every field that decides a
+    closure and differing only in having no prose extent, shut its area properly."""
+    return dict(x, extent_text=None) if x.get("extent_text") else x
 
 
 # ----------------------------------------------------------------------------------------

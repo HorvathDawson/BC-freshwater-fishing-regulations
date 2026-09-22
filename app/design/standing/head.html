@@ -331,15 +331,28 @@ td.size .sz{margin-bottom:2px}
 
 /* Two origins. A split draws both side by side and a hoist makes the reader pick, because a
    hoist means a number they share is itself different and no one table can state it. */
-/* STACKED, NOT SIDE BY SIDE. Four columns of fish names in half a card is a table that
-   scrolls sideways to be read, and the two sides are compared line for line, not at a glance —
-   which stacking supports and a horizontal scrollbar destroys. */
-.osplit{display:flex;flex-direction:column;gap:22px}
-.oside .eyebrow{display:block;margin:0 0 6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
-.otabs{display:flex;gap:6px;margin-bottom:10px}
-.obtn{padding:5px 12px;border:1px solid var(--line-2);border-radius:999px;background:var(--card);
-  color:var(--sub);font:500 12px/1.5 var(--body);cursor:pointer}
-.obtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+/* TWO KINDS OF FISH, TWO TABLES. The trout share budgets with clauses inside them; the burbot
+   is a fish and a number. One list makes the burbot look complicated and buries the structure. */
+.qsec+.qsec{margin-top:26px}
+.qhead{display:block;margin:0 0 8px}
+
+/* AN ORIGIN IS A LINE UNDER A NAME, not a table of its own. In every region the difference is
+   the same one fact — the wild trout go back — and it was being drawn as a second whole page. */
+tr.leaf.split>td{border-bottom:0;padding-bottom:2px}
+tr.oline>td{background:var(--card);border-bottom:1px dashed var(--line);
+  padding-top:4px;padding-bottom:4px;line-height:1.35}
+tr.oline.last>td{border-bottom:1px solid var(--line)}
+tr.oline>td.fish{border-left:3px solid var(--line);padding-left:26px;position:relative}
+tr.oline.d0>td.fish{border-left-color:transparent}
+tr.oline>td.fish::after{content:"";position:absolute;left:12px;top:0;bottom:0;
+  border-left:2px solid var(--line)}
+tr.oline.last>td.fish::after{bottom:50%}
+tr.oline .ans.big{font-size:15px}
+.org{display:inline-block;padding:1px 7px;border-radius:4px;letter-spacing:.04em;
+  font:600 10.5px/1.6 var(--body);text-transform:uppercase}
+.org.wild{background:color-mix(in srgb,var(--closed) 13%,transparent);color:var(--closed)}
+.org.hatchery{background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
+.phead .org{margin-left:8px;text-transform:none;letter-spacing:0;font-size:11px}
 
 .shut{border-left:3px solid var(--closed);padding:10px 14px;background:var(--wash);border-radius:0 8px 8px 0}
 .shut .shutline{margin:0;font:500 15px/1.5 var(--body);color:var(--ink)}

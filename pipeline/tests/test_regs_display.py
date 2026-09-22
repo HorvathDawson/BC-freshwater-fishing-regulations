@@ -322,3 +322,112 @@ def test_what_you_may_have_follows_what_you_may_keep_today():
                     bad.append((region, kind, on, vn, lf["fish"], lf["may_have"],
                                 p["times"], n))
     assert not bad, bad[:10]
+
+
+# ----------------------------------------------------------------------------------------
+# ONE TABLE — both origins on it, and the complex fish apart from the simple ones
+# ----------------------------------------------------------------------------------------
+def test_every_fish_appears_once_on_the_one_table():
+    """The merged table is a partition of the universe: each fish on exactly one line. Grouping
+    on a signature is how a fish goes missing — two keys that should be one, or one that should
+    be two — so this counts rather than trusts."""
+    for region, kind, on, L, tab in _tables():
+        m = tab["merged"]
+        seen = [f for lf in m["leaves"] for f in lf["fish"]]
+        assert sorted(seen) == sorted(L.universe()), (region, kind, on)
+        assert len(seen) == len(set(seen)), (region, kind, on)
+
+
+def test_a_line_is_drawn_once_only_when_both_origins_say_the_same_thing():
+    """Wild and hatchery were drawn as two whole tables when in every region the difference is
+    one fact — the wild trout go back. Now the origin is on the line, and `same` decides whether
+    there is one line or two. It has to mean what it says in both directions: one line where a
+    reader could not tell the origins apart, two wherever they could."""
+    for region, kind, on, L, tab in _tables():
+        for lf in tab["merged"]["leaves"]:
+            if lf["same"]:
+                assert lf["both"] is not None and lf["sides"] is None, (region, kind, lf["fish"])
+            else:
+                w, h = lf["sides"]["wild"], lf["sides"]["hatchery"]
+                assert w != h, (region, kind, on, lf["fish"])
+                assert lf["both"] is None, (region, kind, lf["fish"])
+
+
+def test_the_two_origins_on_a_line_are_the_two_origins_views():
+    """The merged line is not a third derivation. Whatever it says about a fish, `view` says
+    about that fish for that origin — otherwise there are two answers in the codebase and the
+    page is reading the one nothing checks."""
+    for region, kind, on, L, tab in _tables():
+        per = {o: {sp: lf for lf in D.view(L, o, on)["leaves"] for sp in lf["fish"]}
+               for o in D.ORIGINS}
+        for lf in tab["merged"]["leaves"]:
+            rep = min(lf["fish"])
+            for o in D.ORIGINS:
+                side = lf["both"] if lf["same"] else lf["sides"][o.value]
+                for k in D.SEEN:
+                    assert side[k] == per[o][rep][k], (region, kind, on, rep, o.value, k)
+
+
+def test_the_complex_fish_are_the_ones_with_a_structure():
+    """A trout shares a budget that has a clause that has a size class, and half the trout go
+    back; a burbot is a fish and a number. Drawn in one list the burbot looks complicated and
+    the structure is buried. The split is by the book's own families, not by a guess at which
+    rows look busy."""
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    want = frozenset(SPECIES_GROUPS["TROUT_CHAR"]) | frozenset(SPECIES_GROUPS["SALMON"])
+    for region, kind, on, L, tab in _tables():
+        for lf in tab["merged"]["leaves"]:
+            inside = set(lf["fish"]) & want
+            # a line is wholly in one table or wholly in the other, never across the join —
+            # on the province's tables every fish shares one answer, and grouping on the answer
+            # alone put the burbot and the crayfish under "Trout, char and salmon"
+            assert not inside or inside == set(lf["fish"]), (region, kind, lf["fish"])
+            assert lf["complex"] == bool(inside), (region, kind, lf["fish"])
+
+
+def test_a_budget_says_which_origins_can_spend_it():
+    """Region 1's streams share two between the hatchery trout, and the wild ones are all going
+    back — there is nothing for them to share. A budget drawn with no origin on it there reads
+    as a number a wild fish counts against."""
+    for region, kind, on, L, tab in _tables():
+        for p in tab["merged"]["pools"]:
+            assert p["origins"], (region, kind, p["id"])
+            assert (p["only"] is None) == (len(p["origins"]) == 2), (region, kind, p["id"])
+            for o in p["origins"]:
+                assert p["spends_by"][o], (region, kind, p["id"], o)
+            live = {o.value: D.view(L, o, on)["by_id"] for o in D.ORIGINS}
+            for o in p["origins"]:
+                assert live[o][p["id"]]["n"] == p["n"], (region, kind, p["id"], o)
+
+
+def test_a_line_is_never_named_by_a_count():
+    """"9 kinds of all game fish" fails twice over: a count is not a name, so a reader holding a
+    burbot cannot tell whether they are in it, and the umbrella is one the set does not fill —
+    nine of twenty-eight game fish are not "all game fish"."""
+    import re
+    for region, kind, on, L, tab in _tables():
+        for lf in tab["merged"]["leaves"]:
+            assert not re.match(r"^\d+ kinds of", lf["handle"]), (region, kind, lf["handle"])
+            # a handle is the group's name, or every member of it
+            if len(lf["fish"]) > 1 and not all(m in lf["handle"] for m in lf["members"]):
+                from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+                from pipeline.regs.table.subject import expand
+                assert any(expand(frozenset({g})) == frozenset(lf["fish"])
+                           for g in SPECIES_GROUPS), (region, kind, lf["handle"], lf["fish"])
+
+
+def test_a_line_cites_one_rule_because_its_fish_share_one():
+    """Kokanee, white sturgeon and the char all read "Put it back" in Region 1's streams, and
+    three different rules put them there. Grouped on the words alone they collapse into one
+    line — drawn under one of their names, citing one of their rules, with the other two
+    nowhere. A line carries a single `source`, so the fish on it have to have a single source.
+
+    This is the one thing the merge must keep apart that a reader cannot see: two identical
+    answers from two authorities look the same on the page and are not the same fact."""
+    for region, kind, on, L, tab in _tables():
+        per = {o: {sp: lf for lf in D.view(L, o, on)["leaves"] for sp in lf["fish"]}
+               for o in D.ORIGINS}
+        for lf in tab["merged"]["leaves"]:
+            for o in D.ORIGINS:
+                cited = {(per[o][sp]["source"] or {}).get("rule") for sp in lf["fish"]}
+                assert len(cited) == 1, (region, kind, on, o.value, lf["fish"], sorted(cited))

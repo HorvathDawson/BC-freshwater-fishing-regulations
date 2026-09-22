@@ -191,7 +191,15 @@ Region 3's streams have six:
 | lake trout | closed | 4 | 4 | **put back** | **put back** |
 
 `state.conditions(region, kind)` multiplies the two questions together — every (area, stretch)
-pair a region has. **218** across the 22 tables.
+pair a region has. **165** across the 22 tables, over **47** named places.
+
+It was 218 over 69 places until two of those places turned out to be one. The book closes the
+National Parks in one sentence and then closes Pacific Rim, Gwaii Haanas and the Gulf Islands in
+another — and those three *are* National Park Reserves, so the second sentence is the first one
+again with the places spelled out. `state._fold` drops the narrower name when every area id it
+speaks about belongs to a kind the wider one claims wholesale, and its rule joins the wider
+place, where it is still shown and still cited. The test is that ground, not that the tables
+match: Ecological Reserves draw an identical table and are a genuinely different place.
 
 ### 2.4 Base + amendments, worked
 
@@ -487,6 +495,52 @@ so nothing downstream has to zip two differently-sorted lists.
 | `parent`, `clause_of` | the budget this one sits inside, by `Allowance.within` first |
 
 ---
+
+### 5.1c One table, and two kinds of fish
+
+Two things were wrong with the first build of this layout, and both were mine.
+
+**Wild and hatchery were drawn as two whole tables.** In every one of the 22 regions the
+difference between them is the same single fact — *the wild trout go back* — and it was being
+printed as a second page of fourteen rows. Worse, the two pages did not even have the same
+shape: with nothing keepable, the wild page has no shared numbers on it at all, so Region 1's
+streams showed a bare list beside a nested one and nothing said they were the same water.
+
+So the origin goes on the **line** that differs, and on nothing else:
+
+| | | | |
+|---|---|---|---|
+| **Steelhead** `10 a year` | | | |
+| &nbsp;&nbsp;`WILD` | — | **Put it back** | — |
+| &nbsp;&nbsp;`HATCHERY` | must be at least 50 cm | **1** | 2 |
+
+Most rows are one row with no origin on them. `display.merged` groups species by **both**
+origins' answers at once rather than matching two groupings after the fact — the groupings
+themselves differ (wild releases every trout, so they are one line; hatchery keeps six of them
+apart) and pairing two different groupings cannot be done without guessing.
+
+**And there is one table too many, not one too few.** A trout shares a budget that has a clause
+that has a size class, and half the trout go back. A burbot is a fish and a number. Printed in
+one list the burbot looks complicated and the structure the trout need is buried in the middle
+of it. So: **trout, char and salmon** in one table, **everything else** in another, split by the
+book's own families and not by a guess at which rows look busy. A budget follows its spenders —
+Region 6's whitefish share fifteen and are not complicated by it, so that budget is drawn on the
+simple table.
+
+A line is wholly in one table or wholly in the other. That is not free: on the province's own
+tables every fish has the same answer, so grouping on the answer alone produced one line of all
+twenty-eight, which would have been drawn under "Trout, char and salmon" with the crayfish
+inside it. Which table a fish belongs to is part of what tells two lines apart, so it is part of
+the grouping key.
+
+Two smaller repairs fell out of drawing it:
+
+- **"9 kinds of all game fish" is not a name.** A count tells a reader holding a burbot nothing,
+  and the umbrella is one the set does not fill — nine of the twenty-eight game fish are not
+  "all game fish". `display._handle` gives the group's name only where the set **is** the group,
+  and otherwise names every fish, however many.
+- **"any size" is not "no size".** It is the most permissive size there is, and beside "Put it
+  back" it reads as *any one you like*. A fish that may not be kept gets no size cell at all.
 
 ### 5.2 Option 3 — the table
 

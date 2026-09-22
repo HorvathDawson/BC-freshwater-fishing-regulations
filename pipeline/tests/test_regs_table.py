@@ -1564,7 +1564,14 @@ def test_every_condition_a_region_has_builds_a_settled_table():
                     live = {a.rule_id for a in r.live(on)}
                     h = r.headline(on)
                     assert h is None or h.rule_id in live, (region, kind, seg["label"], r.fish)
-    assert seen > 200, seen
+    # EXACT, NOT A FLOOR. A reviewer showed the loop above cannot fail — `headline` picks from
+    # `live`, so `h.rule_id in live` is true by construction — and the count is the one thing
+    # here that CAN. It earned its keep immediately: folding the Pacific Rim / Gwaii Haanas /
+    # Gulf Islands reserves into National Parks, which are the same ground named twice, took
+    # 53 conditions off (one place per table, with its stretches) and a floor of 200 caught it.
+    # A change to this number is a change to how many states a reviewer has to read; say why.
+    assert seen == 165, seen
+    assert sum(len(ST.areas(r, k)) for r in ST.REGIONS for k in ST.KINDS) == 47
 
 
 def test_an_area_is_the_region_plus_exactly_its_own_rules():

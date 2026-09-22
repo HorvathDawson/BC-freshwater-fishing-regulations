@@ -173,156 +173,173 @@ function srcChip(s) {
    it sits inside already taken into account; `answer` is the sentence the book itself writes.
    Where they differ the reader is told why, because "5" with a "1" somewhere below it is how
    a person ends up three fish over. */
-function keepCell(lf) {
-  if (lf.unwritten) return `<span class="sz none">no daily limit set at this level</span>`;
-  if (lf.zero) return `<span class="ans ${lf.answer === "release" ? "rel" : "stop"}">${
-    lf.answer === "release" ? "Put it back" : "No fishing"}</span>`;
-  if (lf.answer === "∞" || lf.answer === "unlimited")
+function keepCell(d) {
+  if (d.unwritten) return `<span class="sz none">no daily limit set at this level</span>`;
+  if (d.zero) return `<span class="ans ${d.answer === "release" ? "rel" : "stop"}">${
+    d.answer === "release" ? "Put it back" : "No fishing"}</span>`;
+  if (d.answer === "∞" || d.answer === "unlimited")
     return `<span class="ans inf">No limit</span>`;
-  const n = lf.most;
-  if (n == null) return `<span class="ans">${esc(lf.answer)}</span>`;
-  return `<span class="ans big">${n}</span>`;
+  if (d.most == null) return `<span class="ans">${esc(d.answer)}</span>`;
+  return `<span class="ans big">${d.most}</span>`;
 }
 
 /* One statement per line. "at least 30 cm &middot; only 1 over 50 cm" is one muddled sentence;
    two lines are two facts, and the reader checks the fish against each in turn. */
-function sizeCell(lf) {
-  const out = (lf.sizes || []).map(s =>
-    `<div class="sz${s.definition ? " def" : ""}">${esc(s.words)}${
-      s.definition ? `<span class="why">by definition</span>` : srcChip(s.source)}</div>`);
+function sizeCell(d) {
+  /* NOTHING KEPT ⇒ NO SIZE — and "any size" is not no size, it is the most permissive size
+     there is. Printed beside "Put it back" it reads as "any one you like", which is the exact
+     sentence this rule exists to prevent. The model already returns no bounds for a fish that
+     may not be kept; the cell has to say nothing rather than fill the gap. */
+  if (d.zero) return `<span class="sz none">&mdash;</span>`;
+  const out = (d.sizes || []).map(x =>
+    `<div class="sz${x.definition ? " def" : ""}">${esc(x.words)}${
+      x.definition ? `<span class="why">by definition</span>` : srcChip(x.source)}</div>`);
   return out.length ? out.join("") : `<span class="sz none">any size</span>`;
 }
 
 /* `may_have` is the cooler once this fish's own day is taken into account. The rule says two
-   times the family's five; a steelhead's day is one, so its cooler is two. Saying "10, which is
-   2 x the daily 5" beside an answer of 1 is three numbers and no limit a reader can act on. */
-function possCell(lf) {
-  const p = lf.possession;
+   times the family's five; a steelhead's day is one, so its cooler is two. */
+function possCell(d) {
+  const p = d.possession;
   if (!p) return `<span class="sz none">&mdash;</span>`;
-  const n = lf.may_have != null ? lf.may_have : p.n;
+  const n = d.may_have != null ? d.may_have : p.n;
   return `<span class="ans">${n == null ? esc(p.word) : n}</span>${
-    p.times && lf.most != null
-      ? `<div class="sz sub">${p.times} &times; the daily ${lf.most}</div>` : ""}`;
+    p.times && d.most != null
+      ? `<div class="sz sub">${p.times} &times; the daily ${d.most}</div>` : ""}`;
 }
 
-/* WHAT THIS FISH SPENDS, and anything true of it alone. Never the budget's number again —
-   the block above already owns that, and printing it a second time on each member is the same
-   figure two or three times. */
-function underCell(lf, v) {
+/* WHAT THIS FISH SPENDS, and anything true of it alone. Never the budget's number again. */
+function underCell(d) {
   const bits = [];
-  if (lf.own_number != null)
-    bits.push(`<div class="note own">its own ${lf.own_number} a day, inside the number above</div>`);
-  (lf.own || []).forEach(c => bits.push(
+  if (d.own_number != null)
+    bits.push(`<div class="note own">its own ${d.own_number} a day, inside the number above</div>`);
+  (d.own || []).forEach(c => bits.push(
     `<div class="note own">${esc(c.words)}${srcChip(c.source)}</div>`));
-  /* ...and only where nothing above has already said it. The own-limit line and this note
-     were both printing "3", one under the other, which is the duplication this whole layout
-     exists to stop. */
-  const said = (lf.own || []).some(c => c.n === lf.most);
-  if (!said && lf.capped_to != null && lf.most != null && String(lf.answer) !== String(lf.most))
-    bits.push(`<div class="note cap">the book writes ${esc(lf.answer)} for this fish; ${
-      lf.most} is what is left after the line above</div>`);
+  const said = (d.own || []).some(c => c.n === d.most);
+  if (!said && d.capped_to != null && d.most != null && String(d.answer) !== String(d.most))
+    bits.push(`<div class="note cap">the book writes ${esc(d.answer)} for this fish; ${
+      d.most} is what is left after the line above</div>`);
   return bits.join("");
 }
 
 /* The fish's name carries its annual limit, because steelhead is the only fish in the province
    that has one and a whole column stood empty for it on every other row. */
-/* ...and NAMES, NEVER A COUNT. `heading` gives up the names past eight fish and returns
-   "9 kinds of trout and char", which tells a reader holding a bull trout nothing at all and on
-   two regions invites them to assume they are in it when they are not. Where the handle does
-   not spell every member out, the members go underneath it. */
-function leafName(lf) {
+function annBadge(d) {
+  return d && d.annual
+    ? `<span class="ann" title="${esc((d.annual.source || {}).verbatim || "")}">${
+        d.annual.n} a year</span>` : "";
+}
+
+/* The fish's name carries its annual limit, because steelhead is the only fish in the province
+   that has one and a whole column stood empty for it on every other row — but ONLY where both
+   origins have it. The province's ten a year is a hatchery limit; the wild steelhead goes back,
+   and a badge on the shared name says a wild one counts against a ten it can never reach. */
+function leafName(lf, d) {
   const spelled = (lf.members || []).every(m => lf.handle.indexOf(m) >= 0);
-  return `<b>${esc(lf.handle)}</b>${lf.annual
-    ? `<span class="ann" title="${esc((lf.annual.source || {}).verbatim || "")}">${
-        lf.annual.n} a year</span>` : ""}${
+  return `<b>${esc(lf.handle)}</b>${lf.same ? annBadge(d) : ""}${
     spelled ? "" : `<div class="pwho">${(lf.members || []).map(esc).join(", ")}</div>`}`;
 }
 
-function leafRow(lf, v, depth) {
-  return `<tr class="leaf d${depth}">
-    <td class="fish">${leafName(lf)}${underCell(lf, v)}</td>
-    <td class="size">${sizeCell(lf)}</td>
-    <td class="n">${keepCell(lf)}</td>
-    <td class="n">${possCell(lf)}</td></tr>`;
+/* ONE ROW, OR ONE ROW AND TWO LINES UNDER IT.
+   Wild and hatchery were drawn as two whole tables, and in every region the difference between
+   them is the same one fact — the wild trout go back. A reader had to compare two pages of
+   fourteen rows to find one sentence, and the two pages did not even have the same shape: with
+   nothing keepable, the wild page has no shared numbers on it at all. The origin belongs on the
+   line that differs, and on nothing else. */
+const OWORD = { wild: "Wild", hatchery: "Hatchery" };
+
+function leafRow(lf, depth) {
+  if (lf.same) {
+    const d = lf.both;
+    return `<tr class="leaf d${depth}">
+      <td class="fish">${leafName(lf, d)}${underCell(d)}</td>
+      <td class="size">${sizeCell(d)}</td>
+      <td class="n">${keepCell(d)}</td>
+      <td class="n">${possCell(d)}</td></tr>`;
+  }
+  const head = `<tr class="leaf split d${depth}">
+    <td class="fish" colspan="4">${leafName(lf, lf.sides.hatchery)}</td></tr>`;
+  const lines = ["wild", "hatchery"].map((o, i) => {
+    const d = lf.sides[o];
+    return `<tr class="oline d${depth}${i ? " last" : ""}">
+      <td class="fish"><span class="org ${o}">${OWORD[o]}</span>${annBadge(d)}${underCell(d)}</td>
+      <td class="size">${sizeCell(d)}</td>
+      <td class="n">${keepCell(d)}</td>
+      <td class="n">${possCell(d)}</td></tr>`;
+  }).join("");
+  return head + lines;
 }
 
-/* A SHARED NUMBER, DRAWN ONCE, WITH EVERY FISH THAT SPENDS IT NAMED. "9 kinds of trout and
-   char" tells a reader holding a bull trout nothing at all, and on two regions invites them to
-   assume they are in it when they are not. */
+/* A SHARED NUMBER, DRAWN ONCE, WITH EVERY FISH THAT SPENDS IT NAMED. A budget only one origin
+   has says so: Region 1's streams share two between the hatchery trout, and the wild ones are
+   all going back, so there is nothing for them to share. */
 function poolRow(p, depth, clause, names) {
-  const who = p.spends.map(f => esc(names[f] || f)).join(", ");
+  const who = (p.only ? (p.spends_by[p.only] || p.spends) : p.spends)
+    .map(f => esc(names[f] || f)).join(", ");
   return `<tr class="pool d${depth}${clause ? " clause" : ""}">
     <td class="fish" colspan="2">
       <div class="phead">${clause
         ? `of those, only <b>${p.n}</b> may be ${p.sized
             ? esc(p.size.replace(/^counting those /, "")) : "kept"}, between them`
         : `<b>${p.n}</b> a day between them${p.sized
-            ? ", " + esc(p.size.replace(/^counting those /, "counting ")) : ""}`}</div>
+            ? ", " + esc(p.size.replace(/^counting those /, "counting ")) : ""}`}${
+        p.only ? `<span class="org ${p.only}">${OWORD[p.only]} only</span>` : ""}</div>
       <div class="pwho">${who}</div>${srcChip(p.source)}</td>
     <td class="n"><span class="ans big">${p.n}</span><div class="sz sub">shared</div></td>
     <td class="n"><span class="sz none">&mdash;</span></td></tr>`;
 }
 
-/* THE TABLE. Budgets nest; a fish hangs off the innermost budget it spends, or off nothing.
-   The order is the order a reader needs: the widest number first, then what narrows it. */
-function viewTable(v, names) {
-  const kids = {};             // pool id -> child pools
-  (v.pools || []).forEach(p => (kids[p.parent || ""] = kids[p.parent || ""] || []).push(p));
-  const under = {};            // pool id -> leaves whose innermost budget it is
-  const loose = [];
-  (v.leaves || []).forEach(lf => {
-    const home = (lf.spends || [])[0];
+/* TWO TABLES, BECAUSE THERE ARE TWO KINDS OF FISH HERE.
+   A trout shares a budget that has a clause that has a size class, and half the trout go back.
+   A burbot is a fish and a number. Printed in one list the burbot looks complicated and the
+   structure the trout need is buried in the middle of it. The model decides which is which
+   (`leaf.complex`); the page only draws them apart. */
+function oneTable(m, wantComplex, names) {
+  const leaves = (m.leaves || []).filter(lf => !!lf.complex === wantComplex);
+  if (!leaves.length) return "";
+  const mine = new Set(leaves.map(lf => lf.fish.join(",")));
+  const inHere = lf => mine.has(lf.fish.join(","));
+  /* A budget belongs to the table its spenders are in — Region 6's whitefish share fifteen and
+     are not complicated by it. */
+  const spenders = new Set();
+  leaves.forEach(lf => lf.fish.forEach(f => spenders.add(f)));
+  const pools = (m.pools || []).filter(p => p.spends.some(f => spenders.has(f)));
+
+  const kids = {}, ids = new Set(pools.map(p => p.id));
+  pools.forEach(p => {
+    const par = ids.has(p.parent) ? p.parent : "";
+    (kids[par] = kids[par] || []).push(p);
+  });
+  const under = {}, loose = [];
+  leaves.forEach(lf => {
+    const sides = lf.same ? [lf.both] : [lf.sides.hatchery, lf.sides.wild];
+    const home = sides.map(d => (d.spends || [])[0]).find(x => x && ids.has(x));
     if (home) (under[home] = under[home] || []).push(lf); else loose.push(lf);
   });
 
   let html = "";
   (function walk(parent, depth) {
-    (kids[parent] || []).sort((a, b) => b.spends.length - a.spends.length).forEach(p => {
+    (kids[parent] || []).forEach(p => {
       html += poolRow(p, depth, !!p.clause_of, names);
       walk(p.id, depth + 1);
-      (under[p.id] || []).forEach(lf => { html += leafRow(lf, v, depth + 1); });
+      (under[p.id] || []).forEach(lf => { html += leafRow(lf, depth + 1); });
     });
   })("", 0);
-  loose.forEach(lf => { html += leafRow(lf, v, 0); });
+  loose.forEach(lf => { html += leafRow(lf, 0); });
 
-  return `<div class="scroll"><table class="qt">
-    <thead><tr><th>Fish</th><th>Size</th><th class="n">Per day</th><th class="n">May have</th></tr></thead>
-    <tbody>${html}</tbody></table></div>`;
+  return `<div class="qsec">
+    <p class="eyebrow qhead">${wantComplex
+      ? "Trout, char and salmon"
+      : "Everything else"}</p>
+    <div class="scroll"><table class="qt">
+      <thead><tr><th>Fish</th><th>Size</th><th class="n">Per day</th><th class="n">May have</th></tr></thead>
+      <tbody>${html}</tbody></table></div></div>`;
 }
 
-/* WILD AND HATCHERY. `origin_mode` is settled upstream, from everything a reader can see:
-   `none` is one table, `split` is one table whose steelhead line differs, `hoist` is two
-   tables and a choice. The page does not decide which — it only draws what it is handed. */
-let ORIGIN = "wild";
 function quotaTable(q) {
-  if (!q) return `<p class="empty">No standing quota rules for this kind of water.</p>`;
-  const vs = q.views || {};
+  if (!q || !q.merged) return `<p class="empty">No standing quota rules for this kind of water.</p>`;
   const names = q.names || {};
-  if (vs.both) return viewTable(vs.both, names);
-  if (q.origin_mode === "hoist") {
-    const pick = vs[ORIGIN] ? ORIGIN : Object.keys(vs)[0];
-    return `<div class="otabs">${Object.keys(vs).map(k =>
-      `<button class="obtn" data-origin="${k}" aria-pressed="${String(k === pick)}">${
-        k === "wild" ? "Wild" : "Hatchery"}</button>`).join("")}</div>
-      <p class="note">A number these two fish share is itself different &mdash; these are two
-      tables, and which one you are reading depends on the fish in your hand.</p>
-      ${viewTable(vs[pick], names)}`;
-  }
-  return `<div class="osplit">${Object.keys(vs).map(k =>
-    `<div class="oside"><span class="eyebrow">${k === "wild" ? "Wild" : "Hatchery"}</span>${
-      viewTable(vs[k], names)}</div>`).join("")}</div>`;
-}
-
-/* A BAND IS NAMED BY THE COUNTER THAT MAKES IT, NOT BY A GUESS AT ITS MEMBERS. This read the
-   member names and returned "Trout and char" whenever any of them matched /trout|char/ — so
-   Region 1, whose printed box says "Trout: 4" and releases all char separately, showed a
-   TROUT AND CHAR band with char sitting outside it, which looks like a filing error and is
-   really a mislabel. The counter carries its own subject; use it. */
-function headingOf(b) {
-  const c = b.counter || {};
-  if (c.fish) return c.fish;
-  const names = (b.entries || []).map(e => e.heading);
-  return names.length ? names.slice(0, 3).join(", ") : "Shared limit";
+  return oneTable(q.merged, true, names) + oneTable(q.merged, false, names);
 }
 
 /* ---------- gear rows ---------- */
@@ -647,11 +664,15 @@ function gearSeasonal(t) {
    place — not a short circuit around the ledger. An exemption that reopens the water reopens
    it upstream, the leaves stop being zero, and the table comes back on its own. */
 function allShut(q) {
-  if (!q) return false;
-  const vs = Object.values(q.views || {});
-  return vs.length > 0 && vs.every(v => (v.leaves || []).length &&
-    v.leaves.every(lf => lf.zero || lf.unwritten)) &&
-    vs.some(v => v.leaves.some(lf => lf.zero && lf.answer !== "release"));
+  const ls = ((q || {}).merged || {}).leaves || [];
+  if (!ls.length) return false;
+  /* EVERY line at zero — and "unwritten" is not zero. On the province's own tables most fish
+     have no province-wide number at all, and counting those as shut alongside the one real
+     closure (the protected species) reported the whole province closed to fishing. A water is
+     shut when every fish on it is shut, not when no one has said otherwise. */
+  const sides = lf => lf.same ? [lf.both] : [lf.sides.wild, lf.sides.hatchery];
+  return ls.every(lf => sides(lf).every(d => d.zero)) &&
+         ls.some(lf => sides(lf).some(d => d.zero && d.answer !== "release"));
 }
 
 /* WHO SHUT THE WATER — and only that. Listing every rule behind every zero row puts "white
@@ -663,12 +684,13 @@ function shutWhy(e, t) {
   const area = ((t.area || {}).why || []).map(w => ({ rule: w.rule, who: w.who, verbatim: w.verbatim }));
   const tally = {};
   let leaves = 0;
-  Object.values((t.quota || {}).views || {}).forEach(v => (v.leaves || []).forEach(lf => {
-    if (!lf.zero || !lf.source) return;
+  (((t.quota || {}).merged || {}).leaves || []).forEach(lf => {
+    const d = lf.same ? lf.both : lf.sides.hatchery;
+    if (!d.zero || !lf.source) return;
     leaves++;
     const k = lf.source.rule;
     (tally[k] = tally[k] || { n: 0, s: lf.source }).n++;
-  }));
+  });
   const all = Object.values(tally).sort((a, b) => b.n - a.n);
   const wide = all.filter(x => x.n * 2 >= leaves);
   return area.concat((wide.length ? wide : all).map(x => x.s));
@@ -753,9 +775,6 @@ function draw() {
       </div>
     </div>`;
   bindDate();
-  document.querySelectorAll(".obtn").forEach(b => b.onclick = () => {
-    ORIGIN = b.dataset.origin; draw();
-  });
 }
 
 document.getElementById("meta").innerHTML =
