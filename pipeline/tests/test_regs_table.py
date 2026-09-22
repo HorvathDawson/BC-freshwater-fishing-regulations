@@ -1328,6 +1328,42 @@ def test_the_year_round_table_is_what_it_always_was():
         assert json.dumps(a, sort_keys=True) == json.dumps(b, sort_keys=True), (region, kind)
 
 
+def test_a_shared_number_nothing_may_be_kept_against_is_not_a_number():
+    """Region 3's streams are shut to every game fish from January through June. Every row
+    under the trout-and-char band read "No fishing" and the band went on printing four a day
+    and eight in possession — a closed river showing a limit, which is the worst direction
+    for this page to be wrong in.
+
+    A band is moot only when its counter is moot on EVERY row beneath it: one released fish
+    among five must not empty the other four, and there the number still stands."""
+    from pipeline.regs.table.rows import schedule
+    shut, standing = 0, 0
+    for region, kind in REGION_KINDS:
+        L, rs = _base_rows(region, kind)
+        for seg in schedule(rs):
+            rows_, pr = _base_view(region, kind, tuple(seg["from"]))
+            by = {x["key"]: x for x in rows_}
+            for bid, b in pr["bands"].items():
+                in_band = [by[l["row"]] for e in b["entries"] for l in e["lines"] if l["in_band"]]
+                mine = [c for r in in_band for c in r["counters"] if c["rule"] == bid]
+                assert b["moot"] == (bool(mine) and all(c["moot"] for c in mine)), \
+                    (region, kind, seg["label"], bid)
+                if b["moot"]:
+                    shut += 1
+                    # ...and then it says what the rows say, with one voice
+                    assert {r["keep"] for r in in_band} == {b["answer"]}, \
+                        (region, kind, seg["label"], bid)
+                    assert b["answer"] in ("0", "closed", "release"), b["answer"]
+                else:
+                    standing += 1
+    assert shut >= 3 and standing >= 20, (shut, standing)
+    # the year-round tables are not among them: no standing table has a dead band
+    for region, kind in REGION_KINDS:
+        _, pr = _base_present(region, kind)
+        for bid, b in pr["bands"].items():
+            assert not b["moot"], (region, kind, bid)
+
+
 def test_region_6_streams_cap_the_lake_trout_at_three():
     """"3 Dolly Varden/bull trout and/or lake trout combined" — the cap reaches the lake trout
     and it is what a lake trout angler is held to, not the trout-and-char 5 it sits inside.

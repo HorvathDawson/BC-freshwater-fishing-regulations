@@ -269,11 +269,41 @@ question at the water is *what may I keep today*.
   go back, the one line was drawn from the wild row and kept its "wild only" — a rule true of
   every steelhead reading as one about wild fish.
 
-Pinned by seven tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
+### A shut stretch, a shared number, and one sentence per fact
+
+- **A band under a closure printed a limit.** Every row beneath Region 3's trout-and-char band
+  reads "No fishing" from January through June and the band went on offering four a day and
+  eight in possession. `present` now marks a band **moot when its counter is moot on every row
+  beneath it** — one released fish among five must not empty the other four — and the band then
+  says what they all say. Four stretches over the 22 tables; no standing table has one.
+- **"Between them" was worded three ways.** The row's number took the counter's `pooled` flag;
+  a size tier took `size[].shared`, which is only set when the cap reaches fish *outside* the
+  row — so Haida Gwaii's "1 over 50 cm", pooled across all fourteen trout and char and drawn on
+  the row holding ten of them, said nothing at all beside a "3 between them" that did. One
+  `poolWords()` now answers it everywhere, and **names the pool by its group** ("shared with all
+  trout and char") rather than listing twelve species, or **"between them and lake trout"** when
+  the row is several fish and the pool reaches one more.
+- **The floor is the bottom of the first tier.** "must be at least 30 cm" in Size beside "up to
+  50 cm" in Per day is one band of fish described in two cells; the tier now reads **"30 – 50
+  cm"** and the floor leaves the Size column. `sizeText` takes a `moved` flag so an emptied cell
+  can never fall back to **"any size"**, which would say the opposite of the rule.
+- **A size class that is every fish you may keep is not a size class.** "at least 60 cm · only 1
+  over 60 cm between them" is the same 60 cm twice; it now reads **"must be at least 60 cm ·
+  only 1 between all trout and char"**. A cap on the row's *own* fish, at or above the number
+  that governs the row, goes entirely — not pooled means no other row is carrying it, which is
+  the test that keeps every shared cap on the page.
+- **A bound the band states is not restated on each row under it**, and a cap that became the
+  row's number is not also printed as prose beside it.
+- Rows are **13% shorter** on every one of the 22 tables (20,300 px → 17,608 px), mostly from
+  origin lines that were sized like full rows.
+
+Pinned by eight tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
 exactly once and adjacent ones differ; every `Row.calendar` boundary is a schedule boundary;
 a dated row carries only what is in force; Region 3's streams split and rejoin on the right
 days; no dated band is left without its number; **the year-round table is byte-identical
-with and without the date machinery**; and Region 6's lake trout cap.
+with and without the date machinery**; Region 6's lake trout cap; and a moot band agrees with
+every row under it. The renderer is checked by diffing all 818 rendered rows against the
+previous build — every difference has to be one of the named changes above.
 
 ## Open work
 

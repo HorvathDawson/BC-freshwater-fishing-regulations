@@ -319,6 +319,17 @@ def present(d: dict, on: Optional[tuple] = None) -> dict:
         quals = {r["qualifier"] for r in in_band}
         b["origin"] = quals.pop() if len(quals) == 1 else ""
         b["province_only"] = all(e["province_only"] for e in b["entries"])
+        # A SHARED NUMBER NOTHING MAY BE KEPT AGAINST IS NOT A NUMBER. Under Region 3's
+        # spring closure every row beneath the trout-and-char band reads "No fishing" and the
+        # band went on offering four a day and eight in possession — a shut river printing a
+        # limit, which is the worst direction for this page to be wrong in. The counter is
+        # already marked `moot` on each of those rows; a band is moot when it is moot on
+        # EVERY row under it (one released fish among five must not empty the other four),
+        # and then the band says what they all say.
+        mine = [c for r in in_band for c in r["counters"] if c["rule"] == bid]
+        b["moot"] = bool(mine) and all(c["moot"] for c in mine)
+        keeps = {r["keep"] for r in in_band}
+        b["answer"] = keeps.pop() if len(keeps) == 1 else None
     return {"entries": out, "bands": bands}
 
 

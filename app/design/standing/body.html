@@ -130,27 +130,83 @@ function ansCell(row) {
        own fish, so nothing else was carrying it. Keeping one char over 60 spends the group's
        single over-50 fish, and a rainbow over 50 then cannot be kept — a coupling the reader
        could no longer see. Restate it; never remove it. */
-function sizeSimplify(items, defMin) {
+/* WHO ELSE SPENDS THIS NUMBER — ONE ANSWER, EVERYWHERE IT IS ASKED.
+   A pooled figure was worded three different ways on one table: the row's own number took
+   the counter's `pooled` flag and said "between them"; a size tier took `size[].shared`,
+   which is only set when the cap reaches fish OUTSIDE this row, so Haida Gwaii's "1 over 50
+   cm" — pooled across all fourteen trout and char, and drawn on the row that holds ten of
+   them — said nothing at all, right beside a "3 between them" that did. Both are one fish
+   shared among many; a reader comparing the two can only conclude the silent one is per
+   species, which is ten times the book's limit.
+
+   One rule: a pooled number shared by more than one fish always says so. Where the row is a
+   single fish, "between them" is a sentence about nobody, so the others are NAMED instead —
+   that is the only case where naming fits, and the only case where it is needed. */
+function poolWords(pooled, reaches, members, subject) {
+  if (!pooled) return "";
+  const mine = (members || []).map(x => String(x).toLowerCase());
+  const others = (reaches || []).filter(x => mine.indexOf(String(x).toLowerCase()) < 0);
+  if (!others.length) return mine.length > 1 ? "between them" : "";
+  // NAME THE POOL, NOT ITS MEMBERS. Haida Gwaii's single over-50 fish is shared across every
+  // trout and char, and listing them printed twelve species — "brook trout (anadromous)"
+  // included — inside one table cell. The rule has a subject and the book uses it; a group
+  // name is the readable form of the same fact. A subject with commas in it is a list of
+  // species, not a group, and then the short list of the others reads better than "all".
+  //
+  // "BETWEEN THEM" ALONE IS NOT ENOUGH WHEN THE POOL REACHES FURTHER. On Region 3's lakes
+  // from Oct 15 the bull trout and Dolly Varden share their 1 with the lake trout, which is
+  // released and sits on its own row; "between them" beside the two of them says the pool
+  // stops there, and a reader could keep one of each.
+  const who = String(subject || "");
+  const head = mine.length > 1 ? "between them and " : "shared with ";
+  if (who && who.indexOf(",") < 0 && who.toLowerCase() !== mine.join(", "))
+    return (mine.length > 1 ? "between all " : "shared with all ") + who.toLowerCase();
+  if (others.length <= 3) return head + others.join(", ").toLowerCase();
+  return head + others.length + " other fish";
+}
+
+/* `items` are the objects `sizePlan` built, not strings: a restated cap has to know whose
+   pool it is to say so, and whether it can still bite the number it sits inside. */
+function sizeSimplify(items, defMin, head) {
   // A definitional minimum subsumes a written floor the same way a written one does: every
   // steelhead is over 50 cm, so "must be at least 30 cm" on a steelhead row says nothing.
-  const parsed = items.map(t => ({
-    t,
-    floor: (t.match(/at least (\d+)\s*cm/) || [])[1],
-    capAt: (t.match(/only \d+ over (\d+)\s*cm/) || [])[1]
+  const parsed = items.map(x => Object.assign({}, x, {
+    fl: (x.t.match(/at least (\d+)\s*cm/) || [])[1],
+    capAt: (x.t.match(/only \d+ over (\d+)\s*cm/) || [])[1]
   }));
-  const floors = parsed.filter(x => x.floor).map(x => +x.floor);
+  const floors = parsed.filter(x => x.fl).map(x => +x.fl);
   if (defMin != null) floors.push(defMin);
   const top = floors.length ? Math.max.apply(null, floors) : null;
-  const out = [];
+  const bounds = [], caps = [];
   parsed.forEach(x => {
-    if (x.floor) { if (+x.floor === top && (defMin == null || +x.floor > defMin)) out.push(x.t); return; }
-    if (x.capAt && top !== null && top > +x.capAt) {
-      out.push(x.t.replace(/over \d+\s*cm/, "over " + top + " cm"));
+    if (x.fl) { if (+x.fl === top && (defMin == null || +x.fl > defMin)) bounds.push(x.t); return; }
+    // A SIZE CLASS THAT IS EVERY FISH YOU MAY KEEP IS NOT A SIZE CLASS. Region 2's streams
+    // say "at least 60 cm" and "only 1 over 50 cm between them", and restating the cap at the
+    // floor gave "only 1 over 60 cm between them · must be at least 60 cm" — the same 60 cm
+    // twice, the second time dressed as a different rule. Nothing under 60 may be kept, so
+    // "over 60 cm" describes every keepable fish and the cap is simply a count: one, between
+    // whoever shares it. The COUPLING IS NOT DROPPED — that one fish still spends the group's
+    // single big one, which is why the pool is named rather than left as "them".
+    if (x.capAt && top !== null && top >= +x.capAt) {
+      // A CAP ON THIS ROW'S OWN FISH, AT OR ABOVE THIS ROW'S OWN NUMBER, OVER A CLASS THAT IS
+      // EVERY FISH YOU MAY KEEP, SAYS NOTHING. Region 1's streams: "hatchery steelhead 2",
+      // "2 hatchery steelhead over 50 cm allowed", and every steelhead is over 50 cm by
+      // definition — so the second sentence is the first one again. It goes only because it
+      // is NOT pooled: its whole scope is this row, so no other row is carrying it, which is
+      // the test that kept the shared 1-over-50 on the page.
+      const h = parseInt(String(head), 10);
+      if (!x.pooled && !isNaN(h) && x.capN >= h) return;
+      const who = x.pooled
+        ? (x.who && x.who.toLowerCase() !== (x.mineWords || "") ? "between all " + x.who.toLowerCase()
+           : "between them")
+        : "of them";
+      caps.push("only " + x.capN + " " + who);
       return;
     }
-    out.push(x.t);
+    caps.push(x.t);
   });
-  return out;
+  // THE LENGTH FIRST. A reader holding a fish measures it before counting it.
+  return bounds.concat(caps);
 }
 
 function goesBack(row) {
@@ -158,8 +214,11 @@ function goesBack(row) {
   return k === "release" || k === "0" || k === "closed";
 }
 
-function sizeText(kept) {
-  if (!kept.length) return `<span class="sz none">any size</span>`;
+function sizeText(kept, moved) {
+  // "ANY SIZE" IS AN ANSWER, AND IT MUST NOT BE GIVEN BY ACCIDENT. Once the floor folds into
+  // the first tier this cell can be empty on a row that has a 30 cm minimum; printing "any
+  // size" there would say the opposite of the rule.
+  if (!kept.length) return moved ? DASH : `<span class="sz none">any size</span>`;
   return `<span class="sz">${kept.map(esc).join(" &middot; ")}</span>`;
 }
 
@@ -245,16 +304,30 @@ function defFloor(row) {
   return v;
 }
 
-function sizePlan(row, head) {
+function sizePlan(row, head, opts) {
+  opts = opts || {};
   const seen = {}, items = [];
+  // THE SIZE LIST AND THE COUNTERS ARE THE SAME RULES, and only the counters carry `pooled`
+  // and the fish the rule still reaches. Joining them here is what lets one pooled cap be
+  // worded the same way whether it prints as a tier, as the row's number, or as text.
+  const cmap = {};
+  (row.counters || []).forEach(c => {
+    if (!c.rule) return;
+    if (c.period === "daily" || !cmap[c.rule]) cmap[c.rule] = cmap[c.rule] || c;
+    if (c.period === "daily") cmap[c.rule] = c;
+  });
+  const mineWords = (row.members || []).join(", ").toLowerCase();
   (row.size || []).forEach(g => {
     const t = String(g.plain || g.says || "").trim();
     if (!t || seen[t]) return; seen[t] = 1;
     const m = CAP_RE.exec(t);
+    const src = cmap[g.rule] || {};
     items.push({
       t, at: m ? +m[2] : null, capN: m ? +m[1] : null,
       floor: +((t.match(/at least (\d+)\s*cm/) || [])[1] || 0) || null,
-      pooled: !!g.shared || / between them$/.test(t)
+      pooled: !!src.pooled || !!g.shared || / between them$/.test(t),
+      reaches: src.reaches || [], who: src.fish || "", mineWords: mineWords,
+      rule: g.rule || ""
     });
   });
   const floors = items.filter(x => x.floor).map(x => x.floor);
@@ -275,22 +348,53 @@ function sizePlan(row, head) {
   // 50 cm, so "only 2 over 50 cm" is simply "2".
   const governs = items.find(x => x.at !== null && tiers.indexOf(x) < 0
     && top !== null && top >= x.at && (isNaN(h) || x.capN < h)) || null;
+  // THE FLOOR IS THE BOTTOM OF THE FIRST TIER, NOT A SEPARATE SENTENCE. "must be at least
+  // 30 cm" in the Size column beside "up to 50 cm: 2" in the next one is one band of fish
+  // described in two places, and the reader has to put 30 and 50 together themselves. Where
+  // a row tiers and has a written floor, the first tier says "30 – 50 cm" and the floor
+  // leaves the Size column — every length is then in one cell.
+  const folded = tiers.length > 0 && own !== null;
+  const dropped = items.some(x => tiers.indexOf(x) < 0 && !x.absorbed && x !== governs
+    && ((folded && x.floor) || x.rule === opts.exclude
+        || (opts.hoisted && opts.hoisted.has(x.rule))));
   // An absorbed cap is not handed back to the Size column: it would print the sentence the
   // tier above it already makes, which is exactly the duplication this replaces.
-  const rest = items.filter(x => tiers.indexOf(x) < 0 && !x.absorbed && x !== governs).map(x => x.t);
-  return { tiers: tiers, text: sizeSimplify(rest, def), governs: governs, def: def };
+  // A CAP IS WEIGHED AGAINST THE NUMBER THAT ACTUALLY GOVERNS, which may be a cap that just
+  // took the row over: Region 6's hatchery steelhead carries the band's 5, is really held to
+  // 1 by "1 over 50 cm", and its own "1 over 50 cm" was kept because 1 is less than 5.
+  const eff = governs ? governs.capN : head;
+  const rest = items.filter(x => tiers.indexOf(x) < 0 && !x.absorbed && x !== governs
+                                 && !(folded && x.floor)
+    // A CAP THAT BECAME THIS ROW'S NUMBER IS NOT ALSO A SENTENCE ABOUT SIZE. `governs` is
+    // recomputed against the number it just set, where it no longer qualifies, so the item
+    // fell straight back into the Size column — "1" in Per day beside "only 1 between all
+    // trout and char" in Size, the same fact twice.
+    && x.rule !== opts.exclude
+    // NOR IS A BOUND THE BAND ABOVE ALREADY STATES. "must be at least 30 cm" on the band and
+    // again on each of the four rows under it is the same line five times. A row with a
+    // STRICTER bound of its own keeps it — this drops the rule itself, not the subject.
+    && !(opts.hoisted && opts.hoisted.has(x.rule)));
+  // "ANY SIZE" IS ONLY TRUE WHEN NOTHING WAS TAKEN OUT OF THIS CELL. A bound moved into the
+  // first tier's range, or left to the band above, or turned into the row's own number, is
+  // still a bound — printing "any size" in the space it left says the opposite of the rule.
+  // The definitional 50 cm counts too: "any size" over "every one is over 50 cm" is a
+  // contradiction inside one entry.
+  return { tiers: tiers, text: sizeSimplify(rest, def, eff), governs: governs, def: def,
+           floor: own, folded: folded, moved: dropped || def !== null };
 }
 
 /* The daily cell for a row that has tiers: the number it already showed, now labelled with
    the class it belongs to, and one line per cap beneath it. */
-function tierCell(headHtml, head, tiers) {
+function tierCell(headHtml, head, tiers, floor, members) {
   const line = (lab, num) =>
     `<div class="tier"><span class="tlab">${lab}</span><span class="tnum">${num}</span></div>`;
-  let prev = String(head), out = line(`up to ${tiers[0].at} cm`, headHtml);
+  const first = floor != null ? `${floor} &ndash; ${tiers[0].at} cm` : `up to ${tiers[0].at} cm`;
+  let prev = String(head), out = line(first, headHtml);
   tiers.forEach(c => {
+    const pw = poolWords(c.pooled, c.reaches, members, c.who);
     out += line(`over ${c.at} cm`,
       `<span class="ans${c.capN <= 2 ? " lim" : ""}">${esc(String(c.capN))}</span>` +
-      `<span class="cap">of the ${esc(prev)}${c.pooled ? " &middot; between them" : ""}</span>`);
+      `<span class="cap">of the ${esc(prev)}${pw ? " &middot; " + esc(pw) : ""}</span>`);
     prev = String(c.capN);
   });
   return `<div class="tiers">${out}</div>`;
@@ -373,9 +477,11 @@ function cells(row, ctx) {
   // the 22 tables are like this, and each one now points at the seasons beside it.
   if (row.keep != null && row.year_round === false && !row.dated) {
     // No number is printed here, so a cap that would have BECOME the number stays as text —
-    // a cap is restated, never deleted.
-    const pl = sizePlan(row, row.keep);
-    return `<td data-th="Size">${sizeText(pl.text.concat(pl.governs ? [pl.governs.t] : []))}</td>
+    // a cap is restated, never deleted. Re-planning against it is what lets it be restated in
+    // the same words as everywhere else instead of pasted in raw beside its own duplicate.
+    let pl = sizePlan(row, row.keep, { hoisted: ctx && ctx.hoisted });
+    if (pl.governs) pl = sizePlan(row, pl.governs.capN, { hoisted: ctx && ctx.hoisted });
+    return `<td data-th="Size">${sizeText(pl.text, pl.moved)}</td>
     <td class="n" data-th="Per day"><span class="sz none">no number that stands all year
       &mdash; the seasons are the answer</span></td>
     <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
@@ -395,12 +501,8 @@ function cells(row, ctx) {
   // day when the first two are released and the lake trout stands alone. "1 between them"
   // beside one fish is a sentence about nobody; the reader has to be told whom the 1 is
   // shared with, or they will read it as one lake trout AND one of each of the others.
-  const mineL = (row.members || []).map(m => m.toLowerCase());
-  const withOthers = cap ? (cap.reaches || []).filter(x => mineL.indexOf(String(x).toLowerCase()) < 0) : [];
-  const sharedChip = cap && cap.pooled
-    ? (withOthers.length ? ` <span class="tag">shared with ${esc(withOthers.join(", ").toLowerCase())}</span>`
-       : many ? ' <span class="tag">between them</span>' : "")
-    : "";
+  const pw = cap ? poolWords(cap.pooled, cap.reaches, row.members, cap.who) : "";
+  const sharedChip = pw ? ` <span class="tag">${esc(pw)}</span>` : "";
   // THE ROW'S NUMBER IS THE GROUP'S NUMBER, AND SAYING IT TWICE MAKES IT TWO NUMBERS.
   // Region 1 draws "Trout — one shared number for every fish below — 4" and then prints 4
   // again on the trout beneath it and 4 again on the hatchery steelhead: a reader adds them
@@ -419,19 +521,25 @@ function cells(row, ctx) {
   // that already took it over — so a class can never be shown against a number it does not
   // come out of.
   let head = cap ? cap.n : row.keep;
-  let plan = sizePlan(row, head);
+  const hoisted = ctx && ctx.hoisted;
+  let plan = sizePlan(row, head, { hoisted: hoisted });
   let dayHtml = day;
   if (plan.governs) {
-    head = plan.governs.capN;
+    const g = plan.governs;
+    head = g.capN;
+    // it is a shared number and says so, like every other shared number on the page
+    const gw = poolWords(g.pooled, g.reaches, row.members, g.who);
     dayHtml = `<span class="ans${head <= 2 ? " lim" : ""}">${esc(String(head))}</span>` +
+      (gw ? ` <span class="tag">${esc(gw)}</span>` : "") +
       (plan.def !== null ? "" : `<div class="cap">of the ${esc(String(row.keep))}</div>`);
-    plan = sizePlan(row, head);
+    plan = sizePlan(row, head, { exclude: g.rule, hoisted: hoisted });
   }
   const tiered = plan.tiers.length > 0;
-  return `<td data-th="Size">${sizeText(plan.text)}${others.length
+  return `<td data-th="Size">${sizeText(plan.text, plan.moved)}${others.length
       ? `<div class="cap">${others.map(x => esc(`only ${x.n} of these may be ${x.who}`)).join("<br>")}</div>` : ""}</td>
     <td class="n${tiered ? " tiered" : ""}" data-th="Per day">${
-      tiered ? tierCell(dayHtml, head, plan.tiers) : dayHtml}</td>
+      tiered ? tierCell(dayHtml, head, plan.tiers, plan.folded ? plan.floor : null, row.members)
+             : dayHtml}</td>
     <td class="n" data-th="This licence year">${period(row, "annual") || DASH}</td>
     <td class="n" data-th="May have">${possCell(row, cap, ctx) || DASH}</td>`;
 }
@@ -455,14 +563,9 @@ function possCell(row, cap, ctx) {
     const t = (row.counters || []).find(c => c.period === "possession" && !c.moot
       && c.derived_from === cap.rule);
     if (t && t.n != null) {
-      const mineL = (row.members || []).map(m => m.toLowerCase());
-      const others = (cap.reaches || []).filter(x => mineL.indexOf(String(x).toLowerCase()) < 0);
-      // named, for the same reason the day cell names them: a pooled figure beside one fish
-      // reads as that fish's own unless it says whom it is shared with.
-      return `${esc(String(t.n))}` + (t.pooled
-        ? (others.length ? ` <span class="tag">shared with ${esc(others.join(", ").toLowerCase())}</span>`
-           : mineL.length > 1 ? ' <span class="tag">between them</span>' : "")
-        : "");
+      // the same wording as the day cell, from the same function
+      const pw = poolWords(t.pooled, cap.reaches, row.members, cap.who);
+      return `${esc(String(t.n))}` + (pw ? ` <span class="tag">${esc(pw)}</span>` : "");
     }
   }
   return period(row, "possession");
@@ -682,7 +785,8 @@ function quotaTable(pr, rows) {
         const m = src.within && src.size ? CAP_RE.exec(raw) : null;
         // The band's own counter carries `pooled`; its `plain` does not spell out "between them"
         // the way a row's size line does, and a pooled figure never renders without it.
-        if (m) { bcaps.push({ t: raw, at: +m[2], capN: +m[1],
+        if (m) { bcaps.push({ t: raw, at: +m[2], capN: +m[1], reaches: src.reaches || [],
+                              who: src.fish || "",
                               pooled: !!src.pooled || / between them$/.test(raw) }); return; }
         // A HOISTED COUNTER WITH A WINDOW IS A SEASON, NOT A STANDING FACT. Region 3's spring
         // closure printed here as a bare "closed — no fishing for it" over the whole trout and
@@ -702,6 +806,15 @@ function quotaTable(pr, rows) {
       const btiers = narrowCaps(bcaps.filter(x =>
         bfloor < x.at && (c.n == null || x.capN < c.n))).sort((a, b) => a.at - b.at);
       bcaps.forEach(x => { if (btiers.indexOf(x) < 0 && !x.absorbed) sizes.push(esc(x.t)); });
+      // the band's floor is the bottom of its first tier too, for the same reason
+      const bfolded = btiers.length > 0 && bfloor > 0;
+      const bsizes = bfolded ? sizes.filter(t => !/at least \d+\s*cm/.test(t)) : sizes;
+      // A SHARED NUMBER NOTHING MAY BE KEPT AGAINST IS NOT A NUMBER. Every row under Region
+      // 3's trout-and-char band reads "No fishing" from Jan through June and the band went on
+      // printing four a day and eight in possession. `present` marks the band moot when its
+      // counter is moot on every row beneath it; here it says what they all say instead.
+      const shut = !!b.moot;
+      const mem = (b.entries || []).flatMap(e => e.members || []);
       // Inside a family that already says "Trout and char", a band of the same name is the
       // heading twice; what it actually means there is "all of them, counted together".
       let head = headingOf(b);
@@ -712,19 +825,22 @@ function quotaTable(pr, rows) {
           ${notes.length ? `<div class="bnote">${notes.join(" &middot; ")}</div>` : ""}
           ${bseas.length ? `<div class="gseas">${bseas.join("")}</div>` : ""}
           ${b.origin ? `<span class="org">${esc(b.origin)}</span>` : ""}</td>
-        <td data-th="Size">${sizes.length ? `<span class="sz">${sizes.join(" &middot; ")}</span>`
-          : `<span class="sz none">&mdash;</span>`}</td>
-        <td class="n${btiers.length ? " tiered" : ""}" data-th="Per day">${(() => {
+        <td data-th="Size">${shut ? DASH : (bsizes.length
+          ? `<span class="sz">${bsizes.join(" &middot; ")}</span>`
+          : `<span class="sz none">&mdash;</span>`)}</td>
+        <td class="n${!shut && btiers.length ? " tiered" : ""}" data-th="Per day">${(() => {
+          if (shut) return ansCell({ keep: b.answer });
           const h = c.n != null
             ? `<span class="ans">${esc(String(c.n))}</span> <span class="tag">between them</span>` : DASH;
-          return btiers.length ? tierCell(h, c.n, btiers) : h;
+          return btiers.length ? tierCell(h, c.n, btiers, bfolded ? bfloor : null, mem) : h;
         })()}</td>
         <td class="n" data-th="This licence year">${DASH}</td>
-        <td class="n" data-th="May have">${poss.n != null
+        <td class="n" data-th="May have">${!shut && poss.n != null
           ? `<span class="ans">${esc(String(poss.n))}</span> <span class="tag">between them</span>` : DASH}</td>
       </tr>`;
       const said = new Set([b.id].concat(b.hoisted_all || [], [...everyRow]));
-      const ctx = { id: b.id, n: c.n, poss: (poss || {}).rule || null, name: head };
+      const ctx = { id: b.id, n: c.n, poss: (poss || {}).rule || null, name: head,
+                    hoisted: new Set(b.hoisted_all || []) };
       (b.entries || []).forEach(me => { out += entryRows(me, byKey, true, said, ctx); done.add(idOf(me)); });
       done.add(idOf(e));
       return out;
