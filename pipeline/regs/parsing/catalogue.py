@@ -188,7 +188,13 @@ class AnglerClass(BaseModel):
 #: needs the set — nothing is lost by storing the word the page printed.
 SPECIES_GROUPS: dict[str, tuple[str, ...]] = {
     "TROUT":      ("RB", "ST", "CT", "WCT", "CCT", "GB", "GT"),
-    "CHAR":       ("DV", "BT", "LT", "EB", "AC", "ADV", "AEB", "SPK"),
+    # NO ANADROMOUS FORMS. "ADV" (Dolly Varden, anadromous) and "AEB" (brook trout,
+    # anadromous) were members here and NAMED BY NO RULE IN THE CORPUS — 0 of 3,422. They
+    # existed only to be filtered back out again, and they leaked: 74 size statements told a
+    # reader their limit was shared with "brook trout (anadromous)", a name that appears in no
+    # heading on any of the 22 tables. The one anadromous form the book actually regulates is
+    # the steelhead, which has its own code and its own rules.
+    "CHAR":       ("DV", "BT", "LT", "EB", "AC", "SPK"),
     "WHITEFISH":  ("LW", "MW"),
     "BASS":       ("LMB", "SMB"),
 }
@@ -668,7 +674,7 @@ _SPECIES_WORDS = {
     "GB": "Brown trout", "GT": "Golden trout",
     # char
     "DV": "Dolly Varden", "BT": "Bull trout", "LT": "Lake trout", "EB": "Brook trout",
-    "AC": "Arctic char", "ADV": "Dolly Varden (anadromous)", "AEB": "Brook trout (anadromous)",
+    "AC": "Arctic char",
     "SPK": "Splake",
     # whitefish
     "LW": "Lake whitefish", "MW": "Mountain whitefish", "PW": "Pygmy whitefish",

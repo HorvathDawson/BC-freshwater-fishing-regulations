@@ -915,6 +915,58 @@ def test_a_released_fish_does_not_share_a_number_it_cannot_spend(tables):
                             (w, run + 1, r.heading(name), who, on)
 
 
+def test_the_anadromous_forms_are_gone_from_the_model(tables):
+    """"ADV" (Dolly Varden, anadromous) and "AEB" (brook trout, anadromous) were members of the
+    CHAR group and NAMED BY NO RULE IN THE CORPUS — 0 of 3,422. They existed only to be filtered
+    back out again by a `HIDDEN` set, and they leaked anyway: 74 size statements told a reader
+    their limit was shared with "brook trout (anadromous)", a name in no heading on any table.
+
+    They are removed at the source now, so this asserts the absence rather than the filtering —
+    a filter that is never exercised is a test that cannot fail."""
+    from pipeline.regs.parsing.catalogue import SPECIES_GROUPS
+    from pipeline.regs.table.corpus import rules as all_rules
+    gone = {"ADV", "AEB"}
+    for g, members in SPECIES_GROUPS.items():
+        assert not (gone & set(members)), (g, sorted(gone & set(members)))
+    for x in all_rules():
+        assert not (gone & set(x.get("species") or [])), rid(x)
+    for w, run, _, _, L, t in tables[:30]:
+        assert not (gone & set(L.universe())), (w, run + 1)
+        for r in t:
+            assert not (gone & set(r.fish)), (w, run + 1, r.heading(name))
+
+
+def test_a_released_fish_does_not_share_a_number_it_cannot_spend(tables):
+    """`Ledger.reaches` asks "does this counter speak about this fish on SOME date", and drops a
+    fish only through `_carved_always`, which needs the carve to hold every day. A SEASONAL
+    release therefore never removes anyone — so Region 3's "1 bull trout (Dolly Varden) or lake
+    trout" went on naming all three through August, when two of them must be released and the
+    rule is, that day, a lake-trout limit.
+
+    `Ledger.spenders` is the right question, and this pins both directions of it."""
+    from pipeline.regs.table import state as ST
+    from pipeline.regs.table.subject import Origin
+    L = ST.state("3", "stream").ledger
+    cap = next(a for a in L.allowances
+               if a.pooled and a.n == 1 and a.within and a.scope.size.is_any)
+    got = {lbl: sorted(name(s) for s in L.spenders(cap, None, on))
+           for lbl, on in (("Jul", (7, 15)), ("Aug", (8, 20)), ("Nov", (11, 5)))}
+    assert got == {"Jul": ["Bull trout", "Dolly Varden", "Lake trout"],
+                   "Aug": ["Lake trout"],
+                   "Nov": ["Bull trout", "Dolly Varden"]}, got
+    # and nobody is ever named as a sharer who may not be kept that day
+    for w, run, _, _, L, t in tables[:30]:
+        for r in t:
+            for on in (None, (7, 15), (1, 15)):
+                for x in r.size(on, name):
+                    for who in (x.get("spenders") or []):
+                        code = next(c for c in L.universe() if name(c) == who)
+                        o = None if r.origin is Origin.both else r.origin
+                        assert L.keepable(code, o or Origin.wild, on) or \
+                               L.keepable(code, Origin.hatchery, on), \
+                            (w, run + 1, r.heading(name), who, on)
+
+
 def test_no_hidden_fish_is_ever_named_to_a_reader(tables):
     """`HIDDEN` holds the anadromous forms of brook trout and Dolly Varden. They are in the
     group codes, in no rule of their own, and in NO HEADING on any of the 22 tables — so a name
