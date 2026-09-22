@@ -407,14 +407,13 @@ def _release(raw: str, b: str, ctx) -> List[Claim]:
 # the base, by content
 # ----------------------------------------------------------------------------------------
 def base_rules_for(reg: str) -> list:
-    """The rules a region's standing table is made of. One definition, so a caller that wants
-    to lay something on top of it cannot pick a different set by accident."""
-    from pipeline.regs.table.corpus import rules
-    if reg == "1hg":
-        return [x for x in rules() if x["entry"].startswith("z1:hg_") or
-                (x["entry"].startswith("zp:") and source_of(x).is_base)]
-    return [x for x in rules() if (x["entry"].startswith(f"z{reg}:") or x["entry"].startswith("zp:"))
-            and source_of(x).is_base]
+    """The rules a region's standing table is made of — `state.region_rules`, which is the one
+    place that knows. It used to be defined here as well, and two definitions of "what rules
+    does Region 1 have" is how the quota side and the gear side came to disagree about what
+    Haida Gwaii is. Imported inside the function because `state` imports this module's
+    builders."""
+    from pipeline.regs.table.state import region_rules
+    return region_rules(reg)
 
 
 def base_ledger(reg: str, kind: str, extra=()) -> Ledger:

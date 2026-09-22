@@ -311,15 +311,9 @@ def region_base(region: str, water_kind: str, extra: List[dict] = ()) -> MethodT
 
     `extra` lays one named AREA's gear rules on top of the region's. They settle by rank like
     any other term, and an area is closer than a region, so a bait ban inside it wins."""
+    from pipeline.regs.table.state import region_rules
     here = frozenset({region})
-    if region == "1hg":
-        rs = [x for x in all_rules() if is_gear(x) and
-              (x["entry"].startswith("z1:hg_") or
-               (x["entry"].startswith("zp:") and source_of(x).is_base and _bites(source_of(x), here)))]
-    else:
-        rs = [x for x in all_rules() if is_gear(x) and source_of(x).is_base
-              and (x["entry"].startswith("zp:") or x["entry"].split(":")[0] == "z" + region)
-              and _bites(source_of(x), here)]
+    rs = [x for x in region_rules(region) if is_gear(x) and _bites(source_of(x), here)]
     have = {rid(x) for x in rs}
     rs = rs + [x for x in extra if is_gear(x) and rid(x) not in have]
     return _base(_key(rs), water_kind, here)

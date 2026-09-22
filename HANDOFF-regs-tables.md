@@ -297,14 +297,17 @@ question at the water is *what may I keep today*.
 - Rows are **13% shorter** on every one of the 22 tables (20,300 px → 17,608 px), mostly from
   origin lines that were sized like full rows.
 
-Pinned by twelve tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
+Pinned by fifteen tests in `pipeline/tests/test_regs_table.py`: the stretches cover the year
 exactly once and adjacent ones differ; every `Row.calendar` boundary is a schedule boundary;
 a dated row carries only what is in force; Region 3's streams split and rejoin on the right
 days; no dated band is left without its number; **the year-round table is byte-identical
 with and without the date machinery**; Region 6's lake trout cap; and a moot band agrees with
 every row under it; every condition a region has builds a settled table; an area's table is
 the region's plus exactly that area's rules; the summer closure reaches its units and its dates
-and no further; and Haida Gwaii carries its own bait ban. The renderer is checked by diffing
+and no further; Haida Gwaii carries its own bait ban; **a table is a function of the rules
+handed to it and nothing else** (if `build` ever has to ask which region it is looking at,
+that one fails); a named water needs no new builder; and there is one definition of what rules
+a region has. The renderer is checked by diffing
 all 818 rendered rows against the previous build — every difference has to be one of the named
 changes above.
 
@@ -320,11 +323,38 @@ A region does not have a table. It has a table **per condition**, and there are 
   nowhere on this page.
 - **WHEN** — a day.
 
-`state.state(region, kind, area, on)` is the only thing that decides what a table is made of;
-`state.conditions(region, kind)` enumerates every (area, stretch) pair. **218 distinct
-conditions** over the 22 region/kind tables, and the page renders 262 selectable states. The
-emitter and the tests call the same function, so a combination a reviewer can reach is one a
-test walks.
+**Selection and construction are kept apart, and that is the point of the module:**
+
+```
+SELECTION                                  CONSTRUCTION
+knows the corpus                           knows only the rules it is handed
+─────────────────────────────────          ──────────────────────────────────
+region_rules(region)      ┐                build(rules, kind, here, label)
+areas(region, kind)       ├─ rules_for ──→   → build.ledger(rules, …)
+section_rules(water, run) ┘                  → method_build.table(…)
+```
+
+`build()` takes a list of rule dicts and cannot ask which region it is looking at, so the
+builder lifts out of this project whole. `state.conditions(region, kind)` enumerates every
+(area, stretch) pair — **218** over the 22 region/kind tables, 262 selectable states on the
+page — and the emitter and the tests call the same function, so a combination a reviewer can
+reach is one a test walks.
+
+**A named water is one more precondition, already working**: `water_state("Fraser River", 18)`
+→ *Region 5 – Region 7A boundary*, 13 rows, 8 stretches of the year, through the same
+`build()`. `section_rules` was always a rule list; what was special was the REGION path, and
+it no longer is.
+
+Two things were collapsed on the way, and neither changed a byte of emitter output:
+
+- **Two definitions of "what rules does Region 1 have"** — one in `quota_print`, one in
+  `method_build`. That is not theoretical: it is exactly how the two sides came to disagree
+  about Haida Gwaii. Both now call `state.region_rules`; `quota_print.base_rules_for` is a
+  one-line forwarder kept because the print checks and several tests import it.
+- **Two construction paths** — regions built a `Ledger` flat, sections built it two-stage
+  through `build.ledger`. Checked across all 83 region×area conditions first: quota and gear,
+  zero differences. They agreed, so collapsing was safe — but that agreement was a coincidence
+  someone had to keep re-checking, and now there is nothing to re-check.
 
 - `quota_print.base_rules_for(reg)` is now the single definition of what a region's base is
   made of, and `base_ledger(reg, kind, extra)` lays an area on top of it.

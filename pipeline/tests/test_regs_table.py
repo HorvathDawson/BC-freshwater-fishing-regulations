@@ -1364,6 +1364,77 @@ def test_a_shared_number_nothing_may_be_kept_against_is_not_a_number():
             assert not b["moot"], (region, kind, bid)
 
 
+def _shape(t):
+    """A table, as what it answers — enough to catch any difference that matters, and nothing
+    about how it was assembled."""
+    return (sorted((r.heading(str) + "|" + r.origin.value,
+                    r.headline() and r.headline().word(),
+                    tuple(sorted(a.rule_id for a in r.counters))) for r in t.rows),
+            sorted(getattr(t.gear, "universe", lambda: set())()))
+
+
+def test_a_table_is_a_function_of_the_rules_handed_to_it_and_nothing_else():
+    """THE ARRANGEMENT THIS FILE EXISTS TO PROTECT. `rules_for` knows where rules come from —
+    which chapter a region's are in, which are an area's, which reach a stretch of water —
+    and `build` knows nothing but the rules it is handed. If a table can be got out of `build`
+    alone, the builder can be lifted out of this project; if `build` ever has to ask which
+    region it is looking at, it cannot."""
+    from pipeline.regs.table import state as ST
+    seen = 0
+    for region in ST.REGIONS:
+        for kind in ST.KINDS:
+            for area in (None,) + ST.areas(region, kind):
+                rules, here, label = ST.rules_for(region, kind, area)
+                direct = ST.build(rules, kind, here, label,
+                                  province=region in ("province", "p"))
+                assert _shape(direct) == _shape(ST.state(region, kind, area)), \
+                    (region, kind, area and area.name)
+                seen += 1
+    assert seen >= 80, seen
+
+
+def test_a_named_water_is_one_more_precondition_and_needs_no_new_builder():
+    """The payoff, stated as a test. A stretch of water is selected differently from a region
+    — the atlas answers it, not the chapter — and built IDENTICALLY, by the same function
+    from the same kind of list. `provenance.section` has always built waters this way; that
+    `state.water_state` lands on the same ledger is what says the two paths are one path."""
+    from pipeline.regs.table import state as ST
+    from pipeline.regs.table.build import ledger as build_ledger, section_kind, section_regions, section_label
+    for water, run in (("Fraser River", 18), ("Fraser River", 0), ("Kootenay Lake", 0)):
+        kind = section_kind(water)
+        rules, here, label = ST.rules_for(kind=kind, water=water, run=run)
+        assert rules == section_rules(water, run)
+        assert here == frozenset(section_regions(water, run))
+        assert label == section_label(water, run)
+        t = ST.water_state(water, run)
+        want = build_ledger(rules, kind, here, label)
+        assert sorted(a.rule_id for a in t.ledger.allowances) == \
+               sorted(a.rule_id for a in want.allowances), (water, run)
+        assert t.rows and t.schedule()
+
+
+def test_there_is_one_definition_of_what_rules_a_region_has():
+    """Two definitions of "what rules does Region 1 have" is how the quota side and the gear
+    side came to disagree about Haida Gwaii — whose rules sit in Region 1's chapter under
+    `hg_`, which the gear filter missed entirely. Both sides now read the same list, and the
+    gear table is the gear rules in it."""
+    from pipeline.regs.table import state as ST
+    from pipeline.regs.table.quota_print import base_rules_for
+    from pipeline.regs.table.method_build import is_gear
+    from pipeline.regs.table.corpus import rid
+    for region in ST.REGIONS:
+        mine = {rid(x) for x in ST.region_rules(region)}
+        assert {rid(x) for x in base_rules_for(region)} == mine, region
+        if region in ("province", "p"):
+            continue
+        gear = {rid(x) for x in ST.region_rules(region) if is_gear(x)}
+        assert gear <= mine and gear, region
+    # and Haida Gwaii's own bait ban is in its list and in nobody else's
+    rule = "z1:hg_bait_ban_streams::hg_bait_ban_streams.r1"
+    assert rule in {rid(x) for x in ST.region_rules("1hg")}
+    assert rule not in {rid(x) for x in ST.region_rules("1")}
+
+
 def test_every_condition_a_region_has_builds_a_settled_table():
     """WHERE and WHEN are inputs to one generator, so every combination of them is reachable
     by the same path — which is the point: a reviewer reads all of them and this walks all of
