@@ -136,67 +136,62 @@ Wild trout and char        Put it back
 
 ## Part 2 — What picks a table
 
-A region does not have *a* table. It has one per **condition**, and there are two conditions.
+Two independent questions. Keep them apart; they were tangled in an earlier draft of this
+document and that is what made it hard to follow.
 
-**WHERE** — and it is a **two-step lookup, not three alternatives**:
+### 2.1 WHERE — a base, then amendments
 
-| step | you get | how many there are |
+Not three alternatives. **A two-step lookup:**
+
+| step | you get | how many exist |
 |---|---|---|
-| 1. the **base** — a region, and an area inside it if you are in one | a whole settled table | 22 regions × kind, plus 5 areas |
-| 2. the **amendments** — the rules written for this water and stretch | a short named list | 599 water rules + 62 inherited, over 102 stretches |
+| 1. the **base** — the region, and the area inside it if you are in one | a whole settled table | 22 region×kind tables, plus 5 named areas |
+| 2. the **amendments** — rules written for this water and stretch | a short named list | 599 water rules + 62 inherited, across 102 stretches |
 
 > **A stretch is its base table plus its own amendments, and nothing else.**
-> So the verification order is: get the region and area tables perfect — there are only 22 of
-> them and they are checked line by line against the printed synopsis — and then a stretch can
-> only be wrong in its own short list of amendments, each attributable to one named rule.
 
-**WHEN** — a day.
+That gives the verification order: get the 22 region tables and 5 areas right — they are checked
+line by line against the printed synopsis — and after that a stretch can only be wrong in its own
+short amendment list, each item attributable to one named rule.
 
-### 2.1 This is a correctness fix, not just tidier
+### 2.2 The code does not do this yet, and it costs answers
 
-The code does not do this today. `build.base()` re-derives the base **from whatever rules the
-atlas happened to bind to that stretch**, rather than looking it up by region. Measured over the
-100 single-region stretches that ship:
+`build.base()` re-derives the base **from whatever rules the atlas happened to bind to that
+stretch**, instead of looking it up by region. Measured over the 100 single-region stretches that
+ship:
 
 | | |
 |---|---|
-| stretches whose base matches their region's standing base | **37** |
-| stretches whose base **differs** | **63** |
-| distinct region-wide rules missing from some stretch's base | **18** (98 omissions) |
-| rules in a stretch's base that its region does *not* have | **0** |
+| base matches its region's standing base | **37** |
+| base **differs** | **63** |
+| region-wide rules missing from some stretch's base | **18 rules, 98 omissions** |
+| rules in a stretch's base its region does *not* have | **0** |
 
-The difference is entirely one-directional: a stretch can only **lose** region-wide rules,
-never gain them. Most often missing:
+One-directional: a stretch can only **lose** region-wide rules, never gain them. Building the
+proposed way changes the answer on **23 of the 100** — the Fraser's Region 2 stretches gain a
+bass row (20 a day) they do not have today.
 
-| times | rule |
-|---|---|
-| 23 | `z4:invasive_species_notice::invasive_species_notice.r1` |
-| 16 | `z6:trout_char_quota::trout_char_quota.r11` |
-| 11 | `z2:species_quotas::species_quotas.r1` |
-| 11 | `z2:protected_species::protected_species.r1` |
-| 11 | `z5:bass_illegal::bass_illegal.r1` |
+The clearest illustration: the Fraser still shows a *Protected species* row, but it is the
+**provincial** protected-species rule holding it up — Region 2's own is missing from that
+stretch's base. The table is right by luck of a second rule, and nothing on the page tells you
+which lines are standing on their own base and which are not.
 
-Building each stretch the proposed way — region base **+** that stretch's own overrides —
-**changes the answer on 23 of the 100 stretches**. The Fraser's Region 2 stretches gain a bass
-row (20 a day) they do not have today.
+### 2.3 WHEN — the year, cut into stretches
 
-Not every omission is visible: the Fraser keeps a *Protected species* row because the
-**provincial** protected-species rule still binds, even though Region 2's own is missing. That
-is the point — today the table is right by luck of a second rule, and nothing tells you which
-lines are standing on their own base and which are not.
-
-`state.conditions(region, kind)` lists every combination: **218** across the 22 region/kind
-tables. The year is cut into **53 stretches** total — a stretch is a run of days over which
-nothing changes.
+A **stretch** is a run of days over which nothing changes. The year is cut wherever any counter
+or gear term comes into or goes out of force. Across the 22 tables there are **53** of them; ten
+tables have exactly one and never change all year.
 
 Region 3's streams have six:
 
-```
-Jan 1 ──── Jun 30 │ Jul 1 ─ Jul 31 │ Aug 1 ─ Oct 14 │ Oct 15 ─ Oct 31 │ Nov 1 ─ Dec 31
-   everything                          bull trout &      + lake trout      back to
-     closed                            Dolly Varden       released           normal
-                                        released
-```
+| | Jan 1 – Jun 30 | Jul | Aug 1 – Oct 14 | Oct 15 – Oct 31 | Nov – Dec |
+|---|---|---|---|---|---|
+| everything | **closed** | open | open | open | open |
+| bull trout · Dolly Varden | closed | 4 | **put back** | **put back** | 4 |
+| lake trout | closed | 4 | 4 | **put back** | **put back** |
+
+`state.conditions(region, kind)` multiplies the two questions together — every (area, stretch)
+pair a region has. **218** across the 22 tables.
 
 ---
 
@@ -347,76 +342,140 @@ on the group — a season shown against a fish it does not name closes a legal f
 
 ---
 
-## Part 5 — Layouts
+## Part 5 — The table
 
-All layouts show the **same table**: Region 2 · streams, the hardest one — a wild/hatchery split
-across the whole family, a shared number, a size floor, a shared big-fish cap, a tighter cap on
-three chars, a steelhead exception to that cap, and an annual limit. **Every figure is real.**
+Two renderings of one tree. **Option 3** is the table; **Option 4** is what a tap on a fish
+opens. Earlier drafts had five; the rest are gone.
 
-Three rules learned from the last round, applied to all of them:
+### 5.1 The five rules the layout obeys
 
-1. **One statement per row.** `at least 30 cm · only 1 over 50 cm` in a single cell is two rules
-   pretending to be one. They get a row each.
-2. **Never say "the shared 2".** A member row should not restate the group's number at all — the
-   group owns it, and the member row carries only what is **extra**.
-3. **The annual limit is not a column.** Measured: **steelhead is the only fish in the book with
-   one**, on all 22 tables, from one provincial rule (`zp:steelhead.r1`, 10 a year). A column
-   that is empty on every row but one is noise; it belongs on the steelhead line.
+Each was forced by a real defect, listed in Part 7.
 
----
-
-### Option 3 — One table, origin only where it changes the answer  ⭐
-
-**REGION 2 · STREAMS** — 1 July – 31 Dec
-
-#### Trout and char · **hatchery** — keep **2 a day**, 4 in possession
-
-*between all 15 kinds — not 2 of each*
-
-| These apply to every one of them | |
-|---|---|
-| Minimum size | **30 cm** |
-| Of your 2, how many may be over 50 cm | **1** |
-
-| I am fishing for | On top of that |
-|---|---|
-| 9 kinds of trout and char | nothing more |
-| Bull trout, Dolly Varden or lake trout | only **1** of your 2 may be one of these · minimum **60 cm** |
-| Steelhead — **10 a licence year** | **2** of your 2 may be over 50 cm, not 1 |
-
-#### Trout and char · **wild** — **put it back**
-
-*all 15 kinds, every size*
-
-#### Everything else
-
-| I am fishing for | Size | Per day | In possession |
-|---|---|---|---|
-| Whitefish | any | 15 between them | 30 |
-| Bass | any | 20 between them | 40 |
-| Black crappie | any | 20 | 40 |
-| Crayfish | any | 25 | 50 |
-| Kokanee | — | Put it back | — |
-| White sturgeon | — | Put it back | — |
-| Protected species (12 kinds) | — | You may not fish for them | — |
-
-**What changed** — the number is stated **once**, by the group, and never restated; each size
-statement is its own row with a plain label; "the shared 2" is gone entirely, replaced by *"on
-top of that"*, which is what a member row actually carries; the annual limit sits on the
-steelhead line. The steelhead exception now reads as an exception (*"2 of your 2 … not 1"*)
-instead of as a number that quietly contradicts the row above it.
-
-**Still against it** — the wild block sits below the hatchery block, so a wild-fish angler reads
-past detail that does not apply to them. On the 16 tables where only steelhead differs, the two
-blocks collapse and this is not an issue.
+1. **Never print a count in place of a name.** `9 kinds of trout and char` tells a reader with a
+   bull trout nothing — and on Regions 2 and 3 it invites them to assume they are in it when
+   they are not. A group prints a **handle** plus **every member**, always visible.
+2. **A shared number is drawn once, as a budget** — never as a numeral repeated on each member
+   row. Member rows say what they *spend*, not how many they may keep.
+3. **A member may state its own number** when it is smaller than the group's. Region 6 streams
+   gives trout **1 a day** inside a family of **5**; a layout that forbids the member from
+   showing a number puts a reader five fish over.
+4. **A released fish leaves the group.** It is not drawn inside a live shared number, and its
+   name disappears from every sharer list on that date.
+5. **Nothing may be kept ⇒ no size is printed.** "must be at least 60 cm" beside "Put it back"
+   reads as permission to keep a 61 cm fish.
 
 ---
 
-### Option 4 — Look up one fish  ⭐
+### 5.2 Option 3 — the table
 
-🔍 `bull trout`
+#### Region 2 · streams — **all year** *(this table has one stretch: Jan 1 – Dec 31)*
 
-| **BULL TROUT** — Region 2 streams, 1 July – 31 Dec | |
+**▮ HATCHERY TROUT AND CHAR — 2 a day, 4 in possession, shared**
+
+> **2 in total, not 2 of each.** Keep two rainbow and your day is done.
+> *Arctic char · Brook trout · Brown trout · Bull trout · Coastal cutthroat · Cutthroat ·
+> Dolly Varden · Golden trout · Lake trout · Rainbow · Splake · Steelhead · Westslope
+> cutthroat* — 13 kinds
+> `"2 from streams (must be hatchery)"` — Region 2 · region-wide
+
+**Shared budgets inside that 2** — spend one on any fish and it is spent for all of them:
+
+| shared budget | how many | who spends it |
+|---|---|---|
+| ▮ over 50 cm | **1 a day** | every kind above **except steelhead** |
+| ▮ the chars | **1 a day** | Bull trout · Dolly Varden · Lake trout |
+
+**Steelhead's own budgets** — these do *not* touch the shared ones:
+
+| budget | how many | who |
+|---|---|---|
+| ▯ steelhead over 50 cm | **2 a day** | Steelhead only |
+| ▯ steelhead a year | **10 a licence year** | Steelhead only |
+
+**Each kind:**
+
+| kind | smallest you may keep | what it spends |
+|---|---|---|
+| Arctic char · Brook trout · Brown trout · Coastal cutthroat · Cutthroat · Golden trout · Rainbow · Splake · Westslope cutthroat | 30 cm | 1 of the ▮ 2 · and if over 50 cm, the ▮ 1-over-50 |
+| **Bull trout · Dolly Varden · Lake trout** | **60 cm** | 1 of the ▮ 2 · **the ▮ 1 char** · and the ▮ 1-over-50 |
+| **Steelhead** | 30 cm | 1 of the ▮ 2 · 1 of its own ▯ 2-over-50 · 1 of its ▯ 10 a year |
+
+> **Worked check, printed on the page:** keep a 62 cm bull trout and you have spent the 1 char,
+> the 1 over 50 cm **and** 1 of your 2. The only fish left today is a hatchery trout **under
+> 50 cm** — a 55 cm rainbow is now illegal.
+
+**WILD TROUT AND CHAR — put every one back.** All 13 kinds, every size.
+`"Wild trout/char from streams"`, and for steelhead `"All wild steelhead"`.
+*No size is shown: nothing may be kept, so nothing can be measured.*
+
+**Everything else**
+
+| kind | per day | in possession |
+|---|---|---|
+| Whitefish — *Lake whitefish · Mountain whitefish* | ▮ **15 between them** | 30 |
+| Bass — *Largemouth · Smallmouth* | ▮ **20 between them** | 40 |
+| Black crappie | 20 | 40 |
+| Crayfish | 25 | 50 |
+| Kokanee | Put it back | — |
+| White sturgeon | Put it back | — |
+| Protected species — *12 kinds, tap to list* | You may not fish for them | — |
+
+---
+
+#### Region 3 · streams — **Aug 1 – Oct 14** (the closed-member case)
+
+*stretch picker:* `Jan 1–31 · Feb 1–Jun 30 · Jul 1–31 ·` **`Aug 1–Oct 14`** `· Oct 15–31 · Nov 1–Dec 31`
+
+**▮ TROUT AND CHAR — 4 a day, 8 in possession, shared**
+
+> *Arctic char · Brook trout · Brown trout · Coastal cutthroat · Cutthroat · Golden trout ·
+> **Lake trout** · Rainbow · Splake · Westslope cutthroat* — 10 kinds **today**
+> ⚠ **Bull trout, Dolly Varden and steelhead are released until 31 October — they are not in
+> this 4.**
+
+| shared budget | how many | who spends it |
+|---|---|---|
+| ▮ over 50 cm | **1 a day** | all 10 kinds above |
+| ▯ lake trout | **1 a day** | **Lake trout only, today** |
+
+That second row is rule `"1 bull trout (Dolly Varden) or lake trout"`. Two of the three fish it
+names must be released until 31 October, so **today it is a lake-trout limit**. The book's words
+stay in the provenance line for a reviewer; they stay out of the reader's answer.
+
+| kind | smallest | what it spends |
+|---|---|---|
+| the 9 kinds above except lake trout | any size | 1 of the ▮ 4 · and if over 50 cm, the ▮ 1-over-50 |
+| **Lake trout** | **60 cm** | 1 of the ▮ 4 · the ▯ 1 · and — since it must be over 60 cm — **always** the ▮ 1-over-50 |
+
+**Released today — put every one back**
+
+| kind | until |
+|---|---|
+| Bull trout · Dolly Varden | 31 October |
+| Steelhead | all year on Region 3 streams |
+| Kokanee · White sturgeon | all year |
+
+**Everything else**
+
+| kind | per day |
+|---|---|
+| Burbot | 2 |
+| Whitefish — *Lake whitefish · Mountain whitefish* | ▮ 15 between them |
+| Crayfish | 25 |
+| Bass · Yellow perch | Closed to fishing |
+| Protected species — *12 kinds* | You may not fish for them |
+| Arctic grayling · Black crappie · Goldeye · Inconnu · Northern pike · Walleye | **Region 3's chapter sets no limit for these.** Check the water-specific table before you keep one. |
+
+That last row is the honest rendering of a row with no answer — **12 of them exist**. Never a
+blank cell: a blank reads as "no limit", which is the most permissive possible failure.
+
+---
+
+### 5.3 Option 4 — tap a fish
+
+🔍 `bull trout` — Region 2 streams
+
+| **BULL TROUT** | |
 |---|---|
 | **Wild** | **Put it back** |
 | **Hatchery** | **Keep 1** · minimum 60 cm |
@@ -424,96 +483,30 @@ blocks collapse and this is not an issue.
 | That 1 also spends | shared with |
 |---|---|
 | 1 of only **3 chars** a day | Dolly Varden, lake trout |
-| 1 of your **2 trout and char** a day | all 15 kinds |
-| your **1 fish over 50 cm** a day | all 15 kinds except steelhead |
-| 1 of **4 in possession** | all 15 kinds |
-
-**For** — answers the real question in one screen, and states the shared budgets as budgets
-instead of implying them with an indent, which is the thing nesting communicates worst.
-**Against** — you must know what you are looking for; poor for browsing, and poor for checking a
-chapter against the printed book.
+| 1 of your **2 trout and char** a day | 13 kinds |
+| your **1 fish over 50 cm** a day | 12 kinds — not steelhead, which has its own 2 |
+| 1 of **4 in possession** | 13 kinds |
 
 ---
 
-### Option 5 *(new)* — One row per limit
+### 5.4 Two decisions
 
-No nesting and no groups. **Every row is a limit**, and the "applies to" column carries what the
-indentation used to. Every row has exactly the same shape.
+**Split the complex block from the simple quotas — yes, but split by *structure*, not by name.**
+Across the 22 tables, **177 entries sit outside any shared number**, and only 11 of them carry a
+size statement at all — 4 of those are trout/char rows anyway. So the real division is *fish that
+share a number* versus *fish with a number of their own*, which is about 3 rows against 8 on a
+typical table. Splitting by the words "trout and char" would put Region 7a's lake trout (inside
+the band) and its bull trout (released, outside it) in the same block while the model has them in
+different ones.
 
-**REGION 2 · STREAMS · hatchery** — 1 July – 31 Dec
-
-| Limit | How many | Applies to |
-|---|---|---|
-| Per day | **2** | all 15 trout and char, between them |
-| In possession | **4** | all 15 trout and char, between them |
-| Minimum size | **30 cm** | all 15 trout and char |
-| Of those, over 50 cm | **1** | all trout and char **except steelhead** |
-| Of those, over 50 cm | **2** | steelhead |
-| Of those, chars | **1** | bull trout, Dolly Varden, lake trout |
-| Minimum size | **60 cm** | bull trout, Dolly Varden, lake trout |
-| Per licence year | **10** | steelhead |
-
-**REGION 2 · STREAMS · wild** — put back every trout and char, every size.
-
-**For** — the steelhead exception becomes two adjacent rows that obviously disagree on purpose,
-which is far clearer than a footnote on a nested line; nothing is ever restated; one shape at
-any width. **Against** — it inverts the reader's question. They arrive asking about a *fish* and
-this is a list of *limits*, so they must scan the right-hand column to assemble their own answer.
-Best as the **"show me the rules"** view behind Option 3, or as the reviewer's view for checking
-against the book — where it is genuinely the best of the four, because each printed sentence maps
-to exactly one row.
-
----
-
-### Option 6 *(new)* — The decision ladder
-
-The oracle, rendered. The reader answers about the fish in their hand and each step is a rule
-with its own provenance.
-
-> **I have a bull trout · 47 cm · hatchery** — Region 2 stream, 12 September
-
-| | check | answer | |
-|---|---|---|---|
-| 1 | Is it wild? | no | ✅ *(every wild trout and char goes back here)* |
-| 2 | Is it at least 30 cm? | 47 cm | ✅ |
-| 3 | Bull trout, Dolly Varden and lake trout must be 60 cm | 47 cm | ❌ |
-
-> ### Put it back
-> *"1 char (bull trout, Dolly Varden, or lake trout)" — Region 2 · region-wide*
-
-And when it passes, the same ladder becomes the budget check:
-
-> **I have a rainbow trout · 38 cm · hatchery** — and 1 trout already in the creel
-
-| | check | answer | |
-|---|---|---|---|
-| 1 | Is it wild? | no | ✅ |
-| 2 | At least 30 cm? | 38 cm | ✅ |
-| 3 | Over 50 cm? | no — the 1-over-50 slot is untouched | ✅ |
-| 4 | Trout and char today | 1 of 2 used | ✅ **1 left** |
-
-> ### You may keep it — your last one today
-
-**For** — this is the only layout that answers *"may I keep **this** one"* rather than *"what are
-the rules"*, and it is exactly what `oracle.may_i_keep` already computes (1.1 ms, and every check
-carries `used` and `remaining`). Perfect for mobile: one question per line, no table at all.
-**Against** — it answers about one fish at a time and cannot show the chapter; it needs input
-(species, length, origin, what is already in the creel) that a browsing reader has not given.
-
----
-
-### How they fit together
-
-| view | answers | when |
-|---|---|---|
-| **Option 3** | "what are the rules here" | the default — browsing, planning |
-| **Option 4** | "I am fishing for X" | tap a fish |
-| **Option 5** | "show me the rules themselves" | the reviewer's view, and the check against the book |
-| **Option 6** | "may I keep **this** one" | fish in hand |
-
-They are four renderings of **one** tree, not four data models — Option 5 is the tree's
-constraints listed flat, Option 4 is one leaf with its ancestors, and Option 6 is the same
-counters walked in order. Nothing extra has to be computed for any of them.
+**A fish-picker dropdown — no. A search that jumps — yes.** A dropdown's option list *is* the
+member enumeration from rule 1; if the members are on the page the dropdown duplicates them, and
+if they are not, the dropdown is the only place they appear and browsing is still broken. Worse,
+filtering a shared-budget table to one fish hides the other spenders — destroying the one thing
+the table exists to show. A search field that **scrolls to and highlights** the row, leaving the
+table intact, costs one line and answers the real question ("is my fish here at all"). It must
+match **members, not headings**: on 46 of the 53 tables the word a reader types — `splake`,
+`dolly varden`, `westslope` — appears in no heading on the page.
 
 ---
 
@@ -566,31 +559,66 @@ because it decides using the same counters the table draws.
 
 ---
 
-## Part 7 — What is wrong today (all reproduced)
+## Part 7 — What is wrong today
+
+Every line reproduced against the running builder. Counts are **my own measurements**; where a
+design pass reported a different number I give mine and say so.
+
+### The display draws things that are not true on the date
+
+| | measured | what a reader gets |
+|---|---|---|
+| a released or closed fish drawn **inside a live shared number** | **21** (band, stretch, member) | "keep 4 between them" over a fish they must release |
+| a shared cap naming **released fish as sharers** | R3 streams Aug 1: the "1 char" names 3, only lake trout is keepable | a budget shared with two phantoms — or worse, read as permission |
+| pooled counters printing with **no spender at all** on some stretch | **30** (counter, stretch) pairs | a limit for a group nobody may keep from |
+| pooled counters collapsing to **exactly one fish** | **5** | "1 between them" about a single species |
+| size statements printed under a zero answer | **11** year-round (more on dated views) | "at least 60 cm" beside "Put it back" |
+
+**The root cause is one field.** `Ledger.reaches` asks *"does this counter speak about this fish
+on **some** date"*, and drops a fish only when the carve is `always` — so a **seasonal** release
+never removes anyone. It has no `on` parameter at all. The correct test is `reaches` **and** that
+fish's headline is non-zero on the date, which lives only on `Row.headline(on)`. The ledger needs
+that primitive; four places currently re-derive it and disagree.
+
+### The display understates or hides a shared number
 
 | | measured |
 |---|---|
+| pooled counters whose **hatchery** sharer set is larger than the wild one — and the code picks wild as the representative | **15 of 84** |
+| Region 4's `"1 rainbow trout or cutthroat trout over 50 cm"` prints **`only 1 over 50 cm`** with an empty sharer list | pooled over both, so a reader keeps a 55 cm rainbow *and* a 55 cm cutthroat |
+| hidden anadromous forms leaking into sharer text | `brook trout (anadromous)`, `dolly varden (anadromous)` — names in no heading anywhere |
+
+Understating who shares a budget is the dangerous direction.
+
+### Structure
+
+| | measured |
+|---|---|
+| a member whose own number is **smaller than its band's** | **21** (incl. members at 0 under a live band) — Region 6 streams gives trout **1** inside a family of **5** |
 | bands with no single answer | **8 of 20** |
-| tables drawing a trout/char fish outside the trout/char group | **16 of 22** |
-| orphan entries (22 of them steelhead) | **28** |
-| Haida Gwaii streams on **Dec 1**: bait lines shown | **4** — three of which say you may use bait, beside "No bait" |
-| province spear: verdict says allowed, governing rule stamped disapplied | both kinds |
-| gear band names set lining where that row says *not allowed* | **20 of 22** |
-| a rig rule printed twice on one table | **3 tables** |
+| rows with **no answer at all** | **12** — Region 7a streams gives nine species no number, no release, nothing |
+| a clause drawn against a parent that was **replaced** | Region 8 streams: `"1 over 50 cm"` is `within` `"Trout/char: 5"`, which is replaced on streams by `"4 from streams"` |
+| a group heading that names a set by an umbrella it does not fill | `9 kinds of all game fish` — Region 7a streams, 4 tables |
 
-The quota faults share one cause: **rows are keyed by their whole counter set, including
-counters nobody can act on**. Step 2 fixes all three.
+### Gear
 
-The gear fault is separate: the display unit should be a **period** — a run of days over which
+| | measured |
+|---|---|
+| Haida Gwaii streams on **Dec 1**: bait lines shown | **4** — three say you may use bait, beside `No bait` |
+| province spear: verdict `allowed`, governing rule stamped disapplied | both kinds |
+| band names set lining where that row reads *not allowed* | **20 of 22** |
+| a rig rule printed twice on one table | **3** |
+
+The gear fault is one idea: **the display unit should be a period** — a run of days over which
 nothing changes — not a year. A year view is a union of days, and a union of days is a stack of
-contradictory tables. The book already says what to do: `zp:bait::bait.r4` ends *"…as bait
-unless a bait ban applies."*
+contradictory tables. The book already says what to do: `zp:bait::bait.r4` ends *"…as bait unless
+a bait ban applies."*
 
 ### The gate to build against
 
 > **No two printed lines may contradict each other.**
 
-Check it against the rendered output, not the rules going in — an input-seeded check has
+Checked against the **rendered output**, not the rules going in — an input-seeded check has
 laundered failures three times in this project already.
 
 ---
