@@ -241,8 +241,9 @@ question at the water is *what may I keep today*.
 - **`rows.schedule(rows)`** cuts the year into the stretches over which one table holds. The
   signature is every counter **in force** on the day, on every row — not the headline, because
   a cap coming into force changes the table without changing a number. It wraps at the year's
-  end the way `Row.calendar` does. **52 stretches over the 22 tables**; eleven tables have
-  exactly one and never change.
+  end the way `Row.calendar` does. **53 stretches over the 22 tables**; ten tables have exactly
+  one and never change. (It was 52 and eleven until `schedule` began counting gear terms too:
+  Haida Gwaii's streams have one stretch by quota alone and two once its bait ban counts.)
 - **`provenance.as_of(L, row, on)`** is one row as a day finds it: counters not in force are
   not on it, and the headline is re-read from what is left. Nothing is resolved a second time
   — it only chooses which settled counters the day can see.
