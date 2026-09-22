@@ -510,7 +510,230 @@ match **members, not headings**: on 46 of the 53 tables the word a reader types 
 
 ---
 
-## Part 6 — Where this connects to the app
+## Part 6 — How you may fish
+
+The quota half answers *what may I keep*. This half answers *how may I fish*. They share one
+abstraction — "what you may keep **by this method**" is an `Allowance` in a `Ledger`, exactly
+like a quota — and nothing else.
+
+One structural difference decides the whole layout:
+
+> **The gear display unit is a PERIOD, not a year.** A year view is a union of days, and a union
+> of days is a stack of contradictory tables.
+
+### 6.1 The bait contradiction, and why it is not a display bug
+
+Haida Gwaii · streams, asked for **1 December**, prints four bait lines:
+
+| rule | says | in force |
+|---|---|---|
+| `zp:bait::bait.r1` | Fin fish may not be used as bait | always |
+| `zp:bait::bait.r4` | Freshwater invertebrates **may** be used | always |
+| `zp:bait::bait.r6` | Roe **may** be used | always |
+| `z1:hg_bait_ban_streams::…r1` | **No bait** | Nov 1 – Apr 30 |
+
+Three of the four name a bait you may use, on a day you may not use any.
+
+The cause is one line. `_settle_rig` decides whether one rule folds another by asking
+`_whenever(ban, allowance)` — *is the ban live on every day the allowance is?* The ban is
+seasonal and the allowance is year-round, so it is false, and **a seasonal ban can never fold a
+year-round allowance**.
+
+The proof that no new logic is needed: **Region 1 carries the same ban with the dates removed**
+(`"Bait ban: applies to all streams of Region 1, all year"`) and already prints exactly one bait
+line, with the other three folded away. Same code, opposite outcome, decided only by the date
+guard. Settle *inside a period* and `_whenever` is trivially true, so the existing algebra does
+the work.
+
+The book agrees: `zp:bait::bait.r4` ends *"…in streams as bait **unless a bait ban applies**."*
+
+### 6.2 The logic tree
+
+```
+0  CUT THE YEAR into periods — rows.schedule(rows, also=gear_terms) already does this
+1  SETTLE INSIDE THE PERIOD  — drop terms live nowhere in it; treat the rest as year-round
+2  THE WATER FIRST           — a closure prints the card of Part 3 and one rule: "do not place
+                               any fishing gear in any water during a No Fishing period"
+3  VERDICT PER METHOD        — the standing contest; a ban beats a permit at equal rank; the
+                               default is stated with its reason
+4  ON THE PROVINCE'S TABLE   — a fourth verdict, "depends where", built from region_limited
+5  A ZERO VERDICT ANNIHILATES— but a DUTY survives (see below)
+6  RIG CONDITIONS ACCUMULATE — the ladder only picks between two statements about the same tackle
+7  A SHARED CONDITION IS DRAWN ONCE, over the methods that can spend it — and it NAMES them
+8  HOIST PER CONDITION       — one shared by ≥2 live methods hoists and carries its sharers
+9  NO TWO PRINTED LINES CONTRADICT — checked against the rendered output
+```
+
+**Step 5 has a counter-example that defines it.** "Drop every keep counter under a banned method"
+is wrong: snagging reads *not allowed* on all 22 tables and carries *"any fish willfully or
+accidentally snagged must be released immediately"* — a **duty that exists because you did the
+banned thing**. So the test is on the counter, not the method: a `release` survives, a `closed`
+goes. That keeps 22 snagging rows and drops 31 rows of unspendable text.
+
+### 6.3 The layout — a verdict ledger, then one rig list
+
+Chosen from the shape of the corpus, not from taste. Across the 22 tables there are 176
+(table, method) rows:
+
+| | |
+|---|---|
+| rows reading **not allowed** | **94 of 176** |
+| tables where the rig list is **entirely shared** | **19 of 22** |
+| rig lines per table | 7 – 11 (median 9) |
+| longest single printed condition | **440 characters** (Region 8's turtle advisory) |
+
+Half the page is "no", so a card per method spends four lines to say nothing 94 times. And at
+400px a full-width line holds ~45 characters, so a three-column band leaves ~25 for text — **the
+rig block must be a list, not a table.** Only the verdict ledger and the species tables may be
+tables, because their right-hand cells are short and bounded.
+
+#### Region 1 · streams — all year
+
+**Can I?**
+
+| | |
+|---|---|
+| **Rod and line** | ✅ Yes |
+| **Ice fishing** | ✅ Yes — 2 conditions |
+| **Crayfish traps** | ✅ Yes — release everything else |
+| Set line (unattended) | ❌ No — nothing in the book allows it here |
+| Spear or bow | ❌ No — banned in Regions 1, 2 and 4 |
+| Nets · Chumming | ❌ No |
+| Snagging | ❌ No — and release anything you foul-hook |
+
+**How must I rig it?** — *Rod and line · Ice fishing*
+
+- **Bait — none.** *"Bait ban: applies to all streams of Region 1, all year"* · Region 1
+- **Hooks — one, barbless.** *"Single barbless hook: must be used in all streams of Region 1"*
+- **Lines — 1 per angler**, at most 1 artificial fly, at most 1 kg of weight (not downriggers)
+- **May** use a downrigger with a quick-release · **must not** use a light to attract fish
+  unless submerged within 1 m of the hook
+
+#### Haida Gwaii · streams — 1 December
+
+**Bait — none, until 30 April.** *"Bait ban: applies to all streams in Management Units 6-12 and
+6-13, Nov 1-Apr 30."*
+> From **1 May** you may again use freshwater invertebrates and roe.
+
+Eight lines instead of eleven, and the contradiction is gone — not filtered out, *folded* by the
+model, exactly as Region 1's year-round ban already folds.
+
+#### All of B.C. · streams — where the verdict is a map
+
+| where | | the sentence |
+|---|---|---|
+| **Regions 1, 2 and 4** | ❌ not at all | *"No spear fishing of any kind is permitted in Region 1, 2, and 4."* |
+| **Regions 3, 5, 6, 7 and 8** | ✅ non-game fish, and burbot | *"Only non-game fish (such as carp) may be speared"* · *"except burbot…"* |
+| **anywhere** | ❌ no game fish, no salmon, no protected species | `zp:spear_fishing::spear_fishing.r4` |
+
+Today that row reads **`allowed`** while its governing term is stamped *"closed here by a
+stricter rule"* — a permission a reader in Region 2 would act on.
+
+### 6.4 Three more defects, all verified
+
+| | measured |
+|---|---|
+| lake tables printing **two live line limits as peers** — *"1 line per angler"* beside *"2 lines per angler, from lakes — alone in a boat"* | **11 of 11** |
+| tables whose *Also* block mixes a **permission and a prohibition** with identical polarity, so both read as instructions | **22 of 22** |
+| Region 8's crayfish trapping **governed by a 440-character advisory about turtles**, with the real permit folded away as "says the same thing" | **both kinds** |
+
+The line-limit pair is one sentence in the book — *"Angle with more than one line, **EXCEPT** a
+person who is alone in a boat on a lake may angle with two lines"* — so r2 is a carve into r1,
+not a peer, and the existing `carves` machinery would print it correctly once curated.
+
+### 6.5 What the model must change
+
+| # | where | change |
+|---|---|---|
+| 1 | `method_provenance.base_table` / `section` | take a **period**; emit the period list from `rows.schedule`, which already accepts gear terms |
+| 2 | `MethodTable.__init__` | settle **inside** the period — drop terms live nowhere in it |
+| 3 | `_whenever` (`method.py:373`) | inside a period it is trivially true; it must stop deciding the printed answer |
+| 4 | `MethodTable.calendar` | fingerprint on `(closure, standing, live rig, live keep)` — the same `sig` `rows.schedule` uses |
+| 5 | `MethodRow.verdict_word` | a fourth verdict, `depends`, when `region_limited` is non-empty on the province's table |
+| 6 | `row_json` | under a zero verdict emit no rig, and keep only **duties** (`release`), never `closed` |
+| 7 | `terms_of` | an **advisory must not govern** a method |
+| 8 | `hoist` | band members are hook methods **whose verdict is allowed** |
+| 9 | `hoist` | hoist per condition, carrying the sharer names; a row keeps only what nobody shares |
+| 10 | `method_comply.audit` | the contradiction gate, **against the rendered output** |
+
+---
+
+## Part 7 — What licence do I need? (research, not a table yet)
+
+No licence table is being built. This is the parameter set one would need, and an honest account
+of what the corpus can answer today.
+
+### 7.1 The documents
+
+| document | trigger | in the corpus? |
+|---|---|---|
+| **Basic angling licence** (annual / one-day / eight-day) | any sport fishing, 16+ | the requirement yes; **the durations no** |
+| **Classified Waters Licence** | a classified stream, during its classified period | **78 rules** |
+| **Class I / Class II day licence** | non-resident or alien on a classified water | class yes; the per-day purchase no |
+| **Steelhead Conservation Surcharge Stamp** | targeting steelhead *anywhere*, keep or release — plus most classified waters in period | **49 rules** |
+| **Non-tidal salmon stamp** | keeping a salmon other than kokanee | 1 rule, `on_retention` |
+| **Kootenay / Shuswap rainbow · Shuswap char stamps** | keeping a rainbow > 50 cm or char > 60 cm on named waters | 6 rules |
+| **White Sturgeon Conservation Licence** | targeting sturgeon, Fraser watershed, Mission → Williams Lake River | 1 rule |
+| **National Park Fishing Permit** | inside a national park — *and a B.C. licence is not valid there* | 2 rules |
+| **Creston Valley WMA permit · landowner permission** | named places | 4 rules |
+
+Waivers the book states: under 16 and resident (no licence, own quota); under 16 non-resident
+(accompanied by a licensed adult); *"If you are an Indian and a resident of B.C., you are not
+required to obtain any type of fishing licence"*; Métis **are** required. **Family Fishing
+Weekend** — the basic-licence waiver on Father's Day weekend — is **0 rules in the corpus**.
+
+### 7.2 The parameters, by where the value comes from
+
+**Ask the angler once (7 facts) — nothing in the codebase asks any of them today:**
+residency (resident / non-resident / non-resident alien) · guided? · 16+? · 65+? ·
+Indian & B.C. resident / Métis / disabled · target species · intend to keep?
+
+**Read off the water and date (7 facts, 6 of which exist):** classified + class + whether the
+date is inside the window · which named licence to buy · the steelhead-stamp window and its
+exceptions · park or reserve membership · the white-sturgeon reach · named-stamp waters ·
+non-resident day allocation *(text only, not computable, on 66 of 73 rules)*.
+
+### 7.3 What the corpus actually holds
+
+| | measured |
+|---|---|
+| `document_required` rules | **148** |
+| of those, classified waters · steelhead stamp · basic licence | 78 · 49 · 10 |
+| `water_class` set | **71 rules — 62 Class II, 9 Class I** |
+| `angler_class` set | **38 of 3,422 rules — 1.1 %** |
+| `issuing_jurisdiction` — declared in the model | **set on 0 rules** |
+
+> **The water half is nearly done; the angler half is barely started.** Which stamp, which
+> permit, whether classified and in what class and when — all of that is in the corpus and bound
+> to sections. Residency, guiding, age and status are not, and `app/packages/core/src/status.ts`
+> treats `document_required` and `access_permission` only as members of a `licensing` family and
+> reads none of the fields.
+
+### 7.4 What must be curated
+
+1. **Three CW-marked waters have no catalogue entry at all** — `QUINN CREEK CW 4-22`,
+   `SKOOKUMCHUCK CREEK CW 4-20`, `KILBELLA RIVER CW 5-7`. Skookumchuck is named in the
+   province-wide booking advisory and still has no water of its own.
+2. **`BIGHORN (Ram) CREEK CW 4-2`** is printed as classified but its only rule is a
+   cross-reference — *"A tributary of Wigwam River; see Wigwam River"* — and nothing resolves it.
+   Its class is unknown.
+3. **Five waters carry `water_class` on a `steelhead_stamp` rule, not a
+   `classified_waters_licence` rule** — West Road (Blackwater), Babine, Stellako, Sustut, Telkwa.
+   A "does this need a Classified Waters Licence" query keyed on `document` misses all five.
+4. **Do not key on the `Classified` entry symbol.** It is on 21 entries while 71 carry a class
+   or a CW rule. Key on the rule.
+5. **The Skeena has two separate Class II sections** needing separate per-day licences, and the
+   corpus knows there are two but carries no identifier a purchase screen could use.
+
+### 7.5 Honest unknowns
+
+The corpus cannot say what a licence **costs**, cannot choose between annual / one-day /
+eight-day, cannot apply the Family Fishing Weekend waiver, cannot name the specific Skeena
+section licence, and does not know Bighorn (Ram) Creek's class.
+
+---
+
+## Part 8 — Where this connects to the app
 
 ### This water
 
@@ -559,7 +782,7 @@ because it decides using the same counters the table draws.
 
 ---
 
-## Part 7 — What is wrong today
+## Part 9 — What is wrong today
 
 Every line reproduced against the running builder. Counts are **my own measurements**; where a
 design pass reported a different number I give mine and say so.
@@ -623,7 +846,7 @@ laundered failures three times in this project already.
 
 ---
 
-## Part 8 — Gotchas
+## Part 10 — Gotchas
 
 1. **Never run the parser** — it spends the owner's credits. Hand over the command.
 2. **A rule id is unique only inside its entry.** `species_quotas.r1` is nine different rules.
