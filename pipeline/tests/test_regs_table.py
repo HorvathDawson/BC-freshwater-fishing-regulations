@@ -873,7 +873,12 @@ def test_the_oracle_is_total_and_decides_only_by_what_the_rows_show(tables):
 
 
 def test_every_verdict_names_a_rule_and_its_provenance(tables):
-    for w, run, _, _, L, t in tables[:20]:
+    """EVERY water, not the first twenty. `reasons` was built from a sorted copy of `checks` and
+    `decided_by` from the unsorted one — the same length, so nothing complained, and every caller
+    pairing a reason with the rule behind it got the wrong rule. Atlin Lake is the water that
+    shows it, because it carries both its own lake-trout three and the region's trout-and-char
+    five on the same fish, and it sat outside the slice."""
+    for w, run, _, _, L, t in tables:
         for r in t:
             v = may_i_keep(L, Fish(r.species, 45, r.origin if r.origin is not Origin.both else Origin.wild),
                            (7, 15), Creel(), name)

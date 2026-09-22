@@ -167,20 +167,25 @@ quota ledgers.
 
 ---
 
-## The app page (`app/design/regs-v3.html`) — ported 2026-09-21
+## The prototype page is gone — 2026-09-22
 
-The page renders what the pipeline hands it and computes nothing. The four browser-side
-ladders (`kindBeaten`, `authBeaten`, `tribBeaten`, `shutAll`), `retentionTable`,
-`gearTable`, the closure calendar and their helpers are deleted (~1,700 lines); a test
-fails if any of them comes back.
+`app/design/regs-v3.html` has been deleted, with `emit_regs_v3_tables.py`, `test_regs_v3_page.py`
+and the verification artifact that was built by driving it.
 
-- **`pipeline/tools/emit_regs_v3_tables.py`** writes a second JSON block, `<script id="t">`,
-  after the `d` block: `provenance.section` and `method_provenance.section` for every
-  stretch of every water, in the shape the artifacts render. Every counter, term and gear
-  row is written ONCE into `pool` by content (22 MB naive → 6 MB); the page rehydrates on
-  load. Run it **after** `build_regs_v3_data`, never instead of it — the `d` block is what
-  `corpus.section_rules`, `comply` and the delta invariant read, and the emitter never
-  touches it (tested).
+The one thing it held that the pipeline needs is **which rules fall on which stretch of which
+water**. That lived in a `<script id="d">` block, and `corpus.py` and `build.py` each opened the
+7.7 MB page at import and pulled the 4.2 MB block out with a regular expression — so the table
+layer's input was a design file nobody could delete or regenerate safely.
+
+It is now `data/generated/regs/sections.json`, written from the bundle by
+`pipeline/tools/build_section_data.py` (was `build_regs_v3_data.py`). `corpus.sections()` loads it
+once. 22 waters, 102 stretches — the same coverage as before, and still the gap described in
+`05-table-generation.md` Part 8.
+
+**Key order in that file is data.** Writing it sorted reorders `build.WATERS`, which changes which
+waters a test's slice covers; that is how the oracle's mismatched `reasons` / `decided_by` lists
+surfaced. Write it unsorted.
+
 - **`LEDGER`** (a `<style>` + `<script>` before the page's own script) is the artifacts'
   renderer, scoped under `.ledger`: bands with "between them", a size on every row, wild and
   hatchery as two lines under one species, a stop as loud as a permission, possession never
@@ -440,11 +445,7 @@ Every entry is now ONE row, so the table has one row shape throughout.
 6. Dated views are **base tables only** — `provenance.section(water, run, on)` takes a date
    but the section emitters do not yet emit views, so "this water" overrides have no
    schedule. That is the next thing v4 needs.
-7. **`app/design/regs-v3.html` is stale against `present()`.** Its `<script id="t">` block
-   predates `combined`, so Region 3's waters still draw the two split rows. `LEDGER` would
-   also need to learn `combined`: it renders a two-line entry with an origin badge, and a
-   merged group's two lines are both "either", so the members would be unlabelled. The owner
-   has accepted this — v4 is built from the structure, not from this page.
+7. *(was: the prototype page is stale against `present()`)* — resolved by deleting the page.
 8. The quota/custody artifact (`c16d220a…`) and the gear artifact (`56c5f7d1…`) were not
    regenerated and show the pre-merge shape.
 9. Region 6's hatchery steelhead prints "only 1 over 50 cm · only 1 over 50 cm between them"

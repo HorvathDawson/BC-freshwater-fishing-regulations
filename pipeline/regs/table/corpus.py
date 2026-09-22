@@ -1,6 +1,6 @@
 """Rules read from the SHIPPED BUNDLE, which is where they are still whole.
 
-The first prototype read the rule list embedded in `app/design/regs-v3.html`, because that is
+The first prototype read the rule list embedded in a design page, because that is
 exactly what the page is handed and it made the comparison honest. It is also LOSSY: the page
 builder drops `exempts`, so the one field that expresses "burbot may be speared in Regions 3,
 5, 6, 7 and 8" never reaches the browser at all. No amount of work in the page can recover it.
@@ -88,6 +88,26 @@ def rule_part(key: str) -> str:
     return key.split("::", 1)[-1]
 
 
+#: WHICH RULES FALL ON WHICH STRETCH OF WHICH WATER — the atlas's answer, as data.
+#:
+#: This used to be read out of a 7.7 MB prototype web page with a regular expression, at
+#: import, by two modules — each opening the page and JSON-parsing it to get at a 4.2 MB block
+#: inside. The table layer's input was therefore a prototype web page, which could not be deleted,
+#: regenerated or reviewed without the risk of taking the pipeline with it. It is a file now.
+SECTIONS = "data/generated/regs/sections.json"
+_SECTIONS = None
+
+
+def sections(path: str = SECTIONS) -> dict:
+    """The section data, loaded once. 22 waters, their stretches, and the rules on each."""
+    global _SECTIONS
+    if _SECTIONS is None:
+        import json
+        with open(path) as fh:
+            _SECTIONS = json.load(fh)
+    return _SECTIONS
+
+
 def section_rules(water: str, run: int = 0, path: str = BUNDLE):
     """The rules of ONE stretch, as COMPLETE records.
 
@@ -99,11 +119,7 @@ def section_rules(water: str, run: int = 0, path: str = BUNDLE):
     Returns (rules, regions) — the region ids are what a scoped rule like "Regions 1, 2 and 4"
     is measured against.
     """
-    import json, re
-    H = open("app/design/regs-v3.html").read()
-    D = json.loads(re.search(r'<script id="d" type="application/json">(.*?)</script>',
-                             H, re.S).group(1))
-    w = D.get(water) or {}
+    w = sections().get(water) or {}
     runs = w.get("runs") or []
     if run >= len(runs):
         return [], frozenset()

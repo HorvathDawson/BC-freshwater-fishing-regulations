@@ -37,6 +37,19 @@ generated/*
 !generated/bathymetry/audit.json
 !generated/stocking/identifier_audit.json
 
+# A THIRD EXCEPTION, and this one is an INPUT. `regs/sections.json` is which rules fall on which
+# stretch of which water — what `corpus.sections()` loads and the whole table layer is built on.
+# It was tracked before, inside a 7.7 MB design page that two modules parsed at import; moving it
+# to a data file must not quietly untrack it, or a fresh clone has no table layer and the suite
+# fails with FileNotFoundError. Regenerable from the bundle by pipeline/tools/build_section_data.py,
+# but the bundle is not tracked either, so the file has to be.
+# Open the directory, re-exclude its contents, then admit the one file — the same three-step
+# the `generated/*` comment above explains, applied one level down. `!generated/regs/` alone
+# would expose everything else written there (dfo_salmon/, scratch dumps).
+!generated/regs/
+generated/regs/*
+!generated/regs/sections.json
+
 # The tree's own documentation — the map of what each subdirectory is and who writes it.
 # It belongs beside the thing it describes, not only in pipeline/docs/.
 !generated/README.md

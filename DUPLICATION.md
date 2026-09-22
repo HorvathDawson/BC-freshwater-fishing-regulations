@@ -157,7 +157,7 @@ Ranked by consequence. Each was confirmed by reading both sites.
 
 ---
 
-## From the regs-v3 prototype review, 8 September 2026
+## From the regs-v3 prototype review, 8 September 2026 *(the page was deleted 2026-09-22; kept for the findings)*
 
 Three agents audited `app/design/regs-v3.html` — UX standards, duplicated logic, and the
 screen's claims against the bundle. Everything below was reproduced before it was written

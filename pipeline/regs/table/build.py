@@ -25,11 +25,11 @@ from pipeline.regs.table.applies import applies_of
 from pipeline.regs.table.authority import source_of, Source
 from pipeline.regs.table.ledger import Allowance, Ledger, LIFTED, REPLACED_BY_CLAUSE
 from pipeline.regs.table.clauses import children_of, pooled_of
-from pipeline.regs.table.corpus import rid, section_rules as corpus_section
+from pipeline.regs.table.corpus import rid, section_rules as corpus_section, sections as corpus_sections
 from pipeline.regs.table.lifts import lifts_here
 
-H = open("app/design/regs-v3.html").read()
-D = json.loads(re.search(r'<script id="d" type="application/json">(.*?)</script>', H, re.S).group(1))
+# THE SECTION DATA, from a data file rather than out of a design page. See `corpus.sections`.
+D = corpus_sections()
 NAME = D.get("_species") or {}
 WATERS = [k for k, v in D.items() if not k.startswith("_") and isinstance(v, dict)]
 for _k in WATERS:

@@ -117,8 +117,15 @@ def may_i_keep(ledger: Ledger, fish: Fish, on: Tuple[int, int], creel: Creel = N
     if not checks:
         return Verdict(None, "unwritten", [], [],
                        ["Nothing here limits this fish — no rule on this stretch names it."], notes)
+    # ONE ORDER FOR ALL THREE LISTS. `reasons` was built from a SORTED copy of `checks` while
+    # `decided_by` was built from the unsorted one — the same length, so nothing complained, and
+    # every caller that pairs a reason with the rule behind it got the wrong rule. On Atlin Lake
+    # the sentence about the region's five trout and char cited the water's own lake-trout three.
+    # It surfaced only because that water has both, and only when it happened to be read.
+    checks = sorted(checks, key=lambda c: (c.counter.period != "daily", c.counter.rank,
+                                           c.counter.rule_id))
     reasons = []
-    for c in sorted(checks, key=lambda c: (c.counter.period != "daily", c.counter.rank)):
+    for c in checks:
         a = c.counter
         if a.n is None:
             reasons.append(f"Yes — no limit on {_who(a, name)}: {cite(a)}")
