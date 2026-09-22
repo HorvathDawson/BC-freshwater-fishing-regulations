@@ -3527,38 +3527,6 @@
        "area_id": "area:national_parks:southern_gulf_islands_national_park_reserve_of_canada"
       }
      ]
-    },
-    {
-     "rule_id": "national_park_reserves.r2",
-     "type": "advisory",
-     "verbatim": "The seven National Parks within British Columbia are: Kootenay, Yoho, Glacier, Mount Revelstoke, Pacific Rim, Gwaii Haanas and Gulf Islands.",
-     "obligation": "must",
-     "species": [],
-     "species_except": [],
-     "windows": [],
-     "windows_are": "applies",
-     "weekdays": [],
-     "when_open": false,
-     "unlimited": false,
-     "period": "daily",
-     "band": false,
-     "combined": false,
-     "record_retention": false,
-     "when_targeting": [],
-     "required": true,
-     "on_retention": false,
-     "exempts": [],
-     "standing": false,
-     "reason": "",
-     "extent_text": "",
-     "needs_review": false,
-     "review_reason": "",
-     "extents": [
-      {
-       "op": "within",
-       "area_kind": "national_parks"
-      }
-     ]
     }
    ]
   },
