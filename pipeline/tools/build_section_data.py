@@ -1,13 +1,17 @@
-"""Regenerate the dataset embedded in `app/design/regs-v3.html`.
+"""Build `data/generated/regs/sections.json` — which rules fall on which stretch of which water.
 
-The prototype in that file — "what applies here", two stages, where on the river then what
-applies there — runs on REAL build output, and its data used to be produced by hand. So when
-the corpus moved to the rule catalogue the file kept showing prose rules (`kind`, `details`)
-for entries that no longer exist: of the 110 entry ids it referenced, 16 survived. A design
-document that disagrees with the build is worse than none, because it is still persuasive.
+THIS IS AN INPUT TO THE TABLE LAYER, not a design document. It used to be written into a
+`<script id="d">` block inside a 7.7 MB prototype web page, and `corpus.py` and `build.py` each
+opened that page and pulled the block back out with a regular expression, at import. The
+pipeline's input was therefore a design file that could not be deleted, regenerated or reviewed
+without risking the pipeline. The page is gone; the data is a file.
 
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.build_regs_v3_data          # in place
-    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.build_regs_v3_data --print  # to stdout
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.build_section_data          # in place
+    PYTHONPATH="$PWD" .venv/bin/python -m pipeline.tools.build_section_data --print  # to stdout
+
+The waters are named below rather than discovered — 22 of them, chosen to exercise the cases the
+table layer has to get right. It covers 102 stretches; the bundle holds far more, and finishing
+that generalisation is the open work (see `05-table-generation.md`, Part 8).
 
 WHAT IT READS, and why each one:
 
@@ -1087,10 +1091,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--build", type=Path, default=None)
     ap.add_argument("--bundle", type=Path, default=GENERATED.bundle / "bundle.sqlite")
-    ap.add_argument("--html", type=Path,
-                    default=REPO_ROOT / "app" / "design" / "regs-v3.html")
+    ap.add_argument("--out", type=Path,
+                    default=REPO_ROOT / "data" / "generated" / "regs" / "sections.json")
     ap.add_argument("--print", dest="to_stdout", action="store_true",
-                    help="write the JSON to stdout instead of into the html")
+                    help="write the JSON to stdout instead of to the data file")
     a = ap.parse_args()
     build = a.build or GENERATED.require_build()
 
@@ -1133,14 +1137,9 @@ def main() -> int:
     if a.to_stdout:
         print(blob)
         return 0
-    html = a.html.read_text(encoding="utf-8")
-    new, n = re.subn(r'(<script id="d" type="application/json">).*?(</script>)',
-                     lambda m: m.group(1) + blob + m.group(2), html, count=1, flags=re.S)
-    if not n:
-        log("✗ no <script id=\"d\"> block in the html — nothing written")
-        return 1
-    a.html.write_text(new, encoding="utf-8")
-    log(f"\nwrote {len(blob):,} bytes into {a.html.relative_to(REPO_ROOT)}")
+    a.out.parent.mkdir(parents=True, exist_ok=True)
+    a.out.write_text(blob, encoding="utf-8")
+    log(f"\nwrote {len(blob):,} bytes to {a.out.relative_to(REPO_ROOT)}")
     return 0
 
 

@@ -23,6 +23,7 @@ import type { TileEndpoints } from "@app/map";
 import { useWaterSheet } from "@app/ui";
 import { FaceBar } from "./Faces";
 import { FishSpinner } from "./FishSpinner";
+import { RulesPlaceholder } from "./RulesPlaceholder";
 import { StatusPill } from "./StatusPill";
 import { TYPE } from "./type";
 import { outcomeColour, type Palette } from "./theme";
@@ -142,15 +143,11 @@ export function WaterScreen({ source, item, on, group, palette, onBack,
             <View style={{ flexDirection: "row" }}>
               <StatusPill status={r.status} palette={palette} />
             </View>
-            {r.status.from.length > 0 && (
-              <Text style={{ ...TYPE.small, color: palette.sub }}>
-                {/* The GENERATED label, which is what it is for. This printed `kind` with
-                    its underscores swapped for spaces — "gear restriction · closure" — which
-                    says the shape of a rule and never its content. */}
-                {r.status.from.map((rule) => rule.label || rule.type.replace(/_/g, " "))
-                  .join(" · ")}
-              </Text>
-            )}
+            {/* THE TABLE GOES HERE — see RulesPlaceholder, and
+                `pipeline/docs/06-ui-data-contract.md`. What stood here joined each rule's
+                generated label with dots, which names the shape of a rule and never its
+                content; a reader could neither act on it nor check it against the book. */}
+            <RulesPlaceholder palette={palette} count={r.status.from.length} />
           </View>
         </View>
       ))}
