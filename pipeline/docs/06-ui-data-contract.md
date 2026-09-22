@@ -60,26 +60,36 @@ the data is what makes "same data, different UI" impossible.
 
 **So ship the settled ledger — not the raw rules alone, and not a rendered table.**
 
+> **Not yet, though.** The settling layer has been removed from the repository until it is
+> rebuilt, so what ships today is the left half only: the rules, with their provenance. This
+> section is the target, not a description of `ui-rules-export.json` as it stands.
+
 The proof that a settled ledger is general enough: **three different renderings already run off
 one**, in this repository, today.
 
-| consumer | what it makes of the same ledger |
+| consumer | what it made of the same ledger |
 |---|---|
 | `rows.py` | one line per species-that-answer-alike |
 | `display.py` | the nested budget tree — shared numbers drawn once, members hanging off them |
 | `oracle.py` | "I have a 55 cm bull trout and a rainbow in the creel — may I keep this?" |
 
-None of the three is privileged and none of them settles anything. A fourth is a fourth
-consumer, not a change to the data.
+None was privileged and none settled anything. A fourth would have been a fourth consumer, not a
+change to the data.
+
+> **All three are gone**, with the settling layer itself, to be rebuilt properly. They are listed
+> because they are the evidence for the claim above: three renderings ran off one settled ledger,
+> so the split between settling and rendering is a demonstrated fact rather than a design hope.
+> What the repository holds today is the left-hand column of the table above and nothing else —
+> the rules, and which rules apply where.
 
 ### What crosses the line
 
 | | size | what it is |
 |---|---|---|
 | **the rules** | **2.3 MB**, 3,422 records | stage ③ exactly — the flat dicts, with `verbatim`, `species`, sizes, dates, `extents`. The front end needs these anyway, for provenance: the sentence from the book is the one thing a reader can check. |
-| **the settling verdict** | **3.9 KB** per (set, stretch), **~29 MB** for all 7,105 | per counter: does it bind today, what carved it, what it is a clause of, what it comes to. It references rule ids; it does not repeat rules. |
+| **the settling verdict** | **3.9 KB** per (set, stretch), **~29 MB** for all 7,105 | per counter: does it bind today, what carved it, what it is a clause of, what it comes to. It references rule ids; it does not repeat rules. **Not built today** — this is what the rebuilt layer owes. |
 | **`section → set_id`** | ~3.9 MB packed | 1,956,787 × a 2-byte id |
-| **the colour index** | ~7,105 rows | Part 2.2 |
+| **the colour index** | ~7,105 rows | Part 2.2. **Not built today** — it needs a settled ledger to know a closure from a caveat. |
 
 **~35 MB for the province**, fully settled, every line traceable to its sentence.
 

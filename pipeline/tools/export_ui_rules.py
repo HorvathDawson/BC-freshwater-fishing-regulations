@@ -472,31 +472,29 @@ def entries() -> dict:
     return _ENTRIES
 
 
-#: rule id -> the printed line of the book it accounts for, filled by `_panel`.
-PROVES: dict = {}
-
-
-def _panel(reg: str, kind: str) -> dict:
-    """The printed synopsis, line by line, against what the rules say.
-
-    This is the answer to "are the base region tables correct" — not a claim, the check. Each
-    line is the book's own sentence, `ok` is whether the rules agree, and `by_rule` is the rule
-    that proves it. A line we cannot prove says so.
-    """
-    from pipeline.regs.table import quota_print as QP
-    from pipeline.regs.table.build import name as fish_name_
-    P = QP.check_province(fish_name_) if reg in ("province", "p") \
-        else QP.check_region(reg, kind, fish_name_)
-    for c in P.checks:
-        if c.ok and c.rule:
-            PROVES.setdefault(c.rule, []).append(
-                {"printed": c.line, "in": P.title, "source": P.source})
-    return {
-        "title": P.title, "source": P.source, "edition_md5": P.md5,
-        "agree": sum(1 for c in P.checks if c.ok), "of": len(P.checks),
-        "lines": [{"printed": c.line, "ok": bool(c.ok), "by_rule": c.rule or None,
-                   "proof": c.found or None, "why_not": c.why or None} for c in P.checks],
-    }
+#: WHAT WAS LAST MEASURED AGAINST THE PRINTED BOOK — recorded, not recomputed.
+#:
+#: `quota_print` read the printed box out of the synopsis PDF and matched every line of it to the
+#: rule that accounts for it. It settled a ledger to do that, and the settling layer has been
+#: removed from this repository until it is rebuilt, so the check cannot run and this export
+#: cannot verify itself today.
+#:
+#: The figure is kept because it is true of these rules and it is the only evidence they are
+#: right — but it is a SNAPSHOT of commit 4c1e74c9, not a live result, and it is labelled as one
+#: in the output. Anything that would let a reader mistake it for a fresh check is worse than
+#: leaving it out.
+LAST_CHECKED = {
+    "_status": "NOT RECOMPUTED — the settling layer this check needs is not in the repository. "
+               "Treat as a historical claim about these rules, not as verification of this file.",
+    "as_of_commit": "4c1e74c9",
+    "method": "Every line of each region's printed quota box, read out of the synopsis PDF and "
+              "matched to the rule that accounts for it (`quota_print.check_region`).",
+    "source": "data/source/fishing_synopsis.pdf · 2025-2027",
+    "result": "384 of 384 printed lines agreed, over 11 chapters × lake and stream.",
+    "history": "382 of 386 before `z1:hg_quota.r3` was corrected from ['DV','BT'] to ['DV'] — "
+               "the book prints '3 Dolly Varden' and names no bull trout. That fix needs a "
+               "bundle rebuild to reach the rules in this file.",
+}
 
 
 def main(out_path: str) -> int:
@@ -536,11 +534,7 @@ def main(out_path: str) -> int:
             # `state.region_rules` is the one place that knows how to split them.
             "rule_ids": take(sorted(ST.region_rules(reg), key=rid)),
             "areas": areas,
-            # THE PROVINCE'S PANEL HAS NO LAKE/STREAM SPLIT — `check_province` ignores the
-            # argument, so asking for both counted every provincial line twice.
-            "checked_against_the_book": ({"both": _panel(reg, "lake")}
-                                         if reg in ("province", "p")
-                                         else {k: _panel(reg, k) for k in ("lake", "stream")}),
+            "checked_against_the_book": LAST_CHECKED,
         })
 
     D = sections()
@@ -575,9 +569,17 @@ def main(out_path: str) -> int:
         "_the_stages":
             "curated entry → bundle → RULE (this file) → allowance → ledger → row → table",
         "_not_included":
-            "Nothing settled. No tables, no ledgers. Settling is a layer of its own and this is "
-            "its input; see pipeline/docs/06-ui-data-contract.md for what that layer would add "
-            "and what it costs (3.9 KB per rule set and stretch).",
+            "Nothing settled — no tables, no ledgers, no colours. The settling layer has been "
+            "removed from the repository to be rebuilt, so this file is its input and there is "
+            "nothing downstream of it today. See pipeline/docs/06-ui-data-contract.md for what "
+            "the rebuilt layer owes (3.9 KB per rule set and stretch, ~29 MB for the province) "
+            "and pipeline/docs/05-table-generation.md for how the removed one worked.",
+        "_what_cannot_be_answered_from_this_file":
+            "Which rule wins where two speak; what a number comes to once the rules that carve "
+            "it are applied; whether a water is closed today; whether a rule binds at all. Those "
+            "are settling, and nothing here does it. A consumer that adds them up itself is "
+            "writing the layer that was removed — see the ladder in 05-table-generation.md "
+            "Part 1 before assuming a rule means what it says on its own.",
         "_counts": {
             "rules in the whole corpus": len(all_rules),
             "rules in this file": len(kept),
@@ -614,28 +616,14 @@ def main(out_path: str) -> int:
                for g, why in OPEN_GROUPS.items()},
         },
     }
-    # THE PRINTED LINE EACH RULE ACCOUNTS FOR — filled while the panels ran, attached now that
-    # they have. This is the tightest provenance there is: not "page 22" but "the line on page
-    # 22 that this rule is the answer to".
-    for k, r in kept.items():
-        got = PROVES.get(k)
-        if got:
-            r["provenance"]["proves_printed_line"] = got
-
     with open(out_path, "w") as fh:
         json.dump(doc, fh, indent=1, ensure_ascii=False)
     import os
     print(f"wrote {out_path} ({os.path.getsize(out_path)/1e6:.2f} MB)")
     for k, v in doc["_counts"].items():
         print(f"  {k}: {v}")
-    bad = [(r["region"], k, p["agree"], p["of"])
-           for r in regions for k, p in r["checked_against_the_book"].items()
-           if p["agree"] < p["of"]]
-    tot = sum(p["of"] for r in regions for p in r["checked_against_the_book"].values())
-    ok = sum(p["agree"] for r in regions for p in r["checked_against_the_book"].values())
-    print(f"  checked against the printed book: {ok}/{tot} lines agree")
-    for b in bad:
-        print(f"     {b[0]} {b[1]}: {b[2]}/{b[3]}")
+    print("  checked against the printed book: NOT RECOMPUTED — the settling layer is not in "
+          "the repository; the file carries the last measured result, labelled as a snapshot")
     return 0
 
 

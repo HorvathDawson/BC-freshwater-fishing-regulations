@@ -108,7 +108,7 @@ def sections(path: str = SECTIONS) -> dict:
     return _SECTIONS
 
 
-def section_rules(water: str, run: int = 0, path: str = BUNDLE):
+def section_rules_and_regions(water: str, run: int = 0, path: str = BUNDLE):
     """The rules of ONE stretch, as COMPLETE records.
 
     Two sources, because neither alone is enough: the page data knows which rules fall on which
@@ -151,3 +151,46 @@ def section_rules(water: str, run: int = 0, path: str = BUNDLE):
             x["via"] = "trib" if inherited[rid(x)] else "reach"
             out.append(x)
     return out, frozenset(runs[run].get("regions") or [])
+
+
+# ----------------------------------------------------------------------------------------
+# THE SECTION DATA, as accessors. Not settling — these only read `sections.json`.
+#
+# They lived in `build.py` alongside the ledger construction, which meant asking "what kind of
+# water is this" pulled in the whole settling layer. They are four lookups and a name map.
+# ----------------------------------------------------------------------------------------
+def section_rules(water: str, run: int = 0, path: str = BUNDLE) -> List[dict]:
+    """Just the rules of one stretch."""
+    return section_rules_and_regions(water, run, path)[0]
+
+
+def water_names() -> List[str]:
+    """Every named water the section data covers."""
+    return [k for k, v in sections().items()
+            if not k.startswith("_") and isinstance(v, dict)]
+
+
+def species_names() -> dict:
+    """Species code -> the words a reader sees."""
+    return sections().get("_species") or {}
+
+
+def name(code: str) -> str:
+    return species_names().get(code, code)
+
+
+def section_regions(water: str, run: int):
+    """The region ids a stretch falls in — what a rule scoped to named regions is measured
+    against."""
+    return section_rules_and_regions(water, run)[1]
+
+
+def section_label(water: str, run: int) -> str:
+    runs = (sections().get(water) or {}).get("runs") or []
+    return (runs[run].get("label") or "") if run < len(runs) else ""
+
+
+def section_kind(water: str) -> str:
+    """A lake or a stream. The book writes different tables for the two, so this decides which
+    rules are even eligible."""
+    return "lake" if ((sections().get(water) or {}).get("kind") == "lake") else "stream"

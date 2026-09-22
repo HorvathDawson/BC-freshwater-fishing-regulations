@@ -1,32 +1,22 @@
-"""SELECTION AND CONSTRUCTION, KEPT APART.
+"""WHICH RULES APPLY HERE. Selection, and nothing else.
 
-The table builder takes a list of rules and nothing else. Everything that knows where rules
-come from — which chapter a region's are in, which are an area's, which reach a stretch of
-water — lives in `rules_for` and nowhere else. So:
-
-    rules_for(precondition) -> [rule]        knows the corpus
-    build(rules, kind, here, label) -> Table  knows nothing but the rules it is handed
-
-and every table on the page is `build(rules_for(...))`. That is the whole arrangement, and it
-is what lets the builder be lifted out later, and what lets a new kind of precondition — a
-named water, a stretch of one — be added without the builder learning anything.
+    rules_for(precondition) -> [rule]
 
 A PRECONDITION is the answer to two questions:
 
-    WHERE   a region, or a named area inside one (Management Units 1-1 to 1-6, a National
-            Park, a wildlife management area), or a water and which stretch of it. Areas are
-            area-scoped, and an area-scoped rule CANNOT ENTER A REGION'S BASE by construction
-            — that is the rule that stops one river's regulation binding a whole region — so
-            before this they were on no table at all. Region 1's summer closure of every
-            stream in six management units is printed in bold in the synopsis and was nowhere.
-    WHEN    a day. A season is not a note beside a number; it is the number.
+    WHERE   a region, or a named area inside one (Management Units 1-1 to 1-6, a National Park,
+            a wildlife management area), or a water and which stretch of it. Areas are
+            area-scoped, and an area-scoped rule CANNOT ENTER A REGION'S BASE by construction —
+            that is what stops one river's regulation binding a whole region.
+    WHEN    a day. A season is not a note beside a number; it is the number. Selection does not
+            apply it: the rules carry their own `windows`, and whatever settles them decides.
 
-`conditions()` enumerates every one a region has, so a reviewer reading them all and a test
-walking them all are looking at the same list.
-
-Nothing here settles anything. `build` hands the rules to the same two-stage builders a
-section uses — `build.ledger` for what you may keep, `method_build.table` for how you may
-fish — and those were already pure functions of a rule list.
+NOTHING HERE SETTLES ANYTHING. There used to be a `build(rules, kind, here, label) -> Table`
+below, and the pair was the whole arrangement: selection knew the corpus, construction knew
+nothing but the rules it was handed. The construction half has been removed from the repository
+until it is rebuilt properly (see `pipeline/docs/06-ui-data-contract.md`); this half is unchanged,
+because it was never the part that was in question — it is how a rule is found, not what is made
+of it.
 """
 from __future__ import annotations
 
@@ -35,12 +25,8 @@ from functools import lru_cache
 from typing import FrozenSet, List, Optional, Tuple
 
 from pipeline.regs.table.authority import source_of
-from pipeline.regs.table.build import (ledger as build_ledger, section_kind, section_label,
-                                       section_regions, section_rules)
-from pipeline.regs.table.corpus import rid, rules as all_rules
-from pipeline.regs.table.ledger import Ledger
-from pipeline.regs.table.method_build import is_gear, provincial_base, table as gear_table
-from pipeline.regs.table.rows import Row, rows as build_rows, schedule
+from pipeline.regs.table.corpus import (rid, rules as all_rules, section_kind, section_label,
+                                        section_regions, section_rules)
 
 #: The chapters the synopsis prints, plus Haida Gwaii — an AREA inside Region 1 with a table
 #: of its own, which is why it has a key here and is not also listed among Region 1's areas.
@@ -189,71 +175,3 @@ def _here(x: dict) -> dict:
     return dict(x, extent_text=None) if x.get("extent_text") else x
 
 
-# ----------------------------------------------------------------------------------------
-# CONSTRUCTION — takes a list of rules and knows nothing else
-# ----------------------------------------------------------------------------------------
-@dataclass
-class Table:
-    """One table: what you may keep, how you may fish, and the conditions it was built for."""
-    ledger: Ledger
-    rows: List[Row]
-    gear: object                      # MethodTable, or None where there is no gear table
-    kind: str
-    here: FrozenSet[str]
-    label: str = ""
-    #: filled in by `state` / `water_state`, for a caller that wants to say what it asked for
-    region: str = ""
-    area: Optional[Area] = None
-    on: Optional[Tuple[int, int]] = None
-
-    def schedule(self) -> List[dict]:
-        """The stretches of the year over which this table holds — the quota rows and the
-        gear terms together, because a bait ban that touches no number still changes what a
-        reader may do that day."""
-        return schedule(self.rows, list(getattr(self.gear, "terms", ()) or ()))
-
-
-def build(rules: List[dict], kind: str, here: FrozenSet[str] = frozenset(),
-          label: str = "", province: bool = False) -> Table:
-    """A LIST OF RULES IN, A TABLE OUT. The two builders it calls were already pure functions
-    of a rule list; this only puts the two halves of one table in one object, so a caller
-    cannot settle the quota from one rule set and the gear from another."""
-    L = build_ledger(rules, kind, here, label)
-    G = (provincial_base(kind) if province
-         else gear_table([x for x in rules if is_gear(x)], kind, here, label))
-    return Table(L, build_rows(L), G, kind, here, label)
-
-
-# ----------------------------------------------------------------------------------------
-# the two composed, and every condition there is
-# ----------------------------------------------------------------------------------------
-@lru_cache(maxsize=None)
-def state(region: str, kind: str, area: Optional[Area] = None,
-          on: Optional[Tuple[int, int]] = None) -> Table:
-    """A region's table, or a named area inside it. `area=None` is anywhere in the region no
-    area rule reaches; `on=None` is the table of the year rather than of a day."""
-    rules, here, label = rules_for(region, kind, area)
-    t = build(rules, kind, here, label, province=region in ("province", "p"))
-    t.region, t.area, t.on = region, area, on
-    return t
-
-
-@lru_cache(maxsize=None)
-def water_state(water: str, run: int = 0, on: Optional[Tuple[int, int]] = None) -> Table:
-    """One stretch of one named water — the same builder, one more precondition. This is the
-    whole point of keeping selection and construction apart: nothing here is new."""
-    kind = section_kind(water)
-    rules, here, label = rules_for(kind=kind, water=water, run=run)
-    t = build(rules, kind, here, label)
-    t.on = t.on or on
-    return t
-
-
-def conditions(region: str, kind: str) -> List[Tuple[Optional[Area], dict]]:
-    """EVERY DISTINCT TABLE THIS REGION HAS, as (area, stretch) pairs — what a reviewer has to
-    read to have read all of it, and what a test has to walk to have checked all of it."""
-    out = []
-    for area in (None,) + areas(region, kind):
-        for seg in state(region, kind, area).schedule():
-            out.append((area, seg))
-    return out
