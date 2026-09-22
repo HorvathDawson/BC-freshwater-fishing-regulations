@@ -11,7 +11,7 @@ where the region's 5 covers the rest — that species is its own row, and the gr
 "other than rainbow trout" so the two cannot be read as overlapping.
 
 Nothing here decides anything. Every line on a row is a counter the ledger already settled;
-the page computes nothing, and the oracle (`oracle.py`) reads the same counters, so what it
+the page computes nothing, and every consumer reads the same counters, so what it
 decides by is what the row shows — that is the totality guarantee, by construction.
 """
 from __future__ import annotations

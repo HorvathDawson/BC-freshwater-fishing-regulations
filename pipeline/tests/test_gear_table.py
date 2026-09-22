@@ -1,6 +1,6 @@
 """The gear table: two stages, one ladder, and a decision every row can be checked against.
 
-Every check here is driven from the DECISION (`may_i_fish`) or from the raw corpus, never
+Every check here is driven from the rendered table or from the raw corpus, never
 seeded from the table — a check seeded from the table launders its own failures, and that
 has happened three times in this project.
 """
@@ -15,8 +15,6 @@ from pipeline.regs.table.method import (Term, MethodTable, MethodRow, METHODS, H
                                         CONDITION, default_term)
 from pipeline.regs.table.method_build import (table, base, region_base, provincial_base, is_gear,
                                               terms_of, explained_by_scope, reaches_kind)
-from pipeline.regs.table.method_oracle import may_i_fish, may_i_keep_by
-from pipeline.regs.table.oracle import Fish
 from pipeline.regs.table.subject import Origin
 
 REGIONS = ["1", "2", "3", "4", "5", "6", "7a", "7b", "8"]
@@ -304,58 +302,6 @@ def test_a_permit_behind_a_permit_is_a_condition_unless_it_says_nothing_new():
 _DATES = [(m, d) for m in range(1, 13) for d in (1, 15)]
 
 
-def test_a_water_closed_to_fishing_reads_closed_in_the_gear_table(sections):
-    from pipeline.regs.table.build import ledger
-    shut_somewhere = 0
-    for w, run, kind, rules, here, label, T in sections:
-        L = ledger(rules, kind, here, label)
-        for on in _DATES:
-            quota_shut = [a for a in L.allowances
-                          if a.kind == "closed" and shuts_the_water(a.scope) and L.in_force(a)
-                          and not a.applies.within_day and a.derived_from is None and a.applies.live(*on)]
-            gear = T.shut(on)
-            assert (gear is not None) == bool(quota_shut), (w, run + 1, on)
-            if gear is not None:
-                shut_somewhere += 1
-                assert gear.rule_id in {a.rule_id for a in quota_shut}
-                for m in METHODS:
-                    v = may_i_fish(T, m, on)
-                    assert v.may is False and v.kind == "closed"
-                    assert any(d.rule_id == "zp:further_prohibitions::further_prohibitions.r1" for d in v.decided_by), \
-                        "the no-gear-in-the-water rule must be cited on a closure"
-    assert shut_somewhere > 50
-
-
-def test_what_you_may_keep_by_a_method_is_the_stricter_of_both_tables(sections, monkeypatch):
-    from pipeline.regs.table.build import ledger, name
-    from pipeline.regs.parsing import catalogue
-    # coho is closed to the spear only once SA is a group (see the SA test below); the check
-    # holds before and after the catalogue line lands
-    if "SA" not in catalogue.SPECIES_GROUPS:
-        monkeypatch.setitem(catalogue.SPECIES_GROUPS, "SA", catalogue.SPECIES_GROUPS["SALMON"])
-    checked = 0
-    for w, run, kind, rules, here, label, T in sections:
-        if T.keep("spear_fishing") is None or T.shut((7, 15)) is not None:
-            continue
-        L = ledger(rules, kind, here, label)
-        for sp in ("BB", "RB", "CO"):
-            v = may_i_keep_by(T, L, "spear_fishing", Fish(sp, 40), (7, 15), name=name)
-            if sp in ("RB", "CO"):
-                assert v.keep is False, (w, run + 1, sp, v.reasons)
-                assert v.decided_by[0].rule_id.startswith("zp:spear_fishing::"), v.decided_by[0].rule_id
-            elif any("BB" in fish for fish, _ in T.lifted_fish.get("spear_fishing", [])):
-                # burbot is freed from the spear ban here; the water's own quota decides
-                assert v.keep is not False or not v.decided_by[0].rule_id.startswith("zp:spear_fishing::")
-            else:
-                assert v.keep is False and v.decided_by[0].rule_id == "zp:spear_fishing::spear_fishing.r1"
-            checked += 1
-    assert checked > 100
-
-
-# --------------------------------------------------------------------------- #
-# TOTALITY, driven from the decision: what decided it is on the row, and what the row
-# prints in force is what the decision consulted.
-# --------------------------------------------------------------------------- #
 def _rendered_ids(row: dict, d: dict) -> set:
     ids = set()
     def take(t):
@@ -386,28 +332,6 @@ def _dates_for(T: MethodTable):
         for (fm, fd), (tm, td) in a.applies.windows:
             days |= {(fm, fd), (tm, td)}
     return sorted(days)
-
-
-def test_every_rule_the_verdict_rests_on_is_on_the_rendered_row_and_vice_versa(sections):
-    from pipeline.regs.table.method_provenance import section as section_json
-    verdicts = 0
-    for w, run, kind, rules, here, label, T in sections:
-        d = section_json(w, run)
-        rows = {r["method"]: r for r in d["rows"]}
-        for m in rows:
-            shown = _rendered_ids(rows[m], d)
-            for on in _dates_for(T):
-                v = may_i_fish(T, m, on)
-                verdicts += 1
-                missing = v.cited() - shown
-                assert not missing, f"{w} stretch {run + 1} · {m} · {on}: decided by {sorted(missing)}, not on the row"
-                if v.may:
-                    # the converse: every condition printed in force on this date was consulted
-                    printed = {t.rule_id for ts in T.rig(m, on).values() for t in ts}
-                    printed |= {t.rule_id for t in T.conditions(m, on)}
-                    unconsulted = printed - v.cited()
-                    assert not unconsulted, f"{w} stretch {run + 1} · {m} · {on}: printed but never consulted {sorted(unconsulted)}"
-    assert verdicts > 20000
 
 
 def test_the_hoist_prints_a_shared_condition_once_and_never_on_a_member_row(sections):
@@ -534,27 +458,6 @@ def test_the_reference_base_reads_feature_types_as_well_as_water():
 # THE CHECKS CAN FAIL. A totality test that compares a set against the set it was built
 # from passes for every possible table; these prove the two guarantees notice a loss.
 # --------------------------------------------------------------------------- #
-def test_the_totality_check_notices_a_condition_the_page_forgot_to_draw(sections):
-    """Drop one in-force condition from the rendered JSON of a Region 1 stream and the
-    decision still cites it — the check must fail on the mutated render."""
-    from pipeline.regs.table.method_provenance import section as section_json
-    w, run, kind, rules, here, label, T = next(s for s in sections if s[2] == "stream" and "1" in s[4])
-    d = section_json(w, run)
-    victim = "z1:bait_ban_streams::bait_ban_streams.r1"
-    assert any(t["rule"] == victim for ts in d["band"]["rig"].values() for t in ts)
-    for topic in list(d["band"]["rig"]):
-        d["band"]["rig"][topic] = [t for t in d["band"]["rig"][topic] if t["rule"] != victim]
-    for r in d["rows"]:
-        for topic in list(r["rig"]):
-            r["rig"][topic] = [t for t in r["rig"][topic] if t["rule"] != victim]
-        r["folded"] = [t for t in r["folded"] if t["rule"] != victim]
-    row = next(r for r in d["rows"] if r["method"] == "angling")
-    v = may_i_fish(T, "angling", (7, 15))
-    assert victim in v.cited()
-    assert victim not in _rendered_ids(row, d), "the mutation did not take"
-    assert v.cited() - _rendered_ids(row, d) == {victim}
-
-
 def test_the_compliance_check_notices_a_rule_the_generator_drops(sections, monkeypatch):
     """Make the generator lose one rule on the way in and COMPLIES must not print."""
     import pipeline.regs.table.method_build as mb

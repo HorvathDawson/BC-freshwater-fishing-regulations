@@ -347,6 +347,7 @@ def _rule(x: dict) -> dict:
         out["reads_as"] = None
     if x.get("exempts"):
         out["exempts"] = [dict(e, resolves_to=_targets(x, e)) for e in x["exempts"]]
+    e = entries().get(x.get("entry")) or {}
     out["provenance"] = {
         "says": (x.get("verbatim") or "").strip(),
         "who": s.words(),
@@ -355,9 +356,17 @@ def _rule(x: dict) -> dict:
         "rank": s.rank,
         "region": s.region or None,
         "place": s.place or None,
-        "entry": x.get("entry"),
-        "entry_name": x.get("entry_name"),
         "rule": f'{x.get("entry")}::{x.get("rule")}',
+        # WHERE IN THE BOOK. The page is checkable by anyone holding the synopsis; the box is
+        # the rule in context, which is how a clause is told from a peer — "1 over 50 cm" under
+        # "Trout/char: 4" is a clause, and the same words on their own would not be.
+        "entry": x.get("entry"),
+        "entry_name": e.get("name") or x.get("entry_name"),
+        "entry_display_name": e.get("display_name"),
+        "synopsis_pages": e.get("synopsis_pages") or [],
+        "printed_box": e.get("printed_box"),
+        "scope_note": e.get("scope_note"),
+        "symbols": e.get("symbols") or [],
     }
     return out
 
@@ -434,6 +443,39 @@ def _targets(x: dict, e: dict) -> list:
     return sorted(set(out))
 
 
+_ENTRIES = None
+
+
+def entries() -> dict:
+    """entry_id -> what the CURATED entry knows that the bundle drops.
+
+    The bundle keeps rules, not the paperwork around them: which synopsis page the entry was
+    read from, and the whole printed box it was read out of. Both are provenance a reader can
+    act on — "page 22" is checkable, and the box is the rule IN CONTEXT, which is how you tell
+    a clause from a peer. The curated files are the owner of it.
+    """
+    global _ENTRIES
+    if _ENTRIES is None:
+        from pathlib import Path
+        from pipeline.common.curated import CURATED
+        _ENTRIES = {}
+        dirs = (CURATED.regulations.entries.catalogue, CURATED.regulations.entries.dfo_salmon)
+        for path in sorted(q for d in dirs for q in Path(d).glob("region-*.json")):
+            for e in (json.loads(Path(path).read_text()).get("entries") or []):
+                _ENTRIES[e.get("entry_id")] = {
+                    "name": e.get("name"), "display_name": e.get("display_name"),
+                    "scope_note": e.get("scope_note") or None,
+                    "synopsis_pages": e.get("source_pages") or [],
+                    "printed_box": e.get("regs_verbatim") or None,
+                    "symbols": e.get("symbols") or [],
+                }
+    return _ENTRIES
+
+
+#: rule id -> the printed line of the book it accounts for, filled by `_panel`.
+PROVES: dict = {}
+
+
 def _panel(reg: str, kind: str) -> dict:
     """The printed synopsis, line by line, against what the rules say.
 
@@ -445,6 +487,10 @@ def _panel(reg: str, kind: str) -> dict:
     from pipeline.regs.table.build import name as fish_name_
     P = QP.check_province(fish_name_) if reg in ("province", "p") \
         else QP.check_region(reg, kind, fish_name_)
+    for c in P.checks:
+        if c.ok and c.rule:
+            PROVES.setdefault(c.rule, []).append(
+                {"printed": c.line, "in": P.title, "source": P.source})
     return {
         "title": P.title, "source": P.source, "edition_md5": P.md5,
         "agree": sum(1 for c in P.checks if c.ok), "of": len(P.checks),
@@ -568,6 +614,14 @@ def main(out_path: str) -> int:
                for g, why in OPEN_GROUPS.items()},
         },
     }
+    # THE PRINTED LINE EACH RULE ACCOUNTS FOR — filled while the panels ran, attached now that
+    # they have. This is the tightest provenance there is: not "page 22" but "the line on page
+    # 22 that this rule is the answer to".
+    for k, r in kept.items():
+        got = PROVES.get(k)
+        if got:
+            r["provenance"]["proves_printed_line"] = got
+
     with open(out_path, "w") as fh:
         json.dump(doc, fh, indent=1, ensure_ascii=False)
     import os

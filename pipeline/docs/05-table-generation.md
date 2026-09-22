@@ -37,6 +37,22 @@ fields like any other**, so nothing downstream parses prose.
 | `windows_are` | `applies` | `applies` | `applies` | `applies` |
 | `when_open` | `false` | `false` | `false` | `false` |
 
+**And its provenance, on the rule itself.** A regulation a reader cannot trace to the book is a
+regulation they cannot check, so the trace is a field like any other rather than something a
+consumer joins for itself:
+
+| field | our `r4` |
+|---|---|
+| `who` · `authority` · `binds_to` · `rank` | "Region 2 · region-wide" · `region` · `region` · `3` |
+| `entry` · `entry_name` | `z2:trout_char_quota` · "Trout and char daily quota" |
+| **`synopsis_pages`** | `[22]` — checkable by anyone holding the book |
+| **`printed_box`** | *"Region 2 Daily Quotas. Trout/char: 4, but not more than 1 over 50 cm … 2 from streams (must be hatchery) …"* — the rule IN CONTEXT, which is how a clause is told from a peer |
+| **`proves_printed_line`** | `"• 2 from streams (must be hatchery)"` — page 23. Not "it came from page 22" but "it is the answer to this line of that page" |
+
+The last one is produced by checking, not by claiming: `quota_print` reads the printed box out of
+the PDF and matches every line to the rule that accounts for it, so a rule that proves nothing —
+or a printed line nothing proves — is visible rather than assumed.
+
 **Size is one pair of fields**, and every size statement in the book falls out of it:
 
 | `take` | `over_cm` | `under_cm` | means |

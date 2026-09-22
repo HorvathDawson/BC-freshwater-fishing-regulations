@@ -285,7 +285,7 @@ SPECIES_GROUPS["SALMON"] = ("CH", "CO", "SK", "PK", "CM")
 #: what the word MEANS, everywhere in the book.
 DEFINITIONAL_SIZE = {
     "ST": {"min_cm": 50,
-           #: WHAT IT IS INSTEAD — recorded, but NOT applied by the oracle. The definition
+           #: WHAT IT IS INSTEAD — recorded, but NOT applied when settling. The definition
            #: holds only "in waters where anadromous rainbow trout are found": steelhead are
            #: sea-going, so a table naming trout and not steelhead is describing a landlocked
            #: rainbow the 50 cm boundary says nothing about. Substituting globally also broke

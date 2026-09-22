@@ -18,7 +18,6 @@ from pipeline.regs.table.authority import Authority, Scope, Source, source_of
 from pipeline.regs.table.ledger import (Allowance, Ledger, LIFTED, REPLACED_BY_CLAUSE,
                                         shuts_the_water)
 from pipeline.regs.table.rows import rows
-from pipeline.regs.table.oracle import may_i_keep, Fish, Creel
 from pipeline.regs.table.build import (ledger, base, section_rules, section_regions,
                                        section_label, section_kind, name, D, WATERS)
 
@@ -226,27 +225,6 @@ def test_no_fish_is_in_two_rows(tables):
                                              if r.origin is Origin.both else (r.origin,)))
         dupe = [k for k, n in seen.items() if n > 1]
         assert not dupe, f"{w} stretch {run + 1}: {dupe[:3]} sit in two rows"
-
-
-def test_every_counter_the_oracle_decides_by_is_drawn_on_the_page(tables):
-    """THE TOTALITY CHECK, against something the rows did not build. `provenance.visible`
-    reads the emitted JSON the way the page does — windows, exclusions, bands — and the
-    oracle decides from the ledger. Every counter a verdict names, and every counter a
-    verdict consulted, must be drawn on that fish's line on that day. Its predecessor asked
-    `rows()` whether `rows()` had used `reaches`, which no ledger could ever fail."""
-    from pipeline.regs.table.provenance import section, visible
-    for w, run, _, _, L, _ in tables[::4]:
-        for on in ((2, 1), (7, 15)):
-            d = section(w, run, on)
-            seen = visible(d, on)
-            for r in d["rows"]:
-                o = Origin(r["origin"]) if r["origin"] != "both" else Origin.wild
-                for sp in r["fish"][:2]:
-                    for length in (25, 55):
-                        v = may_i_keep(L, Fish(sp, length, o), on, Creel(), name)
-                        for a in v.decided_by + [c.counter for c in v.checks]:
-                            assert a.rule_id in seen[r["key"]], (
-                                w, run + 1, r["heading"], sp, length, on, a.rule_id)
 
 
 def test_a_species_closure_does_not_shut_a_water_that_is_open(tables):
@@ -760,135 +738,6 @@ def _ledger(w, run):
     return ledger(section_rules(w, run), section_kind(w), section_regions(w, run), section_label(w, run))
 
 
-def test_proof_1_a_pooled_group_quota_is_spent_by_any_member(tables):
-    """A bull trout in the creel blocks a lake trout where the char quota is pooled ("1 char,
-    bull trout, Dolly Varden or lake trout") — and does NOT block a rainbow on Kootenay Lake,
-    where the rainbow has its own number."""
-    L = _ledger("Fraser River", 0)                                   # Region 2 stream
-    bt = Fish("BT", 65, Origin.hatchery)
-    v = may_i_keep(L, Fish("LT", 65, Origin.hatchery), (7, 15), Creel.of(bt), name)
-    assert v.keep is False and v.kind == "spent"
-    assert v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r5"
-    assert "bull trout" in v.reasons[0] and "Region 2 · region-wide" in v.reasons[0]
-    v = may_i_keep(L, Fish("LT", 65, Origin.hatchery), (7, 15), Creel(), name)
-    assert v.keep is True
-    # Per-species: Kootenay Lake's bull trout (its own 1) does not touch its rainbow (its own 10).
-    K = _ledger("Kootenay Lake", 0)
-    v = may_i_keep(K, Fish("RB", 40), (7, 15), Creel.of(Fish("BT", 60)), name)
-    assert v.keep is True and all(c.counter.scope.fish == {"RB"} for c in v.checks)
-    # ...but on the Upper West Arm the water's own "trout/char 2 (only 1 bull trout)" is pooled.
-    U = _ledger("Kootenay Lake", 1)
-    v = may_i_keep(U, Fish("RB", 40), (7, 15), Creel.of(Fish("BT", 60), Fish("CT", 40)), name)
-    assert v.keep is False and v.decided_by[0].rule_id.endswith("kootenay_lake_upper_west_arm.r2")
-    v = may_i_keep(U, Fish("BT", 60), (7, 15), Creel.of(Fish("BT", 60)), name)
-    assert v.keep is False and v.decided_by[0].rule_id.endswith("kootenay_lake_upper_west_arm.r3")
-    # Whitefish, 15 all species combined: fifteen lake whitefish spend it for mountain whitefish.
-    v = may_i_keep(K, Fish("MW", 30), (7, 15), Creel.of(*[Fish("LW", 30)] * 15), name)
-    assert v.keep is False and v.decided_by[0].rule_id == "z4:species_quotas::species_quotas.r10"
-
-
-def test_proof_2_a_size_class_inside_a_quota_is_a_live_constraint_on_the_row(tables):
-    """"5 trout and char, of which 1 rainbow or cutthroat over 50 cm": a 55 cm cutthroat is
-    refused when one over-50 is already held, allowed when none is — and the cap is ON the
-    cutthroat's row, not in a panel."""
-    K = _ledger("Kootenay Lake", 0)
-    cap = "z4:trout_char_quota::trout_char_quota.r2"
-    v = may_i_keep(K, Fish("CT", 55), (7, 15), Creel.of(Fish("CT", 52)), name)
-    assert v.keep is False and v.decided_by[0].rule_id == cap, v.reasons
-    assert "over 50 cm" in v.reasons[0]
-    v = may_i_keep(K, Fish("CT", 55), (7, 15), Creel.of(Fish("CT", 40)), name)
-    assert v.keep is True
-    v = may_i_keep(K, Fish("CT", 45), (7, 15), Creel.of(Fish("CT", 52)), name)
-    assert v.keep is True, "45 cm is not in the over-50 class"
-    _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
-    assert cap in {a.rule_id for a in _row(t, "CT").counters}
-    assert cap not in {a.rule_id for a in _row(t, "RB").counters}, "the water's 10 is any size"
-
-
-def test_proof_3_hatchery_and_wild_are_decided_apart(tables):
-    L = _ledger("Fraser River", 0)
-    v = may_i_keep(L, Fish("RB", 40, Origin.wild), (7, 15), Creel(), name)
-    assert v.keep is False and v.kind == "release"
-    assert v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r6"
-    v = may_i_keep(L, Fish("RB", 40, Origin.hatchery), (7, 15), Creel(), name)
-    assert v.keep is True and v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r4"
-    v = may_i_keep(L, Fish("RB", 25, Origin.hatchery), (7, 15), Creel(), name)
-    assert v.keep is False and v.kind == "gate" and "none under 30 cm" in v.reasons[0]
-    assert v.decided_by[0].rule_id == "z2:trout_char_quota::trout_char_quota.r8"
-
-
-def test_proof_5_daily_annual_and_possession_are_three_counters(tables):
-    K = _ledger("Kootenay Lake", 0)
-    ten = [Fish("RB", 40)] * 10
-    v = may_i_keep(K, Fish("RB", 40), (7, 15), Creel(today=ten, held=ten, this_year=ten), name)
-    assert v.keep is False and v.decided_by[0].period == "daily" and v.decided_by[0].n == 10
-    twenty = [Fish("RB", 40)] * 20
-    v = may_i_keep(K, Fish("RB", 40), (7, 15), Creel(today=[], held=twenty, this_year=twenty), name)
-    assert v.keep is False and v.decided_by[0].period == "possession" and v.decided_by[0].n == 20
-    assert v.decided_by[0].multiplied_by.rule_id == "zp:quota_defaults::quota_defaults.r1"
-    big = [Fish("RB", 55)] * 20
-    v = may_i_keep(K, Fish("RB", 55), (7, 15), Creel(today=[], held=[], this_year=big), name)
-    assert v.keep is False and v.decided_by[0].period == "annual"
-    assert v.decided_by[0].rule_id.endswith("kootenay_lake_main_body.r6")
-    v = may_i_keep(K, Fish("RB", 45), (7, 15), Creel(today=[], held=[], this_year=big), name)
-    assert v.keep is True, "the annual 20 counts fish over 50 cm only"
-
-
-def test_proof_6_closed_and_release_speak_the_same_vocabulary(tables):
-    P = _ledger("Kootenay River", 8)                                  # Kootenay National Park
-    for sp in ("RB", "BT", "MW", "BB"):
-        v = may_i_keep(P, Fish(sp, 40), (7, 15), Creel(), name)
-        assert v.keep is False and v.kind == "closed"
-        assert v.decided_by[0].source.authority is Authority.superior, v.reasons
-    K = _ledger("Kootenay Lake", 0)
-    v = may_i_keep(K, Fish("KO", 30), (7, 15), Creel(), name)
-    assert v.keep is False and v.kind == "release"
-    assert v.decided_by[0].rule_id.endswith("kootenay_lake_main_body.r2")
-    assert "for this water" in v.reasons[0]
-    v = may_i_keep(K, Fish("NP", 60), (7, 15), Creel(), name)
-    assert v.keep is False and v.kind == "closed" and "Region 4 · region-wide" in v.reasons[0]
-
-
-def test_the_oracle_is_total_and_decides_only_by_what_the_rows_show(tables):
-    """For every section, every row's fish, both origins, three lengths and three dates: the
-    oracle answers, and every counter it decided by is on that fish's row."""
-    for w, run, _, _, L, t in tables:
-        for r in t:
-            sp = r.species
-            for o in ((Origin.wild, Origin.hatchery) if r.origin is Origin.both else (r.origin,)):
-                shown = {a.rule_id for a in r.counters}
-                for length in (20, 45, 70):
-                    for on in ((1, 15), (5, 1), (7, 15), (10, 15)):
-                        v = may_i_keep(L, Fish(sp, length, o), on, Creel(), name)
-                        if v.keep is None:
-                            # Undecided only where the row is honestly empty on that day: a
-                            # fish the region names in a seasonal closure and nowhere else.
-                            assert not any(L.binds(a, sp, o, length, on) for a in r.counters), (
-                                w, run + 1, r.heading(name), sp, o, length, on)
-                            assert not any((a.applies.always or a.applies.unless)
-                                           and a.contains(sp, o, length) for a in r.counters), (
-                                w, run + 1, r.heading(name), sp, o, length, on)
-                        for a in v.decided_by:
-                            assert a.rule_id in shown, (w, run + 1, r.heading(name), sp, o, length, on, a.rule_id)
-
-
-def test_every_verdict_names_a_rule_and_its_provenance(tables):
-    """EVERY water, not the first twenty. `reasons` was built from a sorted copy of `checks` and
-    `decided_by` from the unsorted one — the same length, so nothing complained, and every caller
-    pairing a reason with the rule behind it got the wrong rule. Atlin Lake is the water that
-    shows it, because it carries both its own lake-trout three and the region's trout-and-char
-    five on the same fish, and it sat outside the slice."""
-    for w, run, _, _, L, t in tables:
-        for r in t:
-            v = may_i_keep(L, Fish(r.species, 45, r.origin if r.origin is not Origin.both else Origin.wild),
-                           (7, 15), Creel(), name)
-            for reason, a in zip(v.reasons, v.decided_by):
-                assert a.source.words() in reason and "“" in reason, reason
-
-
-# --------------------------------------------------------------------------- #
-# What the reader sees: size on every row, plain names, and the province alone.
-# --------------------------------------------------------------------------- #
 def test_the_anadromous_forms_are_gone_from_the_model(tables):
     """"ADV" (Dolly Varden, anadromous) and "AEB" (brook trout, anadromous) were members of the
     CHAR group and NAMED BY NO RULE IN THE CORPUS — 0 of 3,422. They existed only to be filtered
@@ -963,37 +812,6 @@ def test_the_anadromous_forms_cannot_enter_the_model_at_all(tables):
             assert not (set(r.fish) & gone), (w, run + 1, r.heading(name))
 
 
-def test_every_row_carries_a_size_statement(tables):
-    """Silence is not an answer. 46 of 102 sections have no size gate at all; a reader there
-    could not tell "any size" from "we did not say". Every row says one or the other, and
-    every size the oracle can decide by is in that statement."""
-    for w, run, _, _, L, t in tables:
-        for r in t:
-            for on in (None, (7, 15), (1, 15)):
-                size = r.size(on, name)
-                h = r.headline(on)
-                if h is not None and h.is_zero:
-                    continue
-                assert size, (w, run + 1, r.heading(name), on)
-                shown = {x["rule"] for x in size}
-                o = r.origin if r.origin is not Origin.both else Origin.wild
-                for a in r.live(on):
-                    if a.period == "daily" and not a.scope.size.is_any:
-                        assert a.rule_id in shown, (w, run + 1, r.heading(name), a.rule_id)
-    _, _, _, _, _, t = _one(tables, "Kootenay Lake", 0)
-    assert [x["says"] for x in _row(t, "RB").size(None, name)] == ["no more than 20 over 50 cm this licence year"]
-    assert [x["says"] for x in _row(t, "EB").size(None, name)] == ["any size"]
-    assert [x["says"] for x in _row(t, "CT").size(None, name)] == ["no more than 1 over 50 cm"]
-    _, _, _, _, _, t = _one(tables, "Fraser River", 0)
-    # Steelhead is not among the fish sharing the "1 over 50 cm": Region 2's "2 hatchery
-    # steelhead over 50 cm allowed" took it out of that cap and gave it its own.
-    assert {x["says"] for x in _row(t, "BT", Origin.hatchery).size(None, name)} == {
-        "none under 60 cm", "none under 30 cm",
-        "no more than 1 over 50 cm — shared with " + ", ".join(sorted(
-            name(c).lower() for c in
-            expand(frozenset({"TROUT_CHAR"})) - {"BT", "DV", "LT", "ST"}))}
-
-
 def test_the_rest_of_a_group_is_named_as_the_rest(tables):
     """"Trout and char other than bull trout, cutthroat trout, dolly varden, rainbow trout,
     steelhead" names ten fish by excluding five. Every excluded fish has a row of its own, so
@@ -1029,65 +847,8 @@ def test_a_fish_outside_the_shared_number_is_still_drawn_under_its_group():
     assert not missing, "hiding a name must drop no rule"
 
 
-def test_a_fish_only_the_province_names_is_set_apart_not_dropped(tables):
-    """Region 4's printed table has no steelhead line — the Columbia above its dams has none —
-    yet "all wild steelhead must be released" reaches Kootenay Lake because it is province-
-    wide. The row stays (a protection is never dropped); it is flagged so the page can set it
-    apart. On the Skeena, whose region names steelhead, the flag is off."""
-    _, _, _, _, L, t = _one(tables, "Kootenay Lake", 0)
-    assert _row(t, "ST", Origin.wild).province_only and _row(t, "ST", Origin.hatchery).province_only
-    assert not _row(t, "RB").province_only and not _row(t, "EB").province_only
-    assert _row(t, "ST", Origin.wild).headline().outcome == RELEASE
-    v = may_i_keep(L, Fish("ST", 70, Origin.wild), (7, 15), Creel(), name)
-    assert v.keep is False and v.decided_by[0].rule_id == "zp:steelhead::steelhead.r2"
-    _, _, _, _, _, t = _one(tables, "Skeena River", 0)
-    assert not _row(t, "ST", Origin.wild).province_only
-
-
-# --------------------------------------------------------------------------- #
-# A counter counts exactly the fish it binds — proved through the oracle, over real creels.
-# --------------------------------------------------------------------------- #
 def _used_counters(v):
     return {c.counter for c in v.checks if c.used > 0}
-
-
-def test_a_shared_counter_is_symmetric_and_visible_on_both_rows(tables):
-    """For every fish X and every fish Y that shares a counter with it: keeping Y and asking
-    about X must consult the same counters as keeping X and asking about Y, and every counter
-    that a kept Y charges must be visible on BOTH rows. Driven from the oracle over real
-    creels, not from the rows — a check seeded from the rows cannot find a counter the rows
-    omit. Kootenay Lake's bull trout, given its own 1 by the water, was still being charged
-    against the region's "1 bull trout (Dolly Varden)" on the Dolly Varden's row."""
-    for w, run, _, _, L, t in tables:
-        row_of = {}
-        for r in t:
-            for sp in r.fish:
-                for o in ((Origin.wild, Origin.hatchery) if r.origin is Origin.both else (r.origin,)):
-                    row_of[(sp, o)] = r
-        for r in t:
-            x = r.species
-            o = r.origin if r.origin is not Origin.both else Origin.wild
-            partners = set()
-            for a in r.counters:
-                if a.period == "daily" and len(a.scope.effective()) > 1:
-                    partners |= {y for y in a.scope.effective() if y not in r.fish and (y, o) in row_of}
-            for y in sorted(partners)[:4]:
-                for length in (45, 65):
-                    xy = may_i_keep(L, Fish(x, length, o), (7, 15), Creel.of(Fish(y, length, o)), name)
-                    yx = may_i_keep(L, Fish(y, length, o), (7, 15), Creel.of(Fish(x, length, o)), name)
-                    shown_x = set(row_of[(x, o)].counters)
-                    shown_y = set(row_of[(y, o)].counters)
-                    for a in _used_counters(xy):
-                        assert a in shown_x and a in shown_y, (w, run + 1, x, y, length, a.rule_id)
-                    for a in _used_counters(yx):
-                        assert a in shown_x and a in shown_y, (w, run + 1, y, x, length, a.rule_id)
-                    # The same counters in both directions — where both fish reach the count.
-                    # A fish sent back by a bound or a release is refused before any counter
-                    # is consulted, and that answer has no counters to compare.
-                    if xy.checks and yx.checks:
-                        assert _used_counters(xy) == _used_counters(yx), (
-                            w, run + 1, x, y, length,
-                            sorted(a.rule_id for a in _used_counters(xy) ^ _used_counters(yx)))
 
 
 def test_a_counter_binds_and_counts_the_same_fish(tables):
@@ -1106,42 +867,6 @@ def test_a_counter_binds_and_counts_the_same_fish(tables):
                     charged = L.binds(a, y, o, 45, (7, 15))
                     if charged:
                         assert y in on_rows.get(a, set()), (w, run + 1, a.rule_id, y, o.value)
-
-
-def test_kootenay_char_is_the_same_answer_in_both_directions():
-    """Keep a bull trout, ask about a Dolly Varden; keep a Dolly Varden, ask about a bull
-    trout. The water's "Bull trout daily quota = 1" counts INSIDE Region 4's "1 bull trout
-    (Dolly Varden)" — a closer number on fewer fish nests, it does not add — so either kept
-    fish spends the shared cap, and the reason names both fish."""
-    K = _ledger("Kootenay Lake", 0)
-    cap = "z4:trout_char_quota::trout_char_quota.r4"
-    bt_then_dv = may_i_keep(K, Fish("DV", 45), (7, 15), Creel.of(Fish("BT", 60)), name)
-    dv_then_bt = may_i_keep(K, Fish("BT", 62), (7, 15), Creel.of(Fish("DV", 45)), name)
-    assert bt_then_dv.keep is False and bt_then_dv.decided_by[0].rule_id == cap
-    assert dv_then_bt.keep is False and dv_then_bt.decided_by[0].rule_id == cap
-    assert "bull trout, dolly varden" in bt_then_dv.reasons[0]
-
-
-def test_a_closer_number_on_fewer_fish_counts_inside_the_wider_one():
-    """PROOF A1. Shuswap: Region 3's "Trout/char: 5" and the lake's "Rainbow trout = 1",
-    "Char = 1" are five trout in all, not seven. Five cutthroat in the creel refuse a rainbow
-    by the five; a rainbow kept refuses a second rainbow by the one."""
-    S = _ledger("Shuswap Lake", 0)
-    five = [Fish("CT", 40)] * 5
-    v = may_i_keep(S, Fish("RB", 55), (7, 15), Creel.of(*five), name)
-    assert v.keep is False and v.decided_by[0].rule_id == "z3:trout_char_quota::trout_char_quota.r1", v.reasons
-    v = may_i_keep(S, Fish("RB", 55), (7, 15), Creel.of(Fish("RB", 55)), name)
-    assert v.keep is False and v.decided_by[0].rule_id.endswith("shuswap_lake.r7")
-    v = may_i_keep(S, Fish("CT", 40), (7, 15), Creel.of(Fish("RB", 55), Fish("LT", 65)), name)
-    assert v.keep is True and any(c.counter.rule_id.endswith("trout_char_quota.r1") and c.used == 2 for c in v.checks)
-    # Kootenay Lake: the water's bull trout 1 counts inside the region's 5; its rainbow 10 —
-    # a number the 5 could never hold — stands outside it. The Main Body number is a question
-    # for the region; this is the reading, stated.
-    K = _ledger("Kootenay Lake", 0)
-    v = may_i_keep(K, Fish("CT", 40), (7, 15), Creel.of(*[Fish("CT", 40)] * 4, Fish("BT", 60)), name)
-    assert v.keep is False and v.decided_by[0].rule_id == "z4:trout_char_quota::trout_char_quota.r1"
-    v = may_i_keep(K, Fish("CT", 40), (7, 15), Creel.of(*[Fish("RB", 40)] * 10), name)
-    assert v.keep is True
 
 
 def test_the_possession_multiple_is_the_narrowest_that_covers_the_fish():

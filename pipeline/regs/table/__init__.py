@@ -13,6 +13,5 @@ a defect, and a steady trickle of them.
     ledger.py     every allowance as a COUNTER, settled by the ladder: the model
     build.py      rules in, ledger out — stage 1 the region's standing table, stage 2 overrides
     rows.py       the table, DERIVED from the ledger: one row per fish treated alike
-    oracle.py     may I keep this fish? — decided from the same counters the rows show
     comply.py     the guarantee: every rule handed in is findable in the ledger that comes out
 """

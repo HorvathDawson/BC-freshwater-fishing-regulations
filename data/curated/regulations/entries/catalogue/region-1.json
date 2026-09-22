@@ -22038,8 +22038,7 @@
      "verbatim": "3 Dolly Varden",
      "obligation": "must",
      "species": [
-      "DV",
-      "BT"
+      "DV"
      ],
      "species_except": [],
      "windows": [],
@@ -22060,7 +22059,7 @@
      "reason": "",
      "extent_text": "",
      "needs_review": false,
-     "review_reason": "",
+     "review_reason": "The book prints '3 Dolly Varden' and names no bull trout. Across the corpus every other rule curated as DV+BT says 'bull trout' in its own verbatim (13 of 13); this was the only exception. The synopsis names the species actually present — z7b:bull_trout_dolly_varden.r1 says so outright: 'Since only bull trout are found in the Peace Region, we have removed references to Dolly Varden here.' Haida Gwaii is the mirror case.",
      "extents": [
       {
        "op": "within",
