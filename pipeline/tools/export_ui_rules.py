@@ -85,7 +85,11 @@ FIELDS = {
         "may_target": "0 where you may not even fish for it (a closure, not a release)",
         "unlimited": "true where there is no number",
         "period": "'daily' | 'possession' | 'annual' — which clock the number is on",
-        "combined": "true where the number is SHARED across the species, not one each",
+        "combined": "the book's own word, set on only 21 of 265 group quotas. Read "
+                    "`shared_number` instead — an unset `combined` is NOT a claim that the "
+                    "number is one each.",
+        "shared_number": "DERIVED: whether the number is shared across the fish it names. More "
+                         "than one fish named IS shared; the flag marks where the book says so.",
         "within": "the rule id this is a clause of — '1 over 50 cm' inside 'Trout/char: 4'. A "
                   "clause counts INSIDE its parent, never against it.",
         "per_daily": "a possession multiple: N times the daily number",
@@ -94,6 +98,9 @@ FIELDS = {
         "over_cm": "the number counts (or the gate forbids) fish OVER this length",
         "under_cm": "…UNDER this length",
         "band": "true where the pair is a forbidden band rather than a slot",
+        "size_rule": "DERIVED, and the one field here that is not raw: what the bounds MEAN, "
+                     "decided by the table in `_size_rule`. `over_cm`/`under_cm` do not read the "
+                     "same way in every rule and the pair alone does not say which.",
         "_read": "take=2 and no size → keep 2, any size. take=1 over_cm=50 → only 1 may be over "
                  "50 cm, a CAP on a size class. take=0 under_cm=30 → none under 30 cm, a FLOOR. "
                  "take=0 over_cm=50 → a ceiling. A floor is an allowance of zero on a size "
@@ -303,6 +310,91 @@ def _mus_of(area_id: str) -> set:
     return {f"{lo_r}-{n}" for n in range(lo_n, hi_n + 1)}
 
 
+#: THE POLARITY OF A SIZE BOUND — which end it shuts, and whether it shuts anything at all.
+#:
+#: `over_cm` / `under_cm` do not mean the same thing in every rule, and the difference is not
+#: guessable from the pair alone. This is the table the removed `size.py` applied, carried here
+#: so no consumer re-derives it — the last consumer that tried read "1 (none under 50 cm)" as
+#: "only 1 may be UNDER 50 cm", which is the Shuswap rainbow rule upside down on the fish it
+#: exists to protect.
+#:
+#: `under_cm` IS ALWAYS A FLOOR AND NEVER A CEILING. "1 bull trout over 60 cm" is stored as
+#: `under_cm: 60`, and "none under 60 cm" is the same sentence said the other way.
+SIZE_READINGS = {
+    "floor": "you may keep none SMALLER than this",
+    "ceiling": "you may keep none LARGER than this",
+    "slot": "you may keep only between these two lengths",
+    "band": "you may keep none BETWEEN these two lengths",
+    "counts over": "the number counts only the fish larger than this; smaller ones are not "
+                   "limited by this rule",
+    "which fish": "not a limit — it says which fish the rule is about (a stamp needed for the "
+                  "big ones, say)",
+}
+
+
+def _shared(x: dict, species: list) -> dict:
+    """Is the number shared across the fish it names, or one each?
+
+    COMBINED IS THE DEFAULT WHEREVER MORE THAN ONE FISH IS NAMED. "Char daily quota = 1" means
+    one char between them, and the book does not write "combined" because naming a group already
+    says it. The `combined` flag marks the places the book spells it out — 21 of 265 group
+    quotas — and ITS ABSENCE IS NOT THE OPPOSITE CLAIM. A consumer that reads the unset flag as
+    "one each" multiplies a Region 2 bass limit of 20 into 40.
+
+    A quota on a single fish has no pool to share and is neither.
+    """
+    if x.get("take") is None and not x.get("unlimited"):
+        return {}
+    if x.get("combined"):
+        return {"shared": True, "said_by": "the book writes 'combined'"}
+    if len(species) > 1:
+        return {"shared": True,
+                "said_by": "it names more than one fish, which is what makes it shared — the "
+                           "flag is only set where the book spells it out"}
+    return {"shared": False, "said_by": "one fish: there is no pool to share"}
+
+
+def _size_rule(x: dict) -> dict:
+    """What a rule's size fields mean, decided once, here.
+
+    The branches, in the order they are tested — each was forced by a real rule:
+
+      both bounds        a slot you may keep, or (with `band`) a hole you may not
+      take == 0          a PROHIBITION: the only reading where the bound sends a fish back
+      not daily, take    an annual ceiling COUNTS a size class and sets no daily minimum —
+                         "Rainbow trout: 5 over 50 cm" limits the big ones and says nothing
+                         about a 40 cm fish
+      within, take       asymmetric on purpose: `over_cm` counts, `under_cm` is a floor
+      anything else      a flat prohibition — a bare allowance carrying a bound
+    """
+    over, under, take = x.get("over_cm"), x.get("under_cm"), x.get("take")
+    if not over and not under:
+        return {}
+    # A SIZE ON A RULE THAT IS NOT ABOUT KEEPING says WHICH FISH the rule is about, not how big
+    # one may be. "Conservation Surcharge Stamp required to catch and keep rainbow trout over
+    # 50 cm" limits nobody's fish — it says the stamp is needed for the big ones — and reading
+    # it as a ceiling turns a licence condition into a size limit.
+    if x.get("type") != "retention_limit":
+        return {"kind": "which fish", "cm": over or under, "end": "over" if over else "under",
+                "means": "this rule is about fish of this size; it is not itself a size limit"}
+    if over and under:
+        kind = "band" if x.get("band") else "slot"
+        return {"kind": kind, "lo": under, "hi": over, "means": SIZE_READINGS[kind]}
+    if take == 0:
+        k = "ceiling" if over else "floor"
+        return {"kind": k, "cm": over or under, "means": SIZE_READINGS[k]}
+    if (x.get("period") or "daily") != "daily" and take:
+        return {"kind": "counts over", "cm": over or under,
+                "means": SIZE_READINGS["counts over"]}
+    if x.get("within") and take and over:
+        return {"kind": "counts over", "cm": over, "means": SIZE_READINGS["counts over"]}
+    k = "ceiling" if over else "floor"
+    return {"kind": k, "cm": over or under, "means": SIZE_READINGS[k],
+            "_note": "A bare allowance carrying a bound is a flat prohibition. "
+                     "'Rainbow trout daily quota = 1 (none under 50 cm)' is a quota of one AND "
+                     "a floor at 50; it is NOT 'only one may be under 50 cm'."}
+
+
 def _rule(x: dict) -> dict:
     """The record as the table layer gets it, with the species expanded and the provenance
     spelled out. Nothing is removed."""
@@ -353,6 +445,12 @@ def _rule(x: dict) -> dict:
     if x.get("exempts"):
         out["exempts"] = [dict(e, resolves_to=_targets(x, e)) for e in x["exempts"]]
     e = entries().get(x.get("entry")) or {}
+    sz = _size_rule(x)
+    if sz:
+        out["size_rule"] = sz
+    sh = _shared(x, out["species"])
+    if sh:
+        out["shared_number"] = sh
     out["provenance"] = {
         "says": (x.get("verbatim") or "").strip(),
         "who": s.words(),
