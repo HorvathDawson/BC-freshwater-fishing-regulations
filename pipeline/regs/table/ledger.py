@@ -321,6 +321,43 @@ class Ledger:
         return (self.in_force(a) and a.contains(species, origin)
                 and not self._carved_always(a, species, origin))
 
+    def keepable(self, species: str, origin: Origin,
+                 on: Optional[Tuple[int, int]] = None) -> bool:
+        """May this fish be kept at all on this date? The strictest daily counter on the whole
+        fish decides — the same test `rows.Row.headline` makes, lifted onto the ledger so a
+        caller that is not a row can ask it. Four places re-derived this independently and two
+        of them skipped it, which is why a released fish went on being named as sharing a
+        number it could no longer spend."""
+        heads = [a for a in self.allowances
+                 if self.binds(a, species, origin, None, on) and a.period == "daily"
+                 and a.kind != "gate" and not a.within and a.scope.size.is_any]
+        if not heads:
+            return True                     # nothing written: not a closure, just unwritten
+        h = min(heads, key=lambda a: (a.outcome.rank, a.rank, a.rule_id))
+        return not h.is_zero
+
+    def spenders(self, a: Allowance, origin: Origin = None,
+                 on: Optional[Tuple[int, int]] = None) -> FrozenSet[str]:
+        """WHO ACTUALLY SPENDS THIS POOL on this date.
+
+        `reaches` is the wrong question and was the one being asked: it means "does this counter
+        speak about this fish on SOME date", and it drops a fish only through `_carved_always`,
+        which requires the carve to hold every day. A SEASONAL release therefore never removes
+        anyone — so Region 3's "1 bull trout (Dolly Varden) or lake trout" went on naming all
+        three through August, when two of them must be released and the rule is, that day, a
+        lake-trout limit.
+
+        Origin `None` means either: a pool's spenders are the UNION over wild and hatchery, never
+        one representative. Taking wild alone — which is what the row code does — drops hatchery
+        steelhead from the trout-and-char pool on 15 of 84 pooled counters, and understating who
+        spends a budget is the dangerous direction.
+        """
+        origins = (Origin.wild, Origin.hatchery) if origin is None or origin is Origin.both \
+            else (origin,)
+        return frozenset(sp for sp in a.scope.effective()
+                         for o in origins
+                         if self.reaches(a, sp, o) and self.keepable(sp, o, on))
+
     def counters(self, species: str, origin: Origin, length_cm=None,
                  on: Optional[Tuple[int, int]] = None) -> List[Allowance]:
         return [a for a in self.allowances if self.binds(a, species, origin, length_cm, on)]

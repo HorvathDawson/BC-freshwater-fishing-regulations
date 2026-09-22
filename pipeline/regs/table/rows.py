@@ -56,9 +56,14 @@ class Row:
 
     def moot(self, a: Allowance, on: Optional[Tuple[int, int]] = None) -> bool:
         """A number, or a cap, or a bound, under a headline of zero: true, and irrelevant —
-        nothing may be kept, so there is nothing to count or to measure."""
+        nothing may be kept, so there is nothing to count or to measure.
+
+        A SIZE GATE IS MOOT TOO. The old guard ended `and not a.is_zero`, and a gate IS an
+        allowance of zero — so "must be at least 60 cm" went on printing beside "Put it back",
+        which reads as permission to keep a 61 cm fish. Nothing may be kept, so nothing can be
+        measured."""
         h = self.headline(on)
-        return h is not None and h.is_zero and a is not h and not a.is_zero
+        return h is not None and h.is_zero and a is not h
 
     def headline(self, on: Optional[Tuple[int, int]] = None) -> Optional[Allowance]:
         """THE number: the strictest daily counter on the whole fish, not a cap inside it and
@@ -103,6 +108,8 @@ class Row:
         for a in self.live(on):
             if a.scope.size.is_any or a.derived_from is not None:
                 continue                     # a possession multiple restates its daily cap
+            if self.moot(a, on):
+                continue                     # nothing may be kept, so nothing can be measured
             who, _ = a.scope.words(name)
             if a.kind == "gate":
                 narrow = a.scope.fish and not a.scope.effective() >= self.fish
@@ -112,16 +119,25 @@ class Row:
                             "shared": ""})
             else:
                 cls = a.scope.size.words().replace("counting those ", "")
-                # Shared with the fish the cap STILL reaches — not one a closer rule took out
-                # of it (Kootenay Lake's rainbow has its own any-size 10).
-                o = self.origin if self.origin is not Origin.both else Origin.wild
-                others = [c for c in a.scope.effective() - self.fish if self.ledger.reaches(a, c, o)]
+                # WHO ACTUALLY SPENDS IT, ON THIS DATE. Not `reaches`, which cannot see a
+                # seasonal release; not one origin's view, which drops hatchery steelhead from
+                # the family pool; and never a hidden anadromous form, whose name appears in no
+                # heading on any table.
+                o = None if self.origin is Origin.both else self.origin
+                spend = self.ledger.spenders(a, o, on) - HIDDEN
+                others = spend - self.fish
                 shared = ", ".join(sorted(name(c).lower() for c in others)) if a.pooled and others else ""
+                # "BETWEEN THEM" IS ABOUT THE POOL, NOT ABOUT WHO IS OFF THIS ROW. Region 4's
+                # "1 rainbow trout or cutthroat trout over 50 cm" is pooled over exactly the two
+                # fish on its row, so `others` is empty and the phrase vanished — and a reader
+                # kept a 55 cm rainbow AND a 55 cm cutthroat where the book allows one.
+                many = a.pooled and len(spend) > 1
                 when = per.get(a.period, "")
                 out.append({"says": f"no more than {a.n} {cls}{when}" + (f" — shared with {shared}" if shared else ""),
-                            "plain": f"only {a.n} {a.scope.size.plain()}" + (" between them" if shared else "") + when,
+                            "plain": f"only {a.n} {a.scope.size.plain()}" + (" between them" if many else "") + when,
                             "kind": "cap", "rule": a.rule_id, "source": a.source, "n": a.n,
-                            "shared": shared})
+                            "shared": shared,
+                            "spenders": sorted(name(c) for c in spend)})
         if not out:
             h = self.headline(on)
             if h is None or not h.is_zero:

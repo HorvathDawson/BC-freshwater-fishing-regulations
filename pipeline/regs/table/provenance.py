@@ -61,6 +61,10 @@ def counter_json(L: Ledger, a: Allowance, row: Optional[Row] = None, status: str
         "status": status or L.status.get(a, ""),
         "moot": bool(row and row.moot(a, on)),
         "reaches": reaches,
+        # WHO CAN ACTUALLY SPEND IT TODAY — `reaches` answers a different question (does this
+        # counter speak about this fish on SOME date) and cannot see a seasonal release.
+        "spends": (sorted(name(sp) for sp in L.spenders(a, None, on) if sp not in HIDDEN)
+                   if row else []),
         "bc_wide": a.source.scope.value == "region" and a.source.authority.value == "province",
     }
 

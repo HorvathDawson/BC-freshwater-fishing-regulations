@@ -17,7 +17,7 @@ from pipeline.regs.table.size import size_of
 from pipeline.regs.table.authority import Authority, Scope, Source, source_of
 from pipeline.regs.table.ledger import (Allowance, Ledger, LIFTED, REPLACED_BY_CLAUSE,
                                         shuts_the_water)
-from pipeline.regs.table.rows import rows
+from pipeline.regs.table.rows import rows, HIDDEN
 from pipeline.regs.table.oracle import may_i_keep, Fish, Creel
 from pipeline.regs.table.build import (ledger, base, section_rules, section_regions,
                                        section_label, section_kind, name, D, WATERS)
@@ -884,6 +884,53 @@ def test_every_verdict_names_a_rule_and_its_provenance(tables):
 # --------------------------------------------------------------------------- #
 # What the reader sees: size on every row, plain names, and the province alone.
 # --------------------------------------------------------------------------- #
+def test_a_released_fish_does_not_share_a_number_it_cannot_spend(tables):
+    """`Ledger.reaches` asks "does this counter speak about this fish on SOME date", and drops a
+    fish only through `_carved_always`, which needs the carve to hold every day. A SEASONAL
+    release therefore never removes anyone — so Region 3's "1 bull trout (Dolly Varden) or lake
+    trout" went on naming all three through August, when two of them must be released and the
+    rule is, that day, a lake-trout limit.
+
+    `Ledger.spenders` is the right question, and this pins both directions of it."""
+    from pipeline.regs.table import state as ST
+    from pipeline.regs.table.subject import Origin
+    L = ST.state("3", "stream").ledger
+    cap = next(a for a in L.allowances
+               if a.pooled and a.n == 1 and a.within and a.scope.size.is_any)
+    got = {lbl: sorted(name(s) for s in L.spenders(cap, None, on))
+           for lbl, on in (("Jul", (7, 15)), ("Aug", (8, 20)), ("Nov", (11, 5)))}
+    assert got == {"Jul": ["Bull trout", "Dolly Varden", "Lake trout"],
+                   "Aug": ["Lake trout"],
+                   "Nov": ["Bull trout", "Dolly Varden"]}, got
+    # and nobody is ever named as a sharer who may not be kept that day
+    for w, run, _, _, L, t in tables[:30]:
+        for r in t:
+            for on in (None, (7, 15), (1, 15)):
+                for x in r.size(on, name):
+                    for who in (x.get("spenders") or []):
+                        code = next(c for c in L.universe() if name(c) == who)
+                        o = None if r.origin is Origin.both else r.origin
+                        assert L.keepable(code, o or Origin.wild, on) or \
+                               L.keepable(code, Origin.hatchery, on), \
+                            (w, run + 1, r.heading(name), who, on)
+
+
+def test_no_hidden_fish_is_ever_named_to_a_reader(tables):
+    """`HIDDEN` holds the anadromous forms of brook trout and Dolly Varden. They are in the
+    group codes, in no rule of their own, and in NO HEADING on any of the 22 tables — so a name
+    that appears nowhere else on the page was turning up inside sharer lists, telling a reader
+    their limit is shared with a fish the table never mentions. 74 statements did this."""
+    bad = []
+    for w, run, _, _, L, t in tables[:30]:
+        for r in t:
+            for on in (None, (7, 15), (1, 15)):
+                for x in r.size(on, name):
+                    for c in HIDDEN:
+                        if name(c).lower() in (x["says"] + x["plain"]).lower():
+                            bad.append((w, run + 1, r.heading(name), name(c)))
+    assert not bad, bad[:5]
+
+
 def test_every_row_carries_a_size_statement(tables):
     """Silence is not an answer. 46 of 102 sections have no size gate at all; a reader there
     could not tell "any size" from "we did not say". Every row says one or the other, and
@@ -910,8 +957,12 @@ def test_every_row_carries_a_size_statement(tables):
     # steelhead over 50 cm allowed" took it out of that cap and gave it its own.
     assert {x["says"] for x in _row(t, "BT", Origin.hatchery).size(None, name)} == {
         "none under 60 cm", "none under 30 cm",
+        # HIDDEN too: the anadromous forms of brook trout and Dolly Varden are in the group
+        # codes and in no heading on any table, so naming them as sharers tells a reader their
+        # limit is shared with a fish the page never mentions.
         "no more than 1 over 50 cm — shared with " + ", ".join(sorted(
-            name(c).lower() for c in expand(frozenset({"TROUT_CHAR"})) - {"BT", "DV", "LT", "ST"}))}
+            name(c).lower() for c in
+            expand(frozenset({"TROUT_CHAR"})) - {"BT", "DV", "LT", "ST"} - HIDDEN))}
 
 
 def test_the_rest_of_a_group_is_named_as_the_rest(tables):
