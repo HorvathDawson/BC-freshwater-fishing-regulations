@@ -132,7 +132,6 @@ per_daily      a possession MULTIPLIER, not a count
 within         the rule_id of the limit this one sits inside
 over_cm        a CAP on big fish        under_cm  a FLOOR under which fish go back
 band           true only for "none BETWEEN x and y"
-combined       "all species combined"
 water          stream | lake            origin  hatchery | wild
 
 REQUIRED ON THREE TYPES, and the commonest reason an entry is rejected. Each says WHICH WAY

@@ -50,7 +50,8 @@ REGIONS = ["province", "1", "1hg", "2", "3", "4", "5", "6", "7a", "7b", "8"]
 #:   Okanagan R     a closure and its exemption on the same stretch
 WATERS = [("Chilliwack River", 0), ("Cowichan River", 2), ("Okanagan Lake", 0),
           ("Atlin Lake", 0), ("Shuswap Lake", 0), ("Fording River", 1), ("Kootenay Lake", 1),
-          ("Fraser River", 17), ("Kootenay River", 6), ("Okanagan River", 0)]
+          ("Fraser River", 17), ("Kootenay River", 6), ("Okanagan River", 0),
+          ("Kootenay River", 8)]
 CHAPTER = {"province": "zp", "1": "z1", "1hg": "z1", "2": "z2", "3": "z3", "4": "z4",
            "5": "z5", "6": "z6", "7a": "z7a", "7b": "z7b", "8": "z8"}
 
@@ -501,38 +502,48 @@ def _mus(rs) -> set:
                       if "@" in x.get("entry", "") else [])}
 
 
-def _areas_for(regions, kind: str, mus: set) -> dict:
-    """Which of the region's named areas this water is inside.
+#: A RULE THAT BINDS ONLY INSIDE AN AREA IS HOW YOU KNOW YOU ARE IN ONE.
+#:
+#: "Inside a National Park or Ecological Reserve: no fishing" looks like a question about
+#: geometry, and it is not one for a consumer of this file. The atlas has already asked it: the
+#: closure's extent is `within area_kind national_parks`, so it binds to the 10,191 sections that
+#: are in one and to no others. A section carrying the rule IS in a park.
+AREA_MARKERS = {
+    "zp:superior_closures::superior_closures.r1": "a National Park",
+    "zp:superior_closures::superior_closures.r3": "an Ecological Reserve",
+    "zp:national_park_reserves::national_park_reserves.r1":
+        "Pacific Rim, Gwaii Haanas or Gulf Islands National Park Reserve",
+    "zp:superior_closures::superior_closures.r2": "a National Park (a permit is required)",
+    "zp:basic_licence::basic_licence.r2": "a National Park (a B.C. licence is not valid there)",
+}
 
-    ONLY WHERE IT IS KNOWABLE FROM THE RULES. An area written as a management-unit range can be
-    matched against the water's own units. An area written as an area KIND — National Parks,
-    Ecological Reserves — is a question about geometry, and the section data does not carry
-    whether this water is inside one. Saying so is the honest answer; guessing "no" would draw a
-    table that omits a closure.
+
+def _areas_for(regions, kind: str, mus: set, bound_ids: set) -> dict:
+    """Which named areas this stretch is inside.
+
+    TWO QUESTIONS, AND THE CORPUS ANSWERS BOTH — the first version of this answered neither,
+    because it read the EXTENTS of the water's own rules, which say where that rule reaches and
+    nothing about where the water is.
+
+      · An area written as a management-unit range is matched against this water's own units.
+      · An area written as an area KIND is answered by the rule itself being bound here. The
+        atlas resolved that geometry when it cut the section.
     """
-    inside, undecidable = [], []
+    inside = [{"area": AREA_MARKERS[r], "because": f"this stretch carries {r}"}
+              for r in sorted(bound_ids & set(AREA_MARKERS))]
     for reg in regions:
-        for a in ST.areas(reg, kind):
-            ids = {e.get("area_id") for x in a.rule_dicts
+        for a_ in ST.areas(reg, kind):
+            ids = {e.get("area_id") for x in a_.rule_dicts
                    for e in (x.get("extents") or []) if e.get("area_id")}
-            kinds = {e.get("area_kind") for x in a.rule_dicts
-                     for e in (x.get("extents") or []) if e.get("area_kind")}
             covered = set().union(*[_mus_of(i) for i in ids]) if ids else set()
-            if covered:
-                (inside if covered & mus else []).append(
-                    {"region": reg, "name": a.name, "matched_on": sorted(covered & mus)})
-            elif kinds:
-                undecidable.append({"region": reg, "name": a.name,
-                                    "area_kind": sorted(k for k in kinds if k)})
-    return {
-        "inside": inside,
-        "cannot_be_decided_from_these_rules": undecidable,
-        "_note": "An area written as a management-unit range is matched against this water's own "
-                 "units. One written as an area KIND (national_parks, ecological_reserves) is a "
-                 "geometry question the section data cannot answer — treat it as unknown, never "
-                 "as no, because those areas close the water outright.",
-    }
-
+            if covered & mus:
+                inside.append({"area": a_.name, "region": reg,
+                               "because": "its management units include "
+                                          + ", ".join(sorted(covered & mus))})
+    return {"inside": inside,
+            "_note": "Empty means no area rule reaches this stretch — NOT that the question is "
+                     "unanswered. An area closure binds to the sections inside it, so its "
+                     "absence from this stretch's rules is itself the answer."}
 
 _ALL = None
 
@@ -673,7 +684,8 @@ def main(out_path: str) -> int:
             "water_kind": ST.section_kind(water), "item_id": w.get("item"),
             "regions": sorted(here),
             "management_units": sorted(_mus(mine)),
-            "areas": _areas_for(here, ST.section_kind(water), _mus(mine)),
+            "areas": _areas_for(here, ST.section_kind(water), _mus(mine),
+                                {rid(x) for x in rs}),
             "curated_entry": {k: v for k, v in (w.get("entry") or {}).items()
                               if k in ("name", "full", "verbatim")},
             "_rules_note": "This water's OWN rules only — `scope` water or inherited. The rules "

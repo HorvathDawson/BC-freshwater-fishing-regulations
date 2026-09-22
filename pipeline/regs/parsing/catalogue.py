@@ -435,7 +435,14 @@ class CatalogueRule(BaseModel):
     over_cm: Optional[int] = None
     under_cm: Optional[int] = None
     band: bool = False
-    combined: bool = False
+    #: `combined` WAS HERE, and it said nothing. It marked 31 rules as "the count is shared
+    #: across the species" — and every one of those names more than one fish, as do 1,157 rules
+    #: that were never flagged. The flag was a subset of a fact already on the rule, and its
+    #: absence was stored as an explicit `false` on 3,379 rules that ARE shared, which reads as a
+    #: denial. A consumer that believed it turned Region 2's "Bass: 20" into twenty of each.
+    #:
+    #: NAMING MORE THAN ONE FISH IS WHAT MAKES A NUMBER SHARED. Nothing in the corpus means "one
+    #: each": the four group quotas whose sentence says "each" all say "each day" or "each year".
     aggregation_domain: Optional[str] = None
     record_retention: bool = False
 
@@ -595,7 +602,7 @@ class CatalogueRule(BaseModel):
             if self.over_cm and self.under_cm and self.under_cm >= self.over_cm:
                 e.append(f"under_cm {self.under_cm} >= over_cm {self.over_cm} is an impossible slot")
         else:
-            for f in ("take", "unlimited", "per_daily", "within", "band", "combined"):
+            for f in ("take", "unlimited", "per_daily", "within", "band"):
                 if getattr(self, f) not in (None, False):
                     e.append(f"{f} belongs to retention_limit, not {t.value}")
 
@@ -942,7 +949,7 @@ def label(r: CatalogueRule) -> str:
                 head = sp                                # the size phrase carries the count
             else:
                 head = f"{sp} — {r.take} {noun}"
-                if r.combined:
+                if len(expand_species(list(r.species or []))) > 1:
                     head += ", all species combined"
         elif r.per_daily is not None:
             head = f"{sp or 'All game fish'} — possession quota is {r.per_daily} daily quota" \

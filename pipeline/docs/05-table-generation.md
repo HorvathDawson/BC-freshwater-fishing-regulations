@@ -52,6 +52,28 @@ fields like any other**, so nothing downstream parses prose.
 | `windows_are` | `applies` | `applies` | `applies` | `applies` |
 | `when_open` | `false` | `false` | `false` | `false` |
 
+**And what those fields MEAN, on the rule.** Three readings that are not guessable from the
+fields and are not the same in every rule, so the export carries each as its own field rather
+than leaving every consumer to re-derive it:
+
+| field | our `r4` | a sized sibling `r2` | a floor `r8` | a seasonal rule |
+|---|---|---|---|---|
+| `reads_as` | `quota` | `quota` | `size gate` | `closed` |
+| `size_rule` | — | `counts over 50` | `floor 30` | — |
+| `shared_number` | **`shared`** — it names 13 fish | `shared` | `shared` | `shared` |
+
+- **`reads_as`** — a `take: 0` is a closure, *or* a release, *or* a size gate, *or* one method
+  shut. Reading it as a closure called 1,674 of 1,693 rule sets closed.
+- **`size_rule`** — `under_cm` is **always a floor and never a ceiling**, except on an annual
+  quota, where the number *counts* the fish above it. "Rainbow trout daily quota = 1 (none under
+  50 cm)" is a quota of one AND a floor at 50; it is not "only one may be under 50 cm". On a rule
+  that is not about keeping, a size says *which fish* the rule is about — a stamp for the big
+  ones is not a size limit.
+- **`shared_number`** — **more than one fish named is one number between them.** "Bass: 20" is
+  twenty bass, not twenty of each. There is no flag and no exception: a `combined` field used to
+  sit on the rule, it marked 31 of the 1,188 cases and was written `false` on the other 3,379, so
+  its absence read as a denial. It has been removed from the corpus.
+
 **And its provenance, on the rule itself.** A regulation a reader cannot trace to the book is a
 regulation they cannot check, so the trace is a field like any other rather than something a
 consumer joins for itself:
