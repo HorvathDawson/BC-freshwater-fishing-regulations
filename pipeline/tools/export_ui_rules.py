@@ -30,12 +30,12 @@ import json
 import sys
 from collections import defaultdict
 
-from pipeline.regs.parsing.catalogue import DEFINITIONAL_SIZE, SPECIES_GROUPS, _SPECIES_WORDS
+from pipeline.regs.parsing.catalogue import (DEFINITIONAL_SIZE, SPECIES_GROUPS,
+                                             _SPECIES_WORDS, expand_species)
 from pipeline.regs.parsing.species import SPECIES
 from pipeline.regs.table import state as ST
 from pipeline.regs.table.authority import source_of
 from pipeline.regs.table.corpus import rid, rules, sections
-from pipeline.regs.table.subject import expand
 
 #: Every chapter the book has. `1hg` is Haida Gwaii, which is administered as Region 1 and
 #: printed as a table of its own — listing it under Region 1 offers one table under two names.
@@ -167,10 +167,10 @@ def species_object() -> dict:
     """
     in_group = defaultdict(list)
     for g in SPECIES_GROUPS:
-        for c in expand(frozenset({g})):
+        for c in set(expand_species([g])) - set(OPEN_GROUPS):
             in_group[c].append(g)
     out = {}
-    for code in sorted({c for g in SPECIES_GROUPS for c in expand(frozenset({g}))}):
+    for code in sorted({c for g in SPECIES_GROUPS for c in set(expand_species([g])) - set(OPEN_GROUPS)}):
         rec = SPECIES.get(code)
         d = {"code": code, "name": _name(code),
              "scientific": rec.scientific if rec else None,
@@ -310,14 +310,19 @@ def _rule(x: dict) -> dict:
     out = dict(x)
     written = list(x.get("species") or [])
     out["species_written"] = written
-    out["species"] = sorted(expand(frozenset(written))) if written else []
-    # AN OPEN SET IS NOT AN EMPTY ONE. `ALL_FIN_FISH` and `NON_GAME_FISH` expand to nothing ON
-    # PURPOSE: they mean "everything that is a fish", which is not a list the province publishes
-    # and would go stale the moment it was written down. Three rules say it — "any fish willfully
-    # or accidentally snagged must be released immediately" is one — and a consumer that reads
-    # the empty list as "no species" drops exactly the rules that reach the widest. So the claim
-    # travels separately, and `species` is never the whole story for these.
-    openset = [g for g in written if g in OPEN_GROUPS]
+    # ONE EXPANDER, `catalogue.expand_species` — transitive, and it returns an OPEN group's own
+    # code rather than nothing, so "everything with fins" survives as a claim instead of
+    # vanishing into an empty list. There were two implementations of this and they differed on
+    # exactly that.
+    got = expand_species(written) if written else []
+    out["species"] = sorted(c for c in got if c not in OPEN_GROUPS)
+    # AN OPEN SET IS NOT AN EMPTY ONE. `ALL_FIN_FISH` and `NON_GAME_FISH` mean "everything that is
+    # a fish", which is not a list the province publishes and would go stale the moment it was
+    # written down — so they have no members, and `expand_species` returns the group's own code
+    # rather than nothing. Three rules say it, "any fish willfully or accidentally snagged must
+    # be released immediately" among them, and a consumer reading an empty list as "no species"
+    # drops exactly the rules that reach widest. The claim travels in `species_open`.
+    openset = [g for g in got if g in OPEN_GROUPS]
     if openset:
         out["species_open"] = openset
         out["species_note"] = ("This rule is about " + " and ".join(
@@ -326,7 +331,7 @@ def _rule(x: dict) -> dict:
     ex = list(x.get("species_except") or [])
     if ex:
         out["species_except_written"] = ex
-        out["species_except"] = sorted(expand(frozenset(ex)))
+        out["species_except"] = sorted(c for c in expand_species(ex) if c not in OPEN_GROUPS)
     # WHAT THIS RULE READS AS — derived from the fields above, in one place, because every
     # consumer that re-derived it got it wrong in a different way.
     take, may = x.get("take"), x.get("may_target")
@@ -607,8 +612,8 @@ def main(out_path: str) -> int:
             "_note": "The book writes rules about groups, and a table draws a group as ONE line "
                      "where every member's answer agrees. Every rule above carries base codes, "
                      "so this is for rebuilding that grouping, never for expanding a rule.",
-            **{g: {"name": _name(g), "members": sorted(expand(frozenset({g})))}
-               for g in sorted(SPECIES_GROUPS) if expand(frozenset({g}))},
+            **{g: {"name": _name(g), "members": sorted(set(expand_species([g])) - set(OPEN_GROUPS))}
+               for g in sorted(SPECIES_GROUPS) if set(expand_species([g])) - set(OPEN_GROUPS)},
             **{g: {"name": _name(g), "members": [], "open_set": True, "means": why,
                    "_warning": "Empty ON PURPOSE. A rule about this group has an empty `species` "
                                "and carries `species_open` instead. Reading the empty list as "

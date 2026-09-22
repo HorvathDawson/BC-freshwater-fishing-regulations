@@ -318,14 +318,39 @@ KNOWN_SPECIES = frozenset(
 
 def expand_species(codes: List[str]) -> List[str]:
     """A species list with every group replaced by its members, de-duplicated, order preserved.
-    Anything that is not a group passes through untouched."""
+    Anything that is not a group passes through untouched.
+
+    TRANSITIVELY, AND DOWN TO LEAVES. A group may hold a group. Expanding one level left `TROUT`
+    unexpanded inside `TROUT_CHAR`, so a rule about trout did not register under a rule about
+    trout and char; and `ALL_GAME_FISH` holds the individual fish but not the code `TROUT_CHAR`,
+    so comparing sets that still held group codes said "all game fish does not cover trout and
+    char" — and a river closed to every game fish reported a keep limit of 5 for trout. The
+    group tables happen to be flat today, so one level would give the same answer; this does not
+    depend on their staying that way.
+
+    (There were two implementations of this. `table/subject.py` had the transitive one and this
+    had the one-level one, and they disagreed on exactly one thing — see below — which is the
+    kind of difference that is invisible until it is a wrong number on a page. This is the only
+    one now.)
+
+    AN EMPTY GROUP PASSES THROUGH. `NON_GAME_FISH` and `ALL_FIN_FISH` are complements — "every
+    fish that is not on the provincial list", "everything with fins" — not memberships, and
+    expanding them to `[]` erases the rule. Three rules say it, including "any fish willfully or
+    accidentally snagged must be released immediately". The caller sees the claim that was
+    actually made and decides what to do with it.
+    """
     out: List[str] = []
-    for c in codes:
-        # An empty group (NON_GAME_FISH) is a complement, not a membership: expanding it to []
-        # would erase the rule. Pass it through so a caller sees the claim it actually made.
-        for m in (SPECIES_GROUPS.get(c) or (c,)):
-            if m not in out:
-                out.append(m)
+    stack = list(reversed(codes))
+    while stack:
+        c = stack.pop()
+        kids = SPECIES_GROUPS.get(c)
+        if kids:
+            stack.extend(reversed([k for k in kids]))
+        elif c in SPECIES_GROUPS:            # a group that expands to nothing: the claim itself
+            if c not in out:
+                out.append(c)
+        elif c not in out:
+            out.append(c)
     return out
 
 
